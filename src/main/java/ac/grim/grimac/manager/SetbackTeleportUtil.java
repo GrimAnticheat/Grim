@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,10 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.SetBackData;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.TeleportData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -51,7 +55,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
     long lastWorldResync = 0;
-    public int lastTeleportId = Integer.MIN_VALUE;
 
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -253,41 +256,40 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         double trueTeleportY = (teleportPos.isRelativeY() ? player.y : 0) + teleportPos.getLocation().getY();
         double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
 
-        if (lastTransaction < teleportPos.getTransaction()) {
-            // The player has attempted to accept the teleport too early
-            if (lastTeleportId == teleportPos.getTeleportId()) {
-                player.timedOut();
-            }
-            return teleportData; // No pending teleports
-        }
-
         // There seems to be a version difference in teleports past 30 million... just clamp the vector
         Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
         double threshold = teleportPos.isRelativeX() ? player.getMovementThreshold() : 0;
         boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
-        if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
-            pendingTeleports.poll();
-            hasAcceptedSpawnTeleport = true;
+        while (true) {
+            if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
+                pendingTeleports.poll();
+                hasAcceptedSpawnTeleport = true;
 
-            // Player has accepted their setback!
-            // We can compare transactions to check if equals because each teleport gets its own transaction
-            if (requiredSetBack != null && requiredSetBack.getTeleportData().getTransaction() == teleportPos.getTransaction()) {
-                // Fix onGround being wrong when teleporting
-                if (!player.compensatedEntities.getSelf().inVehicle()) {
-                    player.lastOnGround = player.packetStateData.packetPlayerOnGround;
+                // Player has accepted their setback!
+                // We can compare transactions to check if equals because each teleport gets its own transaction
+                if (requiredSetBack != null && requiredSetBack.getTeleportData().getTransaction() == teleportPos.getTransaction()) {
+                    // Fix onGround being wrong when teleporting
+                    if (!player.compensatedEntities.getSelf().inVehicle()) {
+                        player.lastOnGround = player.packetStateData.packetPlayerOnGround;
+                    }
+
+                    teleportData.setSetback(requiredSetBack);
+                    requiredSetBack.setComplete(true);
                 }
 
-                teleportData.setSetback(requiredSetBack);
-                requiredSetBack.setComplete(true);
+                teleportData.setTeleportData(teleportPos);
+                teleportData.setTeleport(true);
+                break;
+            } else if (lastTransaction > teleportPos.getTransaction()) {
+                // The player ignored the teleport (and this teleport matters), resynchronize
+                player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
+                if (pendingTeleports.size() > 1) {
+                    executeViolationSetback();
+                }
             }
-
-            teleportData.setTeleportData(teleportPos);
-            teleportData.setTeleport(true);
-        } else if (lastTransaction > teleportPos.getTransaction() || lastTeleportId == teleportPos.getTeleportId()) {
-            // The player ignored the teleport, kick them.
-            player.timedOut();
         }
+
 
         return teleportData;
     }
@@ -366,11 +368,26 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
         TeleportData data = new TeleportData(new Vector(position.getX(), position.getY(), position.getZ()), flags, transaction, teleportId);
-        requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
         pendingTeleports.add(data);
 
-        if (!requiredSetBack.getTeleportData().isRelativeX() && !requiredSetBack.getTeleportData().isRelativeY() && !requiredSetBack.getTeleportData().isRelativeZ()) {
-            this.lastKnownGoodPosition = new Vector3d(position.getX(), position.getY(), position.getZ());
+        Vector3d safePosition = new Vector3d(position.getX(), position.getY(), position.getZ());
+
+        // We must convert relative teleports to avoid them becoming client controlled in the case of setback
+        if (requiredSetBack.getTeleportData().isRelativeX()) {
+            safePosition = safePosition.withX(safePosition.getX() + lastKnownGoodPosition.getX());
         }
+
+        if (requiredSetBack.getTeleportData().isRelativeY()) {
+            safePosition = safePosition.withY(safePosition.getY() + lastKnownGoodPosition.getY());
+        }
+
+        if (requiredSetBack.getTeleportData().isRelativeZ()) {
+            safePosition = safePosition.withZ(safePosition.getZ() + lastKnownGoodPosition.getZ());
+        }
+
+        data = new TeleportData(new Vector(safePosition.getX(), safePosition.getY(), safePosition.getZ()), flags, transaction, teleportId);
+        requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
+
+        this.lastKnownGoodPosition = safePosition;
     }
 }
