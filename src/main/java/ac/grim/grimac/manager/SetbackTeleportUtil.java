@@ -373,15 +373,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         Vector3d safePosition = new Vector3d(position.getX(), position.getY(), position.getZ());
 
         // We must convert relative teleports to avoid them becoming client controlled in the case of setback
-        if (requiredSetBack.getTeleportData().isRelativeX()) {
+        if (flags.isSet(RelativeFlag.X.getMask())) {
             safePosition = safePosition.withX(safePosition.getX() + lastKnownGoodPosition.getX());
         }
 
-        if (requiredSetBack.getTeleportData().isRelativeY()) {
+        if (flags.isSet(RelativeFlag.Y.getMask())) {
             safePosition = safePosition.withY(safePosition.getY() + lastKnownGoodPosition.getY());
         }
 
-        if (requiredSetBack.getTeleportData().isRelativeZ()) {
+        if (flags.isSet(RelativeFlag.Z.getMask())) {
             safePosition = safePosition.withZ(safePosition.getZ() + lastKnownGoodPosition.getZ());
         }
 
