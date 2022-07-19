@@ -41,7 +41,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // This required setback data is the head of the teleport.
     // It is set by both bukkit and netty due to going on the bukkit thread to setback players
     SetBackData requiredSetBack = null;
-    public SetbackLocationVelocity lastKnownGoodPosition;
+    public Vector3d lastKnownGoodPosition;
 
     // Resetting velocity can be abused to "fly"
     // Therefore, only allow one setback position every half second to patch this flight exploit
@@ -58,11 +58,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         super(player);
     }
 
-    /**
-     * Generates safe setback locations by looking at the current prediction
-     * <p>
-     * 2021-10-9 This method seems to be safe and doesn't allow bypasses
-     */
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // We must first check if the player has accepted their setback
@@ -73,14 +68,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // The player needs to now wait for their vehicle to go into the right place before getting back in
             if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
             // Teleport, let velocity be reset
-            lastKnownGoodPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
+            lastKnownGoodPosition = new Vector3d(player.x, player.y, player.z);
             blockOffsets = false;
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
             cheatVehicleInterpolationDelay--;
             // No simulation... we can do that later. We just need to know the valid position.
             // As we didn't setback here, the new position is known to be safe!
-            lastKnownGoodPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), player.clientVelocity.clone());
+            lastKnownGoodPosition = new Vector3d(player.x, player.y, player.z);
         } else {
             setbackConfirmTicksAgo = 0; // Pending setback
         }
@@ -90,19 +85,19 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (player.gamemode == GameMode.SPECTATOR || player.disableGrim)
             return; // We don't care about spectators, they don't flag
         if (lastKnownGoodPosition == null) return; // Player hasn't spawned yet
-        blockMovementsUntilResync(lastKnownGoodPosition.position, false, true, true);
+        blockMovementsUntilResync(true, true);
     }
 
-    public void blockMovementAndResyncToLastValidPositionAndVelocity() {
+    public void executeNonSimulatingSetback() {
         if (player.gamemode == GameMode.SPECTATOR || player.disableGrim)
             return; // We don't care about spectators, they don't flag
         if (lastKnownGoodPosition == null) return; // Player hasn't spawned yet
-        blockMovementsUntilResync(lastKnownGoodPosition.position, false, false, false);
+        blockMovementsUntilResync(false, false);
     }
 
-    public boolean executeViolationSetback(boolean force) {
+    public boolean executeViolationSetback() {
         if (isExempt()) return false;
-        blockMovementsUntilResync(lastKnownGoodPosition.position, force, true, false);
+        blockMovementsUntilResync(true, false);
         return true;
     }
 
@@ -117,10 +112,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return false;
     }
 
-    private void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition, boolean isResync) {
+    private void blockMovementsUntilResync(boolean simulateNextTickPosition, boolean isResync) {
         if (requiredSetBack == null) return; // Hasn't spawned
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
-        if (!force && isPendingSetback()) return; // Don't spam setbacks
+        if (isPendingSetback()) return; // Don't spam setbacks
 
         // Only let us full resync once every five seconds to prevent unneeded bukkit load
         if (System.currentTimeMillis() - lastWorldResync > 5 * 1000) {
@@ -129,38 +124,23 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         }
 
         Vector clientVel = player.predictedVelocity.vector.clone();
+
+        Vector futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
+        Vector futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
+
+        // Velocity sets
+        if (futureKb != null) {
+            clientVel = futureKb;
+        }
+        // Explosion adds
+        if (futureExplosion != null) {
+            clientVel.add(futureExplosion);
+        }
+
+        Vector position = new Vector(lastKnownGoodPosition.getX(), lastKnownGoodPosition.getY(), lastKnownGoodPosition.getZ());
+
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, position.getX(), position.getY(), position.getZ());
-
-        // Apply knockback before applying explosions to stop people from ignoring explosions
-        if (player.firstBreadKB != null && player.likelyKB == null) {
-            clientVel = player.firstBreadKB.vector.clone();
-        } else if (player.likelyKB != null) {
-            clientVel = player.likelyKB.vector.clone();
-        }
-
-        // First bread explosion needs to be applied
-        // Only apply if likely is not a valid explosion
-        // Don't apply this twice
-        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
-            clientVel.add(player.firstBreadExplosion.vector);
-        } else if (player.likelyExplosions != null) { // Likely explosion gets priority
-            clientVel.add(player.likelyExplosions.vector);
-        }
-
-        // Prevent double velocity/explosions
-        if (player.likelyExplosions != null) {
-            player.likelyExplosions.hasSetbackForThis = true;
-        }
-        if (player.firstBreadExplosion != null) {
-            player.firstBreadExplosion.hasSetbackForThis = true;
-        }
-        if (player.likelyKB != null) {
-            player.likelyKB.hasSetbackForThis = true;
-        }
-        if (player.firstBreadKB != null) {
-            player.firstBreadKB.hasSetbackForThis = true;
-        }
 
         // Mini prediction engine - simulate collisions
         if (simulateNextTickPosition) {
@@ -171,14 +151,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
             position.setY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
             position.setZ(position.getZ() + collide.getZ());
-        }
 
-        // We must ALWAYS apply friction, else we simply double the player's movement
-        // TODO: Add support for elytra, water, lava, and end of ticks
-        if (player.wasTouchingWater) {
-            PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
-        } else { // Gliding doesn't have friction, we handle it differently
-            PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
+            // TODO: Add support for elytra and lava end of ticks (for now, we just simulate non-elytra non-lava)
+            if (player.wasTouchingWater) {
+                PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
+            } else { // Gliding doesn't have friction, we handle it differently
+                PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
+            }
         }
 
         player.boundingBox = oldBB; // reset back to the new bounding box
@@ -186,11 +165,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (!hasAcceptedSpawnTeleport) clientVel = null; // if the player hasn't spawned... don't force kb
 
         // Don't let people get new velocities on demand
-        if (player.checkManager.getKnockbackHandler().isPendingKb() ||
-                player.checkManager.getExplosionHandler().isPendingExplosion()) {
+        if (player.checkManager.getKnockbackHandler().isPendingKb() || player.checkManager.getExplosionHandler().isPendingExplosion()) {
             clientVel = null;
         }
 
+        // Something weird has occurred in the player's movement, block offsets until we resync
         if (isResync) {
             blockOffsets = true;
         }
@@ -204,7 +183,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;
-        Location position = data.getTeleportData().getLocation();
+        Vector position = data.getTeleportData().getLocation();
 
         try {
             // Player is in a vehicle
@@ -386,12 +365,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
-        TeleportData data = new TeleportData(new Location(null, position.getX(), position.getY(), position.getZ()), flags, transaction, teleportId);
+        TeleportData data = new TeleportData(new Vector(position.getX(), position.getY(), position.getZ()), flags, transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
         pendingTeleports.add(data);
 
         if (!requiredSetBack.getTeleportData().isRelativeX() && !requiredSetBack.getTeleportData().isRelativeY() && !requiredSetBack.getTeleportData().isRelativeZ()) {
-            this.lastKnownGoodPosition = new SetbackLocationVelocity(new Vector3d(position.getX(), position.getY(), position.getZ()));
+            this.lastKnownGoodPosition = new Vector3d(position.getX(), position.getY(), position.getZ());
         }
     }
 }

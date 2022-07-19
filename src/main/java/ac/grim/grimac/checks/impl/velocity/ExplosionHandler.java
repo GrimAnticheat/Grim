@@ -9,14 +9,14 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
 public class ExplosionHandler extends PacketCheck {
-    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
+    Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
@@ -58,6 +58,24 @@ public class ExplosionHandler extends PacketCheck {
                 event.getPostTasks().add(player::sendTransaction);
             }
         }
+    }
+
+    public Vector getFutureExplosion() {
+        // Chronologically in the future
+        if (firstBreadMap.size() > 0) {
+            return firstBreadMap.peek().vector;
+        }
+        // Less in the future
+        if (lastExplosionsKnownTaken != null) {
+            return lastExplosionsKnownTaken.vector;
+        }
+        // Uncertain, might be in the future
+        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
+            return player.firstBreadExplosion.vector;
+        } else if (player.likelyExplosions != null) { // Known to be in the present
+            return player.likelyExplosions.vector;
+        }
+        return null;
     }
 
     public boolean wouldFlag() {
@@ -150,7 +168,7 @@ public class ExplosionHandler extends PacketCheck {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyExplosions.hasSetbackForThis);
+                        player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 }
 

@@ -366,30 +366,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.checkManager.onPrePredictionReceivePacket(event);
 
-        // It's not optimal, but we ignore packets blocked by timer because it could be used to interpolate
-        // entities for reach faster, and mainly because it fucks with setbacks too much.
+        // The player flagged crasher or timer checks, therefore we must protect predictions against these attacks
         if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)) {
-            player.getSetbackTeleportUtil().blockMovementAndResyncToLastValidPositionAndVelocity();
             return;
         }
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
-
             Location pos = flying.getLocation();
-
-            if (flying.hasPositionChanged()) {
-                if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())
-                        || Double.isInfinite(pos.getX()) || Double.isInfinite(pos.getY()) || Double.isInfinite(pos.getZ()) ||
-                        Float.isNaN(pos.getYaw()) || Float.isNaN(pos.getPitch()) ||
-                        Float.isInfinite(pos.getYaw()) || Float.isInfinite(pos.getPitch())) {
-                    player.checkManager.getPacketCheck(CrashC.class).flagAndAlert("xyzYP: " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ", " + pos.getYaw() + ", " + pos.getPitch());
-                    player.getSetbackTeleportUtil().executeViolationSetback(false);
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 

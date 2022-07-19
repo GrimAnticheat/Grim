@@ -11,14 +11,15 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends PacketCheck {
-    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
+    Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
+    Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
     VelocityData firstBreadOnlyKnockback = null;
 
     boolean wasExplosionZeroPointZeroThree = false;
@@ -63,6 +64,24 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
+    public Vector getFutureKnockback() {
+        // Chronologically in the future
+        if (firstBreadMap.size() > 0) {
+            return firstBreadMap.peek().vector;
+        }
+        // Less in the future
+        if (lastKnockbackKnownTaken.size() > 0) {
+            return lastKnockbackKnownTaken.peek().vector;
+        }
+        // Uncertain, might be in the future
+        if (player.firstBreadKB != null && player.likelyKB == null) {
+            return player.firstBreadKB.vector.clone();
+        } else if (player.likelyKB != null) { // Known to be in the present
+            return player.likelyKB.vector.clone();
+        }
+        return null;
+    }
+
     private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
@@ -84,6 +103,7 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     private void tickKnockback(int transactionID) {
+        if (firstBreadMap.isEmpty()) return;
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread knockback
@@ -170,10 +190,10 @@ public class KnockbackHandler extends PacketCheck {
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
-                    player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyKB.hasSetbackForThis);
+                    player.getSetbackTeleportUtil().executeViolationSetback();
                 } else if (flag()) { // This velocity was sent by the server.
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyKB.hasSetbackForThis);
+                        player.getSetbackTeleportUtil().executeViolationSetback();
                     }
 
                     String formatOffset = "o: " + formatOffset(player.likelyKB.offset);

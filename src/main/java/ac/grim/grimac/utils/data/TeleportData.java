@@ -4,12 +4,12 @@ import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 @AllArgsConstructor
 @Getter
 public class TeleportData {
-    Location location;
+    Vector location;
     RelativeFlag flags;
     int transaction;
     @Setter

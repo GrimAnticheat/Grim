@@ -70,6 +70,7 @@ public class TimerCheck extends PacketCheck {
             if (flag()) {
                 // Cancel the packet
                 if (player.shouldModifyPackets()) event.setCancelled(true);
+                player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 alert("");
             }
 

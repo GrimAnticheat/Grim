@@ -488,7 +488,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public CompensatedInventory getInventory() {
-        return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
+        return checkManager.getPacketCheck(CompensatedInventory.class);
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
