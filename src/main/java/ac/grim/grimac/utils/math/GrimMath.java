@@ -19,7 +19,7 @@ public class GrimMath {
             b = temp;
         }
 
-        while (a > MINIMUM_DIVISOR) { // Minimum minecraft sensitivity
+        while (b > MINIMUM_DIVISOR) { // Minimum minecraft sensitivity
             double temp = a - (Math.floor(a / b) * b);
             a = b;
             b = temp;
