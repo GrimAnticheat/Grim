@@ -21,17 +21,7 @@ import java.util.*;
 public class PredictionEngine {
 
     public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel) {
-        if (!player.compensatedEntities.getSelf().inVehicle()) {
-            double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
-            if (d0 != player.lastX + outputVel.getX()) {
-                outputVel = new Vector(d0 - player.lastX, outputVel.getY(), outputVel.getZ());
-            }
-
-            if (d1 != player.lastZ + outputVel.getZ()) {
-                outputVel = new Vector(outputVel.getX(), outputVel.getY(), d1 - player.lastZ);
-            }
-        }
+        // TODO: Reimplement
         return outputVel;
     }
 
