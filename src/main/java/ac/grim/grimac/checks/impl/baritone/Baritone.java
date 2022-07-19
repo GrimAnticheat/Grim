@@ -21,12 +21,10 @@ public class Baritone extends RotationCheck {
         final HeadRotation from = rotationUpdate.getFrom();
         final HeadRotation to = rotationUpdate.getTo();
 
-        final float deltaPitch = to.getPitch() - from.getPitch();
-
-        boolean isStraight = deltaPitch - rotationUpdate.getDeltaXRot() == 0 || rotationUpdate.getDeltaXRot() == 0;
+        final float deltaPitch = Math.abs(to.getPitch() - from.getPitch());
 
         // Baritone works with small degrees, limit to 1 degrees to pick up on baritone slightly moving aim to bypass anticheats
-        if (isStraight && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
+        if (rotationUpdate.getDeltaXRot() == 0 && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
             if (rotationUpdate.getProcessor().divisorY < GrimMath.MINIMUM_DIVISOR) {
                 verbose++;
                 if (verbose > 8) {
