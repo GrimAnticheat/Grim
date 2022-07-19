@@ -166,8 +166,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, position.getX(), position.getY(), position.getZ());
 
-        Bukkit.broadcastMessage("Setback pos is " + lastKnownGoodPosition.getPos() + " with vel " +  lastKnownGoodPosition.vector + " friction " + clientVel + " and future kb " + futureKb);
-
         // Mini prediction engine - simulate collisions
         if (simulateNextTickPosition) {
             Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
