@@ -246,22 +246,20 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public TeleportAcceptData checkTeleportQueue(double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
-        int lastTransaction = player.lastTransactionReceived.get();
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
-        TeleportData teleportPos = pendingTeleports.peek();
-        if (teleportPos == null) return teleportData;
+        TeleportData teleportPos;
+        while ((teleportPos = pendingTeleports.peek()) != null) {
+            double trueTeleportX = (teleportPos.isRelativeX() ? player.x : 0) + teleportPos.getLocation().getX();
+            double trueTeleportY = (teleportPos.isRelativeY() ? player.y : 0) + teleportPos.getLocation().getY();
+            double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
 
-        double trueTeleportX = (teleportPos.isRelativeX() ? player.x : 0) + teleportPos.getLocation().getX();
-        double trueTeleportY = (teleportPos.isRelativeY() ? player.y : 0) + teleportPos.getLocation().getY();
-        double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
+            // There seems to be a version difference in teleports past 30 million... just clamp the vector
+            Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
+            double threshold = teleportPos.isRelativeX() ? player.getMovementThreshold() : 0;
+            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
-        // There seems to be a version difference in teleports past 30 million... just clamp the vector
-        Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
-        double threshold = teleportPos.isRelativeX() ? player.getMovementThreshold() : 0;
-        boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
-
-        while (true) {
+            Bukkit.broadcastMessage("Is X " + (Math.abs(clamped.getX() - x) <= threshold) + " " + closeEnoughY + " is Z " + (Math.abs(clamped.getZ() - z) <= threshold));
             if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
@@ -281,15 +279,18 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 teleportData.setTeleportData(teleportPos);
                 teleportData.setTeleport(true);
                 break;
-            } else if (lastTransaction > teleportPos.getTransaction()) {
+            } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
                 player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
-                if (pendingTeleports.size() > 1) {
+                pendingTeleports.poll();
+                if (pendingTeleports.isEmpty()) {
                     executeViolationSetback();
                 }
+                continue;
             }
+            // No farther setbacks before the player's transactoin
+            break;
         }
-
 
         return teleportData;
     }

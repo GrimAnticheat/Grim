@@ -78,7 +78,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 teleport.setX(pos.getX());
                 teleport.setY(pos.getY());
                 teleport.setZ(pos.getZ());
-                teleport.setRelativeMask((byte) 0);
+                teleport.setRelativeMask((byte) (teleport.getRelativeFlags().getMask() & 0b11000));
             }
 
             player.sendTransaction();
