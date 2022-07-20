@@ -38,11 +38,9 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     private final Map<String, Function<GrimUser, String>> variableReplacements = new ConcurrentHashMap<>();
 
     public String replaceVariables(GrimUser user, String content, boolean colors) {
+        if (colors) content = ChatColor.translateAlternateColorCodes('&', content);
         for (Map.Entry<String, Function<GrimUser, String>> entry : variableReplacements.entrySet()) {
             content = content.replace(entry.getKey(), entry.getValue().apply(user));
-        }
-        if (colors) {
-            content = ChatColor.translateAlternateColorCodes('&', content);
         }
         return content;
     }
@@ -81,6 +79,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
         variableReplacements.put("%fast_math%", user -> !user.isVanillaMath() + "");
         variableReplacements.put("%tps%", user -> String.format("%.2f", SpigotReflectionUtil.getTPS()));
         variableReplacements.put("%version%", GrimUser::getVersionName);
-        variableReplacements.put("%prefix%", user -> GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
+        variableReplacements.put("%prefix%", user -> ChatColor.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»")));
     }
 }
