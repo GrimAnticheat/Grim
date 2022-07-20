@@ -236,7 +236,7 @@ public class GrimPlayer implements GrimUser {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(likelyKB.vector.clone(), VectorData.VectorType.FirstBreadKnockback));
+            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(firstBreadKB.vector.clone(), VectorData.VectorType.FirstBreadKnockback));
         }
 
         if (likelyKB != null) {
