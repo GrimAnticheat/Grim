@@ -298,17 +298,14 @@ public class CompensatedWorld {
                 data.setOpen(!data.isOpen());
                 player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
-                // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
-                if (otherDoor.getType() == data.getType()) {
-                    // The doors are probably connected
-                    boolean isBottom = data.getHalf() == Half.LOWER;
-                    // 1.12- stores door data in the bottom door
-                    if (!isBottom)
-                        data = otherDoor;
-                    // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
-                    // 1.12- - We can just flip a bit in the lower door and call it a day
+                // 1.12 attempts to change the bottom half of the door first
+                if (data.getHalf() == Half.LOWER) {
                     data.setOpen(!data.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY + (isBottom ? 0 : -1), blockZ, data.getGlobalId());
+                    player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+                } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
+                    // Then tries setting the first bit of whatever is below it, disregarding it's type
+                    otherDoor.setOpen(!otherDoor.isOpen());
+                    player.compensatedWorld.updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
         } else if (BlockTags.TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())) {
