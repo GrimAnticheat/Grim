@@ -8,7 +8,6 @@ public class VelocityData {
     public final int transaction;
     public double offset = Integer.MAX_VALUE;
     public boolean isSetback;
-    public boolean shouldResend = false;
 
     public VelocityData(int entityID, int transaction, boolean isSetback, Vector vector) {
         this.entityID = entityID;

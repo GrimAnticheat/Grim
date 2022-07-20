@@ -62,18 +62,6 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public Vector getFutureKnockback() {
-        for (VelocityData data : firstBreadMap) {
-            data.shouldResend = false;
-        }
-        for (VelocityData data : lastKnockbackKnownTaken) {
-            data.shouldResend = false;
-        }
-        if (player.firstBreadKB != null) {
-            player.firstBreadKB.shouldResend = false;
-        }
-        if (player.likelyKB != null) {
-            player.likelyKB.shouldResend = false;
-        }
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
             return firstBreadMap.peek().vector;
@@ -133,15 +121,6 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void onTeleport() {
-        // Don't exempt if the player used grim to get a teleport here.
-        // This will flag but it's required to stop abuse
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            forceExempt();
-        }
-    }
-
     public void forceExempt() {
         // Unsure knockback was taken
         if (player.firstBreadKB != null) {
@@ -198,10 +177,10 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
-                if (player.likelyKB.isSetback && player.likelyKB.shouldResend) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
+                if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
                     player.getSetbackTeleportUtil().executeViolationSetback();
                 } else if (flag()) { // This velocity was sent by the server.
-                    if (getViolations() > setbackVL && player.likelyKB.shouldResend) {
+                    if (getViolations() > setbackVL) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
 

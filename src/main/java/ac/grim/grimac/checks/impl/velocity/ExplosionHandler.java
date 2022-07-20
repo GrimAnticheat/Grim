@@ -58,23 +58,6 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public Vector getFutureExplosion() {
-        for (VelocityData data : firstBreadMap) {
-            data.shouldResend = false;
-        }
-        if (lastExplosionsKnownTaken != null) {
-            lastExplosionsKnownTaken.shouldResend = false;
-        }
-        if (firstBreadAddedExplosion != null) {
-            firstBreadAddedExplosion.shouldResend = false;
-        }
-        if (player.firstBreadExplosion != null) {
-            player.firstBreadExplosion.shouldResend = false;
-        }
-        if (player.likelyExplosions != null) {
-            player.likelyExplosions.shouldResend = false;
-        }
-
-
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
             return firstBreadMap.peek().vector;
@@ -176,7 +159,7 @@ public class ExplosionHandler extends PacketCheck {
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
-                    if (getViolations() > setbackVL && player.likelyKB.shouldResend) {
+                    if (getViolations() > setbackVL) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 }
