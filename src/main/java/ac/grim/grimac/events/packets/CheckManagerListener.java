@@ -387,7 +387,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.compensatedEntities.getSelf().inVehicle()) {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
 
