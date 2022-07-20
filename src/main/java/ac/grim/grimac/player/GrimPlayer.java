@@ -236,7 +236,7 @@ public class GrimPlayer implements GrimUser {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback));
+            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(firstBreadKB.vector.clone(), VectorData.VectorType.FirstBreadKnockback));
         }
 
         if (likelyKB != null) {
@@ -488,7 +488,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public CompensatedInventory getInventory() {
-        return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
+        return checkManager.getPacketCheck(CompensatedInventory.class);
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height

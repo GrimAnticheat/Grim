@@ -54,6 +54,7 @@ public class PostCheck extends PacketCheck {
             post.clear();
             sentFlying = true;
         } else {
+            // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
             PacketTypeCommon packetType = event.getPacketType();
             if (WINDOW_CONFIRMATION.equals(packetType) || PONG.equals(packetType)) {
                 if (sentFlying && !post.isEmpty()) {
@@ -65,13 +66,13 @@ public class PostCheck extends PacketCheck {
                     || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
                     || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
-            } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
-                // Why do 1.15+ players send the click window packet whenever? This doesn't make sense.
+            } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
+                // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
                 if (sentFlying) post.add(event.getPacketType());
             } else if (ANIMATION.equals(packetType)
                     && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients
                     || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) // when on 1.9+ servers
-                    && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15)) { // Unsure what mojang did in 1.15, but animations no longer work
+                    && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
                 if (sentFlying) post.add(event.getPacketType());
             } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
                     && ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaRewind doesn't 1.9 players

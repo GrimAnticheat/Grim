@@ -3,20 +3,21 @@ package ac.grim.grimac.checks.impl.velocity;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
 public class ExplosionHandler extends PacketCheck {
-    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
+    Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
@@ -28,10 +29,6 @@ public class ExplosionHandler extends PacketCheck {
 
     public ExplosionHandler(GrimPlayer player) {
         super(player);
-    }
-
-    public boolean isPendingExplosion() {
-        return firstBreadMap.size() > 0;
     }
 
     @Override
@@ -60,6 +57,48 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
+    public Vector getFutureExplosion() {
+        for (VelocityData data : firstBreadMap) {
+            data.shouldResend = false;
+        }
+        if (lastExplosionsKnownTaken != null) {
+            lastExplosionsKnownTaken.shouldResend = false;
+        }
+        if (firstBreadAddedExplosion != null) {
+            firstBreadAddedExplosion.shouldResend = false;
+        }
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.shouldResend = false;
+        }
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.shouldResend = false;
+        }
+
+
+        // Chronologically in the future
+        if (firstBreadMap.size() > 0) {
+            return firstBreadMap.peek().vector;
+        }
+        // Less in the future
+        if (lastExplosionsKnownTaken != null) {
+            return lastExplosionsKnownTaken.vector;
+        }
+        // Uncertain, might be in the future
+        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
+            return player.firstBreadExplosion.vector;
+        } else if (player.likelyExplosions != null) { // Known to be in the present
+            return player.likelyExplosions.vector;
+        }
+        return null;
+    }
+
+    public boolean shouldIgnoreForPrediction(VectorData data) {
+        if (data.isExplosion() && data.isFirstBreadExplosion()) {
+            return player.firstBreadExplosion.offset > offsetToFlag;
+        }
+        return false;
+    }
+
     public boolean wouldFlag() {
         return (player.likelyExplosions != null && player.likelyExplosions.offset > offsetToFlag) || (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > offsetToFlag);
     }
@@ -82,26 +121,14 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public void onTeleport() {
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            forceExempt();
-        }
-    }
-
     public void forceExempt() {
-        // Don't exempt if the player used grim to get a teleport here.
-        // This will flag but it's required to stop abuse
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            // Unsure explosion was taken
-            if (player.firstBreadExplosion != null) {
-                player.firstBreadExplosion.offset = 0;
-            }
+        // Unsure explosion was taken
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.offset = 0;
+        }
 
-            if (player.likelyExplosions != null) {
-                player.likelyExplosions.offset = 0;
-            }
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.offset = 0;
         }
     }
 
@@ -149,8 +176,8 @@ public class ExplosionHandler extends PacketCheck {
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
-                    if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyExplosions.hasSetbackForThis);
+                    if (getViolations() > setbackVL && player.likelyKB.shouldResend) {
+                        player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 }
 

@@ -14,7 +14,6 @@ import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -22,17 +21,7 @@ import java.util.*;
 public class PredictionEngine {
 
     public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel) {
-        if (!player.compensatedEntities.getSelf().inVehicle()) {
-            double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
-            if (d0 != player.lastX + outputVel.getX()) {
-                outputVel = new Vector(d0 - player.lastX, outputVel.getY(), outputVel.getZ());
-            }
-
-            if (d1 != player.lastZ + outputVel.getZ()) {
-                outputVel = new Vector(outputVel.getX(), outputVel.getY(), d1 - player.lastZ);
-            }
-        }
+        // TODO: Reimplement
         return outputVel;
     }
 
@@ -183,6 +172,11 @@ public class PredictionEngine {
             // As not flipping item is preferred... it gets ran before any other options
             if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
                 player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
+            if (player.checkManager.getKnockbackHandler().shouldIgnoreForPrediction(clientVelAfterInput) ||
+                    player.checkManager.getExplosionHandler().shouldIgnoreForPrediction(clientVelAfterInput)) {
+                continue;
             }
 
             if (resultAccuracy < bestInput) {
@@ -343,10 +337,10 @@ public class PredictionEngine {
             velocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }
 
-        // Inputs are done before player ticking
-        addAttackSlowToPossibilities(player, velocities);
         // Fluid pushing is done BEFORE 0.003
         addFluidPushingToStartingVectors(player, velocities);
+        // Inputs are done AFTER fluid pushing, https://github.com/MWHunter/Grim/issues/660
+        addAttackSlowToPossibilities(player, velocities);
         // Non-effective AI for vehicles is done AFTER fluid pushing but BEFORE 0.003
         addNonEffectiveAI(player, velocities);
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
@@ -405,7 +399,8 @@ public class PredictionEngine {
             }
 
             if (player.firstBreadExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion)
+                        .returnNewModified(vector.vector.clone().add(player.firstBreadExplosion.vector), VectorData.VectorType.FirstBreadExplosion));
             }
         }
     }

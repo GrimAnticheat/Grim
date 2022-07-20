@@ -25,18 +25,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.TELEPORT_CONFIRM) {
-            WrapperPlayClientTeleportConfirm confirm = new WrapperPlayClientTeleportConfirm(event);
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
-
-            player.getSetbackTeleportUtil().lastTeleportId = confirm.getTeleportId();
-        }
-    }
-
-    @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
            WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
@@ -90,7 +78,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 teleport.setX(pos.getX());
                 teleport.setY(pos.getY());
                 teleport.setZ(pos.getZ());
-                teleport.setRelativeMask((byte) 0);
+                teleport.setRelativeMask((byte) (teleport.getRelativeFlags().getMask() & 0b11000));
             }
 
             player.sendTransaction();
