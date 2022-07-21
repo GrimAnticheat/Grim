@@ -3,6 +3,10 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.*;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.autoclicker.ClickConsistency;
+import ac.grim.grimac.checks.impl.autoclicker.ClickNegativeKurtosis;
+import ac.grim.grimac.checks.impl.autoclicker.ClickOutliers;
+import ac.grim.grimac.checks.impl.autoclicker.ClickSpeed;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.baritone.Baritone;
 import ac.grim.grimac.checks.impl.combat.Reach;
@@ -86,6 +90,10 @@ public class CheckManager {
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(PostCheck.class, new PostCheck(player))
                 .put(FastBreak.class, new FastBreak(player))
+                .put(ClickSpeed.class, new ClickSpeed(player))
+                .put(ClickConsistency.class, new ClickConsistency(player))
+                .put(ClickOutliers.class, new ClickOutliers(player))
+                .put(ClickNegativeKurtosis.class, new ClickNegativeKurtosis(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
