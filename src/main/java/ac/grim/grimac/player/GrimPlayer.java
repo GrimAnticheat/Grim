@@ -403,6 +403,10 @@ public class GrimPlayer implements GrimUser {
             timedOut();
         }
 
+        if (!GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user)) {
+            GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
+        }
+
         if (packetTracker == null && ViaVersionUtil.isAvailable() && playerUUID != null) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
             packetTracker = connection != null ? connection.getPacketTracker() : null;

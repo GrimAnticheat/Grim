@@ -39,9 +39,11 @@ public class PlayerDataManager {
                 return false;
             }
 
+            // Has exempt permission
             Player player = Bukkit.getPlayer(user.getUUID());
-            if (player != null) {
-                if (player.hasPermission("grim.exempt")) return false;
+            if (player != null && player.hasPermission("grim.exempt")) {
+                exemptUsers.add(user);
+                return false;
             }
 
             // Geyser formatted player string
