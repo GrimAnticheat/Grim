@@ -18,12 +18,12 @@ public class BadPacketsP extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
-            int state = wrapper.getWindowClickType().ordinal();
+            int clickType = wrapper.getWindowClickType().ordinal();
             int button = wrapper.getButton();
 
             boolean flag = false;
 
-            switch (state) {
+            switch (clickType) {
                 case 0:
                 case 1:
                     if (button != 0 && button != 1) flag = true;
@@ -44,7 +44,7 @@ public class BadPacketsP extends PacketCheck {
             }
             //TODO: Potentially cancel packet once we guarantee this doesn't false on all versions
             if (flag) {
-                flagAndAlert("state=" + state + " button=" + button);
+                flagAndAlert("clickType=" + clickType + " button=" + button);
             }
 
         }
