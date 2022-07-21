@@ -195,18 +195,7 @@ public class GrimPlayer implements GrimUser {
 
     public GrimPlayer(User user) {
         this.user = user;
-
-        // If exempt
-        if (pollData()) return;
-
-        // We can't send transaction packets to this player, disable the anticheat for them
-        if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
-            LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
-            LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
-            LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://www.spigotmc.org/resources/viabackwards.27448/");
-            return;
-        }
+        this.playerUUID = user.getUUID();
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
 
@@ -228,8 +217,6 @@ public class GrimPlayer implements GrimUser {
         packetStateData = new PacketStateData();
 
         uncertaintyHandler.collidingEntities.add(0);
-
-        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -298,11 +285,6 @@ public class GrimPlayer implements GrimUser {
                 hasID = true;
                 break;
             }
-        }
-
-        if (lastTransactionSent.get() - lastTransactionReceived.get() - transactionsSent.size() != 0) {
-            System.out.println("It's mathematically impossible to see this message.");
-            System.out.println("Transaction responses is wrong! THIS WILL CAUSE MAJOR ISSUES REPORT THIS BUG! " + lastTransactionSent.get() + " " + lastTransactionReceived.get() + " " + transactionsSent.size());
         }
 
         if (hasID) {
@@ -408,7 +390,7 @@ public class GrimPlayer implements GrimUser {
         user.closeConnection();
     }
 
-    public boolean pollData() {
+    public void pollData() {
         // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
         //
@@ -420,37 +402,15 @@ public class GrimPlayer implements GrimUser {
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
             timedOut();
         }
-        if (this.playerUUID == null) {
-            this.playerUUID = user.getUUID();
-            if (this.playerUUID != null) {
-                // Geyser players don't have Java movement
-                // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
-                if (GeyserUtil.isGeyserPlayer(playerUUID) || FloodgateUtil.isFloodgatePlayer(playerUUID)) {
-                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-                    return true;
-                }
-                // Geyser formatted player string
-                // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
-                if (playerUUID.toString().startsWith("00000000-0000-0000-0009")) {
-                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-                    return true;
-                }
-                if (ViaVersionUtil.isAvailable() && playerUUID != null) {
-                    UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
-                    packetTracker = connection != null ? connection.getPacketTracker() : null;
-                }
-            }
+
+        if (packetTracker == null && ViaVersionUtil.isAvailable() && playerUUID != null) {
+            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
+            packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
 
-        if (this.playerUUID != null && this.bukkitPlayer == null) {
+        if (playerUUID != null && this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
         }
-
-        if (this.bukkitPlayer != null && this.bukkitPlayer.hasPermission("grim.exempt")) {
-            GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-            return true;
-        }
-        return false;
     }
 
     public boolean isPointThree() {

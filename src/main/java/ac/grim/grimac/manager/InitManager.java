@@ -20,6 +20,7 @@ public class InitManager {
                 .build();
 
         initializersOnStart = new ImmutableClassToInstanceMap.Builder<Initable>()
+                .put(ExemptOnlinePlayers.class, new ExemptOnlinePlayers())
                 .put(EventManager.class, new EventManager())
                 .put(PacketManager.class, new PacketManager())
                 .put(ViaBackwardsManager.class, new ViaBackwardsManager())
