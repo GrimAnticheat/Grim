@@ -12,7 +12,6 @@ import org.bukkit.plugin.Plugin;
 import java.util.logging.Logger;
 
 public class ViaBackwardsManager implements Initable {
-    public static boolean isViaLegacyUpdated = true;
     public static boolean didViaBreakBlockPredictions = false;
 
     @Override
@@ -37,25 +36,6 @@ public class ViaBackwardsManager implements Initable {
                         // 4.3.2 fixes an issue with 1.19 block predictions
                         if (Integer.parseInt(split[0]) < 4 || (Integer.parseInt(split[1]) == 3 && Integer.parseInt(split[2]) < 2)) {
                             didViaBreakBlockPredictions = true;
-                        }
-                    }
-                }
-
-                Plugin viaBackwards = Bukkit.getPluginManager().getPlugin("ViaBackwards");
-                if (viaBackwards != null) {
-                    String[] split = viaBackwards.getDescription().getVersion().replace("-SNAPSHOT", "").split("\\.");
-
-                    if (split.length == 3) {
-                        // If the version is before 4.0.2
-                        if (Integer.parseInt(split[0]) < 4 || (Integer.parseInt(split[1]) == 0 && Integer.parseInt(split[2]) < 2)) {
-                            Logger logger = GrimAPI.INSTANCE.getPlugin().getLogger();
-
-                            logger.warning(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
-                            logger.warning(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
-                            logger.warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-                            logger.warning(ChatColor.RED + "Supported  version: " + ChatColor.WHITE + "https://www.spigotmc.org/resources/viabackwards.27448/");
-
-                            isViaLegacyUpdated = false;
                         }
                     }
                 }
