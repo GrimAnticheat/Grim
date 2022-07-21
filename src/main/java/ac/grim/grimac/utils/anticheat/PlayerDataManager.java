@@ -7,6 +7,7 @@ import com.github.puregero.multilib.MultiLib;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -37,6 +38,12 @@ public class PlayerDataManager {
                 exemptUsers.add(user);
                 return false;
             }
+
+            Player player = Bukkit.getPlayer(user.getUUID());
+            if (player != null) {
+                if (player.hasPermission("grim.exempt")) return false;
+            }
+
             // Geyser formatted player string
             // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
             if (user.getUUID().toString().startsWith("00000000-0000-0000-0009")) {
