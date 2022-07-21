@@ -10,6 +10,7 @@ import ac.grim.grimac.checks.impl.combat.processor.CombatProcessor;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.crash.CrashC;
+import ac.grim.grimac.checks.impl.crash.CrashD;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.FastBreak;
@@ -129,6 +130,7 @@ public class CheckManager {
                 .put(CrashA.class, new CrashA(player))
                 .put(CrashB.class, new CrashB(player))
                 .put(CrashC.class, new CrashC(player))
+                .put(CrashD.class, new CrashD(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 

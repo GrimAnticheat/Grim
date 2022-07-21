@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 
-@CheckData(name = "BadPacketsP")
+@CheckData(name = "BadPacketsP", experimental = true)
 public class BadPacketsP extends PacketCheck {
 
     public BadPacketsP(GrimPlayer playerData) {
@@ -18,11 +18,35 @@ public class BadPacketsP extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
-            int state = wrapper.getStateId().orElse(0);
+            int state = wrapper.getWindowClickType().ordinal();
             int button = wrapper.getButton();
-            if (state == 2 && (button > 8 || button < 0) && button != 40) {
+
+            boolean flag = false;
+
+            switch (state) {
+                case 0:
+                case 1:
+                    if (button != 0 && button != 1) flag = true;
+                    break;
+                case 2:
+                    if ((button > 8 || button < 0) && button != 40) flag = true;
+                    break;
+                case 3:
+                    if (button != 2) flag = true;
+                    break;
+                case 4:
+                case 5:
+                    if (button == 3 || button == 7 || button > 10 || button < 0) flag = true;
+                    break;
+                case 6:
+                    if (button != 0) flag = true;
+                    break;
+            }
+            //TODO: Potentially cancel packet once we guarantee this doesn't false on all versions
+            if (flag) {
                 flagAndAlert("state=" + state + " button=" + button);
             }
+
         }
     }
 

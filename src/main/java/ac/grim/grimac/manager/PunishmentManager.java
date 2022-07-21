@@ -40,16 +40,26 @@ public class PunishmentManager {
 
                 List<ParsedCommand> parsed = new ArrayList<>();
                 List<Check> checksList = new ArrayList<>();
-
+                List<Check> excluded = new ArrayList<>();
                 for (String command : checks) {
                     command = command.toLowerCase(Locale.ROOT);
+                    boolean exclude = false;
+                    if (command.startsWith("!")) {
+                        exclude = true;
+                        command = command.substring(1);
+                    }
                     for (Check check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
                                         || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
-                            checksList.add(check);
+                            if (exclude) {
+                                excluded.add(check);
+                            } else {
+                                checksList.add(check);
+                            }
                         }
                     }
+                    for (Check check : excluded) checksList.remove(check);
                 }
 
                 for (String command : commands) {
