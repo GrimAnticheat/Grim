@@ -11,6 +11,7 @@ import lombok.Setter;
 public class TeleportData {
     Vector3d location;
     RelativeFlag flags;
+    @Setter
     int transaction;
     @Setter
     int teleportId;

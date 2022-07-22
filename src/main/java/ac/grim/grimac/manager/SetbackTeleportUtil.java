@@ -188,9 +188,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             blockOffsets = true;
         }
 
-        // Send a transaction now to make sure there's always at least one transaction between teleports
-        player.sendTransaction();
-
         SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
         sendSetback(data);
     }
@@ -230,8 +227,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
+
+            // Send a transaction now to make sure there's always transactions around teleport
+            player.sendTransaction();
+
             int teleportId = new Random().nextInt();
+            data.setPlugin(false);
             data.getTeleportData().setTeleportId(teleportId);
+            requiredSetBack.getTeleportData().setTransaction(player.lastTransactionSent.get());
+
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
             addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
@@ -270,7 +274,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             double threshold = teleportPos.isRelativeX() ? player.getMovementThreshold() : 0;
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
-            if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
+            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
 
@@ -294,7 +298,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
                 pendingTeleports.poll();
                 if (pendingTeleports.isEmpty()) {
-                    executeViolationSetback();
+                    sendSetback(requiredSetBack);
                 }
                 continue;
             }
