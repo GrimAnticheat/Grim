@@ -15,7 +15,10 @@ api-version: 1.13
 load: POSTWORLD
 permissions:
   grim.alerts:
-    description: Receieve alerts for violations
+    description: Receive alerts for violations
+    default: op
+  grim.alerts.enable-on-join:
+    description: Enable alerts on join
     default: op
   grim.performance:
     description: Check performance metrics

@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 6");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 7");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -141,6 +141,9 @@ public class ConfigManager {
         }
         if (configVersion < 6) {
             addSuperDebug(config, configString);
+        }
+        if (configVersion < 7) {
+            removeAlertsOnJoin(config, configString);
         }
     }
 
@@ -272,5 +275,11 @@ public class ConfigManager {
             } catch (IOException ignored) {
             }
         }
+    }
+
+    private void removeAlertsOnJoin(File config, String configString) throws IOException {
+        configString = configString.replaceAll("  # Should players with grim\\.alerts permission automatically enable alerts on join\\?\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // en
+        configString = configString.replaceAll("  # 管理员进入时是否自动开启警告？\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // zh
+        Files.write(config.toPath(), configString.getBytes());
     }
 }
