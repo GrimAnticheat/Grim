@@ -1,26 +1,15 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
-    @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
-            if (GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(event.getUser())) {
-                GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(event.getUser(), new GrimPlayer(event.getUser()));
-            }
-        }
-    }
 
     @Override
     public void onUserLogin(UserLoginEvent event) {

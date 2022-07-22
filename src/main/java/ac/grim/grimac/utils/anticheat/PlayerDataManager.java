@@ -60,7 +60,6 @@ public class PlayerDataManager {
     @Nullable
     public GrimPlayer getPlayer(final User player) {
         if (!playerDataMap.containsKey(player) && shouldCheck(player)) {
-            new IllegalStateException("Unable to find player " + player.getName() + " in player map, adding!").printStackTrace();
             GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(player, new GrimPlayer(player));
         }
         return playerDataMap.get(player);
