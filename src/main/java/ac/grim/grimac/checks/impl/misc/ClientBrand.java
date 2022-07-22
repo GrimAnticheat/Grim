@@ -3,7 +3,6 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
@@ -38,18 +37,14 @@ public class ClientBrand extends PacketCheck {
 
                 byte[] data = packet.getData();
 
-                if (data.length == 0) {
-                    brand = "received empty brand";
-                    return;
-                }
+                if (data.length > 64 || data.length == 0) {
+                    brand = "sent " + brand.length() + "bytes as brand";
+                } else if (!hasBrand) {
+                    byte[] minusLength = new byte[data.length - 1];
+                    System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
-                byte[] minusLength = new byte[data.length - 1];
-                System.arraycopy(data, 1, minusLength, 0, minusLength.length);
+                    brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
 
-                brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
-
-                if (!hasBrand) {
-                    hasBrand = true;
                     if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                         message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
@@ -61,6 +56,8 @@ public class ClientBrand extends PacketCheck {
                         }
                     }
                 }
+
+                hasBrand = true;
             }
         }
     }
