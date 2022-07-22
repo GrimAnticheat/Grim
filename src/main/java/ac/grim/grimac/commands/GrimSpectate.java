@@ -42,7 +42,7 @@ public class GrimSpectate extends BaseCommand {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "\n%prefix% &fClick here to return to previous location\n");
                 grimPlayer.user.sendMessage(
                         LegacyComponentSerializer.legacy('&')
-                                .deserialize(MessageUtil.format(message))
+                                .deserialize(MessageUtil.formatWithNoColor(message))
                                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/grim stopspectating"))
                                 .hoverEvent(HoverEvent.showText(Component.text("/grim stopspectating")))
                 );
