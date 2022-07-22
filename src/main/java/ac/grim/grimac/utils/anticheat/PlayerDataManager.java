@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import com.github.puregero.multilib.MultiLib;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public class PlayerDataManager {
 
     public boolean shouldCheck(User user) {
         if (exemptUsers.contains(user)) return false;
+        if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
         if (user.getUUID() != null) {
             // Geyser players don't have Java movement
