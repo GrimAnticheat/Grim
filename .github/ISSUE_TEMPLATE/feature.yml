@@ -1,6 +1,6 @@
 name: Feature suggestion
 description: Suggest a feature
-labels: ["feature", "suggestion"]
+labels: ["enhancement"]
 body:
   - type: textarea
     attributes:
