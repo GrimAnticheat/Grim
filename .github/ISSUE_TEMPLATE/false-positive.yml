@@ -1,5 +1,5 @@
 name: False positive
-description: Report false positives here
+description: Report a false positive here
 labels: ["false positive"]
 body:
   - type: textarea

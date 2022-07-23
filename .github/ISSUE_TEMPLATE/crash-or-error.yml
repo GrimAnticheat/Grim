@@ -1,5 +1,5 @@
 name: Server crash or error
-description: Report server crashes or errors here
+description: Report a server crash or error here
 labels: ["crash","error","stacktrace"]
 body:
   - type: textarea

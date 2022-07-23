@@ -1,5 +1,5 @@
 name: Bypass
-description: Report bypasses here
+description: Report a bypass here
 labels: ["bypass"]
 body:
   - type: textarea
