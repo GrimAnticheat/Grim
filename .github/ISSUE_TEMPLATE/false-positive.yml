@@ -12,7 +12,7 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Grim version
       description: |
@@ -20,11 +20,11 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Server version
       description: |
-        Run `/version` on your server.
+        Run `/version` on your server and paste the full, unmodified output here.
     validations:
       required: true
 
