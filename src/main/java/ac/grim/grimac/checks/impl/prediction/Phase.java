@@ -31,6 +31,8 @@ public class Phase extends PostPredictionCheck {
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             Collisions.getCollisionBoxes(player, newBB, boxes, false);
 
+            Collisions.addWorldBorder(player, player.boundingBox, boxes, false);
+
             for (SimpleCollisionBox box : boxes) {
                 if (newBB.isIntersected(box) && !oldBB.isIntersected(box)) {
                     if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
@@ -40,7 +42,6 @@ public class Phase extends PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    oldBB = player.boundingBox;
                     flagWithSetback();
                     return;
                 }

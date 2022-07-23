@@ -152,13 +152,10 @@ public class Collisions {
         return bestOrderResult;
     }
 
-    // This is mostly taken from Tuinity collisions
-    public static boolean getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB, List<SimpleCollisionBox> listOfBlocks, boolean onlyCheckCollide) {
-        SimpleCollisionBox expandedBB = wantedBB.copy();
-
+    public static boolean addWorldBorder(GrimPlayer player, SimpleCollisionBox wantedBB, List<SimpleCollisionBox> listOfBlocks, boolean onlyCheckCollide) {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
-        if (player.clientControlledHorizontalCollision && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
             PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
             double centerX = border.getCenterX();
             double centerZ = border.getCenterZ();
@@ -173,8 +170,6 @@ public class Collisions {
             double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -absoluteMaxSize, absoluteMaxSize));
 
             // If the player is fully within the worldborder
-            double maxWorldBorderSize = Math.max(Math.max(maxX - minX, maxZ - minZ), 1.0D);
-
             double toMinX = player.lastX - minX;
             double toMaxX = maxX - player.lastX;
             double minimumInXDirection = Math.min(toMinX, toMaxX);
@@ -186,27 +181,34 @@ public class Collisions {
             double distanceToBorder = Math.min(minimumInXDirection, minimumInZDirection);
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
-            if (distanceToBorder < 16) {
-                if (distanceToBorder < maxWorldBorderSize * 2.0D && player.lastX > minX - maxWorldBorderSize && player.lastX < maxX + maxWorldBorderSize && player.lastZ > minZ - maxWorldBorderSize && player.lastZ < maxZ + maxWorldBorderSize) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+            if (distanceToBorder < 16 && player.lastX > minX && player.lastX < maxX && player.lastZ > minZ && player.lastZ < maxZ) {
+                if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
 
-                    // South border
-                    listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, maxZ, maxX + 10, Double.POSITIVE_INFINITY, maxZ, false));
-                    // North border
-                    listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, minZ, maxX + 10, Double.POSITIVE_INFINITY, minZ, false));
-                    // East border
-                    listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ - 10, maxX, Double.POSITIVE_INFINITY, maxZ + 10, false));
-                    // West border
-                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ - 10, minX, Double.POSITIVE_INFINITY, maxZ + 10, false));
+                // South border
+                listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, maxZ, maxX + 10, Double.POSITIVE_INFINITY, maxZ, false));
+                // North border
+                listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, minZ, maxX + 10, Double.POSITIVE_INFINITY, minZ, false));
+                // East border
+                listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ - 10, maxX, Double.POSITIVE_INFINITY, maxZ + 10, false));
+                // West border
+                listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ - 10, minX, Double.POSITIVE_INFINITY, maxZ + 10, false));
 
-                    if (onlyCheckCollide) {
-                        for (SimpleCollisionBox box : listOfBlocks) {
-                            if (box.isIntersected(wantedBB)) return true;
-                        }
+                if (onlyCheckCollide) {
+                    for (SimpleCollisionBox box : listOfBlocks) {
+                        if (box.isIntersected(wantedBB)) return true;
                     }
                 }
             }
         }
+        return false;
+    }
+
+    // This is mostly taken from Tuinity collisions
+    public static boolean getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB, List<SimpleCollisionBox> listOfBlocks, boolean onlyCheckCollide) {
+        SimpleCollisionBox expandedBB = wantedBB.copy();
+
+        boolean collided = addWorldBorder(player, wantedBB, listOfBlocks, onlyCheckCollide);
+        if (onlyCheckCollide && collided) return true;
 
         int minBlockX = (int) Math.floor(expandedBB.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(expandedBB.maxX + COLLISION_EPSILON) + 1;
