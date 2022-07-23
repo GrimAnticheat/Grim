@@ -70,7 +70,7 @@ public class Reach extends PacketCheck {
             if (entity == null) {
                 // Only cancel if and only if we are tracking this entity
                 // This is because we don't track paintings.
-                if (player.shouldModifyPackets() && player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
+                if (shouldModifyPackets() && player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
                     event.setCancelled(true);
                 }
                 return;
@@ -85,7 +85,7 @@ public class Reach extends PacketCheck {
 
             playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
 
-            if (player.shouldModifyPackets() && cancelImpossibleHits && isKnownInvalid(entity)) {
+            if (shouldModifyPackets() && cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
             }
         }

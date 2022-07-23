@@ -6,6 +6,7 @@ import ac.grim.grimac.events.FlagEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
@@ -22,6 +23,8 @@ public class Check implements AbstractCheck {
     private String alternativeName;
 
     private boolean experimental;
+    @Setter
+    private boolean isEnabled;
 
     public Check(final GrimPlayer player) {
         this.player = player;
@@ -41,6 +44,10 @@ public class Check implements AbstractCheck {
         }
 
         reload();
+    }
+
+    public boolean shouldModifyPackets() {
+        return isEnabled && !player.disableGrim && (player.bukkitPlayer == null || !player.bukkitPlayer.hasPermission("grim.nomodifypacket"));
     }
 
     public final boolean flagAndAlert(String verbose) {

@@ -31,6 +31,11 @@ public class PunishmentManager {
         try {
             groups.clear();
 
+            // To support reloading
+            for (Check check : player.checkManager.allChecks.values()) {
+                check.setEnabled(false);
+            }
+
             for (Object s : punish) {
                 LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) s;
 
@@ -56,6 +61,7 @@ public class PunishmentManager {
                                 excluded.add(check);
                             } else {
                                 checksList.add(check);
+                                check.setEnabled(true);
                             }
                         }
                     }

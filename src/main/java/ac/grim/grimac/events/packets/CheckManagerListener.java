@@ -473,7 +473,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
                 player.checkManager.onBlockPlace(blockPlace);
 
-            if (blockPlace.isCancelled() && player.shouldModifyPackets()) { // The player tried placing blocks in air/water
+            if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
                 event.setCancelled(true);
 
                 Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
