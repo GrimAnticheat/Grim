@@ -9,6 +9,10 @@ body:
         Video is always useful. /grim log is required for reporting simulation falses.
         Use /grim verbose and /grim log to get the debug information.
         For non-simulation falses, a minimally reproducable description is best.
+      placeholder: |
+        1. Join with ???.
+        2. Try to ???.
+        3. See ??? false flags.
     validations:
       required: true
 
@@ -17,6 +21,7 @@ body:
       label: Grim version
       description: |
         Git commit or the version in the jar's name
+      placeholder: 'e.g. 2.3.13 OR 41edf0b'
     validations:
       required: true
 
@@ -25,6 +30,7 @@ body:
       label: Server version
       description: |
         Run `/version` on your server and paste the full, unmodified output here.
+      placeholder: 'This server is running ??? version ??? (MC: ???) (Implementing API version ???)'
     validations:
       required: true
 
@@ -33,5 +39,6 @@ body:
       label: Plugins
       description: |
         List all plugins running on your server. To list plugins, run `/plugins`.
+      placeholder: 'Plugins (3): MyOwnCustomPlugin, ViaVersion, GrimAC'
     validations:
       required: true

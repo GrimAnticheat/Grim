@@ -14,6 +14,7 @@ body:
       label: Grim version
       description: |
         Git commit or the version in the jar's name
+      placeholder: 'e.g. 2.3.13 OR 41edf0b'
     validations:
       required: true
 
@@ -22,6 +23,7 @@ body:
       label: Server version
       description: |
         Run `/version` on your server and paste the full, unmodified output here.
+      placeholder: 'This server is running ??? version ??? (MC: ???) (Implementing API version ???)'
     validations:
       required: true
 
@@ -30,5 +32,6 @@ body:
       label: Plugins
       description: |
         List all plugins running on your server. To list plugins, run `/plugins`.
+      placeholder: 'Plugins (3): MyOwnCustomPlugin, ViaVersion, GrimAC'
     validations:
       required: true
