@@ -238,7 +238,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             int teleportId = random.nextInt()  | Integer.MIN_VALUE;
             data.setPlugin(false);
             data.getTeleportData().setTeleportId(teleportId);
-            requiredSetBack.getTeleportData().setTransaction(player.lastTransactionSent.get());
+            data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
             addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
