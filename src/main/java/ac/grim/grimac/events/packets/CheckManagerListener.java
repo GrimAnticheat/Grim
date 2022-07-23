@@ -42,7 +42,6 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -367,12 +366,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
             int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
 
             VelocityData calculatedFirstBreadKb = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-            VelocityData calculatedRequireKb = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get(), true);
+            VelocityData calculatedRequireKb = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
             player.firstBreadKB = calculatedFirstBreadKb == null ? player.firstBreadKB : calculatedFirstBreadKb;
             player.likelyKB = calculatedRequireKb == null ? player.likelyKB : calculatedRequireKb;
 
             VelocityData calculateFirstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-            VelocityData calculateRequiredExplosion =  player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
+            VelocityData calculateRequiredExplosion =  player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
             player.firstBreadExplosion = calculateFirstBreadExplosion == null ? player.firstBreadExplosion : calculateFirstBreadExplosion;
             player.likelyExplosions = calculateRequiredExplosion == null ? player.likelyExplosions : calculateRequiredExplosion;
         }

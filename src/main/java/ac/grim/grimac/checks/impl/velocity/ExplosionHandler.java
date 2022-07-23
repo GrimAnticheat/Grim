@@ -179,17 +179,13 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public VelocityData getPossibleExplosions(int lastTransaction, boolean clear) {
+    public VelocityData getPossibleExplosions(int lastTransaction) {
         handleTransactionPacket(lastTransaction);
         if (lastExplosionsKnownTaken == null)
             return null;
 
         VelocityData returnLastExplosion = lastExplosionsKnownTaken;
-
-        if (clear) {
-            lastExplosionsKnownTaken = null;
-        }
-
+        lastExplosionsKnownTaken = null;
         return returnLastExplosion;
     }
 

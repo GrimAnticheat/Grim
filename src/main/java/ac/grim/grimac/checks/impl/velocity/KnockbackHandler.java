@@ -84,7 +84,7 @@ public class KnockbackHandler extends PacketCheck {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 
-    public VelocityData calculateRequiredKB(int entityID, int transaction, boolean clear) {
+    public VelocityData calculateRequiredKB(int entityID, int transaction) {
         tickKnockback(transaction);
 
         VelocityData returnLastKB = null;
@@ -93,10 +93,7 @@ public class KnockbackHandler extends PacketCheck {
                 returnLastKB = data;
         }
 
-        if (clear) {
-            lastKnockbackKnownTaken.clear();
-        }
-
+        lastKnockbackKnownTaken.clear();
         return returnLastKB;
     }
 
