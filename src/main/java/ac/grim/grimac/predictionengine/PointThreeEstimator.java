@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -156,25 +155,9 @@ public class PointThreeEstimator {
             player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
             player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), false);
 
-            Set<VectorData> knockback = new HashSet<>();
-            if (player.firstBreadKB != null) knockback.add(new VectorData(player.firstBreadKB.vector, VectorData.VectorType.Knockback));
-            if (player.likelyKB != null) knockback.add(new VectorData(player.likelyKB.vector, VectorData.VectorType.Knockback));
+            player.updateVelocityMovementSkipping();
 
-            boolean kbPointThree = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), knockback);
-            player.checkManager.getKnockbackHandler().setPointThree(kbPointThree);
-
-            Set<VectorData> explosion = new HashSet<>();
-            if (player.firstBreadExplosion != null) explosion.add(new VectorData(player.firstBreadExplosion.vector, VectorData.VectorType.Explosion));
-            if (player.likelyExplosions != null) explosion.add(new VectorData(player.likelyExplosions.vector, VectorData.VectorType.Explosion));
-
-            boolean explosionPointThree = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), explosion);
-            player.checkManager.getExplosionHandler().setPointThree(explosionPointThree);
-
-            if (!player.couldSkipTick) {
-                player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
-            }
-
-            if (kbPointThree || explosionPointThree || player.couldSkipTick) {
+            if (player.couldSkipTick) {
                 player.uncertaintyHandler.lastPointThree.reset();
             }
         }
@@ -203,7 +186,8 @@ public class PointThreeEstimator {
     }
 
     public boolean controlsVerticalMovement() {
-        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding || player.uncertaintyHandler.influencedByBouncyBlock();
+        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding || player.uncertaintyHandler.influencedByBouncyBlock()
+                || player.checkManager.getKnockbackHandler().isKnockbackPointThree() || player.checkManager.getExplosionHandler().isExplosionPointThree();
     }
 
     public void updatePlayerPotions(PotionType potion, Integer level) {

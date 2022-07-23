@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
+import lombok.Getter;
 import org.bukkit.util.Vector;
 
 import java.util.Deque;
@@ -22,7 +23,8 @@ public class ExplosionHandler extends PacketCheck {
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
 
-    boolean wasKbZeroPointZeroThree = false;
+    @Getter
+    boolean explosionPointThree = false;
 
     double offsetToFlag;
     double setbackVL;
@@ -91,7 +93,7 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public void setPointThree(boolean isPointThree) {
-        wasKbZeroPointZeroThree = wasKbZeroPointZeroThree || isPointThree;
+        explosionPointThree = explosionPointThree || isPointThree;
     }
 
     public void handlePredictionAnalysis(double offset) {
@@ -116,8 +118,8 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public void handlePlayerExplosion(double offset) {
-        boolean wasZero = wasKbZeroPointZeroThree;
-        wasKbZeroPointZeroThree = false;
+        boolean wasZero = explosionPointThree;
+        explosionPointThree = false;
 
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
             return;

@@ -44,6 +44,10 @@ public class VectorData {
         addVectorType(vectorType);
     }
 
+    public VectorData returnNewModified(VectorType type) {
+        return new VectorData(vector, this, type);
+    }
+
     public VectorData returnNewModified(Vector newVec, VectorType type) {
         return new VectorData(newVec, this, type);
     }

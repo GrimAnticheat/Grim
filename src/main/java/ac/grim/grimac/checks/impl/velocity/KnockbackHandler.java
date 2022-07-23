@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import lombok.Getter;
 import org.bukkit.util.Vector;
 
 import java.util.Deque;
@@ -22,8 +23,8 @@ public class KnockbackHandler extends PacketCheck {
 
     Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
     VelocityData firstBreadOnlyKnockback = null;
-
-    boolean wasExplosionZeroPointZeroThree = false;
+    @Getter
+    boolean knockbackPointThree = false;
 
     double offsetToFlag;
     double setbackVL;
@@ -133,7 +134,7 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public void setPointThree(boolean isPointThree) {
-        wasExplosionZeroPointZeroThree = wasExplosionZeroPointZeroThree || isPointThree;
+        knockbackPointThree = knockbackPointThree || isPointThree;
     }
 
     public void handlePredictionAnalysis(double offset) {
@@ -147,8 +148,8 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public void handlePlayerKb(double offset) {
-        boolean wasZero = wasExplosionZeroPointZeroThree;
-        wasExplosionZeroPointZeroThree = false;
+        boolean wasZero = knockbackPointThree;
+        knockbackPointThree = false;
 
         if (player.likelyKB == null && player.firstBreadKB == null) {
             return;

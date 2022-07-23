@@ -18,6 +18,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -218,7 +219,7 @@ public class GrimPlayer implements GrimUser {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(firstBreadKB.vector.clone(), VectorData.VectorType.FirstBreadKnockback));
+            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(VectorData.VectorType.FirstBreadKnockback));
         }
 
         if (likelyKB != null) {
@@ -410,6 +411,30 @@ public class GrimPlayer implements GrimUser {
         if (playerUUID != null && this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
             updatePermissions();
+        }
+    }
+
+    public void updateVelocityMovementSkipping() {
+        if (!couldSkipTick) {
+            couldSkipTick = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), getPossibleVelocitiesMinusKnockback());
+        }
+
+        Set<VectorData> knockback = new HashSet<>();
+        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector, VectorData.VectorType.Knockback));
+        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector, VectorData.VectorType.Knockback));
+
+        boolean kbPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), knockback);
+        checkManager.getKnockbackHandler().setPointThree(kbPointThree);
+
+        Set<VectorData> explosion = new HashSet<>();
+        if (firstBreadExplosion != null) explosion.add(new VectorData(firstBreadExplosion.vector, VectorData.VectorType.Explosion));
+        if (likelyExplosions != null) explosion.add(new VectorData(likelyExplosions.vector, VectorData.VectorType.Explosion));
+
+        boolean explosionPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), explosion);
+        checkManager.getExplosionHandler().setPointThree(explosionPointThree);
+
+        if (kbPointThree || explosionPointThree) {
+            uncertaintyHandler.lastPointThree.reset();
         }
     }
 

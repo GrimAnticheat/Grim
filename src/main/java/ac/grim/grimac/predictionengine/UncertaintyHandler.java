@@ -222,8 +222,8 @@ public class UncertaintyHandler {
         if (either003 && isSteppingOnIce)
             pointThree = 0.91 * 0.989 * (threshold * 2) + threshold;
 
-        // Reduce second tick uncertainty by minimum friction amount
-        if (!newVectorPointThree && either003)
+        // Reduce second tick uncertainty by minimum friction amount (if not velocity uncertainty)
+        if (pointThree > threshold)
             pointThree *= 0.91 * 0.989;
 
         // 0.06 * 0.91 = max + 0.03 offset
@@ -265,12 +265,11 @@ public class UncertaintyHandler {
             return pointThree * 2;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && (data.isKnockback() || player.isClimbing))
+        if (player.couldSkipTick && (data.isKnockback() || player.isClimbing) && !data.isZeroPointZeroThree())
             return pointThree;
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
-            // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
-            // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
+            // 0.03 from last tick into 0.03 now = 0.06 (could reduce by friction in the future, only 0.91 at most though)
             if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree) return pointThree * 2;
         }
 

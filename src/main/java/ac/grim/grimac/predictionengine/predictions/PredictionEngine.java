@@ -69,6 +69,7 @@ public class PredictionEngine {
             }
         }
 
+        player.updateVelocityMovementSkipping();
         player.couldSkipTick = player.couldSkipTick || player.pointThreeEstimator.determineCanSkipTick(speed, init);
 
         // Remember, we must always try to predict explosions or knockback
