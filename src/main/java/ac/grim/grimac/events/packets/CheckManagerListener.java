@@ -8,10 +8,7 @@ import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.HeadRotation;
-import ac.grim.grimac.utils.data.HitData;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -45,6 +42,7 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -367,11 +365,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (player.compensatedEntities.getSelf().inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Update knockback and explosions immediately, before anything can setback
             int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
-            player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-            player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get(), true);
 
-            player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-            player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
+            VelocityData calculatedFirstBreadKb = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
+            VelocityData calculatedRequireKb = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get(), true);
+            player.firstBreadKB = calculatedFirstBreadKb == null ? player.firstBreadKB : calculatedFirstBreadKb;
+            player.likelyKB = calculatedRequireKb == null ? player.likelyKB : calculatedRequireKb;
+
+            VelocityData calculateFirstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+            VelocityData calculateRequiredExplosion =  player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
+            player.firstBreadExplosion = calculateFirstBreadExplosion == null ? player.firstBreadExplosion : calculateFirstBreadExplosion;
+            player.likelyExplosions = calculateRequiredExplosion == null ? player.likelyExplosions : calculateRequiredExplosion;
         }
 
         player.checkManager.onPrePredictionReceivePacket(event);
