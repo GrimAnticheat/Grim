@@ -47,7 +47,7 @@ public class Check implements AbstractCheck {
     }
 
     public boolean shouldModifyPackets() {
-        return isEnabled && !player.disableGrim && (player.bukkitPlayer == null || !player.bukkitPlayer.hasPermission("grim.nomodifypacket"));
+        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission;
     }
 
     public final boolean flagAndAlert(String verbose) {
