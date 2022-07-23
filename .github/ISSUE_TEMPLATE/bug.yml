@@ -1,0 +1,34 @@
+name: Bug or plugin incompatibility
+description: Report bugs, plugin incompatibilities, or false positives here
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Describe the bug and how to replicate it
+      description: A video, or detailed instructions to help replicate the issue would help.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Grim version
+      description: |
+        Git commit or the version in the jar's name
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Server version
+      description: |
+        Run `/version` on your server and paste the full, unmodified output here.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Plugins
+      description: |
+        List all plugins running on your server. To list plugins, run `/plugins`.
+    validations:
+      required: true

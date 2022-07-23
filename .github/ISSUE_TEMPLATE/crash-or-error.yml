@@ -1,0 +1,43 @@
+name: Server crash or error
+description: Report server crashes or errors here
+labels: ["crash","error","stacktrace"]
+body:
+  - type: textarea
+    attributes:
+      label: Stack trace
+      description: |
+        Please include the entire stack trace with no attachments. If you would like, you can use a text pasting site such as https://paste.gg.
+      placeholder: Paste the stack trace or link to the stack trace here
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: How to replicate it if known
+      description: A video, or detailed instructions to help replicate the issue would help.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Grim version
+      description: |
+        Git commit or the version in the jar's name
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Server version
+      description: |
+        Run `/version` on your server and paste the full, unmodified output here.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Plugins
+      description: |
+        List all plugins running on your server. To list plugins, run `/plugins`.
+    validations:
+      required: true
