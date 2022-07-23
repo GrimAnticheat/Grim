@@ -297,8 +297,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
-        // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
-        player.clientControlledHorizontalCollision = Math.min(GrimMath.distanceToHorizontalCollision(player.x), GrimMath.distanceToHorizontalCollision(player.z)) < 1e-6;
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);

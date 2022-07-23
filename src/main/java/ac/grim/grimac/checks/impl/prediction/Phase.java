@@ -40,7 +40,6 @@ public class Phase extends PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    oldBB = player.boundingBox;
                     flagWithSetback();
                     return;
                 }

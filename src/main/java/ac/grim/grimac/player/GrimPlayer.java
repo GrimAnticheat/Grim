@@ -145,7 +145,6 @@ public class GrimPlayer implements GrimUser {
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public boolean verticalCollision;
-    public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
     // Okay, this is our 0.03 detection
     //
