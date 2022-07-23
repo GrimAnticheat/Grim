@@ -8,6 +8,9 @@ Punishments:
   Simulation:
     # After how many seconds should a violation be removed?
     remove-violations-after: 300
+    # This section will match all checks with the name,
+    # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
+    # For example, !BadPacketsN
     checks:
       - "Simulation"
       - "GroundSpoof"
