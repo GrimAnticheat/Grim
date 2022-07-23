@@ -1,4 +1,4 @@
-name: Plugin incompatibility or other bugs
+name: Plugin incompatibility or other bug
 description: Report bugs or plugin incompatibilities here
 labels: ["bug"]
 body:
