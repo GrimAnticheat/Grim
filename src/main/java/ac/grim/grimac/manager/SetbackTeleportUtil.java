@@ -234,7 +234,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Send a transaction now to make sure there's always transactions around teleport
             player.sendTransaction();
 
-            int teleportId = random.nextInt();
+            // Min value is 10000000000000000000000000000000 in binary, this makes sure the number is always < 0
+            int teleportId = random.nextInt()  | Integer.MIN_VALUE;
             data.setPlugin(false);
             data.getTeleportData().setTeleportId(teleportId);
             requiredSetBack.getTeleportData().setTransaction(player.lastTransactionSent.get());
