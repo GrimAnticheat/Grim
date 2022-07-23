@@ -6,6 +6,10 @@ body:
     attributes:
       label: Describe the bug and how to replicate it
       description: A video, or detailed instructions to help replicate the issue would help.
+      placeholder: |
+        1. Install plugin ???.
+        2. Try to ???.
+        3. It's not working.
     validations:
       required: true
 
