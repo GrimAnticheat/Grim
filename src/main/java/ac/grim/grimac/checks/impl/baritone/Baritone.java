@@ -10,11 +10,11 @@ import ac.grim.grimac.utils.math.GrimMath;
 
 @CheckData(name = "Baritone")
 public class Baritone extends RotationCheck {
+    private int verbose;
+
     public Baritone(GrimPlayer playerData) {
         super(playerData);
     }
-
-    private int verbose;
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
@@ -22,9 +22,12 @@ public class Baritone extends RotationCheck {
         final HeadRotation to = rotationUpdate.getTo();
 
         final float deltaPitch = Math.abs(to.getPitch() - from.getPitch());
-
+        System.out.println(deltaPitch + " | " + rotationUpdate.getDeltaXRot() + " | " + (Math.abs(to.getPitch()) != 90.0f));
         // Baritone works with small degrees, limit to 1 degrees to pick up on baritone slightly moving aim to bypass anticheats
-        if (rotationUpdate.getDeltaXRot() == 0 && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
+        // I changed the rotationUpdate.getDeltaXRot() == 0 to <= 0, it may be triggered sometimes but it wont alert
+        // I tried baritone, it's never 0, it's always less than 0 (https://prnt.sc/RXxjRA_kca97)
+        // - Real6dq
+        if (rotationUpdate.getDeltaXRot() <= 0 && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
             if (rotationUpdate.getProcessor().divisorY < GrimMath.MINIMUM_DIVISOR) {
                 verbose++;
                 if (verbose > 8) {
