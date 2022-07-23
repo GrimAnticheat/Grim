@@ -5,8 +5,6 @@
 # or with full source code available to buyers at no additional cost.
 
 alerts:
-  # Should players with grim.alerts permission automatically enable alerts on join?
-  enable-on-join: true
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
 
@@ -118,4 +116,4 @@ debug-pipeline-on-join: false
 # Enables experimental checks
 experimental-checks: false
 
-config-version: 6
+config-version: 7

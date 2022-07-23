@@ -4,8 +4,6 @@
 # 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
 
 alerts:
-  # 管理员进入时是否自动开启警告？
-  enable-on-join: true
   # 是否在控制台显示警告？
   print-to-console: true
 
@@ -138,4 +136,4 @@ debug-pipeline-on-join: false
 # Enables experimental checks
 experimental-checks: false
 
-config-version: 6
+config-version: 7

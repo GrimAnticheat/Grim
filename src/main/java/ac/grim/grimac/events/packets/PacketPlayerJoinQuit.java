@@ -17,7 +17,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
-        if (player.hasPermission("grim.alerts") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.enable-on-join", true)) {
+        if (player.hasPermission("grim.alerts") && player.hasPermission("grim.alerts.enable-on-join")) {
             GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player);
         }
         if (player.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
