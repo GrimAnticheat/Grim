@@ -563,10 +563,6 @@ public class GrimPlayer implements GrimUser {
         return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
     }
 
-    public boolean shouldModifyPackets() {
-        return !disableGrim && (bukkitPlayer == null || !bukkitPlayer.hasPermission("grim.nomodifypacket"));
-    }
-
     @Override
     public void runSafely(Runnable runnable) {
         ChannelHelper.runInEventLoop(this.user.getChannel(), runnable);
