@@ -47,7 +47,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean blockOffsets = false;
     // This required setback data is the head of the teleport.
     // It is set by both bukkit and netty due to going on the bukkit thread to setback players
-    SetBackData requiredSetBack = null;
+    private SetBackData requiredSetBack = null;
     public SetbackPosWithVector lastKnownGoodPosition;
 
     // Resetting velocity can be abused to "fly"
@@ -57,7 +57,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Are we currently sending setback stuff?
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
-    long lastWorldResync = 0;
+    private long lastWorldResync = 0;
 
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -92,8 +92,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void executeForceResync() {
-        if (player.gamemode == GameMode.SPECTATOR || player.disableGrim)
-            return; // We don't care about spectators, they don't flag
+        if (player.gamemode == GameMode.SPECTATOR || player.disableGrim) return; // We don't care about spectators, they don't flag
         if (lastKnownGoodPosition == null) return; // Player hasn't spawned yet
         blockMovementsUntilResync(true, true);
     }
@@ -192,6 +191,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         sendSetback(data);
     }
 
+    private final Random random = new Random();
+
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;
         Vector3d position = data.getTeleportData().getLocation();
@@ -215,9 +216,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                     // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
                     Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                        Entity vehicle = player.bukkitPlayer.getVehicle();
-                        if (vehicle != null) {
-                            vehicle.eject();
+                        if (player.bukkitPlayer != null) {
+                            Entity vehicle = player.bukkitPlayer.getVehicle();
+                            if (vehicle != null) {
+                                vehicle.eject();
+                            }
                         }
                     });
                 }
@@ -231,7 +234,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Send a transaction now to make sure there's always transactions around teleport
             player.sendTransaction();
 
-            int teleportId = new Random().nextInt();
+            int teleportId = random.nextInt();
             data.setPlugin(false);
             data.getTeleportData().setTeleportId(teleportId);
             requiredSetBack.getTeleportData().setTransaction(player.lastTransactionSent.get());
@@ -410,8 +413,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     @AllArgsConstructor
     @Getter
     @Setter
-    class SetbackPosWithVector {
-        Vector3d pos;
-        Vector vector;
+    private static class SetbackPosWithVector {
+        private final Vector3d pos;
+        private final Vector vector;
     }
 }
