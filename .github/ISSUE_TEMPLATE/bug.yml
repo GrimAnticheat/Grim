@@ -1,5 +1,5 @@
 name: Bug or plugin incompatibility
-description: Report bugs, plugin incompatibilities, or false positives here
+description: Report bugs or plugin incompatibilities
 labels: ["bug"]
 body:
   - type: textarea

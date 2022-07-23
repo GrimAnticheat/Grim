@@ -5,7 +5,10 @@ body:
   - type: textarea
     attributes:
       label: Describe the false positive and how to replicate it
-      description: A video, or detailed instructions to help replicate the issue would help.
+      description: |
+        Video is always useful. /grim log is required for reporting simulation falses.
+        Use /grim verbose and /grim log to get the debug information.
+        For non-simulation falses, a minimally reproducable description is best.
     validations:
       required: true
 
