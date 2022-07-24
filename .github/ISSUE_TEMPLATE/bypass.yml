@@ -17,7 +17,7 @@ body:
     attributes:
       label: Grim version
       description: |
-        Git commit or the version in the jar's name
+        Provide the git commit or the version in the jar's name.
       placeholder: A example would be b85c2d0 or grim version 2.3.5, etc
     validations:
       required: true
