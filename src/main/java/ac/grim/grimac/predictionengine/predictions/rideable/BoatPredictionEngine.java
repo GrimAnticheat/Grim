@@ -85,7 +85,7 @@ public class BoatPredictionEngine extends PredictionEngine {
         int i1 = GrimMath.floor(axisalignedbb.minZ);
         int j1 = GrimMath.ceil(axisalignedbb.maxZ);
         boolean flag = false;
-        grimPlayer.vehicleData.waterLevel = Double.MIN_VALUE;
+        grimPlayer.vehicleData.waterLevel = -Double.MAX_VALUE;
 
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
