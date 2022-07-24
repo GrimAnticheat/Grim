@@ -9,6 +9,10 @@ body:
         Video is always useful. /grim log is required for reporting simulation falses.
         Use /grim verbose and /grim log to get the debug information.
         For non-simulation falses, a minimally reproducable description is best.
+      placeholder: |
+        Step 1. Do this
+        Step 2. Then do this
+        Step 3. etc...
     validations:
       required: true
 
@@ -17,6 +21,7 @@ body:
       label: Grim version
       description: |
         Git commit or the version in the jar's name
+      placeholder: A example would be b85c2d0 or grim version 2.3.5, etc
     validations:
       required: true
 
@@ -24,7 +29,7 @@ body:
     attributes:
       label: Server version
       description: |
-        Run `/version` on your server and paste the full, unmodified output here.
+        Run `/version` on your server to check. Provide both the server type (paper, airplane, etc) & the minecraft version.
     validations:
       required: true
 
