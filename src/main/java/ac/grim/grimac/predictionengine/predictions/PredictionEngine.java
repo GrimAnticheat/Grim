@@ -291,7 +291,7 @@ public class PredictionEngine {
         addJumpsToPossibilities(player, pointThreePossibilities);
         addExplosionToPossibilities(player, pointThreePossibilities);
 
-        if (player.tryingToRiptide) {
+        if (player.packetStateData.tryingToRiptide) {
             Vector riptideAddition = Riptide.getRiptideVelocity(player);
             pointThreePossibilities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree), VectorData.VectorType.Trident));
         }
@@ -333,7 +333,7 @@ public class PredictionEngine {
         // Packet stuff is done first
         addExplosionToPossibilities(player, velocities);
 
-        if (player.tryingToRiptide) {
+        if (player.packetStateData.tryingToRiptide) {
             Vector riptideAddition = Riptide.getRiptideVelocity(player);
             velocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }

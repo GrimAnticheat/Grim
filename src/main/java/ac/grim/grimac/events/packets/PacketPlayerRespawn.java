@@ -99,6 +99,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
                     player.compensatedWorld.chunks.clear();
+                    player.compensatedWorld.isRaining = false;
                 }
                 player.dimension = respawn.getDimension();
 

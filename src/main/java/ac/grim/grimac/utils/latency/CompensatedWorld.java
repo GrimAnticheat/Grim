@@ -74,6 +74,7 @@ public class CompensatedWorld {
     private final Map<Integer, List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new HashMap<>();
     private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
+    public boolean isRaining = false;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;

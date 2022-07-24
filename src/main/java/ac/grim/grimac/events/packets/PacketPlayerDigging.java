@@ -143,8 +143,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     if (j > 0) {
-                        // TODO: Check if player has fast use item
-                        player.tryingToRiptide = true;
+                        player.packetStateData.tryingToRiptide = true;
                     }
                 }
             }

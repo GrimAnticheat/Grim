@@ -18,12 +18,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
-import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.nmsutil.Riptide;
+import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -36,6 +34,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends PositionCheck {
@@ -335,6 +334,17 @@ public class MovementCheckRunner extends PositionCheck {
             player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
 
+        boolean clientClaimsRiptide = player.packetStateData.tryingToRiptide;
+        if (player.packetStateData.tryingToRiptide) {
+            long currentTime = System.currentTimeMillis();
+            boolean isInWater = player.compensatedWorld.isRaining || Collisions.hasMaterial(player, player.boundingBox.copy().expand(player.getMovementThreshold()), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.getFirst()));
+
+            if (currentTime - player.packetStateData.lastRiptide < 450 || !isInWater) {
+                player.packetStateData.tryingToRiptide = false;
+            }
+
+            player.packetStateData.lastRiptide = currentTime;
+        }
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
@@ -450,7 +460,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Riptiding while on the ground moves the hitbox upwards before any movement code runs
             // It's a pain to support and this is my best attempt
-            if (player.lastOnGround && player.tryingToRiptide && !player.compensatedEntities.getSelf().inVehicle()) {
+            if (player.lastOnGround && player.packetStateData.tryingToRiptide && !player.compensatedEntities.getSelf().inVehicle()) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
@@ -505,6 +515,10 @@ public class MovementCheckRunner extends PositionCheck {
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
         offset = player.uncertaintyHandler.reduceOffset(offset);
 
+        if (player.packetStateData.tryingToRiptide != clientClaimsRiptide) {
+            player.getSetbackTeleportUtil().executeForceResync(); // Could technically be lag due to packet timings.
+        }
+
         // Let's hope this doesn't desync :)
         if (player.getSetbackTeleportUtil().blockOffsets)
             offset = 0;
@@ -549,7 +563,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.wasGliding = player.isGliding;
         player.wasSwimming = player.isSwimming;
         player.wasSneaking = player.isSneaking;
-        player.tryingToRiptide = false;
+        player.packetStateData.tryingToRiptide = false;
 
         // Don't overwrite packet values
         if (player.compensatedEntities.getSelf().inVehicle()) {
