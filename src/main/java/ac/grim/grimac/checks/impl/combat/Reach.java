@@ -127,13 +127,14 @@ public class Reach extends PacketCheck {
                 if (reachEntity.type == EntityTypes.END_CRYSTAL) {
                     targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
                 }
+                if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
                 Vector from = new Vector(player.x, player.y + eyes, player.z);
                 Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
                 lowest = Math.min(lowest, closestPoint.distance(from));
             }
         }
 
-        return lowest > 3 + (giveMovementThresholdLenience ? player.getMovementThreshold() : 0);
+        return lowest > 3;
     }
 
     private void tickFlying() {
