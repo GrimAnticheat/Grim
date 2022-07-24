@@ -127,6 +127,7 @@ public class Reach extends PacketCheck {
                 if (reachEntity.type == EntityTypes.END_CRYSTAL) {
                     targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
                 }
+                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
                 if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
                 Vector from = new Vector(player.x, player.y + eyes, player.z);
                 Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
