@@ -661,7 +661,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 player.checkManager.onPositionUpdate(update);
             } else if (update.isTeleport()) { // Mojang doesn't use their own exit vehicle field to leave vehicles, manually call the setback handler
-                player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
+                player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update, true));
             }
         }
 
