@@ -18,9 +18,6 @@ public class ViaBackwardsManager implements Initable {
     public void start() {
         LogUtil.info("Checking ViaBackwards Compatibility...");
 
-        // We have a more accurate version of this patch
-        System.setProperty("com.viaversion.ignorePaperBlockPlacePatch", "true");
-
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
             // Enable ping -> transaction packet
             System.setProperty("com.viaversion.handlePingsAsInvAcknowledgements", "true");
