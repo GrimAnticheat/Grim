@@ -8,10 +8,12 @@ import lombok.Setter;
 public class PredictionComplete {
     private double offset;
     private PositionUpdate data;
+    private boolean checked;
     private int identifier;
 
-    public PredictionComplete(double offset, PositionUpdate update) {
+    public PredictionComplete(double offset, PositionUpdate update, boolean checked) {
         this.offset = offset;
         this.data = update;
+        this.checked = checked;
     }
 }

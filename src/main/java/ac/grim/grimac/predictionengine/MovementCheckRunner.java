@@ -107,7 +107,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.getKnockbackHandler().forceExempt();
 
         // Manually call prediction complete to handle teleport
-        player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
+        player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update, true));
 
         player.uncertaintyHandler.lastHorizontalOffset = 0;
         player.uncertaintyHandler.lastVerticalOffset = 0;
