@@ -1,21 +1,20 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.impl.aim.*;
+import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
+import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.baritone.Baritone;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.combat.processor.CombatProcessor;
-import ac.grim.grimac.checks.impl.crash.CrashA;
-import ac.grim.grimac.checks.impl.crash.CrashB;
-import ac.grim.grimac.checks.impl.crash.CrashC;
-import ac.grim.grimac.checks.impl.crash.CrashD;
+import ac.grim.grimac.checks.impl.crash.*;
+import ac.grim.grimac.checks.impl.exploit.ExploitA;
+import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.FastBreak;
 import ac.grim.grimac.checks.impl.movement.*;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsO;
 import ac.grim.grimac.checks.impl.post.PostCheck;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
@@ -131,6 +130,9 @@ public class CheckManager {
                 .put(CrashB.class, new CrashB(player))
                 .put(CrashC.class, new CrashC(player))
                 .put(CrashD.class, new CrashD(player))
+                .put(CrashE.class, new CrashE(player))
+                .put(ExploitA.class, new ExploitA(player))
+                .put(ExploitB.class, new ExploitB(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
@@ -206,6 +208,11 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends PacketCheck> T getPacketCheck(Class<T> check) {
         return (T) packetChecks.get(check);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
+        return (T) prePredictionChecks.get(check);
     }
 
     public PacketEntityReplication getEntityReplication() {
