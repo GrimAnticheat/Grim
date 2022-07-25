@@ -136,7 +136,7 @@ public enum BlockPlaceResult {
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
         WrappedBlockState above = place.getAboveState();
-        if (above.getType().isBlocking() || BlockTags.FENCE_GATES.contains(above.getType()) || above.getType() == StateTypes.MOVING_PISTON) {
+        if (!above.getType().isBlocking() && !BlockTags.FENCE_GATES.contains(above.getType()) && above.getType() != StateTypes.MOVING_PISTON) {
             place.set(place.getMaterial());
         }
     }, ItemTypes.FARMLAND),
