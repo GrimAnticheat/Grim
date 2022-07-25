@@ -834,6 +834,12 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.VINE),
 
+    LECTERN((player, place) -> {
+        WrappedBlockState lectern = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        lectern.setFacing(place.getPlayerFacing().getOppositeFace());
+        place.set(lectern);
+    }, ItemTypes.LECTERN),
+
     FENCE_GATE((player, place) -> {
         WrappedBlockState gate = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
         gate.setFacing(place.getPlayerFacing());
