@@ -45,6 +45,8 @@ public class BlockPlace {
     @Setter
     Vector3i blockPosition;
     @Getter
+    InteractionHand hand;
+    @Getter
     @Setter
     boolean replaceClicked;
     boolean isCancelled = false;
@@ -64,8 +66,9 @@ public class BlockPlace {
     @Setter
     Vector3f cursor;
 
-    public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
+        this.hand = hand;
         this.blockPosition = blockPosition;
         this.face = face;
         this.itemStack = itemStack;

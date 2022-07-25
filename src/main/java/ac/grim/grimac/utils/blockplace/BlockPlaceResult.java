@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.blockplace;
 
+import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -1065,6 +1066,11 @@ public enum BlockPlaceResult {
             ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
             ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
+
+    POWDER_SNOW_BUCKET((player, place) -> {
+        place.set();
+        CheckManagerListener.setPlayerItem(player, place.getHand(), ItemTypes.BUCKET);
+    }, ItemTypes.POWDER_SNOW_BUCKET),
 
     GAME_MASTER((player, place) -> {
         if (player.canUseGameMasterBlocks()) {

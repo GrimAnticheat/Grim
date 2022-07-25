@@ -33,7 +33,7 @@ public class DebugHandler extends PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isWasChecked()) return;
+        if (!predictionComplete.isChecked()) return;
 
         double offset = predictionComplete.getOffset();
 

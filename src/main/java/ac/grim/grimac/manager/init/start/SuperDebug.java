@@ -39,7 +39,7 @@ public final class SuperDebug extends PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isWasChecked()) return;
+        if (!predictionComplete.isChecked()) return;
 
         Location location = new Location(player.x, player.y, player.z, player.xRot, player.yRot, player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getWorld().getName());
 
