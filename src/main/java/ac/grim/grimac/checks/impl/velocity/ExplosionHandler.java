@@ -190,6 +190,7 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     private void handleTransactionPacket(int transactionID) {
+        firstBreadAddedExplosion = null;
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread explosion

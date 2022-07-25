@@ -98,6 +98,7 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     private void tickKnockback(int transactionID) {
+        firstBreadOnlyKnockback = null;
         if (firstBreadMap.isEmpty()) return;
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
