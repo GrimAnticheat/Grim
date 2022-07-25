@@ -537,6 +537,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (!placed && !player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
                 return;
 
+            // We can't replace plants with a water bucket
+            if (data.getState().getType() == StateTypes.KELP || data.getState().getType() == StateTypes.SEAGRASS || data.getState().getType() == StateTypes.TALL_SEAGRASS) {
+                return;
+            }
+
             if (!placed) {
                 type = ItemTypes.WATER_BUCKET;
             }
