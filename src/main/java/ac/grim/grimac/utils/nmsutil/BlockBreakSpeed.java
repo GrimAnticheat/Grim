@@ -23,12 +23,16 @@ public class BlockBreakSpeed {
         WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
         float blockHardness = block.getType().getHardness();
 
-        if (blockHardness == -1) return 0; // Unbreakable block
-
-        // A creative mode player cannot break things with a sword!
-        if (player.gamemode == GameMode.CREATIVE && tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
-            return 0;
+        if (player.gamemode == GameMode.CREATIVE) {
+            // A creative mode player cannot break things with a sword!
+            if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
+                return 0;
+            }
+            // Instabreak
+            return 1;
         }
+
+        if (blockHardness == -1) return 0; // Unbreakable block
 
         boolean isCorrectToolForDrop = false;
         float speedMultiplier = 1.0f;

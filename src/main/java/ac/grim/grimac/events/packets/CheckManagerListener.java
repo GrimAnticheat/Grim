@@ -426,7 +426,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 double damage = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition());
 
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
-                if (damage > 1 || (player.gamemode == GameMode.CREATIVE && damage != 0)) {
+                if (damage >= 1) {
                     player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
                     player.compensatedWorld.stopPredicting(dig);
