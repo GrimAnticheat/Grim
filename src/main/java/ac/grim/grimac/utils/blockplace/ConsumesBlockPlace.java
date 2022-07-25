@@ -29,7 +29,7 @@ public class ConsumesBlockPlace {
         }
         if (state.getType() == StateTypes.CAKE) {
             if (state.getBites() == 0 && place.getMaterial() != null) {
-                place.set(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
+                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
 
