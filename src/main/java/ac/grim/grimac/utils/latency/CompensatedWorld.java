@@ -235,6 +235,10 @@ public class CompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
+    public void updateBlock(Vector3i pos, WrappedBlockState state) {
+        updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
         Vector3i asVector = new Vector3i(x, y, z);
         BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
