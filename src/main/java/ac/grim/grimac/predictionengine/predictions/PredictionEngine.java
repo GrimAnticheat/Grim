@@ -409,8 +409,13 @@ public class PredictionEngine {
         int aScore = 0;
         int bScore = 0;
 
-        // Put explosions and knockback first so they are applied to the player
-        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
+        // Order priority (to avoid false positives and false flagging future predictions):
+        // Knockback and explosions
+        // 0.03 ticks
+        // Normal movement
+        // First bread knockback and explosions
+        // Flagging groundspoof
+        // Flagging flip items
         if (a.isExplosion())
             aScore -= 5;
 
@@ -422,6 +427,18 @@ public class PredictionEngine {
 
         if (b.isKnockback())
             bScore -= 5;
+
+        if (a.isFirstBreadExplosion())
+            aScore += 1;
+
+        if (b.isFirstBreadExplosion())
+            bScore += 1;
+
+        if (a.isFirstBreadKb())
+            aScore += 1;
+
+        if (b.isFirstBreadKb())
+            bScore += 1;
 
         if (a.isFlipItem())
             aScore += 3;

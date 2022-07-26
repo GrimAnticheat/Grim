@@ -153,13 +153,9 @@ public class KnockbackHandler extends PacketCheck {
             return;
         }
 
-        if (!wasZero && player.predictedVelocity.isKnockback() &&
-                player.likelyKB == null && player.firstBreadKB != null) {
-            // The player took this knockback, this tick, 100%
-            // Fixes exploit that would allow players to take knockback an infinite number of times
-            if (player.firstBreadKB.offset < offsetToFlag) {
-                firstBreadOnlyKnockback = null;
-            }
+        if (player.predictedVelocity.isFirstBreadKb()) {
+            firstBreadOnlyKnockback = null;
+            firstBreadMap.poll(); // Remove from map so we don't pull it again
         }
 
         if (wasZero || player.predictedVelocity.isKnockback()) {

@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.Deque;
@@ -138,12 +139,9 @@ public class ExplosionHandler extends PacketCheck {
         int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
-        if (!wasZero && player.predictedVelocity.isKnockback() && player.likelyExplosions == null && player.firstBreadExplosion != null) {
-            // The player took this knockback, this tick, 100%
-            // Fixes exploit that would allow players to take explosions an infinite number of times
-            if (player.firstBreadExplosion.offset < offsetToFlag) {
-                firstBreadAddedExplosion = null;
-            }
+        if (player.predictedVelocity.isFirstBreadExplosion()) {
+            firstBreadAddedExplosion = null;
+            firstBreadMap.poll(); // Remove from map so we don't pull it again
         }
 
         if (wasZero || player.predictedVelocity.isExplosion() ||
@@ -179,8 +177,6 @@ public class ExplosionHandler extends PacketCheck {
             }
         }
 
-        firstBreadAddedExplosion = null;
-
         player.firstBreadExplosion = null;
         player.likelyExplosions = null;
     }
@@ -200,20 +196,16 @@ public class ExplosionHandler extends PacketCheck {
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread explosion
-                firstBreadMap.poll();
                 if (lastExplosionsKnownTaken != null)
                     firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, lastExplosionsKnownTaken.vector.clone().add(data.vector));
                 else
                     firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) {
-                if (lastExplosionsKnownTaken != null)
+                if (lastExplosionsKnownTaken != null) {
                     lastExplosionsKnownTaken.vector.add(data.vector);
-                else {
-                    if (firstBreadAddedExplosion != null) // Bring over the previous offset, don't require explosions twice
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, data.isSetback, firstBreadAddedExplosion.offset);
-                    else
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
+                } else {
+                    lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 }
 
                 firstBreadAddedExplosion = null;
