@@ -593,9 +593,7 @@ public class BlockPlace {
         // Check for waterlogged
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             if (state.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
-                if (existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0) {
-                    state.setWaterlogged(true);
-                }
+                state.setWaterlogged(existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0);
             }
         }
 

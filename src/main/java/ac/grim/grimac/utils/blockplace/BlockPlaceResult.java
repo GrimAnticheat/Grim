@@ -147,7 +147,7 @@ public enum BlockPlaceResult {
         WrappedBlockState amethyst = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
         amethyst.setFacing(place.getDirection());
         if (place.isFullFace(place.getDirection().getOppositeFace())) place.set(amethyst);
-    }, ItemTypes.AMETHYST_CLUSTER),
+    }, ItemTypes.AMETHYST_CLUSTER, ItemTypes.SMALL_AMETHYST_BUD, ItemTypes.MEDIUM_AMETHYST_BUD, ItemTypes.LARGE_AMETHYST_BUD),
 
     BAMBOO((player, place) -> {
         Vector3i clicked = place.getPlacedAgainstBlockLocation();
@@ -372,7 +372,7 @@ public enum BlockPlaceResult {
         if (place.isSolidBlocking(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("CANDLE_CAKE"))
+    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("candle_cake"))
             .collect(Collectors.toList()).toArray(new ItemType[0])),
 
     PISTON_BASE((player, place) -> {
@@ -543,7 +543,8 @@ public enum BlockPlaceResult {
         boolean isHead = place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL");
         boolean isWallSign = !isTorch && !isHead;
 
-        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return; // 1.12- players don't predict head places
+        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2))
+            return; // 1.12- players don't predict head places
 
         if (isTorch) {
             dir = StateTypes.WALL_TORCH.createBlockState(CompensatedWorld.blockVersion);
@@ -575,9 +576,9 @@ public enum BlockPlaceResult {
             }
         }
     }, ItemTypes.values().stream().filter(mat ->
-                    mat.getName().getKey().contains("TORCH") // Find all torches
-                            || (mat.getName().getKey().contains("HEAD") || mat.getName().getKey().contains("SKULL")) && !mat.getName().getKey().contains("PISTON") // Skulls
-                            || mat.getName().getKey().contains("SIGN")) // And signs
+                    mat.getName().getKey().contains("torch") // Find all torches
+                            || (mat.getName().getKey().contains("head") || mat.getName().getKey().contains("skull")) && !mat.getName().getKey().contains("piston") // Skulls
+                            || mat.getName().getKey().contains("sign")) // And signs
             .toArray(ItemType[]::new)),
 
     MULTI_FACE_BLOCK((player, place) -> {
@@ -645,8 +646,8 @@ public enum BlockPlaceResult {
                 return;
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("BUTTON") // Find all buttons
-                    || mat.getName().getKey().contains("LEVER")) // And levers
+    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("button") // Find all buttons
+                    || mat.getName().getKey().contains("lever")) // And levers
             .toArray(ItemType[]::new)),
 
     GRINDSTONE((player, place) -> { // Grindstones do not have special survivability requirements
@@ -733,8 +734,8 @@ public enum BlockPlaceResult {
         if (place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("CORAL")
-                    && !mat.getName().getKey().contains("BLOCK") && !mat.getName().getKey().contains("FAN")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+                    && !mat.getName().getKey().contains("block") && !mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
     CORAL_FAN((player, place) -> {
@@ -757,15 +758,15 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("CORAL")
-                    && !mat.getName().getKey().contains("BLOCK") && mat.getName().getKey().contains("FAN")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+                    && !mat.getName().getKey().contains("block") && mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
     PRESSURE_PLATE((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN) || place.isFaceFullCenter(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("PLATE")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("plate")))
             .toArray(ItemType[]::new)),
 
     RAIL((player, place) -> {
