@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.Deque;
@@ -40,8 +39,6 @@ public class ExplosionHandler extends PacketCheck {
             WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
             Vector3f velocity = explosion.getPlayerMotion();
-
-            Bukkit.broadcastMessage("Sent velocity " + velocity);
 
             if (!explosion.getRecords().isEmpty()) {
                 player.sendTransaction();
