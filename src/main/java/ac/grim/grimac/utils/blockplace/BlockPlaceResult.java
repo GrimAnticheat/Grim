@@ -539,8 +539,8 @@ public enum BlockPlaceResult {
         // If it's a torch, create a wall torch
         // Otherwise, it's going to be a head.  The type of this head also doesn't matter
         WrappedBlockState dir;
-        boolean isTorch = place.getMaterial().getName().contains("TORCH");
-        boolean isHead = place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL");
+        boolean isTorch = place.getMaterial().getName().contains("torch");
+        boolean isHead = place.getMaterial().getName().contains("head") || place.getMaterial().getName().contains("skull");
         boolean isWallSign = !isTorch && !isHead;
 
         if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2))
@@ -548,7 +548,7 @@ public enum BlockPlaceResult {
 
         if (isTorch) {
             dir = StateTypes.WALL_TORCH.createBlockState(CompensatedWorld.blockVersion);
-        } else if (place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL")) {
+        } else if (place.getMaterial().getName().contains("head") || place.getMaterial().getName().contains("skull")) {
             dir = StateTypes.PLAYER_WALL_HEAD.createBlockState(CompensatedWorld.blockVersion);
         } else {
             dir = StateTypes.OAK_WALL_SIGN.createBlockState(CompensatedWorld.blockVersion);
@@ -566,7 +566,7 @@ public enum BlockPlaceResult {
                         place.set(dir);
                         return;
                     }
-                } else if (place.isFaceFullCenter(BlockFace.DOWN)) {
+                } else {
                     boolean canPlace = isHead || ((isWallSign || place.isFaceFullCenter(face)) && (isTorch || place.isSolidBlocking(face)));
                     if (canPlace) {
                         place.set(place.getMaterial());
