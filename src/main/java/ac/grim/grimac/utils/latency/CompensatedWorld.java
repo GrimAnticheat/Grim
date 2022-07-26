@@ -317,6 +317,8 @@ public class CompensatedWorld {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
             player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+        } else if (BlockTags.BUTTONS.contains(data.getType())) {
+            data.setPowered(true);
         }
     }
 
