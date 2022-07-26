@@ -28,7 +28,7 @@ public class ConsumesBlockPlace {
             return true;
         }
         if (state.getType() == StateTypes.CAKE) {
-            if (state.getBites() == 0 && place.getMaterial() != null) {
+            if (state.getBites() == 0 && BlockTags.CANDLES.contains(place.getMaterial())) {
                 player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
