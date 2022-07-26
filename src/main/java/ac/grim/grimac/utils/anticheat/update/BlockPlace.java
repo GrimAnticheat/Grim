@@ -262,7 +262,9 @@ public class BlockPlace {
         } else if (blockMaterial == StateTypes.LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
             return state.getFacing().getOppositeFace() == bukkitFace;
         } else if (BlockTags.TRAPDOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on trapdoors
-            return state.getFacing().getOppositeFace() == bukkitFace && state.isOpen();
+            return (state.getFacing().getOppositeFace() == bukkitFace && state.isOpen()) ||
+                    (state.getHalf() == Half.TOP && !state.isOpen() && bukkitFace == BlockFace.UP) ||
+                    (state.getHalf() == Half.BOTTOM && !state.isOpen() && bukkitFace == BlockFace.DOWN);
         } else if (BlockTags.DOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on doors
             CollisionData data = CollisionData.getData(blockMaterial);
 
