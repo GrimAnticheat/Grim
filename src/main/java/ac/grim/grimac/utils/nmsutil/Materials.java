@@ -77,6 +77,7 @@ public class Materials {
         CLIENT_SIDE.add(StateTypes.REPEATER);
         CLIENT_SIDE.add(StateTypes.SMITHING_TABLE);
         CLIENT_SIDE.add(StateTypes.STONECUTTER);
+        CLIENT_SIDE.add(StateTypes.LECTERN);
 
         CLIENT_SIDE.addAll(BlockTags.FENCE_GATES.getStates());
         CLIENT_SIDE.addAll(BlockTags.ANVIL.getStates());
