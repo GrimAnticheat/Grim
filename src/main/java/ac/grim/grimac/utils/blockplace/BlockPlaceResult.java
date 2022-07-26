@@ -236,6 +236,8 @@ public enum BlockPlaceResult {
             // Max pickels already exist
             if (existing.getPickles() == 4) return;
             existing.setPickles(existing.getPickles() + 1);
+        } else {
+            existing = StateTypes.SEA_PICKLE.createBlockState(CompensatedWorld.blockVersion);
         }
 
         place.set(existing);
