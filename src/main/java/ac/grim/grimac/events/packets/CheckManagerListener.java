@@ -162,8 +162,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public static void handleQueuedPlaces(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
         // Handle queue'd block places
-        PacketWrapper<?> packet;
-        while ((packet = player.placeUseItemPackets.poll()) != null) {
+        BlockPlaceSnapshot snapshot;
+        while ((snapshot = player.placeUseItemPackets.poll()) != null) {
             double lastX = player.x;
             double lastY = player.y;
             double lastZ = player.z;
@@ -171,6 +171,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.x = player.packetStateData.lastClaimedPosition.getX();
             player.y = player.packetStateData.lastClaimedPosition.getY();
             player.z = player.packetStateData.lastClaimedPosition.getZ();
+
+            boolean lastSneaking = player.isSneaking;
+            player.isSneaking = snapshot.isSneaking();
 
             if (player.compensatedEntities.getSelf().getRiding() != null) {
                 Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.compensatedEntities.getSelf().getRiding(), player);
@@ -188,12 +191,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             player.compensatedWorld.startPredicting();
-            handleBlockPlaceOrUseItem(packet, player);
-            player.compensatedWorld.stopPredicting(packet);
+            handleBlockPlaceOrUseItem(snapshot.getWrapper(), player);
+            player.compensatedWorld.stopPredicting(snapshot.getWrapper());
 
             player.x = lastX;
             player.y = lastY;
             player.z = lastZ;
+            player.isSneaking = lastSneaking;
         }
     }
 
@@ -449,7 +453,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // This is the use item packet
             if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
-                player.placeUseItemPackets.add(packet);
+                player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
                 PacketPlayerDigging.handleUseItem(player, player.getInventory().getHeldItem(), InteractionHand.MAIN_HAND);
                 return;
             }
@@ -492,13 +496,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
 
             } else { // Legit place
-                player.placeUseItemPackets.add(packet);
+                player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
-            player.placeUseItemPackets.add(packet);
+            player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
         }
 
