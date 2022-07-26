@@ -180,6 +180,9 @@ public class ExplosionHandler extends PacketCheck {
         }
 
         firstBreadAddedExplosion = null;
+
+        player.firstBreadExplosion = null;
+        player.likelyExplosions = null;
     }
 
 

@@ -195,6 +195,9 @@ public class KnockbackHandler extends PacketCheck {
                 }
             }
         }
+
+        player.likelyKB = null;
+        player.firstBreadKB = null;
     }
 
     public boolean shouldIgnoreForPrediction(VectorData data) {

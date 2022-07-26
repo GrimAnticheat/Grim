@@ -552,11 +552,6 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        player.firstBreadKB = null;
-        player.likelyKB = null;
-        player.firstBreadExplosion = null;
-        player.likelyExplosions = null;
-
         player.lastOnGround = player.onGround;
         player.lastSprinting = player.isSprinting;
         player.lastSprintingForSpeed = player.isSprinting;
