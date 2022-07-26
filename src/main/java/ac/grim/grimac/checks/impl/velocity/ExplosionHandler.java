@@ -125,6 +125,7 @@ public class ExplosionHandler extends PacketCheck {
         explosionPointThree = false;
 
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
+            firstBreadAddedExplosion = null;
             return;
         }
 
@@ -180,11 +181,10 @@ public class ExplosionHandler extends PacketCheck {
                 reward();
             }
         }
-    }
 
-    public void endOfMovementTick() {
         firstBreadAddedExplosion = null;
     }
+
 
     public VelocityData getPossibleExplosions(int lastTransaction) {
         handleTransactionPacket(lastTransaction);
