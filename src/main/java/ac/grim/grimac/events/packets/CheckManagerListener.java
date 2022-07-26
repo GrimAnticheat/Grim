@@ -375,7 +375,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.likelyKB = calculatedRequireKb == null ? player.likelyKB : calculatedRequireKb;
 
             VelocityData calculateFirstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-            VelocityData calculateRequiredExplosion =  player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+            VelocityData calculateRequiredExplosion = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
             player.firstBreadExplosion = calculateFirstBreadExplosion == null ? player.firstBreadExplosion : calculateFirstBreadExplosion;
             player.likelyExplosions = calculateRequiredExplosion == null ? player.likelyExplosions : calculateRequiredExplosion;
         }

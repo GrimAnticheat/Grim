@@ -202,7 +202,7 @@ public class ExplosionHandler extends PacketCheck {
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) {
                 if (lastExplosionsKnownTaken != null)
-                    lastExplosionsKnownTaken.vector.clone().add(data.vector);
+                    lastExplosionsKnownTaken.vector.add(data.vector);
                 else {
                     if (firstBreadAddedExplosion != null) // Bring over the previous offset, don't require explosions twice
                         lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, data.isSetback, firstBreadAddedExplosion.offset);

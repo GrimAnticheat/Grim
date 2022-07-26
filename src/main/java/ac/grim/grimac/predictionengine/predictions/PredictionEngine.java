@@ -144,6 +144,14 @@ public class PredictionEngine {
                 player.skippedTickInActualMovement = true;
             }
 
+            if (clientVelAfterInput.isKnockback()) {
+                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
+            if (clientVelAfterInput.isExplosion()) {
+                player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
             //
@@ -151,19 +159,10 @@ public class PredictionEngine {
             if ((clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) && !clientVelAfterInput.isZeroPointZeroThree()) {
                 boolean wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
 
-                // Check ONLY the knockback vectors for 0.03
-                // The first being the one without uncertainty
-                // And the last having uncertainty to deal with 0.03
-                //
-                // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
-                // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getKnockbackHandler().setPointThree(wasVelocityPointThree);
                 }
-
                 if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getExplosionHandler().setPointThree(wasVelocityPointThree);
                 }
             }
