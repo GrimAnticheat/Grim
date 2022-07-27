@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsutil.*;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
@@ -162,7 +163,8 @@ public class PointThreeEstimator {
             }
         }
 
-        if (!player.compensatedEntities.getSelf().inVehicle() && (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (!player.compensatedEntities.getSelf().inVehicle() && ((state.getType() == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+                || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }
@@ -243,7 +245,7 @@ public class PointThreeEstimator {
         // Check for flowing water
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             WrappedBlockState state = pair.getFirst();
-            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle())) {
+            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
