@@ -166,11 +166,13 @@ public class CheckManager {
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketReceive(packet));
+        postPredictionCheck.values().forEach(postPredictionCheck -> postPredictionCheck.onPacketReceive(packet));
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
         prePredictionChecks.values().forEach(check -> check.onPacketSend(packet));
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketSend(packet));
+        postPredictionCheck.values().forEach(postPredictionCheck -> postPredictionCheck.onPacketSend(packet));
     }
 
     public void onPositionUpdate(final PositionUpdate position) {

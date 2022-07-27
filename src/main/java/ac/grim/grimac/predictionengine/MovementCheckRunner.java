@@ -12,7 +12,6 @@ import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -34,7 +33,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends PositionCheck {
@@ -540,8 +538,9 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         // Let's hope this doesn't desync :)
-        if (player.getSetbackTeleportUtil().blockOffsets)
-            offset = 0;
+        if (player.getSetbackTeleportUtil().blockOffsets) offset = 0;
+
+        if (player.skippedTickInActualMovement) player.uncertaintyHandler.lastPointThree.reset();
 
         // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
@@ -576,10 +575,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.compensatedEntities.getSelf().inVehicle() && player.skippedTickInActualMovement;
         player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.compensatedEntities.getSelf().inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
         player.couldSkipTick = false;
-
-        if (player.skippedTickInActualMovement) {
-            player.uncertaintyHandler.lastPointThree.reset();
-        }
 
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
