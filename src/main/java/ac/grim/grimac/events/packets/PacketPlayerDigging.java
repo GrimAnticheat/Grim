@@ -38,7 +38,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // 1.14 and below players cannot eat in creative, exceptions are potions or milk
             if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15) ||
-                    player.gamemode != GameMode.CREATIVE && material.hasAttribute(ItemTypes.ItemAttribute.EDIBLE))
+                    (player.gamemode != GameMode.CREATIVE && material.hasAttribute(ItemTypes.ItemAttribute.EDIBLE)))
                     || material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET) {
 
                 // Pls have this mapped correctly retrooper
@@ -52,7 +52,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Eatable items that don't require any hunger to eat
                 if (material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
                         || material == ItemTypes.GOLDEN_APPLE || material == ItemTypes.ENCHANTED_GOLDEN_APPLE
-                        || material == ItemTypes.HONEY_BOTTLE) {
+                        || material == ItemTypes.HONEY_BOTTLE || material == ItemTypes.SUSPICIOUS_STEW ||
+                        material == ItemTypes.CHORUS_FRUIT) {
                     player.packetStateData.slowedByUsingItem = true;
                     player.packetStateData.eatingHand = hand;
 
