@@ -51,11 +51,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // It is set by both bukkit and netty due to going on the bukkit thread to setback players
     private SetBackData requiredSetBack = null;
     public SetbackPosWithVector lastKnownGoodPosition;
-
-    // Resetting velocity can be abused to "fly"
-    // Therefore, only allow one setback position every half second to patch this flight exploit
-    public int setbackConfirmTicksAgo = 0;
-
     // Are we currently sending setback stuff?
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
@@ -74,20 +69,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // We must first check if the player has accepted their setback
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
-            // The player did indeed accept the setback, and there are no new setbacks past now!
-            setbackConfirmTicksAgo = 0;
             // The player needs to now wait for their vehicle to go into the right place before getting back in
             if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
             // Teleport, let velocity be reset
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
-            setbackConfirmTicksAgo++;
             cheatVehicleInterpolationDelay--;
             // No simulation... we can do that later. We just need to know the valid position.
             // As we didn't setback here, the new position is known to be safe!
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
-        } else {
-            setbackConfirmTicksAgo = 0; // Pending setback
         }
     }
 
