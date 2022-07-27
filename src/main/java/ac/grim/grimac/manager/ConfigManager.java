@@ -259,7 +259,7 @@ public class ConfigManager {
             configString += "\n\n# Enables experimental checks\n" +
                     "experimental-checks: false\n\n";
         }
-        configString += "verbose:\n" +
+        configString += "\nverbose:\n" +
                 "  print-to-console: false\n";
         Files.write(config.toPath(), configString.getBytes());
 
