@@ -634,10 +634,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        player.lastX = player.x;
-        player.lastY = player.y;
-        player.lastZ = player.z;
-
         if (!player.packetStateData.lastPacketWasTeleport) {
             player.packetStateData.packetPlayerOnGround = onGround;
         }
@@ -663,6 +659,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (!player.compensatedEntities.getSelf().inVehicle() && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
+
                 player.x = clampVector.getX();
                 player.y = clampVector.getY();
                 player.z = clampVector.getZ();

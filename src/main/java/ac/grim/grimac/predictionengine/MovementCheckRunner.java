@@ -519,6 +519,26 @@ public class MovementCheckRunner extends PositionCheck {
             player.getSetbackTeleportUtil().executeForceResync(); // Could technically be lag due to packet timings.
         }
 
+        // If the player is abusing a setback in order to gain the onGround status of true.
+        // and the player then jumps from this position in the air.
+        // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
+        //
+        // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
+        if (update.getSetback() != null) {
+            Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
+            // A player must have velocity going INTO the ground to be able to jump
+            // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
+            // So if they are supposed to be going upwards, or are supposed to be off the ground, resync
+            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
+                player.getSetbackTeleportUtil().executeForceResync();
+            }
+            // Player ignored the knockback or is delaying it a tick... bad!
+            if (!player.predictedVelocity.isKnockback() && update.getSetback().getVelocity() != null) {
+                // And then send it again!
+                player.getSetbackTeleportUtil().executeForceResync();
+            }
+        }
+
         // Let's hope this doesn't desync :)
         if (player.getSetbackTeleportUtil().blockOffsets)
             offset = 0;
@@ -530,26 +550,6 @@ public class MovementCheckRunner extends PositionCheck {
             // The player wasn't checked, explosion and knockback status unknown
             player.checkManager.getExplosionHandler().forceExempt();
             player.checkManager.getKnockbackHandler().forceExempt();
-        }
-
-        // If the player is abusing a setback in order to gain the onGround status of true.
-        // and the player then jumps from this position in the air.
-        // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
-        //
-        // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
-        if (player.getSetbackTeleportUtil().setbackConfirmTicksAgo == 1) {
-            Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
-            // A player must have velocity going INTO the ground to be able to jump
-            // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
-            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
-                player.getSetbackTeleportUtil().executeForceResync();
-            }
-            SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
-            // Player ignored the knockback or is delaying it a tick... bad!
-            if (!player.predictedVelocity.isKnockback() && data.getVelocity() != null) {
-                // And then send it again!
-                player.getSetbackTeleportUtil().executeForceResync();
-            }
         }
 
         player.lastOnGround = player.onGround;

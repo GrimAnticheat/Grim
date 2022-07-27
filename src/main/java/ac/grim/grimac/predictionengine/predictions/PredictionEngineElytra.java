@@ -31,7 +31,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         return results;
     }
 
-    public Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
+    public static Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
         float yRotRadians = player.yRot * 0.017453292F;
         double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double horizontalLength = vector.clone().setY(0).length();
