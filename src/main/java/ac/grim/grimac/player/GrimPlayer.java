@@ -76,7 +76,7 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
-    private int transactionPing = 0;
+    private long transactionPing = 0;
     public long lastTransSent = 0;
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
@@ -292,7 +292,7 @@ public class GrimPlayer implements GrimUser {
                     break;
 
                 lastTransactionReceived.incrementAndGet();
-                transactionPing = (int) (System.nanoTime() - data.getSecond());
+                transactionPing = (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
             } while (data.getFirst() != id);
 
@@ -496,6 +496,7 @@ public class GrimPlayer implements GrimUser {
         }
     }
 
+    @Override
     public int getTransactionPing() {
         return GrimMath.floor(transactionPing / 1e6);
     }
