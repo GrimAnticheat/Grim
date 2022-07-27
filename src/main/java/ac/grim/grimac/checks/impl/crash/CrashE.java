@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -18,10 +19,25 @@ public class CrashE extends PacketCheck {
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_SETTINGS) {
             WrapperPlayClientSettings wrapper = new WrapperPlayClientSettings(event);
-            boolean invalidViewDistance = wrapper.getViewDistance() < 2;
-            boolean invalidLocale = wrapper.getLocale().length() < 4 || wrapper.getLocale().length() > 6;
+            int viewDistance = wrapper.getViewDistance();
+            String locale = wrapper.getLocale();
+            boolean invalidViewDistance = viewDistance < 2;
+            boolean invalidLocale = locale.length() < 4 || locale.length() > 6;
+
+            if (locale.length() > 64) {
+                locale = "sent " + locale.length() + " bytes as locale";
+            } else if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(wrapper.getLocale())) {
+                locale = "sent log4j";
+            }
+
             if (invalidViewDistance || invalidLocale) {
-                if (flagAndAlert("invalidLocale=" + invalidLocale + " invalidViewDistance=" + invalidViewDistance)) {
+                String debug = "";
+
+                if (invalidLocale) debug += "locale=" + locale;
+                if (invalidViewDistance) debug += " viewDistance=" + viewDistance;
+
+                debug = debug.trim();
+                if (flagAndAlert(debug)) {
                     if (invalidViewDistance) wrapper.setViewDistance(2);
                     if (invalidLocale) wrapper.setLocale("en_us");
                 }

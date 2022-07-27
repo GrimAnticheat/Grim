@@ -34,9 +34,11 @@ public class CrashD extends PacketCheck {
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && isSupportedVersion()) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+            int clickType = click.getWindowClickType().ordinal();
+            int button = click.getButton();
             int windowId = click.getWindowId();
             if (type == 16 && windowId > 0 && windowId == lecternId) {
-                if (flagAndAlert()) {
+                if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
                     event.setCancelled(true);
                 }
             }

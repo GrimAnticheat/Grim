@@ -4,14 +4,28 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
 @CheckData(name = "BadPacketsP", experimental = true)
 public class BadPacketsP extends PacketCheck {
 
     public BadPacketsP(GrimPlayer playerData) {
         super(playerData);
+    }
+
+    private int containerType = -1;
+    private int containerId = -1;
+
+    @Override
+    public void onPacketSend(final PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.containerType = window.getType();
+            this.containerId = window.getContainerId();
+        }
     }
 
     @Override
@@ -23,6 +37,7 @@ public class BadPacketsP extends PacketCheck {
 
             boolean flag = false;
 
+            //TODO: Adjust for containers
             switch (clickType) {
                 case 0:
                 case 1:
@@ -42,9 +57,10 @@ public class BadPacketsP extends PacketCheck {
                     if (button != 0) flag = true;
                     break;
             }
-            //TODO: Potentially cancel packet once we guarantee this doesn't false on all versions
+
+            //Allowing this to false flag to debug and find issues faster
             if (flag) {
-                flagAndAlert("clickType=" + clickType + " button=" + button);
+                flagAndAlert("clickType=" + clickType + " button=" + button + (wrapper.getWindowId() == containerId ? " container=" + containerType : ""));
             }
 
         }
