@@ -519,19 +519,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.getSetbackTeleportUtil().executeForceResync(); // Could technically be lag due to packet timings.
         }
 
-        // Let's hope this doesn't desync :)
-        if (player.getSetbackTeleportUtil().blockOffsets)
-            offset = 0;
-
-        // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
-        player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
-
-        if (!wasChecked) {
-            // The player wasn't checked, explosion and knockback status unknown
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().forceExempt();
-        }
-
         // If the player is abusing a setback in order to gain the onGround status of true.
         // and the player then jumps from this position in the air.
         // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
@@ -550,6 +537,19 @@ public class MovementCheckRunner extends PositionCheck {
                 // And then send it again!
                 player.getSetbackTeleportUtil().executeForceResync();
             }
+        }
+
+        // Let's hope this doesn't desync :)
+        if (player.getSetbackTeleportUtil().blockOffsets)
+            offset = 0;
+
+        // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
+        player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
+
+        if (!wasChecked) {
+            // The player wasn't checked, explosion and knockback status unknown
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
         }
 
         player.lastOnGround = player.onGround;

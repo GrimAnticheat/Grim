@@ -38,9 +38,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
                 // Player teleport event gets called AFTER player join event
-                player.lastX = teleport.getX();
-                player.lastY = teleport.getY();
-                player.lastZ = teleport.getZ();
                 player.x = teleport.getX();
                 player.y = teleport.getY();
                 player.z = teleport.getZ();
