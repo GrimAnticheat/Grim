@@ -60,11 +60,17 @@ public class PlayerDataManager {
     }
 
     @Nullable
-    public GrimPlayer getPlayer(final User player) {
-        if (!playerDataMap.containsKey(player) && shouldCheck(player)) {
-            GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(player, new GrimPlayer(player));
+    public GrimPlayer getPlayer(final User user) {
+        // We can ignore closed channels fine because vanilla also does this
+        if (!ChannelHelper.isOpen(user.getChannel())) return null;
+
+        GrimPlayer player = playerDataMap.get(user);
+        if (player == null && shouldCheck(user)) {
+            player = new GrimPlayer(user);
+            GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, player);
         }
-        return playerDataMap.get(player);
+
+        return player;
     }
 
     public void addPlayer(final User user, final GrimPlayer player) {
