@@ -172,6 +172,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             position = position.withY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
             position = position.withZ(position.getZ() + collide.getZ());
 
+            if (clientVel.getX() != collide.getX()) clientVel.setX(0);
+            if (clientVel.getY() != collide.getY()) clientVel.setY(0);
+            if (clientVel.getZ() != collide.getZ()) clientVel.setZ(0);
+
             simulateFriction(clientVel);
         }
 
