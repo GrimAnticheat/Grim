@@ -118,9 +118,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (player.wasTouchingWater) {
             PredictionEngineWater.staticVectorEndOfTick(player, vector, 0.8F, player.gravity, true);
         } else if (player.wasTouchingLava) {
-            player.clientVelocity.multiply(0.5D);
+            vector.multiply(0.5D);
             if (player.hasGravity)
-                player.clientVelocity.add(new Vector(0.0D, -player.gravity / 4.0D, 0.0D));
+                vector.add(new Vector(0.0D, -player.gravity / 4.0D, 0.0D));
         } else if (player.isGliding) {
             PredictionEngineElytra.getElytraMovement(player, vector, ReachUtils.getLook(player, player.xRot, player.yRot)).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
             vector.setY(vector.getY() - 0.05); // Make the player fall a bit

@@ -654,9 +654,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d clampVector = VectorUtils.clampVector(position);
             final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
-            if (!player.packetStateData.lastPacketWasTeleport) { // Mojang fucked up 0.03 and doesn't include teleports with them
-                player.filterMojangStupidityOnMojangStupidity = clampVector;
-            }
+            // Stupidity doesn't care about 0.03
+            player.filterMojangStupidityOnMojangStupidity = clampVector;
 
             if (!player.compensatedEntities.getSelf().inVehicle() && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 player.lastX = player.x;
