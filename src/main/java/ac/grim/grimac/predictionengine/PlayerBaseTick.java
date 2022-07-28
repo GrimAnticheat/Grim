@@ -367,12 +367,12 @@ public class PlayerBaseTick {
         }
         if (direction != null) {
             if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
-                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
-                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.xPositiveUncertainty += 0.15;
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.15;
                 player.pointThreeEstimator.setPushing(true);
             } else {
-                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
-                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.zPositiveUncertainty += 0.15;
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.15;
                 player.pointThreeEstimator.setPushing(true);
             }
         }
