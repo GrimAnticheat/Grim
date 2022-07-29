@@ -531,7 +531,7 @@ public class MovementCheckRunner extends PositionCheck {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
             // Player ignored the knockback or is delaying it a tick... bad!
-            if (!player.predictedVelocity.isKnockback() && update.getSetback().getVelocity() != null) {
+            if (!player.predictedVelocity.isKnockback() && player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity() != null) {
                 // And then send it again!
                 player.getSetbackTeleportUtil().executeForceResync();
             }
