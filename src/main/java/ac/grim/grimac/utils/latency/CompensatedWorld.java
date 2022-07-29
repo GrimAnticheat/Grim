@@ -76,9 +76,12 @@ public class CompensatedWorld {
     private boolean isCurrentlyPredicting = false;
     public boolean isRaining = false;
 
+    private boolean noNegativeBlocks;
+
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
     }
 
     public void startPredicting() {
@@ -410,6 +413,8 @@ public class CompensatedWorld {
     }
 
     public WrappedBlockState getWrappedBlockStateAt(int x, int y, int z) {
+        if (noNegativeBlocks && y < 0) return airData;
+
         try {
             Column column = getChunk(x >> 4, z >> 4);
 
