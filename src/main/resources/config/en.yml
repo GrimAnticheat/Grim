@@ -116,4 +116,8 @@ debug-pipeline-on-join: false
 # Enables experimental checks
 experimental-checks: false
 
-config-version: 7
+# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
+# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+packet-spam-threshold: 150
+
+config-version: 8

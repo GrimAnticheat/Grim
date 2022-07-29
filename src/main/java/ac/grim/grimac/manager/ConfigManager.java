@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 7");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 8");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -144,6 +144,9 @@ public class ConfigManager {
         }
         if (configVersion < 7) {
             removeAlertsOnJoin(config, configString);
+        }
+        if (configVersion < 8) {
+            addPacketSpamThreshold(config, configString);
         }
     }
 
@@ -280,6 +283,13 @@ public class ConfigManager {
     private void removeAlertsOnJoin(File config, String configString) throws IOException {
         configString = configString.replaceAll("  # Should players with grim\\.alerts permission automatically enable alerts on join\\?\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // en
         configString = configString.replaceAll("  # 管理员进入时是否自动开启警告？\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // zh
+        Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void addPacketSpamThreshold(File config, String configString) throws IOException {
+        configString += "\n# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should\n" +
+                "# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.\n" +
+                "packet-spam-threshold: 150\n";
         Files.write(config.toPath(), configString.getBytes());
     }
 }

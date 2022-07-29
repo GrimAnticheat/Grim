@@ -181,6 +181,7 @@ public class GrimPlayer implements GrimUser {
     public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
+    public AtomicInteger cancelledPackets = new AtomicInteger(0);
 
     public int attackTicks;
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();

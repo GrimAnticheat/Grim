@@ -26,6 +26,7 @@ public class CrashC extends PacketCheck {
                     flagAndAlert("xyzYP: " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ", " + pos.getYaw() + ", " + pos.getPitch());
                     player.getSetbackTeleportUtil().executeViolationSetback();
                     event.setCancelled(true);
+                    player.cancelledPackets.incrementAndGet();
                 }
             }
         }

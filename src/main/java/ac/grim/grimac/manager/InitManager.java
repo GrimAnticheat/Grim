@@ -28,6 +28,7 @@ public class InitManager {
                 .put(TickEndEvent.class, new TickEndEvent())
                 .put(CommandRegister.class, new CommandRegister())
                 .put(BStats.class, new BStats())
+                .put(PacketLimiter.class, new PacketLimiter())
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
                 .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
