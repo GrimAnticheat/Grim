@@ -79,6 +79,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // As we didn't setback here, the new position is known to be safe!
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
         }
+
+        if (requiredSetBack != null) requiredSetBack.tick();
     }
 
     public void executeForceResync() {

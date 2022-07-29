@@ -522,7 +522,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
         //
         // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
-        if (update.getSetback() != null) {
+        if (player.getSetbackTeleportUtil().getRequiredSetBack() != null && player.getSetbackTeleportUtil().getRequiredSetBack().getTicksComplete() == 1) {
             Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
             // A player must have velocity going INTO the ground to be able to jump
             // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
