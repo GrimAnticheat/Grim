@@ -14,6 +14,7 @@ public class SetBackData {
     Vector velocity;
     boolean vehicle;
     boolean isComplete = false;
+    // TODO: Rethink when we block movements for teleports, perhaps after 10 ticks or 5 blocks?
     boolean isPlugin = false;
 
     public SetBackData(TeleportData teleportData, float xRot, float yRot, Vector velocity, boolean vehicle, boolean isPlugin) {

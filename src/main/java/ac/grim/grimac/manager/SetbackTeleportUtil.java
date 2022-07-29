@@ -350,7 +350,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @return If the player is in a desync state and is waiting on information from the server
      */
     public boolean shouldBlockMovement() {
-        return insideUnloadedChunk() || blockOffsets || pendingTeleports.size() > 1 || (requiredSetBack != null && !requiredSetBack.isComplete() && !requiredSetBack.isPlugin());
+        // This is required to ensure protection from servers teleporting from CREATIVE to SURVIVAL
+        // I should likely refactor
+        return insideUnloadedChunk() || blockOffsets || (requiredSetBack != null && !requiredSetBack.isComplete());
     }
 
     private boolean isPendingSetback() {
