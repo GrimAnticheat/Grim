@@ -78,11 +78,16 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerChangeGameState newState = new WrapperPlayServerChangeGameState(event);
-            if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.BEGIN_RAINING) {
-                player.compensatedWorld.isRaining = true;
-            } else if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.END_RAINING) {
-                player.compensatedWorld.isRaining = false;
-            }
+
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.BEGIN_RAINING) {
+                    player.compensatedWorld.isRaining = true;
+                } else if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.END_RAINING) {
+                    player.compensatedWorld.isRaining = false;
+                } else if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.RAIN_LEVEL_CHANGE) {
+                    player.compensatedWorld.isRaining = newState.getValue() > 0.2f;
+                }
+            });
         }
     }
 
