@@ -2,8 +2,9 @@ package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -18,7 +19,7 @@ import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
-public class KnockbackHandler extends PacketCheck {
+public class KnockbackHandler extends PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
@@ -145,7 +146,10 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void handlePlayerKb(double offset) {
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        double offset = predictionComplete.getOffset();
+
         boolean wasZero = knockbackPointThree;
         knockbackPointThree = false;
 
@@ -191,9 +195,6 @@ public class KnockbackHandler extends PacketCheck {
                 }
             }
         }
-
-        player.likelyKB = null;
-        player.firstBreadKB = null;
     }
 
     public boolean shouldIgnoreForPrediction(VectorData data) {

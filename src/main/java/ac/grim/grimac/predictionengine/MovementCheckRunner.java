@@ -594,8 +594,11 @@ public class MovementCheckRunner extends PositionCheck {
         player.minPlayerAttackSlow = 0;
         player.maxPlayerAttackSlow = 0;
 
-        player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
-        player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
+        player.likelyKB = null;
+        player.firstBreadKB = null;
+        player.firstBreadExplosion = null;
+        player.likelyExplosions = null;
+
         player.trigHandler.setOffset(offset);
         player.pointThreeEstimator.endOfTickTick();
     }

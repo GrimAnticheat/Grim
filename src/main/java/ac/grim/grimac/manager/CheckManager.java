@@ -58,8 +58,6 @@ public class CheckManager {
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
-                .put(ExplosionHandler.class, new ExplosionHandler(player))
-                .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
                 .put(PacketWorldBorder.class, new PacketWorldBorder(player))
@@ -99,6 +97,8 @@ public class CheckManager {
                 .build();
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
+                .put(ExplosionHandler.class, new ExplosionHandler(player))
+                .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
                 .put(Phase.class, new Phase(player))
                 .put(NoFallB.class, new NoFallB(player))
@@ -202,7 +202,7 @@ public class CheckManager {
     }
 
     public ExplosionHandler getExplosionHandler() {
-        return getPacketCheck(ExplosionHandler.class);
+        return getPostPredictionCheck(ExplosionHandler.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -224,7 +224,7 @@ public class CheckManager {
     }
 
     public KnockbackHandler getKnockbackHandler() {
-        return getPacketCheck(KnockbackHandler.class);
+        return getPostPredictionCheck(KnockbackHandler.class);
     }
 
     public CompensatedCooldown getCompensatedCooldown() {

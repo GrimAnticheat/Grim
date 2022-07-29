@@ -1,8 +1,9 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -18,7 +19,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
-public class ExplosionHandler extends PacketCheck {
+public class ExplosionHandler extends PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;
@@ -118,7 +119,10 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public void handlePlayerExplosion(double offset) {
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        double offset = predictionComplete.getOffset();
+
         boolean wasZero = explosionPointThree;
         explosionPointThree = false;
 
@@ -176,9 +180,6 @@ public class ExplosionHandler extends PacketCheck {
                 reward();
             }
         }
-
-        player.firstBreadExplosion = null;
-        player.likelyExplosions = null;
     }
 
 
