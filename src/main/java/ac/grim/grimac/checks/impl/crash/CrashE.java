@@ -22,7 +22,8 @@ public class CrashE extends PacketCheck {
             int viewDistance = wrapper.getViewDistance();
             String locale = wrapper.getLocale();
             boolean invalidViewDistance = viewDistance < 2;
-            boolean invalidLocale = locale.length() < 4 || locale.length() > 6;
+            boolean invalidLocale = locale.length() < 3 || locale.length() > 6;
+            //TODO: Client locales don't follow ISO formatting for some reason, so we need to create a list of all valid locales
 
             if (locale.length() > 64) {
                 locale = "sent " + locale.length() + " bytes as locale";
