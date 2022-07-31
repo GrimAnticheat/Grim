@@ -291,11 +291,6 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
-        // Exempt flying status change
-        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(20)) {
-            offset = 0;
-        }
-
         // This is a section where I hack around current issues with Grim itself...
         if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
             offset -= 0.01;
