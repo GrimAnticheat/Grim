@@ -20,29 +20,12 @@ public class CrashE extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_SETTINGS) {
             WrapperPlayClientSettings wrapper = new WrapperPlayClientSettings(event);
             int viewDistance = wrapper.getViewDistance();
-            String locale = wrapper.getLocale();
-            boolean invalidViewDistance = viewDistance < 2;
-            boolean invalidLocale = locale.length() < 3 || locale.length() > 6;
-            //TODO: Client locales don't follow ISO formatting for some reason, so we need to create a list of all valid locales
-
-            if (locale.length() > 64) {
-                locale = "sent " + locale.length() + " bytes as locale";
-            } else if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(wrapper.getLocale())) {
-                locale = "sent log4j";
+            boolean invalidLocale = player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(wrapper.getLocale());
+            if (viewDistance < 2) {
+                flagAndAlert("distance=" + viewDistance);
+                wrapper.setViewDistance(2);
             }
-
-            if (invalidViewDistance || invalidLocale) {
-                String debug = "";
-
-                if (invalidLocale) debug += "locale=" + locale;
-                if (invalidViewDistance) debug += " viewDistance=" + viewDistance;
-
-                debug = debug.trim();
-                if (flagAndAlert(debug)) {
-                    if (invalidViewDistance) wrapper.setViewDistance(2);
-                    if (invalidLocale) wrapper.setLocale("en_us");
-                }
-            }
+            if (invalidLocale) wrapper.setLocale("en_us");
         }
     }
 
