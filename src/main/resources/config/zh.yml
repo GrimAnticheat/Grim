@@ -15,6 +15,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
+    - "^quilt$"
     - "^lunarclient:[a-z0-9]{7}"
     - "^Feather Fabric$"
 
