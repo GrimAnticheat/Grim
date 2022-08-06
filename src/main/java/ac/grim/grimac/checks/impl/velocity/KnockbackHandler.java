@@ -149,6 +149,10 @@ public class KnockbackHandler extends PostPredictionCheck {
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
+        if (!predictionComplete.isChecked() || predictionComplete.getData().isTeleport()) {
+            forceExempt();
+            return;
+        }
 
         boolean wasZero = knockbackPointThree;
         knockbackPointThree = false;
