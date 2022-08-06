@@ -78,6 +78,7 @@ public class GrimPlayer implements GrimUser {
     PacketTracker packetTracker;
     private long transactionPing = 0;
     public long lastTransSent = 0;
+    public long lastTransReceived = 0;
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
@@ -293,6 +294,7 @@ public class GrimPlayer implements GrimUser {
                     break;
 
                 lastTransactionReceived.incrementAndGet();
+                lastTransReceived = System.currentTimeMillis();
                 transactionPing = (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
             } while (data.getFirst() != id);
