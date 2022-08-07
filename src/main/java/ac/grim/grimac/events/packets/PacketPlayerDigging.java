@@ -176,11 +176,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     && player.gamemode == GameMode.SPECTATOR)
                 return;
 
-            // This was an interaction with a block, not a use item
-            // TODO: What is 1.8 doing with packets?  I think it's BLOCK_PLACE not USE_ITEM
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
-                return;
-
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
             ItemStack item = place.getHand() == InteractionHand.MAIN_HAND ?

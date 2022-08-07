@@ -455,49 +455,47 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
                 player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
                 PacketPlayerDigging.handleUseItem(player, player.getInventory().getHeldItem(), InteractionHand.MAIN_HAND);
-                return;
-            }
+            } else {
+                // Anti-air place
+                BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
+                blockPlace.setCursor(packet.getCursorPosition());
 
-            // Anti-air place
-            BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
-            blockPlace.setCursor(packet.getCursorPosition());
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
+                    // ViaRewind is stupid and divides the byte by 15 to get the float
+                    // We must undo this to get the correct block place... why?
+                    if (packet.getCursorPosition().getX() * 15 % 1 == 0 && packet.getCursorPosition().getY() * 15 % 1 == 0 && packet.getCursorPosition().getZ() * 15 % 1 == 0) {
+                        // This is impossible to occur without ViaRewind, fix their stupidity
+                        int trueByteX = (int) (packet.getCursorPosition().getX() * 15);
+                        int trueByteY = (int) (packet.getCursorPosition().getY() * 15);
+                        int trueByteZ = (int) (packet.getCursorPosition().getZ() * 15);
 
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
-                // ViaRewind is stupid and divides the byte by 15 to get the float
-                // We must undo this to get the correct block place... why?
-                if (packet.getCursorPosition().getX() * 15 % 1 == 0 && packet.getCursorPosition().getY() * 15 % 1 == 0 && packet.getCursorPosition().getZ() * 15 % 1 == 0) {
-                    // This is impossible to occur without ViaRewind, fix their stupidity
-                    int trueByteX = (int) (packet.getCursorPosition().getX() * 15);
-                    int trueByteY = (int) (packet.getCursorPosition().getY() * 15);
-                    int trueByteZ = (int) (packet.getCursorPosition().getZ() * 15);
-
-                    blockPlace.setCursor(new Vector3f(trueByteX / 16f, trueByteY / 16f, trueByteZ / 16f));
-                }
-            }
-
-
-            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
-                player.checkManager.onBlockPlace(blockPlace);
-
-            if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
-                event.setCancelled(true);
-                player.cancelledPackets.incrementAndGet();
-
-                Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
-                int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
-                int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
-                player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
-                player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
-
-                // Stop inventory desync from cancelling place
-                if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                    player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
-                } else {
-                    player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
+                        blockPlace.setCursor(new Vector3f(trueByteX / 16f, trueByteY / 16f, trueByteZ / 16f));
+                    }
                 }
 
-            } else { // Legit place
-                player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
+                if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
+                    player.checkManager.onBlockPlace(blockPlace);
+
+                if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
+                    event.setCancelled(true);
+                    player.cancelledPackets.incrementAndGet();
+
+                    Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
+                    int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
+                    int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
+                    player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
+                    player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
+
+                    // Stop inventory desync from cancelling place
+                    if (packet.getHand() == InteractionHand.MAIN_HAND) {
+                        player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
+                    } else {
+                        player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
+                    }
+
+                } else { // Legit place
+                    player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
+                }
             }
         }
 

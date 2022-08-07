@@ -120,6 +120,7 @@ public class CheckManager {
                 .put(FabricatedPlace.class, new FabricatedPlace(player))
                 .put(PositionPlace.class, new PositionPlace(player))
                 .put(RotationPlace.class, new RotationPlace(player))
+                .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
                 .build();
 
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -183,6 +184,7 @@ public class CheckManager {
 
     public void onRotationUpdate(final RotationUpdate rotation) {
         rotationCheck.values().forEach(rotationCheck -> rotationCheck.process(rotation));
+        blockPlaceCheck.values().forEach(blockPlaceCheck -> blockPlaceCheck.process(rotation));
     }
 
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {

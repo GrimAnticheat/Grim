@@ -37,6 +37,15 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
+            //
+            if (player.packetStateData.lastFood == health.getFood()
+                    && player.packetStateData.lastHealth == health.getHealth()
+                    && player.packetStateData.lastSaturation == health.getFoodSaturation()
+                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
+
+            player.packetStateData.lastFood = health.getFood();
+            player.packetStateData.lastHealth = health.getHealth();
+            player.packetStateData.lastSaturation = health.getFoodSaturation();
 
             player.sendTransaction();
 
@@ -50,8 +59,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.getSelf().isDead = true);
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.getSelf().isDead = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
 
             event.getPostTasks().add(player::sendTransaction);

@@ -101,4 +101,8 @@ public class GrimMath {
     public static boolean inRange(double value, double min, double max) {
         return value >= min && value <= max;
     }
+
+    public static boolean isNearlySame(double a, double b, double epoch) {
+        return Math.abs(a-b) < epoch;
+    }
 }
