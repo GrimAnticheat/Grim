@@ -78,6 +78,7 @@ public class CheckManager {
                 .put(BadPacketsL.class, new BadPacketsL(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
+                .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(PostCheck.class, new PostCheck(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
