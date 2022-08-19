@@ -222,9 +222,9 @@ public class CompensatedInventory extends PacketCheck {
 
         // Is this mapped wrong?  Should it be ClientboundMerchantOffersPacket?  What is this packet?
         // I don't think this matters actually. We need it for tracking trading... which we don't do yet.
-        if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
-
-        }
+        //if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
+        //
+        //}
 
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {

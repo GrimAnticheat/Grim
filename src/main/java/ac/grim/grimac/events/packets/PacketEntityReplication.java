@@ -161,8 +161,8 @@ public class PacketEntityReplication extends PacketCheck {
             });
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_PROPERTIES) {
-            WrapperPlayServerEntityProperties attributes = new WrapperPlayServerEntityProperties(event);
+        if (event.getPacketType() == PacketType.Play.Server.UPDATE_ATTRIBUTES) {
+            WrapperPlayServerUpdateAttributes attributes = new WrapperPlayServerUpdateAttributes(event);
 
             int entityID = attributes.getEntityId();
 
