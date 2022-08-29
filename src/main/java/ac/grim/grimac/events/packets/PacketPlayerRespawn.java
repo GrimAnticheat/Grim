@@ -124,7 +124,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
-                player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                    player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                }
             });
         }
     }
