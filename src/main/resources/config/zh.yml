@@ -52,8 +52,6 @@ Simulation:
 Phase:
   setbackvl: 1 # 错误的方块可以允许爬墙，加上这个检查是相对稳定的
   decay: 0.005
-  dont-alert-until: 10
-  alert-interval: 10
 
 # Prediction-based NoSlow 检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
@@ -66,34 +64,20 @@ NoSlow:
   setbackvl: 5
   # 当玩家使用一个物品并被它减慢时衰减多少VL
   decay: 0.05
-  # 使用一件物品需要 32ticks...... 25ticks 会在这里标记作弊
-  dont-alert-until: 25
-  # 您可能不希望收到垃圾警报,每个NoSlow只报一次警告
-  alert-interval: 25
 
 Knockback:
   # 有多少反击退是“作弊”
   # 默认情况下这是 1e-5，这是安全和理智的
   # 以正确移动的块为单位测量
   threshold: 0.001
-  setbackvl: 10
-  decay: 0.025
-  dont-alert-until: 8
-  alert-interval: 5
+  setbackvl: 3
 
 Explosion:
   threshold: 0.001
-  setbackvl: 10
-  decay: 0.025
-  dont-alert-until: 8
-  alert-interval: 5
+  setbackvl: 3
 
 TimerA:
-  # 1.0005 Timer检查
-  decay: 0.005
   setbackvl: 10
-  dont-alert-until: 5
-  alert-interval: 5
   # 玩家卡顿时可以累积以供以后使用的毫秒数
   # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
   drift: 120
@@ -101,16 +85,10 @@ TimerA:
 # 与 TimerA 相同的检查方法，但适用于坐骑
 TimerVehicle:
   # 实体1.0005 检查
-  decay: 0.005
   setbackvl: 10
-  dont-alert-until: 5
-  alert-interval: 5
 
 EntityControl:
-  decay: 0.05
   setbackvl: 25
-  dont-alert-until: 40
-  alert-interval: 40
 
 Reach:
   # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
