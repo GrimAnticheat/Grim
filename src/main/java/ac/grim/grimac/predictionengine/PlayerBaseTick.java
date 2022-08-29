@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
@@ -153,7 +153,7 @@ public class PlayerBaseTick {
                 // Remember, floats are not commutative, we must do it in the client's specific order
                 float percentFrozen = (float) Math.min(i, ticksToFreeze) / (float) ticksToFreeze;
                 float percentFrozenReducedToSpeed = -0.05F * percentFrozen;
-                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION));
+                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerUpdateAttributes.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION));
             }
         }
     }
