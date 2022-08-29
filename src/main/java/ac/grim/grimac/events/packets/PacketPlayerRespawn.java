@@ -101,7 +101,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
-                if (!respawn.getDimension().getDimensionName().equals(player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
+                if (respawn.getDimension().getId() != player.dimension.getId() || !Objects.equals(respawn.getDimension().getDimensionName(), player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
@@ -124,7 +124,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
-                player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                    player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                }
             });
         }
     }
