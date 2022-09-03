@@ -1,0 +1,129 @@
+# La configuración principal de GrimAC
+# Código fuente: https://github.com/MWHunter/Grim
+# Copyright 2022 DefineOutside y contribuyentes, licenciado bajo GPLv3.
+# Binarios modificados o plugins con código de Grim deben ser privados o con
+# el código fuente disponible para todos los compradores sin costo adicional.
+
+alerts:
+  # ¿Además de mandar las alertas a los jugadores, deberíamos mandarlas también a la consola?
+  print-to-console: true
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Esto quiere decir que no se va a anunciar la marca del cliente si esta cumple alguno de los siguientes regexes:
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # Ocultar todos los espectadores con el permiso grim.spectator sin importar si realmente están espectando
+  hide-regardless: false
+  # ¿En qué mundos deberíamos ocultar los espectadores? Si está en blanco, se ocultaran en todos los mundos.
+  allowed-worlds:
+    - ""
+
+# ¿Cuánto tiempo de espera debería pasar antes de expulsar un jugador por "tiempo de espera agotado"?
+# Por defecto, este valor se encuentra en 60 segundos.
+max-transaction-time: 60
+
+Simulation:
+  # Por cuanto deberíamos multiplicar la ventaja total cuando el jugador es legítimo
+  # Asi es como se ve la configuración por defecto (eje x = segundos, eje y = bloque 1/1000): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # ¿Cuánta debería ser la compensacion del movimiento del jugador como para que creemos una violación?
+  # Medido en bloques del posible movimiento
+  # Tomamos en cuenta a OptiFine cambiando las tablas trigonometricas, pero bajar esto a 0.001 reducirá
+  # que FastMath marque el anti-cheat si esta compensación no funciona...
+  threshold: 0.001
+  # ¿Qué tan grande debería ser una violación en un tick antes de que el jugador se retroceda inmediatamente?
+  # -1 para deshabilitar
+  immediate-setback-threshold: 0.1
+  # ¿Qué tan grande debería ser una ventaja sobre todos los ticks para que empecemos a retroceder?
+  # -1 para deshabilitar
+  max-advantage: 1
+  # Después de 50 segundos con la configuración predeterminada, el jugador ira de 4 bloques -> 1 bloque de ventaja
+  # Esto es para prevenir que el jugador obtenga muchas violaciones y no pueda ser capaz de borrarlas
+  # Tope de ventaja por defecto (eje x = segundos, eje y = bloque 1/1000): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Comprobaciones para ver si un jugador entro a un bloque durante un movimiento
+Phase:
+  setbackvl: 1 # Entrar a un bloque mediante bugs puede permitir subir paredes, además esta comprobación es relativamente estable.
+  decay: 0.005
+
+# Comprobación de NoSlow basado en predicciones
+# Grim compensa por código de red con errores aquí... difícil de sacar un falso positivo incluso haciendo spam del
+# clic derecho y la mano secundaria.
+# Mucho mas estable que otros anti-cheats, pero por favor reportar todo falso positivo... he arreglado muchos
+# problemas del código de red aquí.
+NoSlow:
+  # ¿Cuánta debería ser la compensacion como para que se considere trampa?
+  # Por defecto esto es más bajo que otras compensaciones
+  # Marca por 0.03-0.2 consistentemente con NoSlow activado
+  threshold: 0.001
+  # Retroceder rápidamente en el primer item para eliminar toda ventaja que NoSlow brinde
+  setbackvl: 5
+  # Decadencia cuando un jugador usa un item Y se ralentiza por el
+  decay: 0.05
+
+Knockback:
+  # Cuanta compensación se considera como "trampa"
+  # Por defecto esto es 1e-5, lo cual se considera seguro y sano
+  # Medido en bloques a partir del movimiento correcto
+  threshold: 0.001
+  setbackvl: 3
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Milisegundos que el jugador puede acumular para ser usados mas tarde cuando se quedan por detrás
+  # Podría llegar a permitir pasos por alto de fast use/fast heal/fast bow en 1.8 si esta muy alto, 120 ms
+  # parece ser un balance bastante decente.
+  drift: 120
+
+# La misma comprobación que TimerA, pero para vehiculos
+TimerVehicle:
+  # Target 1.005 timer
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # Cuanto deberíamos expandir las hit-boxes? 0.0005 debería detectar un reach de 3.0005+
+  #
+  # Hay una expansion forzada de 0.03 con 1.9-1.18.1 (1.18.2 no) y algunas combinaciones de clientes/servidores
+  # debido a cambios en el protocolo y limitaciones. Esta comprobación es más poderosa en clientes 1.7 y 1.8
+  # conectados a un servidor 1.8
+  threshold: 0.0005
+  # ¿Deberíamos cancelar golpes que sabemos que son imposibles?
+  # Golpes de 3.00-3.03 puede que aun asi pasen, pero se marcaran debido a limitaciones del orden de paquetes.
+  block-impossible-hits: true
+  # Esto mandará un paquete adicional al final de cada tick para aumentar las chances de encontrar trampas
+  # Esto se inyecta en la lista de conexiones del servidor para mandar un paquete final justo antes de que el servidor haga "flush".
+  # Habilitar esto causará que el uso de banda ancha de todos los jugadores aumente
+  # Esto no disminuirá el rendimiento del servidor.
+  # Habilitar esto ayudará a encontrar más jugadores haciendo trampa.
+  # Dejar esto deshabilitado también encontrara a jugadores haciendo trampa y no causara falsos positivos.
+  # Excepto que seas un servidor 1.8 enfocado en el PvP, este paquete adicional no es recomendado.
+  enable-post-packet: false
+
+# Habilitar el registro de plugins que se han inyectado a netty para intentar resolver problemas de compatibilidad.
+debug-pipeline-on-join: false
+
+# Habilitar comprobaciones experimentales
+experimental-checks: false
+
+# Grim a veces cancela paquetes ilegal como los de Timer. Después de X paquetes en un solo segundo cancelados,
+# cuando deberíamos simplemente expulsar al jugador? Esto es obligatorio ya que algunos limitadores de paquetes
+# no cuentan los paquetes cancelados por Grim.
+packet-spam-threshold: 150
+
+config-version: 8
