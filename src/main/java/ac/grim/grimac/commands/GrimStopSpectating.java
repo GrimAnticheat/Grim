@@ -13,11 +13,12 @@ import org.bukkit.entity.Player;
 public class GrimStopSpectating extends BaseCommand {
     @Subcommand("stopspectating")
     @CommandPermission("grim.spectate")
-    public void onStopSpectate(CommandSender sender) {
+    public void onStopSpectate(CommandSender sender, String string) {
         if (!(sender instanceof Player)) return;
         Player player = (Player) sender;
         if (GrimAPI.INSTANCE.getSpectateManager().isSpectating(player.getUniqueId())) {
-            GrimAPI.INSTANCE.getSpectateManager().disable(player);
+            boolean teleportBack = string == null || !string.equalsIgnoreCase("here");
+            GrimAPI.INSTANCE.getSpectateManager().disable(player, teleportBack);
         } else {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player");
             sender.sendMessage(MessageUtil.format(message));
