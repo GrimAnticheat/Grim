@@ -29,7 +29,7 @@ public class ClientBrand extends PacketCheck {
                 byte[] data = packet.getData();
 
                 if (data.length > 64 || data.length == 0) {
-                    brand = "sent " + brand.length() + " bytes as brand";
+                    brand = "sent " + data.length + " bytes as brand";
                 } else if (!hasBrand) {
                     byte[] minusLength = new byte[data.length - 1];
                     System.arraycopy(data, 1, minusLength, 0, minusLength.length);
