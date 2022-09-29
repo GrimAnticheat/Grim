@@ -1,0 +1,21 @@
+# Configuraciones del webhook de Discord
+# Si tienes dudas en como usarlos, puedes consultar el artículo de soporte de Discord: https://support.discord.com/hc/es/articles/228383668
+
+# ¿Deberíamos usar webhooks?
+enabled: false
+
+# La URL del webhook.
+webhook: ""
+
+# El color del embed que se mandara por este webhook.
+embed-color: "#00FFFF"
+
+# El contenido del embed que se mandara por este webhook.
+violation-content:
+  - "**Jugador**: %player%"
+  - "**Comprobación**: %check%"
+  - "**Violaciones**: %violations%"
+  - "**Version del cliente**: %version%"
+  - "**Marca del cliente**: %brand%"
+  - "**Latencia**: %ping%"
+  - "**TPS**: %tps%"
