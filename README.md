@@ -1,6 +1,6 @@
 # GrimAC
 
-**Stable enough for a small server. Please report any issues to the Github issue tracker. Currently supporting 1.8-1.19**
+**Due to both technical limitations with the current engine design and mojang's complete stupidity with netcode, only major issues will be fixed.  Minor issues will be ignored.  By using Grim, you are expected to either fix issues you encounter or pay someone to do so, or ignore them.  I can no longer provide support, for thousands of people, for free.**
 
 **Test server with bufferless alerts: test.grim.ac**
 
