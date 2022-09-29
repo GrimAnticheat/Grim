@@ -93,13 +93,13 @@ EntityControl:
 Reach:
   # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
   #
-  # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 强制扩展，因为
+  # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 距离的增加，因为
   # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大。
   threshold: 0.0005
   # 我们应该取消我们知道不可能的命中吗？
   # 3.00-3.03 命中可能会通过，但仍会被标记，因为数据包顺序限制
   block-impossible-hits: true
-  # 这将在每个ticks结束时发送一个额外的数据包，以增加捕获作弊的可能性
+  # 这将在每个ticks结束时发送一个额外的数据包，以检查作弊的可能性
   # 这会注入服务器的连接列表以在服务器刷新之前发送最终数据包
   # 启用这将增加所有玩家的带宽使用
   # 这不会降低整体服务器性能
@@ -111,11 +111,11 @@ Reach:
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
 
-# Enables experimental checks
+# 启用实验性检查
 experimental-checks: false
 
-# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
-# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+# Grim有时会取消非法的数据包，比如用timer，在一秒钟内取消了数个数据包后，我们应该踢掉这个玩家？
+# 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 150
 
 config-version: 8
