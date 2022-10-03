@@ -1,0 +1,47 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlerty włączone"
+alerts-disabled: "%prefix% &fAlerty wyłączone"
+client-brand-format: "%prefix% &f%player% dołączył używając %brand%"
+console-specify-target: "%prefix% &cMusisz wybrać cel używając komendy z poziomu konsoli"
+player-not-found: "%prefix% &cGracz jest wyjątkiem, bądź jest offline!"
+player-not-this-server: "%prefix% &cGracz nie jest aktywny na serwerze!"
+spectate-return: "\n%prefix% &fKliknij tutaj aby się wrócić\n"
+cannot-spectate-return: "%prefix% &cMożesz tylko to zrobić po obejrzeniu gracza"
+cannot-run-on-self: "%prefix% &cNie możesz użyć tej komendy na sobie!"
+upload-log: "%prefix% &fWrzucono informacje debuogwe: %url%"
+upload-log-start: "%prefix% &fWrzucanie logów, proszę czekać ..."
+upload-log-not-found: "%prefix% &cNie mozna znaleźć tuch logów"
+upload-log-upload-failure: "%prefix% &cCoś zawodło podczas wrzucania tych logów, sprawdź konsolę aby zobaczyć więcej informacji"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &nie przeszedł &f%check_name% &f(x&c%vl%&f) &7%sprawdzenia%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfil dla &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bWersja: &f%version%"
+  - "&bNazwa klienta: &f%brand%"
+  - "&bHorizyntolana czułość: &f%h_sensitivity%%"
+  - "&bPoziom czułość: &f%v_sensitivity%%"
+  - "&bFastMath włączone: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Włącz alerty"
+  - "/grim profile <player> &f- &7Zobacz profil gracza"
+  - "/grim help &f- &7Zobacz tą wiadomość pomocy"
+  - "/grim debug <player> &f- &7Zobacz logi gracza"
+  - "/grim perf &f- &7Zobacz wydajność serwera"
+  - "/grim reload &f- &7Przeładuj konfigurację"
+  - "/grim spectate <player> &f- &7Obejrzyj gracza"
+  - "/grim verbose &f- &fZobacz więcej informacji"
+  - "/grim log [0-255] &f- &7Zobacz logi"
+  - "&7======================"
