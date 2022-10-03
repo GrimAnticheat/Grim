@@ -1,4 +1,4 @@
-# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+# \u00BB jest » (podwójnym >>), ANSI i UTF-8 interpretują to inaczej
 prefix: "&bGrim &8\u00BB"
 
 alerts-enabled: "%prefix% &fAlerty włączone"
@@ -15,12 +15,12 @@ upload-log-start: "%prefix% &fWrzucanie logów, proszę czekać ..."
 upload-log-not-found: "%prefix% &cNie mozna znaleźć tuch logów"
 upload-log-upload-failure: "%prefix% &cCoś zawodło podczas wrzucania tych logów, sprawdź konsolę aby zobaczyć więcej informacji"
 
-# Valid placeholders:
+# Właściwe, placeholdery:
 # %prefix%
 # %player%
 # %check_name%
-# %vl% - violations
-# %verbose% - extra information from the check such as offsets, not all checks will add information
+# %vl% - naruszenia
+# %verbose% - dodatkowe informacje
 alerts-format: "%prefix% &f%player% &nie przeszedł &f%check_name% &f(x&c%vl%&f) &7%sprawdzenia%"
 
 profile:
