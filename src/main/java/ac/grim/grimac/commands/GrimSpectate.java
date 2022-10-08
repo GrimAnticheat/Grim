@@ -24,6 +24,12 @@ public class GrimSpectate extends BaseCommand {
         if (!(sender instanceof Player)) return;
         Player player = (Player) sender;
 
+        if (target != null && target.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!");
+            sender.sendMessage(MessageUtil.format(message));
+            return;
+        }
+
         if (target == null || MultiLib.isExternalPlayer(target.getPlayer())) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cPlayer isn't on this server!");
             sender.sendMessage(MessageUtil.format(message));
@@ -36,7 +42,7 @@ public class GrimSpectate extends BaseCommand {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "\n%prefix% &fClick here to return to previous location\n");
                 grimPlayer.user.sendMessage(
                         LegacyComponentSerializer.legacy('&')
-                                .deserialize(MessageUtil.format(message))
+                                .deserialize(MessageUtil.formatWithNoColor(message))
                                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/grim stopspectating"))
                                 .hoverEvent(HoverEvent.showText(Component.text("/grim stopspectating")))
                 );

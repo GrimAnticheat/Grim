@@ -77,6 +77,7 @@ public class Materials {
         CLIENT_SIDE.add(StateTypes.REPEATER);
         CLIENT_SIDE.add(StateTypes.SMITHING_TABLE);
         CLIENT_SIDE.add(StateTypes.STONECUTTER);
+        CLIENT_SIDE.add(StateTypes.LECTERN);
 
         CLIENT_SIDE.addAll(BlockTags.FENCE_GATES.getStates());
         CLIENT_SIDE.addAll(BlockTags.ANVIL.getStates());
@@ -85,8 +86,8 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.SHULKER_BOXES.getStates());
         CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
         CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
-        CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates());
-        CLIENT_SIDE.addAll(BlockTags.DOORS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.WOODEN_TRAPDOORS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.WOODEN_DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
         PANES.add(StateTypes.IRON_BARS);

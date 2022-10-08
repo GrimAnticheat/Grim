@@ -1,0 +1,48 @@
+name: Server crash or error
+description: Report a server crash or error here
+labels: ["error"]
+body:
+  - type: textarea
+    attributes:
+      label: Stack trace
+      description: |
+        Please include the entire stack trace with no attachments. If you would like, you can use a text pasting site such as https://paste.gg.
+      placeholder: Paste the stack trace or link to the stack trace here
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: How to replicate it if known
+      description: A video, or detailed instructions to help replicate the issue would help.
+      placeholder: |
+        Step 1. Do this
+        Step 2. Then do this
+        Step 3. etc...
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Grim version
+      description: |
+        Provide the git commit or the version in the jar's name.
+      placeholder: A example would be b85c2d0 or grim version 2.3.5, etc
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Server version
+      description: |
+        Run `/version` on your server to check. Provide both the server type (paper, airplane, etc) & the minecraft version.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Plugins
+      description: |
+        List all plugins running on your server. To list plugins, run `/plugins`.
+    validations:
+      required: true

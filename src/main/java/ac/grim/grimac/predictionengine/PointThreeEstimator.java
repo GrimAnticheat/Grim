@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsutil.*;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
@@ -101,9 +102,8 @@ public class PointThreeEstimator {
     private boolean isNearVerticalFlowingLiquid = false; // We can't calculate exact values, once again a toggle
     private boolean isNearBubbleColumn = false; // We can't calculate exact values once again
 
-    private boolean hasPositiveLevitation = false; // Positive potion effects [0, 128]
-    private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
-    private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
+    private int maxPositiveLevitation = Integer.MIN_VALUE; // Positive potion effects [0, 128]
+    private int minNegativeLevitation = Integer.MAX_VALUE; // Negative potion effects [-127, -1]r
 
     @Setter
     @Getter
@@ -148,12 +148,23 @@ public class PointThreeEstimator {
         }
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
-            if (!player.couldSkipTick) {
-                player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
+            // https://github.com/MWHunter/Grim/issues/613
+            int controllingEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+            player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
+            player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get());
+
+            player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+            player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+
+            player.updateVelocityMovementSkipping();
+
+            if (player.couldSkipTick) {
+                player.uncertaintyHandler.lastPointThree.reset();
             }
         }
 
-        if (!player.compensatedEntities.getSelf().inVehicle() && (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (!player.compensatedEntities.getSelf().inVehicle() && ((state.getType() == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+                || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }
@@ -163,24 +174,28 @@ public class PointThreeEstimator {
      * and to just give them lenience
      */
     public boolean canPredictNextVerticalMovement() {
-        return !gravityChanged && !didLevitationChange;
+        return !gravityChanged && maxPositiveLevitation == Integer.MIN_VALUE && minNegativeLevitation == Integer.MAX_VALUE;
+    }
+
+    public double positiveLevitation(double y) {
+        if (maxPositiveLevitation == Integer.MIN_VALUE) return y;
+        return (0.05 * (maxPositiveLevitation + 1) - y * 0.2);
+    }
+
+    public double negativeLevitation(double y) {
+        if (minNegativeLevitation == Integer.MAX_VALUE) return y;
+        return (0.05 * (minNegativeLevitation + 1) - y * 0.2);
     }
 
     public boolean controlsVerticalMovement() {
-        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding || player.uncertaintyHandler.influencedByBouncyBlock();
+        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding || player.uncertaintyHandler.influencedByBouncyBlock()
+                || player.checkManager.getKnockbackHandler().isKnockbackPointThree() || player.checkManager.getExplosionHandler().isExplosionPointThree();
     }
 
     public void updatePlayerPotions(PotionType potion, Integer level) {
         if (potion == PotionTypes.LEVITATION) {
-            boolean oldPositiveLevitation = hasPositiveLevitation;
-            boolean oldNegativeLevitation = hasNegativeLevitation;
-
-            hasPositiveLevitation = hasPositiveLevitation || (level != null && level >= 0);
-            hasNegativeLevitation = hasNegativeLevitation || (level != null && level < 0);
-
-            if (oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation) {
-                didLevitationChange = true;
-            }
+            maxPositiveLevitation = Math.max(level == null ? Integer.MIN_VALUE : level, maxPositiveLevitation);
+            minNegativeLevitation = Math.min(level == null ? Integer.MAX_VALUE : level, minNegativeLevitation);
         }
     }
 
@@ -210,15 +225,8 @@ public class PointThreeEstimator {
 
         checkNearbyBlocks(pointThreeBox);
 
-        Integer levitationAmplifier = player.compensatedEntities.getLevitationAmplifier();
-
-        boolean oldPositiveLevitation = hasPositiveLevitation;
-        boolean oldNegativeLevitation = hasNegativeLevitation;
-
-        hasPositiveLevitation = levitationAmplifier != null && levitationAmplifier >= 0;
-        hasNegativeLevitation = levitationAmplifier != null && levitationAmplifier < 0;
-
-        didLevitationChange = oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation;
+        maxPositiveLevitation = Integer.MIN_VALUE;
+        minNegativeLevitation = Integer.MAX_VALUE;
 
         isGliding = player.isGliding;
         gravityChanged = false;
@@ -237,7 +245,7 @@ public class PointThreeEstimator {
         // Check for flowing water
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             WrappedBlockState state = pair.getFirst();
-            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle())) {
+            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
@@ -408,7 +416,7 @@ public class PointThreeEstimator {
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;
-        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold());
+        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold()); // Account for uncertainty, don't stop until we simulate past uncertainty point
 
         if (maxYTraveled != 0) {
             wasAlwaysCertain = false;

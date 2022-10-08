@@ -3,92 +3,81 @@ package ac.grim.grimac.checks.impl.aim.processor;
 import ac.grim.grimac.checks.type.RotationCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
-import ac.grim.grimac.utils.data.HeadRotation;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
-import lombok.Getter;
 
-// From OverFlow V2 AntiCheat, modified from o(n^2) to best case o(1) worst case o(n) time.
+
 public class AimProcessor extends RotationCheck {
-    private final RunningMode<Double> yawSamples = new RunningMode<>(50);
-    private final RunningMode<Double> pitchSamples = new RunningMode<>(50);
-    @Getter
-    public double sensitivityX, sensitivityY, deltaX, deltaY;
-    private float lastDeltaYaw, lastDeltaPitch;
 
-    public AimProcessor(final GrimPlayer playerData) {
+    private static final int SIGNIFICANT_SAMPLES_THRESHOLD = 15;
+    private static final int TOTAL_SAMPLES_THRESHOLD = 80;
+
+    public AimProcessor(GrimPlayer playerData) {
         super(playerData);
     }
 
-    private static double yawToF2(double yawDelta) {
-        return yawDelta / .15;
-    }
+    RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
 
-    private static double pitchToF3(double pitchDelta) {
-        int b0 = pitchDelta >= 0 ? 1 : -1; //Checking for inverted mouse.
-        return pitchDelta / .15 / b0;
-    }
+    float lastXRot;
+    float lastYRot;
 
-    private static double getSensitivityFromPitchGCD(double gcd) {
-        double stepOne = pitchToF3(gcd) / 8;
-        double stepTwo = Math.cbrt(stepOne);
-        double stepThree = stepTwo - .2f;
-        return stepThree / .6f;
-    }
+    public double sensitivityX;
+    public double sensitivityY;
 
-    private static double getSensitivityFromYawGCD(double gcd) {
-        double stepOne = yawToF2(gcd) / 8;
-        double stepTwo = Math.cbrt(stepOne);
-        double stepThree = stepTwo - .2f;
-        return stepThree / .6f;
-    }
+    public double divisorX;
+    public double divisorY;
+
+    public double modeX, modeY;
+
+    public double deltaDotsX, deltaDotsY;
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
         rotationUpdate.setProcessor(this);
 
-        final HeadRotation from = rotationUpdate.getFrom();
-        final HeadRotation to = rotationUpdate.getTo();
 
-        final float deltaYaw = Math.abs(to.getYaw() - from.getYaw());
-        final float deltaPitch = Math.abs(to.getPitch() - from.getPitch());
+        float deltaXRot = rotationUpdate.getDeltaXRotABS();
 
-        final double gcdYaw = GrimMath.getGcd((long) (deltaYaw * GrimMath.EXPANDER), (long) (lastDeltaYaw * GrimMath.EXPANDER));
-        final double gcdPitch = GrimMath.getGcd((long) (deltaPitch * GrimMath.EXPANDER), (long) (lastDeltaPitch * GrimMath.EXPANDER));
-
-        final double dividedYawGcd = gcdYaw / GrimMath.EXPANDER;
-        final double dividedPitchGcd = gcdPitch / GrimMath.EXPANDER;
-
-        if (gcdYaw > 90000 && gcdYaw < 2E7 && dividedYawGcd > 0.01f && deltaYaw < 8) {
-            yawSamples.add(dividedYawGcd);
+        this.divisorX = GrimMath.gcd(deltaXRot, lastXRot);
+        if (deltaXRot > 0 && deltaXRot < 5 && divisorX > GrimMath.MINIMUM_DIVISOR) {
+            this.xRotMode.add(divisorX);
+            this.lastXRot = deltaXRot;
         }
 
-        if (gcdPitch > 90000 && gcdPitch < 2E7 && deltaPitch < 8) {
-            pitchSamples.add(dividedPitchGcd);
+
+        float deltaYRot = rotationUpdate.getDeltaYRotABS();
+
+        this.divisorY = GrimMath.gcd(deltaYRot, lastYRot);
+
+        if (deltaYRot > 0 && deltaYRot < 5 && divisorY > GrimMath.MINIMUM_DIVISOR) {
+            this.yRotMode.add(divisorY);
+            this.lastYRot = deltaYRot;
         }
 
-        double modeYaw = 0.0;
-        double modePitch = 0.0;
-
-        if (pitchSamples.size() > 5 && yawSamples.size() > 5) {
-            modeYaw = yawSamples.getMode();
-            modePitch = pitchSamples.getMode();
+        if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+            Pair<Double, Integer> modeX = this.xRotMode.getMode();
+            if (modeX.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modeX = modeX.getFirst();
+                this.sensitivityX = convertToSensitivity(this.modeX);
+            }
+        }
+        if (this.yRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+            Pair<Double, Integer> modeY = this.yRotMode.getMode();
+            if (modeY.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modeY = modeY.getFirst();
+                this.sensitivityY = convertToSensitivity(this.modeY);
+            }
         }
 
-        final double deltaX = deltaYaw / modeYaw;
-        final double deltaY = deltaPitch / modePitch;
+        this.deltaDotsX = deltaXRot / modeX;
+        this.deltaDotsY = deltaYRot / modeY;
+    }
 
-        final double sensitivityX = getSensitivityFromYawGCD(modeYaw);
-        final double sensitivityY = getSensitivityFromPitchGCD(modePitch);
-
-        rotationUpdate.setSensitivityX(sensitivityX);
-        rotationUpdate.setSensitivityY(sensitivityY);
-
-        this.deltaX = deltaX;
-        this.deltaY = deltaY;
-        this.sensitivityX = sensitivityX;
-        this.sensitivityY = sensitivityY;
-        this.lastDeltaYaw = deltaYaw;
-        this.lastDeltaPitch = deltaPitch;
+    public static double convertToSensitivity(double var13) {
+        double var11 = var13 / 0.15F / 8.0D;
+        double var9 = Math.cbrt(var11);
+        return (var9 - 0.2f) / 0.6f;
     }
 }

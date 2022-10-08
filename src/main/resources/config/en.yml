@@ -5,8 +5,6 @@
 # or with full source code available to buyers at no additional cost.
 
 alerts:
-  # Should players with grim.alerts permission automatically enable alerts on join?
-  enable-on-join: true
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
   # This controls whether/how alerts are shared between servers connected to your proxy.
@@ -16,6 +14,9 @@ alerts:
     send: false
     # Should the alerts received from other servers be announced to this server?
     receive: false
+
+verbose:
+  print-to-console: false
 
 client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
@@ -32,8 +33,8 @@ spectators:
   allowed-worlds:
     - ""
 
-# How long should players have until we keep them for timing out? Default = 2 minutes
-max-ping: 120
+# How long should players have until we kick them for timing out? Default = 60 seconds
+max-transaction-time: 60
 
 Simulation:
   # How much should we multiply total advantage by when the player is legit
@@ -43,7 +44,7 @@ Simulation:
   # Measured in blocks from the possible movement
   # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
   # flagging the anticheat if this compensation doesn't work...
-  threshold: 0.0001
+  threshold: 0.001
   # How large of a violation in a tick before the player gets immediately setback?
   # -1 to disable
   immediate-setback-threshold: 0.1
@@ -59,8 +60,6 @@ Simulation:
 Phase:
   setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable
   decay: 0.005
-  dont-alert-until: 10
-  alert-interval: 10
 
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
@@ -74,34 +73,20 @@ NoSlow:
   setbackvl: 5
   # Decay's when the player uses an item AND is slowed by it
   decay: 0.05
-  # It takes 32 ticks to fully consume an item... 25 will safely flag cheats here
-  dont-alert-until: 25
-  # You likely don't want to be spammed with alerts. Target alerting once per item that wasn't slowed for
-  alert-interval: 25
 
 Knockback:
   # How much of an offset is "cheating"
   # By default this is 1e-5, which is safe and sane
   # Measured in blocks from the correct movement
-  threshold: 0.00001
+  threshold: 0.001
   setbackvl: 3
-  decay: 0.025
-  dont-alert-until: 8
-  alert-interval: 5
 
 Explosion:
-  threshold: 0.00001
+  threshold: 0.001
   setbackvl: 3
-  decay: 0.025
-  dont-alert-until: 8
-  alert-interval: 5
 
 TimerA:
-  # Target 1.005 timer
-  decay: 0.005
   setbackvl: 10
-  dont-alert-until: 5
-  alert-interval: 5
   # Milliseconds that the player can accumulate for later use when they fall behind
   # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
   drift: 120
@@ -109,16 +94,10 @@ TimerA:
 # Same check method as TimerA, but for vehicles
 TimerVehicle:
   # Target 1.005 timer
-  decay: 0.005
   setbackvl: 10
-  dont-alert-until: 5
-  alert-interval: 5
 
 EntityControl:
-  decay: 0.05
   setbackvl: 25
-  dont-alert-until: 40
-  alert-interval: 40
 
 Reach:
   # How much should we expand hitboxes by? 0.0005 should detect 3.0005+ reach
@@ -141,4 +120,11 @@ Reach:
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
-config-version: 3
+# Enables experimental checks
+experimental-checks: false
+
+# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
+# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+packet-spam-threshold: 150
+
+config-version: 8

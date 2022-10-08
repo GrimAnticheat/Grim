@@ -4,7 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
-public class RotationCheck extends Check<RotationUpdate> {
+public class RotationCheck extends Check {
 
     public RotationCheck(final GrimPlayer playerData) {
         super(playerData);

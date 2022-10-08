@@ -1,11 +1,10 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.manager.LastInstanceManager;
 import ac.grim.grimac.player.GrimPlayer;
 
 public class LastInstance {
     public LastInstance(GrimPlayer player) {
-        player.checkManager.getPostPredictionCheck(LastInstanceManager.class).addInstance(this);
+        player.lastInstanceManager.addInstance(this);
     }
 
     int lastInstance = 100;

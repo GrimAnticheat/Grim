@@ -20,28 +20,35 @@ public class BlockBreakSpeed {
         // Starts with itemstack get destroy speed
         ItemStack tool = player.getInventory().getHeldItem();
 
-        // A creative mode player cannot break things with a sword!
-        if (player.gamemode == GameMode.CREATIVE && tool.getType().toString().contains("SWORD")) {
-            return 0;
+        WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
+        float blockHardness = block.getType().getHardness();
+
+        if (player.gamemode == GameMode.CREATIVE) {
+            // A creative mode player cannot break things with a sword!
+            if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
+                return 0;
+            }
+            // Instabreak
+            return 1;
         }
 
-        WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
+        if (blockHardness == -1) return 0; // Unbreakable block
 
-        boolean isBestTool = false;
+        boolean isCorrectToolForDrop = false;
         float speedMultiplier = 1.0f;
 
         // 1.13 and below need their own huge methods to support this...
         if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.AXE)) {
-            isBestTool = BlockTags.MINEABLE_WITH_AXE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_AXE.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.PICKAXE)) {
-            isBestTool = BlockTags.MINEABLE_WITH_PICKAXE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_PICKAXE.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SHOVEL)) {
-            isBestTool = BlockTags.MINEABLE_WITH_SHOVEL.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_SHOVEL.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.HOE)) {
-            isBestTool = BlockTags.MINEABLE_WITH_HOE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_HOE.contains(block.getType());
         }
 
-        if (isBestTool) {
+        if (isCorrectToolForDrop) {
             int tier = 0;
             if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.WOOD_TIER)) { // Tier 0
                 speedMultiplier = 2.0f;
@@ -62,16 +69,18 @@ public class BlockBreakSpeed {
             }
 
             if (tier < 3 && BlockTags.NEEDS_DIAMOND_TOOL.contains(block.getType())) {
-                isBestTool = false;
+                isCorrectToolForDrop = false;
             } else if (tier < 2 && BlockTags.NEEDS_IRON_TOOL.contains(block.getType())) {
-                isBestTool = false;
+                isCorrectToolForDrop = false;
             } else if (tier < 1 && BlockTags.NEEDS_STONE_TOOL.contains(block.getType())) {
-                isBestTool = false;
+                isCorrectToolForDrop = false;
             }
         }
 
         // Shears can mine some blocks faster
         if (tool.getType() == ItemTypes.SHEARS) {
+            isCorrectToolForDrop = true;
+
             if (block.getType() == StateTypes.COBWEB || Materials.isLeaves(block.getType())) {
                 speedMultiplier = 15.0f;
             } else if (BlockTags.WOOL.contains(block.getType())) {
@@ -79,11 +88,11 @@ public class BlockBreakSpeed {
             } else if (block.getType() == StateTypes.VINE ||
                     block.getType() == StateTypes.GLOW_LICHEN) {
                 speedMultiplier = 2.0f;
+            } else {
+                isCorrectToolForDrop = block.getType() == StateTypes.COBWEB ||
+                        block.getType() == StateTypes.REDSTONE_WIRE ||
+                        block.getType() == StateTypes.TRIPWIRE;
             }
-
-            isBestTool = block.getType() == StateTypes.COBWEB ||
-                    block.getType() == StateTypes.REDSTONE_WIRE ||
-                    block.getType() == StateTypes.TRIPWIRE;
         }
 
         // Swords can also mine some blocks faster
@@ -97,19 +106,13 @@ public class BlockBreakSpeed {
                 speedMultiplier = 1.5f;
             }
 
-            isBestTool = block.getType() == StateTypes.COBWEB;
+            isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
         }
 
-        float blockHardness = block.getType().getHardness();
-
-        if (isBestTool) {
-            if (blockHardness == -1.0f) {
-                speedMultiplier = 0;
-            } else {
-                int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                if (digSpeed > 0) {
-                    speedMultiplier += digSpeed * digSpeed + 1;
-                }
+        if (speedMultiplier > 1.0f) {
+            int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+            if (digSpeed > 0) {
+                speedMultiplier += digSpeed * digSpeed + 1;
             }
         }
 
@@ -139,31 +142,27 @@ public class BlockBreakSpeed {
             }
         }
 
-        boolean hasAquaAffinity = false;
+        if (player.fluidOnEyes == FluidTag.WATER) {
+            ItemStack helmet = player.getInventory().getHelmet();
+            ItemStack chestplate = player.getInventory().getChestplate();
+            ItemStack leggings = player.getInventory().getLeggings();
+            ItemStack boots = player.getInventory().getBoots();
 
-        ItemStack helmet = player.getInventory().getHelmet();
-        ItemStack chestplate = player.getInventory().getChestplate();
-        ItemStack leggings = player.getInventory().getLeggings();
-        ItemStack boots = player.getInventory().getBoots();
-
-        if ((helmet != null && helmet.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
-                (chestplate != null && chestplate.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
-                (leggings != null && leggings.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
-                (boots != null && boots.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)) {
-            hasAquaAffinity = true;
+            if ((helmet == null || helmet.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) &&
+                    (chestplate == null || chestplate.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) &&
+                    (leggings == null || leggings.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) &&
+                    (boots == null || boots.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0)) {
+                speedMultiplier /= 5;
+            }
         }
 
-        if (player.fluidOnEyes == FluidTag.WATER && !hasAquaAffinity) {
-            speedMultiplier /= 5;
-        }
-
-        if (!player.onGround) {
+        if (!player.packetStateData.packetPlayerOnGround) {
             speedMultiplier /= 5;
         }
 
         float damage = speedMultiplier / blockHardness;
 
-        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isBestTool;
+        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop;
         if (canHarvest) {
             damage /= 30;
         } else {

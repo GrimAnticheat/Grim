@@ -3,11 +3,11 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BlockPrediction;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -17,12 +17,12 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
@@ -45,6 +45,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
@@ -71,11 +72,16 @@ public class CompensatedWorld {
     // Blocks the client changed while placing or breaking blocks
     private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
     private final Map<Integer, List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new HashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
+    public boolean isRaining = false;
+
+    private boolean noNegativeBlocks;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
     }
 
     public void startPredicting() {
@@ -95,6 +101,25 @@ public class CompensatedWorld {
         }
     }
 
+    public void handleBlockBreakAck(Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
+        if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new Pair<>(blockPos, action))) {
+            player.sendTransaction(); // This packet actually matters
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                Vector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
+                handleAck(blockPos, blockState, playerPos);
+            });
+        } else {
+            unackedActions.remove(new Pair<>(blockPos, action));
+        }
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            while (unackedActions.size() >= 50) {
+                this.unackedActions.removeFirst();
+            }
+        });
+    }
+
+
     private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
@@ -104,26 +129,36 @@ public class CompensatedWorld {
             // Block changes are allowed to execute out of order, because it actually doesn't matter
             if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) {
                 originalServerBlocks.remove(vector3i.getSerializedPosition());
-
-                // If we need to change the world block state
-                if (getWrappedBlockStateAt(vector3i).getGlobalId() != predictionData.getOriginalBlockId()) {
-                    WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, predictionData.getOriginalBlockId());
-
-                    // The player will teleport themselves if they get stuck in the reverted block
-                    if (CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
-                        player.lastX = player.x;
-                        player.lastY = player.y;
-                        player.lastZ = player.z;
-                        player.x = predictionData.getPlayerPosition().getX();
-                        player.y = predictionData.getPlayerPosition().getY();
-                        player.z = predictionData.getPlayerPosition().getZ();
-                        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-                    }
-
-                    updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), predictionData.getOriginalBlockId());
-                }
+                handleAck(vector3i, predictionData.getOriginalBlockId(), predictionData.getPlayerPosition());
             }
         }));
+    }
+
+    private void handleAck(Vector3i vector3i, int originalBlockId, Vector3d playerPosition) {
+        // If we need to change the world block state
+        if (getWrappedBlockStateAt(vector3i).getGlobalId() != originalBlockId) {
+            updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalBlockId);
+
+            WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
+
+            // The player will teleport themselves if they get stuck in the reverted block
+            if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
+                player.x = playerPosition.getX();
+                player.y = playerPosition.getY();
+                player.z = playerPosition.getZ();
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            }
+        }
+    }
+
+    public void handleBlockBreakPrediction(WrapperPlayClientPlayerDigging digging) {
+        // 1.14.4 intentional and correct, do not change it to 1.14
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) {
+            unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getAction()), new Vector3d(player.x, player.y, player.z));
+        }
     }
 
     public void stopPredicting(PacketWrapper<?> wrapper) {
@@ -203,6 +238,10 @@ public class CompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
+    public void updateBlock(Vector3i pos, WrappedBlockState state) {
+        updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
         Vector3i asVector = new Vector3i(x, y, z);
         BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
@@ -242,6 +281,9 @@ public class CompensatedWorld {
                 chunk.set(null, 0, 0, 0, 0);
             }
 
+            // The method also gets called for the previous state before replacement
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
+
             chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
@@ -252,7 +294,7 @@ public class CompensatedWorld {
     public void tickOpenable(int blockX, int blockY, int blockZ) {
         WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
 
-        if (BlockTags.DOORS.contains(data.getType()) && data.getType() != StateTypes.IRON_DOOR) {
+        if (BlockTags.WOODEN_DOORS.contains(data.getType())) {
             WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
@@ -264,23 +306,22 @@ public class CompensatedWorld {
                 data.setOpen(!data.isOpen());
                 player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
-                // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
-                if (otherDoor.getType() == data.getType()) {
-                    // The doors are probably connected
-                    boolean isBottom = data.getHalf() == Half.LOWER;
-                    // 1.12- stores door data in the bottom door
-                    if (!isBottom)
-                        data = otherDoor;
-                    // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
-                    // 1.12- - We can just flip a bit in the lower door and call it a day
+                // 1.12 attempts to change the bottom half of the door first
+                if (data.getHalf() == Half.LOWER) {
                     data.setOpen(!data.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY + (isBottom ? 0 : -1), blockZ, data.getGlobalId());
+                    player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+                } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
+                    // Then tries setting the first bit of whatever is below it, disregarding it's type
+                    otherDoor.setOpen(!otherDoor.isOpen());
+                    player.compensatedWorld.updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
-        } else if (BlockTags.TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())) {
+        } else if (BlockTags.WOODEN_TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
             player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+        } else if (BlockTags.BUTTONS.contains(data.getType())) {
+            data.setPowered(true);
         }
     }
 
@@ -288,7 +329,10 @@ public class CompensatedWorld {
         player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
-        SimpleCollisionBox playerBox = player.boundingBox.copy();
+
+        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
+        expandedBB.expandToAbsoluteCoordinates(player.x, player.y, player.z);
+        SimpleCollisionBox playerBox = expandedBB.copy().expand(1);
 
         double modX = 0;
         double modY = 0;
@@ -342,6 +386,8 @@ public class CompensatedWorld {
 
                 playerBox.expandMax(modX, modY, modZ);
                 playerBox.expandMin(modX, modY, modZ);
+
+                player.uncertaintyHandler.isSteppingNearShulker = true;
             }
         }
 
@@ -367,6 +413,8 @@ public class CompensatedWorld {
     }
 
     public WrappedBlockState getWrappedBlockStateAt(int x, int y, int z) {
+        if (noNegativeBlocks && y < 0) return airData;
+
         try {
             Column column = getChunk(x >> 4, z >> 4);
 

@@ -11,6 +11,8 @@ public class PacketStateData {
     public boolean lastPacketWasOnePointSeventeenDuplicate = false;
     public int lastSlotSelected;
     public InteractionHand eatingHand = InteractionHand.MAIN_HAND;
+    public long lastRiptide = 0;
+    public boolean tryingToRiptide = false;
     public boolean slowedByUsingItem = false;
     public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
     public boolean receivedSteerVehicle = false;
@@ -18,4 +20,7 @@ public class PacketStateData {
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
     public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
+
+    public float lastHealth, lastSaturation;
+    public int lastFood;
 }

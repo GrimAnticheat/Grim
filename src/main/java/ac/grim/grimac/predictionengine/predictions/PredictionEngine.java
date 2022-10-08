@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -19,19 +20,9 @@ import java.util.*;
 
 public class PredictionEngine {
 
-    public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel, Vector handleHardCodedBorder) {
-        if (!player.compensatedEntities.getSelf().inVehicle()) {
-            double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
-            if (d0 != player.lastX + handleHardCodedBorder.getX()) {
-                handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
-            }
-
-            if (d1 != player.lastZ + handleHardCodedBorder.getZ()) {
-                handleHardCodedBorder = new Vector(handleHardCodedBorder.getX(), handleHardCodedBorder.getY(), d1 - player.lastZ);
-            }
-        }
-        return handleHardCodedBorder;
+    public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel) {
+        // TODO: Reimplement
+        return outputVel;
     }
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
@@ -78,6 +69,7 @@ public class PredictionEngine {
             }
         }
 
+        player.updateVelocityMovementSkipping();
         player.couldSkipTick = player.couldSkipTick || player.pointThreeEstimator.determineCanSkipTick(speed, init);
 
         // Remember, we must always try to predict explosions or knockback
@@ -106,12 +98,7 @@ public class PredictionEngine {
     }
 
     private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
-        // Sorting is an optimization and a requirement
-        //
-        // TODO: Sorting is unnecessary and slow!
-        // We KNOW the order that we should run things anyways! Use it instead! No lists needed!
-        // Will be a good performance boost!  Although not essential as right now there's larger issues
-        // than a lost hundredth millisecond here and there. Readability/Accuracy > Performance currently.
+        // Computers are actually really fast at sorting, I don't see sorting as a problem
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
         player.checkManager.getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
@@ -129,16 +116,13 @@ public class PredictionEngine {
 
         player.skippedTickInActualMovement = false;
 
-        VectorData clientVelAfterInput = possibleVelocities.get(0);
-
-        for (int i = 0; i < possibleVelocities.size();) {
+        for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
             // This is quite a good optimization :)
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion()) {
-                if (++i < possibleVelocities.size()) clientVelAfterInput = possibleVelocities.get(i);
                 continue;
             }
 
@@ -148,8 +132,10 @@ public class PredictionEngine {
                 player.boundingBox = originalBB;
             }
 
-            Vector outputVel = doSeekingWallCollisions(player, primaryPushMovement, originalClientVel, clientVelAfterInput);
-            outputVel =  clampMovementToHardBorder(player, outputVel, outputVel);
+            // Returns pair of primary push movement, and then outputvel
+            Pair<Vector, Vector> output = doSeekingWallCollisions(player, primaryPushMovement, originalClientVel, clientVelAfterInput);
+            primaryPushMovement = output.getFirst();
+            Vector outputVel = clampMovementToHardBorder(player, output.getSecond());
 
             double resultAccuracy = outputVel.distanceSquared(player.actualMovement);
 
@@ -158,27 +144,25 @@ public class PredictionEngine {
                 player.skippedTickInActualMovement = true;
             }
 
-            boolean wasVelocityPointThree = false;
+            if (clientVelAfterInput.isKnockback()) {
+                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
+            if (clientVelAfterInput.isExplosion()) {
+                player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
             //
             // Exempt if the player
             if ((clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) && !clientVelAfterInput.isZeroPointZeroThree()) {
-                wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
+                boolean wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
 
-                // Check ONLY the knockback vectors for 0.03
-                // The first being the one without uncertainty
-                // And the last having uncertainty to deal with 0.03
-                //
-                // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
-                // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getKnockbackHandler().setPointThree(wasVelocityPointThree);
                 }
-
                 if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getExplosionHandler().setPointThree(wasVelocityPointThree);
                 }
             }
@@ -188,6 +172,11 @@ public class PredictionEngine {
             // As not flipping item is preferred... it gets ran before any other options
             if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
                 player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
+            if (player.checkManager.getKnockbackHandler().shouldIgnoreForPrediction(clientVelAfterInput) ||
+                    player.checkManager.getExplosionHandler().shouldIgnoreForPrediction(clientVelAfterInput)) {
+                continue;
             }
 
             if (resultAccuracy < bestInput) {
@@ -202,22 +191,10 @@ public class PredictionEngine {
                 bestInput = resultAccuracy;
             }
 
-            // Close enough, there's no reason to continue our predictions.
-            if (bestInput < 1e-5 * 1e-5) {
+            // Close enough, there's no reason to continue our predictions (if either kb or explosion will flag, continue searching)
+            if (bestInput < 1e-5 * 1e-5 && !player.checkManager.getKnockbackHandler().wouldFlag() && !player.checkManager.getExplosionHandler().wouldFlag()) {
                 break;
             }
-
-            if (wasVelocityPointThree) {
-                // Loop again, without incrementing the loop, but as 0.03
-                // We must re-run the previous code again, and I don't want to repeat myself
-                // I'm lazily determining 0.03 because 0.03 is expensive to determine
-                // We can't add to the end of the list because the order of predictions ran matters
-                // as we must try knockback possibilities before non-knockback possibilities
-                clientVelAfterInput = clientVelAfterInput.returnNewModified(clientVelAfterInput.vector, VectorData.VectorType.ZeroPointZeroThree);
-            } else if (++i < possibleVelocities.size()) {
-                 clientVelAfterInput = possibleVelocities.get(i);
-            }
-
         }
 
         assert beforeCollisionMovement != null;
@@ -232,7 +209,7 @@ public class PredictionEngine {
         }
     }
 
-    private Vector doSeekingWallCollisions(GrimPlayer player, Vector primaryPushMovement, Vector originalClientVel, VectorData clientVelAfterInput) {
+    private Pair<Vector, Vector> doSeekingWallCollisions(GrimPlayer player, Vector primaryPushMovement, Vector originalClientVel, VectorData clientVelAfterInput) {
         boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
         // Extra collision epsilon required for vehicles to be accurate
         double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
@@ -264,7 +241,7 @@ public class PredictionEngine {
             outputVel.setZ(outputVel.getZ() - zAdditional);
         }
 
-        return outputVel;
+        return new Pair<>(primaryPushMovement, outputVel);
     }
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
@@ -313,7 +290,7 @@ public class PredictionEngine {
         addJumpsToPossibilities(player, pointThreePossibilities);
         addExplosionToPossibilities(player, pointThreePossibilities);
 
-        if (player.tryingToRiptide) {
+        if (player.packetStateData.tryingToRiptide) {
             Vector riptideAddition = Riptide.getRiptideVelocity(player);
             pointThreePossibilities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree), VectorData.VectorType.Trident));
         }
@@ -329,6 +306,11 @@ public class PredictionEngine {
 
     public void addFluidPushingToStartingVectors(GrimPlayer player, Set<VectorData> data) {
         for (VectorData vectorData : data) {
+            // Sneaking in water
+            if (vectorData.isKnockback() && player.baseTickAddition.lengthSquared() != 0) {
+                vectorData.vector = vectorData.vector.add(player.baseTickAddition);
+            }
+            // Water pushing movement is affected by initial velocity due to 0.003 eating pushing in the past
             if (vectorData.isKnockback() && player.baseTickWaterPushing.lengthSquared() != 0) {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                     Vector vec3 = player.baseTickWaterPushing.clone();
@@ -350,15 +332,15 @@ public class PredictionEngine {
         // Packet stuff is done first
         addExplosionToPossibilities(player, velocities);
 
-        if (player.tryingToRiptide) {
+        if (player.packetStateData.tryingToRiptide) {
             Vector riptideAddition = Riptide.getRiptideVelocity(player);
             velocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }
 
-        // Inputs are done before player ticking
-        addAttackSlowToPossibilities(player, velocities);
         // Fluid pushing is done BEFORE 0.003
         addFluidPushingToStartingVectors(player, velocities);
+        // Inputs are done AFTER fluid pushing, https://github.com/MWHunter/Grim/issues/660
+        addAttackSlowToPossibilities(player, velocities);
         // Non-effective AI for vehicles is done AFTER fluid pushing but BEFORE 0.003
         addNonEffectiveAI(player, velocities);
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
@@ -417,7 +399,8 @@ public class PredictionEngine {
             }
 
             if (player.firstBreadExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion)
+                        .returnNewModified(vector.vector.clone().add(player.firstBreadExplosion.vector), VectorData.VectorType.FirstBreadExplosion));
             }
         }
     }
@@ -426,8 +409,13 @@ public class PredictionEngine {
         int aScore = 0;
         int bScore = 0;
 
-        // Put explosions and knockback first so they are applied to the player
-        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
+        // Order priority (to avoid false positives and false flagging future predictions):
+        // Knockback and explosions
+        // 0.03 ticks
+        // Normal movement
+        // First bread knockback and explosions
+        // Flagging groundspoof
+        // Flagging flip items
         if (a.isExplosion())
             aScore -= 5;
 
@@ -439,6 +427,18 @@ public class PredictionEngine {
 
         if (b.isKnockback())
             bScore -= 5;
+
+        if (a.isFirstBreadExplosion())
+            aScore += 1;
+
+        if (b.isFirstBreadExplosion())
+            bScore += 1;
+
+        if (a.isFirstBreadKb())
+            aScore += 1;
+
+        if (b.isFirstBreadKb())
+            bScore += 1;
 
         if (a.isFlipItem())
             aScore += 3;
@@ -551,6 +551,7 @@ public class PredictionEngine {
             minVector.setY(minVector.getY() - 0.08);
         }
 
+
         // Hidden slime block bounces by missing idle tick and 0.03
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
             if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0 && !vector.isJump()) { // jumping overrides slime block
@@ -567,6 +568,19 @@ public class PredictionEngine {
 
         SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
         box.sort();
+
+        // https://github.com/MWHunter/Grim/issues/398
+        // Thank mojang for removing the idle packet resulting in this hacky mess
+
+        double levitation = player.pointThreeEstimator.positiveLevitation(maxVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.positiveLevitation(minVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.negativeLevitation(maxVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.negativeLevitation(minVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+
 
         SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
         box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;
@@ -638,7 +652,8 @@ public class PredictionEngine {
         }
 
         // Handle missing a tick with friction in vehicles
-        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1) && !player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0)) {
+        // TODO: Attempt to fix mojang's netcode here
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1)) {
             double trueFriction = player.lastOnGround ? player.friction * 0.91 : 0.91;
             if (player.wasTouchingLava) trueFriction = 0.5;
             if (player.wasTouchingWater) trueFriction = 0.96;
@@ -660,16 +675,6 @@ public class PredictionEngine {
 
         minVector = box.min();
         maxVector = box.max();
-
-        // Likely stepping movement, avoid changing 0.03 related movement
-        // Piston gets priority over this code
-        //
-        // This shouldn't matter if the vector is going upwards or at precisely 0 because then
-        // the player couldn't be on the ground anyways...
-        if (player.clientControlledVerticalCollision && vector.vector.getY() < 0) {
-            minVector.setY(vector.vector.getY());
-            maxVector.setY(vector.vector.getY());
-        }
 
         if (pistonX != 0) {
             minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));

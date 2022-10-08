@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -20,9 +20,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public EvictingList<Double> pistonX = new EvictingList<>(5);
-    public EvictingList<Double> pistonY = new EvictingList<>(5);
-    public EvictingList<Double> pistonZ = new EvictingList<>(5);
+    public EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
+    public EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
+    public EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -52,6 +52,7 @@ public class UncertaintyHandler {
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isSteppingNearScaffolding = false;
+    public boolean isSteppingNearShulker = false;
     public boolean isNearGlitchyBlock = false;
     public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
@@ -63,7 +64,7 @@ public class UncertaintyHandler {
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
-    public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
+    public EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
     public List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
@@ -111,6 +112,16 @@ public class UncertaintyHandler {
         pistonY.add(0d);
         pistonZ.add(0d);
         isStepMovement = false;
+
+        isSteppingNearShulker = false;
+        wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
+        isSteppingOnSlime = false;
+        isSteppingOnBouncyBlock = false;
+        isSteppingOnIce = false;
+        isSteppingOnHoney = false;
+        isSteppingNearBubbleColumn = false;
+        isSteppingNearScaffolding = false;
+
         slimePistonBounces = new HashSet<>();
         tickFireworksBox();
     }
@@ -211,8 +222,8 @@ public class UncertaintyHandler {
         if (either003 && isSteppingOnIce)
             pointThree = 0.91 * 0.989 * (threshold * 2) + threshold;
 
-        // Reduce second tick uncertainty by minimum friction amount
-        if (!newVectorPointThree && either003)
+        // Reduce second tick uncertainty by minimum friction amount (if not velocity uncertainty)
+        if (pointThree > threshold)
             pointThree *= 0.91 * 0.989;
 
         // 0.06 * 0.91 = max + 0.03 offset
@@ -227,8 +238,6 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
-            pointThree = 0.15;
 
         return pointThree;
     }
@@ -238,8 +247,6 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
-            return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
@@ -258,12 +265,11 @@ public class UncertaintyHandler {
             return pointThree * 2;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && (data.isKnockback() || player.isClimbing))
+        if (player.couldSkipTick && (data.isKnockback() || player.isClimbing) && !data.isZeroPointZeroThree())
             return pointThree;
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
-            // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
-            // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
+            // 0.03 from last tick into 0.03 now = 0.06 (could reduce by friction in the future, only 0.91 at most though)
             if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree) return pointThree * 2;
         }
 
@@ -283,11 +289,6 @@ public class UncertaintyHandler {
 
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
             offset -= 0.25;
-        }
-
-        // Exempt flying status change
-        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(20)) {
-            offset = 0;
         }
 
         // This is a section where I hack around current issues with Grim itself...
@@ -319,7 +320,7 @@ public class UncertaintyHandler {
         // This bounding box can be infinitely large without crashing the server.
         // This works by the proof that if you collide with an object, you will stop near the object
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
     }
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {

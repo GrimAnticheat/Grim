@@ -20,12 +20,18 @@ public class PredictionEngineElytra extends PredictionEngine {
         for (VectorData data : possibleVectors) {
             Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
             results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
+
+            // We must bruteforce Optifine ShitMath
+            player.trigHandler.toggleShitMath();
+            elytraResult = getElytraMovement(player, data.vector.clone(), ReachUtils.getLook(player, player.xRot, player.yRot)).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
+            player.trigHandler.toggleShitMath();
+            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
         }
 
         return results;
     }
 
-    public Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
+    public static Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
         float yRotRadians = player.yRot * 0.017453292F;
         double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double horizontalLength = vector.clone().setY(0).length();

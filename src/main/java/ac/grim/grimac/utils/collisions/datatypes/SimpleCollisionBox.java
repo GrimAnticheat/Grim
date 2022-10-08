@@ -162,6 +162,19 @@ public class SimpleCollisionBox implements CollisionBox {
         return this;
     }
 
+    public SimpleCollisionBox combineToMinimum(double x, double y, double z) {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+
+        minZ = Math.min(minZ, z);
+        maxZ = Math.max(maxZ, z);
+
+        return this;
+    }
+
     @Override
     public boolean isCollided(SimpleCollisionBox other) {
         return other.maxX >= this.minX && other.minX <= this.maxX

@@ -30,7 +30,7 @@ public class ReachInterpolationData {
     private SimpleCollisionBox startingLocation;
     private int interpolationStepsLowBound = 0;
     private int interpolationStepsHighBound = 0;
-    private boolean isBoat;
+    private int interpolationSteps = 1;
 
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
         this.startingLocation = startingLocation;
@@ -42,7 +42,18 @@ public class ReachInterpolationData {
             targetLocation.expand(0.03125);
         }
 
-        this.isBoat = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT);
+        if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT)) {
+            interpolationSteps = 10;
+        } else if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.MINECART_ABSTRACT)) {
+            interpolationSteps = 5;
+        } else if (entity.type == EntityTypes.SHULKER) {
+            interpolationSteps = 1;
+        } else if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.LIVINGENTITY)) {
+            interpolationSteps = 3;
+        } else {
+            interpolationSteps = 1;
+        }
+
         if (isPointNine) interpolationStepsHighBound = getInterpolationSteps();
     }
 
@@ -50,12 +61,10 @@ public class ReachInterpolationData {
     public ReachInterpolationData(SimpleCollisionBox finishedLoc) {
         this.startingLocation = finishedLoc;
         this.targetLocation = finishedLoc;
-        interpolationStepsLowBound = getInterpolationSteps();
-        interpolationStepsHighBound = getInterpolationSteps();
     }
 
     private int getInterpolationSteps() {
-        return isBoat ? 10 : 3;
+        return interpolationSteps;
     }
 
     public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {

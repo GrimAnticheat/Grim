@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -178,7 +179,7 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public void onBlockPlace(BlockPlace place) {
-        if (player.gamemode != GameMode.CREATIVE) {
+        if (player.gamemode != GameMode.CREATIVE && place.getItemStack().getType() != ItemTypes.POWDER_SNOW_BUCKET) {
             place.getItemStack().setAmount(place.getItemStack().getAmount() - 1);
         }
     }
@@ -221,9 +222,9 @@ public class CompensatedInventory extends PacketCheck {
 
         // Is this mapped wrong?  Should it be ClientboundMerchantOffersPacket?  What is this packet?
         // I don't think this matters actually. We need it for tracking trading... which we don't do yet.
-        if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
-
-        }
+//        if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
+//
+//        }
 
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {

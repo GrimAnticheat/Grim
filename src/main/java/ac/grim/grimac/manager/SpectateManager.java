@@ -49,13 +49,14 @@ public class SpectateManager implements Initable {
 
     public void onQuit(Player player) {
         hiddenPlayers.remove(player.getUniqueId());
-        disable(player);
+        handlePlayerStopSpectating(player.getUniqueId());
     }
 
-    public void disable(Player player) {
+    //only call this synchronously
+    public void disable(Player player, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
-            player.teleport(previousState.location);
+            if (teleportBack) player.teleport(previousState.location);
             player.setGameMode(previousState.gameMode);
         }
         handlePlayerStopSpectating(player.getUniqueId());

@@ -76,6 +76,7 @@ public abstract class AbstractContainerMenu {
                 break;
             case 2:
                 p_38925_.setAmount(p_38925_.getType().getMaxAmount());
+                break;
         }
 
         p_38925_.grow(p_38926_);

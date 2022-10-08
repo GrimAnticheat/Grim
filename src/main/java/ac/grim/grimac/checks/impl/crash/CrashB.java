@@ -17,7 +17,10 @@ public class CrashB extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             if (player.gamemode != GameMode.CREATIVE) {
-                flagAndAlert(); // Could be transaction split
+                player.getSetbackTeleportUtil().executeViolationSetback();
+                event.setCancelled(true);
+                player.cancelledPackets.incrementAndGet();
+                flagAndAlert(); // Could be transaction split, no need to setback though
             }
         }
     }

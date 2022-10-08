@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.blockplace;
 
+import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -136,7 +137,7 @@ public enum BlockPlaceResult {
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
         WrappedBlockState above = place.getAboveState();
-        if (above.getType().isBlocking() || BlockTags.FENCE_GATES.contains(above.getType()) || above.getType() == StateTypes.MOVING_PISTON) {
+        if (!above.getType().isBlocking() && !BlockTags.FENCE_GATES.contains(above.getType()) && above.getType() != StateTypes.MOVING_PISTON) {
             place.set(place.getMaterial());
         }
     }, ItemTypes.FARMLAND),
@@ -146,7 +147,7 @@ public enum BlockPlaceResult {
         WrappedBlockState amethyst = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
         amethyst.setFacing(place.getDirection());
         if (place.isFullFace(place.getDirection().getOppositeFace())) place.set(amethyst);
-    }, ItemTypes.AMETHYST_CLUSTER),
+    }, ItemTypes.AMETHYST_CLUSTER, ItemTypes.SMALL_AMETHYST_BUD, ItemTypes.MEDIUM_AMETHYST_BUD, ItemTypes.LARGE_AMETHYST_BUD),
 
     BAMBOO((player, place) -> {
         Vector3i clicked = place.getPlacedAgainstBlockLocation();
@@ -235,6 +236,8 @@ public enum BlockPlaceResult {
             // Max pickels already exist
             if (existing.getPickles() == 4) return;
             existing.setPickles(existing.getPickles() + 1);
+        } else {
+            existing = StateTypes.SEA_PICKLE.createBlockState(CompensatedWorld.blockVersion);
         }
 
         place.set(existing);
@@ -371,7 +374,7 @@ public enum BlockPlaceResult {
         if (place.isSolidBlocking(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("CANDLE_CAKE"))
+    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("candle_cake"))
             .collect(Collectors.toList()).toArray(new ItemType[0])),
 
     PISTON_BASE((player, place) -> {
@@ -538,15 +541,16 @@ public enum BlockPlaceResult {
         // If it's a torch, create a wall torch
         // Otherwise, it's going to be a head.  The type of this head also doesn't matter
         WrappedBlockState dir;
-        boolean isTorch = place.getMaterial().getName().contains("TORCH");
-        boolean isHead = place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL");
+        boolean isTorch = place.getMaterial().getName().contains("torch");
+        boolean isHead = place.getMaterial().getName().contains("head") || place.getMaterial().getName().contains("skull");
         boolean isWallSign = !isTorch && !isHead;
 
-        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return; // 1.12- players don't predict head places
+        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2))
+            return; // 1.12- players don't predict head places
 
         if (isTorch) {
             dir = StateTypes.WALL_TORCH.createBlockState(CompensatedWorld.blockVersion);
-        } else if (place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL")) {
+        } else if (place.getMaterial().getName().contains("head") || place.getMaterial().getName().contains("skull")) {
             dir = StateTypes.PLAYER_WALL_HEAD.createBlockState(CompensatedWorld.blockVersion);
         } else {
             dir = StateTypes.OAK_WALL_SIGN.createBlockState(CompensatedWorld.blockVersion);
@@ -564,7 +568,7 @@ public enum BlockPlaceResult {
                         place.set(dir);
                         return;
                     }
-                } else if (place.isFaceFullCenter(BlockFace.DOWN)) {
+                } else {
                     boolean canPlace = isHead || ((isWallSign || place.isFaceFullCenter(face)) && (isTorch || place.isSolidBlocking(face)));
                     if (canPlace) {
                         place.set(place.getMaterial());
@@ -574,9 +578,9 @@ public enum BlockPlaceResult {
             }
         }
     }, ItemTypes.values().stream().filter(mat ->
-                    mat.getName().getKey().contains("TORCH") // Find all torches
-                            || (mat.getName().getKey().contains("HEAD") || mat.getName().getKey().contains("SKULL")) && !mat.getName().getKey().contains("PISTON") // Skulls
-                            || mat.getName().getKey().contains("SIGN")) // And signs
+                    mat.getName().getKey().contains("torch") // Find all torches
+                            || (mat.getName().getKey().contains("head") || mat.getName().getKey().contains("skull")) && !mat.getName().getKey().contains("piston") // Skulls
+                            || mat.getName().getKey().contains("sign")) // And signs
             .toArray(ItemType[]::new)),
 
     MULTI_FACE_BLOCK((player, place) -> {
@@ -644,8 +648,8 @@ public enum BlockPlaceResult {
                 return;
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("BUTTON") // Find all buttons
-                    || mat.getName().getKey().contains("LEVER")) // And levers
+    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("button") // Find all buttons
+                    || mat.getName().getKey().contains("lever")) // And levers
             .toArray(ItemType[]::new)),
 
     GRINDSTONE((player, place) -> { // Grindstones do not have special survivability requirements
@@ -732,8 +736,8 @@ public enum BlockPlaceResult {
         if (place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("CORAL")
-                    && !mat.getName().getKey().contains("BLOCK") && !mat.getName().getKey().contains("FAN")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+                    && !mat.getName().getKey().contains("block") && !mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
     CORAL_FAN((player, place) -> {
@@ -756,15 +760,15 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("CORAL")
-                    && !mat.getName().getKey().contains("BLOCK") && mat.getName().getKey().contains("FAN")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+                    && !mat.getName().getKey().contains("block") && mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
     PRESSURE_PLATE((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN) || place.isFaceFullCenter(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("PLATE")))
+    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("plate")))
             .toArray(ItemType[]::new)),
 
     RAIL((player, place) -> {
@@ -833,6 +837,12 @@ public enum BlockPlaceResult {
             }
         }
     }, ItemTypes.VINE),
+
+    LECTERN((player, place) -> {
+        WrappedBlockState lectern = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        lectern.setFacing(place.getPlayerFacing().getOppositeFace());
+        place.set(lectern);
+    }, ItemTypes.LECTERN),
 
     FENCE_GATE((player, place) -> {
         WrappedBlockState gate = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
@@ -1059,6 +1069,11 @@ public enum BlockPlaceResult {
             ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
             ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
+
+    POWDER_SNOW_BUCKET((player, place) -> {
+        place.set();
+        CheckManagerListener.setPlayerItem(player, place.getHand(), ItemTypes.BUCKET);
+    }, ItemTypes.POWDER_SNOW_BUCKET),
 
     GAME_MASTER((player, place) -> {
         if (player.canUseGameMasterBlocks()) {

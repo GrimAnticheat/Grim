@@ -8,6 +8,9 @@ Punishments:
   Simulation:
     # After how many seconds should a violation be removed?
     remove-violations-after: 300
+    # This section will match all checks with the name,
+    # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
+    # For example, !BadPacketsN
     checks:
       - "Simulation"
       - "GroundSpoof"
@@ -18,6 +21,9 @@ Punishments:
     # Example, to kick the player with the message "incorrect movement!" after 100 violations, with no interval
     # commands:
     # - "100:0 kick %player% incorrect movement!"
+    # 0 means execute exactly once
+    # - "100:50 say %player% is cheating"
+    # Execute when the user hits flag 100, and after that, every 50th flag after 100
     #
     commands:
       - "100:40 [alert]"
@@ -42,7 +48,7 @@ Punishments:
     checks:
       - "BadPackets"
       - "Crash"
-    command:
+    commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
   Reach:

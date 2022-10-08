@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 
-// Frequency BadPacketsF
 @CheckData(name = "BadPacketsA")
 public class BadPacketsA extends PacketCheck {
     int lastSlot = -1;
@@ -21,8 +20,10 @@ public class BadPacketsA extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             WrapperPlayClientHeldItemChange packet = new WrapperPlayClientHeldItemChange(event);
 
-            if (packet.getSlot() == lastSlot) {
-                flagAndAlert();
+            int slot = packet.getSlot();
+
+            if (slot == lastSlot) {
+                flagAndAlert("slot=" + slot);
             }
 
             lastSlot = packet.getSlot();

@@ -5,6 +5,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.User;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -37,7 +39,19 @@ public class GrimDebug extends BaseCommand {
         }
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlayer);
-        if (grimPlayer == null) sender.sendMessage(ChatColor.RED + "This player is exempt from all checks!");
+        if (grimPlayer == null) {
+            User user = PacketEvents.getAPI().getPlayerManager().getUser(targetPlayer);
+            sender.sendMessage(ChatColor.RED + "This player is exempt from all checks!");
+
+            if (user == null) {
+                sender.sendMessage(ChatColor.RED + "Unknown PacketEvents user");
+            } else {
+                boolean isExempt = GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user);
+                if (!isExempt) {
+                    sender.sendMessage(ChatColor.RED + "User connection state: " + user.getConnectionState());
+                }
+            }
+        }
 
         return grimPlayer;
     }

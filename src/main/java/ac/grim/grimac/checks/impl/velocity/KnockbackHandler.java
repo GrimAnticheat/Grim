@@ -2,36 +2,36 @@ package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import lombok.Getter;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
-public class KnockbackHandler extends PacketCheck {
-    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
+public class KnockbackHandler extends PostPredictionCheck {
+    Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
+    Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
     VelocityData firstBreadOnlyKnockback = null;
-
-    boolean wasExplosionZeroPointZeroThree = false;
+    @Getter
+    boolean knockbackPointThree = false;
 
     double offsetToFlag;
     double setbackVL;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
-    }
-
-    public boolean isPendingKb() {
-        return firstBreadMap.size() > 0;
     }
 
     @Override
@@ -63,6 +63,24 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
+    public Vector getFutureKnockback() {
+        // Chronologically in the future
+        if (firstBreadMap.size() > 0) {
+            return firstBreadMap.peek().vector;
+        }
+        // Less in the future
+        if (lastKnockbackKnownTaken.size() > 0) {
+            return lastKnockbackKnownTaken.peek().vector;
+        }
+        // Uncertain, might be in the future
+        if (player.firstBreadKB != null && player.likelyKB == null) {
+            return player.firstBreadKB.vector.clone();
+        } else if (player.likelyKB != null) { // Known to be in the present
+            return player.likelyKB.vector.clone();
+        }
+        return null;
+    }
+
     private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
@@ -77,11 +95,12 @@ public class KnockbackHandler extends PacketCheck {
         }
 
         lastKnockbackKnownTaken.clear();
-
         return returnLastKB;
     }
 
     private void tickKnockback(int transactionID) {
+        firstBreadOnlyKnockback = null;
+        if (firstBreadMap.isEmpty()) return;
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread knockback
@@ -102,15 +121,6 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void onTeleport() {
-        // Don't exempt if the player used grim to get a teleport here.
-        // This will flag but it's required to stop abuse
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            forceExempt();
-        }
-    }
-
     public void forceExempt() {
         // Unsure knockback was taken
         if (player.firstBreadKB != null) {
@@ -123,7 +133,7 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public void setPointThree(boolean isPointThree) {
-        wasExplosionZeroPointZeroThree = wasExplosionZeroPointZeroThree || isPointThree;
+        knockbackPointThree = knockbackPointThree || isPointThree;
     }
 
     public void handlePredictionAnalysis(double offset) {
@@ -136,21 +146,24 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void handlePlayerKb(double offset) {
-        boolean wasZero = wasExplosionZeroPointZeroThree;
-        wasExplosionZeroPointZeroThree = false;
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        double offset = predictionComplete.getOffset();
+        if (!predictionComplete.isChecked() || predictionComplete.getData().isTeleport()) {
+            forceExempt();
+            return;
+        }
+
+        boolean wasZero = knockbackPointThree;
+        knockbackPointThree = false;
 
         if (player.likelyKB == null && player.firstBreadKB == null) {
             return;
         }
 
-        if (!wasZero && player.predictedVelocity.isKnockback() &&
-                player.likelyKB == null && player.firstBreadKB != null) {
-            // The player took this knockback, this tick, 100%
-            // Fixes exploit that would allow players to take knockback an infinite number of times
-            if (player.firstBreadKB.offset < offsetToFlag) {
-                firstBreadOnlyKnockback = null;
-            }
+        if (player.predictedVelocity.isFirstBreadKb()) {
+            firstBreadOnlyKnockback = null;
+            firstBreadMap.poll(); // Remove from map so we don't pull it again
         }
 
         if (wasZero || player.predictedVelocity.isKnockback()) {
@@ -168,10 +181,10 @@ public class KnockbackHandler extends PacketCheck {
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
-                    player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
+                    player.getSetbackTeleportUtil().executeViolationSetback();
                 } else if (flag()) { // This velocity was sent by the server.
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
+                        player.getSetbackTeleportUtil().executeViolationSetback();
                     }
 
                     String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
@@ -186,6 +199,17 @@ public class KnockbackHandler extends PacketCheck {
                 }
             }
         }
+    }
+
+    public boolean shouldIgnoreForPrediction(VectorData data) {
+        if (data.isKnockback() && data.isFirstBreadKb()) {
+            return player.firstBreadKB.offset > offsetToFlag;
+        }
+        return false;
+    }
+
+    public boolean wouldFlag() {
+        return (player.likelyKB != null && player.likelyKB.offset > offsetToFlag) || (player.firstBreadKB != null && player.firstBreadKB.offset > offsetToFlag);
     }
 
     public VelocityData calculateFirstBreadKnockback(int entityID, int transaction) {

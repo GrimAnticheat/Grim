@@ -1,7 +1,7 @@
 name: GrimAC
-description: Libre simulation anticheat designed for 1.18 with 1.8-1.18 support, powered by PacketEvents 2.0.
+description: Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0.
 author: GrimAC
-version: 2.3.7
+version: 2.3.23
 main: ac.grim.grimac.GrimAC
 softdepend:
   - ProtocolLib
@@ -15,7 +15,10 @@ api-version: 1.13
 load: POSTWORLD
 permissions:
   grim.alerts:
-    description: Receieve alerts for violations
+    description: Receive alerts for violations
+    default: op
+  grim.alerts.enable-on-join:
+    description: Enable alerts on join
     default: op
   grim.performance:
     description: Check performance metrics
@@ -31,6 +34,9 @@ permissions:
     default: op
   grim.nosetback:
     description: Disable setback
+    default: false
+  grim.nomodifypacket:
+    description: Disable modifying packets
     default: false
   grim.exempt:
     description: Exempt from all checks

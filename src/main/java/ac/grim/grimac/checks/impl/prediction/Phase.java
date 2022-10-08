@@ -25,7 +25,7 @@ public class Phase extends PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!player.getSetbackTeleportUtil().blockOffsets) { // Not falling through world
+        if (!player.getSetbackTeleportUtil().blockOffsets && !predictionComplete.getData().isTeleport() && predictionComplete.isChecked()) { // Not falling through world
             SimpleCollisionBox newBB = player.boundingBox;
 
             List<SimpleCollisionBox> boxes = new ArrayList<>();
@@ -40,7 +40,6 @@ public class Phase extends PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    oldBB = player.boundingBox;
                     flagWithSetback();
                     return;
                 }
