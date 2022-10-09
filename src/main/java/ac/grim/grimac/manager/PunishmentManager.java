@@ -3,6 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.CommandExecuteEvent;
+import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -92,6 +93,7 @@ public class PunishmentManager {
         String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
 
         original = original.replace("[alert]", alertString);
+        original = original.replace("[proxy]", alertString);
         original = original.replace("%check_name%", check.getCheckName());
         original = original.replace("%vl%", vl);
         original = original.replace("%verbose%", verbose);
@@ -136,6 +138,13 @@ public class PunishmentManager {
                             if (command.command.equals("[webhook]")) {
                                 String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
                                 GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
+                                continue;
+                            }
+
+                            if (command.command.equals("[proxy]") && ProxyAlertMessenger.canSendAlerts()) {
+                                String proxyAlertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+                                proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
+                                ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
                                 continue;
                             }
 

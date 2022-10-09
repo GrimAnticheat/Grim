@@ -4,6 +4,7 @@
 # %player% - nombre del jugador
 # [alert] - comando especial para alertar
 # [webhook] - comando especial para alertar mediante un webhook de Discord
+# [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
     # ¿Después de cuantos segundos deberíamos quitar una violación?
@@ -28,6 +29,7 @@ Punishments:
     commands:
       - "100:40 [alert]"
       - "100:100 [webhook]"
+      - "100:100 [proxy]"
   Knockback:
     remove-violations-after: 300
     checks:
@@ -36,6 +38,7 @@ Punishments:
     commands:
       - "5:5 [alert]"
       - "20:20 [webhook]"
+      - "20:20 [proxy]"
   Post:
     remove-violations-after: 300
     checks:
@@ -43,6 +46,7 @@ Punishments:
     commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
+      - "40:40 [proxy]"
   BadPackets:
     remove-violations-after: 300
     checks:
@@ -51,6 +55,7 @@ Punishments:
     commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
+      - "40:40 [proxy]"
   Reach:
     remove-violations-after: 300
     checks:
@@ -58,6 +63,7 @@ Punishments:
     commands:
       - "5:5 [alert]"
       - "5:5 [webhook]"
+      - "5:5 [proxy]"
   Misc:
     remove-violations-after: 300
     checks:
@@ -69,6 +75,7 @@ Punishments:
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"
+      - "20:10 [proxy]"
   Combat:
     remove-violations-after: 300
     checks:
