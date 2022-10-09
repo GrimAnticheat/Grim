@@ -41,7 +41,7 @@ public class PunishmentManager {
 
                 List<String> checks = (List<String>) map.getOrDefault("checks", new ArrayList<>());
                 List<String> commands = (List<String>) map.getOrDefault("commands", new ArrayList<>());
-                int removeViolationsAfter = (int) map.getOrDefault("removeViolationsAfter", 300);
+                int removeViolationsAfter = (int) map.getOrDefault("remove-violations-after", 300);
 
                 List<ParsedCommand> parsed = new ArrayList<>();
                 List<Check> checksList = new ArrayList<>();
