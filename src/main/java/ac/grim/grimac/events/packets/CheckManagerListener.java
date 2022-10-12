@@ -40,6 +40,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import org.bukkit.util.Vector;
@@ -485,6 +486,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
                     player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
                     player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
+
+                    // Ends the client prediction introduced in 1.19+
+                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                        player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
+                    }
 
                     // Stop inventory desync from cancelling place
                     if (packet.getHand() == InteractionHand.MAIN_HAND) {
