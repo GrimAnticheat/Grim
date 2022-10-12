@@ -44,7 +44,7 @@ public class DynamicConnecting {
         StateType target = targetBlock.getType();
         StateType fence = currBlock.getType();
 
-        if (!BlockTags.FENCES.contains(target) && isBlacklisted(target))
+        if (!BlockTags.FENCES.contains(target) && isBlacklisted(target, v))
             return false;
 
         // 1.12+ clients can connect to TnT while previous versions can't
@@ -79,8 +79,8 @@ public class DynamicConnecting {
         }
     }
 
-    boolean isBlacklisted(StateType m) {
-        if (BlockTags.LEAVES.contains(m)) return true;
+    boolean isBlacklisted(StateType m, ClientVersion clientVersion) {
+        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 
