@@ -418,9 +418,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
+            WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
 
             if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
-                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
                 // Not unbreakable
                 if (block.getType().getHardness() != -1.0f) {
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
@@ -433,7 +433,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
                 if (damage >= 1) {
                     player.compensatedWorld.startPredicting();
-                    player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
+                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), block)) {
+                        // Vanilla uses a method to grab water flowing, but as you can't break flowing water
+                        // We can simply treat all waterlogged blocks or source blocks as source blocks
+                        player.compensatedWorld.updateBlock(dig.getBlockPosition(), StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
+                    } else {
+                        player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
+                    }
                     player.compensatedWorld.stopPredicting(dig);
                 }
             }
