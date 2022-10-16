@@ -22,6 +22,7 @@ upload-log-upload-failure: "%prefix% &cAlgo salio mal mientras subíamos ese reg
 # %vl% - violaciones
 # %verbose% - información extra de la comprobación como compensaciones. No todas añadirán informacion.
 alerts-format: "%prefix% &f%player% &bfalló &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"

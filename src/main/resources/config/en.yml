@@ -7,6 +7,13 @@
 alerts:
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
+  # This controls whether/how alerts are shared between servers connected to your proxy.
+  # You must have 'bungee-plugin-message-channel' enabled in your Velocity's configuration if Velocity is in use.
+  proxy:
+    # Should alerts be sent to other servers connected to your proxy?
+    send: false
+    # Should the alerts received from other servers be announced to this server?
+    receive: false
 
 verbose:
   print-to-console: false
