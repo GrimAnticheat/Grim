@@ -21,7 +21,7 @@ upload-log-upload-failure: "%prefix% &cCoś zawodło podczas wrzucania tych log�
 # %check_name%
 # %vl% - naruszenia
 # %verbose% - dodatkowe informacje
-alerts-format: "%prefix% &f%player% &nie przeszedł &f%check_name% &f(x&c%vl%&f) &7%sprawdzenia%"
+alerts-format: "%prefix% &f%player% &7nie przeszedł &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"
