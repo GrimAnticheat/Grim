@@ -87,7 +87,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             tasks.add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning
+            // (We won't process movements until they accept a teleport, we won't let movements though either)
+            // Also invalidate previous positions
             player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
+            player.getSetbackTeleportUtil().lastKnownGoodPosition = null;
 
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
