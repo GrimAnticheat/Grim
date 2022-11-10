@@ -5,7 +5,6 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
 import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.block.data.type.PointedDripstone;
 
 public class Dripstone {
     public static WrappedBlockState update(GrimPlayer player, WrappedBlockState toPlace, int x, int y, int z, boolean secondaryUse) {
@@ -17,8 +16,7 @@ public class Dripstone {
         if (isPointedDripstoneWithDirection(typePlacingOn, opposite)) {
             // Use tip if the player is sneaking, or if it already is merged (somehow)
             // secondary use is flipped, for some reason, remember!
-            Thickness thick = secondaryUse && ((PointedDripstone) typePlacingOn).getThickness() != PointedDripstone.Thickness.TIP_MERGE ?
-                    Thickness.TIP : Thickness.TIP_MERGE;
+            Thickness thick = secondaryUse && typePlacingOn.getThickness() != Thickness.TIP_MERGE ? Thickness.TIP : Thickness.TIP_MERGE;
 
             toPlace.setThickness(thick);
         } else {
