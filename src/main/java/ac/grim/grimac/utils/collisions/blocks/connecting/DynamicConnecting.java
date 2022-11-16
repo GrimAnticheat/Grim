@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -44,7 +45,7 @@ public class DynamicConnecting {
         StateType target = targetBlock.getType();
         StateType fence = currBlock.getType();
 
-        if (!BlockTags.FENCES.contains(target) && isBlacklisted(target, v))
+        if (!BlockTags.FENCES.contains(target) && isBlacklisted(target, fence, v))
             return false;
 
         // 1.12+ clients can connect to TnT while previous versions can't
@@ -79,8 +80,8 @@ public class DynamicConnecting {
         }
     }
 
-    boolean isBlacklisted(StateType m, ClientVersion clientVersion) {
-        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8);
+    boolean isBlacklisted(StateType m, StateType fence, ClientVersion clientVersion) {
+        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.getPanes().contains(fence);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 
