@@ -380,10 +380,14 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void timedOut() {
+        disconnect(Component.translatable("disconnect.timeout"));
+    }
+
+    public void disconnect(Component reason) {
         try {
-            user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
+            user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
-            LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
+            LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
     }
@@ -429,8 +433,10 @@ public class GrimPlayer implements GrimUser {
         checkManager.getKnockbackHandler().setPointThree(kbPointThree);
 
         Set<VectorData> explosion = new HashSet<>();
-        if (firstBreadExplosion != null) explosion.add(new VectorData(firstBreadExplosion.vector, VectorData.VectorType.Explosion));
-        if (likelyExplosions != null) explosion.add(new VectorData(likelyExplosions.vector, VectorData.VectorType.Explosion));
+        if (firstBreadExplosion != null)
+            explosion.add(new VectorData(firstBreadExplosion.vector, VectorData.VectorType.Explosion));
+        if (likelyExplosions != null)
+            explosion.add(new VectorData(likelyExplosions.vector, VectorData.VectorType.Explosion));
 
         boolean explosionPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), explosion);
         checkManager.getExplosionHandler().setPointThree(explosionPointThree);

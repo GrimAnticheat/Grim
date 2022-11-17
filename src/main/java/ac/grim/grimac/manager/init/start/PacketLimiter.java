@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 
 public class PacketLimiter implements Initable {
@@ -15,7 +17,8 @@ public class PacketLimiter implements Initable {
                 // Avoid concurrent reading on an integer as it's results are unknown
                 if (player.cancelledPackets.get() > spamThreshold) {
                     LogUtil.info("Disconnecting " + player.user.getName() + " for spamming invalid packets, packets cancelled in a second " + player.cancelledPackets);
-                    player.user.closeConnection();
+                    //let's disconnect them safely
+                    ChannelHelper.runInEventLoop(player.user.getChannel(), () -> player.disconnect(Component.translatable("disconnect.closed")));
                 }
                 player.cancelledPackets.set(0);
             }
