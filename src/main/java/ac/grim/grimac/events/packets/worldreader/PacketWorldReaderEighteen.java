@@ -14,7 +14,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
     // Mojang decided to include lighting in this packet.  It's inefficient to read it, so we replace PacketEvents logic.
     @Override
     public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
-        PacketWrapper wrapper = new PacketWrapper(event);
+        PacketWrapper<?> wrapper = new PacketWrapper<>(event);
 
         int x = wrapper.readInt();
         int z = wrapper.readInt();
@@ -22,7 +22,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         // Skip past heightmaps
         wrapper.readNBT();
 
-        BaseChunk[] chunks = new ChunkReader_v1_18().read(null, null, true, false, false, event.getUser().getTotalWorldHeight() >> 4, null, new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
+        BaseChunk[] chunks = new ChunkReader_v1_18().read(null,null, null, true, false, false, event.getUser().getTotalWorldHeight() >> 4, null, new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
 
         // Remove biomes to save memory
         for (int i = 0; i < chunks.length; i++) {
