@@ -40,7 +40,7 @@ public class CrashD extends PacketCheck {
             if (type == 16 && windowId > 0 && windowId == lecternId) {
                 if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
                     event.setCancelled(true);
-                    player.cancelledPackets.incrementAndGet();
+                    player.onPacketCancel();
                 }
             }
         }

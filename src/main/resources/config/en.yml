@@ -125,6 +125,6 @@ experimental-checks: false
 
 # Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
-packet-spam-threshold: 150
+packet-spam-threshold: 100
 
 config-version: 8

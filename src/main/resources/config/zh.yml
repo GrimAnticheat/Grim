@@ -123,6 +123,6 @@ experimental-checks: false
 
 # Grim有时会取消非法的数据包，比如用timer，在一秒钟内取消了数个数据包后，我们应该踢掉这个玩家？
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
-packet-spam-threshold: 150
+packet-spam-threshold: 100
 
 config-version: 8

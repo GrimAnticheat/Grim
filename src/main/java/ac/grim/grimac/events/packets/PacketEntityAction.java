@@ -57,7 +57,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                             player.bukkitPlayer.setSneaking(!player.bukkitPlayer.isSneaking());
                         }
                         event.setCancelled(true);
-                        player.cancelledPackets.incrementAndGet();
+                        player.onPacketCancel();
                     }
                     break;
                 case START_JUMPING_WITH_HORSE:

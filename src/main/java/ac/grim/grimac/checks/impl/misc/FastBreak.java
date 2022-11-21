@@ -73,7 +73,7 @@ public class FastBreak extends PacketCheck {
 
                 if (blockDelayBalance > 1000 && shouldModifyPackets()) { // If more than a second of advantage
                     event.setCancelled(true); // Cancelling start digging will cause server to reject block break
-                    player.cancelledPackets.incrementAndGet();
+                    player.onPacketCancel();
                     flagAndAlert("Delay=" + breakDelay);
                 }
 
@@ -123,7 +123,7 @@ public class FastBreak extends PacketCheck {
 
                     if (flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance) && shouldModifyPackets()) {
                         event.setCancelled(true);
-                        player.cancelledPackets.incrementAndGet();
+                        player.onPacketCancel();
                     }
                 }
 

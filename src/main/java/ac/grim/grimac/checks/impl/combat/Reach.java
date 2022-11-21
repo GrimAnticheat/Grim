@@ -62,7 +62,7 @@ public class Reach extends PacketCheck {
             // Don't let the player teleport to bypass reach
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
-                player.cancelledPackets.incrementAndGet();
+                player.onPacketCancel();
                 return;
             }
 
@@ -73,7 +73,7 @@ public class Reach extends PacketCheck {
                 // This is because we don't track paintings.
                 if (shouldModifyPackets() && player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
                     event.setCancelled(true);
-                    player.cancelledPackets.incrementAndGet();
+                    player.onPacketCancel();
                 }
                 return;
             }
@@ -89,7 +89,7 @@ public class Reach extends PacketCheck {
 
             if (shouldModifyPackets() && cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
-                player.cancelledPackets.incrementAndGet();
+                player.onPacketCancel();
             }
         }
 
