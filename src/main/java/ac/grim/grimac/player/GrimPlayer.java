@@ -184,6 +184,14 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
 
+    public void onPacketCancel() {
+        if (cancelledPackets.incrementAndGet() > spamThreshold) {
+            LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
+            disconnect(Component.translatable("disconnect.closed"));
+            cancelledPackets.set(0);
+        }
+    }
+
     public int attackTicks;
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
@@ -193,6 +201,7 @@ public class GrimPlayer implements GrimUser {
     public GrimPlayer(User user) {
         this.user = user;
         this.playerUUID = user.getUUID();
+        onReload();
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
 
@@ -455,6 +464,12 @@ public class GrimPlayer implements GrimUser {
         if (bukkitPlayer == null) return;
         this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
         this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
+    }
+
+    private int spamThreshold = 100;
+
+    public void onReload() {
+        spamThreshold = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("packet-spam-threshold", 100);
     }
 
     public boolean isPointThree() {

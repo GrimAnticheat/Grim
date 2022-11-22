@@ -19,7 +19,7 @@ public class CrashB extends PacketCheck {
             if (player.gamemode != GameMode.CREATIVE) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
                 event.setCancelled(true);
-                player.cancelledPackets.incrementAndGet();
+                player.onPacketCancel();
                 flagAndAlert(); // Could be transaction split, no need to setback though
             }
         }

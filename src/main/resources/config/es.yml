@@ -131,6 +131,6 @@ experimental-checks: false
 # Grim a veces cancela paquetes ilegal como los de Timer. Después de X paquetes en un solo segundo cancelados,
 # cuando deberíamos simplemente expulsar al jugador? Esto es obligatorio ya que algunos limitadores de paquetes
 # no cuentan los paquetes cancelados por Grim.
-packet-spam-threshold: 150
+packet-spam-threshold: 100
 
 config-version: 8

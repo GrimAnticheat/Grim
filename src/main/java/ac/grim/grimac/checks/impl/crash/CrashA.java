@@ -26,7 +26,7 @@ public class CrashA extends PacketCheck {
                 flagAndAlert(); // Ban
                 player.getSetbackTeleportUtil().executeViolationSetback();
                 event.setCancelled(true);
-                player.cancelledPackets.incrementAndGet();
+                player.onPacketCancel();
             }
         }
     }
