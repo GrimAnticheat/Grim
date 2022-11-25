@@ -141,7 +141,7 @@ public class PunishmentManager {
                                 continue;
                             }
 
-                            if (command.command.equals("[proxy]") && ProxyAlertMessenger.canSendAlerts()) {
+                            if (command.command.equals("[proxy]")) {
                                 String proxyAlertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
                                 ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
