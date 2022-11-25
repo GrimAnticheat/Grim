@@ -1,0 +1,123 @@
+# GrimAC Główny plik konfiguracyjny
+# Kod źródłowy: https://github.com/MWHunter/Grim
+# Wszelkie prawa zastrzeżone 2022 DefineOutside oraz kontrybutorzy, licencjonowane przy użyciu licencji GPLv3.
+# Zmodyfikowane pliki binarne, lub pluginy posiadające kod "grim" muszą zostać udostępnione publicznie.
+# lub za darmo dla kupujących plugin.
+
+alerts:
+  # Czy poza graczami powiadomienia o wykrytych hackach powinny być wyświetlane w konsoli?
+  print-to-console: true
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Gracze używających danych klientów nie będą zgłaszani administratorom, jeśli ich wersja pasuje do podanego regexa.
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # Ukryj wszystkich obserwujących z uprawnieniem "grimac.spectator" nie zważając na to czy są w trybie obserwatora.
+  hide-regardless: false
+  # Ustanowi obserwujących ukrytymi tylko w podanych światach, zostaw puste aby pozwolić na wszystkie światy.
+  allowed-worlds:
+    - ""
+# Ile czasu powinni mieć gracze, zanim wyrzucimy ich za przekroczenie czasu? Domyślnie 60 sekund
+# How long should players have until we kick them for timing out? Default = 60 seconds
+max-transaction-time: 60
+
+Simulation:
+  # Przez ile powinniśmy pomnożyć całkowitą przewagę, gdy gracz gra bez wspomagania
+  # Tak wygląda domyślna konfiguracja (oś x = sekundy, oś y = 1/1000 bloku): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # Dla jak dużego przesunięcia od normy ruchu gracza powinniśmy stworzyć naruszenie?
+  # Mierzone w blokach od normalnego ruchu
+  # Uwzględniamy Optifine poprzez przełączanie tablic trygonometrycznych, ale zmniejszenie tego do 0.001 zmniejszy wydajność "FastMath"
+  # oflagowanie antycheata, jeśli to nie zadziała...
+  threshold: 0.001
+  # Jak duże jest naruszenie w tick'u, zanim gracz dostanie natychmiastowe cofnięcie?
+  # -1 aby wyłączyć
+  immediate-setback-threshold: 0.1
+  # Jak duża jest przewaga nad wszystkimi tick'ami, zanim zaczniemy cofać gracza?
+  # -1 aby wyłączyć
+  max-advantage: 1
+  # Po 50 sekundach z domyślnym configiem, gracz przejdzie z 4 bloków -> 1 blok przewagi
+  # Ma to na celu powstrzymanie gracza przed zebraniem zbyt dużej ilości naruszeń i niemożnością oczyszczenia ich wszystkich.
+  # Domyślny pułap przewagi (oś x = sekundy, oś y = 1/1000 bloku): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Sprawdza, czy gracz wszedł na blok podczas ruchu
+Phase:
+  setbackvl: 1 # Glitchowanie do bloków może pozwolić na wspinaczkę po ścianie, plus to sprawdzenie jest stosunkowo stabilne
+  decay: 0.005
+
+# Oparte na przewidywaniu brak wolniejszych check'ów
+# Kod bazujący na sieci... trudne do sfałszowania nawet przy spamowaniu prawym przyciskiem myszy i przyciskiem offhandu
+# Dużo bardziej stabilne niż w innych anticheatach, ale proszę zgłaszać wszelkie false-positive's... Naprawiłem tutaj tonę problemów z kodem sieciowym.
+NoSlow:
+  # Jak duże przesunięcie jest "oszustwem"
+  # Domyślnie jest to wartość niższa niż inne wyłączenia
+  # Flagi o 0,03-0,2 konsekwentnie z włączonym NoSlow
+  threshold: 0.001
+  # Szybkie cofnięcie na pierwszym elemencie, aby usunąć przewagę, jaką daje NoSlow
+  setbackvl: 5
+  # Rozkład jest wtedy, gdy gracz używa przedmiotu i jest przez niego spowolniony.
+  decay: 0.05
+
+Knockback:
+  # Jak duże przesunięcie jest "oszustwem"
+  # Domyślnie jest to 1e-5, co jest bezpieczne i zdrowe.
+  # Mierzone w blokach od prawidłowego ruchu
+  threshold: 0.001
+  setbackvl: 3
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Milisekundy, które gracz może zgromadzić, aby wykorzystać je później, gdy pozostanie w tyle
+  # Może potencjalnie pozwolić na 1.8 szybkie użycie/szybkie uleczenie/szybkie obejście łuku, jeśli ustawi się zbyt wysoko, 120 ms wydaje się być dobrym balansem.
+  drift: 120
+
+# Taka sama metoda sprawdzania jak w przypadku TimeraA, ale dla pojazdów
+TimerVehicle:
+  # Cel 1.005 timer'a
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # O ile powinniśmy rozszerzyć hitboxy? 0.0005 powinno wykryć 3.0005+ zasięgu
+  #
+  # Istnieje 0.03 wymuszonego rozszerzenie z 1.9-1.18.1 (nie 1.18.2), lub niektóre kombinacje klient/serwer z powodu
+  # zmiany protokołu i ograniczenia. Ta kontrola jest najlepsza z klientami 1.7/1.8 na serwerach 1.8.
+  threshold: 0.0005
+  # Czy powinniśmy odwołać trafienia, o których wiemy, że są niemożliwe a.k.a niemożliwe bez wspomagania?
+  # 3.00-3.03 trafienia mogą przejść, ale nadal będą oznaczone, ze względu na ograniczenia kolejności pakietów
+  block-impossible-hits: true
+  # To spowoduje wysłanie dodatkowego pakietu na koniec każdego tick'a, aby zwiększyć prawdopodobieństwo złapania oszustów.
+  # To wstrzykuje się do listy połączeń serwera, aby wysłać ostatni pakiet tuż przed wyczyszczeniem danych po stronie serwera.
+  # Włączenie tej opcji zwiększy zużycie pasma dla wszystkich graczy
+  # Nie spowoduje to spadku ogólnej wydajności serwera
+  # Włączenie tego pozwoli na złapanie większej ilości oszustów.
+  # Pozostawienie tej opcji wyłączonej nadal będzie wychwytywać oszustów i nie będzie powodować fałszywych wyników.
+  # Jeśli nie jesteś serwerem bazującym na 1.8 PvP, ten dodatkowy pakiet nie jest zalecany.
+  enable-post-packet: false
+
+# Włączenie logowania wtyczek, które wstrzyknęły się do netty przy dołączaniu, aby móc debugować problemy z kompatybilnością
+debug-pipeline-on-join: false
+
+# Włącza kontrole doświadczalne
+experimental-checks: false
+
+# Grim czasami anuluje nielegalne pakiety np. z timerem, po X pakietach w ciągu sekundy anulowanych, kiedy powinien
+# po prostu wykopiemy gracza? Jest to wymagane, ponieważ niektóre limitery pakietów nie liczą pakietów anulowanych przez grima.
+packet-spam-threshold: 150
+
+config-version: 8

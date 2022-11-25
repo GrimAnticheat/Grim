@@ -1,0 +1,85 @@
+# %check_name% - Nazwa sprawdzenia
+# %vl% - Naruszenie
+# %verbose% - Dodatkowe informacje
+# %player% - Nazwa gracza
+# [alert] - Specjalna komenda do alertów
+# [webhook] - Spcjelane komendy do webhooków
+Punishments:
+  Simulation:
+    # Po jakim czasie informacja o naruszeniu ma być usuwana
+    remove-violations-after: 300
+    # W tej sekcji zostaną dopasowane wszystkie kontrole o danej nazwie,
+    # aby wykluczyć czek, który w przeciwnym razie zostałby dopasowany, umieść wykrzyknik przed nazwą
+    # na przykład "bad-packets"
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # Threshold Częste:Interval Command
+    #
+    # Przykład, aby wyrzucić gracza z komunikatem "nieprawidłowy ruch!" po 100 naruszeniach, bez przerwy
+    # commands:
+    # - "100:0 kick %player% za zły ruch"
+    # 0 znaczy tylko 1
+    # - "100:50 say %player% oszukuje"
+    # Wykonaj kiedy ludzie osiągną flagę 100, a potem co 50 flag po 100
+    #
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # Od 2.2.10, Nie ma żadnych kontroli AutoClicker i to jest miejsce. Grim będzie zawierał kontrole AutoClicker w przyszłości.
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
