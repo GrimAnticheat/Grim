@@ -74,10 +74,14 @@ public class CompensatedWorld {
     private final Map<Integer, List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new HashMap<>();
     private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
+    public boolean isRaining = false;
+
+    private boolean noNegativeBlocks;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
     }
 
     public void startPredicting() {
@@ -234,6 +238,10 @@ public class CompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
+    public void updateBlock(Vector3i pos, WrappedBlockState state) {
+        updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
         Vector3i asVector = new Vector3i(x, y, z);
         BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
@@ -273,6 +281,9 @@ public class CompensatedWorld {
                 chunk.set(null, 0, 0, 0, 0);
             }
 
+            // The method also gets called for the previous state before replacement
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
+
             chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
@@ -283,7 +294,7 @@ public class CompensatedWorld {
     public void tickOpenable(int blockX, int blockY, int blockZ) {
         WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
 
-        if (BlockTags.DOORS.contains(data.getType()) && data.getType() != StateTypes.IRON_DOOR) {
+        if (BlockTags.WOODEN_DOORS.contains(data.getType())) {
             WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
@@ -295,23 +306,22 @@ public class CompensatedWorld {
                 data.setOpen(!data.isOpen());
                 player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
-                // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
-                if (otherDoor.getType() == data.getType()) {
-                    // The doors are probably connected
-                    boolean isBottom = data.getHalf() == Half.LOWER;
-                    // 1.12- stores door data in the bottom door
-                    if (!isBottom)
-                        data = otherDoor;
-                    // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
-                    // 1.12- - We can just flip a bit in the lower door and call it a day
+                // 1.12 attempts to change the bottom half of the door first
+                if (data.getHalf() == Half.LOWER) {
                     data.setOpen(!data.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY + (isBottom ? 0 : -1), blockZ, data.getGlobalId());
+                    player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+                } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
+                    // Then tries setting the first bit of whatever is below it, disregarding it's type
+                    otherDoor.setOpen(!otherDoor.isOpen());
+                    player.compensatedWorld.updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
-        } else if (BlockTags.TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())) {
+        } else if (BlockTags.WOODEN_TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
             player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+        } else if (BlockTags.BUTTONS.contains(data.getType())) {
+            data.setPowered(true);
         }
     }
 
@@ -403,6 +413,8 @@ public class CompensatedWorld {
     }
 
     public WrappedBlockState getWrappedBlockStateAt(int x, int y, int z) {
+        if (noNegativeBlocks && y < 0) return airData;
+
         try {
             Column column = getChunk(x >> 4, z >> 4);
 

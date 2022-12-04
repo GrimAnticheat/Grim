@@ -39,7 +39,7 @@ public class TrigHandler {
         return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
-    public void setOffset(Vector oldVel, double offset) {
+    public void setOffset(double offset) {
         // Offset too high, this is an outlier, ignore
         // We are checking in the range of 1e-3 to 5e-5, around what using the wrong trig system results in
         //
@@ -49,7 +49,7 @@ public class TrigHandler {
         }
 
         if (offset > 1e-5) {
-            Vector trueMovement = player.actualMovement.clone().subtract(oldVel);
+            Vector trueMovement = player.actualMovement.clone().subtract(player.startTickClientVel);
             Vector correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
             Vector fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
 

@@ -29,8 +29,10 @@ public class BoundingBoxSize {
             return 1.3f;
         } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.TROPICAL_FISH.equals(packetEntity.type) || EntityTypes.FROG.equals(packetEntity.type)) {
             return 0.5f;
-        } else if (EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.PUFFERFISH.equals(packetEntity.type) || EntityTypes.SALMON.equals(packetEntity.type) || EntityTypes.SNOW_GOLEM.equals(packetEntity.type) || EntityTypes.WITHER_SKELETON.equals(packetEntity.type) || EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
+        } else if (EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.PUFFERFISH.equals(packetEntity.type) || EntityTypes.SALMON.equals(packetEntity.type) || EntityTypes.SNOW_GOLEM.equals(packetEntity.type) || EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
             return 0.7f;
+        } else if (EntityTypes.WITHER_SKELETON.equals(packetEntity.type)) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.7f : 0.72f;
         } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
             return 0.3125f;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
@@ -41,7 +43,7 @@ public class BoundingBoxSize {
             return 0.4f;
         } else if (EntityTypes.RABBIT.equals(packetEntity.type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
-        } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type) || EntityTypes.WARDEN.equals(packetEntity.type)) {
+        } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type) || EntityTypes.WARDEN.equals(packetEntity.type) || EntityTypes.GOAT.equals(packetEntity.type)) {
             return 0.9f;
         } else if (EntityTypes.PHANTOM.equals(packetEntity.type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
@@ -227,8 +229,10 @@ public class BoundingBoxSize {
             return 0.5625f;
         } else if (EntityTypes.CAT.equals(packetEntity.type)) {
             return 0.7f;
-        } else if (EntityTypes.CAVE_SPIDER.equals(packetEntity.type) || EntityTypes.FROG.equals(packetEntity.type)) {
+        } else if (EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
             return 0.5f;
+        } else if (EntityTypes.FROG.equals(packetEntity.type)) {
+            return 0.55f;
         } else if (EntityTypes.CHICKEN.equals(packetEntity.type)) {
             return 0.7f;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
@@ -303,7 +307,7 @@ public class BoundingBoxSize {
             return 2.2f;
         } else if (EntityTypes.SALMON.equals(packetEntity.type)) {
             return 0.4f;
-        } else if (EntityTypes.SHEEP.equals(packetEntity.type)) {
+        } else if (EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.GOAT.equals(packetEntity.type)) {
             return 1.3f;
         } else if (EntityTypes.SHULKER.equals(packetEntity.type)) { // Could maybe guess peek size, although seems useless
             return 2.0f;
@@ -330,7 +334,7 @@ public class BoundingBoxSize {
         } else if (EntityTypes.WITHER.equals(packetEntity.type)) {
             return 3.5f;
         } else if (EntityTypes.WITHER_SKELETON.equals(packetEntity.type)) {
-            return 2.4f;
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 2.4f : 2.535f;
         } else if (EntityTypes.WOLF.equals(packetEntity.type)) {
             return 0.85f;
         } else if (EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type)) {

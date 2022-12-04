@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
-import lombok.Getter;
 
 
 public class AimProcessor extends RotationCheck {
@@ -30,7 +29,9 @@ public class AimProcessor extends RotationCheck {
     public double divisorX;
     public double divisorY;
 
-    @Getter private boolean recentlyTeleportingOrRiding;
+    public double modeX, modeY;
+
+    public double deltaDotsX, deltaDotsY;
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
@@ -49,34 +50,29 @@ public class AimProcessor extends RotationCheck {
         float deltaYRot = rotationUpdate.getDeltaYRotABS();
 
         this.divisorY = GrimMath.gcd(deltaYRot, lastYRot);
+
         if (deltaYRot > 0 && deltaYRot < 5 && divisorY > GrimMath.MINIMUM_DIVISOR) {
             this.yRotMode.add(divisorY);
             this.lastYRot = deltaYRot;
         }
 
-
         if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeX = this.xRotMode.getMode();
             if (modeX.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.sensitivityX = convertToSensitivity(modeX.getFirst());
+                this.modeX = modeX.getFirst();
+                this.sensitivityX = convertToSensitivity(this.modeX);
             }
         }
         if (this.yRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeY = this.yRotMode.getMode();
             if (modeY.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.sensitivityY = convertToSensitivity(modeY.getFirst());
+                this.modeY = modeY.getFirst();
+                this.sensitivityY = convertToSensitivity(this.modeY);
             }
         }
 
-        if (player.packetStateData.lastPacketWasTeleport || player.compensatedEntities.getSelf().getRiding() != null) {
-            recentlyTeleportingOrRiding = true;
-            return;
-        }
-
-        if (recentlyTeleportingOrRiding) { // Exempt for a tick on teleport
-            recentlyTeleportingOrRiding = false;
-        }
-
+        this.deltaDotsX = deltaXRot / modeX;
+        this.deltaDotsY = deltaYRot / modeY;
     }
 
     public static double convertToSensitivity(double var13) {

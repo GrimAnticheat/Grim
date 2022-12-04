@@ -9,6 +9,11 @@ player-not-found: "%prefix% &c玩家不存在或离线!"
 player-not-this-server: "%prefix% &c玩家不在此服务器上！"
 spectate-return: "\n%prefix% &f点击这里返回之前的位置\n"
 cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
+cannot-run-on-self: "%prefix% &cYou cannot use this command on yourself!"
+upload-log: "%prefix% &fUploaded debug to: %url%"
+upload-log-start: "%prefix% &fUploading log... please wait"
+upload-log-not-found: "%prefix% &cUnable to find that log"
+upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this log, see console for more info"
 
 # Valid placeholders:
 # %prefix% - 前缀
@@ -17,6 +22,7 @@ cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
 # %vl% - VL值
 # %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
 alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"
@@ -37,4 +43,6 @@ help:
   - "/grim perf &f- &7开发者毫秒预测"
   - "/grim reload &f- &7重新加载配置"
   - "/grim spectate <player> &f- &7观看玩家"
+  - "/grim verbose &f- &Show every flag to you, without buffer"
+  - "/grim log [1-999] &f- &7Debug logs for prediction flag"
   - "&7======================"

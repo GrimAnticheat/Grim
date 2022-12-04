@@ -5,10 +5,18 @@
 # or with full source code available to buyers at no additional cost.
 
 alerts:
-  # Should players with grim.alerts permission automatically enable alerts on join?
-  enable-on-join: true
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
+  # This controls whether/how alerts are shared between servers connected to your proxy.
+  # You must have 'bungee-plugin-message-channel' enabled in your Velocity's configuration if Velocity is in use.
+  proxy:
+    # Should alerts be sent to other servers connected to your proxy?
+    send: false
+    # Should the alerts received from other servers be announced to this server?
+    receive: false
+
+verbose:
+  print-to-console: false
 
 client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
@@ -36,7 +44,7 @@ Simulation:
   # Measured in blocks from the possible movement
   # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
   # flagging the anticheat if this compensation doesn't work...
-  threshold: 0.0001
+  threshold: 0.001
   # How large of a violation in a tick before the player gets immediately setback?
   # -1 to disable
   immediate-setback-threshold: 0.1
@@ -112,4 +120,11 @@ Reach:
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
-config-version: 5
+# Enables experimental checks
+experimental-checks: false
+
+# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
+# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+packet-spam-threshold: 100
+
+config-version: 8

@@ -1,8 +1,9 @@
 package ac.grim.grimac.utils.data;
 
-import com.google.common.base.Objects;
 import lombok.Getter;
 import org.bukkit.util.Vector;
+
+import java.util.Objects;
 
 public class VectorData {
     public VectorType vectorType;
@@ -11,7 +12,7 @@ public class VectorData {
     public Vector vector;
 
     @Getter
-    private boolean isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump = false;
+    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -21,7 +22,9 @@ public class VectorData {
 
         if (lastVector != null) {
             isKnockback = lastVector.isKnockback;
+            firstBreadKb = lastVector.firstBreadKb;
             isExplosion = lastVector.isExplosion;
+            firstBreadExplosion = lastVector.firstBreadExplosion;
             isTrident = lastVector.isTrident;
             isZeroPointZeroThree = lastVector.isZeroPointZeroThree;
             isSwimHop = lastVector.isSwimHop;
@@ -29,6 +32,7 @@ public class VectorData {
             isFlipItem = lastVector.isFlipItem;
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
+            isAttackSlow = lastVector.isAttackSlow;
         }
 
         addVectorType(vectorType);
@@ -40,13 +44,12 @@ public class VectorData {
         addVectorType(vectorType);
     }
 
-    public VectorData returnNewModified(Vector newVec, VectorType type) {
-        return new VectorData(newVec, this, type);
+    public VectorData returnNewModified(VectorType type) {
+        return new VectorData(vector, this, type);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(vectorType, vector, isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump);
+    public VectorData returnNewModified(Vector newVec, VectorType type) {
+        return new VectorData(newVec, this, type);
     }
 
     @Override
@@ -54,7 +57,12 @@ public class VectorData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VectorData that = (VectorData) o;
-        return isKnockback == that.isKnockback && isExplosion == that.isExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && Objects.equal(vector, that.vector);
+        return isKnockback == that.isKnockback && firstBreadKb == that.firstBreadKb && isExplosion == that.isExplosion && firstBreadExplosion == that.firstBreadExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && isAttackSlow == that.isAttackSlow && vectorType == that.vectorType && Objects.equals(lastVector, that.lastVector) && Objects.equals(preUncertainty, that.preUncertainty) && Objects.equals(vector, that.vector);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vectorType, lastVector, preUncertainty, vector, isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow);
     }
 
     private void addVectorType(VectorType type) {
@@ -62,8 +70,14 @@ public class VectorData {
             case Knockback:
                 isKnockback = true;
                 break;
+            case FirstBreadKnockback:
+                firstBreadKb = true;
+                break;
             case Explosion:
                 isExplosion = true;
+                break;
+            case FirstBreadExplosion:
+                firstBreadExplosion = true;
                 break;
             case Trident:
                 isTrident = true;
@@ -82,6 +96,9 @@ public class VectorData {
                 break;
             case Jump:
                 isJump = true;
+                break;
+            case AttackSlow:
+                isAttackSlow = true;
                 break;
         }
     }
@@ -102,10 +119,12 @@ public class VectorData {
         Swimhop,
         Climbable,
         Knockback,
+        FirstBreadKnockback,
         HackyClimbable,
         Teleport,
         SkippedTicks,
         Explosion,
+        FirstBreadExplosion,
         InputResult,
         StuckMultiplier,
         Spectator,

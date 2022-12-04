@@ -1,10 +1,10 @@
 # GrimAC
 
-**Stable enough for a small server. Please report any issues to the Github issue tracker. Currently supporting 1.14-1.19 with less tested 1.8-1.13 support.**
+**Due to both technical limitations with the current engine design and mojang's complete stupidity with netcode, only major issues will be fixed.  Minor issues will be ignored.  By using Grim, you are expected to either fix issues you encounter or pay someone to do so, or ignore them.  I can no longer provide support, for thousands of people, for free.**
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.14-1.19 with half working 1.8-1.13 support. It is free while in beta. It will be sold for $20 on SpigotMC and other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats. Geyser players are fully exempt.
+GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
 
@@ -13,6 +13,9 @@ GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.14
 2. cd Grim
 3. gradlew shadowJar
 4. The final jar is located in build/libs
+
+### API Information
+Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's github repository [here](https://github.com/MWHunter/GrimAPI).
 
 ## Grim supremacy
 

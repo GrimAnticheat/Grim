@@ -1,36 +1,38 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
+import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
-public class ExplosionHandler extends PacketCheck {
-    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
+public class ExplosionHandler extends PostPredictionCheck {
+    Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
 
-    boolean wasKbZeroPointZeroThree = false;
+    @Getter
+    boolean explosionPointThree = false;
 
     double offsetToFlag;
     double setbackVL;
 
     public ExplosionHandler(GrimPlayer player) {
         super(player);
-    }
-
-    public boolean isPendingExplosion() {
-        return firstBreadMap.size() > 0;
     }
 
     @Override
@@ -59,12 +61,41 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
+    public Vector getFutureExplosion() {
+        // Chronologically in the future
+        if (firstBreadMap.size() > 0) {
+            return firstBreadMap.peek().vector;
+        }
+        // Less in the future
+        if (lastExplosionsKnownTaken != null) {
+            return lastExplosionsKnownTaken.vector;
+        }
+        // Uncertain, might be in the future
+        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
+            return player.firstBreadExplosion.vector;
+        } else if (player.likelyExplosions != null) { // Known to be in the present
+            return player.likelyExplosions.vector;
+        }
+        return null;
+    }
+
+    public boolean shouldIgnoreForPrediction(VectorData data) {
+        if (data.isExplosion() && data.isFirstBreadExplosion()) {
+            return player.firstBreadExplosion.offset > offsetToFlag;
+        }
+        return false;
+    }
+
+    public boolean wouldFlag() {
+        return (player.likelyExplosions != null && player.likelyExplosions.offset > offsetToFlag) || (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > offsetToFlag);
+    }
+
     public void addPlayerExplosion(int breadOne, Vector3f explosion) {
         firstBreadMap.add(new VelocityData(-1, breadOne, player.getSetbackTeleportUtil().isSendingSetback, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
     public void setPointThree(boolean isPointThree) {
-        wasKbZeroPointZeroThree = wasKbZeroPointZeroThree || isPointThree;
+        explosionPointThree = explosionPointThree || isPointThree;
     }
 
     public void handlePredictionAnalysis(double offset) {
@@ -77,34 +108,26 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public void onTeleport() {
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            forceExempt();
-        }
-    }
-
     public void forceExempt() {
-        // Don't exempt if the player used grim to get a teleport here.
-        // This will flag but it's required to stop abuse
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            // Unsure explosion was taken
-            if (player.firstBreadExplosion != null) {
-                player.firstBreadExplosion.offset = 0;
-            }
+        // Unsure explosion was taken
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.offset = 0;
+        }
 
-            if (player.likelyExplosions != null) {
-                player.likelyExplosions.offset = 0;
-            }
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.offset = 0;
         }
     }
 
-    public void handlePlayerExplosion(double offset) {
-        boolean wasZero = wasKbZeroPointZeroThree;
-        wasKbZeroPointZeroThree = false;
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        double offset = predictionComplete.getOffset();
+
+        boolean wasZero = explosionPointThree;
+        explosionPointThree = false;
 
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
+            firstBreadAddedExplosion = null;
             return;
         }
 
@@ -120,12 +143,9 @@ public class ExplosionHandler extends PacketCheck {
         int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
-        if (!wasZero && player.predictedVelocity.isKnockback() && player.likelyExplosions == null && player.firstBreadExplosion != null) {
-            // The player took this knockback, this tick, 100%
-            // Fixes exploit that would allow players to take explosions an infinite number of times
-            if (player.firstBreadExplosion.offset < offsetToFlag) {
-                firstBreadAddedExplosion = null;
-            }
+        if (player.predictedVelocity.isFirstBreadExplosion()) {
+            firstBreadAddedExplosion = null;
+            firstBreadMap.poll(); // Remove from map so we don't pull it again
         }
 
         if (wasZero || player.predictedVelocity.isExplosion() ||
@@ -145,7 +165,7 @@ public class ExplosionHandler extends PacketCheck {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyExplosions.hasSetbackForThis);
+                        player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 }
 
@@ -162,6 +182,7 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
+
     public VelocityData getPossibleExplosions(int lastTransaction) {
         handleTransactionPacket(lastTransaction);
         if (lastExplosionsKnownTaken == null)
@@ -169,7 +190,6 @@ public class ExplosionHandler extends PacketCheck {
 
         VelocityData returnLastExplosion = lastExplosionsKnownTaken;
         lastExplosionsKnownTaken = null;
-
         return returnLastExplosion;
     }
 
@@ -177,20 +197,16 @@ public class ExplosionHandler extends PacketCheck {
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread explosion
-                firstBreadMap.poll();
                 if (lastExplosionsKnownTaken != null)
                     firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, lastExplosionsKnownTaken.vector.clone().add(data.vector));
                 else
                     firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) {
-                if (lastExplosionsKnownTaken != null)
-                    lastExplosionsKnownTaken.vector.clone().add(data.vector);
-                else {
-                    if (firstBreadAddedExplosion != null) // Bring over the previous offset, don't require explosions twice
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, data.isSetback, firstBreadAddedExplosion.offset);
-                    else
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
+                if (lastExplosionsKnownTaken != null) {
+                    lastExplosionsKnownTaken.vector.add(data.vector);
+                } else {
+                    lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 }
 
                 firstBreadAddedExplosion = null;

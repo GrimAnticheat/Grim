@@ -20,6 +20,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -45,6 +46,8 @@ public class BlockPlace {
     @Setter
     Vector3i blockPosition;
     @Getter
+    InteractionHand hand;
+    @Getter
     @Setter
     boolean replaceClicked;
     boolean isCancelled = false;
@@ -64,8 +67,9 @@ public class BlockPlace {
     @Setter
     Vector3f cursor;
 
-    public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
+        this.hand = hand;
         this.blockPosition = blockPosition;
         this.face = face;
         this.itemStack = itemStack;
@@ -73,7 +77,7 @@ public class BlockPlace {
         this.hitData = hitData;
 
         WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
-        this.replaceClicked = canBeReplaced(this.material, state);
+        this.replaceClicked = canBeReplaced(this.material, state, face);
     }
 
     public Vector3i getPlacedAgainstBlockLocation() {
@@ -111,7 +115,7 @@ public class BlockPlace {
         return state.getType().isBlocking();
     }
 
-    private boolean canBeReplaced(StateType heldItem, WrappedBlockState state) {
+    private boolean canBeReplaced(StateType heldItem, WrappedBlockState state, BlockFace face) {
         // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
         boolean baseReplaceable = state.getType() != heldItem && state.getType().isReplaceable();
 
@@ -157,7 +161,7 @@ public class BlockPlace {
         if (state.getType() == StateTypes.SNOW) {
             int layers = state.getLayers();
             if (heldItem == state.getType() && layers < 8) { // We index at 1 (less than 8 layers)
-                return true;
+                return face == BlockFace.UP;
             } else {
                 return layers == 1; // index at 1, (1 layer)
             }
@@ -258,7 +262,9 @@ public class BlockPlace {
         } else if (blockMaterial == StateTypes.LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
             return state.getFacing().getOppositeFace() == bukkitFace;
         } else if (BlockTags.TRAPDOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on trapdoors
-            return state.getFacing().getOppositeFace() == bukkitFace && state.isOpen();
+            return (state.getFacing().getOppositeFace() == bukkitFace && state.isOpen()) ||
+                    (state.getHalf() == Half.TOP && !state.isOpen() && bukkitFace == BlockFace.UP) ||
+                    (state.getHalf() == Half.BOTTOM && !state.isOpen() && bukkitFace == BlockFace.DOWN);
         } else if (BlockTags.DOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on doors
             CollisionData data = CollisionData.getData(blockMaterial);
 
@@ -581,16 +587,15 @@ public class BlockPlace {
 
         // If a block already exists here, then we can't override it.
         WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(position);
-        if (!replaceClicked && !canBeReplaced(material, existingState)) {
+        if (!replaceClicked && !canBeReplaced(material, existingState, face)) {
+            //Bukkit.broadcastMessage("Conflicting with existing block, returning");
             return;
         }
 
         // Check for waterlogged
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             if (state.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
-                if (existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0) {
-                    state.setWaterlogged(true);
-                }
+                state.setWaterlogged(existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0);
             }
         }
 

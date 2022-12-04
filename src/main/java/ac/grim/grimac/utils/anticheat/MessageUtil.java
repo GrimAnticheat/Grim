@@ -8,7 +8,11 @@ import org.bukkit.ChatColor;
 public class MessageUtil {
     // & to paragraph symbol
     public String format(String string) {
-        string = string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
-        return ChatColor.translateAlternateColorCodes('&', string);
+        return ChatColor.translateAlternateColorCodes('&', formatWithNoColor(string));
     }
+
+    public String formatWithNoColor(String string) {
+        return string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
+    }
+
 }

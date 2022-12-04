@@ -21,10 +21,12 @@ public class CrashA extends PacketCheck {
             WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);
 
             if (!packet.hasPositionChanged()) return;
-            if (Math.abs(packet.getLocation().getX()) > HARD_CODED_BORDER || Math.abs(packet.getLocation().getZ()) > HARD_CODED_BORDER) {
+            // Y technically is uncapped, but no player will reach these values legit
+            if (Math.abs(packet.getLocation().getX()) > HARD_CODED_BORDER || Math.abs(packet.getLocation().getZ()) > HARD_CODED_BORDER || Math.abs(packet.getLocation().getY()) > Integer.MAX_VALUE) {
                 flagAndAlert(); // Ban
-                player.getSetbackTeleportUtil().executeViolationSetback(false);
+                player.getSetbackTeleportUtil().executeViolationSetback();
                 event.setCancelled(true);
+                player.onPacketCancel();
             }
         }
     }

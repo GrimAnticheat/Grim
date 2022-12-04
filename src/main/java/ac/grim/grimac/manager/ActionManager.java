@@ -19,16 +19,16 @@ public class ActionManager extends PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            attacking = false;
-        }
-
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
-            if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
+            if (action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                player.attackTicks = 0;
                 attacking = true;
                 lastAttack = System.currentTimeMillis();
             }
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            player.attackTicks++;
+            attacking = false;
         }
     }
 

@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.TrackerData;
@@ -14,6 +15,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
@@ -35,6 +37,15 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
+            //
+            if (player.packetStateData.lastFood == health.getFood()
+                    && player.packetStateData.lastHealth == health.getHealth()
+                    && player.packetStateData.lastSaturation == health.getFoodSaturation()
+                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
+
+            player.packetStateData.lastFood = health.getFood();
+            player.packetStateData.lastHealth = health.getHealth();
+            player.packetStateData.lastSaturation = health.getFoodSaturation();
 
             player.sendTransaction();
 
@@ -48,8 +59,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.getSelf().isDead = true);
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.getSelf().isDead = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
 
             event.getPostTasks().add(player::sendTransaction);
@@ -78,22 +87,29 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             tasks.add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning
+            // (We won't process movements until they accept a teleport, we won't let movements though either)
+            // Also invalidate previous positions
             player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
+            player.getSetbackTeleportUtil().lastKnownGoodPosition = null;
 
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                // Client creates a new entity on respawn
                 player.isSneaking = false;
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
+                player.packetStateData.lastClaimedPosition = new Vector3d();
+                player.filterMojangStupidityOnMojangStupidity = new Vector3d();
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
 
+                player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
+
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
-                if (!respawn.getDimension().getDimensionName().equals(player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
+                if (respawn.getDimension().getId() != player.dimension.getId() || !Objects.equals(respawn.getDimension().getDimensionName(), player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
                     player.compensatedWorld.chunks.clear();
+                    player.compensatedWorld.isRaining = false;
                 }
                 player.dimension = respawn.getDimension();
 
@@ -111,7 +127,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
-                player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                    player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                }
             });
         }
     }

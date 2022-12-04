@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import org.bukkit.Bukkit;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
 public class OffsetHandler extends PostPredictionCheck {
     // Config
@@ -19,6 +21,8 @@ public class OffsetHandler extends PostPredictionCheck {
     // Current advantage gained
     double advantageGained = 0;
 
+    private static final AtomicInteger flags = new AtomicInteger(0);
+
     public OffsetHandler(GrimPlayer player) {
         super(player);
     }
@@ -26,25 +30,47 @@ public class OffsetHandler extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 
-        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), predictionComplete.getOffset());
+        if (!predictionComplete.isChecked()) return;
+
+        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), this, predictionComplete.getOffset());
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
         if (completePredictionEvent.isCancelled()) return;
 
-        if (offset >= threshold || offset >= immediateSetbackThreshold) {
-            flag();
-
+        // Short circuit out flag call
+        if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
             boolean isSetback = advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
-                player.getSetbackTeleportUtil().executeViolationSetback(false);
+                player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
             violations++;
-            alert("o: " + formatOffset(offset));
+
+            synchronized (flags) {
+                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
+
+                String humanFormattedOffset;
+                if (offset < 0.001) { // 1.129E-3
+                    humanFormattedOffset = String.format("%.4E", offset);
+                    // Squeeze out an extra digit here by E-03 to E-3
+                    humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
+                } else {
+                    // 0.00112945678 -> .001129
+                    humanFormattedOffset = String.format("%6f", offset);
+                    // I like the leading zero, but removing it lets us add another digit to the end
+                    humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
+                }
+
+                if(alert(humanFormattedOffset + " /gl " + flagId)) {
+                    flags.incrementAndGet(); // This debug was sent somewhere
+                    predictionComplete.setIdentifier(flagId);
+                }
+            }
+
 
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {

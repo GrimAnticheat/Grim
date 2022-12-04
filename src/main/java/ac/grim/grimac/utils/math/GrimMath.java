@@ -8,6 +8,7 @@ import java.util.List;
 public class GrimMath {
     public static final double MINIMUM_DIVISOR = ((Math.pow(0.2f, 3) * 8) * 0.15) - 1e-3; // 1e-3 for float imprecision
 
+
     public static double gcd(double a, double b) {
         if (a == 0) return 0;
 
@@ -99,5 +100,9 @@ public class GrimMath {
 
     public static boolean inRange(double value, double min, double max) {
         return value >= min && value <= max;
+    }
+
+    public static boolean isNearlySame(double a, double b, double epoch) {
+        return Math.abs(a-b) < epoch;
     }
 }

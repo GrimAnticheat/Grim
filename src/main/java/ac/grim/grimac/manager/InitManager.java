@@ -20,6 +20,7 @@ public class InitManager {
                 .build();
 
         initializersOnStart = new ImmutableClassToInstanceMap.Builder<Initable>()
+                .put(ExemptOnlinePlayers.class, new ExemptOnlinePlayers())
                 .put(EventManager.class, new EventManager())
                 .put(PacketManager.class, new PacketManager())
                 .put(ViaBackwardsManager.class, new ViaBackwardsManager())
@@ -27,6 +28,7 @@ public class InitManager {
                 .put(TickEndEvent.class, new TickEndEvent())
                 .put(CommandRegister.class, new CommandRegister())
                 .put(BStats.class, new BStats())
+                .put(PacketLimiter.class, new PacketLimiter())
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
                 .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())

@@ -25,7 +25,7 @@ public class BadPacketsL extends PacketCheck {
             // 1.7 clients flag this for some reason
             if (packet.getAction() == DiggingAction.RELEASE_USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 // The client only sends this packet in one place, with BlockPos.ZERO and Direction.DOWN
-                if (packet.getFace() != BlockFace.DOWN
+                if (packet.getBlockFace() != BlockFace.DOWN
                         || packet.getBlockPosition().getX() != 0
                         || packet.getBlockPosition().getY() != 0
                         || packet.getBlockPosition().getZ() != 0) {

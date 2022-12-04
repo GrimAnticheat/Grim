@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
@@ -37,7 +37,9 @@ public class PlayerBaseTick {
         player.baseTickWaterPushing = new Vector();
 
         if (player.isFlying && player.isSneaking && !player.compensatedEntities.getSelf().inVehicle()) {
-            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
+            Vector flyingShift = new Vector(0, player.flySpeed * -3, 0);
+            player.baseTickAddVector(flyingShift);
+            player.trackBaseTickAddition(flyingShift);
         }
 
         updateInWaterStateAndDoFluidPushing();
@@ -51,7 +53,9 @@ public class PlayerBaseTick {
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         // pre-1.13 clients don't have this code
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.compensatedEntities.getSelf().inVehicle()) {
-            player.baseTickAddVector(new Vector(0, -0.04f, 0));
+            Vector waterPushVector = new Vector(0, -0.04f, 0);
+            player.baseTickAddVector(waterPushVector);
+            player.trackBaseTickAddition(waterPushVector);
         }
 
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
@@ -149,7 +153,7 @@ public class PlayerBaseTick {
                 // Remember, floats are not commutative, we must do it in the client's specific order
                 float percentFrozen = (float) Math.min(i, ticksToFreeze) / (float) ticksToFreeze;
                 float percentFrozenReducedToSpeed = -0.05F * percentFrozen;
-                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION));
+                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerUpdateAttributes.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION));
             }
         }
     }
@@ -363,12 +367,12 @@ public class PlayerBaseTick {
         }
         if (direction != null) {
             if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
-                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
-                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.xPositiveUncertainty += 0.15;
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.15;
                 player.pointThreeEstimator.setPushing(true);
             } else {
-                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
-                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.zPositiveUncertainty += 0.15;
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.15;
                 player.pointThreeEstimator.setPushing(true);
             }
         }

@@ -7,7 +7,6 @@ import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
-import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
@@ -16,10 +15,10 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -38,11 +37,9 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
-import io.github.retrooper.packetevents.util.GeyserUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +76,9 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
-    private int transactionPing = 0;
+    private long transactionPing = 0;
     public long lastTransSent = 0;
+    public long lastTransReceived = 0;
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
@@ -149,7 +147,6 @@ public class GrimPlayer implements GrimUser {
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public boolean verticalCollision;
-    public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
     // Okay, this is our 0.03 detection
     //
@@ -172,40 +169,39 @@ public class GrimPlayer implements GrimUser {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public Vector baseTickWaterPushing = new Vector();
+    public Vector startTickClientVel = new Vector();
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     public VelocityData firstBreadKB = null;
     public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
-    public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
     public GameMode gamemode;
     public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
+    public AtomicInteger cancelledPackets = new AtomicInteger(0);
+
+    public void onPacketCancel() {
+        if (cancelledPackets.incrementAndGet() > spamThreshold) {
+            LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
+            disconnect(Component.translatable("disconnect.closed"));
+            cancelledPackets.set(0);
+        }
+    }
 
     public int attackTicks;
-    public Queue<PacketWrapper<?>> placeUseItemPackets = new LinkedBlockingQueue<>();
+    public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
 
     public GrimPlayer(User user) {
         this.user = user;
-
-        // If exempt
-        if (pollData()) return;
-
-        // We can't send transaction packets to this player, disable the anticheat for them
-        if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
-            LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
-            LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
-            LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://www.spigotmc.org/resources/viabackwards.27448/");
-            return;
-        }
+        this.playerUUID = user.getUUID();
+        onReload();
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
 
@@ -227,15 +223,13 @@ public class GrimPlayer implements GrimUser {
         packetStateData = new PacketStateData();
 
         uncertaintyHandler.collidingEntities.add(0);
-
-        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback));
+            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(VectorData.VectorType.FirstBreadKnockback));
         }
 
         if (likelyKB != null) {
@@ -299,11 +293,6 @@ public class GrimPlayer implements GrimUser {
             }
         }
 
-        if (lastTransactionSent.get() - lastTransactionReceived.get() - transactionsSent.size() != 0) {
-            System.out.println("It's mathematically impossible to see this message.");
-            System.out.println("Transaction responses is wrong! THIS WILL CAUSE MAJOR ISSUES REPORT THIS BUG! " + lastTransactionSent.get() + " " + lastTransactionReceived.get() + " " + transactionsSent.size());
-        }
-
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
@@ -314,7 +303,8 @@ public class GrimPlayer implements GrimUser {
                     break;
 
                 lastTransactionReceived.incrementAndGet();
-                transactionPing = (int) (System.nanoTime() - data.getSecond());
+                lastTransReceived = System.currentTimeMillis();
+                transactionPing = (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
             } while (data.getFirst() != id);
 
@@ -333,6 +323,9 @@ public class GrimPlayer implements GrimUser {
 
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
+    }
+
+    public void trackBaseTickAddition(Vector vector) {
         baseTickAddition.add(vector);
     }
 
@@ -395,7 +388,20 @@ public class GrimPlayer implements GrimUser {
         return pose.eyeHeight;
     }
 
-    public boolean pollData() {
+    public void timedOut() {
+        disconnect(Component.translatable("disconnect.timeout"));
+    }
+
+    public void disconnect(Component reason) {
+        try {
+            user.sendPacket(new WrapperPlayServerDisconnect(reason));
+        } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
+            LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
+        }
+        user.closeConnection();
+    }
+
+    public void pollData() {
         // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
         //
@@ -405,44 +411,65 @@ public class GrimPlayer implements GrimUser {
             sendTransaction(true); // send on netty thread
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
-            try {
-                user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
-            } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
-                LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
-            }
-            user.closeConnection();
-        }
-        if (this.playerUUID == null) {
-            this.playerUUID = user.getUUID();
-            if (this.playerUUID != null) {
-                // Geyser players don't have Java movement
-                // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
-                if (GeyserUtil.isGeyserPlayer(playerUUID) || FloodgateUtil.isFloodgatePlayer(playerUUID)) {
-                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-                    return true;
-                }
-                // Geyser formatted player string
-                // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
-                if (playerUUID.toString().startsWith("00000000-0000-0000-0009")) {
-                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-                    return true;
-                }
-                if (ViaVersionUtil.isAvailable() && playerUUID != null) {
-                    UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
-                    packetTracker = connection != null ? connection.getPacketTracker() : null;
-                }
-            }
+            timedOut();
         }
 
-        if (this.playerUUID != null && this.bukkitPlayer == null) {
-            this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
-        }
-
-        if (this.bukkitPlayer != null && this.bukkitPlayer.hasPermission("grim.exempt")) {
+        if (!GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user)) {
             GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
-            return true;
         }
-        return false;
+
+        if (packetTracker == null && ViaVersionUtil.isAvailable() && playerUUID != null) {
+            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
+            packetTracker = connection != null ? connection.getPacketTracker() : null;
+        }
+
+        if (playerUUID != null && this.bukkitPlayer == null) {
+            this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
+            updatePermissions();
+        }
+    }
+
+    public void updateVelocityMovementSkipping() {
+        if (!couldSkipTick) {
+            couldSkipTick = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), getPossibleVelocitiesMinusKnockback());
+        }
+
+        Set<VectorData> knockback = new HashSet<>();
+        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector, VectorData.VectorType.Knockback));
+        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector, VectorData.VectorType.Knockback));
+
+        boolean kbPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), knockback);
+        checkManager.getKnockbackHandler().setPointThree(kbPointThree);
+
+        Set<VectorData> explosion = new HashSet<>();
+        if (firstBreadExplosion != null)
+            explosion.add(new VectorData(firstBreadExplosion.vector, VectorData.VectorType.Explosion));
+        if (likelyExplosions != null)
+            explosion.add(new VectorData(likelyExplosions.vector, VectorData.VectorType.Explosion));
+
+        boolean explosionPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), explosion);
+        checkManager.getExplosionHandler().setPointThree(explosionPointThree);
+
+        if (kbPointThree || explosionPointThree) {
+            uncertaintyHandler.lastPointThree.reset();
+        }
+    }
+
+    public boolean noModifyPacketPermission = false;
+    public boolean noSetbackPermission = false;
+
+    //TODO: Create a configurable timer for this
+    @Override
+    public void updatePermissions() {
+        if (bukkitPlayer == null) return;
+        this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
+        this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
+    }
+
+    private int spamThreshold = 100;
+
+    public void onReload() {
+        spamThreshold = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("packet-spam-threshold", 100);
     }
 
     public boolean isPointThree() {
@@ -480,7 +507,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public CompensatedInventory getInventory() {
-        return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
+        return checkManager.getPacketCheck(CompensatedInventory.class);
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
@@ -493,6 +520,7 @@ public class GrimPlayer implements GrimUser {
         }
     }
 
+    @Override
     public int getTransactionPing() {
         return GrimMath.floor(transactionPing / 1e6);
     }
@@ -589,10 +617,6 @@ public class GrimPlayer implements GrimUser {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2
         return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
-    }
-
-    public boolean shouldModifyPackets() {
-        return !disableGrim && (bukkitPlayer == null || !bukkitPlayer.hasPermission("grim.nomodifypacket"));
     }
 
     @Override

@@ -71,8 +71,9 @@ public class FastBreak extends PacketCheck {
                     blockDelayBalance += 300 - breakDelay;
                 }
 
-                if (blockDelayBalance > 1000) { // If more than a second of advantage
+                if (blockDelayBalance > 1000 && shouldModifyPackets()) { // If more than a second of advantage
                     event.setCancelled(true); // Cancelling start digging will cause server to reject block break
+                    player.onPacketCancel();
                     flagAndAlert("Delay=" + breakDelay);
                 }
 
@@ -120,8 +121,10 @@ public class FastBreak extends PacketCheck {
                         }
                     });
 
-                    event.setCancelled(true);
-                    flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance);
+                    if (flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance) && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                 }
 
                 lastFinishBreak = System.currentTimeMillis();

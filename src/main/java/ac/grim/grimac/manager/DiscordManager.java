@@ -12,23 +12,32 @@ import java.awt.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DiscordManager implements Initable {
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
 
+    public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
+
     @Override
     public void start() {
         try {
             if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false)) return;
-
-            client = WebhookClient.withUrl(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("webhook", ""));
-            if (client.getUrl().isEmpty()) {
+            String webhook = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("webhook", "");
+            if (webhook.isEmpty()) {
                 LogUtil.warn("Discord webhook is empty, disabling Discord alerts");
                 client = null;
                 return;
             }
+            //
+            Matcher matcher = WEBHOOK_PATTERN.matcher(webhook);
+            if (!matcher.matches()) {
+                throw new IllegalArgumentException("Failed to parse webhook URL");
+            }
+            client = WebhookClient.withId(Long.parseUnsignedLong(matcher.group(1)), matcher.group(2));
             client.setTimeout(15000); // Requests expire after 15 seconds
 
             try {
@@ -65,6 +74,7 @@ public class DiscordManager implements Initable {
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
             content = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, content, false);
+            content = content.replace("_", "\\_");
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width

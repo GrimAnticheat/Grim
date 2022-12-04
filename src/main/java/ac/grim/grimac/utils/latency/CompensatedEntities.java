@@ -12,11 +12,12 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
@@ -76,7 +77,7 @@ public class CompensatedEntities {
     }
 
     public Integer getSlowFallingAmplifier() {
-        return getPotionLevelForPlayer(PotionTypes.SLOW_FALLING);
+        return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) ? null : getPotionLevelForPlayer(PotionTypes.SLOW_FALLING);
     }
 
     public Integer getDolphinsGraceAmplifier() {
@@ -96,14 +97,14 @@ public class CompensatedEntities {
         return calculateAttribute(player.compensatedEntities.getSelf().playerSpeed, 0.0, 1024.0);
     }
 
-    public void updateAttributes(int entityID, List<WrapperPlayServerEntityProperties.Property> objects) {
+    public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
-            for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
 
                     boolean found = false;
-                    List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                    for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
+                    List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                    for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
                         if (modifier.getUUID().equals(SPRINTING_MODIFIER_UUID)) {
                             found = true;
                             break;
@@ -120,7 +121,7 @@ public class CompensatedEntities {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
 
         if (entity instanceof PacketEntityHorse) {
-            for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
                     ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
@@ -132,7 +133,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityRideable) {
-            for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
                     ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
@@ -140,26 +141,26 @@ public class CompensatedEntities {
         }
     }
 
-    private double calculateAttribute(WrapperPlayServerEntityProperties.Property snapshotWrapper, double minValue, double maxValue) {
+    private double calculateAttribute(WrapperPlayServerUpdateAttributes.Property snapshotWrapper, double minValue, double maxValue) {
         double d0 = snapshotWrapper.getValue();
 
-        List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+        List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
         modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID));
 
-        for (WrapperPlayServerEntityProperties.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION)
+        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION)
                 d0 += attributemodifier.getAmount();
         }
 
         double d1 = d0;
 
-        for (WrapperPlayServerEntityProperties.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerEntityProperties.PropertyModifier.Operation.MULTIPLY_BASE)
+        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE)
                 d1 += d0 * attributemodifier.getAmount();
         }
 
-        for (WrapperPlayServerEntityProperties.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerEntityProperties.PropertyModifier.Operation.MULTIPLY_TOTAL)
+        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_TOTAL)
                 d1 *= 1.0D + attributemodifier.getAmount();
         }
 

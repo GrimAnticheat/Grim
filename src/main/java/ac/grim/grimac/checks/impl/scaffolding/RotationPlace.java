@@ -33,8 +33,9 @@ public class RotationPlace extends BlockPlaceCheck {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
             // If the player hit and has flagged this check recently
-            place.resync(); // Deny the block placement.
-            flagAndAlert("pre-flying");
+            if (flagAndAlert("pre-flying") && shouldModifyPackets()) {
+                place.resync();  // Deny the block placement.
+            }
         }
     }
 

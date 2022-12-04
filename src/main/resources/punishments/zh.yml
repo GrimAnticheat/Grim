@@ -4,10 +4,14 @@
 # %player% - 玩家名字
 # [alert] - 警告的特殊命令
 # [webhook] - 警告discord webhook 的特殊命令
+# [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
     # 当达到多少VL时移除玩家
     remove-violations-after: 300
+    # This section will match all checks with the name,
+    # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
+    # For example, !BadPacketsN
     checks:
       - "Simulation"
       - "GroundSpoof"
@@ -18,10 +22,14 @@ Punishments:
     # 这是个例子, 当到达100VL时为了以 "incorrect movement!" 为理由踢出玩家
     # commands:
     # - "100:0 kick %player% incorrect movement!"
+    # 0 means execute exactly once
+    # - "100:50 say %player% is cheating"
+    # Execute when the user hits flag 100, and after that, every 50th flag after 100
     #
     commands:
       - "100:40 [alert]"
       - "100:100 [webhook]"
+      - "100:100 [proxy]"
   Knockback:
     remove-violations-after: 300
     checks:
@@ -30,6 +38,7 @@ Punishments:
     commands:
       - "5:5 [alert]"
       - "20:20 [webhook]"
+      - "20:20 [proxy]"
   Post:
     remove-violations-after: 300
     checks:
@@ -37,6 +46,7 @@ Punishments:
     commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
+      - "40:40 [proxy]"
   BadPackets:
     remove-violations-after: 300
     checks:
@@ -45,6 +55,7 @@ Punishments:
     commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
+      - "40:40 [proxy]"
   Reach:
     remove-violations-after: 300
     checks:
@@ -52,6 +63,7 @@ Punishments:
     commands:
       - "5:5 [alert]"
       - "5:5 [webhook]"
+      - "5:5 [proxy]"
   Misc:
     remove-violations-after: 300
     checks:
@@ -63,6 +75,7 @@ Punishments:
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"
+      - "20:10 [proxy]"
   Combat:
     remove-violations-after: 300
     checks:

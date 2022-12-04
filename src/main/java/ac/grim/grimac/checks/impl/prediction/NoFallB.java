@@ -22,7 +22,7 @@ public class NoFallB extends PostPredictionCheck {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR)
             return;
         // And don't check this long list of ground exemptions
-        if (player.exemptOnGround()) return;
+        if (player.exemptOnGround() || !predictionComplete.isChecked()) return;
         // Don't check if the player was on a ghost block
         if (player.getSetbackTeleportUtil().blockOffsets) return;
         // Viaversion sends wrong ground status... (doesn't matter but is annoying)
@@ -31,8 +31,9 @@ public class NoFallB extends PostPredictionCheck {
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 
         if (invalid) {
-            flagWithSetback();
-            alert("claimed " + player.clientClaimsLastOnGround);
+            if (flagWithSetback()) {
+                alert("claimed " + player.clientClaimsLastOnGround);
+            }
             player.checkManager.getNoFall().flipPlayerGroundStatus = true;
         }
     }

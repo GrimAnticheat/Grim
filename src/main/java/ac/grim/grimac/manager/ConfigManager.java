@@ -29,6 +29,9 @@ public class ConfigManager {
     @Getter
     private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
 
+    @Getter
+    private boolean experimentalChecks = false;
+
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
     public ConfigManager() {
@@ -81,6 +84,7 @@ public class ConfigManager {
                 throw new RuntimeException("Failed to compile client pattern", e);
             }
         }
+        experimentalChecks = config.getBooleanElse("experimental-checks", false);
     }
 
     public boolean isIgnoredClient(String brand) {
@@ -105,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 5");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 8");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -134,6 +138,15 @@ public class ConfigManager {
         }
         if (configVersion < 5) {
             fixBadPacketsAndAdjustPingConfig(config, configString);
+        }
+        if (configVersion < 6) {
+            addSuperDebug(config, configString);
+        }
+        if (configVersion < 7) {
+            removeAlertsOnJoin(config, configString);
+        }
+        if (configVersion < 8) {
+            addPacketSpamThreshold(config, configString);
         }
     }
 
@@ -189,7 +202,8 @@ public class ConfigManager {
         try {
             configString = configString.replaceAll("max-ping: \\d+", "max-transaction-time: 60");
             Files.write(config.toPath(), configString.getBytes());
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
 
         File punishConfig = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
         String punishConfigString;
@@ -239,5 +253,43 @@ public class ConfigManager {
             } catch (IOException ignored) {
             }
         }
+    }
+
+    private void addSuperDebug(File config, String configString) throws IOException {
+        // The default config didn't have this change
+        configString = configString.replace("threshold: 0.0001", "threshold: 0.001"); // 1e-5 -> 1e-4 default flag level
+        if (!configString.contains("experimental-checks")) {
+            configString += "\n\n# Enables experimental checks\n" +
+                    "experimental-checks: false\n\n";
+        }
+        configString += "\nverbose:\n" +
+                "  print-to-console: false\n";
+        Files.write(config.toPath(), configString.getBytes());
+
+        File messageFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "messages.yml");
+        if (messageFile.exists()) {
+            try {
+                String messagesString = new String(Files.readAllBytes(messageFile.toPath()));
+                messagesString += "\n\nupload-log: \"%prefix% &fUploaded debug to: %url%\"\n" +
+                        "upload-log-start: \"%prefix% &fUploading log... please wait\"\n" +
+                        "upload-log-not-found: \"%prefix% &cUnable to find that log\"\n" +
+                        "upload-log-upload-failure: \"%prefix% &cSomething went wrong while uploading this log, see console for more info\"\n";
+                Files.write(messageFile.toPath(), messagesString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void removeAlertsOnJoin(File config, String configString) throws IOException {
+        configString = configString.replaceAll("  # Should players with grim\\.alerts permission automatically enable alerts on join\\?\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // en
+        configString = configString.replaceAll("  # 管理员进入时是否自动开启警告？\r?\n  enable-on-join: (?:true|false)\r?\n", ""); // zh
+        Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void addPacketSpamThreshold(File config, String configString) throws IOException {
+        configString += "\n# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should\n" +
+                "# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.\n" +
+                "packet-spam-threshold: 150\n";
+        Files.write(config.toPath(), configString.getBytes());
     }
 }

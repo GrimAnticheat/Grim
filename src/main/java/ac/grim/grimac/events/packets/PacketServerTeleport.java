@@ -6,12 +6,14 @@ import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTeleportConfirm;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 import org.bukkit.Location;
@@ -36,9 +38,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
                 // Player teleport event gets called AFTER player join event
-                player.lastX = teleport.getX();
-                player.lastY = teleport.getY();
-                player.lastZ = teleport.getZ();
                 player.x = teleport.getX();
                 player.y = teleport.getY();
                 player.z = teleport.getZ();
@@ -76,7 +75,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 teleport.setX(pos.getX());
                 teleport.setY(pos.getY());
                 teleport.setZ(pos.getZ());
-                teleport.setRelativeMask((byte) 0);
+                teleport.setRelativeMask((byte) (teleport.getRelativeFlags().getMask() & 0b11000));
             }
 
             player.sendTransaction();
@@ -95,7 +94,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos = pos.withY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true);
+            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
