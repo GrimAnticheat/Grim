@@ -25,7 +25,15 @@ public class PacketChangeGameState extends Check implements PacketCheck {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     // Bukkit's gamemode order is unreliable, so go from int -> packetevents -> bukkit
                     GameMode previous = player.gamemode;
-                    player.gamemode = GameMode.values()[(int) packet.getValue()];
+                    int gamemode = (int) packet.getValue();
+
+                    // Some plugins send invalid values such as -1, this is what the client does
+                    if (gamemode < 0 || gamemode >= GameMode.values().length) {
+                        player.gamemode = GameMode.SURVIVAL;
+                    } else {
+                        player.gamemode = GameMode.values()[(int) packet.getValue()];
+                    }
+
                     if (previous == GameMode.SPECTATOR && player.gamemode != GameMode.SPECTATOR) {
                         GrimAPI.INSTANCE.getSpectateManager().handlePlayerStopSpectating(player.playerUUID);
                     }
