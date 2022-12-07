@@ -31,7 +31,7 @@ public class PacketChangeGameState extends Check implements PacketCheck {
                     if (gamemode < 0 || gamemode >= GameMode.values().length) {
                         player.gamemode = GameMode.SURVIVAL;
                     } else {
-                        player.gamemode = GameMode.values()[(int) packet.getValue()];
+                        player.gamemode = GameMode.values()[gamemode];
                     }
 
                     if (previous == GameMode.SPECTATOR && player.gamemode != GameMode.SPECTATOR) {
