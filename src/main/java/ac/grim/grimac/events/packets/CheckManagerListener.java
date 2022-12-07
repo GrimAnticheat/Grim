@@ -494,7 +494,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
 
                     // Ends the client prediction introduced in 1.19+
-                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
                         player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     }
 
