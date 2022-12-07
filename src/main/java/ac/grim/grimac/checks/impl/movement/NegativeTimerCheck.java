@@ -22,7 +22,7 @@ public class NegativeTimerCheck extends TimerCheck implements PostPredictionChec
             timerBalanceRealTime = System.nanoTime() + clockDrift;
         }
 
-        if (timerBalanceRealTime + clockDrift < System.nanoTime()) {
+        if (timerBalanceRealTime < lastMovementPlayerClock - clockDrift) {
             int lostMS = (int) ((System.nanoTime() - timerBalanceRealTime) / 1e6);
             flagAndAlert("-" + lostMS);
             timerBalanceRealTime += 50e6;
