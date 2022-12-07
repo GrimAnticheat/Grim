@@ -541,7 +541,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Let's hope this doesn't desync :)
         if (player.getSetbackTeleportUtil().blockOffsets) offset = 0;
 
-        if (player.skippedTickInActualMovement) player.uncertaintyHandler.lastPointThree.reset();
+        if (player.skippedTickInActualMovement || !wasChecked) player.uncertaintyHandler.lastPointThree.reset();
 
         // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));

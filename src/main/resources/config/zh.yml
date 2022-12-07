@@ -89,6 +89,10 @@ TimerA:
   # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
   drift: 120
 
+NegativeTimer:
+  # Number of milliseconds lost while moving before we should start flagging
+  drift: 1200
+
 # 与 TimerA 相同的检查方法，但适用于坐骑
 TimerVehicle:
   # 实体1.0005 检查

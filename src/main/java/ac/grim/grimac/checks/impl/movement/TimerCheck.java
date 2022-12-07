@@ -67,6 +67,11 @@ public class TimerCheck extends Check implements PacketCheck {
         hasGottenMovementAfterTransaction = true;
         timerBalanceRealTime += 50e6;
 
+        doCheck(event);
+    }
+
+
+    public void doCheck(final PacketReceiveEvent event) {
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flag()) {
                 // Cancel the packet

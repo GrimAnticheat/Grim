@@ -91,6 +91,10 @@ TimerA:
   # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
   drift: 120
 
+NegativeTimer:
+  # Number of milliseconds lost while moving before we should start flagging
+  drift: 1200
+
 # Same check method as TimerA, but for vehicles
 TimerVehicle:
   # Target 1.005 timer
