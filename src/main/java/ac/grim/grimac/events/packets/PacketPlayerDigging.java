@@ -164,7 +164,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
                 player.packetStateData.slowedByUsingItem = false;
                 // Sequence is ignored by the server
-                PacketEvents.getAPI().getPlayerManager().receivePacketSilently(player.user, new WrapperPlayClientPlayerDigging(DiggingAction.RELEASE_USE_ITEM, new Vector3i(), BlockFace.DOWN, 0));
+                PacketEvents.getAPI().getProtocolManager().receivePacketSilently(player.user.getChannel(), new WrapperPlayClientPlayerDigging(DiggingAction.RELEASE_USE_ITEM, new Vector3i(), BlockFace.DOWN, 0));
                 player.checkManager.getPostPredictionCheck(NoSlow.class).didSlotChangeLastTick = true;
             }
             player.packetStateData.lastSlotSelected = slot.getSlot();
