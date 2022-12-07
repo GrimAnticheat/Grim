@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -39,7 +40,7 @@ import java.util.List;
 // although let's do it the multi-version way anyways as we have proper lag compensated so it has the same result
 //
 // for the first time... thanks mojang!
-public class CompensatedInventory extends PacketCheck {
+public class CompensatedInventory extends Check implements PacketCheck {
     // Temporarily public for debugging
     public Inventory inventory;
     // Temporarily public for debugging

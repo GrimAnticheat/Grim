@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
-public class TimerCheck extends PacketCheck {
+public class TimerCheck extends Check implements PacketCheck {
     long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time

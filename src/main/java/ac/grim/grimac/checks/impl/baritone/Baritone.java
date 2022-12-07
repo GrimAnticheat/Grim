@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.baritone;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.type.RotationCheck;
@@ -9,7 +10,7 @@ import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.math.GrimMath;
 
 @CheckData(name = "Baritone")
-public class Baritone extends RotationCheck {
+public class Baritone extends Check implements RotationCheck {
     public Baritone(GrimPlayer playerData) {
         super(playerData);
     }

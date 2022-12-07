@@ -1,5 +1,6 @@
 package ac.grim.grimac.events.packets;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -25,7 +26,7 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PacketEntityReplication extends PacketCheck {
+public class PacketEntityReplication extends Check implements PacketCheck {
     private boolean hasSentPreWavePacket = true;
     // Let's imagine the player is on a boat.
     // The player breaks this boat

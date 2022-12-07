@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -10,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public class ClientBrand extends PacketCheck {
+public class ClientBrand extends Check implements PacketCheck {
     String brand = "vanilla";
     boolean hasBrand = false;
 

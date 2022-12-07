@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -8,7 +9,7 @@ import ac.grim.grimac.utils.data.LastInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LastInstanceManager extends PostPredictionCheck {
+public class LastInstanceManager extends Check implements PostPredictionCheck {
     private final List<LastInstance> instances = new ArrayList<>();
 
     public LastInstanceManager(GrimPlayer player) {

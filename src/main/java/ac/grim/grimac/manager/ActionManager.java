@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -9,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import lombok.Getter;
 
 @Getter
-public class ActionManager extends PacketCheck {
+public class ActionManager extends Check implements PacketCheck {
     private boolean attacking = false;
     private long lastAttack = 0;
 
@@ -22,12 +23,12 @@ public class ActionManager extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
             if (action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                player.attackTicks = 0;
+                player.totalFlyingPacketsSent = 0;
                 attacking = true;
                 lastAttack = System.currentTimeMillis();
             }
         } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            player.attackTicks++;
+            player.totalFlyingPacketsSent++;
             attacking = false;
         }
     }

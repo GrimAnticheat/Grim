@@ -59,7 +59,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
                 grimPlayer.onReload();
                 grimPlayer.updatePermissions();
                 grimPlayer.punishmentManager.reload();
-                for (Check value : grimPlayer.checkManager.allChecks.values()) {
+                for (AbstractCheck value : grimPlayer.checkManager.allChecks.values()) {
                     value.reload();
                 }
             });

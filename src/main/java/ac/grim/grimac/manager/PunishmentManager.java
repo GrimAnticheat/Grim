@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.CommandExecuteEvent;
@@ -33,7 +34,7 @@ public class PunishmentManager {
             groups.clear();
 
             // To support reloading
-            for (Check check : player.checkManager.allChecks.values()) {
+            for (AbstractCheck check : player.checkManager.allChecks.values()) {
                 check.setEnabled(false);
             }
 
@@ -45,8 +46,8 @@ public class PunishmentManager {
                 int removeViolationsAfter = (int) map.getOrDefault("remove-violations-after", 300);
 
                 List<ParsedCommand> parsed = new ArrayList<>();
-                List<Check> checksList = new ArrayList<>();
-                List<Check> excluded = new ArrayList<>();
+                List<AbstractCheck> checksList = new ArrayList<>();
+                List<AbstractCheck> excluded = new ArrayList<>();
                 for (String command : checks) {
                     command = command.toLowerCase(Locale.ROOT);
                     boolean exclude = false;
@@ -54,7 +55,7 @@ public class PunishmentManager {
                         exclude = true;
                         command = command.substring(1);
                     }
-                    for (Check check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
+                    for (AbstractCheck check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
                                         || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
@@ -66,7 +67,7 @@ public class PunishmentManager {
                             }
                         }
                     }
-                    for (Check check : excluded) checksList.remove(check);
+                    for (AbstractCheck check : excluded) checksList.remove(check);
                 }
 
                 for (String command : commands) {
@@ -184,7 +185,7 @@ public class PunishmentManager {
 
 class PunishGroup {
     @Getter
-    List<Check> checks;
+    List<AbstractCheck> checks;
     @Getter
     List<ParsedCommand> commands;
     @Getter
@@ -192,7 +193,7 @@ class PunishGroup {
     @Getter
     int removeViolationsAfter;
 
-    public PunishGroup(List<Check> checks, List<ParsedCommand> commands, int removeViolationsAfter) {
+    public PunishGroup(List<AbstractCheck> checks, List<ParsedCommand> commands, int removeViolationsAfter) {
         this.checks = checks;
         this.commands = commands;
         this.removeViolationsAfter = removeViolationsAfter * 1000;
