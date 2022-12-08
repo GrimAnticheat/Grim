@@ -12,8 +12,6 @@ public class CommandRegister implements Initable {
         // It only enables new features such as asynchronous tab completion on paper
         PaperCommandManager commandManager = new PaperCommandManager(GrimAPI.INSTANCE.getPlugin());
 
-        commandManager.enableUnstableAPI("brigadier");
-
         commandManager.registerCommand(new GrimPerf());
         commandManager.registerCommand(new GrimDebug());
         commandManager.registerCommand(new GrimAlerts());
