@@ -98,7 +98,7 @@ public class CheckManager {
                 .build();
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
-                .put(NegativeTimerCheck.class, new NegativeTimerCheck(player))
+                //.put(NegativeTimerCheck.class, new NegativeTimerCheck(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
