@@ -1,0 +1,36 @@
+#  ANSI ve UTF-8 bunları farklı yorumluyor... bunun yüzünden ? bile görebilirsiniz
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fUyarılar etkinleştirildi"
+alerts-disabled: "%prefix% &fUyarılar devre dışı bırakıldı"
+client-brand-format: "%prefix% &f%player% %brand% kullanarak oyuna katıldı."
+console-specify-target: "%prefix% &cKonsol olarak bir hedef seçmelisin!"
+player-not-found: "%prefix% &cOyuncu muaf veya çevrimdışı."
+player-not-this-server: "%prefix% &cOyuncu sunucuda değil."
+
+# Geçerli placeholderlar
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - ihlaller
+# %verbose% - offset gibi fazladan bilgiler, bütün kontroller bunu kullanmayabilir
+alerts-format: "%prefix% &f%player% &f%check_name% &f(x&c%vl%&f) &7%verbose% &Kullanıyor"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &bProfili"
+  - "&bVersiyon: &f%version%"
+  - "&bClient: &f%brand%"
+  - "&bYatay Hassasiyet: &f%h_sensitivity%%"
+  - "&bDikey Hassasiyet: &f%v_sensitivity%%"
+  - "&bFastMath Etkinleştirimiş: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Uyarıları aç/kapa"
+  - "/grim profile &f- &7Oyuncu bilgilerini göster"
+  - "/grim help &f- &7Bu yardım mesajını göster"
+  - "/grim debug <player> &f- &7Developer Prediction bilgileri"
+  - "/grim perf &f- &7Developer ms/prediction"
+  - "/grim reload &f- &7Yapılandırmayı yeniden yükle"
+  - "&7======================"

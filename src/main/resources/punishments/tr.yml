@@ -1,0 +1,78 @@
+# %check_name% - Check(kontrol) adı
+# %vl% - ihlaller
+# %verbose% - fazladan bilgi
+# %player% - oyuncu adı
+# [alert] - uyarı göndermek için özel komut
+# [webhook] - Discord'a uyarı göndermek için özel komut
+Punishments:
+  Simulation:
+    # Kaç saniye sonra bir ihlalin silinmesini istiyorsunuz?
+    remove-violations-after: 300
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # Eşik:Aralık komutu
+    #
+    # Örneğin, oyuncuyu 100 ihlalden sonra aralık komutu olmadan "incorrect movement" sebebiyle oyundan atmak için:
+    # - "100:0 kick %player% incorrect movement!"
+    #
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # Grim 2.2.10'dan itibaren, Grim Anticheat AutoClicker kontrolleri içermemektedir, bunlar sadece placeholderlardır. Grim ileride AutoClicker kontrolleri içerecektir.
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
