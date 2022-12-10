@@ -1,7 +1,5 @@
 # GrimAC
 
-**Due to both technical limitations with the current engine design and mojang's complete stupidity with netcode, only major issues will be fixed.  Minor issues will be ignored.  By using Grim, you are expected to either fix issues you encounter or pay someone to do so, or ignore them.  I can no longer provide support, for thousands of people, for free.**
-
 **Test server with bufferless alerts: test.grim.ac**
 
 GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
