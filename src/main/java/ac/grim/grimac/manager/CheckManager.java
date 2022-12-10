@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
@@ -50,7 +51,7 @@ public class CheckManager {
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
-    public ClassToInstanceMap<Check> allChecks;
+    public ClassToInstanceMap<AbstractCheck> allChecks;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -97,6 +98,7 @@ public class CheckManager {
                 .build();
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
+                //.put(NegativeTimerCheck.class, new NegativeTimerCheck(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
@@ -135,7 +137,7 @@ public class CheckManager {
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
-        allChecks = new ImmutableClassToInstanceMap.Builder<Check>()
+        allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
                 .putAll(packetChecks)
                 .putAll(positionCheck)
                 .putAll(rotationCheck)

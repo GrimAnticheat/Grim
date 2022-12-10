@@ -1,12 +1,13 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-public class CompensatedFireworks extends PostPredictionCheck {
+public class CompensatedFireworks extends Check implements PostPredictionCheck {
     // As this is sync to one player, this does not have to be concurrent
     IntList activeFireworks = new IntArrayList();
     IntList fireworksToRemoveNextTick = new IntArrayList();

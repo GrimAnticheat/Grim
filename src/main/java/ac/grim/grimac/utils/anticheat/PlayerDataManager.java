@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import com.github.puregero.multilib.MultiLib;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
+import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
 import org.bukkit.Bukkit;
@@ -63,6 +64,8 @@ public class PlayerDataManager {
     public GrimPlayer getPlayer(final User user) {
         // We can ignore closed channels fine because vanilla also does this
         if (!ChannelHelper.isOpen(user.getChannel())) return null;
+        // Let's not make a new player object every time the server is pinged
+        if (user.getConnectionState() != ConnectionState.PLAY) return null;
 
         GrimPlayer player = playerDataMap.get(user);
         if (player == null && shouldCheck(user)) {

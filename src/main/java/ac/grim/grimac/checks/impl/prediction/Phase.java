@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.prediction;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "Phase", configName = "Phase", setback = 1, decay = 0.005)
-public class Phase extends PostPredictionCheck {
+public class Phase extends Check implements PostPredictionCheck {
     SimpleCollisionBox oldBB;
 
     public Phase(GrimPlayer player) {
@@ -40,7 +41,8 @@ public class Phase extends PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    flagWithSetback();
+                    if (flagWithSetback())
+                        alert("");
                     return;
                 }
             }

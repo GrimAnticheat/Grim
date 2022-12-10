@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.aim.processor;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.RotationCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
@@ -8,7 +9,7 @@ import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
 
 
-public class AimProcessor extends RotationCheck {
+public class AimProcessor extends Check implements RotationCheck {
 
     private static final int SIGNIFICANT_SAMPLES_THRESHOLD = 15;
     private static final int TOTAL_SAMPLES_THRESHOLD = 80;

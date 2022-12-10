@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.prediction;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.events.CompletePredictionEvent;
@@ -10,7 +11,7 @@ import org.bukkit.Bukkit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
-public class OffsetHandler extends PostPredictionCheck {
+public class OffsetHandler extends Check implements PostPredictionCheck {
     // Config
     double setbackDecayMultiplier;
     double threshold;

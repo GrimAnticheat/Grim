@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -9,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
 @CheckData(name = "CrashE", experimental = true)
-public class CrashE extends PacketCheck {
+public class CrashE extends Check implements PacketCheck {
 
     public CrashE(GrimPlayer playerData) {
         super(playerData);

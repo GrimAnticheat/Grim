@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.velocity;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -19,7 +20,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
-public class ExplosionHandler extends PostPredictionCheck {
+public class ExplosionHandler extends Check implements PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;

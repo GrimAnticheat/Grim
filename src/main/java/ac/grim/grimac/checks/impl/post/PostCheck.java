@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.post;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -21,7 +22,7 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post")
-public class PostCheck extends PacketCheck {
+public class PostCheck extends Check implements PacketCheck {
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags
     // 1.8 clients will have the same logic for simplicity, although it's not needed
@@ -94,6 +95,10 @@ public class PostCheck extends PacketCheck {
             } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
                     && ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaRewind doesn't 1.9 players
                     || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)))) { // No elytras
+                // https://github.com/GrimAnticheat/Grim/issues/824
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.compensatedEntities.getSelf().getRiding() != null) {
+                    return;
+                }
                 if (sentFlying) post.add(event.getPacketType());
             }
         }

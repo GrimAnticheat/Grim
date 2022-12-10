@@ -95,6 +95,10 @@ TimerA:
   # parece ser un balance bastante decente.
   drift: 120
 
+NegativeTimer:
+  # Number of milliseconds lost while moving before we should start flagging
+  drift: 1200
+
 # La misma comprobación que TimerA, pero para vehiculos
 TimerVehicle:
   # Target 1.005 timer

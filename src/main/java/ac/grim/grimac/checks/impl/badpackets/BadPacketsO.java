@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,7 +15,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 @CheckData(name = "BadPacketsO")
-public class BadPacketsO extends PacketCheck {
+public class BadPacketsO extends Check implements PacketCheck {
     Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
 
     public BadPacketsO(GrimPlayer player) {

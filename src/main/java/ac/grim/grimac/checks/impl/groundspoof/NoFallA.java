@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.groundspoof;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -17,7 +18,7 @@ import java.util.List;
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
 @CheckData(name = "NoFall", configName = "nofall", setback = 10)
-public class NoFallA extends PacketCheck {
+public class NoFallA extends Check implements PacketCheck {
 
     public boolean flipPlayerGroundStatus = false;
 
@@ -41,9 +42,7 @@ public class NoFallA extends PacketCheck {
             if (wrapper.isOnGround() && !hasPosition) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
-                    if (!GhostBlockDetector.isGhostBlock(player)) {
-                        flagWithSetback();
-                    }
+                    if (!GhostBlockDetector.isGhostBlock(player) && flagWithSetback()) alert("");
                     if (shouldModifyPackets()) wrapper.setOnGround(false);
                 }
             }
