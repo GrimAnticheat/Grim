@@ -280,7 +280,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
                 if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
-                    control.flag();
+                    control.flagAndAlert();
                 } else {
                     control.rewardPlayer();
                 }

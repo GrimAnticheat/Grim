@@ -41,7 +41,8 @@ public class Phase extends Check implements PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    flagWithSetback();
+                    if (flagWithSetback())
+                        alert("");
                     return;
                 }
             }
