@@ -21,9 +21,7 @@ client-brand:
   # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端版本显示在聊天栏中
   ignored-clients:
     - "^vanilla$"
-    - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
-    - "^Feather Fabric$"
 
 spectators:
   # 把所有拥有 grim.spectartor 权限的人都隐藏起来，不管他是否观察玩家。
