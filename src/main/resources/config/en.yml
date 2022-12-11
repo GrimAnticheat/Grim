@@ -23,7 +23,6 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^lunarclient:[a-z0-9]{7}"
-    - "^Feather Fabric$"
 
 spectators:
   # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
