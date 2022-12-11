@@ -11,14 +11,13 @@ public class NegativeTimerCheck extends TimerCheck implements PostPredictionChec
 
     public NegativeTimerCheck(GrimPlayer player) {
         super(player);
-        knownPlayerClockTime = (long) (System.nanoTime() + 6e10);
-        lastMovementPlayerClock = (long) (System.nanoTime() + 6e10);
+        timerBalanceRealTime = System.nanoTime() + clockDrift;
     }
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // We can't negative timer check a 1.9+ player who is standing still.
-        if (!player.isTickingReliablyFor(2) || !predictionComplete.isChecked()) {
+        if (!player.canThePlayerBeCloseToZeroMovement(2) || !predictionComplete.isChecked()) {
             timerBalanceRealTime = System.nanoTime() + clockDrift;
         }
 

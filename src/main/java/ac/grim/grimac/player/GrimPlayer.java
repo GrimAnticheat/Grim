@@ -507,6 +507,10 @@ public class GrimPlayer implements GrimUser {
                 || getClientVersion().isOlderThan(ClientVersion.V_1_9);
     }
 
+    public boolean canThePlayerBeCloseToZeroMovement(int ticks) {
+        return (!uncertaintyHandler.lastPointThree.hasOccurredSince(ticks));
+    }
+
     public CompensatedInventory getInventory() {
         return checkManager.getPacketCheck(CompensatedInventory.class);
     }
