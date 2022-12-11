@@ -22,9 +22,7 @@ client-brand:
   # Esto quiere decir que no se va a anunciar la marca del cliente si esta cumple alguno de los siguientes regexes:
   ignored-clients:
     - "^vanilla$"
-    - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
-    - "^Feather Fabric$"
 
 spectators:
   # Ocultar todos los espectadores con el permiso grim.spectator sin importar si realmente están espectando
