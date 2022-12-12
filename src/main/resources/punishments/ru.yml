@@ -1,0 +1,92 @@
+# %check_name% - название проверки
+# %vl% - нарушения
+# %verbose% - дополнительная информация
+# %player% - имя игрока
+# [alert] - специальная команда для оповещения
+# [webhook] - специальная команда для оповещения на discord webhook
+# [proxy] - специальная команда для оповещения других серверов, подключенных к вашему прокси (BungeeCord/Velocity)
+Punishments:
+  Simulation:
+    # Через сколько секунд нарушение должно быть удалено?
+    remove-violations-after: 300
+    # Этот раздел будет соответствовать всем проверкам с указанным именем,
+    # Чтобы исключить проверку, которая в противном случае была бы найдена, поставьте восклицательный знак перед именем.
+    # Например, !BadPacketsN
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # Порог:Интервальная команда
+    #
+    # Пример, чтобы выгнать игрока с сообщением "неправильное движение!" после 100 нарушений, без интервала
+    # Команды:
+    # - "100:0 kick %player% неправильное движение!"
+    # 0 означает выполнить ровно один раз.
+    # - "100:50 say %player% читерит!"
+    # Выполняется, когда пользователь получает флаг 100, и после этого каждый 50-й флаг после 100.
+    #
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+      - "100:100 [proxy]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+      - "5:5 [proxy]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+      - "20:10 [proxy]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # По состоянию на 2.2.10 нет проверок AutoClicker, и это место для размещения. Grim будет включать проверки AutoClicker в будущем.
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"

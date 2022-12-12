@@ -1,0 +1,12 @@
+# Включать ли веб-крючок discord
+enabled: false
+webhook: ""
+embed-color: "#00FFFF"
+violation-content:
+  - "**Player**: %player%"
+  - "**Check**: %check%"
+  - "**Violations**: %violations%"
+  - "**Client Version**: %version%"
+  - "**Brand**: %brand%"
+  - "**Ping**: %ping%"
+  - "**TPS**: %tps%"
