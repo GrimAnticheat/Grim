@@ -3,10 +3,11 @@ enabled: false
 webhook: ""
 embed-color: "#00FFFF"
 violation-content:
-  - "**Player**: %player%"
-  - "**Check**: %check%"
-  - "**Violations**: %violations%"
-  - "**Client Version**: %version%"
-  - "**Brand**: %brand%"
-  - "**Ping**: %ping%"
-  - "**TPS**: %tps%"
+  - "**Игрок**: %player%"
+  - "**Проверка**: %check%"
+  - "**Нарушения**: %violations%"
+  - "**Версия Клиента**: %version%"
+  - "**Бренд**: %brand%"
+  - "**Пинг**: %ping%"
+  - "**ТПС**: %tps%"
+ 
