@@ -80,10 +80,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
-            event.getTasksAfterSend().add(() -> {
-                player.sendTransaction();
-                System.out.println("Sent a transaction as a post task " + player.lastTransactionSent.get() + " versus " + lastTransactionSent);
-            });
+            event.getTasksAfterSend().add(player::sendTransaction);
 
             if (teleport.isDismountVehicle()) {
                 // Remove player from vehicle
