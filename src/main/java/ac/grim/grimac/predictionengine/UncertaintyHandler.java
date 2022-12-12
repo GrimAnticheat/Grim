@@ -78,7 +78,6 @@ public class UncertaintyHandler {
     public LastInstance lastThirtyMillionHardBorder;
     public LastInstance lastTeleportTicks;
     public LastInstance lastPointThree;
-
     public LastInstance stuckOnEdge;
     public LastInstance lastStuckNorth;
     public LastInstance lastStuckSouth;

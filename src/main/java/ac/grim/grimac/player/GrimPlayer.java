@@ -599,7 +599,7 @@ public class GrimPlayer implements GrimUser {
         sendTransaction();
 
         compensatedEntities.serverPlayerVehicle = null;
-        event.getPostTasks().add(() -> {
+        event.getTasksAfterSend().add(() -> {
             if (compensatedEntities.getSelf().getRiding() != null) {
                 int ridingId = getRidingVehicleId();
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);

@@ -213,7 +213,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             });
 
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
-                            event.getPostTasks().add(player::sendTransaction);
+                            event.getTasksAfterSend().add(player::sendTransaction);
                         }
                     }
                 }
@@ -241,7 +241,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     && animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.WAKE_UP) {
                 // Split so packet received before transaction
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isInBed = false);
-                event.getPostTasks().add(player::sendTransaction);
+                event.getTasksAfterSend().add(player::sendTransaction);
             }
         }
     }

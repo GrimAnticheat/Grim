@@ -57,7 +57,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                 // No need to spam transactions
                 if (explosion.getRecords().isEmpty()) player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.getPostTasks().add(player::sendTransaction);
+                event.getTasksAfterSend().add(player::sendTransaction);
             }
         }
     }

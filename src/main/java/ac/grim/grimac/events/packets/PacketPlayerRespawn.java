@@ -61,7 +61,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.getSelf().isDead = false);
             }
 
-            event.getPostTasks().add(player::sendTransaction);
+            event.getTasksAfterSend().add(player::sendTransaction);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
@@ -83,7 +83,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPostTasks();
+            List<Runnable> tasks = event.getTasksAfterSend();
             tasks.add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning

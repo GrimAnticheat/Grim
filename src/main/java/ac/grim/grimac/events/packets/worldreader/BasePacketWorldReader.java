@@ -118,7 +118,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         }
 
         if (shouldPostTrans) {
-            event.getPostTasks().add(player::sendTransaction); // Player is in this unloaded chunk
+            event.getTasksAfterSend().add(player::sendTransaction); // Player is in this unloaded chunk
         }
         if (isGroundUp) {
             Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get());

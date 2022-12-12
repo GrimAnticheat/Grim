@@ -60,7 +60,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             // Wrap velocity between two transactions
             player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.getPostTasks().add(player::sendTransaction);
+            event.getTasksAfterSend().add(player::sendTransaction);
         }
     }
 
