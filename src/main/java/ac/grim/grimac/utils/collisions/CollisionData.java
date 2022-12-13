@@ -585,8 +585,15 @@ public enum CollisionData {
     PANE(new DynamicPane(), Materials.getPanes().toArray(new StateType[0])),
 
     SNOW((player, version, data, x, y, z) -> {
-        if (data.getLayers() == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13))
-            return NoCollisionBox.INSTANCE;
+        if (data.getLayers() == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            // Via doesn't touch this
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                return NoCollisionBox.INSTANCE;
+            }
+            // Handle viaversion mapping
+            data = data.clone();
+            data.setLayers(2);
+        }
 
         return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() - 1) * 0.125, 1);
     }, StateTypes.SNOW),
