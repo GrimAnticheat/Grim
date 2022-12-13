@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.inventory;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class InventoryStorage {
-    ItemStack[] items;
+    protected ItemStack[] items;
     int size;
 
     public InventoryStorage(int size) {

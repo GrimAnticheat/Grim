@@ -152,6 +152,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (player.gamemode != GameMode.CREATIVE) {
+                player.getInventory().markSlotAsResyncing(blockPlace);
                 if (hand == InteractionHand.MAIN_HAND) {
                     player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
                 } else {
@@ -577,7 +578,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 blockPlace.set(StateTypes.AIR);
             }
 
-            setPlayerItem(player, hand, type);
+            if (player.gamemode != GameMode.CREATIVE) {
+                player.getInventory().markSlotAsResyncing(blockPlace);
+                setPlayerItem(player, hand, type);
+            }
         }
     }
 
@@ -709,6 +713,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
 
                 if (player.gamemode != GameMode.CREATIVE) {
+                    player.getInventory().markSlotAsResyncing(blockPlace);
                     if (hand == InteractionHand.MAIN_HAND) {
                         player.getInventory().inventory.getHeldItem().setAmount(player.getInventory().inventory.getHeldItem().getAmount() - 1);
                     } else {

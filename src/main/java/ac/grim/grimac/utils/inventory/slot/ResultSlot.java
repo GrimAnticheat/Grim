@@ -16,7 +16,7 @@ public class ResultSlot extends Slot {
     }
 
     @Override
-    public void onTake(GrimPlayer p_150638_, ItemStack p_150639_) {
+    public void onTake(GrimPlayer player, ItemStack p_150639_) {
         // Resync the player's inventory
     }
 }

@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -15,16 +16,16 @@ public class Inventory extends AbstractContainerMenu {
     public static final int HOTBAR_OFFSET = 36;
     public static final int ITEMS_START = 9;
     public static final int ITEMS_END = 45;
-    private static final int SLOT_HELMET = 4;
-    private static final int SLOT_CHESTPLATE = 5;
-    private static final int SLOT_LEGGINGS = 6;
-    private static final int SLOT_BOOTS = 7;
+    public static final int SLOT_HELMET = 4;
+    public static final int SLOT_CHESTPLATE = 5;
+    public static final int SLOT_LEGGINGS = 6;
+    public static final int SLOT_BOOTS = 7;
     private static final int TOTAL_SIZE = 46;
     public int selected = 0;
     @Getter
-    InventoryStorage inventoryStorage;
+    CorrectingPlayerInventoryStorage inventoryStorage;
 
-    public Inventory(GrimPlayer player, InventoryStorage inventoryStorage) {
+    public Inventory(GrimPlayer player, CorrectingPlayerInventoryStorage inventoryStorage) {
         this.inventoryStorage = inventoryStorage;
 
         super.setPlayer(player);

@@ -388,14 +388,6 @@ public class CompensatedEntities {
                     ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                     ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
                 }
-                EntityData chestByte = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset);
-                if (chestByte != null && chestByte.getValue() instanceof Boolean) {
-                    ((PacketEntityHorse) entity).hasChest = (boolean) chestByte.getValue();
-                }
-                EntityData strength = WatchableIndexUtil.getIndex(watchableObjects, 20 - offset);
-                if (strength != null && strength.getValue() instanceof Integer) {
-                    ((PacketEntityHorse) entity).llamaStrength = (int) strength.getValue();
-                }
             } else {
                 EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {
