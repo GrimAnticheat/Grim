@@ -90,7 +90,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             return packetSlot - 36;
         }
         // 45 is offhand
-        if (packetSlot == 45) {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && packetSlot == 45) {
             return 45;
         }
         return -1;
