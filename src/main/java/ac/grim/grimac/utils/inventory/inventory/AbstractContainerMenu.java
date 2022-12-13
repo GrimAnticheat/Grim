@@ -143,6 +143,7 @@ public abstract class AbstractContainerMenu {
                     this.resetQuickCraft();
                 }
             } else if (this.quickcraftStatus == 1) {
+                if (slotID < 0) return;
                 Slot slot = slots.get(slotID);
                 ItemStack itemstack = this.getCarried();
                 if (canItemQuickReplace(slot, itemstack, true) && slot.mayPlace(itemstack) && (this.quickcraftType == 2 || itemstack.getAmount() > this.quickcraftSlots.size()) && this.canDragTo(slot)) {

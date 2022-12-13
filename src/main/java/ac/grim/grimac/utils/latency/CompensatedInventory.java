@@ -302,7 +302,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Self-explanatory, look at the enum's values
             WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
 
-            menu.doClick(button, slot, clickType);
+            if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
+                menu.doClick(button, slot, clickType);
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
