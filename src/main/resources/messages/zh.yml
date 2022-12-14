@@ -9,11 +9,11 @@ player-not-found: "%prefix% &c玩家不存在或离线!"
 player-not-this-server: "%prefix% &c玩家不在此服务器上！"
 spectate-return: "\n%prefix% &f点击这里返回之前的位置\n"
 cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
-cannot-run-on-self: "%prefix% &cYou cannot use this command on yourself!"
-upload-log: "%prefix% &fUploaded debug to: %url%"
-upload-log-start: "%prefix% &fUploading log... please wait"
-upload-log-not-found: "%prefix% &cUnable to find that log"
-upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this log, see console for more info"
+cannot-run-on-self: "%prefix% &c你不能对自己使用此命令!"
+upload-log: "%prefix% &f已经将日志文件上传至: %url%"
+upload-log-start: "%prefix% &f上传中...请等待"
+upload-log-not-found: "%prefix% &c找不到该日志."
+upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信息, 请参阅控制台"
 
 # Valid placeholders:
 # %prefix% - 前缀
@@ -21,8 +21,8 @@ upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this
 # %check_name% - 检查名字
 # %vl% - VL值
 # %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
-alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"
@@ -43,6 +43,6 @@ help:
   - "/grim perf &f- &7开发者毫秒预测"
   - "/grim reload &f- &7重新加载配置"
   - "/grim spectate <player> &f- &7观看玩家"
-  - "/grim verbose &f- &Show every flag to you, without buffer"
-  - "/grim log [1-999] &f- &7Debug logs for prediction flag"
+  - "/grim verbose &f- &f显示无缓冲区的每个拉回"
+  - "/grim log [1-999] &f- &7预测标志的调试日志"
   - "&7======================"
