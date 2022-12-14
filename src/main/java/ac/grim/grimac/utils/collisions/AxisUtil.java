@@ -72,8 +72,18 @@ public enum AxisUtil {
     }
 
     public static boolean isSameAxis(BlockFace one, BlockFace two) {
-        return (one == BlockFace.WEST || one == BlockFace.EAST) && (two == BlockFace.WEST || two == BlockFace.EAST) ||
-                (one == BlockFace.NORTH || one == BlockFace.SOUTH) && (two == BlockFace.NORTH || two == BlockFace.SOUTH) ||
-                (one == BlockFace.UP || one == BlockFace.DOWN) && (two == BlockFace.UP || two == BlockFace.DOWN);
+        switch (one) {
+        case WEST:
+        case EAST:
+            return two == BlockFace.WEST || two == BlockFace.EAST;
+        case NORTH:
+        case SOUTH:
+            return two == BlockFace.NORTH || two == BlockFace.SOUTH;
+        case UP:
+        case DOWN:
+            return two == BlockFace.UP || two == BlockFace.DOWN;
+        default:
+            return false;
+        }
     }
 }
