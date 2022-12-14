@@ -1112,7 +1112,7 @@ public enum BlockPlaceResult {
     }
 
     BlockPlaceResult(BlockPlaceFactory data, BlockTags tag) {
-        List<ItemType> types = new ArrayList<>();
+        List<ItemType> types = new ArrayList<>(tag.getStates().size());
         for (StateType state : tag.getStates()) {
             types.add(ItemTypes.getTypePlacingState(state));
         }
