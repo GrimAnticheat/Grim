@@ -76,7 +76,7 @@ public class CompensatedWorld {
     private boolean isCurrentlyPredicting = false;
     public boolean isRaining = false;
 
-    private boolean noNegativeBlocks;
+    private final boolean noNegativeBlocks;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -183,15 +183,13 @@ public class CompensatedWorld {
             }
 
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
-        } else if (!ViaBackwardsManager.didViaBreakBlockPredictions) {
-            // ViaVersion is updated and runs tasks with bukkit which is correct (or we are 1.19 server)
-            // So we must wait for the bukkit thread to start ticking so the server can confirm it
+        } else {
+            // ViaVersion is updated and runs tasks with bukkit which is correct
+            // So we must wait for the bukkit thread to start ticking so via can "confirm" it
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // And then we jump back to the netty thread to simulate that Via sent the confirmation
                 ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
             });
-        } else { // ViaVersion is being stupid and sending acks immediately
-            applyBlockChanges(toApplyBlocks);
         }
     }
 
