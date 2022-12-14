@@ -1,0 +1,134 @@
+# GrimAC Hauptkonfiguration
+# Quellcode: https://github.com/MWHunter/Grim
+# Copyright 2022 DefineOutside und Mitwirkende, lizenziert unter GPLv3.
+# Modifizierte Binärdateien, oder Plugins mit kopiertem Grim-Code, müssen privat sein,
+# oder mit vollständigem Quellcode für Käufer ohne zusätzliche Kosten verfügbar sein.
+
+alerts:
+  # Sollen die Warnungen nicht nur an die Spieler, sondern auch an die Konsole gesendet werden?
+  print-to-console: true
+  # Dies steuert, ob/wie Warnungen zwischen Servern, die mit Ihrem Proxy verbunden sind, geteilt werden.
+  # Sie müssen 'bungee-plugin-message-channel' in Ihrer Velocity-Konfiguration aktiviert haben, wenn Velocity verwendet wird.
+  proxy:
+    # Sollen Warnungen an andere Server gesendet werden, die mit Ihrem Proxy verbunden sind?
+    send: false
+    # Sollen die von anderen Servern empfangenen Alarme diesem Server mitgeteilt werden?
+    receive: false
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Das bedeutet, dass die Marke nicht an die Betreiber weitergegeben wird, wenn die Marke mit den folgenden Regexes übereinstimmt
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # Alle Zuschauer mit der Berechtigung grim.spectator ausblenden, unabhängig davon, ob sie tatsächlich aktiv zuschauen
+  hide-regardless: false
+  # Die Zuschauer werden nur in diesen Welten versteckt, um alle Welten zuzulassen, bleiben sie leer.
+  allowed-worlds:
+    - ""
+
+# Wie lange sollen Spieler Zeit haben, bis wir sie wegen Zeitüberschreitung rauswerfen? Standard = 60 Sekunden
+max-transaction-time: 60
+
+Simulation:
+  # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
+  # So sieht die Standardkonfiguration aus (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # Wie groß sollte der Abstand zur Bewegung des Spielers sein, um eine Verletzung zu erzeugen?
+  # Gemessen in Blöcken von der möglichen Bewegung.
+  # Wir berücksichtigen Optifine, indem wir die Triggertabellen wechseln, aber wenn wir dies auf 0,001 senken, wird FastMath reduziert.
+  # Markierung des Anticheats, wenn diese Kompensation nicht funktioniert...
+  threshold: 0.001
+  # Wie groß ist der Verstoß in einem Tick, bevor der Spieler sofort zurückgesetzt wird?
+  # -1 zum Deaktivieren
+  immediate-setback-threshold: 0.1
+  # Wie groß ist der Vorsprung gegenüber allen Ticks, bevor wir einen Rückschlag erleiden?
+  # -1 zum Deaktivieren
+  max-advantage: 1
+  # Nach 50 Sekunden mit der Standardkonfiguration geht der Spieler von 4 Blöcken -> 1 Block Vorteil
+  # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
+  # Standard-Vorteilsgrenze (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Überprüft, ob ein Spieler während einer Bewegung einen Block betreten hat.
+Phase:
+  setbackvl: 1 # Glitching in Blöcken kann das Klettern an der Wand ermöglichen, außerdem ist dieser Check relativ stabil.
+  decay: 0.005
+
+# Prediction-based no slow check
+# Grim ist verantwortlich für den fehlerhaften Netcode hier... schwer zu falsen, selbst wenn man Rechtsklick und Offhand-Taste spammt.
+# Viel stabiler als andere Anticheats, aber bitte melde alle Falses... Ich habe hier eine Menge Netcode-Probleme behoben.
+NoSlow:
+  # Wie viel von einem Offset ist "schummeln"
+  # Standardmäßig ist dieser Wert niedriger als andere Offs.
+  # Flags um 0,03-0,2 konsequent mit NoSlow on
+  threshold: 0.001
+  # Schnell auf das erste Element zurücksetzen, um jeden Vorteil von NoSlow zu beseitigen
+  setbackvl: 5
+  # Verfall ist, wenn der Spieler einen Gegenstand benutzt UND dadurch verlangsamt wird
+  decay: 0.05
+
+Knockback:
+  # Wie viel eines Offsets ist "schummeln"?
+  # Standardmäßig ist dies 1e-5, was sicher und vernünftig ist.
+  # Gemessen in Blöcken von der korrekten Bewegung
+  threshold: 0.001
+  setbackvl: 3
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Millisekunden, die der Spieler akkumulieren kann, um sie später zu nutzen, wenn er zurückfällt.
+  # Könnte möglicherweise 1,8 schnelle Nutzung/schnelle Heilung/schnelle Bogenumgehungen ermöglichen, wenn zu hoch eingestellt, 120 ms scheint eine gute Balance zu sein
+  drift: 120
+
+NegativeTimer:
+  # Anzahl der Millisekunden, die während der Bewegung verloren gehen, bevor mit der Markierung begonnen werden sollte.
+  drift: 1200
+
+# Gleiche Prüfmethode wie TimerA, aber für Fahrzeuge
+TimerVehicle:
+  # Ziel 1,005 Timer
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # Um wie viel sollen wir die Hitboxen erweitern? 0,0005 sollte 3,0005+ Reichweite erkennen
+  #
+  # Es gibt eine 0,03 erzwungene Erweiterung mit 1.9-1.18.1 (nicht 1.18.2), oder einigen Client/Server-Kombinationen aufgrund von
+  # Protokolländerungen und -beschränkungen. Diese Prüfung ist am stärksten mit 1.7/1.8 Clients auf 1.8 Servern.
+  threshold: 0.0005
+  # Sollten wir Treffer annullieren, von denen wir wissen, dass sie unmöglich sind?
+  # 3.00-3.03-Treffer können aufgrund von Beschränkungen der Paketreihenfolge durchgehen, aber dennoch gekennzeichnet werden.
+  block-impossible-hits: true
+  # Dies sendet ein zusätzliches Paket am Ende jedes Ticks, um die Wahrscheinlichkeit zu erhöhen, dass Betrüger erwischt werden.
+  # Dies injiziert in die Verbindungsliste des Servers, um ein letztes Paket zu senden, kurz bevor der Server geleert wird.
+  # Aktivieren dieser Funktion erhöht die Bandbreitennutzung für alle Spieler.
+  # Dies wird die Gesamtleistung des Servers nicht verringern.
+  # Aktivieren Sie diese Option, um mehr Cheater zu erwischen.
+  # Bleibt diese Funktion deaktiviert, werden immer noch Cheater erwischt und es kommt nicht zu Fehlalarmen.
+  # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
+  enable-post-packet: false
+
+# Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
+debug-pipeline-on-join: false
+
+# Aktiviert experimentelle Prüfungen
+experimental-checks: false
+
+# Grim bricht manchmal illegale Pakete ab, z.B. mit Timer, nachdem X Pakete in einer Sekunde abgebrochen wurden, wann sollte
+# wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
+packet-spam-threshold: 100
+
+config-version: 8

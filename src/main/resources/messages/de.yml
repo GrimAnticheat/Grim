@@ -1,0 +1,48 @@
+# \u00BB ist " (double >>), ANSI und UTF-8 interpretieren dies unterschiedlich... dadurch kann sogar ? angezeigt werden
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlerts aktiviert"
+alerts-disabled: "%prefix% &fAlerts deaktiviert"
+client-brand-format: "%prefix% &f%player% beigetreten mit %brand%"
+console-specify-target: "%prefix% &cSie müssen ein Ziel als Konsole angeben!"
+player-not-found: "%prefix% &cDer Spieler ist freigestellt oder offline!"
+player-not-this-server: "%prefix% &cSpieler ist nicht auf diesem Server!"
+spectate-return: "\n%prefix% &fKlicken Sie hier, um zur vorherigen Position zurückzukehren\n"
+cannot-spectate-return: "%prefix% &cSie können dies nur tun, nachdem Sie einen Spieler beobachtet haben"
+cannot-run-on-self: "%prefix% &cSie können diesen Befehl nicht auf sich selbst anwenden!"
+upload-log: "%prefix% &fDebug wurde hochgeladen nach: %url%"
+upload-log-start: "%prefix% &fProtokoll hochladen... bitte warten"
+upload-log-not-found: "%prefix% &cDas Protokoll konnte nicht gefunden werden"
+upload-log-upload-failure: "%prefix% &cBeim Hochladen dieses Protokolls ist etwas schiefgelaufen, weitere Informationen finden Sie auf der Konsole"
+
+# Gültige Platzhalter:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - Verstöße
+# %verbose% - zusätzliche Informationen aus dem Check wie z.B. Offsets, nicht alle Checks fügen Informationen hinzu
+alerts-format: "%prefix% &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfil für &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersion: &f%Version%"
+  - "&bClient-Marke: &f%Marke%"
+  - "&bHorizontale Empfindlichkeit: &f%h_sensitivity%%"
+  - "&bVertikale Empfindlichkeit: &f%v_sensitivity%%"
+  - "&bFastMath Aktiviert: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Warnungen einschalten"
+  - "/grim profile <Spieler> &f- &7Spielerinformationen anzeigen"
+  - "/grim help &f- &7Diese Hilfemeldung anzeigen"
+  - "/grim debug <Spieler> &f- &7Entwickler Vorhersageausgabe"
+  - "/grim perf &f- &7Entwickler ms/vorhersage"
+  - "/grim reload &f- &7Lädt die Konfiguration neu"
+  - "/grim spectate <Spieler> &f- &7Spectate einen Spieler"
+  - "/grim verbose &f- &fZeigt dir jede Flagge an, ohne Puffer"
+  - "/grim log [0-255] &f- &7Lädt ein Debug-Protokoll für Vorhersage-Flags hoch"
+  - "&7======================"

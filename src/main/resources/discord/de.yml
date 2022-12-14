@@ -1,0 +1,12 @@
+# Ob Discord Webhook aktiviert werden soll
+enabled: false
+webhook: ""
+embed-color: "#00FFFF"
+violation-content:
+  - "**Spieler**: %player%"
+  - "**Check**: %check%"
+  - "**Verstöße**: %violations%"
+  - "**Client-Version**: %version%"
+  - "**Marke**: %brand%"
+  - "**Ping**: %ping%"
+  - "**TPS**: %tps%"
