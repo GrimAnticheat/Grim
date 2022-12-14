@@ -40,23 +40,13 @@ public class CompensatedInventory extends Check implements PacketCheck {
     public Inventory inventory;
     // "Temporarily" public for debugging
     public AbstractContainerMenu menu;
-    // Packet based inventories aren't done yet.  Both Grim and PacketEvents need more work for this.
-    // Therefore, we switch to bukkit based inventories for things like anvils and looms.
-    // Eventually, for proxy support, all inventories will be supported...
-    // ViaBackwards needs this code too, so maybe we can copy them if they ever implement it.
-    // Although right now it looks like they will just copy us - which I wouldn't mind.
+    // Not all inventories are supported due to complexity and version differences
     public boolean isPacketInventoryActive = true;
     // Special values:
     // Player inventory is -1
     // Unsupported inventory is -2
     private int packetSendingInventorySize = -1;
     public boolean needResend = false;
-    // Here are the mappings from the geniuses at Mojang
-    // 1, 2, 3, 4 and 0 are the crafting table
-    // 5, 6, 7, 8 are the armor slots from helmet to boots
-    // 45 is the offhand, only existing on 1.9+ servers
-    // 36-44 is the hotbar
-    // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
     public int stateID = 0; // Don't mess up the last sent state ID by changing it
 
@@ -434,8 +424,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.getInventoryStorage().handleServerCorrectSlot(slot.getSlot());
             } else if (slot.getWindowId() == 0) { // Inventory change through window ID, no crafting result
                 inventory.getInventoryStorage().handleServerCorrectSlot(slot.getSlot());
+            } else {
+                markServerForChangingSlot(slot.getSlot(), slot.getWindowId());
             }
-
 
             stateID = slot.getStateId();
 

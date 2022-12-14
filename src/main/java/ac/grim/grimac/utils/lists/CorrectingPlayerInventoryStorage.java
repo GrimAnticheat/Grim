@@ -17,19 +17,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * Since I don't want to spend months finding version differences in inventory
  * Or copy (and debug) over around 5k lines of code to accomplish inventories
  * Grim uses a hybrid system for inventories - we lag compensate but rely on the server
- * for truth when the client seems to match the server's state
+ * for the ultimate source of truth, and resync if what we found is different from what the server sees
+ *
+ * This also patches most desync's that happen with inventories on some versions like 1.8 or
+ * other desync's introduced by mojang or viabackwards
+ *
  * <p>
  * To accomplish this we:
  * - Track items changed when the player swaps or moves items in a basic inventory
  * - Track items when the player has placed a block, for example
+ * - Track other item predictions by the client
  * <p>
- * There is somewhat of a race condition that we must fix, however, with some smart thinking.
- * We only see bukkit changes at the end of the tick.
+ * There is somewhat of a race condition
+ * The server's inventory state can only truly be read at the start of the tick
+ * However, we read inventories async for performance reasons
+ * This shouldn't cause any negative issues in practice, but it technically is wrong
  * <p>
  * Apply this only to the player's inventory for simplicity reasons
  * Horses and stuff, the metadata for saddles is server authoritative
- * No inventory directly affects us other than the player's inventory, if other inventories
- * desync and break the player's inventory, we will recover from it with this class.
+ * No inventory directly affects us other than the player's inventory.
  */
 public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
