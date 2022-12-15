@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.MaterialType;
@@ -22,6 +23,11 @@ public class BlockBreakSpeed {
 
         WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
         float blockHardness = block.getType().getHardness();
+
+        // 1.15.2 and below need this hack
+        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2)) {
+            blockHardness = 0.5f;
+        }
 
         if (player.gamemode == GameMode.CREATIVE) {
             // A creative mode player cannot break things with a sword!
