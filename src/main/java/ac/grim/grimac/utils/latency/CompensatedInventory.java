@@ -79,9 +79,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // 0 -> 9 are hotbar slots in bukkit
             return packetSlot - 36;
         }
-        // 45 is offhand
+        // 45 is offhand is packet, it is 40 in bukkit
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && packetSlot == 45) {
-            return 45;
+            return 40;
         }
         return -1;
     }
