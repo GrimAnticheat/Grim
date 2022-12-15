@@ -65,7 +65,7 @@ public class DynamicConnecting {
             if (v.isOlderThan(ClientVersion.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(ClientVersion.V_1_13)))
                 return false;
             return targetBlock.getFacing().getOppositeFace() == direction;
-        } else if (canConnectToGate() && BlockTags.FENCE_GATES.contains(target)) {
+        } else if (canConnectToGate(fence) && BlockTags.FENCE_GATES.contains(target)) {
             // 1.4-1.11 clients don't check for fence gate direction
             // https://bugs.mojang.com/browse/MC-94016
             if (v.isOlderThanOrEquals(ClientVersion.V_1_11_1)) return true;
@@ -81,7 +81,7 @@ public class DynamicConnecting {
     }
 
     boolean isBlacklisted(StateType m, StateType fence, ClientVersion clientVersion) {
-        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.getPanes().contains(fence);
+        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.isGlassPane(fence);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 
@@ -121,7 +121,7 @@ public class DynamicConnecting {
         return false;
     }
 
-    public boolean canConnectToGate() {
-        return true;
+    public boolean canConnectToGate(StateType fence) {
+        return !Materials.isGlassPane(fence);
     }
 }
