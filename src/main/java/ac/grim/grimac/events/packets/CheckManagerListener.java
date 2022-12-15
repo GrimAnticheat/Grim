@@ -493,14 +493,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     player.onPacketCancel();
 
                     Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
-                    int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
-                    int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
-                    player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
-                    player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
 
                     // Ends the client prediction introduced in 1.19+
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
                         player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
+                    } else { // The client isn't smart enough to revert changes
+                        int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
+                        int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
+                        player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
+                        player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
                     }
 
                     // Stop inventory desync from cancelling place
