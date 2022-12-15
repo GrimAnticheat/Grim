@@ -64,6 +64,24 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 shadowJar {
     minimize()
+    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
+    relocate 'com.github.retrooper.packetevents', 'ac.grim.grimac.shaded.com.github.retrooper.packetevents'
+    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
+    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
+    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
+    relocate 'github.scarsz.configuralize', 'ac.grim.grimac.shaded.configuralize'
+    relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
+    relocate 'com.google.gson', 'ac.grim.grimac.shaded.gson'
+    relocate 'alexh', 'ac.grim.grimac.shaded.maps'
+    relocate 'it.unimi.dsi.fastutil', 'ac.grim.grimac.shaded.fastutil'
+    relocate 'net.kyori', 'ac.grim.grimac.shaded.kyori'
+    relocate 'okhttp3', 'ac.grim.grimac.shaded.okhttp3'
+    relocate 'okio', 'ac.grim.grimac.shaded.okio'
+    relocate 'org.yaml.snakeyaml', 'ac.grim.grimac.shaded.snakeyaml'
+    relocate 'org.slf4j', 'ac.grim.grimac.shaded.slf4j'
+    relocate 'org.json', 'ac.grim.grimac.shaded.json'
+    relocate 'org.intellij', 'ac.grim.grimac.shaded.intellij'
+    relocate 'org.jetbrains', 'ac.grim.grimac.shaded.jetbrains'
     archiveFileName = "${project.name}-${project.version}.jar"
 }
 
