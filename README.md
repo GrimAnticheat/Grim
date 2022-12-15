@@ -2,12 +2,12 @@
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open-source Minecraft anticheat designed for 1.19 and supports versions 1.8-1.19. It is free to use while in beta, but will eventually become a paid service or offer subscription-based paid checks. Geyser players are fully exempt from all checks.
+GrimAC is an open-source Minecraft anticheat designed for 1.19.2 and supports versions 1.8-1.19.3. It is free to use while in beta, but will eventually become a paid service or offer subscription-based paid checks. Geyser players are fully exempt from all checks.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
 
 ### Compiling through terminal/command prompt
-1. git clone https://github.com/MWHunter/Grim (or click the green "Code" button and download the code, then unzip it)
+1. git clone https://github.com/GrimAnticheat/Grim (or click the green "Code" button and download the code, then unzip it)
 2. cd Grim
 3. gradlew shadowJar
 
@@ -15,7 +15,7 @@ The final JAR file will be located in the 'build/libs' directory.
 
 ### API Information
 
-Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's GitHub repository here[here](https://github.com/MWHunter/GrimAPI).
+Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's GitHub repository [here](https://github.com/GrimAnticheat/GrimAPI).
 
 ## Grim supremacy
 
@@ -23,7 +23,7 @@ Grim stands out among other anticheats for several reasons:
 
 ### Movement Simulation Engine
 
-Grim has a 1:1 replication of a player's possible movements, **covering everything from basic walking and swimming to knockback, cobwebs, and bubble columns**. The engine is built to account for **edge cases and confirm accuracy**, and supports all combinations of client and server **versions from 1.8-1.19**. The engine also accounts for minor bounding box differences between versions, **such as the shape of glass panes, and replaces blocks and block data that cannot be translated to previous versions correctly**. All vanilla collision boxes have been implemented.
+Grim has a 1:1 replication of a player's possible movements, **covering everything from basic walking and swimming to knockback, cobwebs, and bubble columns**. The engine is built to account for **edge cases and confirm accuracy**, and supports all combinations of client and server **versions from 1.8-1.19.2**. The engine also accounts for minor bounding box differences between versions, **such as the shape of glass panes, and replaces blocks and block data that cannot be translated to previous versions correctly**. All vanilla collision boxes have been implemented.
 
 ### Fully asynchronous and multithreaded design
 
@@ -43,7 +43,7 @@ Grim tracks a player's inventory **to prevent ghost blocks and other errors at h
 
 ### Secure by design, not obscurity
 
-All systems are designed to be highly secure and mathematically impossible to bypass
+All systems are designed to be highly secure and mathematically impossible to bypass.
 For example, the prediction engine knows all possible movements and cannot be bypassed
 
 ### Support
