@@ -24,11 +24,11 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
     // Special values:
     // Player inventory is -1
     // Unsupported inventory is -2
-    private int packetSendingInventorySize = -1;
+    private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
+    private static final int PLAYER_INVENTORY_CASE = -1;
+    private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     public boolean needResend = false;
     int openWindowID = 0;
     public int stateID = 0; // Don't mess up the last sent state ID by changing it
@@ -110,7 +112,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         // Unsupported inventory
         if (packetSendingInventorySize == -2) return;
         // Player inventory
-        if (packetSendingInventorySize == -1 || windowID == 0) {
+        if (packetSendingInventorySize == PLAYER_INVENTORY_CASE || windowID == 0) {
             // Result slot isn't included in storage, we must ignore it
             inventory.getInventoryStorage().handleServerCorrectSlot(clicked);
             return;
@@ -279,6 +281,11 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 return;
             }
 
+            // Don't care about this click since we can't track it.
+            if (menu instanceof NotImplementedMenu) {
+                return;
+            }
+
             // Mark the slots the player has changed as changed, then continue simulating what they changed
             Optional<Map<Integer, ItemStack>> slots = click.getSlots();
             slots.ifPresent(integerItemStackMap -> integerItemStackMap.keySet().forEach(this::markPlayerSlotAsChanged));
@@ -334,36 +341,33 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 newMenu = MenuTypes.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
             }
 
-            packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? -2 : newMenu.getSlots().size();
+            packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? UNSUPPORTED_INVENTORY_CASE : newMenu.getSlots().size();
 
             // There doesn't seem to be a check against using 0 as the window ID - let's consider that an invalid packet
             // It will probably mess up a TON of logic both client and server sided, so don't do that!
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 openWindowID = open.getContainerId();
                 menu = newMenu;
+                isPacketInventoryActive = !(newMenu instanceof NotImplementedMenu);
+                needResend = newMenu instanceof NotImplementedMenu;
             });
         }
 
         // I'm not implementing this lol
         if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-            needResend = true;
-            isPacketInventoryActive = false;
-            packetSendingInventorySize = -2;
+            WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
+
+            packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                isPacketInventoryActive = false;
+                needResend = true;
+                openWindowID = open.getWindowId();
+            });
         }
 
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
-            packetSendingInventorySize = -1;
-
-            if (needResend) {
-                if (player.bukkitPlayer != null) {
-                    needResend = false;
-                    Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                        player.bukkitPlayer.closeInventory();
-                        player.bukkitPlayer.updateInventory();
-                    });
-                }
-            }
+            packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
             // Disregard provided window ID, client doesn't care...
             // We need to do this because the client doesn't send a packet when closing the window
@@ -371,8 +375,6 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 openWindowID = 0;
                 menu = inventory;
                 menu.setCarried(ItemStack.EMPTY); // Reset carried item
-
-                isPacketInventoryActive = true;
             });
         }
 
@@ -386,8 +388,14 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 markServerForChangingSlot(i, items.getWindowId());
             }
 
-            // State ID is how the game tries to handle latency compensation.
-            // Unsure if we need to know about this.
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                // Never true when the inventory is unsupported.
+                // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
+                if (slots.size() == packetSendingInventorySize || items.getWindowId() == 0) {
+                    isPacketInventoryActive = true;
+                }
+            });
+
             if (items.getWindowId() == 0) { // Player inventory
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (!isPacketInventoryActive) return;

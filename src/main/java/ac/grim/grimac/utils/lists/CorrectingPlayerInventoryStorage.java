@@ -6,10 +6,10 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.InventoryView;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -46,6 +46,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     // A list of predictions the client has made for inventory changes
     // Remove if the server rejects these changes
     Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
+    // TODO: How the hell does creative mode work?
+    private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
+            Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
+    );
 
     public CorrectingPlayerInventoryStorage(GrimPlayer player, int size) {
         super(size);
@@ -119,11 +123,24 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             }
         }
 
+        if (player.getInventory().needResend) {
+            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                // Potential race condition doing this multiple times
+                if (!player.getInventory().needResend) return;
+
+                InventoryView view = player.bukkitPlayer.getOpenInventory();
+                if (SUPPORTED_INVENTORIES.contains(view.getType().toString().toUpperCase(Locale.ROOT))) {
+                    player.getInventory().needResend = false;
+                    player.bukkitPlayer.updateInventory();
+                }
+            });
+        }
+
         // Every five ticks, we pull a new item for the player
         // This means no desync will last longer than 10 seconds
         // (Required as mojang has screwed up some things with inventories that we can't easily fix.
         // Don't spam this as it could cause lag (I was getting 0.3 ms to query this, this is done async though)
-        // TODO: PacketEvents is being really inefficient here to convert this... we should improve this!
+        // TODO: We could make this faster by using pooled bytebuffers
         if (tickID % 5 == 0) {
             int slotToCheck = (tickID / 5) % getSize();
             // If both these things are true, there is nothing that should be broken.
