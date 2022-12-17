@@ -1,7 +1,7 @@
 name: GrimAC
 description: Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0.
 author: GrimAC
-version: 2.3.30
+version: 2.3.31
 main: ac.grim.grimac.GrimAC
 softdepend:
   - ProtocolLib
