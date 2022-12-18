@@ -502,9 +502,9 @@ public class GrimPlayer implements GrimUser {
     //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
-        return (!uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
-                || compensatedEntities.getSelf().inVehicle()
-                || getClientVersion().isOlderThan(ClientVersion.V_1_9);
+        return (getClientVersion().isOlderThan(ClientVersion.V_1_9) 
+                || !uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
+                || compensatedEntities.getSelf().inVehicle();
     }
 
     public boolean canThePlayerBeCloseToZeroMovement(int ticks) {
