@@ -373,12 +373,15 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
      * @return Whether the player has loaded the chunk and accepted a teleport to correct movement or not
      */
     public boolean insideUnloadedChunk() {
-        Column column = player.compensatedWorld.getChunk(GrimMath.floor(player.x) >> 4, GrimMath.floor(player.z) >> 4);
-
         // If true, the player is in an unloaded chunk
-        return !player.disableGrim && (column == null || column.transaction >= player.lastTransactionReceived.get() ||
-                // The player hasn't loaded past the DOWNLOADING TERRAIN screen
-                !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport);
+        if (!player.disableGrim) {
+            Column column = player.compensatedWorld.getChunk(GrimMath.floor(player.x) >> 4, GrimMath.floor(player.z) >> 4);
+            return column == null || column.transaction >= player.lastTransactionReceived.get() ||
+                   // The player hasn't loaded past the DOWNLOADING TERRAIN screen
+                   !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport;
+        }
+
+        return false;
     }
 
     /**
