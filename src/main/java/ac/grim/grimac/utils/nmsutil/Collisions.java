@@ -299,21 +299,25 @@ public class Collisions {
         SimpleCollisionBox setBB = box.copy();
 
         for (Axis axis : order) {
-            if (axis == Axis.X) {
+            switch (axis) {
+            case X:
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
                     x = bb.collideX(setBB, x);
                 }
                 setBB.offset(x, 0.0D, 0.0D);
-            } else if (axis == Axis.Y) {
+                break;
+            case Y:
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
                     y = bb.collideY(setBB, y);
                 }
                 setBB.offset(0.0D, y, 0.0D);
-            } else if (axis == Axis.Z) {
+                break;
+            case Z:
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
                     z = bb.collideZ(setBB, z);
                 }
                 setBB.offset(0.0D, 0.0D, z);
+                break;
             }
         }
 
