@@ -323,9 +323,12 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.lastTransactionReceived.get();
 
-        while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
-            if (teleportPos == null) break;
+        if (player.vehicleData.vehicleTeleports.peek() == null) {
+            return false;
+        }
+
+        for (Pair<Integer, Vector3d> teleportPos : player.vehicleData.vehicleTeleports) {
+            // Exit the loop if the lastTransaction is less than the first element in the pair
             if (lastTransaction < teleportPos.getFirst()) {
                 break;
             }
@@ -333,13 +336,11 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             Vector3d position = teleportPos.getSecond();
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.vehicleData.vehicleTeleports.poll();
-
                 return true;
             } else if (lastTransaction > teleportPos.getFirst() + 1) {
-                player.vehicleData.vehicleTeleports.poll();
-
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back
                 // Players don't have to respond to vehicle teleports if they aren't controlling the entity anyways
+                player.vehicleData.vehicleTeleports.poll();
                 continue;
             }
 
