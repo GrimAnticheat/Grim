@@ -42,7 +42,7 @@ public class CompensatedEntities {
     }
 
     public int getPacketEntityID(PacketEntity entity) {
-        for (Map.Entry<Integer, PacketEntity> entry : entityMap.entrySet()) {
+        for (Map.Entry<Integer, PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
             if (entry.getValue() == entity) {
                 return entry.getKey();
             }
