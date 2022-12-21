@@ -2,14 +2,30 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.UserDisconnectEvent;
-import com.github.retrooper.packetevents.event.UserLoginEvent;
+import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
+import com.github.retrooper.packetevents.protocol.ConnectionState;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
+
+    @Override
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
+            // Do this after send to avoid sending packets before the PLAY state
+            event.getTasksAfterSend().add(() -> GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser()));
+        }
+    }
+
+    @Override
+    public void onUserConnect(UserConnectEvent event) {
+        // Player connected too soon, perhaps late bind is off
+        if (event.getUser().getConnectionState() == ConnectionState.PLAY) {
+            event.setCancelled(true);
+        }
+    }
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
