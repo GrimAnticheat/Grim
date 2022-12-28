@@ -591,6 +591,11 @@ public class BlockPlace {
             return;
         }
 
+        // Check for min and max bounds of world
+        if (player.compensatedWorld.getMaxHeight() <= position.getY() || position.getY() < player.compensatedWorld.getMinHeight()) {
+            return;
+        }
+
         // Check for waterlogged
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             if (state.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
