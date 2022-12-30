@@ -1,5 +1,7 @@
 enabled: false
 webhook: ""
+violation-lower-limit: 0
+violation-upper-limit: -1
 embed-color: "#00FFFF"
 violation-content:
   - "**Player**: %player%"
