@@ -217,11 +217,11 @@ public class BoundingBoxSize {
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.ALLAY.equals(packetEntity.type)) {
             return 0.6f;
-        } else if (EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+        } else if (EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
             return 0.8f;
         } else if (EntityTypes.SQUID.equals(packetEntity.type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
-        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.SPIDER.equals(packetEntity.type)) {
+        } else if (EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.SPIDER.equals(packetEntity.type)) {
             return 0.9f;
         } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
             return 0.3125f;
