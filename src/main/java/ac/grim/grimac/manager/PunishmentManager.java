@@ -71,14 +71,19 @@ public class PunishmentManager {
                 }
 
                 for (String command : commands) {
-                    String firstNum = command.substring(0, command.indexOf(":"));
-                    String secondNum = command.substring(command.indexOf(":"), command.indexOf(" "));
+                    // Break down the min max and interval arguments all at once
+                    String[] thresholds = command.substring(0, command.indexOf(" ")).split(":");
+                    String firstNum = thresholds[0];
+                    String secondNum = thresholds[1];
+                    // Optionally allow the user to set maximum thresholds
+                    String thirdNum = thresholds.length > 2 ? thresholds[2] : "-1";
 
                     int threshold = Integer.parseInt(firstNum);
-                    int interval = Integer.parseInt(secondNum.substring(1));
+                    int interval = Integer.parseInt(secondNum);
+                    int thresholdMax = Integer.parseInt(thirdNum);
                     String commandString = command.substring(command.indexOf(" ") + 1);
 
-                    parsed.add(new ParsedCommand(threshold, interval, commandString));
+                    parsed.add(new ParsedCommand(threshold, interval, commandString, thresholdMax));
                 }
 
                 groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter));
@@ -127,7 +132,7 @@ public class PunishmentManager {
                         }
                     }
 
-                    if (violationCount >= command.getThreshold()) {
+                    if (violationCount >= command.getThreshold() && (violationCount <= command.getMaxThreshold() && command.getMaxThreshold() != -1)) {
                         // 0 means execute once
                         // Any other number means execute every X interval
                         boolean inInterval = command.getInterval() == 0 ? (command.executeCount == 0) : (violationCount % command.getInterval() == 0);
@@ -210,10 +215,13 @@ class ParsedCommand {
     int executeCount;
     @Getter
     String command;
+    @Getter
+    int maxThreshold;
 
-    public ParsedCommand(int threshold, int interval, String command) {
+    public ParsedCommand(int threshold, int interval, String command, int maxThreshold) {
         this.threshold = threshold;
         this.interval = interval;
         this.command = command;
+        this.maxThreshold = maxThreshold;
     }
 }

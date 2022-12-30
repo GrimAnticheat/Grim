@@ -7,9 +7,6 @@ enabled: false
 # La URL del webhook.
 webhook: ""
 
-violation-lower-limit: 0
-violation-upper-limit: -1
-
 # El color del embed que se mandara por este webhook.
 embed-color: "#00FFFF"
 

@@ -26,6 +26,10 @@ Punishments:
     # - "100:50 say %player% is cheating"
     # Execute when the user hits flag 100, and after that, every 50th flag after 100
     #
+    # And optionally add a max number of violations
+    # - "100:50:500 [webhook]"
+    # This will only send a webhook after 100 flags, and every 50th flag and only for up to 500 violations
+    #
     commands:
       - "100:40 [alert]"
       - "100:100 [webhook]"

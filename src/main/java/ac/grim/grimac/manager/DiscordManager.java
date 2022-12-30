@@ -19,8 +19,6 @@ public class DiscordManager implements Initable {
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
-    private int violationLowerLimit;
-    private int violationUpperLimit;
 
     public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
 
@@ -52,10 +50,6 @@ public class DiscordManager implements Initable {
                 sb.append(string).append("\n");
             }
             staticContent = sb.toString();
-
-            violationLowerLimit = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("violation-lower-limit", 0);
-            // We will use -1 anyone who does not want an upper limit on violations
-            violationUpperLimit = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("violation-upper-limit", -1);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,13 +69,6 @@ public class DiscordManager implements Initable {
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
-            System.out.println(violations);
-            int violationAsNum = Integer.parseInt(violations);
-
-            // Ignore violation webhooks outside of the specified limit
-            if(violationAsNum < violationLowerLimit) return;
-            if(violationAsNum > violationUpperLimit && violationUpperLimit != -1) return;
-
             String content = staticContent + "";
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
