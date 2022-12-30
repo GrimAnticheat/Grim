@@ -256,6 +256,8 @@ public abstract class AbstractContainerMenu {
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP) {
             Slot hoveringSlot = slots.get(slotID);
 
+            // How the fuck did the player SWAP with true slot 38 (chestplate?)??
+            // A vanilla client can't do this... what cheat does this?
             button = button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET;
 
             // 40 is offhand
