@@ -132,11 +132,13 @@ public class PunishmentManager {
                         }
                     }
 
-                    if (violationCount >= command.getThreshold() && (violationCount <= command.getMaxThreshold() && command.getMaxThreshold() != -1)) {
+                    if (violationCount >= command.getThreshold()) {
                         // 0 means execute once
                         // Any other number means execute every X interval
                         boolean inInterval = command.getInterval() == 0 ? (command.executeCount == 0) : (violationCount % command.getInterval() == 0);
-                        if (inInterval) {
+                        if (inInterval
+                                // Only execute a certain amount of times
+                                && (command.executeCount <= command.getMaxThreshold() && command.getMaxThreshold() != -1)) {
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd);
                             Bukkit.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
