@@ -43,6 +43,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (player.vehicleData.wasVehicleSwitch) return;
         // Ray trace to try and hit the target block.
         boolean hit = didRayTraceHit(place);
         // This can false with rapidly moving yaw in 1.8+ clients
