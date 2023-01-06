@@ -31,8 +31,13 @@ public class SpectateManager implements Initable {
 
     public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
         return playerData.getUser() != null
-                && !Objects.equals(playerData.getUser().getUUID(), receiver.playerUUID) // don't hide to yourself
-                && (spectatingPlayers.containsKey(playerData.getUser().getUUID()) || hiddenPlayers.contains(playerData.getUser().getUUID())) //hide if you are a spectator
+                && playerData.getUser().getUUID() != null
+                && shouldHidePlayer(receiver, playerData.getUser().getUUID());
+    }
+
+    public boolean shouldHidePlayer(GrimPlayer receiver, UUID uuid) {
+        return !Objects.equals(uuid, receiver.playerUUID) // don't hide to yourself
+                && (spectatingPlayers.containsKey(uuid) || hiddenPlayers.contains(uuid)) //hide if you are a spectator
                 && !(receiver.playerUUID != null && (spectatingPlayers.containsKey(receiver.playerUUID) || hiddenPlayers.contains(receiver.playerUUID))) // don't hide to other spectators
                 && (!checkWorld || (receiver.bukkitPlayer != null && allowedWorlds.contains(receiver.bukkitPlayer.getWorld().getName()))); // hide if you are in a specific world
     }
