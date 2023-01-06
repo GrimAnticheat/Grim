@@ -20,7 +20,7 @@ public class GrimSpectate extends BaseCommand {
     @Subcommand("spectate")
     @CommandPermission("grim.spectate")
     @CommandCompletion("@players")
-    public void onSpectate(CommandSender sender, OnlinePlayer target) {
+    public void onSpectate(CommandSender sender, @Optional OnlinePlayer target) {
         if (!(sender instanceof Player)) return;
         Player player = (Player) sender;
 
