@@ -42,11 +42,11 @@ public class PredictionEngineWater extends PredictionEngine {
         // Anyways, Jesus doesn't make too much sense on 1.13+ clients anyways when swimming is faster
         if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.compensatedEntities.getSelf().getRiding() == null) {
             for (VectorData vector : base) {
-                double d = ReachUtils.getLook(player, player.xRot, player.yRot).getY();
-                double d5 = d < -0.2 ? 0.085 : 0.06;
+                double lookYAmount = ReachUtils.getLook(player, player.xRot, player.yRot).getY();
+                double scalar = lookYAmount < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
-                swimmingVelocities.add(vector.returnNewModified(new Vector(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
+                swimmingVelocities.add(vector.returnNewModified(new Vector(vector.vector.getX(), vector.vector.getY() + ((lookYAmount - vector.vector.getY()) * scalar), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 // Theoretically we should check this BEFORE allowing no look, but there isn't a cheat that takes advantage of this yet

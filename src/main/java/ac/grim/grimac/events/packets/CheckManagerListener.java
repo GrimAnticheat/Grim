@@ -299,7 +299,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, face, placedWith, getNearestHitResult(player, null, true));
             // At this point, it is too late to cancel, so we can only flag, and cancel subsequent block places more aggressively
-            player.checkManager.onPostFlyingBlockPlace(blockPlace);
+            if (!player.compensatedEntities.getSelf().inVehicle()) {
+                player.checkManager.onPostFlyingBlockPlace(blockPlace);
+            }
 
             blockPlace.setInside(place.getInsideBlock().orElse(false));
 
@@ -485,7 +487,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
+                if ((placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) && !player.compensatedEntities.getSelf().inVehicle())
                     player.checkManager.onBlockPlace(blockPlace);
 
                 if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
