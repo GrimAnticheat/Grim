@@ -325,7 +325,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (!inThisVehicle && wasInVehicle) {
             player.handleDismountVehicle(event);
         }
-
+        // Better lag compensation if we were affected by this
+        if (wasInVehicle || inThisVehicle) {
+            player.sendTransaction();
+        }
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
 
