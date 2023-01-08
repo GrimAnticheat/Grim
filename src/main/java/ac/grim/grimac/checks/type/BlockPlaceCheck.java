@@ -18,7 +18,7 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
 
-    int cancelVL;
+    protected int cancelVL;
 
     public BlockPlaceCheck(GrimPlayer player) {
         super(player);
