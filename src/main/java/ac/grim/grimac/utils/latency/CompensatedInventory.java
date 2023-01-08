@@ -388,10 +388,11 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 markServerForChangingSlot(i, items.getWindowId());
             }
 
+            int cachedPacketInvSize = packetSendingInventorySize;
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 // Never true when the inventory is unsupported.
                 // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
-                if (slots.size() == packetSendingInventorySize || items.getWindowId() == 0) {
+                if (slots.size() == cachedPacketInvSize || items.getWindowId() == 0) {
                     isPacketInventoryActive = true;
                 }
             });
