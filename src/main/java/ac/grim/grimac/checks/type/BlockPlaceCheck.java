@@ -18,6 +18,8 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
 
+    int cancelVL;
+
     public BlockPlaceCheck(GrimPlayer player) {
         super(player);
     }
@@ -28,6 +30,16 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
 
     // Method called the flying packet after the block place
     public void onPostFlyingBlockPlace(BlockPlace place) {
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        this.cancelVL = getConfig().getIntElse(getConfigName() + ".cancelVL", 5);
+    }
+
+    protected boolean shouldCancel() {
+        return cancelVL >= 0 && violations >= cancelVL;
     }
 
     static {

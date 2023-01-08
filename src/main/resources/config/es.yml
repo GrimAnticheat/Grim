@@ -62,6 +62,21 @@ Phase:
   setbackvl: 1 # Entrar a un bloque mediante bugs puede permitir subir paredes, además esta comprobación es relativamente estable.
   decay: 0.005
 
+AirLiquidPlace:
+  cancelvl: 0
+
+FabricatedPlace:
+  cancelvl: 5
+
+FarPlace:
+  cancelvl: 5
+
+PositionPlace:
+  cancelvl: 5
+
+RotationPlace:
+  cancelvl: 5
+
 # Comprobación de NoSlow basado en predicciones
 # Grim compensa por código de red con errores aquí... difícil de sacar un falso positivo incluso haciendo spam del
 # clic derecho y la mano secundaria.
