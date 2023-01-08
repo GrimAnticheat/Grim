@@ -13,6 +13,8 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.puregero.multilib.MultiLib;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,7 +27,8 @@ public class GrimProfile extends BaseCommand {
         Player player = null;
         if (sender instanceof Player) player = (Player) sender;
 
-        if (MultiLib.isExternalPlayer(target.getPlayer())) {
+        // Short circuit due to minimum java requirements for MultiLib
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLib.isExternalPlayer(target.getPlayer())) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cPlayer isn't on this server!");
             sender.sendMessage(MessageUtil.format(alertString));
             return;
