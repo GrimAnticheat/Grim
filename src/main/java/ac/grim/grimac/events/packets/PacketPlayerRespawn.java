@@ -96,6 +96,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 player.isSneaking = false;
                 player.lastOnGround = false;
+                player.isInBed = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
