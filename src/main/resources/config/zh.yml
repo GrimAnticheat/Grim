@@ -2,16 +2,17 @@
 # 源代码链接: https://github.com/MWHunter/Grim
 # 版权归 DefineOutside 和 贡献者所有，基于GPLv3开源协议。
 # 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
+# 中文翻译提供 nuym ,如有错误请提交 Issues 并@我
 
 alerts:
-  # 是否在控制台显示警告？
+  # 是否在控制台显示作弊消息？
   print-to-console: true
-  # This controls whether/how alerts are shared between servers connected to your proxy.
-  # You must have 'bungee-plugin-message-channel' enabled in your Velocity's configuration if Velocity is in use.
+  # 子服之间是否共享作弊消息。
+  # 如果正在使用Velocity，你必须在Velocity的配置中启用` bungee-plugin-message-channel `。
   proxy:
-    # Should alerts be sent to other servers connected to your proxy?
+    # 作弊消息是否应该发送到连接到代理的子服?
     send: false
-    # Should the alerts received from other servers be announced to this server?
+    # 此服务器是否接收来自其他子服的作弊消息？
     receive: false
 
 verbose:
