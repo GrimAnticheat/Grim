@@ -1,5 +1,7 @@
 # GrimAC
 
+This project is considered feature complete for DefineOutside. If you would like a bugfix or enhancement and cannot sponsor the work, pull requests are welcome. Feel free to contact DefineOutside for consulting estimates if desired.
+
 **Test server with bufferless alerts: test.grim.ac**
 
 GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
