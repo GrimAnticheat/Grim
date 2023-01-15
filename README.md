@@ -1,6 +1,6 @@
 # GrimAC
 
-This project is considered feature complete for DefineOutside. If you would like a bugfix or enhancement and cannot sponsor the work, pull requests are welcome. Feel free to contact DefineOutside for consulting estimates if desired.
+This project is considered feature complete for the 2.0 (open-source) branch of this project. If you would like a bugfix or enhancement and cannot sponsor the work, pull requests are welcome. Feel free to contact DefineOutside for consulting estimates if desired.
 
 **Test server with bufferless alerts: test.grim.ac**
 
