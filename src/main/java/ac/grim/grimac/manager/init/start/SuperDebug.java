@@ -70,7 +70,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         sb.append("\nServer Version: ");
         sb.append(PacketEvents.getAPI().getServerManager().getVersion().getReleaseName());
         sb.append("\nPing: ");
-        sb.append(player.getTransactionPing() * 0.000001);
+        sb.append(player.getTransactionPing());
         sb.append("ms\n\n");
 
         for (int i = 0; i < predicted.size(); i++) {
