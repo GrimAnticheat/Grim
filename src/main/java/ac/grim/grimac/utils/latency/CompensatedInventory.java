@@ -443,13 +443,15 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 if (!isPacketInventoryActive) return;
                 if (slot.getWindowId() == -1) { // Carried item
                     inventory.setCarried(slot.getItem());
-                } else if (slot.getWindowId() == -2) { // Direct inventory change
-                    inventory.getInventoryStorage().setItem(slot.getSlot(), slot.getItem());
-                } else if (slot.getWindowId() == 0) { // Player hotbar
-                    // Client ignores this sometimes if not in range when in creative with inventory open
-                    // Other logic can handle this desync... THANKS MOJANG.
-                    inventory.getSlot(slot.getSlot()).set(slot.getItem());
-                } else if (slot.getWindowId() == openWindowID) { // Opened inventory
+                } else if (slot.getWindowId() == -2) { // Direct inventory change (only applied if valid slot)
+                    if (inventory.getInventoryStorage().getSize() > slot.getSlot() && slot.getSlot() >= 0) {
+                        inventory.getInventoryStorage().setItem(slot.getSlot(), slot.getItem());
+                    }
+                } else if (slot.getWindowId() == 0) { // Player hotbar (ONLY!)
+                    if (slot.getSlot() >= 36 && slot.getSlot() <= 44) {
+                        inventory.getSlot(slot.getSlot()).set(slot.getItem());
+                    }
+                } else if (slot.getWindowId() == openWindowID) { // Opened inventory (if not valid, client crashes)
                     menu.getSlot(slot.getSlot()).set(slot.getItem());
                 }
             });
