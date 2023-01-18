@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "BadPacketsG")
 public class BadPacketsG extends Check implements PacketCheck {
-    boolean wasTeleport;
     boolean lastSneaking;
 
     public BadPacketsG(GrimPlayer player) {
@@ -19,9 +18,8 @@ public class BadPacketsG extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        wasTeleport = player.packetStateData.lastPacketWasTeleport || wasTeleport;
-
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
+            final boolean wasTeleport = player.packetStateData.lastPacketWasTeleport;
             WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
