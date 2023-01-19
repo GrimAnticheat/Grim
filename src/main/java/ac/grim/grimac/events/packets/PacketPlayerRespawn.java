@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
@@ -94,7 +95,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                player.isSneaking = false;
+                // From 1.16 to 1.19, this doesn't get set to false for whatever reason
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
+                    player.isSneaking = false;
+                }
+
                 player.lastOnGround = false;
                 player.isInBed = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
@@ -103,6 +108,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
 
                 player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
+                player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
