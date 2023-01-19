@@ -10,7 +10,7 @@ plugins {
 
 
 group = "ac.grim.grimac"
-version = "2.3.32"
+version = "2.3.33"
 description = "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -25,7 +25,12 @@ repositories {
     maven("https://clojars.org/repo") // MultiPaper MultiLib
     maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
     maven("https://repo.codemc.io/repository/maven-snapshots/") // PacketEvents
-    mavenCentral() // FastUtil, Discord-Webhooks
+    mavenCentral()
+    maven {
+        url = uri("https://repo.clojars.org")
+        name = "Clojars"
+    }
+    // FastUtil, Discord-Webhooks
 }
 
 dependencies {
