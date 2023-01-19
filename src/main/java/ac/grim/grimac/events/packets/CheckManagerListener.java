@@ -490,7 +490,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 if ((placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) && !player.compensatedEntities.getSelf().inVehicle())
                     player.checkManager.onBlockPlace(blockPlace);
 
-                if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
+                if (blockPlace.isCancelled() || player.getSetbackTeleportUtil().shouldBlockMovement()) { // The player tried placing blocks in air/water
                     event.setCancelled(true);
                     player.onPacketCancel();
 
