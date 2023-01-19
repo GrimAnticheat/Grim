@@ -7,7 +7,6 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,19 +66,16 @@ public class SneakingEstimator extends Check implements PostPredictionCheck {
 
         for (VectorData data : possible) {
             // Don't let the player always get jumping bonus, for example
-            if (data.isJump() == player.predictedVelocity.isJump() && data.isKnockback() == player.predictedVelocity.isKnockback()
-                    && data.isExplosion() == player.predictedVelocity.isExplosion()) {
+            if (data.isJump() == player.predictedVelocity.isJump() && data.isKnockback() == player.predictedVelocity.isKnockback() && data.isExplosion() == player.predictedVelocity.isExplosion()) {
                 // Fuck, we are compounding this which is very dangerous. After light testing seems fine... can we do better?
-                Vector toMin = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(-100000, 0, -100000));
                 if (player.uncertaintyHandler.lastStuckWest.hasOccurredSince(0) || player.uncertaintyHandler.lastStuckNorth.hasOccurredSince(0)) {
-                    sneakingPotentialHiddenVelocity.minX = Math.min(sneakingPotentialHiddenVelocity.minX, toMin.getX());
-                    sneakingPotentialHiddenVelocity.minZ = Math.min(sneakingPotentialHiddenVelocity.minZ, toMin.getZ());
+                    sneakingPotentialHiddenVelocity.minX = Math.min(sneakingPotentialHiddenVelocity.minX, data.vector.getX());
+                    sneakingPotentialHiddenVelocity.minZ = Math.min(sneakingPotentialHiddenVelocity.minZ, data.vector.getZ());
                 }
 
                 if (player.uncertaintyHandler.lastStuckEast.hasOccurredSince(0) || player.uncertaintyHandler.lastStuckSouth.hasOccurredSince(0)) {
-                    Vector toMax = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(100000, 0, 100000));
-                    sneakingPotentialHiddenVelocity.maxX = Math.max(sneakingPotentialHiddenVelocity.maxX, toMax.getX());
-                    sneakingPotentialHiddenVelocity.maxZ = Math.max(sneakingPotentialHiddenVelocity.maxZ, toMax.getZ());
+                    sneakingPotentialHiddenVelocity.maxX = Math.max(sneakingPotentialHiddenVelocity.maxX, data.vector.getX());
+                    sneakingPotentialHiddenVelocity.maxZ = Math.max(sneakingPotentialHiddenVelocity.maxZ, data.vector.getZ());
                 }
             }
         }
