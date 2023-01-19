@@ -81,6 +81,17 @@ public class SneakingEstimator extends Check implements PostPredictionCheck {
         }
         // END HACKERY
 
+
+        sneakingPotentialHiddenVelocity.minX *= trueFriction;
+        sneakingPotentialHiddenVelocity.minZ *= trueFriction;
+        sneakingPotentialHiddenVelocity.maxX *= trueFriction;
+        sneakingPotentialHiddenVelocity.maxZ *= trueFriction;
+
+        sneakingPotentialHiddenVelocity.minX = Math.min(-0.05, sneakingPotentialHiddenVelocity.minX);
+        sneakingPotentialHiddenVelocity.minZ = Math.min(-0.05, sneakingPotentialHiddenVelocity.minZ);
+        sneakingPotentialHiddenVelocity.maxX = Math.max(0.05, sneakingPotentialHiddenVelocity.maxX);
+        sneakingPotentialHiddenVelocity.maxZ = Math.max(0.05, sneakingPotentialHiddenVelocity.maxZ);
+
         // Now we just have to handle reducing this velocity over ticks so we know when it's being abused
         if (!player.uncertaintyHandler.lastStuckEast.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.maxX = 0;
@@ -94,10 +105,5 @@ public class SneakingEstimator extends Check implements PostPredictionCheck {
         if (!player.uncertaintyHandler.lastStuckSouth.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.maxZ = 0;
         }
-
-        sneakingPotentialHiddenVelocity.minX *= trueFriction;
-        sneakingPotentialHiddenVelocity.minZ *= trueFriction;
-        sneakingPotentialHiddenVelocity.maxX *= trueFriction;
-        sneakingPotentialHiddenVelocity.maxZ *= trueFriction;
     }
 }
