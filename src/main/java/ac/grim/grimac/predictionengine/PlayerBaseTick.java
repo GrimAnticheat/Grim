@@ -253,7 +253,7 @@ public class PlayerBaseTick {
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
         player.boundingBox = player.boundingBox.expand(0.03, 0, 0.03); // 0.03... thanks mojang!
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2)) {
             moveTowardsClosestSpaceModern(xPosition, zPosition);
         } else {
             moveTowardsClosestSpaceLegacy(xPosition, zPosition);
@@ -327,7 +327,7 @@ public class PlayerBaseTick {
         }
     }
 
-    // 1.14+
+    // 1.16.2+
     private void moveTowardsClosestSpaceModern(double xPosition, double zPosition) {
         int blockX = (int) Math.floor(xPosition);
         int blockZ = (int) Math.floor(zPosition);
@@ -367,12 +367,12 @@ public class PlayerBaseTick {
         }
         if (direction != null) {
             if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
-                player.uncertaintyHandler.xPositiveUncertainty += 0.15;
-                player.uncertaintyHandler.xNegativeUncertainty -= 0.15;
+                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
                 player.pointThreeEstimator.setPushing(true);
             } else {
-                player.uncertaintyHandler.zPositiveUncertainty += 0.15;
-                player.uncertaintyHandler.zNegativeUncertainty -= 0.15;
+                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
                 player.pointThreeEstimator.setPushing(true);
             }
         }
