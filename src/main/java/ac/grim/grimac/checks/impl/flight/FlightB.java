@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.flight;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -13,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+@CheckData(name = "FlightB")
 public class FlightB extends Check implements PacketCheck {
     private int tp = 150;
 
@@ -53,6 +55,7 @@ public class FlightB extends Check implements PacketCheck {
                     flag();
                     return;
                 }
+                // 1.18+ versions increased minimum y value
                 if (pd.y < -8.0 && pd.ver.isNewerThanOrEquals(ServerVersion.V_1_12) && pd.ver.isOlderThan(ServerVersion.V_1_18)){
                     if (chorusFruit()) return;
                     flag();
