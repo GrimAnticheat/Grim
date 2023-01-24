@@ -6,7 +6,6 @@ This project is considered feature complete for the 2.0 (open-source) branch of 
 
 GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
 
-**Discord:** https://discord.gg/FNRrcGAybJ
 
 ### Compiling through terminal/command prompt
 1. git clone https://github.com/MWHunter/Grim (or click green code button, download code, then unzip)
