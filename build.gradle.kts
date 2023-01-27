@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT")
+    implementation("com.github.retrooper.packetevents:spigot:2.0.0-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("club.minnced:discord-webhooks:0.8.0")
