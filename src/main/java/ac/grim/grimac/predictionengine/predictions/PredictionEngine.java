@@ -360,7 +360,7 @@ public class PredictionEngine {
     }
 
     private void addAttackSlowToPossibilities(GrimPlayer player, Set<VectorData> velocities) {
-        for (int x = 1; x <= player.maxPlayerAttackSlow; x++) {
+        for (int x = 1; x <= Math.min(player.maxPlayerAttackSlow, 5); x++) {
             for (VectorData data : new HashSet<>(velocities)) {
                 velocities.add(data.returnNewModified(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
