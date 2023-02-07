@@ -11,6 +11,7 @@ import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
+import ac.grim.grimac.checks.impl.ghosthand.GhostHand;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.FastBreak;
@@ -49,6 +50,7 @@ public class CheckManager {
     ClassToInstanceMap<PacketCheck> prePredictionChecks;
 
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
+    ClassToInstanceMap<BlockPlaceCheck> blockInteractCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
     public ClassToInstanceMap<AbstractCheck> allChecks;
@@ -124,6 +126,10 @@ public class CheckManager {
                 .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
                 .build();
 
+        blockInteractCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
+                .put(GhostHand.class, new GhostHand(player))
+                .build();
+
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(TimerCheck.class, new TimerCheck(player))
                 .put(CrashA.class, new CrashA(player))
@@ -143,6 +149,7 @@ public class CheckManager {
                 .putAll(vehicleCheck)
                 .putAll(postPredictionCheck)
                 .putAll(blockPlaceCheck)
+                .putAll(blockInteractCheck)
                 .putAll(prePredictionChecks)
                 .build();
     }
@@ -222,8 +229,20 @@ public class CheckManager {
         }
     }
 
+    public void onBlockInteract(final BlockPlace place) {
+        for (BlockPlaceCheck check : blockInteractCheck.values()) {
+            check.onBlockPlace(place);
+        }
+    }
+
     public void onPostFlyingBlockPlace(final BlockPlace place) {
         for (BlockPlaceCheck check : blockPlaceCheck.values()) {
+            check.onPostFlyingBlockPlace(place);
+        }
+    }
+
+    public void onPostFlyingBlockInteract(final BlockPlace place) {
+        for (BlockPlaceCheck check : blockInteractCheck.values()) {
             check.onPostFlyingBlockPlace(place);
         }
     }

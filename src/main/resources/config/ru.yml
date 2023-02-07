@@ -118,6 +118,9 @@ TimerVehicle:
 EntityControl:
   setbackvl: 25
 
+GhostHand:
+  cancelVL: 1
+
 Reach:
   # На сколько мы должны расширить хитбоксы? 0.0005 должно определять 3.0005+ дополнительное достижение
   #
