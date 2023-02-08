@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-@CheckData(name = "GhostHand", configName = "GhostHand")
+@CheckData(name = "GhostHand", configName = "GhostHand", experimental = true)
 public class GhostHand extends BlockPlaceCheck {
     double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
     boolean ignorePost = false;
