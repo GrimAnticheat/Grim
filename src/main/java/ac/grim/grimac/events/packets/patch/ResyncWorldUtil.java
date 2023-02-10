@@ -97,7 +97,7 @@ public class ResyncWorldUtil {
                                         blockId = (block.getType().getId() << 4) | block.getData();
                                     }
 
-                                    encodedBlocks[blockIndex++] = new WrapperPlayServerMultiBlockChange.EncodedBlock(blockId, currX, (minChunkY << 4) + currY, currZ);
+                                    encodedBlocks[blockIndex++] = new WrapperPlayServerMultiBlockChange.EncodedBlock(blockId, currX, (currChunkY << 4) + currY, currZ);
                                 }
                             }
                         }
