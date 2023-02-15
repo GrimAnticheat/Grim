@@ -184,7 +184,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         player.boundingBox = oldBB; // reset back to the new bounding box
 
-        if (!hasAcceptedSpawnTeleport) clientVel = null; // if the player hasn't spawned... don't force kb
+        if (!hasAcceptedSpawnTeleport || player.isFlying) clientVel = null; // if the player is flying or hasn't spawned... don't force kb
 
         // Something weird has occurred in the player's movement, block offsets until we resync
         if (isResync) {
