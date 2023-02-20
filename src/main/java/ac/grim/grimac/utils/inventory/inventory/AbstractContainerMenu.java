@@ -89,7 +89,7 @@ public abstract class AbstractContainerMenu {
     }
 
     public void addFourRowPlayerInventory() {
-        for (int slot = Inventory.ITEMS_START; slot <= Inventory.ITEMS_END; slot++) {
+        for (int slot = Inventory.ITEMS_START; slot < Inventory.ITEMS_END; slot++) {
             addSlot(new Slot(playerInventory.getInventoryStorage(), slot));
         }
     }
