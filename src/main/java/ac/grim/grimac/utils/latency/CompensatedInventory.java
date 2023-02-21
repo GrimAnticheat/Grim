@@ -448,7 +448,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                         inventory.getInventoryStorage().setItem(slot.getSlot(), slot.getItem());
                     }
                 } else if (slot.getWindowId() == 0) { // Player hotbar (ONLY!)
-                    if (slot.getSlot() >= 36 && slot.getSlot() <= 44) {
+                    if (slot.getSlot() >= 36 && slot.getSlot() <= 45) {
                         inventory.getSlot(slot.getSlot()).set(slot.getItem());
                     }
                 } else if (slot.getWindowId() == openWindowID) { // Opened inventory (if not valid, client crashes)
