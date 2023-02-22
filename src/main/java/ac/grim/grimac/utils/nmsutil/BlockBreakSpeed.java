@@ -25,7 +25,7 @@ public class BlockBreakSpeed {
         float blockHardness = block.getType().getHardness();
 
         // 1.15.2 and below need this hack
-        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2)) {
+        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.PISTON_HEAD || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2)) {
             blockHardness = 0.5f;
         }
 
