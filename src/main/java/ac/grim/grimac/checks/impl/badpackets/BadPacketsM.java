@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "BadPacketsM", experimental = true)
@@ -26,7 +28,9 @@ public class BadPacketsM extends Check implements PacketCheck {
             i++;
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             if (i > 0) {
-                flagAndAlert();
+                DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
+                if (action.equals(DiggingAction.RELEASE_USE_ITEM) || action.equals(DiggingAction.DROP_ITEM) || action.equals(DiggingAction.DROP_ITEM_STACK))
+                    flagAndAlert();
             }
         }
     }
