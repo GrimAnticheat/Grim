@@ -17,17 +17,18 @@ public class BadPacketsM extends Check implements PacketCheck {
         super(player);
     }
 
-    private int i = 0;
+    private boolean placedBlock;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!player.isTickingReliablyFor(4)) return;
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            i = 0;
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            i++;
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || !player.isTickingReliablyFor(4)) {
+            placedBlock = false;
+            return;
+        }
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            placedBlock = true;
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            if (i > 0) {
+            if (placedBlock) {
                 DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
                 if (action.equals(DiggingAction.RELEASE_USE_ITEM) || action.equals(DiggingAction.DROP_ITEM) || action.equals(DiggingAction.DROP_ITEM_STACK))
                     flagAndAlert();
