@@ -21,7 +21,7 @@ public class BadPacketsM extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) return;
+        if (!player.isTickingReliablyFor(4)) return;
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             i = 0;
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
