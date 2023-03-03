@@ -19,6 +19,7 @@ public class BadPacketsM extends Check implements PacketCheck {
 
     private boolean hasPlacedBlock;
 
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         PacketTypeCommon packetType = event.getPacketType();
 
