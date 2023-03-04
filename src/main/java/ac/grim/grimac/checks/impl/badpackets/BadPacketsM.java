@@ -37,7 +37,7 @@ public class BadPacketsM extends Check implements PacketCheck {
 
         // isTickingReliablyFor had falses so we added more conditions to actually check if the player was moving for 1.8+
         if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && (!player.isTickingReliablyFor(3)
-                || player.actualMovement.length() <= 0.008 || !player.skippedTickInActualMovement)) {
+                || player.actualMovement.lengthSquared() <= 0.000064 || !player.skippedTickInActualMovement)) {
             hasPlacedBlock = false;
             return;
         }
