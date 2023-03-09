@@ -503,6 +503,7 @@ public class GrimPlayer implements GrimUser {
     public boolean isTickingReliablyFor(int ticks) {
         return (getClientVersion().isOlderThan(ClientVersion.V_1_9) 
                 || !uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
+                && this.actualMovement.lengthSquared() >= 0.000064
                 || compensatedEntities.getSelf().inVehicle();
     }
 
