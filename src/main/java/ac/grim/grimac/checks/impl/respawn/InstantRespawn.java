@@ -9,7 +9,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static org.bukkit.GameRule.DO_IMMEDIATE_RESPAWN;
