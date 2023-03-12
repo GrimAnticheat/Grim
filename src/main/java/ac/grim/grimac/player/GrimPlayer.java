@@ -502,8 +502,8 @@ public class GrimPlayer implements GrimUser {
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
         return (getClientVersion().isOlderThan(ClientVersion.V_1_9) 
-                || !uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
-                && this.actualMovement.lengthSquared() >= 0.000064
+                || (!uncertaintyHandler.lastPointThree.hasOccurredSince(ticks)
+                && this.actualMovement.lengthSquared() >= 0.000064)
                 || compensatedEntities.getSelf().inVehicle();
     }
 
