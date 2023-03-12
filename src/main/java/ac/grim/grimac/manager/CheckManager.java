@@ -20,6 +20,7 @@ import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.Phase;
+import ac.grim.grimac.checks.impl.respawn.InstantRespawn;
 import ac.grim.grimac.checks.impl.scaffolding.*;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
@@ -81,6 +82,7 @@ public class CheckManager {
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(PostCheck.class, new PostCheck(player))
                 .put(FastBreak.class, new FastBreak(player))
+                .put(InstantRespawn.class, new InstantRespawn(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
