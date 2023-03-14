@@ -42,6 +42,7 @@ public class BadPacketsP extends Check implements PacketCheck {
             switch (clickType) {
                 case 0:
                 case 1:
+                case 4:
                     if (button != 0 && button != 1) flag = true;
                     break;
                 case 2:
@@ -50,7 +51,6 @@ public class BadPacketsP extends Check implements PacketCheck {
                 case 3:
                     if (button != 2) flag = true;
                     break;
-                case 4:
                 case 5:
                     if (button == 3 || button == 7 || button > 10 || button < 0) flag = true;
                     break;
