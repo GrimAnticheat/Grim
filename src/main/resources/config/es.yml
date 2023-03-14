@@ -19,7 +19,7 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # Esto quiere decir que no se anunciara el nombre del cliente si este cumple alguno de los siguientes filtros:
+  # Esto quiere decir que no se anunciara el nombre del cliente al entrar si este cumple alguno de los siguientes filtros:
   ignored:
     - "^vanilla$"
     - "^fabric$"
