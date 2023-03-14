@@ -148,6 +148,9 @@ public class ConfigManager {
         if (configVersion < 8) {
             addPacketSpamThreshold(config, configString);
         }
+        if (configVersion < 9) {
+            addPacketSpamThreshold(config, configString);
+        }
     }
 
     private void removeLegacyTwoPointOne(File config) throws IOException {
