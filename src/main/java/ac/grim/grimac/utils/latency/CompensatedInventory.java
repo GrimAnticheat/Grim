@@ -267,8 +267,13 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
-            if (action.getSlot() >= 1 && action.getSlot() <= 45) {
-                player.getInventory().menu.getSlot(action.getSlot()).set(action.getItemStack());
+
+            boolean valid = action.getSlot() >= 1 &&
+                            PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8)?
+                    action.getSlot() <= 45 : action.getSlot() < 45;
+
+            if (valid) {
+                player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
         }
