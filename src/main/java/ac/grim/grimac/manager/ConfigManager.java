@@ -77,7 +77,7 @@ public class ConfigManager {
         }
         maxPingTransaction = config.getIntElse("max-transaction-time", 60);
         ignoredClientPatterns.clear();
-        for (String string : config.getStringList("client-brand.ignored-clients")) {
+        for (String string : config.getStringList("client-brand.ignored")) {
             try {
                 ignoredClientPatterns.add(Pattern.compile(string));
             } catch (PatternSyntaxException e) {

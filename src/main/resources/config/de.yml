@@ -19,8 +19,8 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # Das bedeutet, dass die Marke nicht an die Betreiber weitergegeben wird, wenn die Marke mit den folgenden Regexes übereinstimmt
-  ignored-clients:
+  # Das bedeutet, dass die Marke beim Beitreten nicht an die Betreiber weitergegeben wird, wenn die Marke mit den folgenden Regexes übereinstimmt
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"

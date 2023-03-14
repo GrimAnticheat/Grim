@@ -19,8 +19,8 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # This means it won't broadcast their brand to operators if the brand matches the following regexes
-  ignored-clients:
+  # This means it won't broadcast their brand to operators upon joining if the brand matches the following regexes
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
