@@ -5,8 +5,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "NoSlowB", setback = 5)
 public class NoSlowB extends Check implements PacketCheck {
@@ -17,16 +16,20 @@ public class NoSlowB extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction.Action action = new WrapperPlayClientEntityAction(event).getAction();
-            if (action != WrapperPlayClientEntityAction.Action.START_SPRINTING) return;
-
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Players can sprint if they're able to fly (MCP)
             if (player.canFly) return;
 
-            if (player.food < 6.0F) {
-                flagWithSetback();
-                alert("");
+            if (player.food < 6.0F && player.isSprinting) {
+                if (flag()) {
+                    // Cancel the packet
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
+                    alert("");
+                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+                }
             } else {
                 reward();
             }
