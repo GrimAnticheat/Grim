@@ -78,6 +78,9 @@ public class Reach extends Check implements PacketCheck {
                 }
                 return;
             }
+            
+            // Dead entities cause false flags (https://github.com/GrimAnticheat/Grim/issues/546)
+            if (entity.isDead) return;
 
             // TODO: Remove when in front of via
             if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
