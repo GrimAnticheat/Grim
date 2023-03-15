@@ -20,7 +20,7 @@ verbose:
 
 client-brand:
   # Это означает, что он не будет транслировать свой бренд операторам, если бренд соответствует следующим регексам
-  ignored-clients:
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
@@ -146,4 +146,4 @@ experimental-checks: false
 # нам просто кикнуть игрока? Это необходимо, так как некоторые ограничители пакетов не учитывают пакеты, отмененные Гримом.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

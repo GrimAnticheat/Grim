@@ -19,8 +19,8 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # This means it won't broadcast their brand to operators if the brand matches the following regexes
-  ignored-clients:
+  # If a brand matches the specified regex, it will not be broadcasted to operators upon joining
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
@@ -146,4 +146,4 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

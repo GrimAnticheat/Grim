@@ -77,7 +77,7 @@ public class ConfigManager {
         }
         maxPingTransaction = config.getIntElse("max-transaction-time", 60);
         ignoredClientPatterns.clear();
-        for (String string : config.getStringList("client-brand.ignored-clients")) {
+        for (String string : config.getStringList("client-brand.ignored")) {
             try {
                 ignoredClientPatterns.add(Pattern.compile(string));
             } catch (PatternSyntaxException e) {
@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 8");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 9");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -147,6 +147,9 @@ public class ConfigManager {
         }
         if (configVersion < 8) {
             addPacketSpamThreshold(config, configString);
+        }
+        if (configVersion < 9) {
+            newBrandIgnoring(config, configString);
         }
     }
 
@@ -292,4 +295,11 @@ public class ConfigManager {
                 "packet-spam-threshold: 150\n";
         Files.write(config.toPath(), configString.getBytes());
     }
+
+    private void newBrandIgnoring(File config, String configString) throws IOException {
+        configString = configString.replaceAll("  # This means it won't broadcast their brand to operators if the brand matches the following regexes\n  ignored-clients:",
+                "  # If a brand matches the specified regex, it will not be broadcasted to operators upon joining\n  ignored:");
+        Files.write(config.toPath(), configString.getBytes());
+    }
+
 }
