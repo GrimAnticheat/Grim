@@ -298,7 +298,7 @@ public class ConfigManager {
 
     private void newBrandIgnoring(File config, String configString) throws IOException {
         configString = configString.replaceAll("  # This means it won't broadcast their brand to operators if the brand matches the following regexes\n  ignored-clients:",
-                "  # If a brand matches the specified regex, it will not be broadcasted to operators upon joining\n  ignored:");
+                "  # If a brand matches the following regexes, it will not be broadcasted to operators upon joining\n  ignored:");
         Files.write(config.toPath(), configString.getBytes());
     }
 
