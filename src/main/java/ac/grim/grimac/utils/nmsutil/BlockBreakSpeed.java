@@ -37,6 +37,11 @@ public class BlockBreakSpeed {
             // Instabreak
             return 1;
         }
+        
+        // Barrier blocks do not exist in 1.7 version
+        if (block.getType() == StateTypes.BARRIER && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+            return 0;
+        }
 
         if (blockHardness == -1) return 0; // Unbreakable block
 
