@@ -37,11 +37,6 @@ public class BlockBreakSpeed {
             // Instabreak
             return 1;
         }
-        
-        // Exempt all blocks that do not exist in the player version
-        if (WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType()).getType() == StateTypes.AIR) {
-            blockHardness = -1;
-        }
 
         if (blockHardness == -1) return 0; // Unbreakable block
 
