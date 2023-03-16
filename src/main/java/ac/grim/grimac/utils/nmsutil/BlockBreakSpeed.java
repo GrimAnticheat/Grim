@@ -42,6 +42,13 @@ public class BlockBreakSpeed {
         if (block.getType() == StateTypes.BARRIER && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
             return 0;
         }
+        
+        // ViaVersion translates the Lantern and Soul Lantern blocks to a Redstone Lamp for older versions
+        if (block.getType() == StateTypes.LANTERN &&
+            player.getClientVersion().isOlderThan(ClientVersion.V_1_14) ||
+            block.getType() == StateTypes.SOUL_LANTERN && player.getClientVersion().isOlderThan(ClientVersion.V_1_16)) {
+            blockHardness = 0.3f;
+        }
 
         if (blockHardness == -1) return 0; // Unbreakable block
 
