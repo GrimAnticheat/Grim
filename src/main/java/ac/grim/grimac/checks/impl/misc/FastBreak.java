@@ -60,8 +60,16 @@ public class FastBreak extends Check implements PacketCheck {
             WrapperPlayClientPlayerDigging digging = new WrapperPlayClientPlayerDigging(event);
 
             if (digging.getAction() == DiggingAction.START_DIGGING) {
+                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(digging.getBlockPosition());
+                
+                // Exempt all blocks that do not exist in the player version
+                if (WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType()).getType() == StateTypes.AIR) {
+                    return;
+                }
+            
                 startBreak = System.currentTimeMillis() - (targetBlock == null ? 50 : 0); // ???
                 targetBlock = digging.getBlockPosition();
+                
                 maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, targetBlock);
 
                 double breakDelay = System.currentTimeMillis() - lastFinishBreak;
