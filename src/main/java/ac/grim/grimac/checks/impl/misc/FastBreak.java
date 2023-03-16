@@ -64,6 +64,8 @@ public class FastBreak extends Check implements PacketCheck {
                 targetBlock = digging.getBlockPosition();
                 maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, targetBlock);
 
+                if (maximumBlockDamage == 0) return;
+
                 double breakDelay = System.currentTimeMillis() - lastFinishBreak;
 
                 if (breakDelay >= 275) { // Reduce buffer if "close enough"
@@ -82,6 +84,8 @@ public class FastBreak extends Check implements PacketCheck {
             }
 
             if (digging.getAction() == DiggingAction.FINISHED_DIGGING && targetBlock != null) {
+                if (maximumBlockDamage == 0) return;
+
                 double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
                 double realTime = System.currentTimeMillis() - startBreak;
                 double diff = predictedTime - realTime;
