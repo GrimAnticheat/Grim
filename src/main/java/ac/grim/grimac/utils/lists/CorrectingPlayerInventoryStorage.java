@@ -99,15 +99,14 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         if (bukkitSlot != -1) {
             org.bukkit.inventory.ItemStack bukkitItem = player.bukkitPlayer.getInventory().getItem(bukkitSlot);
-            if (bukkitItem == null) return;
 
             ItemStack existing = getItem(slot);
-            if (existing == null) return;
             ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
 
-
             if (!ItemStack.isSameItemSameTags(existing, toPE) || existing.getAmount() != toPE.getAmount()) {
-                player.bukkitPlayer.updateInventory();
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    player.bukkitPlayer.updateInventory();
+                });
                 setItem(slot, toPE);
             }
         }
