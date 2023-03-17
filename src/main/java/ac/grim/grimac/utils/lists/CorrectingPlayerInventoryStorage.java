@@ -99,8 +99,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         if (bukkitSlot != -1) {
             org.bukkit.inventory.ItemStack bukkitItem = player.bukkitPlayer.getInventory().getItem(bukkitSlot);
+            if (bukkitItem == null) return;
 
             ItemStack existing = getItem(slot);
+            if (existing == null) return;
             ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
 
 
