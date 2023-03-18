@@ -140,7 +140,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> vectors = new ArrayList<>();
+        List<VectorData> vectors = new ArrayList<>(possibleVectors.size());
 
         for (VectorData data : possibleVectors) {
             controlBoat(player, data.vector);
