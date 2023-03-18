@@ -22,6 +22,8 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.viaversion.viaversion.api.Via;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
 import java.util.*;
 
@@ -591,8 +593,10 @@ public enum CollisionData {
                 return NoCollisionBox.INSTANCE;
             }
             // Handle viaversion mapping
-            data = data.clone();
-            data.setLayers(2);
+            if (ViaVersionUtil.isAvailable() && Via.getConfig().isSnowCollisionFix()) {
+                data = data.clone();
+                data.setLayers(2);
+            }
         }
 
         return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() - 1) * 0.125, 1);
