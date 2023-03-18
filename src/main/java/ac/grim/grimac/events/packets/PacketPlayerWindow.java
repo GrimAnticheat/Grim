@@ -63,19 +63,17 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
         } else if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow wrapper = new WrapperPlayServerOpenWindow(event);
 
-            // Beacon X button causes desync
-            if (wrapper.getLegacyType() != null && wrapper.getLegacyType().equals("minecraft:beacon") ||
-                wrapper.getType() == 8) {
-                return;
-            }
-
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             player.sendTransaction();
 
+            // Exempt beacons due to desyncs
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
-                                                () -> player.hasInventoryOpen = true);
+                                                () -> player.hasInventoryOpen = wrapper.getLegacyType() != null &&
+                                                                                !wrapper.getLegacyType()
+                                                                                        .equals("minecraft:beacon") ||
+                                                                                wrapper.getType() != 8);
         } else if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
