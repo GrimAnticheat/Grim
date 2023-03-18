@@ -1123,8 +1123,6 @@ public enum CollisionData {
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
-    // This should be an array... but a hashmap will do for now...
-    //private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();
     private static final CollisionData[] rawLookupArray = new CollisionData[values().length];
 
     static {
