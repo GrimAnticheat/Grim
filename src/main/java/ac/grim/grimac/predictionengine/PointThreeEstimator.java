@@ -129,7 +129,7 @@ public class PointThreeEstimator {
         }
 
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
-        if ((Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA) &&
+        if ((state.getType() == StateTypes.LAVA || Materials.isWater(player.getClientVersion(), state)) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
             if (state.getType() == StateTypes.BUBBLE_COLUMN) {
@@ -257,7 +257,7 @@ public class PointThreeEstimator {
                 isNearBubbleColumn = true;
             }
 
-            if (Materials.isWater(player.getClientVersion(), pair.getFirst()) || pair.getFirst().getType() == StateTypes.LAVA) {
+            if (pair.getFirst().getType() == StateTypes.LAVA || Materials.isWater(player.getClientVersion(), pair.getFirst())) {
                 isNearFluid = true;
             }
 
@@ -266,8 +266,8 @@ public class PointThreeEstimator {
     }
 
     public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {
-        if (player.compensatedEntities.getSelf().inVehicle()) return false; // No 0.03
         if (!player.isPointThree()) return false; // No 0.03
+        if (player.compensatedEntities.getSelf().inVehicle()) return false; // No 0.03
 
         // This is intensive, only run it if we need it... compensate for stepping with 0.03
         //
@@ -323,7 +323,7 @@ public class PointThreeEstimator {
             return false;
         }
 
-        if (isNearClimbable() || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
+        if (isPushing || isNearClimbable() || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
             return true;
         }
 
