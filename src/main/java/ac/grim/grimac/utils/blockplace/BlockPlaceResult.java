@@ -1086,13 +1086,12 @@ public enum BlockPlaceResult {
         place.set(place.getMaterial());
     }, ItemTypes.AIR);
 
-    // This should be an array... but a hashmap will do for now...
-    private static final Map<ItemType, BlockPlaceResult> lookupMap = new HashMap<>();
+    private static final BlockPlaceResult[] lookupArray = new BlockPlaceResult[values().length];
 
     static {
         for (BlockPlaceResult data : values()) {
             for (ItemType type : data.materials) {
-                lookupMap.put(type, data);
+                lookupArray[type.getId(CompensatedWorld.blockVersion)] = data;
             }
         }
     }
@@ -1122,6 +1121,11 @@ public enum BlockPlaceResult {
     }
 
     public static BlockPlaceFactory getMaterialData(ItemType placed) {
-        return lookupMap.getOrDefault(placed, NO_DATA).data;
+        int index = placed.getId(CompensatedWorld.blockVersion);
+        if (index < 0 || index >= lookupArray.length) {
+            return NO_DATA.data;
+        }
+        BlockPlaceResult result = lookupArray[index];
+        return result != null ? result.data : NO_DATA.data;
     }
 }
