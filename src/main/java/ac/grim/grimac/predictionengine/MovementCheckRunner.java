@@ -55,9 +55,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
 
             // The player doesn't control this vehicle, we don't care
-            if (player.compensatedEntities.getSelf().inVehicle() &&
-                    (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
-                    player.getClientVersion().isOlderThan(ClientVersion.V_1_9))) {
+            if ( (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
+                  player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && player.compensatedEntities.getSelf().inVehicle())) {
                 return;
             }
 
