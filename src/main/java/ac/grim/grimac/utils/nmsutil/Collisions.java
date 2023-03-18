@@ -182,7 +182,7 @@ public class Collisions {
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
             if (distanceToBorder < 16 && player.lastX > minX && player.lastX < maxX && player.lastZ > minZ && player.lastZ < maxZ) {
-                if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                if (listOfBlocks == null) listOfBlocks = new ArrayList<>(4);
 
                 // South border
                 listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, maxZ, maxX + 10, Double.POSITIVE_INFINITY, maxZ, false));
