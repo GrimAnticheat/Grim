@@ -103,9 +103,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             ItemStack existing = getItem(slot);
             ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
 
-
             if (!ItemStack.isSameItemSameTags(existing, toPE) || existing.getAmount() != toPE.getAmount()) {
-                player.bukkitPlayer.updateInventory();
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    player.bukkitPlayer.updateInventory();
+                });
                 setItem(slot, toPE);
             }
         }
@@ -140,7 +141,6 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         // This means no desync will last longer than 10 seconds
         // (Required as mojang has screwed up some things with inventories that we can't easily fix.
         // Don't spam this as it could cause lag (I was getting 0.3 ms to query this, this is done async though)
-        // TODO: We could make this faster by using pooled bytebuffers
         if (tickID % 5 == 0) {
             int slotToCheck = (tickID / 5) % getSize();
             // If both these things are true, there is nothing that should be broken.
