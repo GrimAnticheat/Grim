@@ -393,7 +393,7 @@ public class PredictionEngine {
     }
 
     public void addExplosionToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
+        for (VectorData vector : existingVelocities.toArray(new VectorData[0])) {
             if (player.likelyExplosions != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));
             }

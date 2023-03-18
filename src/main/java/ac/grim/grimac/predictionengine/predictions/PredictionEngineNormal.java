@@ -34,7 +34,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
+        for (VectorData vector : existingVelocities.toArray(new VectorData[0])) {
             Vector jump = vector.vector.clone();
 
             if (!player.isFlying) {
