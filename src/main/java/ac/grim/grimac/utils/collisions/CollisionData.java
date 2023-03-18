@@ -1124,12 +1124,13 @@ public enum CollisionData {
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
-    private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();
+    //private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();
+    private static final CollisionData[] rawLookupArray = new CollisionData[values().length];
 
     static {
         for (CollisionData data : values()) {
             for (StateType type : data.materials) {
-                rawLookupMap.put(type, data);
+                rawLookupArray[type.getMaterialType().ordinal()] = data;
             }
         }
     }
@@ -1260,12 +1261,16 @@ public enum CollisionData {
 
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING ? getRawData(state) : NONE;
     }
-
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
     public static CollisionData getRawData(StateType state) {
-        return rawLookupMap.getOrDefault(state, DEFAULT);
+        int index = state.getMaterialType().ordinal();
+        if (index < 0 || index >= rawLookupArray.length) {
+            return DEFAULT;
+        }
+        CollisionData result = rawLookupArray[index];
+        return result != null ? result : DEFAULT;
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
