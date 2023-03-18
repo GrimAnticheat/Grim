@@ -70,7 +70,7 @@ public class PredictionEngineRideableUtils {
     }
 
     public static List<VectorData> applyInputsToVelocityPossibilities(Vector movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
+        List<VectorData> returnVectors = new ArrayList<>(possibleVectors.size() * 2);
 
         for (VectorData possibleLastTickOutput : possibleVectors) {
             VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(new PredictionEngine().getMovementResultFromInput(player, movementVector, speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
