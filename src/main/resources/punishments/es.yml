@@ -56,6 +56,14 @@ Punishments:
       - "20:20 [alert]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
+  Inventory:
+    remove-violations-after: 300
+    checks:
+      - "Inventory"
+    commands:
+      - "10:10 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"
   Reach:
     remove-violations-after: 300
     checks:
