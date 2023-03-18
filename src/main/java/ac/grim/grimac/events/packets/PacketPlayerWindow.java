@@ -68,12 +68,13 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
 
             player.sendTransaction();
 
+            boolean isBeaconInventory =
+                    wrapper.getLegacyType() != null && wrapper.getLegacyType().equals("minecraft:beacon") ||
+                    wrapper.getType() == 8;
+
             // Exempt beacons due to desyncs
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
-                                                () -> player.hasInventoryOpen = wrapper.getLegacyType() != null &&
-                                                                                !wrapper.getLegacyType()
-                                                                                        .equals("minecraft:beacon") ||
-                                                                                wrapper.getType() != 8);
+                                                () -> player.hasInventoryOpen = !isBeaconInventory);
         } else if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
