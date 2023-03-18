@@ -355,7 +355,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     public boolean shouldBlockMovement() {
         // This is required to ensure protection from servers teleporting from CREATIVE to SURVIVAL
         // I should likely refactor
-        return insideUnloadedChunk() || blockOffsets || (requiredSetBack != null && !requiredSetBack.isComplete());
+        return blockOffsets || insideUnloadedChunk() || (requiredSetBack != null && !requiredSetBack.isComplete());
     }
 
     private boolean isPendingSetback() {
