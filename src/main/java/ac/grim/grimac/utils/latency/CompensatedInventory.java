@@ -269,8 +269,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
             if (player.gamemode != GameMode.CREATIVE) return;
 
             boolean valid = action.getSlot() >= 1 &&
-                            PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8)?
-                    action.getSlot() <= 45 : action.getSlot() < 45;
+                            (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8)?
+                    action.getSlot() <= 45 : action.getSlot() < 45);
 
             if (valid) {
                 player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());
