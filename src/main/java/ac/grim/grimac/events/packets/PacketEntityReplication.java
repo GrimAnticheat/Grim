@@ -336,7 +336,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (vehicle == null) return;
 
             // Eject existing passengers for this vehicle
-            for (PacketEntity passenger : new ArrayList<>(vehicle.passengers)) {
+            for (PacketEntity passenger : vehicle.passengers.toArray(new PacketEntity[0])) {
                 passenger.eject();
             }
 

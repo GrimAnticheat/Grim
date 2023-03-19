@@ -63,7 +63,7 @@ public class CompensatedEntities {
         PacketEntity entity = entityMap.remove(entityID);
         if (entity == null) return;
 
-        for (PacketEntity passenger : new ArrayList<>(entity.passengers)) {
+        for (PacketEntity passenger : entity.passengers.toArray(new PacketEntity[0])) {
             passenger.eject();
         }
     }
