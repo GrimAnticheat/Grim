@@ -264,14 +264,19 @@ public class GrimPlayer implements GrimUser {
 
         // Knockback takes precedence over piston pushing in my testing
         // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
-        for (VectorData data : possibleMovements.toArray(new VectorData[0])) {
-            for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
-                if (direction.getModX() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setX(direction.getModX()), VectorData.VectorType.SlimePistonBounce));
-                } else if (direction.getModY() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setY(direction.getModY()), VectorData.VectorType.SlimePistonBounce));
-                } else if (direction.getModZ() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setZ(direction.getModZ()), VectorData.VectorType.SlimePistonBounce));
+        if (!uncertaintyHandler.slimePistonBounces.isEmpty()) {
+            for (VectorData data : possibleMovements.toArray(new VectorData[0])) {
+                for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
+                    if (direction.getModX() != 0) {
+                        possibleMovements.add(data.returnNewModified(data.vector.clone().setX(direction.getModX()),
+                                                                     VectorData.VectorType.SlimePistonBounce));
+                    } else if (direction.getModY() != 0) {
+                        possibleMovements.add(data.returnNewModified(data.vector.clone().setY(direction.getModY()),
+                                                                     VectorData.VectorType.SlimePistonBounce));
+                    } else if (direction.getModZ() != 0) {
+                        possibleMovements.add(data.returnNewModified(data.vector.clone().setZ(direction.getModZ()),
+                                                                     VectorData.VectorType.SlimePistonBounce));
+                    }
                 }
             }
         }
