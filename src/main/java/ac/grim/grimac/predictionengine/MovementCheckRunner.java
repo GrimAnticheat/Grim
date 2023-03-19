@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.movement.EntityControl;
+import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
@@ -108,7 +109,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
 
         // Manually call prediction complete to handle teleport
-        player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update, true));
+        PredictionComplete predictionComplete = new PredictionComplete(0, update, true);
+        player.getSetbackTeleportUtil().onPredictionComplete(predictionComplete);
+        player.checkManager.getPostPredictionCheck(Phase.class).onPredictionComplete(predictionComplete);
 
         player.uncertaintyHandler.lastHorizontalOffset = 0;
         player.uncertaintyHandler.lastVerticalOffset = 0;
