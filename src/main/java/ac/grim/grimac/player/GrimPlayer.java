@@ -563,11 +563,11 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean exemptOnGround() {
-        return compensatedEntities.getSelf().inVehicle()
-                || Collections.max(uncertaintyHandler.pistonX) != 0 || Collections.max(uncertaintyHandler.pistonY) != 0
-                || Collections.max(uncertaintyHandler.pistonZ) != 0 || uncertaintyHandler.isStepMovement
-                || isFlying || compensatedEntities.getSelf().isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
-                || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
+        return uncertaintyHandler.isStepMovement
+               || isFlying || isInBed || lastInBed || compensatedEntities.getSelf().isDead || Collections.max(uncertaintyHandler.pistonX) != 0
+                || Collections.max(uncertaintyHandler.pistonY) != 0 || Collections.max(uncertaintyHandler.pistonZ) != 0
+                || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30) || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)
+                || uncertaintyHandler.isOrWasNearGlitchyBlock || compensatedEntities.getSelf().inVehicle();
     }
 
     public void handleMountVehicle(int vehicleID) {
