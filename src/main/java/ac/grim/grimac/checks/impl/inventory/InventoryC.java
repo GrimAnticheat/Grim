@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "InventoryC")
+@CheckData(name = "InventoryC", setback = 3)
 public class InventoryC extends Check implements PacketCheck {
 
     public InventoryC(GrimPlayer player) {
