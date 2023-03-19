@@ -32,6 +32,8 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -41,7 +43,7 @@ import java.util.*;
 public class Reach extends Check implements PacketCheck {
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
-    private final Map<Integer, Vector3d> playerAttackQueue = new LinkedHashMap<>();
+    private final Int2ObjectMap<Vector3d> playerAttackQueue = new Int2ObjectLinkedOpenHashMap<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,

@@ -12,6 +12,8 @@ import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -66,7 +68,7 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
-    public List<Integer> fishingRodPulls = new ArrayList<>();
+    public IntList fishingRodPulls = new IntArrayList();
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
 
