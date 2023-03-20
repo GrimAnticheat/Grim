@@ -1,0 +1,48 @@
+# \u00BB é » (duplo >>), ANSI e UTF-8 interpretam isso de maneiras diferentes... você pode até ver ? devido a isso
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlertas habilitados"
+alerts-disabled: "%prefix% &fAlertas desabilitados"
+client-brand-format: "%prefix% &f%player% entrou usando %brand%"
+console-specify-target: "%prefix% &cVocê deve especificar um alvo como console!"
+player-not-found: "%prefix% &cO jogador está isento ou offline!"
+player-not-this-server: "%prefix% &cO jogador não está neste servidor!"
+spectate-return: "\n%prefix% &fClique aqui para retornar à localização anterior\n"
+cannot-spectate-return: "%prefix% &cVocê só pode fazer isso depois de estar espectando um jogador"
+cannot-run-on-self: "%prefix% &cVocê não pode usar este comando em si mesmo!!"
+upload-log: "%prefix% &Debug enviado para: %url%"
+upload-log-start: "%prefix% &fCarregando registro ... aguarde"
+upload-log-not-found: "%prefix% &cNão foi possível encontrar esse registro"
+upload-log-upload-failure: "%prefix% &clgo deu errado ao carregar este registro, consulte o console para obter mais informações"
+
+# Espaços reservados Válidos:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violações
+# %verbose% - informações adicionais do check, como deslocamentos, nem todos os checks adicionam informações
+alerts-format: "%prefix% &f%player% &bfalhou &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfalhou &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bPerfil para &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersão: &f%version%"
+  - "&bMarca do Client: &f%brand%"
+  - "&bSensibilidade Horizontal: &f%h_sensitivity%%"
+  - "&bSensibilidade Vertical: &f%v_sensitivity%%"
+  - "&bFastMath Habilitado: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Ativa ou desativa alertas"
+  - "/grim profile <player> &f- &7Visualiza informações do jogador"
+  - "/grim help &f- &7Exibe esta mensagem de ajuda"
+  - "/grim debug <player> &f- &7Saída de previsão do desenvolvedor"
+  - "/grim perf &f- &7ms/predição do desenvolvedor"
+  - "/grim reload &f- &7Recarrega a configuração"
+  - "/grim spectate <player> &f- &7Espia um jogador"
+  - "/grim verbose &f- &fMostra todas as sinalizações para você, sem buffers"
+  - "/grim log [0-255] &f- &7Carrega um registro de depuração para sinalizaradores de previsão"
+  - "&7======================"
