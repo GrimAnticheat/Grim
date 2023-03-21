@@ -1,7 +1,6 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.AbstractCheck;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -79,8 +78,10 @@ public class CheckManager {
                 .put(BadPacketsL.class, new BadPacketsL(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
+                .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(PostCheck.class, new PostCheck(player))
                 .put(FastBreak.class, new FastBreak(player))
+                .put(NoSlowB.class, new NoSlowB(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -108,7 +109,7 @@ public class CheckManager {
                 .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(EntityControl.class, new EntityControl(player))
-                .put(NoSlow.class, new NoSlow(player))
+                .put(NoSlowA.class, new NoSlowA(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
@@ -258,8 +259,8 @@ public class CheckManager {
         return getPositionCheck(CompensatedCooldown.class);
     }
 
-    public NoSlow getNoSlow() {
-        return getPostPredictionCheck(NoSlow.class);
+    public NoSlowA getNoSlow() {
+        return getPostPredictionCheck(NoSlowA.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {

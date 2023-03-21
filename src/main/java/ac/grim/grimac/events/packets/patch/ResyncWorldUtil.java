@@ -20,6 +20,10 @@ import java.util.HashMap;
 public class ResyncWorldUtil {
     static HashMap<BlockData, Integer> blockDataToId = new HashMap<>();
 
+    public static void resyncPosition(GrimPlayer player, Vector3i pos) {
+        resyncPositions(player, pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    }
+
     public static void resyncPositions(GrimPlayer player, SimpleCollisionBox box) {
         resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
