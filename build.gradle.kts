@@ -10,7 +10,7 @@ plugins {
 
 
 group = "ac.grim.grimac"
-version = "2.3.37"
+version = "2.3.39"
 description = "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.0.0-SNAPSHOT")
+    implementation("com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("club.minnced:discord-webhooks:0.8.0")
