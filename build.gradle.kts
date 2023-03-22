@@ -3,7 +3,7 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.0"
     id("io.freefair.lombok") version "6.6"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
 }
@@ -49,7 +49,7 @@ dependencies {
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
     compileOnly("com.viaversion:viaversion-api:4.1.1")
-    compileOnly("io.netty:netty-all:4.1.85.Final")
+    compileOnly("io.netty:netty-all:4.1.90.Final")
 }
 
 bukkit {
