@@ -9,7 +9,7 @@ public class BStats implements Initable {
     public void start() {
         int pluginId = 18077; // <-- Replace with the id of your plugin!
         try {
-            Metrics metrics = new Metrics(GrimAPI.INSTANCE.getPlugin(), pluginId);
+            new Metrics(GrimAPI.INSTANCE.getPlugin(), pluginId);
         } catch (Exception ignored) {
         }
     }
