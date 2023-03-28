@@ -1,0 +1,49 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+# Translation by Perwolln't
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fJelzések bekapcsolva"
+alerts-disabled: "%prefix% &fjelzések kikapcsolva"
+client-brand-format: "%prefix% &f%player% a következő kliensel csatlakozott: %brand%"
+console-specify-target: "%prefix% &cKonzolban meg kell adnod egy játékost!"
+player-not-found: "%prefix% &cA játékos nem elérhető vagy nem használható rajta ez a parancs!"
+player-not-this-server: "%prefix% &cA játékos nem ezen a szerveren van!"
+spectate-return: "\n%prefix% &fKatt ide, hogy visszatérj előzö pozíciódhoz\n"
+cannot-spectate-return: "%prefix% &cEzt csak egy játékos megfigyelése közben használhatod!"
+cannot-run-on-self: "%prefix% &cMagadon nem használhatod ezt a parancsot!"
+upload-log: "%prefix% &fDebug log feltöltve: %url%"
+upload-log-start: "%prefix% &fLogok feltöltése... Kérlek várj"
+upload-log-not-found: "%prefix% &cEz a log nem található"
+upload-log-upload-failure: "%prefix% &cIsmeretlen hiba történt a logok feltöltése közben. A konzolban több információt találsz!"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &bsikertelen &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bsikertelen &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &bprofilja"
+  - "&bPing: &f%ping%"
+  - "&bVerzió: &f%version%"
+  - "&bKliens: &f%brand%"
+  - "&bVízszintes érzékenység: &f%h_sensitivity%%"
+  - "&bFüggőleges érzékenység: &f%v_sensitivity%%"
+  - "&bGyors matek bekapcsolva: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Jelzések ki/be kapcsolása"
+  - "/grim profile <player> &f- &7Információk az adott játékosról"
+  - "/grim help &f- &7Eme üzenet megtekintése"
+  - "/grim debug <player> &f- &7Predikciók be/ki kapcsolása"
+  - "/grim perf &f- &7Fejlesztői ms/predikció"
+  - "/grim reload &f- &7Konfiguráció újratöltése"
+  - "/grim spectate <player> &f- &7Játékos megfigyelése"
+  - "/grim verbose &f- &fpuffer nélkül mutatja a jelzéseket"
+  - "/grim log [0-255] &f- &7Logok feltöltése"
+  - "&7======================"
