@@ -43,7 +43,7 @@ dependencies {
     implementation("github.scarsz:configuralize:1.4.0")
     implementation("com.github.puregero:multilib:1.1.8")
 
-    implementation("com.github.grimanticheat:grimapi:add576ba8b")
+    implementation("com.github.Grim-Reloaded:GrimAPI:528ea33653")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
