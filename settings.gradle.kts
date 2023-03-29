@@ -1,1 +1,1 @@
-rootProject.name = "grimac"
+rootProject.name = "grimacreloaded"

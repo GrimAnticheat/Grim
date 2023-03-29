@@ -53,8 +53,8 @@ dependencies {
 }
 
 bukkit {
-    name = "GrimAC"
-    author = "GrimAC"
+    name = "GrimACReloaded"
+    author = "GrimAC, GrimACReloaded"
 
     main = "ac.grim.grimac.GrimAC"
     apiVersion = "1.13"

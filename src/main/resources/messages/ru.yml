@@ -1,5 +1,5 @@
 # \u00BB это " (двойной >>), ANSI и UTF-8 интерпретируют это по-разному... вы можете даже увидеть "?" из-за этого
-prefix: "&bGrim &8\u00BB"
+prefix: "&bGrimReloaded &8\u00BB"
 
 alerts-enabled: "%prefix% &fОповещения включены"
 alerts-disabled: "%prefix% &fОповещения отключены"
