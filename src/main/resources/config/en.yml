@@ -136,6 +136,9 @@ Reach:
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
 
+Inventory:
+  setback: 1
+
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
@@ -146,4 +149,4 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

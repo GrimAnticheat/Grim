@@ -90,3 +90,11 @@ Punishments:
       - "Autoclicker"
     commands:
       - "20:40 [alert]"
+  Inventory:
+    remove-violations-after: 300
+    checks:
+      - "Inventory"
+    commands:
+      - "10:10 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"

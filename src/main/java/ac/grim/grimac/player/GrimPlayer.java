@@ -135,6 +135,7 @@ public class GrimPlayer implements GrimUser {
     public float sneakingSpeedMultiplier = 0.3f;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
+    public boolean hasOpenInv;
     // The client claims this
     public boolean clientClaimsLastOnGround;
     // Set from base tick
