@@ -84,6 +84,7 @@ public class CheckManager {
                 .put(InventoryB.class, new InventoryB(player))
                 .put(InventoryC.class, new InventoryC(player))
                 //.put(InventoryD.class, new InventoryD(player))
+                .put(InventoryE.class, new InventoryE(player))
                 .put(PostCheck.class, new PostCheck(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(NoSlowB.class, new NoSlowB(player))
