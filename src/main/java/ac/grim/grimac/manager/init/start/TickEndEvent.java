@@ -59,23 +59,5 @@ public class TickEndEvent implements Initable {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
-
-        // This should NEVER happen!  But there are two scenarios where it could:
-        // 1) Some stupid jar messed up our reflection
-        // 2) Some stupid jar doesn't tick the list at the end for "optimization"
-        // 3) Some stupid jar removed the list at the end because it wasn't needed
-        // 4) Someone else injected after our delayed injection (they copied my GPL code! Hope they give source!)
-        // (My injection point is different from Pledge or other more common methods!)
-        //
-        // Otherwise, this is just redundancy.  If the end of tick event isn't firing, this will
-        // at the beginning of the next tick so relative moves are still sent.
-        Bukkit.getScheduler().runTaskTimer(GrimAPI.INSTANCE.getPlugin(), () -> {
-            if (!hasTicked) {
-                LogUtil.warn("End of tick hook did not fire... please make a ticket about this. Recovering!");
-                tickRelMove();
-            }
-
-            hasTicked = false;
-        }, 2, 1); // give the server a chance to tick, delay by 2 ticks
     }
 }

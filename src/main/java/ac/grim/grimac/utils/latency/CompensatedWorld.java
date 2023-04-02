@@ -186,6 +186,8 @@ public class CompensatedWorld {
         } else {
             // ViaVersion is updated and runs tasks with bukkit which is correct
             // So we must wait for the bukkit thread to start ticking so via can "confirm" it
+            //
+            // no need to support Folia on this one because Folia is 1.19+ only
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // And then we jump back to the netty thread to simulate that Via sent the confirmation
                 ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
