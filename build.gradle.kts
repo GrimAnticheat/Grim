@@ -10,7 +10,7 @@ plugins {
 
 
 group = "ac.grim.grimac"
-version = "2.3.35"
+version = "2.3.40"
 description = "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -145,7 +145,6 @@ tasks.shadowJar {
     relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
     relocate("okio", "ac.grim.grimac.shaded.okio")
     relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")
-    relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j")
     relocate("org.json", "ac.grim.grimac.shaded.json")
     relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
     relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
