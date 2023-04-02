@@ -434,7 +434,7 @@ public enum BlockPlaceResult {
         if (!place.getBelowMaterial().isAir()) {
             place.set();
         }
-    }, ItemTags.CARPETS),
+    }, ItemTags.WOOL_CARPETS),
 
     CHORUS_FLOWER((player, place) -> {
         WrappedBlockState blockstate = place.getBelowState();
