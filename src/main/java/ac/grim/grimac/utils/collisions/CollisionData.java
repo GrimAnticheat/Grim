@@ -633,7 +633,7 @@ public enum CollisionData {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
-    }, BlockTags.CARPETS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WOOL_CARPETS.getStates().toArray(new StateType[0])),
 
     MOSS_CARPET((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_7_10))
