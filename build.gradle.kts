@@ -1,23 +1,23 @@
-import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
+//import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 
 plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.freefair.lombok") version "6.6"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
+    //id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
 }
 
 
 group = "ac.grim.grimac"
-version = "2.3.37"
+version = "2.3.40"
 description = "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenLocal()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // bStats, Spigot
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://jitpack.io/") // Grim API
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
@@ -34,9 +34,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.0.0-SNAPSHOT")
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:3.0.0")
+    implementation("com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT")
+    implementation("co.aikar:acf-paper:0.5.1-20230402.114301-23")
     implementation("club.minnced:discord-webhooks:0.8.0")
     implementation("it.unimi.dsi:fastutil:8.5.9")
     implementation("org.jetbrains:annotations:23.1.0") // Why is this needed to compile?
@@ -52,7 +51,7 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.85.Final")
 }
 
-bukkit {
+/*bukkit {
     name = "GrimAC"
     author = "GrimAC"
 
@@ -116,7 +115,7 @@ bukkit {
         }
     }
 
-}
+}*/
 
 tasks.build {
     dependsOn(tasks.shadowJar)
@@ -136,7 +135,6 @@ tasks.shadowJar {
     relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
     relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
     relocate("co.aikar.acf", "ac.grim.grimac.shaded.acf")
-    relocate("org.bstats", "ac.grim.grimac.shaded.bstats")
     relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
     relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
     relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
@@ -147,7 +145,6 @@ tasks.shadowJar {
     relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
     relocate("okio", "ac.grim.grimac.shaded.okio")
     relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")
-    relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j")
     relocate("org.json", "ac.grim.grimac.shaded.json")
     relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
     relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
