@@ -6,13 +6,38 @@ import org.bukkit.util.Vector;
 import java.util.Objects;
 
 public class VectorData {
+    public static final class MoveVectorData extends VectorData {
+        public int x;
+        public int z;
+
+        public MoveVectorData(Vector vector, VectorData lastVector, VectorType vectorType, int x, int z) {
+            super(vector, lastVector, vectorType);
+            this.x = x;
+            this.z = z;
+
+            if(x == 0 && z == 0) {
+                addVectorType(VectorType.WithoutInput);
+            }
+        }
+
+        public MoveVectorData(Vector vector, VectorType vectorType, int x, int z) {
+            super(vector, vectorType);
+            this.x = x;
+            this.z = z;
+
+            if(x == 0 && z == 0) {
+                addVectorType(VectorType.WithoutInput);
+            }
+        }
+    }
+
     public VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector vector;
 
     @Getter
-    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
+    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow, isInputResult, isWithoutInput;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -33,6 +58,8 @@ public class VectorData {
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
+            isInputResult = lastVector.isInputResult;
+            isWithoutInput = lastVector.isWithoutInput;
         }
 
         addVectorType(vectorType);
@@ -65,7 +92,7 @@ public class VectorData {
         return Objects.hash(vectorType, lastVector, preUncertainty, vector, isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow);
     }
 
-    private void addVectorType(VectorType type) {
+    protected void addVectorType(VectorType type) {
         switch (type) {
             case Knockback:
                 isKnockback = true;
@@ -100,6 +127,12 @@ public class VectorData {
             case AttackSlow:
                 isAttackSlow = true;
                 break;
+            case InputResult:
+                isInputResult = true;
+                break;
+            case WithoutInput:
+                isWithoutInput = true;
+                break;
         }
     }
 
@@ -126,6 +159,7 @@ public class VectorData {
         Explosion,
         FirstBreadExplosion,
         InputResult,
+        WithoutInput,
         StuckMultiplier,
         Spectator,
         Dead,

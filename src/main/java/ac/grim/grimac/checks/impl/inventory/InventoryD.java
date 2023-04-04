@@ -2,23 +2,22 @@ package ac.grim.grimac.checks.impl.inventory;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.lists.EvictingQueue;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VectorData.MoveVectorData;
+import ac.grim.grimac.utils.data.VehicleData;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
-import lombok.Getter;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import java.util.StringJoiner;
 
-@CheckData(name = "InventoryD", setback = 3)
-// Delta calculation copied from https://github.com/GladUrBad/Medusa/blob/master/Impl/src/main/java/com/gladurbad/medusa/data/processor/PositionProcessor.java
-public class InventoryD extends Check implements PacketCheck {
-    private final EvictingQueue<Velocity> velocityData = new EvictingQueue<>(100);
-    private double deltaXZ;
-    private double lastDeltaXZ;
+// TODO: Works well with 0.0002, but not with 0.03. Should find a way to properly determine inputs from 0.03.
+@CheckData(name = "InventoryD", setback = 1, decay = 0.25)
+public class InventoryD extends Check implements PostPredictionCheck {
+    private int controlledMovements;
+    private int horseJumpVerbose;
 
     public InventoryD(GrimPlayer player) {
         super(player);
@@ -27,112 +26,88 @@ public class InventoryD extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-            if (player.packetStateData.lastPacketWasTeleport ||
-                player.packetStateData.lastPacketWasOnePointSeventeenDuplicate ||
-                player.isSwimming || player.slightlyTouchingLava ||
-                player.slightlyTouchingWater ||
-                player.wasTouchingLava || player.wasTouchingWater ||
-                getHorizontalVelocity() > 0 || player.compensatedEntities.getSelf().inVehicle()) {
-                return;
-            }
-
-            double accel = deltaXZ - lastDeltaXZ;
-
-            // Is not possible to click the inventory while moving
-            if (deltaXZ > 0.21D && accel >= 0D) {
-                if (flagWithSetback()) {
-                    // Cancel the packet
-                    if (shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
-                    }
-                    alert("");
+            // TODO: this value is unreasonable high, reduce when this check will be 100% stable
+            if (controlledMovements >= 2) {
+                if (shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
                 }
-            } else {
-                reward();
-            }
-        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
 
-            if (wrapper.hasPositionChanged()) {
-                double deltaX = player.x - player.lastX;
-                double deltaZ = player.z - player.lastZ;
-                lastDeltaXZ = deltaXZ;
-                deltaXZ = Math.hypot(deltaX, deltaZ);
+                flagAndAlert("inventory click");
             }
-
-            velocityData.removeIf(Velocity::isCompleted);
         }
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
-            WrapperPlayServerEntityVelocity wrapper = new WrapperPlayServerEntityVelocity(event);
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        if (!predictionComplete.isChecked() ||
+                predictionComplete.getData().isTeleport() ||
+                player.getSetbackTeleportUtil().blockOffsets) {
+            return;
+        }
 
-            if (wrapper.getEntityId() == player.entityID) {
-                double x = wrapper.getVelocity().getX() / 8000d;
-                double y = wrapper.getVelocity().getY() / 8000d;
-                double z = wrapper.getVelocity().getZ() / 8000d;
+        if (player.hasInventoryOpen) {
+            boolean inVehicle = player.compensatedEntities.getSelf().inVehicle();
+            boolean isJumping, isMoving;
 
-                short lastSentTransaction = (short) (player.lastTransactionSent.get() + 1);
+            if (inVehicle) {
+                VehicleData vehicle = player.vehicleData;
 
-                velocityData.add(new Velocity(lastSentTransaction, x, y, z));
+                // Will flag once, if player opens chest with pressed space bar
+                isJumping = vehicle.nextHorseJump > 0 && horseJumpVerbose++ >= 1;
+                isMoving = vehicle.nextVehicleForward != 0 || vehicle.nextVehicleHorizontal != 0;
+            } else {
+                isJumping = player.predictedVelocity.isJump() &&
+                            // TODO: pistons.
+                            !player.uncertaintyHandler.slimePistonBounces.contains(BlockFace.UP) &&
+                            // TODO: investigate why swimming players flagging this
+                            // TODO: maybe setbacks causing this?
+                            !player.isSwimming;
+
+                MoveVectorData move = findMovement(player.predictedVelocity);
+                isMoving = move != null && (move.x != 0 || move.z != 0);
             }
-        } else if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
-            WrapperPlayServerExplosion wrapper = new WrapperPlayServerExplosion(event);
 
-            double x = wrapper.getPlayerMotion().getX();
-            double y = wrapper.getPlayerMotion().getY();
-            double z = wrapper.getPlayerMotion().getZ();
+            if (!isMoving && !isJumping) {
+                controlledMovements = 0;
+                reward();
+                return;
+            }
 
-            if (x == 0.0D && y == 0.0D && z == 0.0D) return;
+            controlledMovements++;
 
-            short lastSentTransaction = (short) (player.lastTransactionSent.get() + 1);
+            // TODO: close inventory to prevent infinity setbacks
+            if (flagWithSetback()) {
+                StringJoiner joiner = new StringJoiner(" ");
 
-            velocityData.add(new Velocity(lastSentTransaction, x, y, z));
+                if (isMoving) joiner.add("moving");
+                if (isJumping) joiner.add("jumping");
+                if (inVehicle) joiner.add("inVehicle");
+
+                alert(joiner.toString());
+            }
+        } else {
+            horseJumpVerbose = 0;
+            controlledMovements = 0;
         }
     }
 
-    public double getHorizontalVelocity() {
-        if (velocityData.isEmpty()) {
-            return 0;
+    private MoveVectorData findMovement(VectorData vectorData) {
+        if (!vectorData.isInputResult()) {
+            return null;
         }
 
-        double velocitySum = 0;
-        for (Velocity velocity : velocityData) {
-            velocitySum += velocity.getHorizontalVelocity();
+        if (vectorData instanceof MoveVectorData) {
+            return (MoveVectorData) vectorData;
         }
 
-        return velocitySum;
-    }
-
-
-    @Getter
-    public class Velocity {
-        private final double horizontalVelocity;
-        private final double verticalVelocity;
-        private final double velocityX;
-        private final double velocityZ;
-        private final short transaction;
-        private final int completedTick;
-
-        public Velocity(short transaction, double velocityX, double verticalVelocity, double velocityZ) {
-            this.velocityX = velocityX;
-            this.velocityZ = velocityZ;
-            this.horizontalVelocity = Math.hypot(velocityX, velocityZ);
-            this.verticalVelocity = verticalVelocity;
-            this.transaction = transaction;
-            this.completedTick = calculateCompletedTick();
+        while (vectorData != null) {
+            vectorData = vectorData.lastVector;
+            if (vectorData instanceof MoveVectorData) {
+                return (MoveVectorData) vectorData;
+            }
         }
 
-        private int calculateCompletedTick() {
-            int ticks = player.totalFlyingPacketsSent;
-            return (int) (ticks + ((horizontalVelocity / 2 + 2) * 15));
-        }
-
-        public boolean isCompleted() {
-            return completedTick != -1 && player.totalFlyingPacketsSent > completedTick;
-        }
+        return null;
     }
 }
