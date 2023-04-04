@@ -8,15 +8,23 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VectorData.MoveVectorData;
 import ac.grim.grimac.utils.data.VehicleData;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCloseWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
 import java.util.StringJoiner;
 
 // TODO: Works well with 0.0002, but not with 0.03. Should find a way to properly determine inputs from 0.03.
 @CheckData(name = "InventoryD", setback = 1, decay = 0.25)
 public class InventoryD extends Check implements PostPredictionCheck {
-    private int controlledMovements;
+
+    private static final int NONE = Integer.MAX_VALUE;
+
+    private int closeTransaction = NONE;
+    private int сlosePacketsToSkip;
+
     private int horseJumpVerbose;
 
     public InventoryD(GrimPlayer player) {
@@ -26,14 +34,16 @@ public class InventoryD extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-            // TODO: this value is unreasonable high, reduce when this check will be 100% stable
-            if (controlledMovements >= 2) {
-                if (shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-
-                flagAndAlert("inventory click");
+            // Disallow any clicks if inventory is closing
+            if(closeTransaction != NONE && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
+                player.getInventory().needResend = true;
+            }
+        } else if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
+            // Players with high ping can close inventory faster than send transaction back
+            if (closeTransaction != NONE && сlosePacketsToSkip-- <= 0) {
+                closeTransaction = NONE;
             }
         }
     }
@@ -69,15 +79,13 @@ public class InventoryD extends Check implements PostPredictionCheck {
             }
 
             if (!isMoving && !isJumping) {
-                controlledMovements = 0;
                 reward();
                 return;
             }
 
-            controlledMovements++;
-
-            // TODO: close inventory to prevent infinity setbacks
             if (flagWithSetback()) {
+                closeInventory();
+
                 StringJoiner joiner = new StringJoiner(" ");
 
                 if (isMoving) joiner.add("moving");
@@ -88,8 +96,35 @@ public class InventoryD extends Check implements PostPredictionCheck {
             }
         } else {
             horseJumpVerbose = 0;
-            controlledMovements = 0;
         }
+    }
+
+    public void closeInventory() {
+        if(closeTransaction != NONE) {
+            return;
+        }
+
+        сlosePacketsToSkip = 1; // Sending one close packet to itself, so skip it
+
+        int windowId = player.getInventory().openWindowID;
+
+        player.user.writePacket(new WrapperPlayServerCloseWindow(windowId));
+
+        PacketEvents.getAPI().getProtocolManager().receivePacket(
+           player.user.getChannel(), new WrapperPlayClientCloseWindow(windowId)
+        );
+
+        player.sendTransaction();
+
+        int transaction = player.lastTransactionSent.get();
+        closeTransaction = transaction;
+        player.latencyUtils.addRealTimeTask(transaction, () -> {
+            if (closeTransaction == transaction) {
+                closeTransaction = NONE;
+            }
+        });
+
+        player.user.flushPackets();
     }
 
     private MoveVectorData findMovement(VectorData vectorData) {
