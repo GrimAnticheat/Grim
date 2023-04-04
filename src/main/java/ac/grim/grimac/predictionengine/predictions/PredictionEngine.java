@@ -453,15 +453,15 @@ public class PredictionEngine {
         if (b.isZeroPointZeroThree())
             bScore -= 2;
 
-        if (a.isWithoutInput())
-            aScore -= 1;
-        else
+        if (a.isWithInput() || a.isJump())
             aScore += 1;
-
-        if (b.isWithoutInput())
-            bScore -= 1;
         else
+            aScore -= 1;
+
+        if (b.isWithInput() || b.isJump())
             bScore += 1;
+        else
+            bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
         if ((player.compensatedEntities.getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)

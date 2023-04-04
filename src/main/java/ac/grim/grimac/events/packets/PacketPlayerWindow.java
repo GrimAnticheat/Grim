@@ -22,7 +22,6 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        // TODO: recheck, that may break something
         // This designed only to check if player going into nether portal with opened inventory
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !event.isCancelled()) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());

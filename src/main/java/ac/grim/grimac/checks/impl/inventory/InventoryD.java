@@ -16,7 +16,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
 import java.util.StringJoiner;
 
-// TODO: Works well with 0.0002, but not with 0.03. Should find a way to properly determine inputs from 0.03.
 @CheckData(name = "InventoryD", setback = 1, decay = 0.25)
 public class InventoryD extends Check implements PostPredictionCheck {
 
@@ -67,14 +66,9 @@ public class InventoryD extends Check implements PostPredictionCheck {
                 isJumping = vehicle.nextHorseJump > 0 && horseJumpVerbose++ >= 1;
                 isMoving = vehicle.nextVehicleForward != 0 || vehicle.nextVehicleHorizontal != 0;
             } else {
-                isJumping = player.predictedVelocity.isJump() &&
-                            // TODO: pistons.
-                            !player.uncertaintyHandler.slimePistonBounces.contains(BlockFace.UP) &&
-                            // TODO: investigate why swimming players flagging this
-                            // TODO: maybe setbacks causing this?
-                            !player.isSwimming;
-
                 MoveVectorData move = findMovement(player.predictedVelocity);
+
+                isJumping = player.predictedVelocity.isJump();
                 isMoving = move != null && (move.x != 0 || move.z != 0);
             }
 

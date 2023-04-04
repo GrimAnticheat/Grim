@@ -15,8 +15,8 @@ public class VectorData {
             this.x = x;
             this.z = z;
 
-            if(x == 0 && z == 0) {
-                addVectorType(VectorType.WithoutInput);
+            if(x != 0 || z != 0) {
+                addVectorType(VectorType.WithInput);
             }
         }
 
@@ -25,8 +25,8 @@ public class VectorData {
             this.x = x;
             this.z = z;
 
-            if(x == 0 && z == 0) {
-                addVectorType(VectorType.WithoutInput);
+            if(x != 0 || z != 0) {
+                addVectorType(VectorType.WithInput);
             }
         }
     }
@@ -37,7 +37,7 @@ public class VectorData {
     public Vector vector;
 
     @Getter
-    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow, isInputResult, isWithoutInput;
+    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow, isInputResult, isWithInput;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -59,7 +59,7 @@ public class VectorData {
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
             isInputResult = lastVector.isInputResult;
-            isWithoutInput = lastVector.isWithoutInput;
+            isWithInput = lastVector.isWithInput;
         }
 
         addVectorType(vectorType);
@@ -130,8 +130,8 @@ public class VectorData {
             case InputResult:
                 isInputResult = true;
                 break;
-            case WithoutInput:
-                isWithoutInput = true;
+            case WithInput:
+                isWithInput = true;
                 break;
         }
     }
@@ -158,8 +158,7 @@ public class VectorData {
         SkippedTicks,
         Explosion,
         FirstBreadExplosion,
-        InputResult,
-        WithoutInput,
+        InputResult, WithInput,
         StuckMultiplier,
         Spectator,
         Dead,
