@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.data.VehicleData;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCloseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
 import java.util.StringJoiner;
@@ -19,6 +18,7 @@ import java.util.StringJoiner;
 @CheckData(name = "InventoryD", setback = 1, decay = 0.25)
 public class InventoryD extends Check implements PostPredictionCheck {
 
+    // Grim send transactions only from 0 to -32767
     private static final int NONE = Integer.MAX_VALUE;
 
     private int closeTransaction = NONE;
