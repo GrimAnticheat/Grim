@@ -18,10 +18,10 @@ import java.util.StringJoiner;
 @CheckData(name = "InventoryD", setback = 1, decay = 0.25)
 public class InventoryD extends Check implements PostPredictionCheck {
 
-    // Impossible transaction ID (Grim use IDs only from 0 to -32767)
-    private static final int NONE = Integer.MAX_VALUE;
+    // Impossible transaction ID
+    private static final long NONE = Long.MAX_VALUE;
 
-    private int closeTransaction = NONE;
+    private long closeTransaction = NONE;
     private int сlosePacketsToSkip;
 
     private int horseJumpVerbose;
