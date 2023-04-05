@@ -122,10 +122,6 @@ public class InventoryD extends Check implements PostPredictionCheck {
     }
 
     private MoveVectorData findMovement(VectorData vectorData) {
-        if (!vectorData.isInputResult()) {
-            return null;
-        }
-
         if (vectorData instanceof MoveVectorData) {
             return (MoveVectorData) vectorData;
         }

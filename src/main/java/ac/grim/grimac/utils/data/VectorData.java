@@ -37,7 +37,7 @@ public class VectorData {
     public Vector vector;
 
     @Getter
-    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow, isInputResult, isWithInput;
+    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow, isWithInput;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -58,7 +58,6 @@ public class VectorData {
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
-            isInputResult = lastVector.isInputResult;
             isWithInput = lastVector.isWithInput;
         }
 
@@ -126,9 +125,6 @@ public class VectorData {
                 break;
             case AttackSlow:
                 isAttackSlow = true;
-                break;
-            case InputResult:
-                isInputResult = true;
                 break;
             case WithInput:
                 isWithInput = true;
