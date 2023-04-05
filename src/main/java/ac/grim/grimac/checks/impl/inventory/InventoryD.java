@@ -18,7 +18,7 @@ import java.util.StringJoiner;
 @CheckData(name = "InventoryD", setback = 1, decay = 0.25)
 public class InventoryD extends Check implements PostPredictionCheck {
 
-    // Grim send transactions only from 0 to -32767
+    // Impossible transaction ID (Grim use IDs only from 0 to -32767)
     private static final int NONE = Integer.MAX_VALUE;
 
     private int closeTransaction = NONE;
@@ -62,7 +62,7 @@ public class InventoryD extends Check implements PostPredictionCheck {
             if (inVehicle) {
                 VehicleData vehicle = player.vehicleData;
 
-                // Will flag once, if player opens chest with pressed space bar
+                // Will flag once if player open anything with pressed space bar
                 isJumping = vehicle.nextHorseJump > 0 && horseJumpVerbose++ >= 1;
                 isMoving = vehicle.nextVehicleForward != 0 || vehicle.nextVehicleHorizontal != 0;
             } else {
@@ -98,12 +98,12 @@ public class InventoryD extends Check implements PostPredictionCheck {
             return;
         }
 
-        сlosePacketsToSkip = 1; // Sending one close packet to itself, so skip it
-
         int windowId = player.getInventory().openWindowID;
 
         player.user.writePacket(new WrapperPlayServerCloseWindow(windowId));
 
+        // Force close inventory on server side
+        сlosePacketsToSkip = 1; // Sending close packet to itself, so skip it
         PacketEvents.getAPI().getProtocolManager().receivePacket(
            player.user.getChannel(), new WrapperPlayClientCloseWindow(windowId)
         );

@@ -22,7 +22,6 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        // This designed only to check if player going into nether portal with opened inventory
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !event.isCancelled()) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
@@ -83,7 +82,6 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
             String legacyType = wrapper.getLegacyType();
             int modernType = wrapper.getType();
 
-            // Exempt beacons due to desyncs
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
                                                 () -> player.hasInventoryOpen = !isAlwaysDesynced(player, legacyType, modernType));
         } else if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
@@ -106,7 +104,7 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
     }
 
     private boolean isAlwaysDesynced(GrimPlayer player, String legacyType, int modernType) {
-        // Closing beacon with the GUI button causing desync, fixed in 1.9
+        // Closing beacon with the cross button cause desync in 1.8
         if (player.getClientVersion() == ClientVersion.V_1_8 &&
                 ("minecraft:beacon".equals(legacyType) || modernType == 8)) {
             return true;
@@ -116,7 +114,7 @@ public class PacketPlayerWindow extends PacketListenerAbstract {
     }
 
     private boolean isDesynced(GrimPlayer player) {
-        // Going inside nether portal with opened chest will cause desync, fixed in 1.12.2
+        // Going inside nether portal with opened inventory cause desync, fixed in 1.12.2
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_1) &&
                 player.pointThreeEstimator.isNearNetherPortal) {
             PacketEntitySelf playerEntity = player.compensatedEntities.getSelf();
