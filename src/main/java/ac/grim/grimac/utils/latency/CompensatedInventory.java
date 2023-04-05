@@ -49,7 +49,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     public boolean needResend = false;
-    int openWindowID = 0;
+    public int openWindowID = 0;
     public int stateID = 0; // Don't mess up the last sent state ID by changing it
 
     public CompensatedInventory(GrimPlayer playerData) {
