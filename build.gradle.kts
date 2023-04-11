@@ -5,7 +5,7 @@ plugins {
     id("maven-publish")
     id("io.freefair.lombok") version "6.6"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    kotlin("jvm") version System.getProperty("kotlin_version")
+    kotlin("jvm") version "1.8.10"
 }
 
 allprojects {
@@ -19,8 +19,8 @@ allprojects {
     version = "2.3.40"
     description = "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
 
-    java.sourceCompatibility = JavaVersion.VERSION_19
-    java.targetCompatibility = JavaVersion.VERSION_19
+    java.sourceCompatibility = JavaVersion.VERSION_17
+    java.targetCompatibility = JavaVersion.VERSION_17
 
     repositories {
         mavenLocal()
@@ -31,11 +31,11 @@ allprojects {
 
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(19))
+            languageVersion.set(JavaLanguageVersion.of(17))
         }
 
-        sourceCompatibility = JavaVersion.VERSION_19
-        targetCompatibility = JavaVersion.VERSION_19
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         withSourcesJar()
         withJavadocJar()
     }
@@ -46,13 +46,13 @@ allprojects {
 
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
-        options.release.set(19)
-        sourceCompatibility = JavaVersion.VERSION_19.name
-        targetCompatibility = JavaVersion.VERSION_19.name
+        options.release.set(17)
+        sourceCompatibility = JavaVersion.VERSION_17.name
+        targetCompatibility = JavaVersion.VERSION_17.name
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "19"
+        kotlinOptions.jvmTarget = "17"
     }
 
     publishing.publications.create<MavenPublication>("maven") {
