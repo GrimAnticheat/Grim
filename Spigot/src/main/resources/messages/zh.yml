@@ -1,0 +1,48 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &f警报已开启"
+alerts-disabled: "%prefix% &f警报已禁用"
+client-brand-format: "%prefix% &f%player% 用 %brand% 加入了游戏"
+console-specify-target: "%prefix% &c您必须指定一个目标作为控制台!"
+player-not-found: "%prefix% &c玩家不存在或离线!"
+player-not-this-server: "%prefix% &c玩家不在此服务器上！"
+spectate-return: "\n%prefix% &f点击这里返回之前的位置\n"
+cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
+cannot-run-on-self: "%prefix% &c你不能对自己使用此命令!"
+upload-log: "%prefix% &f已经将日志文件上传至: %url%"
+upload-log-start: "%prefix% &f上传中...请等待"
+upload-log-not-found: "%prefix% &c找不到该日志."
+upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信息, 请参阅控制台"
+
+# Valid placeholders:
+# %prefix% - 前缀
+# %player% - 玩家
+# %check_name% - 检查名字
+# %vl% - VL值
+# %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
+alerts-format: "%prefix% &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &b 的信息"
+  - "&b延迟: &f%ping%"
+  - "&b版本: &f%version%"
+  - "&b客户端型号: &f%brand%"
+  - "&b水平灵敏度: &f%h_sensitivity%%"
+  - "&b垂直灵敏度: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7切换警报"
+  - "/grim profile <player> &f- &7查看玩家信息"
+  - "/grim help &f- &7查看此帮助消息"
+  - "/grim debug <player> &f- &7开发者预测输出"
+  - "/grim perf &f- &7开发者毫秒预测"
+  - "/grim reload &f- &7重新加载配置"
+  - "/grim spectate <player> &f- &7观看玩家"
+  - "/grim verbose &f- &f显示无缓冲区的每个拉回"
+  - "/grim log [1-999] &f- &7预测标志的调试日志"
+  - "&7======================"
