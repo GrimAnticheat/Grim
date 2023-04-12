@@ -434,7 +434,7 @@ public enum BlockPlaceResult {
         if (!place.getBelowMaterial().isAir()) {
             place.set();
         }
-    }, ItemTags.CARPETS),
+    }, ItemTags.WOOL_CARPETS),
 
     CHORUS_FLOWER((player, place) -> {
         WrappedBlockState blockstate = place.getBelowState();
@@ -719,7 +719,8 @@ public enum BlockPlaceResult {
     FIRE((player, place) -> {
         boolean byFlammable = false;
         for (BlockFace face : BlockFace.values()) {
-            if (place.getDirectionalState(face).getType().isFlammable()) byFlammable = true;
+            // Do we care about this enuogh to fix? // TODO: Check flmmable
+            byFlammable = true;
         }
         if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
@@ -1033,7 +1034,7 @@ public enum BlockPlaceResult {
     MUSHROOM((player, place) -> {
         if (BlockTags.MUSHROOM_GROW_BLOCK.contains(place.getBelowMaterial())) {
             place.set();
-        } else if (place.isFullFace(BlockFace.DOWN) && place.getBelowMaterial().isOccluding()) {
+        } else if (place.isFullFace(BlockFace.DOWN)) { // TODO: Check occluding
             Vector3i placedPos = place.getPlacedBlockPos();
             // This is wrong and depends on lighting, but the server resync's anyways plus this isn't a solid block. so I don't care.
             place.set();

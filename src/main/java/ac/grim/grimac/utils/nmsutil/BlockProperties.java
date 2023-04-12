@@ -67,6 +67,11 @@ public class BlockProperties {
             return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
         }
 
+        // In 1.19.4, air sprinting is based on current sprinting, not last sprinting
+        if (player.getClientVersion().getProtocolVersion() > ClientVersion.V_1_19_3.getProtocolVersion()) {
+            return player.isSprinting ? (float) ((double) 0.02f + 0.005999999865889549D) : 0.02f;
+        }
+
         return player.lastSprintingForSpeed ? (float) ((double) 0.02f + 0.005999999865889549D) : 0.02f;
     }
 

@@ -22,6 +22,8 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.viaversion.viaversion.api.Via;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
 import java.util.*;
 
@@ -591,8 +593,10 @@ public enum CollisionData {
                 return NoCollisionBox.INSTANCE;
             }
             // Handle viaversion mapping
-            data = data.clone();
-            data.setLayers(2);
+            if (ViaVersionUtil.isAvailable() && Via.getConfig().isSnowCollisionFix()) {
+                data = data.clone();
+                data.setLayers(2);
+            }
         }
 
         return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() - 1) * 0.125, 1);
@@ -629,7 +633,7 @@ public enum CollisionData {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
-    }, BlockTags.CARPETS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WOOL_CARPETS.getStates().toArray(new StateType[0])),
 
     MOSS_CARPET((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_7_10))

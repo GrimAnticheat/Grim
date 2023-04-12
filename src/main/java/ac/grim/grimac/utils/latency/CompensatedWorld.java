@@ -186,6 +186,8 @@ public class CompensatedWorld {
         } else {
             // ViaVersion is updated and runs tasks with bukkit which is correct
             // So we must wait for the bukkit thread to start ticking so via can "confirm" it
+            //
+            // no need to support Folia on this one because Folia is 1.19+ only
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // And then we jump back to the netty thread to simulate that Via sent the confirmation
                 ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
@@ -578,7 +580,7 @@ public class CompensatedWorld {
 
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> chunks.put(chunkPosition, chunk));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.put(chunkPosition, chunk));
     }
 
     public StateType getStateTypeAt(double x, double y, double z) {
@@ -656,7 +658,7 @@ public class CompensatedWorld {
 
     public void removeChunkLater(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.chunks.remove(chunkPosition));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.chunks.remove(chunkPosition));
     }
 
     public int getMinHeight() {
