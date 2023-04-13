@@ -37,6 +37,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -393,12 +394,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void disconnect(Component reason) {
+        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + reason.toString());
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
             LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
+        if (bukkitPlayer != null) {
+            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(reason.toString()), null, 1);
+        }
     }
 
     public void pollData() {
