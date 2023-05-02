@@ -105,9 +105,9 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
 
             if (!ItemStack.isSameItemSameTags(existing, toPE) || existing.getAmount() != toPE.getAmount()) {
-                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer,GrimAPI.INSTANCE.getPlugin(), () -> {
                     player.bukkitPlayer.updateInventory();
-                });
+                }, null, 0);
                 setItem(slot, toPE);
             }
         }
