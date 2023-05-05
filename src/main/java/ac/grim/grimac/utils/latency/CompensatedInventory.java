@@ -201,33 +201,37 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
             EquipmentType equipmentType = EquipmentType.getEquipmentSlotForItem(use);
             if (equipmentType != null) {
-                ItemStack itemstack1 = getByEquipmentType(equipmentType);
-                if (itemstack1.isEmpty()) {
-
-                    int slot;
-                    switch (equipmentType) {
-                        case HEAD:
-                            slot = Inventory.SLOT_HELMET;
-                            break;
-                        case CHEST:
-                            slot = Inventory.SLOT_CHESTPLATE;
-                            break;
-                        case LEGS:
-                            slot = Inventory.SLOT_LEGGINGS;
-                            break;
-                        case FEET:
-                            slot = Inventory.SLOT_BOOTS;
-                            break;
-                        default: // Not armor, therefore we shouldn't run this code
-                            return;
-                    }
-
-                    inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
-                    inventory.getInventoryStorage().setItem(slot, use);
-
-                    inventory.getInventoryStorage().handleServerCorrectSlot(inventory.selected);
-                    use.setAmount(0);
+                int slot;
+                switch (equipmentType) {
+                    case HEAD:
+                        slot = Inventory.SLOT_HELMET;
+                        break;
+                    case CHEST:
+                        slot = Inventory.SLOT_CHESTPLATE;
+                        break;
+                    case LEGS:
+                        slot = Inventory.SLOT_LEGGINGS;
+                        break;
+                    case FEET:
+                        slot = Inventory.SLOT_BOOTS;
+                        break;
+                    default: // Not armor, therefore we shouldn't run this code
+                        return;
                 }
+
+                ItemStack itemstack1 = getByEquipmentType(equipmentType);
+                // Only 1.19.4+ clients support swapping with non-empty items
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty()) return;
+
+                // 1.19.4+ clients support swapping with non-empty items
+                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
+
+                // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
+                inventory.getInventoryStorage().handleClientClaimedSlotSet(swapItemSlot);
+                inventory.getInventoryStorage().setItem(swapItemSlot, itemstack1);
+
+                inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
+                inventory.getInventoryStorage().setItem(slot, use);
             }
         }
 
