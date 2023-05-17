@@ -29,6 +29,7 @@ public class InitManager {
                 .put(CommandRegister.class, new CommandRegister())
                 .put(BStats.class, new BStats())
                 .put(PacketLimiter.class, new PacketLimiter())
+                .put(PunishmentManager.class, GrimAPI.INSTANCE.getPunishmentManager())
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
                 .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
