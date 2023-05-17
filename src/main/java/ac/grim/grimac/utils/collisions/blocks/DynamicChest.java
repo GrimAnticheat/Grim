@@ -40,23 +40,23 @@ public class DynamicChest implements CollisionFactory {
         // 1.12 clients on 1.12 servers
         // 1.13 clients on 1.12 servers
         if (chest.getFacing() == BlockFace.EAST || chest.getFacing() == BlockFace.WEST) {
-            WrappedBlockState westState = player.compensatedWorld.getWrappedBlockStateAt(x - 1, y, z);
+            WrappedBlockState westState = player.getCompensatedWorld().getWrappedBlockStateAt(x - 1, y, z);
 
             if (westState.getType() == chest.getType()) {
                 return new HexCollisionBox(0.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D); // Connected to the west face
             }
 
-            WrappedBlockState eastState = player.compensatedWorld.getWrappedBlockStateAt(x + 1, y, z);
+            WrappedBlockState eastState = player.getCompensatedWorld().getWrappedBlockStateAt(x + 1, y, z);
             if (eastState.getType() == chest.getType()) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 16.0D, 14.0D, 15.0D); // Connected to the east face
             }
         } else {
-            WrappedBlockState northState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z - 1);
+            WrappedBlockState northState = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z - 1);
             if (northState.getType() == chest.getType()) {
                 return new HexCollisionBox(1.0D, 0.0D, 0.0D, 15.0D, 14.0D, 15.0D); // Connected to the north face
             }
 
-            WrappedBlockState southState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z + 1);
+            WrappedBlockState southState = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z + 1);
             if (southState.getType() == chest.getType()) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 16.0D); // Connected to the south face
             }

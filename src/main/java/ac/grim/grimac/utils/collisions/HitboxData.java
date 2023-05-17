@@ -73,12 +73,12 @@ public enum HitboxData {
         boolean isInWall;
         boolean isXAxis = data.getFacing() == BlockFace.WEST || data.getFacing() == BlockFace.EAST;
         if (isXAxis) {
-            boolean zPosWall = Materials.isWall(player.compensatedWorld.getStateTypeAt(x, y, z + 1));
-            boolean zNegWall = Materials.isWall(player.compensatedWorld.getStateTypeAt(x, y, z - 1));
+            boolean zPosWall = Materials.isWall(player.getCompensatedWorld().getStateTypeAt(x, y, z + 1));
+            boolean zNegWall = Materials.isWall(player.getCompensatedWorld().getStateTypeAt(x, y, z - 1));
             isInWall = zPosWall || zNegWall;
         } else {
-            boolean xPosWall = Materials.isWall(player.compensatedWorld.getStateTypeAt(x + 1, y, z));
-            boolean xNegWall = Materials.isWall(player.compensatedWorld.getStateTypeAt(x - 1, y, z));
+            boolean xPosWall = Materials.isWall(player.getCompensatedWorld().getStateTypeAt(x + 1, y, z));
+            boolean xNegWall = Materials.isWall(player.getCompensatedWorld().getStateTypeAt(x - 1, y, z));
             isInWall = xPosWall || xNegWall;
         }
 
@@ -91,7 +91,7 @@ public enum HitboxData {
 
 
     FENCE((player, item, version, data, x, y, z) -> {
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
 
         if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
             int i = 0;
@@ -122,7 +122,7 @@ public enum HitboxData {
     }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
     WALL((player, item, version, data, x, y, z) -> {
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
         return new DynamicWall().fetchRegularBox(player, state, version, x, y, z);
     }, BlockTags.WALLS.getStates().toArray(new StateType[0])),
 

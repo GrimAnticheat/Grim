@@ -85,7 +85,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (teleport.isDismountVehicle()) {
                 // Remove player from vehicle
                 event.getTasksAfterSend().add(() -> {
-                    player.compensatedEntities.getSelf().eject();
+                    player.getCompensatedEntities().getSelf().eject();
                 });
             }
 

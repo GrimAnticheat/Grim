@@ -60,8 +60,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             boolean isTickingReliably = player.isTickingReliablyFor(3);
 
-            PacketEntity playerVehicle = player.compensatedEntities.getSelf().getRiding();
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            PacketEntity playerVehicle = player.getCompensatedEntities().getSelf().getRiding();
+            for (PacketEntity entity : player.getCompensatedEntities().entityMap.values()) {
                 if (entity == playerVehicle && !player.vehicleData.lastDummy) {
                     // The player has this as their vehicle, so they aren't interpolating it.
                     // And it isn't a dummy position
@@ -111,7 +111,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.getCompensatedEntities().updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_EFFECT) {
@@ -140,7 +140,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 event.getTasksAfterSend().add(player::sendTransaction);
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
+                PacketEntity entity = player.getCompensatedEntities().getEntity(effect.getEntityId());
                 if (entity == null) return;
 
                 entity.addPotionEffect(type, effect.getEffectAmplifier());
@@ -154,7 +154,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 event.getTasksAfterSend().add(player::sendTransaction);
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
+                PacketEntity entity = player.getCompensatedEntities().getEntity(effect.getEntityId());
                 if (entity == null) return;
 
                 entity.removePotionEffect(effect.getPotionType());
@@ -170,7 +170,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (isDirectlyAffectingPlayer(player, entityID)) player.sendTransaction();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
-                    () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
+                    () -> player.getCompensatedEntities().updateAttributes(entityID, attributes.getProperties()));
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_STATUS) {
@@ -178,7 +178,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             // This hasn't changed from 1.7.2 to 1.17
             // Needed to exempt players on dead vehicles, as dead entities have strange physics.
             if (status.getStatus() == 3) {
-                PacketEntity entity = player.compensatedEntities.getEntity(status.getEntityId());
+                PacketEntity entity = player.getCompensatedEntities().getEntity(status.getEntityId());
 
                 if (entity == null) return;
                 entity.isDead = true;
@@ -192,7 +192,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
 
             if (status.getStatus() == 31) {
-                PacketEntity hook = player.compensatedEntities.getEntity(status.getEntityId());
+                PacketEntity hook = player.getCompensatedEntities().getEntity(status.getEntityId());
                 if (!(hook instanceof PacketEntityHook)) return;
 
                 PacketEntityHook hookEntity = (PacketEntityHook) hook;
@@ -204,7 +204,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
 
             if (status.getStatus() >= 24 && status.getStatus() <= 28 && status.getEntityId() == player.entityID) {
-                player.compensatedEntities.getSelf().setOpLevel(status.getStatus() - 24);
+                player.getCompensatedEntities().getSelf().setOpLevel(status.getStatus() - 24);
             }
         }
 
@@ -265,7 +265,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 // Alright, let's convert this to the 1.9+ format to make it easier for grim
                 int vehicleID = attach.getHoldingId();
                 int attachID = attach.getAttachedId();
-                TrackerData trackerData = player.compensatedEntities.getTrackedEntity(attachID);
+                TrackerData trackerData = player.getCompensatedEntities().getTrackedEntity(attachID);
 
                 if (trackerData != null) {
                     // 1.8 sends a vehicle ID of -1 to dismount the entity from its vehicle
@@ -292,16 +292,16 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             for (int entityID : destroyEntityIds) {
                 despawnedEntitiesThisTransaction.add(entityID);
-                player.compensatedEntities.serverPositionsMap.remove(entityID);
+                player.getCompensatedEntities().serverPositionsMap.remove(entityID);
                 // Remove the tracked vehicle (handling tracking knockback) if despawned
-                if (player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityID) {
-                    player.compensatedEntities.serverPlayerVehicle = null;
+                if (player.getCompensatedEntities().serverPlayerVehicle != null && player.getCompensatedEntities().serverPlayerVehicle == entityID) {
+                    player.getCompensatedEntities().serverPlayerVehicle = null;
                 }
             }
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 for (int integer : destroyEntityIds) {
-                    player.compensatedEntities.removeEntity(integer);
+                    player.getCompensatedEntities().removeEntity(integer);
                     player.compensatedFireworks.removeFirework(integer);
                 }
             });
@@ -329,7 +329,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.sendTransaction();
         }
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
+            PacketEntity vehicle = player.getCompensatedEntities().getEntity(vehicleID);
 
             // Vanilla likes sending null vehicles, so we must ignore those like the client ignores them
             if (vehicle == null) return;
@@ -341,7 +341,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             // Add the entities as vehicles
             for (int entityID : passengers) {
-                PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
+                PacketEntity passenger = player.getCompensatedEntities().getEntity(entityID);
                 if (passenger == null) continue;
                 passenger.mount(vehicle);
             }
@@ -349,7 +349,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
-        TrackerData data = player.compensatedEntities.getTrackedEntity(entityId);
+        TrackerData data = player.getCompensatedEntities().getTrackedEntity(entityId);
 
         if (!hasSentPreWavePacket) {
             hasSentPreWavePacket = true;
@@ -364,7 +364,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 // As we don't want vehicles to fly, we need to replace it with a teleport if it is player vehicle
                 //
                 // Don't bother with client controlled vehicles though
-                boolean vanillaVehicleFlight = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityId
+                boolean vanillaVehicleFlight = player.getCompensatedEntities().serverPlayerVehicle != null && player.getCompensatedEntities().serverPlayerVehicle == entityId
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
                         PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
 
@@ -402,7 +402,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         int lastTrans = player.lastTransactionSent.get();
 
         player.latencyUtils.addRealTimeTask(lastTrans, () -> {
-            PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+            PacketEntity entity = player.getCompensatedEntities().getEntity(entityId);
             if (entity == null) return;
             if (entity instanceof PacketEntityTrackXRot && yaw != null) {
                 PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
@@ -412,7 +412,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });
         player.latencyUtils.addRealTimeTask(lastTrans + 1, () -> {
-            PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+            PacketEntity entity = player.getCompensatedEntities().getEntity(entityId);
             if (entity == null) return;
             entity.onSecondTransaction();
         });
@@ -423,20 +423,20 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.sendTransaction();
         }
 
-        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
+        player.getCompensatedEntities().serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.compensatedEntities.addEntity(entityID, type, position, xRot, extraData);
+            player.getCompensatedEntities().addEntity(entityID, type, position, xRot, extraData);
             if (entityMetadata != null) {
-                player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
+                player.getCompensatedEntities().updateEntityMetadata(entityID, entityMetadata);
             }
         });
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
         // The attributes for this entity is active, currently
-        return (player.compensatedEntities.serverPlayerVehicle == null && entityID == player.entityID) ||
-                (player.compensatedEntities.serverPlayerVehicle != null && entityID == player.compensatedEntities.serverPlayerVehicle);
+        return (player.getCompensatedEntities().serverPlayerVehicle == null && entityID == player.entityID) ||
+                (player.getCompensatedEntities().serverPlayerVehicle != null && entityID == player.getCompensatedEntities().serverPlayerVehicle);
     }
 
     public void onEndOfTickEvent() {

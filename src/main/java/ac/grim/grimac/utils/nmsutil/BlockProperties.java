@@ -21,7 +21,7 @@ public class BlockProperties {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
             searchBelowAmount = 1;
 
-        StateType material = player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
+        StateType material = player.getCompensatedWorld().getStateTypeAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
 
         return getMaterialFriction(player, material);
     }
@@ -51,13 +51,13 @@ public class BlockProperties {
         }
 
         // The game uses values known as flyingSpeed for some vehicles in the air
-        if (player.compensatedEntities.getSelf().getRiding() != null) {
-            if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.PIG || player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
+        if (player.getCompensatedEntities().getSelf().getRiding() != null) {
+            if (player.getCompensatedEntities().getSelf().getRiding().type == EntityTypes.PIG || player.getCompensatedEntities().getSelf().getRiding() instanceof PacketEntityHorse) {
                 return (float) (player.speed * 0.1f);
             }
 
-            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
-                PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
+            if (player.getCompensatedEntities().getSelf().getRiding() instanceof PacketEntityStrider) {
+                PacketEntityStrider strider = (PacketEntityStrider) player.getCompensatedEntities().getSelf().getRiding();
                 // Vanilla multiplies by 0.1 to calculate speed
                 return strider.movementSpeedAttribute * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }
@@ -76,10 +76,10 @@ public class BlockProperties {
     }
 
     public static StateType getOnBlock(GrimPlayer player, double x, double y, double z) {
-        StateType block1 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
+        StateType block1 = player.getCompensatedWorld().getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
 
         if (block1.isAir()) {
-            StateType block2 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
+            StateType block2 = player.getCompensatedWorld().getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
 
             if (Materials.isFence(block2) || Materials.isWall(block2) || Materials.isGate(block2)) {
                 return block2;
@@ -94,7 +94,7 @@ public class BlockProperties {
         // This system was introduces in 1.15 players to add support for honey blocks slowing players down
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return 1.0f;
 
-        StateType block = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
+        StateType block = player.getCompensatedWorld().getStateTypeAt(player.x, player.y, player.z);
 
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
@@ -119,7 +119,7 @@ public class BlockProperties {
             return f;
         }
 
-        StateType block2 = player.compensatedWorld.getStateTypeAt(player.x, player.y - 0.5000001, player.z);
+        StateType block2 = player.getCompensatedWorld().getStateTypeAt(player.x, player.y - 0.5000001, player.z);
         if (block2 == StateTypes.HONEY_BLOCK) return 0.4f;
         if (block2 == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment

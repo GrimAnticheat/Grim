@@ -13,7 +13,7 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         // If the player has carrot/fungus on a stick, otherwise the player has no control
         float f = getSteeringSpeed();
 
-        PacketEntityRideable boost = ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding());
+        PacketEntityRideable boost = ((PacketEntityRideable) player.getCompensatedEntities().getSelf().getRiding());
 
         // Do stuff for boosting on a pig/strider
         if (boost.currentBoostTime++ < boost.boostTimeMax) {

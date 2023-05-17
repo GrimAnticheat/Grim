@@ -134,7 +134,7 @@ public class UncertaintyHandler {
         fireworksBox = null;
 
         for (int owner : fishingRodPulls) {
-            PacketEntity entity = player.compensatedEntities.getEntity(owner);
+            PacketEntity entity = player.getCompensatedEntities().getEntity(owner);
             if (entity == null) continue;
 
             SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
@@ -291,18 +291,18 @@ public class UncertaintyHandler {
         }
 
         // This is a section where I hack around current issues with Grim itself...
-        if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
+        if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.getCompensatedEntities().getSelf().inVehicle())) {
             offset -= 0.01;
         }
 
-        if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.getCompensatedEntities().getSelf().inVehicle())) {
             offset -= 0.03;
         }
         // This is the end of that section.
 
         // I can't figure out how the client exactly tracks boost time
-        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
-            PacketEntityRideable vehicle = (PacketEntityRideable) player.compensatedEntities.getSelf().getRiding();
+        if (player.getCompensatedEntities().getSelf().getRiding() instanceof PacketEntityRideable) {
+            PacketEntityRideable vehicle = (PacketEntityRideable) player.getCompensatedEntities().getSelf().getRiding();
             if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
                 offset -= 0.01;
         }
@@ -323,8 +323,8 @@ public class UncertaintyHandler {
     }
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && entity != player.compensatedEntities.getSelf().getRiding() &&
+        for (PacketEntity entity : player.getCompensatedEntities().entityMap.values()) {
+            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && entity != player.getCompensatedEntities().getSelf().getRiding() &&
                     entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -335,10 +335,10 @@ public class UncertaintyHandler {
 
     private boolean striderCollision(SimpleCollisionBox expandedBB) {
         // Stiders can walk on top of other striders
-        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
-            for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+        if (player.getCompensatedEntities().getSelf().getRiding() instanceof PacketEntityStrider) {
+            for (Map.Entry<Integer, PacketEntity> entityPair : player.getCompensatedEntities().entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.getSelf().getRiding() && !entity.hasPassenger(entityPair.getValue())
+                if (entity.type == EntityTypes.STRIDER && entity != player.getCompensatedEntities().getSelf().getRiding() && !entity.hasPassenger(entityPair.getValue())
                         && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -350,10 +350,10 @@ public class UncertaintyHandler {
 
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
-        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
-            for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+        if (player.getCompensatedEntities().getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.getCompensatedEntities().getSelf().getRiding().type, EntityTypes.BOAT)) {
+            for (Map.Entry<Integer, PacketEntity> entityPair : player.getCompensatedEntities().entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity != player.compensatedEntities.getSelf().getRiding() && (player.compensatedEntities.getSelf().getRiding() == null || !player.compensatedEntities.getSelf().getRiding().hasPassenger(entityPair.getValue())) &&
+                if (entity != player.getCompensatedEntities().getSelf().getRiding() && (player.getCompensatedEntities().getSelf().getRiding() == null || !player.getCompensatedEntities().getSelf().getRiding().hasPassenger(entityPair.getValue())) &&
                         entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }

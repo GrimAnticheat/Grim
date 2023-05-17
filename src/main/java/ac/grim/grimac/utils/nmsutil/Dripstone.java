@@ -11,7 +11,7 @@ public class Dripstone {
         VerticalDirection primaryDirection = toPlace.getVerticalDirection();
         VerticalDirection opposite = toPlace.getVerticalDirection() == VerticalDirection.UP ? VerticalDirection.DOWN : VerticalDirection.UP;
 
-        WrappedBlockState typePlacingOn = player.compensatedWorld.getWrappedBlockStateAt(x, y + (primaryDirection == VerticalDirection.UP ? 1 : -1), z);
+        WrappedBlockState typePlacingOn = player.getCompensatedWorld().getWrappedBlockStateAt(x, y + (primaryDirection == VerticalDirection.UP ? 1 : -1), z);
 
         if (isPointedDripstoneWithDirection(typePlacingOn, opposite)) {
             // Use tip if the player is sneaking, or if it already is merged (somehow)
@@ -27,7 +27,7 @@ public class Dripstone {
                 Thickness dripThick = typePlacingOn.getThickness();
                 if (dripThick != Thickness.TIP && dripThick != Thickness.TIP_MERGE) {
                     // Look downwards
-                    WrappedBlockState oppositeData = player.compensatedWorld.getWrappedBlockStateAt(x, y + (opposite == VerticalDirection.UP ? 1 : -1), z);
+                    WrappedBlockState oppositeData = player.getCompensatedWorld().getWrappedBlockStateAt(x, y + (opposite == VerticalDirection.UP ? 1 : -1), z);
                     Thickness toSetThick = !isPointedDripstoneWithDirection(oppositeData, primaryDirection)
                             ? Thickness.BASE : Thickness.MIDDLE;
                     toPlace.setThickness(toSetThick);

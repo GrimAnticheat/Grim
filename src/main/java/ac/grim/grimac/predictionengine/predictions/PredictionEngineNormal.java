@@ -19,8 +19,8 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
-        if (player.compensatedEntities.getLevitationAmplifier() != null) {
-            d9 += (0.05 * (player.compensatedEntities.getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
+        if (player.getCompensatedEntities().getLevitationAmplifier() != null) {
+            d9 += (0.05 * (player.getCompensatedEntities().getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
             // Reset fall distance with levitation
             player.fallDistance = 0;
         } else if (player.hasGravity) {
@@ -43,7 +43,7 @@ public class PredictionEngineNormal extends PredictionEngine {
                 // If the player didn't try to jump
                 // And 0.03 didn't affect onGround status
                 // The player cannot jump
-                if (((player.compensatedEntities.getJumpAmplifier() == null || player.compensatedEntities.getJumpAmplifier() >= 0) && player.onGround) || !player.lastOnGround)
+                if (((player.getCompensatedEntities().getJumpAmplifier() == null || player.getCompensatedEntities().getJumpAmplifier() >= 0) && player.onGround) || !player.lastOnGround)
                     return;
 
                 JumpPower.jumpFromGround(player, jump);
@@ -66,8 +66,8 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         boolean walkingOnPowderSnow = false;
 
-        if (!player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
+        if (!player.getCompensatedEntities().getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                player.getCompensatedWorld().getStateTypeAt(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
             ItemStack boots = player.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;
         }
@@ -99,7 +99,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {
+            if (vector.getY() < 0.0 && !(player.getCompensatedWorld().getStateTypeAt(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {
                 vector.setY(0.0);
             }
         }

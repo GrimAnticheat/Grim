@@ -48,7 +48,7 @@ public class DoorHandler implements CollisionFactory {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)
                 || version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
             if (door.getHalf() == Half.LOWER) {
-                WrappedBlockState above = player.compensatedWorld.getWrappedBlockStateAt(x, y + 1, z);
+                WrappedBlockState above = player.getCompensatedWorld().getWrappedBlockStateAt(x, y + 1, z);
 
                 facingDirection = door.getFacing();
                 isClosed = !door.isOpen();
@@ -62,7 +62,7 @@ public class DoorHandler implements CollisionFactory {
                     isRightHinge = false;
                 }
             } else {
-                WrappedBlockState below = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
+                WrappedBlockState below = player.getCompensatedWorld().getWrappedBlockStateAt(x, y - 1, z);
 
                 if (below.getType() == door.getType() && below.getHalf() == Half.LOWER) {
                     isClosed = !below.isOpen();

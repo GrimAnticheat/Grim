@@ -200,8 +200,8 @@ public class CompensatedWorld {
     }
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && player.compensatedEntities.getSelf().getRiding() != entity) {
+        for (PacketEntity entity : player.getCompensatedEntities().entityMap.values()) {
+            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && player.getCompensatedEntities().getSelf().getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -292,35 +292,35 @@ public class CompensatedWorld {
     }
 
     public void tickOpenable(int blockX, int blockY, int blockZ) {
-        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
+        WrappedBlockState data = player.getCompensatedWorld().getWrappedBlockStateAt(blockX, blockY, blockZ);
 
         if (BlockTags.WOODEN_DOORS.contains(data.getType()) || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && data.getType() == StateTypes.IRON_DOOR)) {
-            WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
+            WrappedBlockState otherDoor = player.getCompensatedWorld().getWrappedBlockStateAt(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 if (BlockTags.DOORS.contains(otherDoor.getType())) {
                     otherDoor.setOpen(!otherDoor.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ, otherDoor.getGlobalId());
+                    player.getCompensatedWorld().updateBlock(blockX, blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ, otherDoor.getGlobalId());
                 }
                 data.setOpen(!data.isOpen());
-                player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+                player.getCompensatedWorld().updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
                 // 1.12 attempts to change the bottom half of the door first
                 if (data.getHalf() == Half.LOWER) {
                     data.setOpen(!data.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+                    player.getCompensatedWorld().updateBlock(blockX, blockY, blockZ, data.getGlobalId());
                 } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
                     // Then tries setting the first bit of whatever is below it, disregarding it's type
                     otherDoor.setOpen(!otherDoor.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
+                    player.getCompensatedWorld().updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
         } else if (BlockTags.WOODEN_TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())
                 || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && data.getType() == StateTypes.IRON_TRAPDOOR)) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
-            player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
+            player.getCompensatedWorld().updateBlock(blockX, blockY, blockZ, data.getGlobalId());
         } else if (BlockTags.BUTTONS.contains(data.getType())) {
             data.setPowered(true);
         }
@@ -363,7 +363,7 @@ public class CompensatedWorld {
 
             BlockFace direction;
             if (data.entity == null) {
-                WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
+                WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
                 direction = state.getFacing();
             } else {
                 direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
@@ -402,9 +402,9 @@ public class CompensatedWorld {
         // Remove if a shulker is not in this block position anymore
         openShulkerBoxes.removeIf(box -> {
             if (box.blockPos != null) { // Block is no longer valid
-                return !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType());
+                return !Materials.isShulker(player.getCompensatedWorld().getWrappedBlockStateAt(box.blockPos).getType());
             } else { // Entity is no longer valid
-                return !player.compensatedEntities.entityMap.containsValue(box.entity);
+                return !player.getCompensatedEntities().entityMap.containsValue(box.entity);
             }
         });
     }
@@ -658,7 +658,7 @@ public class CompensatedWorld {
 
     public void removeChunkLater(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.chunks.remove(chunkPosition));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.getCompensatedWorld().chunks.remove(chunkPosition));
     }
 
     public int getMinHeight() {

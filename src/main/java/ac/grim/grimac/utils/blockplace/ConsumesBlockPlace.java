@@ -24,21 +24,21 @@ public class ConsumesBlockPlace {
         if (BlockTags.CANDLE_CAKES.contains(state.getType())) {
             WrappedBlockState cake = StateTypes.CAKE.createBlockState(CompensatedWorld.blockVersion);
             cake.setBites(1);
-            player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), cake);
+            player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), cake);
             return true;
         }
         if (state.getType() == StateTypes.CAKE) {
             if (state.getBites() == 0 && BlockTags.CANDLES.contains(place.getMaterial())) {
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
+                player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
 
             if (player.gamemode == GameMode.CREATIVE || (player.food < 20)) {
                 if (state.getBites() != 6) {
                     state.setBites(state.getBites() + 1);
-                    player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), state);
+                    player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), state);
                 } else {
-                    player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
+                    player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 }
                 return true;
             }
@@ -48,7 +48,7 @@ public class ConsumesBlockPlace {
         if (state.getType() == StateTypes.CAVE_VINES || state.getType() == StateTypes.CAVE_VINES_PLANT) {
             if (state.isBerries()) {
                 state.setBerries(false);
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), state);
+                player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), state);
                 return true;
             }
             return false;
@@ -58,7 +58,7 @@ public class ConsumesBlockPlace {
                 return false;
             } else if (state.getAge() > 1) {
                 state.setAge(1);
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), state);
+                player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), state);
                 return true;
             } else {
                 return false;
@@ -66,7 +66,7 @@ public class ConsumesBlockPlace {
         }
         if (state.getType() == StateTypes.TNT) {
             if (place.getItemStack().getType() == ItemTypes.FIRE_CHARGE || place.getItemStack().getType() == ItemTypes.FLINT_AND_STEEL) {
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
+                player.getCompensatedWorld().updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
         }

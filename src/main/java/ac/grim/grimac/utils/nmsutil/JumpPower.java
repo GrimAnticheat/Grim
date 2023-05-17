@@ -10,8 +10,8 @@ public class JumpPower {
     public static void jumpFromGround(GrimPlayer player, Vector vector) {
         float f = getJumpPower(player);
 
-        if (player.compensatedEntities.getJumpAmplifier() != null) {
-            f += 0.1f * (player.compensatedEntities.getJumpAmplifier() + 1);
+        if (player.getCompensatedEntities().getJumpAmplifier() != null) {
+            f += 0.1f * (player.getCompensatedEntities().getJumpAmplifier() + 1);
         }
 
         vector.setY(f);
@@ -34,7 +34,7 @@ public class JumpPower {
     }
 
     private static float getBlockJumpFactor(GrimPlayer player, double x, double y, double z) {
-        StateType jumpBlock = player.compensatedWorld.getStateTypeAt(x, y, z);
+        StateType jumpBlock = player.getCompensatedWorld().getStateTypeAt(x, y, z);
 
         if (jumpBlock == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15))
             return 0.5F;

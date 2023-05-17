@@ -56,9 +56,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             }
 
             if (health.getHealth() <= 0) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.getSelf().isDead = true);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.getCompensatedEntities().getSelf().isDead = true);
             } else {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.getSelf().isDead = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.getCompensatedEntities().getSelf().isDead = false);
             }
 
             event.getTasksAfterSend().add(player::sendTransaction);
@@ -74,7 +74,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.dimension = joinGame.getDimension();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
-            player.compensatedWorld.setDimension(joinGame.getDimension().getDimensionName(), event.getUser());
+            player.getCompensatedWorld().setDimension(joinGame.getDimension().getDimensionName(), event.getUser());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.RESPAWN) {
@@ -102,34 +102,37 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
 
-                player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
+
+                player.getCheckManager().getPacketCheck(BadPacketsE.class).ifPresent(BadPacketsE::handleRespawn); // Reminder ticks reset
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
                 if (respawn.getDimension().getId() != player.dimension.getId() || !Objects.equals(respawn.getDimension().getDimensionName(), player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
-                    player.compensatedEntities.entityMap.clear();
-                    player.compensatedWorld.activePistons.clear();
-                    player.compensatedWorld.openShulkerBoxes.clear();
-                    player.compensatedWorld.chunks.clear();
-                    player.compensatedWorld.isRaining = false;
+                    player.getCompensatedEntities().entityMap.clear();
+                    player.getCompensatedWorld().activePistons.clear();
+                    player.getCompensatedWorld().openShulkerBoxes.clear();
+                    player.getCompensatedWorld().chunks.clear();
+                    player.getCompensatedWorld().isRaining = false;
                 }
                 player.dimension = respawn.getDimension();
 
-                player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
-                player.compensatedEntities.playerEntity = new PacketEntitySelf(player);
-                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+                player.getCompensatedEntities().serverPlayerVehicle = null; // All entities get removed on respawn
+                player.getCompensatedEntities().playerEntity = new PacketEntitySelf(player);
+                player.getCompensatedEntities().selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
 
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
-                    ((BadPacketsF) player.checkManager.getPacketCheck(BadPacketsF.class)).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
+                    player.getCheckManager().getPacketCheck(BadPacketsF.class).ifPresent(badPacketsF -> {
+                        badPacketsF.lastSprinting = false;
+                    }); // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
                     // The server doesn't even use it... what do we do?
-                    player.compensatedEntities.hasSprintingAttributeEnabled = false;
+                    player.getCompensatedEntities().hasSprintingAttributeEnabled = false;
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                    player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                    player.getCompensatedWorld().setDimension(respawn.getDimension().getDimensionName(), event.getUser());
                 }
             });
         }

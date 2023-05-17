@@ -11,6 +11,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 public class ClientBrand extends Check implements PacketCheck {
     String brand = "vanilla";
     boolean hasBrand = false;
@@ -36,7 +38,11 @@ public class ClientBrand extends Check implements PacketCheck {
                     System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
                     brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
-                    if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
+                    Optional<ExploitA> optional = player.getCheckManager().getPacketCheck(ExploitA.class);
+                    boolean sendLog4j = optional
+                            .map(exploitA -> exploitA.checkString(brand))
+                            .orElseGet(() -> ExploitA.checkString(brand, this));
+                    if (sendLog4j) brand = "sent log4j";
                     if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                         message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);

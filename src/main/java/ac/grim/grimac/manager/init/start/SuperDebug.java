@@ -120,7 +120,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         sb.append("\nLava: ");
         sb.append(player.wasTouchingLava);
         sb.append("\nVehicle: ");
-        sb.append(player.compensatedEntities.getSelf().inVehicle());
+        sb.append(player.getCompensatedEntities().getSelf().inVehicle());
 
         sb.append("\n\n");
         sb.append("Bounding box: ");
@@ -148,7 +148,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
                 maxPosLength = (int) Math.max(maxPosLength, Math.ceil(Math.log10(Math.abs(z))));
                 for (int x = GrimMath.floor(player.boundingBox.minX) - 2; x <= GrimMath.ceil(player.boundingBox.maxX) + 2; x++) {
                     maxPosLength = (int) Math.max(maxPosLength, Math.ceil(Math.log10(Math.abs(x))));
-                    WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                    WrappedBlockState block = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
                     maxLength = Math.max(block.toString().replace("minecraft:", "").length(), maxLength);
                 }
             }
@@ -171,7 +171,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
             for (int z = GrimMath.floor(player.boundingBox.minZ) - 2; z <= GrimMath.ceil(player.boundingBox.maxZ) + 2; z++) {
                 sb.append(String.format("%-" + maxPosLength + "s", "z: " + z + " "));
                 for (int x = GrimMath.floor(player.boundingBox.minX) - 2; x <= GrimMath.ceil(player.boundingBox.maxX) + 2; x++) {
-                    WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                    WrappedBlockState block = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
                     sb.append(String.format("%-" + maxLength + "s", block.toString().replace("minecraft:", "")));
                 }
                 sb.append("\n");

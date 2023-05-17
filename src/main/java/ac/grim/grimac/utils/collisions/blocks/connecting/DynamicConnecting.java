@@ -40,8 +40,8 @@ public class DynamicConnecting {
     }
 
     public boolean connectsTo(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
-        WrappedBlockState targetBlock = player.compensatedWorld.getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
-        WrappedBlockState currBlock = player.compensatedWorld.getWrappedBlockStateAt(currX, currY, currZ);
+        WrappedBlockState targetBlock = player.getCompensatedWorld().getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
+        WrappedBlockState currBlock = player.getCompensatedWorld().getWrappedBlockStateAt(currX, currY, currZ);
         StateType target = targetBlock.getType();
         StateType fence = currBlock.getType();
 

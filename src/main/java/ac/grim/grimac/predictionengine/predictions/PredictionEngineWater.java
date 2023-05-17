@@ -40,7 +40,7 @@ public class PredictionEngineWater extends PredictionEngine {
         // This stops players from abusing this mechanic while on top of water, which could theoretically allow
         // some form of a new Jesus hack.
         // Anyways, Jesus doesn't make too much sense on 1.13+ clients anyways when swimming is faster
-        if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.compensatedEntities.getSelf().getRiding() == null) {
+        if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.getCompensatedEntities().getSelf().getRiding() == null) {
             for (VectorData vector : base) {
                 double lookYAmount = ReachUtils.getLook(player, player.xRot, player.yRot).getY();
                 double scalar = lookYAmount < -0.2 ? 0.085 : 0.06;
@@ -54,7 +54,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 // Anyways, netcode here with swimming is bad, so, just allow this unfair disadvantage that doesn't exist
                 // If you feel adventurous, re-add the following line to eliminate this unfair disadvantage
 
-                //if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
+                //if (d > 0.0 && player.getCompensatedWorld().getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
                 swimmingVelocities.add(vector.returnNewModified(vector.vector, VectorData.VectorType.SurfaceSwimming));
 
             }

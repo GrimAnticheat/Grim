@@ -21,7 +21,7 @@ public class BlockBreakSpeed {
         // Starts with itemstack get destroy speed
         ItemStack tool = player.getInventory().getHeldItem();
 
-        WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
+        WrappedBlockState block = player.getCompensatedWorld().getWrappedBlockStateAt(position);
         float blockHardness = block.getType().getHardness();
 
         // 1.15.2 and below need this hack
@@ -122,15 +122,15 @@ public class BlockBreakSpeed {
             }
         }
 
-        Integer digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
-        Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
+        Integer digSpeed = player.getCompensatedEntities().getPotionLevelForPlayer(PotionTypes.HASTE);
+        Integer conduit = player.getCompensatedEntities().getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
         if (digSpeed != null || conduit != null) {
             int hasteLevel = Math.max(digSpeed == null ? 0 : digSpeed, conduit == null ? 0 : conduit);
             speedMultiplier *= 1 + (0.2 * (hasteLevel + 1));
         }
 
-        Integer miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
+        Integer miningFatigue = player.getCompensatedEntities().getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
 
         if (miningFatigue != null) {
             switch (miningFatigue) {

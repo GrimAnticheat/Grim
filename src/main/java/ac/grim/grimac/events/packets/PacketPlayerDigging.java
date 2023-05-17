@@ -31,7 +31,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         if (item != null) {
             ItemType material = item.getType();
 
-            if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
+            if (player.getCheckManager().getCompensatedCooldown().hasMaterial(material)) {
                 player.packetStateData.slowedByUsingItem = false; // resync, not required
                 return; // The player has a cooldown, and therefore cannot use this item!
             }
@@ -164,7 +164,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
                 player.packetStateData.slowedByUsingItem = false;
                 // Sequence is ignored by the server
-                player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
+                if (player.getCheckManager().isEnabledCheck(NoSlowA.class))
+                    player.getCheckManager().getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
             }
             player.packetStateData.lastSlotSelected = slot.getSlot();
         }

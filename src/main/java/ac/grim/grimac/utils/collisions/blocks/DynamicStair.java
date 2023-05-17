@@ -34,7 +34,7 @@ public class DynamicStair implements CollisionFactory {
 
     public static EnumShape getStairsShape(GrimPlayer player, WrappedBlockState originalStairs, int x, int y, int z) {
         BlockFace facing = originalStairs.getFacing();
-        WrappedBlockState offsetOne = player.compensatedWorld.getWrappedBlockStateAt(x + facing.getModX(), y + facing.getModY(), z + facing.getModZ());
+        WrappedBlockState offsetOne = player.getCompensatedWorld().getWrappedBlockStateAt(x + facing.getModX(), y + facing.getModY(), z + facing.getModZ());
 
         if (Materials.isStairs(offsetOne.getType()) && originalStairs.getHalf() == offsetOne.getHalf()) {
             BlockFace enumfacing1 = offsetOne.getFacing();
@@ -48,7 +48,7 @@ public class DynamicStair implements CollisionFactory {
             }
         }
 
-        WrappedBlockState offsetTwo = player.compensatedWorld.getWrappedBlockStateAt(x + facing.getOppositeFace().getModX(), y + facing.getOppositeFace().getModY(), z + facing.getOppositeFace().getModZ());
+        WrappedBlockState offsetTwo = player.getCompensatedWorld().getWrappedBlockStateAt(x + facing.getOppositeFace().getModX(), y + facing.getOppositeFace().getModY(), z + facing.getOppositeFace().getModZ());
 
         if (Materials.isStairs(offsetTwo.getType()) && originalStairs.getHalf() == offsetTwo.getHalf()) {
             BlockFace enumfacing2 = offsetTwo.getFacing();
@@ -66,7 +66,7 @@ public class DynamicStair implements CollisionFactory {
     }
 
     private static boolean canTakeShape(GrimPlayer player, WrappedBlockState stairOne, int x, int y, int z) {
-        WrappedBlockState otherStair = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        WrappedBlockState otherStair = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
         return !(BlockTags.STAIRS.contains(otherStair.getType())) ||
                 (stairOne.getFacing() != otherStair.getFacing() ||
                         stairOne.getHalf() != otherStair.getHalf());

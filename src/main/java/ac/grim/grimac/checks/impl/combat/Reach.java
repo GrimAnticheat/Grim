@@ -67,12 +67,12 @@ public class Reach extends Check implements PacketCheck {
                 return;
             }
 
-            PacketEntity entity = player.compensatedEntities.entityMap.get(action.getEntityId());
+            PacketEntity entity = player.getCompensatedEntities().entityMap.get(action.getEntityId());
             // Stop people from freezing transactions before an entity spawns to bypass reach
             if (entity == null) {
                 // Only cancel if and only if we are tracking this entity
                 // This is because we don't track paintings.
-                if (shouldModifyPackets() && player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
+                if (shouldModifyPackets() && player.getCompensatedEntities().serverPositionsMap.containsKey(action.getEntityId())) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
@@ -86,7 +86,7 @@ public class Reach extends Check implements PacketCheck {
             if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
 
             if (player.gamemode == GameMode.CREATIVE) return;
-            if (player.compensatedEntities.getSelf().inVehicle()) return;
+            if (player.getCompensatedEntities().getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
             playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
@@ -121,7 +121,7 @@ public class Reach extends Check implements PacketCheck {
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE) return false;
-        if (player.compensatedEntities.getSelf().inVehicle()) return false;
+        if (player.getCompensatedEntities().getSelf().inVehicle()) return false;
 
         double lowest = 6;
         // Filter out what we assume to be cheats
@@ -147,7 +147,7 @@ public class Reach extends Check implements PacketCheck {
 
     private void tickFlying() {
         for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
-            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey());
+            PacketEntity reachEntity = player.getCompensatedEntities().entityMap.get(attack.getKey());
 
             if (reachEntity != null) {
                 String result = checkReach(reachEntity, attack.getValue(), false);

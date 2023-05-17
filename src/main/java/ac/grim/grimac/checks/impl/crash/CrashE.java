@@ -9,6 +9,8 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
+import java.util.Optional;
+
 @CheckData(name = "CrashE", experimental = true)
 public class CrashE extends Check implements PacketCheck {
 
@@ -21,7 +23,10 @@ public class CrashE extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_SETTINGS) {
             WrapperPlayClientSettings wrapper = new WrapperPlayClientSettings(event);
             int viewDistance = wrapper.getViewDistance();
-            boolean invalidLocale = player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(wrapper.getLocale());
+            Optional<ExploitA> optional = player.getCheckManager().getPacketCheck(ExploitA.class);
+            boolean invalidLocale = optional
+                    .map(exploitA -> exploitA.checkString(wrapper.getLocale()))
+                    .orElseGet(() -> ExploitA.checkString(wrapper.getLocale(), this));
             if (viewDistance < 2) {
                 flagAndAlert("distance=" + viewDistance);
                 wrapper.setViewDistance(2);

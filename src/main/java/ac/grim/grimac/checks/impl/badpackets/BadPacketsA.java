@@ -20,7 +20,6 @@ public class BadPacketsA extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             WrapperPlayClientHeldItemChange packet = new WrapperPlayClientHeldItemChange(event);
-
             int slot = packet.getSlot();
 
             if (slot == lastSlot) {

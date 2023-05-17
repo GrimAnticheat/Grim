@@ -16,7 +16,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public static void floatStrider(GrimPlayer player) {
         if (player.wasTouchingLava) {
-            if (isAbove(player) && player.compensatedWorld.getLavaFluidLevelAt((int) Math.floor(player.x), (int) Math.floor(player.y + 1), (int) Math.floor(player.z)) == 0) {
+            if (isAbove(player) && player.getCompensatedWorld().getLavaFluidLevelAt((int) Math.floor(player.x), (int) Math.floor(player.y + 1), (int) Math.floor(player.z)) == 0) {
                 player.onGround = true;
             } else {
                 player.clientVelocity.multiply(0.5).add(new Vector(0, 0.05, 0));
@@ -32,12 +32,12 @@ public class MovementTickerStrider extends MovementTickerRideable {
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
 
-        ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking = true;
+        ((PacketEntityStrider) player.getCompensatedEntities().getSelf().getRiding()).isShaking = true;
 
-        StateType posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
+        StateType posMaterial = player.getCompensatedWorld().getStateTypeAt(player.x, player.y, player.z);
         StateType belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
-        ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking =
+        ((PacketEntityStrider) player.getCompensatedEntities().getSelf().getRiding()).isShaking =
                 !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
                         !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
                         !player.wasTouchingLava;
@@ -45,7 +45,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     @Override
     public float getSteeringSpeed() {
-        PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
+        PacketEntityStrider strider = (PacketEntityStrider) player.getCompensatedEntities().getSelf().getRiding();
         return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
     }
 

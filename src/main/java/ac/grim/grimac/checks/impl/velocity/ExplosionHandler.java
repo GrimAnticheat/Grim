@@ -48,7 +48,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     for (Vector3i records : explosion.getRecords()) {
-                        player.compensatedWorld.updateBlock(records.x, records.y, records.z, 0);
+                        player.getCompensatedWorld().updateBlock(records.x, records.y, records.z, 0);
                     }
                 });
             }

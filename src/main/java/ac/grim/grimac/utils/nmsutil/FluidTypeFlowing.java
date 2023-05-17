@@ -13,7 +13,7 @@ import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
-        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
+        float fluidLevel = (float) Math.min(player.getCompensatedWorld().getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         ClientVersion version = player.getClientVersion();
 
         if (fluidLevel == 0) return new Vector();
@@ -25,17 +25,17 @@ public class FluidTypeFlowing {
             int modifiedZ = originalZ + enumdirection.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
+                float f = (float) Math.min(player.getCompensatedWorld().getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    StateType mat = player.compensatedWorld.getStateTypeAt(modifiedX, originalY, modifiedZ);
+                    StateType mat = player.getCompensatedWorld().getStateTypeAt(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
                     // Minecraft is... it's whatever Mojang was feeling like, but it's very consistent
                     // Use method call to support 1.13-1.15 clients and banner oddity
                     if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
+                            f = (float) Math.min(player.getCompensatedWorld().getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
                             if (f > 0.0F) {
                                 f1 = fluidLevel - (f - 0.8888889F);
                             }
@@ -57,7 +57,7 @@ public class FluidTypeFlowing {
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(originalX, originalY, originalZ);
+        WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(originalX, originalY, originalZ);
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
@@ -77,7 +77,7 @@ public class FluidTypeFlowing {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
 
-        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        WrappedBlockState data = player.getCompensatedWorld().getWrappedBlockStateAt(x, y, z);
         StateType type = data.getType();
 
         if (isSame(player, x, y, z, originalX, y, originalZ)) return false;
@@ -156,15 +156,15 @@ public class FluidTypeFlowing {
     }
 
     public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {
-        return player.compensatedWorld.getFluidLevelAt(x, y, z) == 0;
+        return player.getCompensatedWorld().getFluidLevelAt(x, y, z) == 0;
     }
 
     // Check if both are a type of water or both are a type of lava
     // This is a bit slow... but I don't see a better way to do it with the bukkit api and no nms
     public static boolean isSame(GrimPlayer player, int x1, int y1, int z1, int x2, int y2, int z2) {
-        return player.compensatedWorld.getWaterFluidLevelAt(x1, y1, z1) > 0 &&
-                player.compensatedWorld.getWaterFluidLevelAt(x2, y2, z2) > 0 ||
-                player.compensatedWorld.getLavaFluidLevelAt(x1, y1, z1) > 0 &&
-                        player.compensatedWorld.getLavaFluidLevelAt(x2, y2, z2) > 0;
+        return player.getCompensatedWorld().getWaterFluidLevelAt(x1, y1, z1) > 0 &&
+                player.getCompensatedWorld().getWaterFluidLevelAt(x2, y2, z2) > 0 ||
+                player.getCompensatedWorld().getLavaFluidLevelAt(x1, y1, z1) > 0 &&
+                        player.getCompensatedWorld().getLavaFluidLevelAt(x2, y2, z2) > 0;
     }
 }

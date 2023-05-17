@@ -33,7 +33,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 ItemStack heldItem = player.getInventory().getHeldItem();
-                PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
+                PacketEntity entity = player.getCompensatedEntities().getEntity(interact.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
                 if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {

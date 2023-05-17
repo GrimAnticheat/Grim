@@ -106,12 +106,12 @@ public class DynamicChorusPlant implements CollisionFactory {
         // 1.13 clients on 1.12 servers don't see chorus flowers attached to chorus because of a ViaVersion bug
         StateType versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? StateTypes.CHORUS_FLOWER : null;
 
-        StateType downBlock = player.compensatedWorld.getStateTypeAt(x, y - 1, z);
-        StateType upBlock = player.compensatedWorld.getStateTypeAt(x, y + 1, z);
-        StateType northBlock = player.compensatedWorld.getStateTypeAt(x, y, z - 1);
-        StateType eastBlock = player.compensatedWorld.getStateTypeAt(x + 1, y, z);
-        StateType southBlock = player.compensatedWorld.getStateTypeAt(x, y, z + 1);
-        StateType westBlock = player.compensatedWorld.getStateTypeAt(x - 1, y, z);
+        StateType downBlock = player.getCompensatedWorld().getStateTypeAt(x, y - 1, z);
+        StateType upBlock = player.getCompensatedWorld().getStateTypeAt(x, y + 1, z);
+        StateType northBlock = player.getCompensatedWorld().getStateTypeAt(x, y, z - 1);
+        StateType eastBlock = player.getCompensatedWorld().getStateTypeAt(x + 1, y, z);
+        StateType southBlock = player.getCompensatedWorld().getStateTypeAt(x, y, z + 1);
+        StateType westBlock = player.getCompensatedWorld().getStateTypeAt(x - 1, y, z);
 
         if (downBlock == StateTypes.CHORUS_PLANT || downBlock == versionFlower || downBlock == StateTypes.END_STONE) {
             faces.add(BlockFace.DOWN);

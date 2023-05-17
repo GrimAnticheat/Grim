@@ -149,7 +149,7 @@ public class PointThreeEstimator {
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             // https://github.com/MWHunter/Grim/issues/613
-            int controllingEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+            int controllingEntityId = player.getCompensatedEntities().getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
             player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
             player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get());
 
@@ -163,7 +163,7 @@ public class PointThreeEstimator {
             }
         }
 
-        if (!player.compensatedEntities.getSelf().inVehicle() && ((state.getType() == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+        if (!player.getCompensatedEntities().getSelf().inVehicle() && ((state.getType() == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
                 || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
@@ -245,7 +245,7 @@ public class PointThreeEstimator {
         // Check for flowing water
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             WrappedBlockState state = pair.getFirst();
-            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
+            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.getCompensatedEntities().getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
@@ -266,7 +266,7 @@ public class PointThreeEstimator {
     }
 
     public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {
-        if (player.compensatedEntities.getSelf().inVehicle()) return false; // No 0.03
+        if (player.getCompensatedEntities().getSelf().inVehicle()) return false; // No 0.03
         if (!player.isPointThree()) return false; // No 0.03
 
         // This is intensive, only run it if we need it... compensate for stepping with 0.03
@@ -319,7 +319,7 @@ public class PointThreeEstimator {
         }
 
         // Thankfully vehicles don't have 0.03
-        if (player.compensatedEntities.getSelf().inVehicle()) {
+        if (player.getCompensatedEntities().getSelf().inVehicle()) {
             return false;
         }
 
@@ -378,7 +378,7 @@ public class PointThreeEstimator {
     public double getAdditionalVerticalUncertainty(VectorData vector) {
         double fluidAddition = vector.isZeroPointZeroThree() ? 0.014 : 0;
 
-        if (player.compensatedEntities.getSelf().inVehicle()) return 0; // No 0.03
+        if (player.getCompensatedEntities().getSelf().inVehicle()) return 0; // No 0.03
 
         if (headHitter) {
             wasAlwaysCertain = false;
@@ -427,9 +427,9 @@ public class PointThreeEstimator {
     }
 
     private double iterateGravity(GrimPlayer player, double y) {
-        if (player.compensatedEntities.getLevitationAmplifier() != null) {
+        if (player.getCompensatedEntities().getLevitationAmplifier() != null) {
             // This supports both positive and negative levitation
-            y += (0.05 * (player.compensatedEntities.getLevitationAmplifier() + 1) - y * 0.2);
+            y += (0.05 * (player.getCompensatedEntities().getLevitationAmplifier() + 1) - y * 0.2);
         } else if (player.hasGravity) {
             // Simulate gravity
             y -= player.gravity;

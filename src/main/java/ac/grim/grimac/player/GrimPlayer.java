@@ -39,6 +39,7 @@ import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -70,13 +71,19 @@ public class GrimPlayer implements GrimUser {
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // End transaction handling stuff
     // Manager like classes
+    @Getter
     public CheckManager checkManager;
+    @Getter
     public ActionManager actionManager;
+    @Getter
     public PunishmentManager punishmentManager;
     public MovementCheckRunner movementCheckRunner;
     // End manager like classes
     public Vector clientVelocity = new Vector();
+    public String lastSendedCommand = "-";
+    public String lastInteractAction = "-";
     PacketTracker packetTracker;
+    public String ipAddress;
     private long transactionPing = 0;
     public long lastTransSent = 0;
     public long lastTransReceived = 0;
@@ -161,7 +168,9 @@ public class GrimPlayer implements GrimUser {
     // You cannot initialize everything here for some reason
     public LastInstanceManager lastInstanceManager;
     public CompensatedFireworks compensatedFireworks;
+    @Getter
     public CompensatedWorld compensatedWorld;
+    @Getter
     public CompensatedEntities compensatedEntities;
     public LatencyUtils latencyUtils;
     public PointThreeEstimator pointThreeEstimator;
@@ -210,10 +219,11 @@ public class GrimPlayer implements GrimUser {
 
         lastInstanceManager = new LastInstanceManager(this);
         checkManager = new CheckManager(this);
+        checkManager.initAllChecks();
+
         actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
-
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         latencyUtils = new LatencyUtils(this);
@@ -330,6 +340,15 @@ public class GrimPlayer implements GrimUser {
         baseTickAddition.add(vector);
     }
 
+    public String getIpAddress() {
+        if (this.ipAddress == null) {
+            this.ipAddress = bukkitPlayer == null ?
+                    "offline" :
+                    bukkitPlayer.getAddress().getAddress().getHostAddress();
+        }
+        return this.ipAddress;
+    }
+
     public float getMaxUpStep() {
         if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
 
@@ -444,7 +463,7 @@ public class GrimPlayer implements GrimUser {
         if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector, VectorData.VectorType.Knockback));
 
         boolean kbPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), knockback);
-        checkManager.getKnockbackHandler().setPointThree(kbPointThree);
+        getCheckManager().getKnockbackHandler().setPointThree(kbPointThree);
 
         Set<VectorData> explosion = new HashSet<>();
         if (firstBreadExplosion != null)
@@ -453,7 +472,7 @@ public class GrimPlayer implements GrimUser {
             explosion.add(new VectorData(likelyExplosions.vector, VectorData.VectorType.Explosion));
 
         boolean explosionPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), explosion);
-        checkManager.getExplosionHandler().setPointThree(explosionPointThree);
+        getCheckManager().getExplosionHandler().setPointThree(explosionPointThree);
 
         if (kbPointThree || explosionPointThree) {
             uncertaintyHandler.lastPointThree.reset();
@@ -467,8 +486,12 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void updatePermissions() {
         if (bukkitPlayer == null) return;
-        this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
-        this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
+        this.noModifyPacketPermission = hasPermission("grim.nomodifypacket");
+        this.noSetbackPermission = hasPermission("grim.nosetback");
+    }
+
+    public boolean hasPermission(String permission) {
+        return permission == null || bukkitPlayer != null && bukkitPlayer.hasPermission(permission);
     }
 
     private int spamThreshold = 100;
@@ -506,7 +529,7 @@ public class GrimPlayer implements GrimUser {
     //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
-        return (getClientVersion().isOlderThan(ClientVersion.V_1_9) 
+        return (getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 || !uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
                 || compensatedEntities.getSelf().inVehicle();
     }
@@ -516,7 +539,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public CompensatedInventory getInventory() {
-        return checkManager.getPacketCheck(CompensatedInventory.class);
+        return getCheckManager().getPacketCheckSafe(CompensatedInventory.class);
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
@@ -545,7 +568,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
-        return checkManager.getSetbackUtil();
+        return getCheckManager().getSetbackUtil();
     }
 
     public boolean wouldCollisionResultFlagGroundSpoof(double inputY, double collisionY) {
@@ -645,7 +668,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public String getBrand() {
-        return checkManager.getPacketCheck(ClientBrand.class).getBrand();
+        return getCheckManager().getPacketCheckSafe(ClientBrand.class).getBrand();
     }
 
     @Override
@@ -655,12 +678,12 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public double getHorizontalSensitivity() {
-        return checkManager.getRotationCheck(AimProcessor.class).sensitivityX;
+        return getCheckManager().getRotationCheck(AimProcessor.class).sensitivityX;
     }
 
     @Override
     public double getVerticalSensitivity() {
-        return checkManager.getRotationCheck(AimProcessor.class).sensitivityY;
+        return getCheckManager().getRotationCheck(AimProcessor.class).sensitivityY;
     }
 
     @Override
@@ -670,7 +693,6 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
-        return checkManager.allChecks.values();
+        return getCheckManager().allChecks.values();
     }
-
 }

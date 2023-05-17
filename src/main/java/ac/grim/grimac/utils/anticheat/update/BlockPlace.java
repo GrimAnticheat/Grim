@@ -76,7 +76,7 @@ public class BlockPlace {
         this.material = itemStack.getType().getPlacedType() == null ? StateTypes.FIRE : itemStack.getType().getPlacedType();
         this.hitData = hitData;
 
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
+        WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
         this.replaceClicked = canBeReplaced(this.material, state, face);
     }
 
@@ -85,29 +85,29 @@ public class BlockPlace {
     }
 
     public WrappedBlockState getExistingBlockData() {
-        return player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos());
+        return player.getCompensatedWorld().getWrappedBlockStateAt(getPlacedBlockPos());
     }
 
     public StateType getPlacedAgainstMaterial() {
-        return player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation()).getType();
+        return player.getCompensatedWorld().getWrappedBlockStateAt(getPlacedAgainstBlockLocation()).getType();
     }
 
     public WrappedBlockState getBelowState() {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() - 1);
-        return player.compensatedWorld.getWrappedBlockStateAt(pos);
+        return player.getCompensatedWorld().getWrappedBlockStateAt(pos);
     }
 
     public WrappedBlockState getAboveState() {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() + 1);
-        return player.compensatedWorld.getWrappedBlockStateAt(pos);
+        return player.getCompensatedWorld().getWrappedBlockStateAt(pos);
     }
 
     public WrappedBlockState getDirectionalState(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
-        return player.compensatedWorld.getWrappedBlockStateAt(pos);
+        return player.getCompensatedWorld().getWrappedBlockStateAt(pos);
     }
 
     public boolean isSolidBlocking(BlockFace relative) {
@@ -292,9 +292,9 @@ public class BlockPlace {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         // You can't build above height limit.
-        if (pos.getY() >= player.compensatedWorld.getMaxHeight()) return false;
+        if (pos.getY() >= player.getCompensatedWorld().getMaxHeight()) return false;
 
-        return player.compensatedWorld.getWrappedBlockStateAt(pos).getType().isReplaceable();
+        return player.getCompensatedWorld().getWrappedBlockStateAt(pos).getType().isReplaceable();
     }
 
 
@@ -342,7 +342,7 @@ public class BlockPlace {
     public boolean isLava(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
-        return player.compensatedWorld.getWrappedBlockStateAt(pos).getType() == StateTypes.LAVA;
+        return player.getCompensatedWorld().getWrappedBlockStateAt(pos).getType() == StateTypes.LAVA;
     }
 
     // I believe this is correct, although I'm using a method here just in case it's a tick off... I don't trust Mojang
@@ -352,12 +352,12 @@ public class BlockPlace {
 
     public boolean isInWater() {
         Vector3i pos = getPlacedBlockPos();
-        return player.compensatedWorld.isWaterSourceBlock(pos.getX(), pos.getY(), pos.getZ());
+        return player.getCompensatedWorld().isWaterSourceBlock(pos.getX(), pos.getY(), pos.getZ());
     }
 
     public boolean isInLiquid() {
         Vector3i pos = getPlacedBlockPos();
-        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(pos);
+        WrappedBlockState data = player.getCompensatedWorld().getWrappedBlockStateAt(pos);
         return Materials.isWater(player.getClientVersion(), data) || data.getType() == StateTypes.LAVA;
     }
 
@@ -384,12 +384,12 @@ public class BlockPlace {
             Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
             // A block next to the player is providing power.  Therefore the block is powered
-            if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
+            if (player.getCompensatedWorld().getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
                 return true;
             }
 
             // Check if a block can even provide power... bukkit doesn't have a method for this?
-            WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(modified);
+            WrappedBlockState state = player.getCompensatedWorld().getWrappedBlockStateAt(modified);
 
             boolean isByDefaultConductive = !Materials.isSolidBlockingBlacklist(state.getType(), player.getClientVersion()) &&
                     CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state).isFullBlock();
@@ -410,7 +410,7 @@ public class BlockPlace {
                 Vector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
 
                 // A block next to the player is directly powered.  Therefore, the block is powered
-                if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
+                if (player.getCompensatedWorld().getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
                     return true;
                 }
             }
@@ -562,7 +562,7 @@ public class BlockPlace {
             // 1.9+ introduced the mechanic where both the client and server must agree upon a block place
             // 1.8 clients will simply not send the place when it fails, thanks mojang.
             if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                for (PacketEntity entity : player.getCompensatedEntities().entityMap.values()) {
                     SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
                     double width = BoundingBoxSize.getWidth(player, entity);
@@ -586,13 +586,13 @@ public class BlockPlace {
         }
 
         // If a block already exists here, then we can't override it.
-        WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(position);
+        WrappedBlockState existingState = player.getCompensatedWorld().getWrappedBlockStateAt(position);
         if (!replaceClicked && !canBeReplaced(material, existingState, face)) {
             return;
         }
 
         // Check for min and max bounds of world
-        if (player.compensatedWorld.getMaxHeight() <= position.getY() || position.getY() < player.compensatedWorld.getMinHeight()) {
+        if (player.getCompensatedWorld().getMaxHeight() <= position.getY() || position.getY() < player.getCompensatedWorld().getMinHeight()) {
             return;
         }
 
@@ -604,7 +604,7 @@ public class BlockPlace {
         }
 
         player.getInventory().onBlockPlace(this);
-        player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
+        player.getCompensatedWorld().updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
     }
 
     public boolean isZAxis() {

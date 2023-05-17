@@ -1,15 +1,15 @@
 package ac.grim.grimac;
-
-import ac.grim.grimac.checks.Check;
+;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -53,15 +53,14 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     @Override
     public void reload() {
         GrimAPI.INSTANCE.getConfigManager().reload();
+        GrimAPI.INSTANCE.getPunishmentManager().reload();
         //Reload checks for all players
         for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
                 grimPlayer.onReload();
                 grimPlayer.updatePermissions();
-                grimPlayer.punishmentManager.reload();
-                for (AbstractCheck value : grimPlayer.checkManager.allChecks.values()) {
-                    value.reload();
-                }
+                grimPlayer.getCheckManager().reload();
+                grimPlayer.punishmentManager.reloadCachedGroups();
             });
         }
         //Restart
@@ -72,15 +71,31 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
 
     @Override
     public void start() {
+        variableReplacements.put("%last_location%", user -> {
+            Player player = Bukkit.getPlayer(user.getUniqueId());
+            return player != null ? locationToString(player.getLocation()) : "offline";
+        });
+        variableReplacements.put("%last_command%", user -> user instanceof GrimPlayer ?
+                ((GrimPlayer) user).lastSendedCommand : "");
+        variableReplacements.put("%last_action%", user -> user instanceof GrimPlayer ?
+                ((GrimPlayer) user).lastInteractAction : "");
+        variableReplacements.put("%player_ip%", user -> user instanceof GrimPlayer ?
+                ((GrimPlayer) user).getIpAddress() : "");
         variableReplacements.put("%player%", GrimUser::getName);
         variableReplacements.put("%uuid%", user -> user.getUniqueId().toString());
-        variableReplacements.put("%ping%", user -> user.getTransactionPing() + "");
+        variableReplacements.put("%ping%", user -> String.valueOf(user.getTransactionPing()));
         variableReplacements.put("%brand%", GrimUser::getBrand);
-        variableReplacements.put("%h_sensitivity%", user -> ((int) Math.round(user.getHorizontalSensitivity() * 200)) + "");
-        variableReplacements.put("%v_sensitivity%", user -> ((int) Math.round(user.getVerticalSensitivity() * 200)) + "");
-        variableReplacements.put("%fast_math%", user -> !user.isVanillaMath() + "");
+        variableReplacements.put("%h_sensitivity%", user -> String.valueOf((int) Math.round(user.getHorizontalSensitivity() * 200)));
+        variableReplacements.put("%v_sensitivity%", user -> String.valueOf((int) Math.round(user.getVerticalSensitivity() * 200)));
+        variableReplacements.put("%fast_math%", user -> String.valueOf(!user.isVanillaMath()));
         variableReplacements.put("%tps%", user -> String.format("%.2f", SpigotReflectionUtil.getTPS()));
         variableReplacements.put("%version%", GrimUser::getVersionName);
-        variableReplacements.put("%prefix%", user -> ChatColor.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»")));
+        variableReplacements.put("%prefix%", user -> ChatColor.translateAlternateColorCodes('&',
+                GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&7[&bEternalAC&7] &8")));
+    }
+
+    private String locationToString(Location location) {
+        String yaw = "|" + location.getYaw() + "|" + location.getPitch();
+        return location.getWorld().getName() + "|" + location.getBlockX() + "|" + location.getBlockY() + "|" + location.getBlockZ() + yaw;
     }
 }

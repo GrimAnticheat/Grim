@@ -6,8 +6,8 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 
 public class GetBoundingBox {
     public static SimpleCollisionBox getCollisionBoxForPlayer(GrimPlayer player, double centerX, double centerY, double centerZ) {
-        if (player.compensatedEntities.getSelf().getRiding() != null) {
-            return getPacketEntityBoundingBox(player, centerX, centerY, centerZ, player.compensatedEntities.getSelf().getRiding());
+        if (player.getCompensatedEntities().getSelf().getRiding() != null) {
+            return getPacketEntityBoundingBox(player, centerX, centerY, centerZ, player.getCompensatedEntities().getSelf().getRiding());
         }
 
         return getPlayerBoundingBox(player, centerX, centerY, centerZ);

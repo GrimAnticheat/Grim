@@ -1,6 +1,8 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.AbstractCheck;
+import ac.grim.grimac.checks.CachedCheck;
+import ac.grim.grimac.checks.CheckCategory;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -37,116 +39,272 @@ import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.ImmutableClassToInstanceMap;
+import com.google.common.cache.Cache;
+import com.google.common.collect.*;
+import lombok.Getter;
+import org.bukkit.Bukkit;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
 
+
+@Getter
 public class CheckManager {
-    ClassToInstanceMap<PacketCheck> packetChecks;
-    ClassToInstanceMap<PositionCheck> positionCheck;
-    ClassToInstanceMap<RotationCheck> rotationCheck;
-    ClassToInstanceMap<VehicleCheck> vehicleCheck;
-    ClassToInstanceMap<PacketCheck> prePredictionChecks;
 
-    ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
-    ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<PacketCheck>> packetChecksCached;
 
-    public ClassToInstanceMap<AbstractCheck> allChecks;
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<PositionCheck>> positionCheckCached;
+
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<RotationCheck>> rotationCheckCached;
+
+
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<VehicleCheck>> vehicleCheckCached;
+
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<PacketCheck>> prePredictionChecksCached;
+
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<BlockPlaceCheck>> blockPlaceCheckCached;
+
+    private static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<PostPredictionCheck>> postPredictionCheckCached;
+
+    static {
+        try {
+
+            packetChecksCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<PacketCheck>>builder()
+                    .put(Reach.class, new CachedCheck<>(Reach.class))
+                    .put(PacketEntityReplication.class, new CachedCheck<>(PacketEntityReplication.class, true))
+                    .put(PacketChangeGameState.class, new CachedCheck<>(PacketChangeGameState.class, true))
+                    .put(CompensatedInventory.class, new CachedCheck<>(CompensatedInventory.class, true))
+                    .put(PacketPlayerAbilities.class, new CachedCheck<>(PacketPlayerAbilities.class, true))
+                    .put(PacketWorldBorder.class, new CachedCheck<>(PacketWorldBorder.class, true))
+                    .put(ClientBrand.class, new CachedCheck<>(ClientBrand.class, true))
+                    .put(NoFallA.class, new CachedCheck<>(NoFallA.class))
+                    .put(BadPacketsO.class, new CachedCheck<>(BadPacketsO.class))
+                    .put(BadPacketsA.class, new CachedCheck<>(BadPacketsA.class))
+                    .put(BadPacketsB.class, new CachedCheck<>(BadPacketsB.class))
+                    .put(BadPacketsC.class, new CachedCheck<>(BadPacketsC.class))
+                    .put(BadPacketsD.class, new CachedCheck<>(BadPacketsD.class))
+                    .put(BadPacketsE.class, new CachedCheck<>(BadPacketsE.class))
+                    .put(BadPacketsF.class, new CachedCheck<>(BadPacketsF.class))
+                    .put(BadPacketsG.class, new CachedCheck<>(BadPacketsG.class))
+                    .put(BadPacketsH.class, new CachedCheck<>(BadPacketsH.class))
+                    .put(BadPacketsI.class, new CachedCheck<>(BadPacketsI.class))
+                    .put(BadPacketsJ.class, new CachedCheck<>(BadPacketsJ.class))
+                    .put(BadPacketsK.class, new CachedCheck<>(BadPacketsK.class))
+                    .put(BadPacketsL.class, new CachedCheck<>(BadPacketsL.class))
+                    .put(BadPacketsN.class, new CachedCheck<>(BadPacketsN.class))
+                    .put(BadPacketsP.class, new CachedCheck<>(BadPacketsP.class))
+                    .put(BadPacketsQ.class, new CachedCheck<>(BadPacketsQ.class))
+                    .put(PostCheck.class, new CachedCheck<>(PostCheck.class, true))
+                    .put(FastBreak.class, new CachedCheck<>(FastBreak.class))
+                    .put(NoSlowB.class, new CachedCheck<>(NoSlowB.class))
+                    .put(SetbackBlocker.class, new CachedCheck<>(SetbackBlocker.class)) // Must be last class otherwise we can't check while blocking packets
+                    .build();
+
+            positionCheckCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<PositionCheck>>builder()
+                    .put(PredictionRunner.class, new CachedCheck<>(PredictionRunner.class, true))
+                    .put(CompensatedCooldown.class, new CachedCheck<>(CompensatedCooldown.class, true))
+                    .build();
+
+            rotationCheckCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<RotationCheck>>builder()
+                    .put(AimProcessor.class, new CachedCheck<>(AimProcessor.class, true))
+                    .put(AimModulo360.class, new CachedCheck<>(AimModulo360.class))
+                    .put(AimDuplicateLook.class, new CachedCheck<>(AimDuplicateLook.class))
+                    .put(Baritone.class, new CachedCheck<>(Baritone.class))
+                    .build();
+
+            vehicleCheckCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<VehicleCheck>>builder()
+                    .put(VehiclePredictionRunner.class, new CachedCheck<>(VehiclePredictionRunner.class, true))
+                    .build();
+
+            postPredictionCheckCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<PostPredictionCheck>>builder()
+                    .put(NegativeTimerCheck.class, new CachedCheck<>(NegativeTimerCheck.class))
+                    .put(ExplosionHandler.class, new CachedCheck<>(ExplosionHandler.class, true))
+                    .put(KnockbackHandler.class, new CachedCheck<>(KnockbackHandler.class, true))
+                    .put(GhostBlockDetector.class, new CachedCheck<>(GhostBlockDetector.class, true))
+                    .put(Phase.class, new CachedCheck<>(Phase.class))
+                    .put(NoFallB.class, new CachedCheck<>(NoFallB.class))
+                    .put(OffsetHandler.class, new CachedCheck<>(OffsetHandler.class, true))
+                    .put(SuperDebug.class, new CachedCheck<>(SuperDebug.class))
+                    .put(DebugHandler.class, new CachedCheck<>(DebugHandler.class, true))
+                    .put(EntityControl.class, new CachedCheck<>(EntityControl.class, true))
+                    .put(NoSlowA.class, new CachedCheck<>(NoSlowA.class))
+                    .put(SetbackTeleportUtil.class, new CachedCheck<>(SetbackTeleportUtil.class, true)) // Avoid teleporting to new position, update safe pos last
+                    .put(CompensatedFireworks.class, new CachedCheck<>(CompensatedFireworks.class, true))
+                    .put(SneakingEstimator.class, new CachedCheck<>(SneakingEstimator.class, true))
+                    .put(LastInstanceManager.class, new CachedCheck<>(LastInstanceManager.class, true))
+                    .build();
+
+            blockPlaceCheckCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<BlockPlaceCheck>>builder()
+                    .put(AirLiquidPlace.class, new CachedCheck<>(AirLiquidPlace.class))
+                    .put(FarPlace.class, new CachedCheck<>(FarPlace.class))
+                    .put(FabricatedPlace.class, new CachedCheck<>(FabricatedPlace.class))
+                    .put(PositionPlace.class, new CachedCheck<>(PositionPlace.class))
+                    .put(RotationPlace.class, new CachedCheck<>(RotationPlace.class))
+                    .put(DuplicateRotPlace.class, new CachedCheck<>(DuplicateRotPlace.class))
+                    .build();
+
+            prePredictionChecksCached = ImmutableMap.<Class<? extends AbstractCheck>,
+                            CachedCheck<PacketCheck>>builder()
+                    .put(TimerCheck.class, new CachedCheck<>(TimerCheck.class))
+                    .put(CrashA.class, new CachedCheck<>(CrashA.class))
+                    .put(CrashB.class, new CachedCheck<>(CrashB.class))
+                    .put(CrashC.class, new CachedCheck<>(CrashC.class))
+                    .put(CrashD.class, new CachedCheck<>(CrashD.class))
+                    .put(CrashE.class, new CachedCheck<>(CrashE.class))
+                    .put(ExploitA.class, new CachedCheck<>(ExploitA.class))
+                    .put(ExploitB.class, new CachedCheck<>(ExploitB.class))
+                    .put(VehicleTimer.class, new CachedCheck<>(VehicleTimer.class))
+                    .build();
+
+            packetChecksCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.PACKET)));
+
+            positionCheckCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.POSITION)));
+
+            rotationCheckCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.ROTATION)));
+
+            postPredictionCheckCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.POST_PREDICTION)));
+
+            vehicleCheckCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.VEHICLE)));
+
+            blockPlaceCheckCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.BLOCK)));
+
+            prePredictionChecksCached.forEach(((aClass, packetCheckCachedCheck)
+                    -> packetCheckCachedCheck.checkCategory(CheckCategory.PRE_PREDICTION)));
+
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static final Map<Class<? extends AbstractCheck>,
+            CachedCheck<?>> cachedAllChecks = ImmutableMap.<Class<? extends AbstractCheck>,
+                    CachedCheck<? extends AbstractCheck>>builder()
+            .putAll(packetChecksCached)
+            .putAll(positionCheckCached)
+            .putAll(rotationCheckCached)
+            .putAll(vehicleCheckCached)
+            .putAll(blockPlaceCheckCached)
+            .putAll(prePredictionChecksCached)
+            .putAll(postPredictionCheckCached)
+            .build();
+
+    private final Map<Class<? extends AbstractCheck>, PacketCheck> packetChecks;
+    private final Map<Class<? extends AbstractCheck>, PositionCheck> positionCheck;
+    private final Map<Class<? extends AbstractCheck>, RotationCheck> rotationCheck;
+    private final Map<Class<? extends AbstractCheck>, VehicleCheck> vehicleCheck;
+    private final Map<Class<? extends AbstractCheck>, PacketCheck> prePredictionChecks;
+    private final Map<Class<? extends AbstractCheck>, BlockPlaceCheck> blockPlaceCheck;
+    private final Map<Class<? extends AbstractCheck>, PostPredictionCheck> postPredictionCheck;
+    public final Map<Class<? extends AbstractCheck>, AbstractCheck> allChecks;
+
+    @Getter
+    private final GrimPlayer player;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
-        packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
-                .put(Reach.class, new Reach(player))
-                .put(PacketEntityReplication.class, new PacketEntityReplication(player))
-                .put(PacketChangeGameState.class, new PacketChangeGameState(player))
-                .put(CompensatedInventory.class, new CompensatedInventory(player))
-                .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
-                .put(PacketWorldBorder.class, new PacketWorldBorder(player))
-                .put(ClientBrand.class, new ClientBrand(player))
-                .put(NoFallA.class, new NoFallA(player))
-                .put(BadPacketsO.class, new BadPacketsO(player))
-                .put(BadPacketsA.class, new BadPacketsA(player))
-                .put(BadPacketsB.class, new BadPacketsB(player))
-                .put(BadPacketsC.class, new BadPacketsC(player))
-                .put(BadPacketsD.class, new BadPacketsD(player))
-                .put(BadPacketsE.class, new BadPacketsE(player))
-                .put(BadPacketsF.class, new BadPacketsF(player))
-                .put(BadPacketsG.class, new BadPacketsG(player))
-                .put(BadPacketsH.class, new BadPacketsH(player))
-                .put(BadPacketsI.class, new BadPacketsI(player))
-                .put(BadPacketsJ.class, new BadPacketsJ(player))
-                .put(BadPacketsK.class, new BadPacketsK(player))
-                .put(BadPacketsL.class, new BadPacketsL(player))
-                .put(BadPacketsN.class, new BadPacketsN(player))
-                .put(BadPacketsP.class, new BadPacketsP(player))
-                .put(BadPacketsQ.class, new BadPacketsQ(player))
-                .put(PostCheck.class, new PostCheck(player))
-                .put(FastBreak.class, new FastBreak(player))
-                .put(NoSlowB.class, new NoSlowB(player))
-                .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
-                .build();
-        positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
-                .put(PredictionRunner.class, new PredictionRunner(player))
-                .put(CompensatedCooldown.class, new CompensatedCooldown(player))
-                .build();
-        rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
-                .put(AimProcessor.class, new AimProcessor(player))
-                .put(AimModulo360.class, new AimModulo360(player))
-                .put(AimDuplicateLook.class, new AimDuplicateLook(player))
-                .put(Baritone.class, new Baritone(player))
-                .build();
-        vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
-                .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
-                .build();
-
-        postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
-                .put(NegativeTimerCheck.class, new NegativeTimerCheck(player))
-                .put(ExplosionHandler.class, new ExplosionHandler(player))
-                .put(KnockbackHandler.class, new KnockbackHandler(player))
-                .put(GhostBlockDetector.class, new GhostBlockDetector(player))
-                .put(Phase.class, new Phase(player))
-                .put(NoFallB.class, new NoFallB(player))
-                .put(OffsetHandler.class, new OffsetHandler(player))
-                .put(SuperDebug.class, new SuperDebug(player))
-                .put(DebugHandler.class, new DebugHandler(player))
-                .put(EntityControl.class, new EntityControl(player))
-                .put(NoSlowA.class, new NoSlowA(player))
-                .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
-                .put(CompensatedFireworks.class, player.compensatedFireworks)
-                .put(SneakingEstimator.class, new SneakingEstimator(player))
-                .put(LastInstanceManager.class, player.lastInstanceManager)
-                .build();
-
-        blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
-                .put(AirLiquidPlace.class, new AirLiquidPlace(player))
-                .put(FarPlace.class, new FarPlace(player))
-                .put(FabricatedPlace.class, new FabricatedPlace(player))
-                .put(PositionPlace.class, new PositionPlace(player))
-                .put(RotationPlace.class, new RotationPlace(player))
-                .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
-                .build();
-
-        prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
-                .put(TimerCheck.class, new TimerCheck(player))
-                .put(CrashA.class, new CrashA(player))
-                .put(CrashB.class, new CrashB(player))
-                .put(CrashC.class, new CrashC(player))
-                .put(CrashD.class, new CrashD(player))
-                .put(CrashE.class, new CrashE(player))
-                .put(ExploitA.class, new ExploitA(player))
-                .put(ExploitB.class, new ExploitB(player))
-                .put(VehicleTimer.class, new VehicleTimer(player))
-                .build();
-
-        allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                .putAll(packetChecks)
-                .putAll(positionCheck)
-                .putAll(rotationCheck)
-                .putAll(vehicleCheck)
-                .putAll(postPredictionCheck)
-                .putAll(blockPlaceCheck)
-                .putAll(prePredictionChecks)
-                .build();
+        packetChecks = new HashMap<>(packetChecksCached.size());
+        rotationCheck = new HashMap<>(rotationCheckCached.size());
+        vehicleCheck = new HashMap<>(vehicleCheckCached.size());
+        postPredictionCheck = new HashMap<>(postPredictionCheckCached.size());
+        blockPlaceCheck = new HashMap<>(blockPlaceCheckCached.size());
+        prePredictionChecks = new HashMap<>(prePredictionChecksCached.size());
+        positionCheck = new HashMap<>(positionCheckCached.size());
+        allChecks = new HashMap<>();
+        this.player = player;
     }
+
+    public void initAllChecks() {
+        cachedAllChecks.forEach(((aClass, cachedCheck) -> {
+            if (cachedCheck.isImportant() ||
+                    !cachedCheck.isDisabled() && !getPlayer().hasPermission(cachedCheck.getPermission())) {
+                AbstractCheck abstractCheck = cachedCheck.apply(getPlayer());
+                initCheck(aClass, cachedCheck, abstractCheck);
+            }
+        }));
+    }
+
+    public void reload() {
+        Iterator<Map.Entry<Class<? extends AbstractCheck>, AbstractCheck>> abstractCheckIterator
+                = getPlayer().getCheckManager().allChecks.entrySet().iterator();
+        while (abstractCheckIterator.hasNext()) {
+            Map.Entry<Class<? extends AbstractCheck>, AbstractCheck> entry = abstractCheckIterator.next();
+            AbstractCheck value = entry.getValue();
+            Class<? extends AbstractCheck> key = entry.getKey();
+            if (cachedAllChecks.get(key).isDisabled()) {
+                if (removeCheckUnchecked(key)) abstractCheckIterator.remove();
+            } else {
+                value.reload();
+            }
+        }
+        CheckManager.cachedAllChecks.forEach((aClass, cachedCheck) -> {
+            if (!getPlayer().getCheckManager().allChecks.containsKey(aClass) &&
+                    !cachedCheck.isDisabled()) {
+                addCheck(aClass);
+            }
+        });
+    }
+
+    private <T extends AbstractCheck> void initCheck(Class<? extends T> checkClass,
+                                                     CachedCheck<? extends T> cachedCheck,
+                                                     T abstractCheck) {
+        abstractCheck.setEnabled(true);
+        CheckCategory<T> checkCategory = (CheckCategory<T>) cachedCheck.getCheckCategory();
+        checkCategory.getFunction().apply(getPlayer()).put(checkClass, abstractCheck);
+        allChecks.put(checkClass, abstractCheck);
+    }
+
+    public boolean isEnabledCheck(Class<? extends AbstractCheck> aClass) {
+        return allChecks.containsKey(aClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends AbstractCheck> void addCheck(Class<T> checkClass) {
+        if (getAllChecks().containsKey(checkClass)) return;
+        CachedCheck<T> cachedCheck = (CachedCheck<T>) cachedAllChecks.get(checkClass);
+        if (!cachedCheck.isImportant() && getPlayer().hasPermission(cachedCheck.getPermission())) return;
+        T abstractCheck = cachedCheck.apply(getPlayer());
+        getAllChecks().put(checkClass, abstractCheck);
+        abstractCheck.setEnabled(true);
+        CheckCategory<T> checkCategory = cachedCheck.getCheckCategory();
+        checkCategory.getFunction().apply(getPlayer()).put(checkClass, abstractCheck);
+    }
+
+    public void removeCheck(Class<? extends AbstractCheck> aClass) {
+        removeCheckUnchecked(aClass);
+        allChecks.remove(aClass);
+    }
+
+    private boolean removeCheckUnchecked(Class<? extends AbstractCheck> aClass) {
+        CachedCheck<?> cachedCheck = cachedAllChecks.get(aClass);
+        AbstractCheck value = allChecks.get(aClass);
+        value.setEnabled(false);
+        if (cachedCheck.isImportant()) return false;
+        CheckCategory<?> checkCategory = cachedCheck.getCheckCategory();
+        checkCategory.getFunction().apply(getPlayer()).remove(aClass);
+        return true;
+    }
+
 
     @SuppressWarnings("unchecked")
     public <T extends PositionCheck> T getPositionCheck(Class<T> check) {
@@ -234,7 +392,12 @@ public class CheckManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends PacketCheck> T getPacketCheck(Class<T> check) {
+    public <T extends PacketCheck> Optional<T> getPacketCheck(Class<T> check) {
+        return Optional.ofNullable((T) packetChecks.get(check));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends PacketCheck> T getPacketCheckSafe(Class<T> check) {
         return (T) packetChecks.get(check);
     }
 
@@ -244,11 +407,11 @@ public class CheckManager {
     }
 
     public PacketEntityReplication getEntityReplication() {
-        return getPacketCheck(PacketEntityReplication.class);
+        return getPacketCheckSafe(PacketEntityReplication.class);
     }
 
     public NoFallA getNoFall() {
-        return getPacketCheck(NoFallA.class);
+        return getPacketCheckSafe(NoFallA.class);
     }
 
     public KnockbackHandler getKnockbackHandler() {

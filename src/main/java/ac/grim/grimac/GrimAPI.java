@@ -16,6 +16,7 @@ public enum GrimAPI {
     private final DiscordManager discordManager = new DiscordManager();
     private final PlayerDataManager playerDataManager = new PlayerDataManager();
     private final TickManager tickManager = new TickManager();
+    private final PunishmentManager punishmentManager = new PunishmentManager();
     private final GrimExternalAPI externalAPI = new GrimExternalAPI(this);
     private InitManager initManager;
     private ConfigManager configManager;

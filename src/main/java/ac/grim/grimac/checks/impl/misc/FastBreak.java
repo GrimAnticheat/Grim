@@ -62,7 +62,7 @@ public class FastBreak extends Check implements PacketCheck {
             WrapperPlayClientPlayerDigging digging = new WrapperPlayClientPlayerDigging(event);
 
             if (digging.getAction() == DiggingAction.START_DIGGING) {
-                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(digging.getBlockPosition());
+                WrappedBlockState block = player.getCompensatedWorld().getWrappedBlockStateAt(digging.getBlockPosition());
                 
                 // Exempt all blocks that do not exist in the player version
                 if (WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType()).getType() == StateTypes.AIR) {

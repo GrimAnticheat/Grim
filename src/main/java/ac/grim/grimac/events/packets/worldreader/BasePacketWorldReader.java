@@ -62,7 +62,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerAcknowledgeBlockChanges changes = new WrapperPlayServerAcknowledgeBlockChanges(event);
-            player.compensatedWorld.handlePredictionConfirmation(changes.getSequence());
+            player.getCompensatedWorld().handlePredictionConfirmation(changes.getSequence());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_PLAYER_DIGGING) {
@@ -70,7 +70,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerAcknowledgePlayerDigging ack = new WrapperPlayServerAcknowledgePlayerDigging(event);
-            player.compensatedWorld.handleBlockBreakAck(ack.getBlockPosition(), ack.getBlockId(), ack.getAction(), ack.isSuccessful());
+            player.getCompensatedWorld().handleBlockBreakAck(ack.getBlockPosition(), ack.getBlockId(), ack.getAction(), ack.isSuccessful());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {
@@ -81,11 +81,11 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.BEGIN_RAINING) {
-                    player.compensatedWorld.isRaining = true;
+                    player.getCompensatedWorld().isRaining = true;
                 } else if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.END_RAINING) {
-                    player.compensatedWorld.isRaining = false;
+                    player.getCompensatedWorld().isRaining = false;
                 } else if (newState.getReason() == WrapperPlayServerChangeGameState.Reason.RAIN_LEVEL_CHANGE) {
-                    player.compensatedWorld.isRaining = newState.getValue() > 0.2f;
+                    player.getCompensatedWorld().isRaining = newState.getValue() > 0.2f;
                 }
             });
         }
@@ -122,10 +122,10 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         }
         if (isGroundUp) {
             Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get());
-            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+            player.getCompensatedWorld().addToCache(column, chunkX, chunkZ);
         } else {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
+                Column existingColumn = player.getCompensatedWorld().getChunk(chunkX, chunkZ);
                 if (existingColumn == null) {
                     // Corrupting the player's empty chunk is actually quite meaningless
                     // You are able to set blocks inside it, and they do apply, it just always returns air despite what its data says
@@ -141,7 +141,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void unloadChunk(GrimPlayer player, int x, int z) {
         if (player == null) return;
-        player.compensatedWorld.removeChunkLater(x, z);
+        player.getCompensatedWorld().removeChunkLater(x, z);
     }
 
     public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
@@ -154,7 +154,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
                 player.lastTransSent + 2 < System.currentTimeMillis())
             player.sendTransaction();
 
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.getCompensatedWorld().updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
@@ -171,7 +171,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
                 player.sendTransaction();
             }
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId()));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.getCompensatedWorld().updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId()));
         }
     }
 }

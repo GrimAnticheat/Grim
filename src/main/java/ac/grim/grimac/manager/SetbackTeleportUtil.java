@@ -149,8 +149,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         Vector clientVel = lastKnownGoodPosition.vector.clone();
 
-        Vector futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
-        Vector futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
+        Vector futureKb = player.getCheckManager().getKnockbackHandler().getFutureKnockback();
+        Vector futureExplosion = player.getCheckManager().getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
         if (futureKb != null) {
@@ -192,7 +192,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
+        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.getCompensatedEntities().getSelf().getRiding() != null, false);
         sendSetback(data);
     }
 
@@ -204,9 +204,9 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         try {
             // Player is in a vehicle
-            if (player.compensatedEntities.getSelf().getRiding() != null) {
-                int vehicleId = player.compensatedEntities.getPacketEntityID(player.compensatedEntities.getSelf().getRiding());
-                if (player.compensatedEntities.serverPlayerVehicle != null) {
+            if (player.getCompensatedEntities().getSelf().getRiding() != null) {
+                int vehicleId = player.getCompensatedEntities().getPacketEntityID(player.getCompensatedEntities().getSelf().getRiding());
+                if (player.getCompensatedEntities().serverPlayerVehicle != null) {
                     // Dismount player from vehicle
                     if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                         player.user.sendPacket(new WrapperPlayServerSetPassengers(vehicleId, new int[2]));
@@ -300,7 +300,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
-                player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
+                player.getCheckManager().getPacketCheck(BadPacketsN.class).ifPresent(BadPacketsN::flagAndAlert);
                 pendingTeleports.poll();
                 requiredSetBack.setPlugin(false);
                 if (pendingTeleports.isEmpty()) {
@@ -374,7 +374,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
      * @return Whether the player has loaded the chunk and accepted a teleport to correct movement or not
      */
     public boolean insideUnloadedChunk() {
-        Column column = player.compensatedWorld.getChunk(GrimMath.floor(player.x) >> 4, GrimMath.floor(player.z) >> 4);
+        Column column = player.getCompensatedWorld().getChunk(GrimMath.floor(player.x) >> 4, GrimMath.floor(player.z) >> 4);
 
         // If true, the player is in an unloaded chunk
         return !player.disableGrim && (column == null || column.transaction >= player.lastTransactionReceived.get() ||

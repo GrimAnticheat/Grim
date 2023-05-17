@@ -94,7 +94,7 @@ public class CompensatedEntities {
     }
 
     public double getPlayerMovementSpeed() {
-        return calculateAttribute(player.compensatedEntities.getSelf().playerSpeed, 0.0, 1024.0);
+        return calculateAttribute(player.getCompensatedEntities().getSelf().playerSpeed, 0.0, 1024.0);
     }
 
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
@@ -113,12 +113,12 @@ public class CompensatedEntities {
 
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
-                    player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
+                    player.getCompensatedEntities().getSelf().playerSpeed = snapshotWrapper;
                 }
             }
         }
 
-        PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+        PacketEntity entity = player.getCompensatedEntities().getEntity(entityID);
 
         if (entity instanceof PacketEntityHorse) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
@@ -227,7 +227,7 @@ public class CompensatedEntities {
     }
 
     public void updateEntityMetadata(int entityID, List<EntityData> watchableObjects) {
-        PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+        PacketEntity entity = player.getCompensatedEntities().getEntity(entityID);
         if (entity == null) return;
 
         if (entity.isAgeable()) {
@@ -312,12 +312,12 @@ public class CompensatedEntities {
             if (height != null) {
                 if ((byte) height.getValue() == 0) {
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
+                    player.getCompensatedWorld().openShulkerBoxes.remove(data);
+                    player.getCompensatedWorld().openShulkerBoxes.add(data);
                 } else {
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
+                    player.getCompensatedWorld().openShulkerBoxes.remove(data);
+                    player.getCompensatedWorld().openShulkerBoxes.add(data);
                 }
             }
         }

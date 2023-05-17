@@ -19,7 +19,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
     public void onBlockPlace(final BlockPlace place) {
         if (player.gamemode == GameMode.CREATIVE) return;
         Vector3i blockPos = place.getPlacedAgainstBlockLocation();
-        StateType placeAgainst = player.compensatedWorld.getStateTypeAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        StateType placeAgainst = player.getCompensatedWorld().getStateTypeAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if (placeAgainst.isAir() || Materials.isNoPlaceLiquid(placeAgainst)) { // fail
             if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {

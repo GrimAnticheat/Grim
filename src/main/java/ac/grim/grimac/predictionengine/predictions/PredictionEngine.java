@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine.predictions;
 
+import ac.grim.grimac.checks.impl.movement.NoSlowA;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
@@ -101,7 +102,7 @@ public class PredictionEngine {
         // Computers are actually really fast at sorting, I don't see sorting as a problem
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
-        player.checkManager.getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
+        player.getCheckManager().getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
 
         double bestInput = Double.MAX_VALUE;
 
@@ -145,11 +146,11 @@ public class PredictionEngine {
             }
 
             if (clientVelAfterInput.isKnockback()) {
-                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                player.getCheckManager().getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
             if (clientVelAfterInput.isExplosion()) {
-                player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                player.getCheckManager().getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
             // This allows us to always check the percentage of knockback taken
@@ -160,10 +161,10 @@ public class PredictionEngine {
                 boolean wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
 
                 if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().setPointThree(wasVelocityPointThree);
+                    player.getCheckManager().getKnockbackHandler().setPointThree(wasVelocityPointThree);
                 }
                 if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().setPointThree(wasVelocityPointThree);
+                    player.getCheckManager().getExplosionHandler().setPointThree(wasVelocityPointThree);
                 }
             }
 
@@ -171,11 +172,13 @@ public class PredictionEngine {
             // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
             // As not flipping item is preferred... it gets ran before any other options
             if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
-                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                if (player.getCheckManager().isEnabledCheck(NoSlowA.class))
+                    player.getCheckManager().getPostPredictionCheck(NoSlowA.class)
+                            .handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
-            if (player.checkManager.getKnockbackHandler().shouldIgnoreForPrediction(clientVelAfterInput) ||
-                    player.checkManager.getExplosionHandler().shouldIgnoreForPrediction(clientVelAfterInput)) {
+            if (player.getCheckManager().getKnockbackHandler().shouldIgnoreForPrediction(clientVelAfterInput) ||
+                    player.getCheckManager().getExplosionHandler().shouldIgnoreForPrediction(clientVelAfterInput)) {
                 continue;
             }
 
@@ -192,7 +195,7 @@ public class PredictionEngine {
             }
 
             // Close enough, there's no reason to continue our predictions (if either kb or explosion will flag, continue searching)
-            if (bestInput < 1e-5 * 1e-5 && !player.checkManager.getKnockbackHandler().wouldFlag() && !player.checkManager.getExplosionHandler().wouldFlag()) {
+            if (bestInput < 1e-5 * 1e-5 && !player.getCheckManager().getKnockbackHandler().wouldFlag() && !player.getCheckManager().getExplosionHandler().wouldFlag()) {
                 break;
             }
         }
@@ -210,7 +213,7 @@ public class PredictionEngine {
     }
 
     private Pair<Vector, Vector> doSeekingWallCollisions(GrimPlayer player, Vector primaryPushMovement, Vector originalClientVel, VectorData clientVelAfterInput) {
-        boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
+        boolean vehicleKB = player.getCompensatedEntities().getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
         // Extra collision epsilon required for vehicles to be accurate
         double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
         // The server likes sending y=0 kb "lifting" the player off the ground.
@@ -352,7 +355,7 @@ public class PredictionEngine {
     }
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
-        if (!player.compensatedEntities.getSelf().inVehicle()) return;
+        if (!player.getCompensatedEntities().getSelf().inVehicle()) return;
 
         for (VectorData vectorData : data) {
             vectorData.vector = vectorData.vector.clone().multiply(0.98);
@@ -453,10 +456,10 @@ public class PredictionEngine {
             bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
-        if ((player.compensatedEntities.getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
+        if ((player.getCompensatedEntities().getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
             aScore += 2;
 
-        if ((player.compensatedEntities.getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
+        if ((player.getCompensatedEntities().getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
             bScore += 2;
 
         if (aScore != bScore)
@@ -582,7 +585,7 @@ public class PredictionEngine {
         box.combineToMinimum(box.minX, levitation, box.minZ);
 
 
-        SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
+        SneakingEstimator sneaking = player.getCheckManager().getPostPredictionCheck(SneakingEstimator.class);
         box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;
         box.minZ += sneaking.getSneakingPotentialHiddenVelocity().minZ;
         box.maxX += sneaking.getSneakingPotentialHiddenVelocity().maxX;
@@ -737,7 +740,7 @@ public class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         // Boats cannot swim hop, all other living entities should be able to.
-        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT))
+        if (player.getCompensatedEntities().getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.getCompensatedEntities().getSelf().getRiding().type, EntityTypes.BOAT))
             return false;
 
         // Vanilla system ->
@@ -762,10 +765,10 @@ public class PredictionEngine {
         // Don't play with poses issues. just assume full bounding box
         // Except on vehicles which don't have poses, thankfully.
         //
-        SimpleCollisionBox oldBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
+        SimpleCollisionBox oldBox = player.getCompensatedEntities().getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
 
-        if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
+        if (!player.getCompensatedWorld().containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
 
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
@@ -774,7 +777,7 @@ public class PredictionEngine {
         double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
-        SimpleCollisionBox newBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
+        SimpleCollisionBox newBox = player.getCompensatedEntities().getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
 
         return player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
