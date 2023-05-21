@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 8");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 9");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -147,6 +147,9 @@ public class ConfigManager {
         }
         if (configVersion < 8) {
             addPacketSpamThreshold(config, configString);
+        }
+        if (configVersion < 9) {
+            addInventoryPunishments();
         }
     }
 
@@ -190,6 +193,28 @@ public class ConfigManager {
                             "      - \"Autoclicker\"\n" +
                             "    commands:\n" +
                             "      - \"20:40 [alert]\"\n";
+                }
+
+                Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void addInventoryPunishments() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String configString;
+        if (config.exists()) {
+            try {
+                configString = new String(Files.readAllBytes(config.toPath()));
+
+                // If it works, it isn't stupid.  Only replace it if it exactly matches the default config.
+                String badPacketsSection = "  Reach:";
+                String inventorySection = "  Inventory:\n    remove-violations-after: 300\n    checks:\n      - \"Inventory\"\n    commands:\n      - \"10:10 [alert]\"\n      - \"20:20 [webhook]\"\n      - \"20:20 [proxy]\"\n";
+
+                int index = configString.indexOf(badPacketsSection);
+                if (index != -1) {
+                    configString = configString.substring(0, index) + inventorySection + configString.substring(index);
                 }
 
                 Files.write(config.toPath(), configString.getBytes());

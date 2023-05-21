@@ -146,4 +146,4 @@ experimental-checks: false
 # нам просто кикнуть игрока? Это необходимо, так как некоторые ограничители пакетов не учитывают пакеты, отмененные Гримом.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

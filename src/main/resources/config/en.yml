@@ -146,4 +146,4 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

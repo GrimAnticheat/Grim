@@ -145,4 +145,4 @@ experimental-checks: false
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

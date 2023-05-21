@@ -152,4 +152,4 @@ experimental-checks: false
 # no cuentan los paquetes cancelados por Grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

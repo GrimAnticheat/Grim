@@ -146,4 +146,4 @@ experimental-checks: false
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9
