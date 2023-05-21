@@ -77,7 +77,7 @@ public class InventoryD extends Check implements PostPredictionCheck {
                 return;
             }
 
-            if (flagWithSetback()) {
+            if (flag()) {
                 closeInventory();
 
                 StringJoiner joiner = new StringJoiner(" ");

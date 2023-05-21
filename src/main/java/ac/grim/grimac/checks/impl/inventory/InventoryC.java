@@ -19,12 +19,13 @@ public class InventoryC extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             // It is not possible to place a block while the inventory is open
             if (player.hasInventoryOpen) {
-                if (flagWithSetback()) {
+                if (flag()) {
                     // Cancel the packet
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
+                    player.bukkitPlayer.closeInventory();
                     alert("");
                 }
             } else {

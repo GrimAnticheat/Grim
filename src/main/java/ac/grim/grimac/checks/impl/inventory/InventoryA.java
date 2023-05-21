@@ -24,12 +24,13 @@ public class InventoryA extends Check implements PacketCheck {
 
             // Is not possible to attack while the inventory is open.
             if (player.hasInventoryOpen) {
-                if (flagWithSetback()) {
+                if (flag()) {
                     // Cancel the packet
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
+                    player.bukkitPlayer.closeInventory();
                     alert("");
                 }
             } else {
