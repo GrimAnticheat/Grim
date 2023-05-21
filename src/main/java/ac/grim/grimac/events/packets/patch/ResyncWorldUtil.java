@@ -79,8 +79,8 @@ public class ResyncWorldUtil {
                     Chunk chunk = player.bukkitPlayer.getWorld().getChunkAt(currChunkX, currChunkZ);
 
                     for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
-                        int minY = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
-                        int maxY = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
+                        int minY = currChunkY == minChunkY ? minBlockY & 15 : 0; // coordinate in chunk
+                        int maxY = currChunkY == maxChunkY ? maxBlockY & 15 : 15; // coordinate in chunk
 
                         int totalBlocks = (maxX - minX + 1) * (maxZ - minZ + 1) * (maxY - minY + 1);
                         WrapperPlayServerMultiBlockChange.EncodedBlock[] encodedBlocks = new WrapperPlayServerMultiBlockChange.EncodedBlock[totalBlocks];
