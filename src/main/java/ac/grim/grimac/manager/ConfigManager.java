@@ -209,10 +209,10 @@ public class ConfigManager {
                 configString = new String(Files.readAllBytes(config.toPath()));
 
                 // If it works, it isn't stupid.  Only replace it if it exactly matches the default config.
-                String badPacketsSection = "  Reach:";
+                String reachSection = "  Reach:";
                 String inventorySection = "  Inventory:\n    remove-violations-after: 300\n    checks:\n      - \"Inventory\"\n    commands:\n      - \"10:10 [alert]\"\n      - \"20:20 [webhook]\"\n      - \"20:20 [proxy]\"\n";
 
-                int index = configString.indexOf(badPacketsSection);
+                int index = configString.indexOf(reachSection);
                 if (index != -1) {
                     configString = configString.substring(0, index) + inventorySection + configString.substring(index);
                 }
