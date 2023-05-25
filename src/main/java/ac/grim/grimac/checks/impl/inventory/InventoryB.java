@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.inventory;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 
 @CheckData(name = "InventoryB", setback = 3)
 public class InventoryB extends Check implements PacketCheck {
@@ -32,7 +34,7 @@ public class InventoryB extends Check implements PacketCheck {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
-                    player.bukkitPlayer.closeInventory();
+                    FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> player.bukkitPlayer.closeInventory(), null, 0);
                     alert("");
                 }
             } else {
