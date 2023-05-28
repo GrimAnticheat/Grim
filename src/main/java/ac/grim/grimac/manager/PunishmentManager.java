@@ -140,27 +140,24 @@ public class PunishmentManager {
                             if (command.command.equals("[webhook]")) {
                                 String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
                                 GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
-                                continue;
-                            }
-
-                            if (command.command.equals("[proxy]")) {
+                            } else if (command.command.equals("[proxy]")) {
                                 String proxyAlertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
                                 ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
-                                continue;
-                            }
-
-                            if (command.command.equals("[alert]")) {
-                                sentDebug = true;
-                                if (testMode) { // secret test mode
-                                    player.user.sendMessage(cmd);
-                                    continue;
+                            } else {
+                                if (command.command.equals("[alert]")) {
+                                    sentDebug = true;
+                                    if (testMode) { // secret test mode
+                                        player.user.sendMessage(cmd);
+                                        continue;
+                                    }
+                                    cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
                                 }
-                                cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
-                            }
 
-                            String finalCmd = cmd;
-                            FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));}
+                                String finalCmd = cmd;
+                                FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                            }
+                        }
 
                         command.setExecuteCount(command.getExecuteCount() + 1);
                     }
