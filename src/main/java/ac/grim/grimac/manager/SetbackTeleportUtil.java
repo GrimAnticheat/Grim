@@ -72,7 +72,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
             // The player needs to now wait for their vehicle to go into the right place before getting back in
-            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
+            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 10;
             // Teleport, let velocity be reset
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
