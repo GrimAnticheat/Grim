@@ -20,7 +20,7 @@ verbose:
 
 client-brand:
   # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端版本显示在聊天栏中
-  ignored-clients:
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
@@ -145,4 +145,4 @@ experimental-checks: false
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

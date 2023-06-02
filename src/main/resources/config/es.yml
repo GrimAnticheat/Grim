@@ -19,8 +19,8 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # Esto quiere decir que no se va a anunciar la marca del cliente si esta cumple alguno de los siguientes regexes:
-  ignored-clients:
+  # Esto quiere decir que no se anunciara el nombre del cliente al entrar si este cumple alguno de los siguientes filtros:
+  ignored:
     - "^vanilla$"
     - "^fabric$"
     - "^lunarclient:[a-z0-9]{7}"
@@ -152,4 +152,4 @@ experimental-checks: false
 # no cuentan los paquetes cancelados por Grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9
