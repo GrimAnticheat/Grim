@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
@@ -35,7 +36,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking = true;
 
         StateType posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
-        StateType belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+        StateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
 
         ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking =
                 !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&

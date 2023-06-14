@@ -105,6 +105,10 @@ public class BoundingBoxSize {
             return 1.2f;
         } else if (EntityTypes.ALLAY.equals(packetEntity.type)) {
             return 0.35f;
+        } else if (EntityTypes.SNIFFER.equals(packetEntity.type)) {
+            return 1.9f;
+        } else if (EntityTypes.CAMEL.equals(packetEntity.type)) {
+            return 1.7f;
         }
         return 0.6f;
     }
@@ -350,6 +354,10 @@ public class BoundingBoxSize {
             return 1.6f;
         } else if (EntityTypes.TADPOLE.equals(packetEntity.type)) {
             return 0.3f;
+        } else if (EntityTypes.SNIFFER.equals(packetEntity.type)) {
+            return 1.75f;
+        } else if (EntityTypes.CAMEL.equals(packetEntity.type)) {
+            return 2.375f;
         }
         return 1.95f;
     }

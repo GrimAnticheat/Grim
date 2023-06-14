@@ -1,9 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.util.Vector;
 
 public class JumpPower {
@@ -27,18 +25,6 @@ public class JumpPower {
     }
 
     public static float getPlayerJumpFactor(GrimPlayer player) {
-        float f = getBlockJumpFactor(player, player.lastX, player.lastY, player.lastZ);
-        float f2 = getBlockJumpFactor(player, player.lastX, player.lastY - 0.5000001, player.lastZ);
-
-        return f == 1.0D ? f2 : f;
-    }
-
-    private static float getBlockJumpFactor(GrimPlayer player, double x, double y, double z) {
-        StateType jumpBlock = player.compensatedWorld.getStateTypeAt(x, y, z);
-
-        if (jumpBlock == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15))
-            return 0.5F;
-
-        return 1.0F;
+        return BlockProperties.onHoneyBlock(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ)) ? 0.5f : 1f;
     }
 }

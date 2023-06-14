@@ -1000,7 +1000,9 @@ public enum CollisionData {
         return cake;
     }, BlockTags.CANDLE_CAKES.getStates().toArray(new StateType[0])),
 
-    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR),
+    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR, StateTypes.CALIBRATED_SCULK_SENSOR),
+
+    DECORATED_POT(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0), StateTypes.DECORATED_POT),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
@@ -1122,6 +1124,8 @@ public enum CollisionData {
     SCULK_SHRIKER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D), StateTypes.SCULK_SHRIEKER),
 
     FROGSPAWN(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.5D, 16.0D), StateTypes.FROGSPAWN),
+
+    SNIFFER_EGG(new HexCollisionBox(1.0D, 0.0D, 2.0D, 15.0D, 16.0D, 14.0D), StateTypes.SNIFFER_EGG),
 
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 

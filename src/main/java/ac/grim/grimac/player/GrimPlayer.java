@@ -90,7 +90,6 @@ public class GrimPlayer implements GrimUser {
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
-    public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
     public UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -184,6 +183,7 @@ public class GrimPlayer implements GrimUser {
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
+    public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
 
     public void onPacketCancel() {
         if (cancelledPackets.incrementAndGet() > spamThreshold) {
