@@ -1129,13 +1129,13 @@ public enum CollisionData {
 
     PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
 
-    TORCHFLOWER((player, version, data, x, y, z) -> {
+    TORCHFLOWER_CROP((player, version, data, x, y, z) -> {
         if (data.getAge() == 0) {
             return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
         }
         // age is 1
         return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
-    }, StateTypes.TORCHFLOWER),
+    }, StateTypes.TORCHFLOWER_CROP),
 
     PITCHER_CROP((player, version, data, x, y, z) -> {
         final SimpleCollisionBox COLLISION_SHAPE_BULB = new HexCollisionBox(5.0D, -1.0D, 5.0D, 11.0D, 3.0D, 11.0D);
