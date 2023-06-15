@@ -177,7 +177,7 @@ public enum CollisionData {
 
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
             StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
-            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL),
+            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL, StateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {
@@ -193,7 +193,7 @@ public enum CollisionData {
                 return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         }
     }, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_WALL_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
-            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL),
+            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL, StateTypes.PIGLIN_WALL_HEAD),
 
     BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
@@ -1127,6 +1127,27 @@ public enum CollisionData {
 
     SNIFFER_EGG(new HexCollisionBox(1.0D, 0.0D, 2.0D, 15.0D, 16.0D, 14.0D), StateTypes.SNIFFER_EGG),
 
+    PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
+
+    TORCHFLOWER((player, version, data, x, y, z) -> {
+        if (data.getAge() == 0) {
+            return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
+        }
+        // age is 1
+        return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
+    }, StateTypes.TORCHFLOWER),
+
+    PITCHER_CROP((player, version, data, x, y, z) -> {
+        final SimpleCollisionBox COLLISION_SHAPE_BULB = new HexCollisionBox(5.0D, -1.0D, 5.0D, 11.0D, 3.0D, 11.0D);
+        final SimpleCollisionBox COLLISION_SHAPE_CROP = new HexCollisionBox(3.0D, -1.0D, 3.0D, 13.0D, 5.0D, 13.0D);
+
+        if (data.getAge() == 0) {
+            return COLLISION_SHAPE_BULB;
+        } else {
+            return data.getHalf() == Half.LOWER ? COLLISION_SHAPE_CROP : NoCollisionBox.INSTANCE;
+        }
+    }, StateTypes.PITCHER_CROP),
+
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
@@ -1268,7 +1289,8 @@ public enum CollisionData {
 
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
