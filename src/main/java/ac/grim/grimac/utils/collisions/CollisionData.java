@@ -1150,6 +1150,19 @@ public enum CollisionData {
         }
     }, StateTypes.PITCHER_CROP),
 
+    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> {
+        switch (data.getFacing()) {
+            case NORTH:
+            case SOUTH:
+                return new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
+            case WEST:
+            case EAST:
+                return new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
+            default:
+                return NoCollisionBox.INSTANCE;
+        }
+    }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
@@ -1292,7 +1305,7 @@ public enum CollisionData {
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
