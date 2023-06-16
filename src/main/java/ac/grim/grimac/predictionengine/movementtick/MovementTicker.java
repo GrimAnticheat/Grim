@@ -386,7 +386,7 @@ public class MovementTicker {
                 new PredictionEngineElytra().guessBestMovement(0, player);
 
             } else {
-                float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+                float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 doNormalMove(blockFriction);
