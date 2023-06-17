@@ -106,7 +106,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         while (data != null) {
             if (data.transaction == transactionID) { // First bread knockback
                 firstBreadOnlyKnockback = new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector);
-                firstBreadMap.poll();
+                //firstBreadMap.poll();
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
                 if (firstBreadOnlyKnockback != null) // Don't require kb twice
