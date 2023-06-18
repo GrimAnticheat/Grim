@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @CheckData(name = "TransactionOrder", experimental = true)
 public class TransactionOrder extends Check implements PacketCheck {
     private final ArrayList<Integer> transactionOrder = new ArrayList<>();
+    private final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
 
     public TransactionOrder(GrimPlayer player) {
         super(player);
@@ -28,12 +29,14 @@ public class TransactionOrder extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
             WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
 
-            if (transaction.getWindowId() == 0)
+            if (transaction.getWindowId() == 0) {
                 onTransactionReceive(transaction.getActionId());
+            }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PONG)
+        if (event.getPacketType() == PacketType.Play.Client.PONG) {
             onTransactionReceive(new WrapperPlayClientPong(event).getId());
+        }
     }
 
     @Override
@@ -41,12 +44,14 @@ public class TransactionOrder extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
             WrapperPlayServerWindowConfirmation transaction = new WrapperPlayServerWindowConfirmation(event);
 
-            if (transaction.getWindowId() == 0 && !transaction.isAccepted())
+            if (transaction.getWindowId() == 0 && !transaction.isAccepted()) {
                 transactionOrder.add((int) transaction.getActionId());
+            }
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.PING)
+        if (event.getPacketType() == PacketType.Play.Server.PING) {
             transactionOrder.add(new WrapperPlayServerPing(event).getId());
+        }
     }
 
     private void onTransactionReceive(int id) {
@@ -57,13 +62,12 @@ public class TransactionOrder extends Check implements PacketCheck {
 
         int expected = transactionOrder.get(0);
 
-        if (expected != id)
+        if (expected != id) {
             flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
+        }
 
-        if (!transactionOrder.contains(id))
-            return;
+        if (!transactionOrder.contains(id)) return;
 
-        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         transactionOrder.removeIf(transaction -> {
             if (atomicBoolean.get())
                 return false;
@@ -72,5 +76,6 @@ public class TransactionOrder extends Check implements PacketCheck {
                 atomicBoolean.set(true);
             return true;
         });
+        atomicBoolean.set(false);
     }
 }
