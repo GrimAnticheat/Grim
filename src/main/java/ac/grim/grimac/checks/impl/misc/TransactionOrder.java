@@ -13,12 +13,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPi
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @CheckData(name = "TransactionOrder", experimental = true)
 public class TransactionOrder extends Check implements PacketCheck {
     private final ArrayList<Integer> transactionOrder = new ArrayList<>();
-    private final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    private boolean atomicBoolean = false;
 
     public TransactionOrder(GrimPlayer player) {
         super(player);
@@ -69,13 +68,13 @@ public class TransactionOrder extends Check implements PacketCheck {
         if (!transactionOrder.contains(id)) return;
 
         transactionOrder.removeIf(transaction -> {
-            if (atomicBoolean.get())
+            if (atomicBoolean)
                 return false;
 
             if (transaction == id)
-                atomicBoolean.set(true);
+                atomicBoolean = true;
             return true;
         });
-        atomicBoolean.set(false);
+        atomicBoolean = false;
     }
 }
