@@ -5,7 +5,7 @@
 # ou avec le code source complet disponible pour les acheteurs sans frais supplémentaires.
 
 alerts:
-  # En plus de diffuser des alertes aux joueurs, doivent-elles également être envoyées dans console ?
+  # En plus de diffuser des alertes aux joueurs, doivent-elles également être afffichées dans console ?
   print-to-console: true
   # Cela contrôle la manière dont les alertes sont partagées entre les serveurs connectés à votre proxy.
   # Vous devez avoir activé 'bungee-plugin-message-channel' dans la configuration de Velocity si Velocity est utilisé.
@@ -19,7 +19,7 @@ verbose:
   print-to-console: false
 
 client-brand:
-  # Cela signifie qu'il n'enverra pas leur marque aux opérateurs si la marque correspond aux expressions régulières suivantes.
+  # Cela signifie qu'il n'enverra pas la nature du client aux opérateurs si il correspond aux clients suivants
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
@@ -27,9 +27,9 @@ client-brand:
     - "^Feather Fabric$"
 
 spectators:
-  # Masquer tous les spectateurs ayant la permission grim.spectator, peu importe s'ils sont effectivement en train de specter activement.
+  # Masquer tout les spectateurs ayant la permission grim.spectator, peu importe s'ils sont actuellement en train d'observer.
   hide-regardless: false
-  # Will make spectators hidden only in these worlds, keep blank to allow all worlds
+  # Les spectateurs seront cachés uniquement dans ces mondes, laissez vide pour autoriser tous les mondes.
   allowed-worlds:
     - ""
 
