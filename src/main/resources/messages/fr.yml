@@ -1,0 +1,48 @@
+# \u00BB se traduit par » (double >>). Les interprétations diffèrent entre les normes ANSI et UTF-8... vous pouvez même voir ? en raison de cela.
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlertes activées"
+alerts-disabled: "%prefix% &fAlertes désactivées"
+client-brand-format: "%prefix% &f%player% a rejoint en utilisant %brand%"
+console-specify-target: "%prefix% &cVous devez spécifier une cible en tant que console !"
+player-not-found: "%prefix% &cPlayer est ignoré ou hors ligne !"
+player-not-this-server: "%prefix% &cPlayer n'est pas sur ce serveur !"
+spectate-return: "\n%prefix% &fClickez ici pour retourner à l'endroit précédent\n"
+cannot-spectate-return: "%prefix% &cVous pouvez faire ça uniquement après avoir regardé un joueur"
+cannot-run-on-self: "%prefix% &cVous ne pouvez pas utiliser cette commande sur vous même !"
+upload-log: "%prefix% &fLe débug a été téléversé vers : %url%"
+upload-log-start: "%prefix% &fTéléversement du journal... Veuillez patienter"
+upload-log-not-found: "%prefix% &cUImpossible de trouver ce log"
+upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléversement de ce log, regardez la console pour plus d'information"
+
+# Placeholders valides :
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - Informations supplémentaires sur les vérifivations comme les écarts, toutes les vérifications n'ajoutent pas d'information
+alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfil de &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersion du client : &f%version%"
+  - "&bNature du client : &f%brand%"
+  - "&bSensibilité Horizontale : &f%h_sensitivity%%"
+  - "&bSensibilité Verticale : &f%v_sensitivity%%"
+  - "&bFastMath est activé : &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Alterner les alertes"
+  - "/grim profile <player> &f- &7Affiche les informations sur le joueur"
+  - "/grim help &f- &7Affiche ce message d'aide"
+  - "/grim debug <player> &f- &7Sortie de prédiction du développeur"
+  - "/grim perf &f- &7ms/prédiction pour les développeurs"
+  - "/grim reload &f- &7Recharge la configuration"
+  - "/grim spectate <player> &f- &7Regarde un joueur"
+  - "/grim verbose &f- &fAffiche chaque violations sans cache"
+  - "/grim log [0-255] &f- &7Téléverse un débug pour prédire les violations"
+  - "&7======================"
