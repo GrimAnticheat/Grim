@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based no slow check
 # Grim ist verantwortlich für den fehlerhaften Netcode hier... schwer zu falsen, selbst wenn man Rechtsklick und Offhand-Taste spammt.
 # Viel stabiler als andere Anticheats, aber bitte melde alle Falses... Ich habe hier eine Menge Netcode-Probleme behoben.
-NoSlow:
+NoSlowA:
   # Wie viel von einem Offset ist "schummeln"
   # Standardmäßig ist dieser Wert niedriger als andere Offs.
   # Flags um 0,03-0,2 konsequent mit NoSlow on
