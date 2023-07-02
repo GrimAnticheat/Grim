@@ -8,6 +8,7 @@ import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
@@ -51,7 +52,7 @@ public class Check implements AbstractCheck {
     }
 
     public final boolean flagAndAlert(String verbose) {
-        if (flag()) {
+        if (flag(verbose)) {
             alert(verbose);
             return true;
         }
@@ -63,10 +64,14 @@ public class Check implements AbstractCheck {
     }
 
     public final boolean flag() {
+        return flag(null);
+    }
+
+    public final boolean flag(@Nullable String verbose) {
         if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()))
             return false; // Avoid calling event if disabled
 
-        FlagEvent event = new FlagEvent(player, this);
+        FlagEvent event = new FlagEvent(player, this, verbose);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
 
