@@ -74,7 +74,7 @@ public class ConsumesBlockPlace {
             if (place.getItemStack().getType() == ItemTypes.GLOWSTONE) {
                 return true;
             }
-            return player.getInventory().getOffHand().getType() != ItemTypes.GLOWSTONE;
+            return player.getInventory().getOffHand().getType() == ItemTypes.GLOWSTONE;
         }
         if (state.getType() == StateTypes.COMMAND_BLOCK || state.getType() == StateTypes.CHAIN_COMMAND_BLOCK ||
                 state.getType() == StateTypes.REPEATING_COMMAND_BLOCK || state.getType() == StateTypes.JIGSAW
