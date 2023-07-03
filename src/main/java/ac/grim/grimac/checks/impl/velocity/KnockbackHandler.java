@@ -183,10 +183,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             if (player.likelyKB.offset > offsetToFlag) {
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
                     player.getSetbackTeleportUtil().executeViolationSetback();
-                } else if (flag()) { // This velocity was sent by the server.
-                    if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
+                } else {
 
                     String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
 
@@ -194,9 +191,13 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                         formatOffset = "ignored knockback";
                     }
 
-                    alert(formatOffset);
-                } else {
-                    reward();
+                    if (flag(true, false, formatOffset)) { // This velocity was sent by the server.
+                        if (getViolations() > setbackVL) {
+                            player.getSetbackTeleportUtil().executeViolationSetback();
+                        }
+                    } else {
+                        reward();
+                    }
                 }
             }
         }

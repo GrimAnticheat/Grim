@@ -38,7 +38,7 @@ public class FarPlace extends BlockPlaceCheck {
 
 
         if (min > maxReach * maxReach) { // fail
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            if (flag(true, false, "dist=" + min) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }

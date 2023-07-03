@@ -152,7 +152,7 @@ public class Reach extends Check implements PacketCheck {
             if (reachEntity != null) {
                 String result = checkReach(reachEntity, attack.getValue(), false);
                 if (result != null) {
-                    flagAndAlert(result);
+                    flag(true, false, result);
                 }
             }
         }

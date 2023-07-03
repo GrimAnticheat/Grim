@@ -20,8 +20,9 @@ public class BadPacketsD extends Check implements PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);
-            if (packet.getLocation().getPitch() > 90 || packet.getLocation().getPitch() < -90) {
-                flagAndAlert(); // Ban.
+            float pitch = packet.getLocation().getPitch();
+            if (pitch > 90 || pitch < -90) {
+                flag(true, false, "pitch=" + pitch); // Ban.
             }
         }
     }

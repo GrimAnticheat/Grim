@@ -61,7 +61,7 @@ public class BadPacketsP extends Check implements PacketCheck {
 
             //Allowing this to false flag to debug and find issues faster
             if (flag) {
-                flagAndAlert("clickType=" + clickType + " button=" + button + (wrapper.getWindowId() == containerId ? " container=" + containerType : ""));
+                flag(true, false, "clickType=" + clickType + " button=" + button + (wrapper.getWindowId() == containerId ? " container=" + containerType : ""));
             }
 
         }

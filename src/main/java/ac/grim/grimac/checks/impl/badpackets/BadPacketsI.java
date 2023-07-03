@@ -20,7 +20,7 @@ public class BadPacketsI extends Check implements PacketCheck {
             WrapperPlayClientPlayerAbilities packet = new WrapperPlayClientPlayerAbilities(event);
 
             if (packet.isFlying() && !player.canFly) {
-                flagAndAlert();
+                flag(true);
             }
         }
     }

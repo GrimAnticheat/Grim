@@ -9,6 +9,8 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
+import java.util.concurrent.TimeUnit;
+
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
 public class TimerCheck extends Check implements PacketCheck {
     long timerBalanceRealTime = 0;
@@ -72,15 +74,15 @@ public class TimerCheck extends Check implements PacketCheck {
 
 
     public void doCheck(final PacketReceiveEvent event) {
-        if (timerBalanceRealTime > System.nanoTime()) {
-            if (flag()) {
+        long diff = timerBalanceRealTime - System.nanoTime();
+        if (diff > 0) {
+            if (flag(true, false, "ahead=" + TimeUnit.NANOSECONDS.toMillis(diff) + "ms")) {
                 // Cancel the packet
                 if (shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
                 player.getSetbackTeleportUtil().executeNonSimulatingSetback();
-                alert("");
             }
 
             // Reset the violation by 1 movement

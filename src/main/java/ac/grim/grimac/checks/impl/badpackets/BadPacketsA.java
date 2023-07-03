@@ -24,7 +24,7 @@ public class BadPacketsA extends Check implements PacketCheck {
             int slot = packet.getSlot();
 
             if (slot == lastSlot) {
-                flagAndAlert("slot=" + slot);
+                flag(true, false, "slot=" + slot);
             }
 
             lastSlot = packet.getSlot();

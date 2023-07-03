@@ -16,7 +16,7 @@ public class FlightA extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // If the player sends a flying packet, but they aren't flying, then they are cheating.
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.isFlying) {
-            flag();
+            flag(true, true, "This player is 100% CHEATING!!!");
         }
     }
 }

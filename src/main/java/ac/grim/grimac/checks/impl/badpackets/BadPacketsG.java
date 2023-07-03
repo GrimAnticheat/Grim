@@ -26,13 +26,13 @@ public class BadPacketsG extends Check implements PacketCheck {
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
                 if (lastSneaking && !wasTeleport) {
-                    flagAndAlert();
+                    flag(true, false, "started sneaking twice");
                 } else {
                     lastSneaking = true;
                 }
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
                 if (!lastSneaking && !wasTeleport) {
-                    flagAndAlert();
+                    flag(true, false, "stopped sneaking twice");
                 } else {
                     lastSneaking = false;
                 }

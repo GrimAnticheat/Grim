@@ -24,7 +24,7 @@ public class BadPacketsH extends Check implements PacketCheck {
         } else if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-            if (player.totalFlyingPacketsSent - lastSent > 1) flagAndAlert();
+            if (player.totalFlyingPacketsSent - lastSent > 1) flag(true);
         }
     }
 }

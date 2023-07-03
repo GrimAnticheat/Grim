@@ -42,7 +42,7 @@ public class NoFallA extends Check implements PacketCheck {
             if (wrapper.isOnGround() && !hasPosition) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
-                    if (!GhostBlockDetector.isGhostBlock(player) && flagWithSetback()) alert("");
+                    if (!GhostBlockDetector.isGhostBlock(player)) flag(true, true);
                     if (shouldModifyPackets()) wrapper.setOnGround(false);
                 }
             }

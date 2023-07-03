@@ -30,7 +30,7 @@ public class BadPacketsL extends Check implements PacketCheck {
                         || packet.getBlockPosition().getX() != 0
                         || packet.getBlockPosition().getY() != 0
                         || packet.getBlockPosition().getZ() != 0) {
-                    flagAndAlert();
+                    flag(true);
                 }
             }
         }

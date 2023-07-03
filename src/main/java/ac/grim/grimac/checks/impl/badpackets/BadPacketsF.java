@@ -28,7 +28,7 @@ public class BadPacketsF extends Check implements PacketCheck {
                         thanksMojang = true;
                         return;
                     }
-                    flagAndAlert();
+                    flag(true, false, "started sprinting twice");
                 }
 
                 lastSprinting = true;
@@ -38,7 +38,7 @@ public class BadPacketsF extends Check implements PacketCheck {
                         thanksMojang = true;
                         return;
                     }
-                    flagAndAlert();
+                    flag(true, false, "stopped sprinting twice");
                 }
 
                 lastSprinting = false;

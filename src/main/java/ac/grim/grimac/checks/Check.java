@@ -8,6 +8,7 @@ import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
@@ -51,23 +52,15 @@ public class Check implements AbstractCheck {
         return isEnabled && !player.disableGrim && !player.noModifyPacketPermission;
     }
 
-    public final boolean flagAndAlert(String verbose) {
-        if (flag(verbose)) {
-            alert(verbose);
-            return true;
-        }
-        return false;
+    public final boolean flag(boolean alert, boolean setback) {
+        return flag(alert, setback, null);
     }
 
-    public final boolean flagAndAlert() {
-        return flagAndAlert("");
+    public final boolean flag(boolean alert) {
+        return flag(alert, false, null);
     }
 
-    public final boolean flag() {
-        return flag(null);
-    }
-
-    public final boolean flag(@Nullable String verbose) {
+    public final boolean flag(boolean alert, boolean setback, @Nullable String verbose) {
         if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()))
             return false; // Avoid calling event if disabled
 
@@ -79,15 +72,13 @@ public class Check implements AbstractCheck {
         player.punishmentManager.handleViolation(this);
 
         violations++;
-        return true;
-    }
-
-    public final boolean flagWithSetback() {
-        if (flag()) {
+        if (setback) {
             setbackIfAboveSetbackVL();
-            return true;
         }
-        return false;
+        if (alert) {
+            alert(verbose != null ? verbose : "");
+        }
+        return true;
     }
 
     public final void reward() {
@@ -101,7 +92,7 @@ public class Check implements AbstractCheck {
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
-    public boolean alert(String verbose) {
+    public boolean alert(@NotNull String verbose) {
         return player.punishmentManager.handleAlert(player, verbose, this);
     }
 

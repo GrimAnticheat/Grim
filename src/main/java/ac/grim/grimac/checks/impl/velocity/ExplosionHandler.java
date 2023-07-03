@@ -164,11 +164,6 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         // 100% known kb was taken
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
-                if (flag()) {
-                    if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
-                }
 
                 String formatOffset = "o: " + formatOffset(offset);
 
@@ -176,7 +171,11 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                     formatOffset = "ignored explosion";
                 }
 
-                alert(formatOffset);
+                if (flag(true, false, formatOffset)) {
+                    if (getViolations() > setbackVL) {
+                        player.getSetbackTeleportUtil().executeViolationSetback();
+                    }
+                }
             } else {
                 reward();
             }

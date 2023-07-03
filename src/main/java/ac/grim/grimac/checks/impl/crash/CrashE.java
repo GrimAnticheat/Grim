@@ -23,7 +23,7 @@ public class CrashE extends Check implements PacketCheck {
             int viewDistance = wrapper.getViewDistance();
             boolean invalidLocale = player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(wrapper.getLocale());
             if (viewDistance < 2) {
-                flagAndAlert("distance=" + viewDistance);
+                flag(true, false, "distance=" + viewDistance);
                 wrapper.setViewDistance(2);
             }
             if (invalidLocale) wrapper.setLocale("en_us");

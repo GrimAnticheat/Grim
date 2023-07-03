@@ -22,7 +22,7 @@ public class AimModulo360 extends Check implements RotationCheck {
         lastDeltaYaw = rotationUpdate.getDeltaXRot();
         if (player.packetStateData.lastPacketWasTeleport) return;
         if (player.xRot < 360 && player.xRot > -360 && Math.abs(rotationUpdate.getDeltaXRot()) > 320 && Math.abs(lastDeltaYaw) < 30) {
-            flagAndAlert();
+            flag(true, false, "lastDeltaYaw=" + lastDeltaYaw);
         } else {
             reward();
         }

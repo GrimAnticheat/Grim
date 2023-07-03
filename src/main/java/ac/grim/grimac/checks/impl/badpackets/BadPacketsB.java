@@ -23,7 +23,7 @@ public class BadPacketsB extends Check implements PacketCheck {
             float sideways = Math.abs(packet.getSideways());
 
             if (forwards > 0.98f || sideways > 0.98f) {
-                flagAndAlert();
+                flag(true, false, "forwards=" + forwards + " sideways=" + sideways);
             }
         }
     }

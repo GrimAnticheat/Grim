@@ -21,7 +21,7 @@ public class CrashB extends Check implements PacketCheck {
                 player.getSetbackTeleportUtil().executeViolationSetback();
                 event.setCancelled(true);
                 player.onPacketCancel();
-                flagAndAlert(); // Could be transaction split, no need to setback though
+                flag(true); // Could be transaction split, no need to setback though
             }
         }
     }
