@@ -79,8 +79,10 @@ public class TimerCheck extends Check implements PacketCheck {
             if (flag(true, false, "ahead=" + TimeUnit.NANOSECONDS.toMillis(diff) + "ms")) { // we setback below
                 if (getViolations() > getSetbackVL()) {
                     // Cancel the packet
-                    event.setCancelled(true);
-                    player.onPacketCancel();
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                     player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
             }
