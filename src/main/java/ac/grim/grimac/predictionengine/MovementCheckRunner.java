@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.impl.combat.UseHit;
 import ac.grim.grimac.checks.impl.movement.EntityControl;
 import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.type.PositionCheck;
@@ -545,6 +546,16 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         if (player.getSetbackTeleportUtil().blockOffsets) offset = 0;
 
         if (player.skippedTickInActualMovement || !wasChecked) player.uncertaintyHandler.lastPointThree.reset();
+
+        // Update UseHit
+        UseHit useHit = player.checkManager.getPacketCheck(UseHit.class);
+        boolean slowedByItem = player.packetStateData.slowedByUsingItem;
+        if (useHit.isUsingItem != slowedByItem) {
+            useHit.movementPacketsSinceChange = 0;
+            useHit.isUsingItem = slowedByItem;
+        } else {
+            useHit.movementPacketsSinceChange++;
+        }
 
         // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
