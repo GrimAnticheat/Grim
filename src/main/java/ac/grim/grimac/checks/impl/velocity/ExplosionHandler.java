@@ -172,9 +172,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                 }
 
                 if (flag(true, false, formatOffset)) {
-                    if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
+                    setbackIfAboveSetbackVL();
                 }
             } else {
                 reward();

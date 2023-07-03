@@ -81,8 +81,10 @@ public class TimerCheck extends Check implements PacketCheck {
                 if (shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
+                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+                } else if (getViolations() > getSetbackVL()) {
+                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
-                player.getSetbackTeleportUtil().executeNonSimulatingSetback();
             }
 
             // Reset the violation by 1 movement

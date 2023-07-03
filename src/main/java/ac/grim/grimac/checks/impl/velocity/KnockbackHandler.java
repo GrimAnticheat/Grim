@@ -192,9 +192,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                     }
 
                     if (flag(true, false, formatOffset)) { // This velocity was sent by the server.
-                        if (getViolations() > setbackVL) {
-                            player.getSetbackTeleportUtil().executeViolationSetback();
-                        }
+                        setbackIfAboveSetbackVL();
                     } else {
                         reward();
                     }
