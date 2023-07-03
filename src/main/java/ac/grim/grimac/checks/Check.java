@@ -76,7 +76,7 @@ public class Check implements AbstractCheck {
             setbackIfAboveSetbackVL();
         }
         if (alert) {
-            alert(verbose != null ? verbose : "");
+            alert(verbose != null ? verbose : ""); // All of the logic in here would blow up from a null
         }
         return true;
     }
