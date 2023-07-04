@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 public class PacketEntityAction extends PacketListenerAbstract {
@@ -27,7 +28,8 @@ public class PacketEntityAction extends PacketListenerAbstract {
 
             switch (action.getAction()) {
                 case START_SPRINTING:
-                    player.isSprinting = true;
+                    boolean hasBlindness = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.BLINDNESS) != null;
+                    player.isSprinting = !hasBlindness;
                     break;
                 case STOP_SPRINTING:
                     player.isSprinting = false;
