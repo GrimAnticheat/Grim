@@ -29,36 +29,36 @@ client-brand:
 spectators:
   # Masquer tout les spectateurs ayant la permission grim.spectator, peu importe s'ils sont actuellement en train d'observer.
   hide-regardless: false
-  # Les spectateurs seront cachés uniquement dans ces mondes, laissez vide pour autoriser tous les mondes.
+  # Les spectateurs seront cachés uniquement dans ces mondes, laissez vide pour les afficher dans tous les mondes.
   allowed-worlds:
     - ""
 
-# Combien de temps les joueurs doivent-ils avoir avant d'être expulsés en cas de déconnexion ? Par défaut, c'est de 60 secondes.
+# Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
 max-transaction-time: 60
 
 Simulation:
   # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
-  # Voici à quoi ressemble la configuration par défaut (l'axe des abscisses représente les secondes et l'axe des ordonnées représente 1/1000 de bloc) : https://www.desmos.com/calculator/d4ufgxrxer
+  # Voici à quoi ressemble la configuration par défaut (l'axe x = secondes, l'axe y = 1/1000 de bloc) : https://www.desmos.com/calculator/d4ufgxrxer
   setback-decay-multiplier: 0.999
   # Quel est l'écart maximal par rapport au mouvement du joueur pour lequel nous devrions créer une violation ?
   # Mesuré en blocs par rapport au mouvement possible.
-  # Nous prenons en compte Optifine en changeant les tables trigonométriques, mais en réduisant cela à 0.001, cela réduira FastMath.
-  # Signaler l'anti-triche si cette compensation ne fonctionne pas...
+  # Nous prenons en compte Optifine en changeant les tables trigonométriques, mais en réduisant cela à 0.001, cela réduira les signalements de l'anticheat
+  # sur FastMath si cette compensation ne fonctionne pas...
   threshold: 0.001
-  # Quelle est la taille maximale d'une violation en un tick avant que le joueur ne soit immédiatement renvoyé en arrière ?
-  # -1 to disable
+  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ? 
+  # -1 pour désactiver
   immediate-setback-threshold: 0.1
-  # How large of an advantage over all ticks before we start to setback?
+  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ? 
   # -1 pour désactiver
   max-advantage: 1
-  # Après 50 secondes avec la configuration par défaut, le joueur passera d'un avantage de 4 blocs à un avantage d'1 bloc.
-  # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les résoudre.
-  # Plafond d'avantage par défaut (l'axe des abscisses représente les secondes et l'axe des ordonnées représente 1/1000 de bloc) : https://www.desmos.com/calculator/4lovswdarj
+  # Après 50 secondes avec la configuration par défaut, le joueur passera de 4 blocs -> 1 bloc d'avantage
+  # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
+  # Plafond d'avantage par défaut (l"axe x = secondes, l'axe y = 1/1000 de bloc)) : https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
 
-# Vérifications pour voir si un joueur a pénétré dans un bloc pendant un mouvement.
+# Vérifications pour voir si un joueur est entré dans un bloc pendant un mouvement.
 Phase:
-  setbackvl: 1 # Pénétrer dans des blocs peut permettre de grimper sur les murs, et cette vérification est relativement stable.
+  setbackvl: 1 # Rentrer dans des blocs peut permettre de grimper sur les murs, et cette vérification est relativement stable.
   decay: 0.005
 
 AirLiquidPlace:
@@ -76,23 +76,23 @@ PositionPlace:
 RotationPlace:
   cancelvl: 5
 
-# Vérification de non-ralentissement basée sur la prédiction.
+# Vérification de no-slow basée sur la prédiction.
 # Grim tient compte des problèmes de netcode ici... difficile à tromper même en spamant le clic droit et le bouton de la main secondaire.
 # Bien plus stable que les autres anti-triche, mais veuillez signaler toute fausse détection... J'ai corrigé de nombreux problèmes de netcode ici.
 NoSlow:
   # Quel est le niveau d'écart considéré comme "triche"
   # Par défaut, cela est inférieur à d'autres écarts.
-  # Génère des drapeaux de manière cohérente avec des valeurs comprises entre 0,03 et 0,2 lors de l'utilisation de NoSlow.
+  # Génère des avertissements avec des valeurs comprises entre 0,03 et 0,2 lors de l'utilisation de NoSlow
   threshold: 0.001
-  # Appliquer un renvoi rapide sur le premier objet pour éliminer tout avantage donné par NoSlow.
+  # Renvoyer en arrière sur le premier objet pour éliminer tout avantage donné par NoSlow
   setbackvl: 5
-  # La décroissance se produit lorsque le joueur utilise un objet ET est ralenti par celui-ci.
+  # Décroissance lorsque le joueur utilise un objet ET est ralenti par celui-ci.
   decay: 0.05
 
 Knockback:
   # Quel est le niveau d'écart considéré comme "triche" ?
-  # Par défaut, cela est défini à 1e-5, ce qui est considéré comme sûr et raisonnable.
-  # Mesuré en blocs par rapport au mouvement correct.
+  # Par défaut, cela est défini à 1e-5, ce qui est considéré comme sûr et raisonnable
+  # Mesuré en blocs par rapport au mouvement correct
   threshold: 0.001
   setbackvl: 3
 
@@ -121,7 +121,7 @@ EntityControl:
 Reach:
   # De combien devrions-nous agrandir les hitboxes ? Une augmentation de 0,0005 devrait détecter une portée de 3,0005 ou plus.
   # 
-  # Il y a une expansion forcée de 0,03 avec les versions 1.9 à 1.18.1 (pas 1.18.2) ou certaines combinaisons client/serveur en raison
+  # Il y a un agrandissement forcé de 0,03 avec les versions 1.9 à 1.18.1 (pas 1.18.2) ou certaines combinaisons client/serveur en raison
   # des changements et limitations du protocole. Cette vérification est particulièrement puissante avec les clients 1.7/1.8 sur les serveurs 1.8.
   threshold: 0.0005
   # Devons-nous annuler les coups que nous savons impossibles ?
@@ -136,14 +136,14 @@ Reach:
   # À moins d'être un serveur axé sur le PvP en 1.8, l'envoi de ce paquet supplémentaire n'est pas recommandé.
   enable-post-packet: false
 
-# Activer l'enregistrement des plugins ayant injecté dans Netty lors de la connexion pour déboguer les problèmes de compatibilité.
+# Activer l'enregistrement des plugins ayant injecté dans Netty lors de la connexion pour déboguer les problèmes de compatibilité
 debug-pipeline-on-join: false
 
-# Active les vérifications expérimentales.
+# Active les vérifications expérimentales
 experimental-checks: false
 
-# Grim annule parfois des paquets illégaux, comme ceux liés au chronomètre, après avoir annulé X paquets en une seconde.
-# À partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
+# Grim annule parfois des paquets illégaux, comme ceux liés au chronomètre, après avoir annulé X paquets en une seconde,
+# à partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
 packet-spam-threshold: 100
 
