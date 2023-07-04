@@ -8,12 +8,12 @@ console-specify-target: "%prefix% &cVous devez spécifier une cible en tant que 
 player-not-found: "%prefix% &cPlayer est ignoré ou hors ligne !"
 player-not-this-server: "%prefix% &cPlayer n'est pas sur ce serveur !"
 spectate-return: "\n%prefix% &fClickez ici pour retourner à votre localisation précédente\n"
-cannot-spectate-return: "%prefix% &cVous pouvez faire ça uniquement après avoir regardé un joueur"
+cannot-spectate-return: "%prefix% &cVous pouvez faire cela uniquement après avoir regardé un joueur"
 cannot-run-on-self: "%prefix% &cVous ne pouvez pas utiliser cette commande sur vous même !"
-upload-log: "%prefix% &fLe débug a été téléversé vers : %url%"
+upload-log: "%prefix% &fLe fichier de débogage a été téléversé vers : %url%"
 upload-log-start: "%prefix% &fTéléversement du journal... Veuillez patienter"
-upload-log-not-found: "%prefix% &cUImpossible de trouver ce log"
-upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléversement de ce log, regardez la console pour plus d'information"
+upload-log-not-found: "%prefix% &cUImpossible de trouver ce journal"
+upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléversement de ce journal, regardez la console pour plus d'information"
 
 # Placeholders valides :
 # %prefix%
@@ -22,7 +22,7 @@ upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléver
 # %vl% - violations
 # %verbose% - Informations supplémentaires sur les vérifivations comme les écarts, toutes les vérifications n'ajoutent pas d'information
 alerts-format: "%prefix% &f%player% &ba raté &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &ba raté &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"
@@ -43,6 +43,6 @@ help:
   - "/grim perf &f- &7ms/prédiction pour les développeurs"
   - "/grim reload &f- &7Recharge la configuration"
   - "/grim spectate <player> &f- &7Regarde un joueur"
-  - "/grim verbose &f- &fAffiche chaqu'une de vos violations sans cache"
+  - "/grim verbose &f- &fAffiche chaqu'une de vos violations sans tempons"
   - "/grim log [0-255] &f- &7Téléverse un journal de débogage pour prédire les violations"
   - "&7======================"
