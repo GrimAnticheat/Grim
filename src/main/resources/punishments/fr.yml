@@ -22,7 +22,7 @@ Punishments:
     # Par exemple, pour exclure le joueur avec le message "Mouvement incorrect !" après 100 violations, sans intervale
     # commands:
     # - "100:0 kick %player% Mouvement incorrect !"
-    # 0 means execute exactly once
+    # 0 pour exécuter qu'une seule fois
     # - "100:50 say %player% est en train de tricher !"
     # Exécuter lorsque l'utilisateur atteint 100 violations, puis toutes les 50 violations suivantes après les 100 violations.
     #
@@ -83,7 +83,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # A partir de la version 2.2.10, il n'y a plus de vérifications pour AutoClicker et c'est un placeholder. rim inclura des vérifications AutoClicker dans le futur. 
+  # A partir de la version 2.2.10, il n'y a plus de vérifications pour AutoClicker et c'est un placeholder. Grim inclura des vérifications AutoClicker dans le futur. 
   Autoclicker:
     remove-violations-after: 300
     checks:
