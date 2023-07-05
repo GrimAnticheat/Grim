@@ -20,6 +20,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import org.bukkit.Bukkit;
 
 import static ac.grim.grimac.utils.nmsutil.Materials.isUsable;
 
@@ -133,22 +134,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                    ItemStack main = player.getInventory().getHeldItem();
-                    ItemStack off = player.getInventory().getOffHand();
+                    ItemStack hand = player.packetStateData.eatingHand == InteractionHand.OFF_HAND ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
 
-                    int j = 0;
-                    if (main.getType() == ItemTypes.TRIDENT) {
-                        j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                    } else if (off.getType() == ItemTypes.TRIDENT) {
-                        ItemType mainType = main.getType();
-                        boolean hasBowButNoArrows = (mainType == ItemTypes.BOW || mainType == ItemTypes.CROSSBOW)
-                                && player.gamemode != GameMode.CREATIVE && !player.getInventory().containsArrow();
-                        if (!isUsable(mainType) || hasBowButNoArrows) {
-                            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                        }
-                    }
-
-                    if (j > 0) {
+                    if (hand.getType() == ItemTypes.TRIDENT
+                            && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) {
                         player.packetStateData.tryingToRiptide = true;
                     }
                 }
