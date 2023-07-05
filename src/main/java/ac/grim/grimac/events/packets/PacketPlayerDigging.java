@@ -21,6 +21,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHe
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
+import static ac.grim.grimac.utils.nmsutil.Materials.isUsable;
+
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
     public PacketPlayerDigging() {
@@ -95,9 +97,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Crossbow charge checked previously
             if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
                     /*player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
-                            player.getInventory().hasItemType(ItemTypes.ARROW) ||
-                            player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
-                            player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
+                            player.getInventory().containsArrow();
                     player.packetStateData.eatingHand = place.getHand();*/
                 // TODO: How do we lag compensate arrows? Mojang removed idle packet.
                 // I think we may have to cancel the bukkit event if the player isn't slowed
@@ -140,7 +140,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     if (main.getType() == ItemTypes.TRIDENT) {
                         j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                     } else if (off.getType() == ItemTypes.TRIDENT) {
-                        j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                        ItemType mainType = main.getType();
+                        boolean hasBowButNoArrows = (mainType == ItemTypes.BOW || mainType == ItemTypes.CROSSBOW)
+                                && player.gamemode != GameMode.CREATIVE && !player.getInventory().containsArrow();
+                        if (!isUsable(mainType) || hasBowButNoArrows) {
+                            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                        }
                     }
 
                     if (j > 0) {

@@ -181,6 +181,11 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
     }
 
+    public boolean containsArrow() {
+        return player.getInventory().hasItemType(ItemTypes.ARROW) ||
+                player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
+                player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
+    }
 
     public boolean hasItemType(ItemType type) {
         if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
