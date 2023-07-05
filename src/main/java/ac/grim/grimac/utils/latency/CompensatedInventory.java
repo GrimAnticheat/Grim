@@ -180,6 +180,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 return ItemStack.EMPTY;
         }
     }
+    
 
     public boolean hasItemType(ItemType type) {
         if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
