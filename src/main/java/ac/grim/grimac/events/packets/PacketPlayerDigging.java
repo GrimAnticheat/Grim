@@ -20,9 +20,6 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
-import org.bukkit.Bukkit;
-
-import static ac.grim.grimac.utils.nmsutil.Materials.isUsable;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
