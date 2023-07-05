@@ -98,7 +98,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Crossbow charge checked previously
             if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
                     /*player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
-                            player.getInventory().containsArrow();
+                            player.getInventory().hasItemType(ItemTypes.ARROW) ||
+                            player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
+                            player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
                     player.packetStateData.eatingHand = place.getHand();*/
                 // TODO: How do we lag compensate arrows? Mojang removed idle packet.
                 // I think we may have to cancel the bukkit event if the player isn't slowed
