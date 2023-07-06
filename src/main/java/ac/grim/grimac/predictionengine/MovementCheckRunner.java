@@ -443,16 +443,15 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            ItemStack boots = player.getInventory().getBoots();
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                player.depthStriderLevel = player.getInventory().getWornEnchantLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             } else {
                 player.depthStriderLevel = 0;
             }
 
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                ItemStack leggings = player.getInventory().getLeggings();
-                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (leggings.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
+                int swiftSneakLevel = player.getInventory().getWornEnchantLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
+                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (swiftSneakLevel * 0.15F), 0f, 1f);
             } else {
                 player.sneakingSpeedMultiplier = 0.3F;
             }

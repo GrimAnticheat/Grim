@@ -170,7 +170,7 @@ public class BlockProperties {
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
             StateType onBlock = BlockProperties.getOnBlock(player, pos.getX(), pos.getY(), pos.getZ());
-            if (onBlock == StateTypes.SOUL_SAND && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
+            if (onBlock == StateTypes.SOUL_SAND && player.getInventory().getWornEnchantLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
                 return 1.0f;
         }
 
@@ -186,7 +186,7 @@ public class BlockProperties {
         if (type == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getWornEnchantLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
                 return 1.0f;
             return 0.4f;
         }

@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -30,6 +31,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,6 +88,17 @@ public class CompensatedInventory extends Check implements PacketCheck {
             return 40;
         }
         return -1;
+    }
+
+    public int getWornEnchantLevel(EnchantmentType enchantmentType, ClientVersion version) {
+        int highestLevel = 0;
+        for (ItemStack armorItem : Arrays.asList(getBoots(), getLeggings(), getChestplate(), getHelmet())) {
+            int level = armorItem.getEnchantmentLevel(enchantmentType, version);
+            if (level > highestLevel) {
+                highestLevel = level;
+            }
+        }
+        return highestLevel;
     }
 
     // Meant for 1.17+ clients who send changed slots, making the server not send the entire inventory
