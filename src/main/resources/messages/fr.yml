@@ -1,4 +1,4 @@
-# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+# \u00BB est » (double >>), ANSI et UTF-8 interprètent cela différemment... vous pouvez même voir ? en raison de cela
 prefix: "&bGrim &8\u00BB"
 
 alerts-enabled: "%prefix% &fAlertes activées"
@@ -15,12 +15,12 @@ upload-log-start: "%prefix% &fMise en ligne du journal de débogage... veuillez 
 upload-log-not-found: "%prefix% &cImpossible de trouver le journal de débogage!"
 upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors de la mise en ligne du journal de débogage!"
 
-# Valid placeholders:
+# Placeholders valides:
 # %prefix%
 # %player%
 # %check_name%
 # %vl% - violations
-# %verbose% - extra information from the check such as offsets, not all checks will add information
+# %verbose% - informations supplémentaires du vérifications telles que les décalages, tous les vérifications n'ajouteront pas d'informations
 alerts-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
