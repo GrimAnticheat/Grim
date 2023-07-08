@@ -24,7 +24,7 @@ public class UseHit extends Check implements PacketCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_17)) return;
         
         if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            if (isUsingItem && movementPacketsSinceChange > 1) {
+            if (player.packetStateData.slowedByUsingItem) {
                 WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
                 if (flag(true, false, "action=" + action.getAction().name() + " hand=" + action.getHand().name() + " sin=" + movementPacketsSinceChange)) {
                     if (shouldModifyPackets()) {
