@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -22,6 +23,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -212,28 +214,33 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             if (slot.getWindowId() == 0) {
+                ItemType type = slot.getItem().getType();
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = false;
+                        if (player.getInventory().getHeldItem().getType() != type) {
+                            player.packetStateData.slowedByUsingItem = false;
+                        }
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = false;
+                        if (player.getInventory().getHeldItem().getType() != type) {
+                            player.packetStateData.slowedByUsingItem = false;
+                        }
                     }
                 });
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+        /*if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
 
             if (items.getWindowId() == 0) { // Player inventory
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
-        }
+        }*/
 
         // 1.8 clients fail to send the RELEASE_USE_ITEM packet when a window is opened client sided while using an item
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
