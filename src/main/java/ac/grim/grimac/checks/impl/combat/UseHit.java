@@ -11,8 +11,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 @CheckData(name = "UseHit")
 public class UseHit extends Check implements PacketCheck {
-    public boolean isUsingItem;
-    public int movementPacketsSinceChange;
 
     public UseHit(final GrimPlayer player) {
         super(player);
@@ -26,7 +24,7 @@ public class UseHit extends Check implements PacketCheck {
         if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             if (player.packetStateData.slowedByUsingItem) {
                 WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
-                if (flag(true, false, "action=" + action.getAction().name() + " hand=" + action.getHand().name() + " sin=" + movementPacketsSinceChange)) {
+                if (flag(true, false, "action=" + action.getAction().name() + " hand=" + action.getHand().name())) {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
