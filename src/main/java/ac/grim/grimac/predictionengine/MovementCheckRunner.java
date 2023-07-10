@@ -547,16 +547,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         if (player.skippedTickInActualMovement || !wasChecked) player.uncertaintyHandler.lastPointThree.reset();
 
-        // Update UseHit
-        UseHit useHit = player.checkManager.getPacketCheck(UseHit.class);
-        boolean slowedByItem = player.packetStateData.slowedByUsingItem;
-        if (useHit.isUsingItem != slowedByItem) {
-            useHit.movementPacketsSinceChange = 0;
-            useHit.isUsingItem = slowedByItem;
-        } else {
-            useHit.movementPacketsSinceChange++;
-        }
-
         // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
 
