@@ -185,8 +185,8 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
                         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                            boolean isActive = (((byte) riptide.getValue()) & 0x01) == 0x01;
-                            boolean isOffhand = (((byte) riptide.getValue()) & 0x01) == 0x01;
+                            boolean isActive = (((byte) riptide.getValue()) & 1) > 0;
+                            boolean isOffhand = (((byte) riptide.getValue()) & 2) > 0;
 
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
@@ -207,7 +207,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                     player.packetStateData.slowedByUsingItem = isActive;
 
                                     if (isActive) {
-                                        player.packetStateData.eatingHand = isOffhand ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+                                        player.packetStateData.eatingHand = isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
                                     }
                                 }
                             });
