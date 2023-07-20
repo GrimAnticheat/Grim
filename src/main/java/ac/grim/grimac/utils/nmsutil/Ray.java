@@ -4,6 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 // Copied directly from Hawk
 public class Ray implements Cloneable {
 
@@ -65,6 +68,20 @@ public class Ray implements Cloneable {
         Vector c2 = other.origin.clone().add(other.direction.clone().multiply(origin.clone().subtract(other.origin).dot(n1) / other.direction.dot(n1)));
 
         return new Pair<>(c1, c2);
+    }
+
+    //get a point on the raytrace at X blocks away
+    public Vector getPostion(final double blocksAway) {
+        return origin.clone().add(direction.clone().multiply(blocksAway));
+    }
+
+    //get all postions on a raytrace
+    public List<Vector> traverse(final double blocksAway, final double accuracy) {
+        final ArrayList<Vector> positions = new ArrayList<>();
+        for (double d = 0; d <= blocksAway; d += accuracy) {
+            positions.add(getPostion(d));
+        }
+        return positions;
     }
 
     public Vector getOrigin() {
