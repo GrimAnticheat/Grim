@@ -149,16 +149,17 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         Vector clientVel = lastKnownGoodPosition.vector.clone();
 
-        Vector futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
-        Vector futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
+        Pair<VelocityData, Vector> futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
+        VelocityData futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
-        if (futureKb != null) {
-            clientVel = futureKb;
+        if (futureKb.getFirst() != null) {
+            clientVel = futureKb.getSecond();
         }
+
         // Explosion adds
-        if (futureExplosion != null) {
-            clientVel.add(futureExplosion);
+        if (futureExplosion != null && (futureKb.getFirst() == null || futureKb.getFirst().transaction < futureExplosion.transaction)) {
+            clientVel.add(futureExplosion.vector);
         }
 
         Vector3d position = lastKnownGoodPosition.pos;
