@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 
-@CheckData(name = "Fabricated Place")
+@CheckData(name = "FabricatedPlace")
 public class FabricatedPlace extends BlockPlaceCheck {
     public FabricatedPlace(GrimPlayer player) {
         super(player);
