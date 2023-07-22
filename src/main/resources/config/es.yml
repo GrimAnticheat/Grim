@@ -82,7 +82,7 @@ RotationPlace:
 # clic derecho y la mano secundaria.
 # Mucho mas estable que otros anti-cheats, pero por favor reportar todo falso positivo... he arreglado muchos
 # problemas del código de red aquí.
-NoSlow:
+NoSlowA:
   # ¿Cuánta debería ser la compensacion como para que se considere trampa?
   # Por defecto esto es más bajo que otras compensaciones
   # Marca por 0.03-0.2 consistentemente con NoSlow activado

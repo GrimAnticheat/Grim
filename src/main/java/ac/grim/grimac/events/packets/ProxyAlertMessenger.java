@@ -70,7 +70,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         ByteArrayOutputStream messageBytes = new ByteArrayOutputStream();
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("Forward");
-        out.writeUTF("ALL");
+        out.writeUTF("ONLINE");
         out.writeUTF("GRIMAC");
 
         try {

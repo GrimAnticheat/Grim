@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based NoSlow 检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
 # 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
-NoSlow:
+NoSlowA:
   # 有多少偏移量是作弊
   # 标志 0.03-0.2 与 NoSlow 一致
   threshold: 0.001

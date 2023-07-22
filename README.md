@@ -1,11 +1,10 @@
 # GrimAC
 
-This project is considered feature complete for the 2.0 (open-source) branch of this project. If you would like a bugfix or enhancement and cannot sponsor the work, pull requests are welcome. Feel free to contact DefineOutside for consulting estimates if desired.
+This project is considered feature complete for the 2.0 (open-source) branch of this project. If you would like a bugfix or enhancement and cannot sponsor the work, pull requests are welcome. Feel free to contact DefineOutside for consulting estimates if desired. You can join the [discord](https://discord.gg/SEywtQMt29) for jar releases & changelogs.
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
-
+GrimAC is an open source Minecraft anticheat designed for 1.20 and supports 1.8-1.20. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
 
 ### Compiling through terminal/command prompt
 1. git clone https://github.com/MWHunter/Grim (or click green code button, download code, then unzip)
