@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 
 @CheckData(name = "TransactionOrder", experimental = true)
 public class TransactionOrder extends Check implements PacketCheck {
-    private boolean atomicBoolean = false;
+    private boolean flag = false;
 
     public TransactionOrder(GrimPlayer player) {
         super(player);
@@ -32,13 +32,13 @@ public class TransactionOrder extends Check implements PacketCheck {
         if (!player.transactionOrder.contains(id)) return;
 
         player.transactionOrder.removeIf(transaction -> {
-            if (atomicBoolean)
+            if (flag)
                 return false;
 
             if (transaction == id)
-                atomicBoolean = true;
+                flag = true;
             return true;
         });
-        atomicBoolean = false;
+        flag = false;
     }
 }
