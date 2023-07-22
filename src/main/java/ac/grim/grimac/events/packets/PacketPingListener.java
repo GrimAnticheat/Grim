@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -34,6 +35,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 // Check if we sent this packet before cancelling it
                 if (player.addTransactionResponse(id)) {
                     event.setCancelled(true);
+                    player.checkManager.getPacketCheck(TransactionOrder.class).onTransactionReceive(id);
                 }
             }
         }
@@ -47,9 +49,11 @@ public class PacketPingListener extends PacketListenerAbstract {
             if (id == (short) id) {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
-                if (player.addTransactionResponse((short) id)) {
+                short shortID = ((short) id);
+                if (player.addTransactionResponse(shortID)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
+                    player.checkManager.getPacketCheck(TransactionOrder.class).onTransactionReceive(shortID);
                 }
             }
         }
@@ -69,6 +73,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.didWeSendThatTrans.remove((Short) id)) {
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    player.transactionOrder.add(id);
                 }
             }
         }
@@ -86,8 +91,10 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.didWeSendThatTrans.remove(shortID)) {
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    player.transactionOrder.add(shortID);
                 }
             }
         }
     }
+
 }

@@ -77,6 +77,7 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
+    public final List<Short> transactionOrder = Collections.synchronizedList(new ArrayList<>());
     private long transactionPing = 0;
     public long lastTransSent = 0;
     public long lastTransReceived = 0;
@@ -86,6 +87,7 @@ public class GrimPlayer implements GrimUser {
     public int riptideSpinAttackTicks = 0;
     public int powderSnowFrozenTicks = 0;
     public boolean hasGravity = true;
+    public final long joinTime = System.currentTimeMillis();
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
