@@ -22,8 +22,8 @@ public class BadPacketsR extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
             final WrapperPlayClientWindowConfirmation packet = new WrapperPlayClientWindowConfirmation(event);
 
-            if (packet.getWindowId() == 0) {
-                final short actionId = packet.getActionId();
+            final short actionId = packet.getActionId();
+            if (packet.getWindowId() == 0 && player.didWeSendThatTrans.contains(actionId)) {
                 if (lastConfirm != Short.MAX_VALUE && actionId != lastConfirm - 1) {
                     flagAndAlert("action=" + actionId);
                 }
