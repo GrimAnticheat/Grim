@@ -19,3 +19,5 @@ violation-content:
   - "**Marca del cliente**: %brand%"
   - "**Latencia**: %ping%"
   - "**TPS**: %tps%"
+violation-minimum: 0
+violation-maximum: -1
