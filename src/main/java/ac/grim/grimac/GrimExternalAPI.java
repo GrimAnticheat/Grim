@@ -8,6 +8,7 @@ import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -58,6 +59,22 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     @Override
     public void registerVariable(String variable, String replacement) {
         staticReplacements.put(variable, replacement);
+    }
+
+    @Override
+    public String getGrimVersion() {
+        PluginDescriptionFile description = GrimAPI.INSTANCE.getPlugin().getDescription();
+        return description.getVersion();
+    }
+
+    @Override
+    public void registerFunction(String key, Function<Object, Object> function) {
+
+    }
+
+    @Override
+    public Function<Object, Object> getFunction(String key) {
+        return null;
     }
 
     @Override
