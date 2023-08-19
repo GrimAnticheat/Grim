@@ -136,6 +136,9 @@ Reach:
   # Если вы не являетесь PvP-сервером 1.8, этот дополнительный пакет не рекомендуется.
   enable-post-packet: false
 
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
+
 # Включить запись в журнал плагинов, которые внедрились в netty при присоединении для отладки проблем совместимости
 debug-pipeline-on-join: false
 

@@ -136,6 +136,10 @@ Reach:
   # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
   enable-post-packet: false
 
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
+
+
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false
 
