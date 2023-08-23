@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
@@ -35,7 +36,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 // Check if we sent this packet before cancelling it
                 if (player.addTransactionResponse(id)) {
                     event.setCancelled(true);
-                    player.checkManager.getPacketCheck(TransactionOrder.class).onTransactionReceive(id);
+                    onTransactionReceive(player, id);
                 }
             }
         }
@@ -53,7 +54,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.addTransactionResponse(shortID)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
-                    player.checkManager.getPacketCheck(TransactionOrder.class).onTransactionReceive(shortID);
+                    onTransactionReceive(player, shortID);
                 }
             }
         }
@@ -95,6 +96,31 @@ public class PacketPingListener extends PacketListenerAbstract {
                 }
             }
         }
+    }
+
+    private void onTransactionReceive(GrimPlayer player, short id) {
+        if (player.joinTime < 5000) {
+            return;
+        }
+
+        if (player.transactionOrder.isEmpty()) {
+            Check check = player.checkManager.getPacketCheck(TransactionOrder.class);
+            check.flagAndAlert(String.format("Expected: %s | Received: %d", "None", id));
+            return;
+        }
+
+        int expected = player.transactionOrder.get(0);
+
+        if (expected != id) {
+            Check check = player.checkManager.getPacketCheck(TransactionOrder.class);
+            check.flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
+        }
+
+        if (player.transactionOrder.contains(id)) {
+            int index = player.transactionOrder.indexOf(id);
+            player.transactionOrder.subList(0, index + 1).clear();
+        }
+
     }
 
 }

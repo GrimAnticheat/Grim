@@ -77,7 +77,7 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
-    public final Set<Short> transactionOrder = new LinkedHashSet<>();
+    public final List<Short> transactionOrder = new ArrayList<>();
     private long transactionPing = 0;
     public long lastTransSent = 0;
     public long lastTransReceived = 0;
