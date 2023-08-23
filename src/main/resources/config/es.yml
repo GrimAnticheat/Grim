@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -140,6 +140,9 @@ Reach:
   # Dejar esto deshabilitado también encontrara a jugadores haciendo trampa y no causara falsos positivos.
   # Excepto que seas un servidor 1.8 enfocado en el PvP, este paquete adicional no es recomendado.
   enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
 
 # Habilitar el registro de plugins que se han inyectado a netty para intentar resolver problemas de compatibilidad.
 debug-pipeline-on-join: false

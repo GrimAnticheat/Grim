@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -135,6 +135,9 @@ Reach:
   # Если оставить эту функцию отключенной, читеры все равно будут отлавливаться и не будут вызывать ложных срабатываний.
   # Если вы не являетесь PvP-сервером 1.8, этот дополнительный пакет не рекомендуется.
   enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
 
 # Включить запись в журнал плагинов, которые внедрились в netty при присоединении для отладки проблем совместимости
 debug-pipeline-on-join: false
