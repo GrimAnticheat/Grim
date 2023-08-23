@@ -5,9 +5,10 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 
+import java.util.ArrayList;
+
 @CheckData(name = "TransactionOrder", experimental = true)
 public class TransactionOrder extends Check implements PacketCheck {
-    private boolean flag = false;
 
     public TransactionOrder(GrimPlayer player) {
         super(player);
@@ -23,22 +24,20 @@ public class TransactionOrder extends Check implements PacketCheck {
             return;
         }
 
-        int expected = player.transactionOrder.get(0);
+        ArrayList<Short> transactions = new ArrayList<>(player.transactionOrder);
+
+        int expected = transactions.get(0);
 
         if (expected != id) {
             flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
         }
 
-        if (!player.transactionOrder.contains(id)) return;
+        if (transactions.contains(id)) {
+            int index = transactions.indexOf(id);
+            transactions.subList(0, index + 1).clear();
+            player.transactionOrder.clear();
+            player.transactionOrder.addAll(transactions);
+        }
 
-        player.transactionOrder.removeIf(transaction -> {
-            if (flag)
-                return false;
-
-            if (transaction == id)
-                flag = true;
-            return true;
-        });
-        flag = false;
     }
 }
