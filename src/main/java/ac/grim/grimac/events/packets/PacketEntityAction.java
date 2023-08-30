@@ -39,6 +39,18 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     player.isSneaking = false;
                     break;
                 case START_FLYING_WITH_ELYTRA:
+                    if (player.onGround || player.lastOnGround) {
+                        player.getSetbackTeleportUtil().executeForceResync();
+
+                        if (player.bukkitPlayer != null) {
+                            // Client ignores sneaking, use it to resync
+                            player.bukkitPlayer.setSneaking(!player.bukkitPlayer.isSneaking());
+                        }
+
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                        break;
+                    }
                     // Starting fall flying is server sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
                     ItemStack chestPlate = player.getInventory().getChestplate();

@@ -1,5 +1,5 @@
 name: GrimAC
-version: 2.3.40
+version: 2.3.43
 main: ac.grim.grimac.GrimAC
 folia-supported: true
 description: "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."

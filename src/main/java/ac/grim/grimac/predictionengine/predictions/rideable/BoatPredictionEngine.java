@@ -210,7 +210,6 @@ public class BoatPredictionEngine extends PredictionEngine {
             vector.setY(vector.getY() + d1);
             vector.setZ(vector.getZ() * invFriction);
 
-            player.vehicleData.deltaRotation *= invFriction;
             if (d2 > 0.0D) {
                 double yVel = vector.getY();
                 vector.setY((yVel + d2 * 0.06153846016296973D) * 0.75D);
@@ -253,14 +252,6 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     private void controlBoat(GrimPlayer player, Vector vector) {
         float f = 0.0F;
-        if (player.vehicleData.vehicleHorizontal < -0.01) {
-            --player.vehicleData.deltaRotation;
-        }
-
-        if (player.vehicleData.vehicleHorizontal > 0.01) {
-            ++player.vehicleData.deltaRotation;
-        }
-
         if (player.vehicleData.vehicleHorizontal != 0 && player.vehicleData.vehicleForward == 0) {
             f += 0.005F;
         }

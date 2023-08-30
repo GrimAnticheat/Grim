@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
-NoSlow:
+NoSlowA:
   # How much of an offset is "cheating"
   # By default this is lower than other offs
   # Flags by 0.03-0.2 consistently with NoSlow on
@@ -135,6 +135,12 @@ Reach:
   # Leaving this disabled will still catch cheaters and will not cause false positives
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
+
+exploit:
+  # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
+  # Mojang screwed up netcode by making elytra start client sided and elytra end server sided
+  # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.
+  allow-sprint-jumping-when-using-elytra: true
 
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false

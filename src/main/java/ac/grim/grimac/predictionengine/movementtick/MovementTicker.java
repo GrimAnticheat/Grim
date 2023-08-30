@@ -9,15 +9,13 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsutil.BlockProperties;
-import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
-import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.util.Vector;
 
 public class MovementTicker {
@@ -67,8 +65,6 @@ public class MovementTicker {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector();
         }
-
-        StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
         if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
@@ -127,6 +123,9 @@ public class MovementTicker {
             Collisions.handleInsideBlocks(player);
         }
 
+        player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, new Vector3d(collide.getX(), collide.getY(), collide.getZ()), player.boundingBox, player.onGround);
+        StateType onBlock = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+
         // Hack with 1.14+ poses issue
         if (inputVel.getY() != collide.getY()) {
             // If the client supports slime blocks
@@ -162,7 +161,8 @@ public class MovementTicker {
         // This is where vanilla moves the bounding box and sets it
         player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
-        player.clientVelocity.multiply(player.blockSpeedMultiplier);
+        float f = BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        player.clientVelocity.multiply(new Vector(f, 1, f));
 
         // Reset stuck speed so it can update
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
@@ -386,7 +386,7 @@ public class MovementTicker {
                 new PredictionEngineElytra().guessBestMovement(0, player);
 
             } else {
-                float blockFriction = BlockProperties.getBlockFrictionUnderPlayer(player);
+                float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 doNormalMove(blockFriction);

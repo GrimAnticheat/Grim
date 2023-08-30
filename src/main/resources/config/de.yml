@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based no slow check
 # Grim ist verantwortlich für den fehlerhaften Netcode hier... schwer zu falsen, selbst wenn man Rechtsklick und Offhand-Taste spammt.
 # Viel stabiler als andere Anticheats, aber bitte melde alle Falses... Ich habe hier eine Menge Netcode-Probleme behoben.
-NoSlow:
+NoSlowA:
   # Wie viel von einem Offset ist "schummeln"
   # Standardmäßig ist dieser Wert niedriger als andere Offs.
   # Flags um 0,03-0,2 konsequent mit NoSlow on
@@ -135,6 +135,10 @@ Reach:
   # Bleibt diese Funktion deaktiviert, werden immer noch Cheater erwischt und es kommt nicht zu Fehlalarmen.
   # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
   enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
+
 
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false
