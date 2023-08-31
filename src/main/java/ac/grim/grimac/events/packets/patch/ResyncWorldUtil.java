@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets.patch;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunks.FoliaHelper;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -10,8 +11,6 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -31,17 +30,21 @@ public class ResyncWorldUtil {
     }
 
     public static void resyncPositions(GrimPlayer player, int minBlockX, int mY, int minBlockZ, int maxBlockX, int mxY, int maxBlockZ) {
+        if (player.bukkitPlayer == null) return;
         // Check the 4 corners of the player world for loaded chunks before calling event
-        if (!player.compensatedWorld.isChunkLoaded(minBlockX >> 4, minBlockZ >> 4) || !player.compensatedWorld.isChunkLoaded(minBlockX >> 4, maxBlockZ >> 4)
-                || !player.compensatedWorld.isChunkLoaded(maxBlockX >> 4, minBlockZ >> 4) || !player.compensatedWorld.isChunkLoaded(maxBlockX >> 4, maxBlockZ >> 4))
+        if (!player.bukkitPlayer.getWorld().isChunkLoaded(minBlockX >> 4, minBlockZ >> 4) || !player.bukkitPlayer.getWorld().isChunkLoaded(minBlockX >> 4, maxBlockZ >> 4)
+                || !player.bukkitPlayer.getWorld().isChunkLoaded(maxBlockX >> 4, minBlockZ >> 4) || !player.bukkitPlayer.getWorld().isChunkLoaded(maxBlockX >> 4, maxBlockZ >> 4))
             return;
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
-        FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+
+        // So, for some reason, this sometimes errors out with Folia while using the entity scheduler, but it works with the global region scheduler...
+        // I have no clue what's going on here, someone should look at this more in depth.
+
+        FoliaHelper.runTaskInRegion(GrimAPI.INSTANCE.getPlugin(), player.bukkitPlayer.getWorld(), minBlockX >> 4, minBlockZ >> 4, (tmp) -> {
             boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
 
-            if (player.bukkitPlayer == null) return;
             // Player hasn't spawned, don't spam packets
             if (!player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
 
@@ -112,6 +115,6 @@ public class ResyncWorldUtil {
                     }
                 }
             }
-        }, null, 0);
+        });
     }
 }
