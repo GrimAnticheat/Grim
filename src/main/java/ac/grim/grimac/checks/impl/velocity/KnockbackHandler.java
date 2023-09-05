@@ -92,7 +92,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 
-    public VelocityData calculateRequiredKB(int entityID, int transaction) {
+    public VelocityData calculateRequiredKB(int entityID, int transaction, boolean isJustTesting) {
         tickKnockback(transaction);
 
         VelocityData returnLastKB = null;
@@ -101,7 +101,9 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 returnLastKB = data;
         }
 
-        lastKnockbackKnownTaken.clear();
+        if (!isJustTesting) {
+            lastKnockbackKnownTaken.clear();
+        }
         return returnLastKB;
     }
 

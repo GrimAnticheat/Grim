@@ -184,13 +184,15 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     }
 
 
-    public VelocityData getPossibleExplosions(int lastTransaction) {
+    public VelocityData getPossibleExplosions(int lastTransaction, boolean isJustTesting) {
         handleTransactionPacket(lastTransaction);
         if (lastExplosionsKnownTaken == null)
             return null;
 
         VelocityData returnLastExplosion = lastExplosionsKnownTaken;
-        lastExplosionsKnownTaken = null;
+        if (!isJustTesting) {
+            lastExplosionsKnownTaken = null;
+        }
         return returnLastExplosion;
     }
 
