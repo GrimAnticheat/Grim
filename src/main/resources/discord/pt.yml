@@ -1,0 +1,11 @@
+enabled: false
+webhook: ""
+embed-color: "#00FFFF"
+violation-content:
+  - "**Jogador**: %player%"
+  - "**Verificação**: %check%"
+  - "**Violações**: %violations%"
+  - "**Versão do Cliente**: %version%"
+  - "**Nome do Cliente**: %brand%"
+  - "**Ping**: %ping%"
+  - "**TPS**: %tps%"
