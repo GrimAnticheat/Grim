@@ -1,0 +1,48 @@
+# \u00BB é » (>> duplo), ANSI e UTF-8 interpretam isso diferentemente... você pode acabar vendo '?' por conta disso.
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlertas habilitados."
+alerts-disabled: "%prefix% &fAlertas desabilitados"
+client-brand-format: "%prefix% &f%player% entrou usando %brand%"
+console-specify-target: "%prefix% &cVocê deve especificar o nome do alvo como o terminal!"
+player-not-found: "%prefix% &cO jogador está imune ou desconectado!"
+player-not-this-server: "%prefix% &cO jogador não está nesse servidor!"
+spectate-return: "\n%prefix% &fClique aqui para retornar a localização anterior\n"
+cannot-spectate-return: "%prefix% &cVocê só pode fazer isso após espectar um jogador."
+cannot-run-on-self: "%prefix% &cVocê não pode usar esse comando em sí!"
+upload-log: "%prefix% &fDepuramento enviado para: %url%"
+upload-log-start: "%prefix% &fEnviando a log... por favor espere."
+upload-log-not-found: "%prefix% &cNão foi possível encontrar essa log."
+upload-log-upload-failure: "%prefix% &cAlgo deu errado ao enviar essa log, veja o terminal para mais informações."
+
+# Placeholders válidos:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violações
+# %verbose% - Informação extra da verificação, como os desvios, nem todas as verifiações terão essa informação.
+alerts-format: "%prefix% &f%player% &bfalhou em &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfalhou em &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bPerfil de &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersão: &f%version%"
+  - "&bNome do Cliente: &f%brand%"
+  - "&bSensibilidade Horizontal: &f%h_sensitivity%%"
+  - "&bSensibilidade Vertical: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Alterna on/off as noificações."
+  - "/grim profile <player> &f- &7Mosta informações do jogador."
+  - "/grim help &f- &7Mostra essa mensagem de ajuda."
+  - "/grim debug <player> &f- &7Depurar simulação para desenvolvedores."
+  - "/grim perf &f- &7Depurar performance para Desenvolvedores."
+  - "/grim reload &f- &7Recarrega a pasta de configurações."
+  - "/grim spectate <player> &f- &7Especta um jogador."
+  - "/grim verbose &f- &fMostra todos os flags para você sem os buffers."
+  - "/grim log [0-255] &f- &7Envia a log da simulação."
+  - "&7======================"
