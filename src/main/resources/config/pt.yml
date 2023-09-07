@@ -1,0 +1,162 @@
+# Configuração padrão do GrimAC
+# Código fonte: https://github.com/MWHunter/Grim
+# Copyright 2022 DefineOutside e contribuidores, Sob licença GPLv3.
+# Códigos modificados, ou plugins que utilizam o código do Grim, devem ser privados,
+# ou seu código deve estar totalmente disponível para compradores sem quaisquer custos adicionais.
+
+alerts:
+  # Além de transmitir alertas para jogadores, eles deveriam ser transmitidos para o terminal também?
+  print-to-console: true
+  # Isso controla se/como os alertas são compartilhados entre os servidores conectados ao proxy.
+  # Deverás ter 'bungee-plugin-message-channel' habilitado na configuração do Velocity se estiveres usando.
+  proxy:
+    # Os alertas deveriam ser enviados para outros servidores conectados no mesmo proxy?
+    send: false
+    # Os alertas deveriam ser recebidos de outros servidores conectados no mesmo proxy?
+    receive: false
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Isso signifia que caso o nome do cliente seja igual aos listados abaixo eles não serão notificadas aos(as) operadores.
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+    - "^Feather Fabric$"
+
+spectators:
+  # Esconde todos(as) espectadores com a permissão 'grim.spectator' mesmo se não estiverem espectando ativamente.
+  hide-regardless: false
+  # Fará os espectadores serem escondidos apenas nos mundos listados abaixo, deixe em brano para habilitar em todos os mundos.
+  allowed-worlds:
+    - ""
+
+# Quanto tempo os jogadores tem até nós expulsarmos eles por inatividade? Padrão = 60 segundos.
+max-transaction-time: 60
+
+Simulation:
+  # Por quanto deveriamos multiplicar a vantagem caso o jogador não tenha falhado em nem uma verificação?
+  # Isso é como a configuração padrão se parece (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # O quão longe o jogador deve estar da área simulada para adicionarmos violações?
+  # Medido em blocos do último movimento legítmo.
+  # Aceitamos o Optifine trocando as tabelas trigonométricas, mas abaixar para 0.001 reduzirá o 'FastMath'
+  # de falhar no anticheat caso essa compensação não funcionar...
+  threshold: 0.001
+  # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo.
+  # -1 desabilitará
+  immediate-setback-threshold: 0.1
+  # O quão longe da área simulada sobre todos os ticks deverá ser para começarmos a recuar?
+  # -1 to disable
+  max-advantage: 1
+  # Depois de 50 segundos, com a configuração padrão, o jogador irá de 4 blocos -> 1 bloco de vantagem.
+  # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
+  # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Verifica se um jogador entrou em um bloco durante o movimento.
+Phase:
+  setbackvl: 1 # Entrar em blocos possibilita escalar paredes, além disso, essa verificação é relativamente estável.
+  decay: 0.005
+
+AirLiquidPlace:
+  cancelvl: 0
+
+FabricatedPlace:
+  cancelvl: 5
+
+FarPlace:
+  cancelvl: 5
+
+PositionPlace:
+  cancelvl: 5
+
+RotationPlace:
+  cancelvl: 5
+
+# Verificação de NoSlow por simulação.
+# Grim considera erros no netcode... difícil de gerar falsos positivos, até mesmo spamando o blotão direito e a offhand.
+# Muito mais estável que outros anticheats, mas por favor, reporte quaisquer falsos positivos... eu já arrumei diversos
+# erros de netcode.
+NoSlowA:
+  # Quanto de desvio da simulação é considerado não legítmo?
+  # Por padrão isso é menor que outros desvios.
+  # Falha por 0.03-0.2 com consistência com o NoSlow ativado.
+  threshold: 0.001
+  # Recua rapidamente no primeiro item para remover quaisquer vantagens que o NoSlow dá.
+  setbackvl: 5
+  # Decai quando o jogador usa um item E é desasceletado por isso.
+  decay: 0.05
+
+Knockback:
+  # Quanto de desvio da simulação é considerado não legítmo?
+  # Por padrão isso é 1e-5, o que é seguro.
+  # Medido em blocos do último movimento legítmo.
+  threshold: 0.001
+  setbackvl: 3
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Milissegundos que o jogador pode acumular para depois usar quando eles têm um atraso no ping.
+  # Pode permitir o uso de fast use / fast heal / fast bow na 1.8 caso o valor seja definido muito alto. 120ms parece
+  # um bom balanceamento.
+  drift: 120
+
+NegativeTimer:
+  # Número de milissegundos perdidos ao se mover antes de nós começarmos a adicionar violações.
+  drift: 1200
+
+# Mesmo método usado no TimerA, mas para veículos.
+TimerVehicle:
+  # Detecta até 1.005 de timer.
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # Quanto devíamos expandir as hitboxes? 0.0005 deve detectar 3.0005+ de alcance.
+  #
+  # Há 0.03 de expansão forçada nas versões 1.9-1.18.1 (não a 1.18.2), ou algumas combinações de cliente/servidor por
+  # conta de mudanças no protocolo e limitações. Essa verificação é mais poderosa com clientes da 1.7/1.8 em servidores
+  # da 1.8.
+  threshold: 0.0005
+  # Deveriamos cancelar hits que sabemos que são impossíveis?
+  # O alcance de 3.00-3.03 podem acabar passando, mas continuarão adicionando violações, por conta de limitações na
+  # ordem de pacotes.
+  block-impossible-hits: true
+  # Isso enviará um pacote adicional no final de todos os ticks para aumentar a probabilidade de detectarmos cheaters.
+  # Isso injeta na lista de conecção do servidor para envar um pacote final logo antes do servidor recarregar.
+  # Habilitando isso, irá aumentar o uso de banda para todos os jogadores.
+  # Isso não irá interferir na performance do servidor.
+  # Habilitando isso, aumentará a probabilidade de detectarmos cheaters.
+  # Deixando-o desabilitado, continuará detectando cheaters e não irá causar falsos positivos.
+  # A não ser se você estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
+  enable-post-packet: false
+
+exploit:
+  # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploit de ocorrer quando
+  # definido para falso.
+  # A Mojang vacilou com o netcode por fazer a Elytra iniciar pelo lado do cliente.
+  # As Elytras levam 0.99 de fricção horizontal, então constantemente adicionando 0.2 de velocidade horizontal resulta
+  # em velocidades altíssimas.
+  allow-sprint-jumping-when-using-elytra: true
+
+# Habilita logar plugins que são injetados na netty ao entrar para depurar erros de compatibilidade.
+debug-pipeline-on-join: false
+
+# Habilita verificações experimentais.
+experimental-checks: false
+
+# Grim as vezes cancela pacotes ilegais como com o timer, depois de X pacotes em um segundo que foram cancelados, quando
+# devemos simplesmente expulsar o jogador? Isso é requirido já que alguns limitadores de pacotes não contam pacotes
+# cancelados pelo Grim.
+packet-spam-threshold: 100
+
+config-version: 8
