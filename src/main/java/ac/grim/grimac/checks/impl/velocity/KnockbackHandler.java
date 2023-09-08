@@ -31,7 +31,9 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     boolean knockbackPointThree = false;
 
     double offsetToFlag;
-    double setbackVL;
+    double maxAdv, immediate, ceiling, multiplier;
+
+    double threshold;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
@@ -189,10 +191,11 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
+                threshold = Math.min(threshold + player.likelyKB.offset, ceiling);
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
                     player.getSetbackTeleportUtil().executeViolationSetback();
                 } else if (flag()) { // This velocity was sent by the server.
-                    if (getViolations() > setbackVL) {
+                    if (player.likelyKB.offset >= immediate || threshold >= maxAdv) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
 
@@ -206,6 +209,8 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 } else {
                     reward();
                 }
+            } else if (threshold > 0.05) {
+                threshold *= multiplier;
             }
         }
     }
@@ -232,8 +237,12 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     public void reload() {
         super.reload();
         offsetToFlag = getConfig().getDoubleElse("Knockback.threshold", 0.00001);
-        setbackVL = getConfig().getDoubleElse("Knockback.setbackvl", 10);
+        maxAdv = getConfig().getDoubleElse("Knockback.max-advantage", 1);
+        immediate = getConfig().getDoubleElse("Knockback.immediate-setback-threshol", 0.01);
+        multiplier = getConfig().getDoubleElse("Knockback.setback-decay-multiplier", 0.95);
+        ceiling = getConfig().getDoubleElse("Knockback.max-ceiling", 5);
 
-        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+        if (maxAdv < 0) maxAdv = Double.MAX_VALUE;
+        if (immediate < 0) immediate = Double.MAX_VALUE;
     }
 }

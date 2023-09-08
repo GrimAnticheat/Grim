@@ -90,11 +90,20 @@ NoSlow:
   decay: 0.05
 
 Knockback:
-  # Quel est le niveau d'écart considéré comme "triche" ?
-  # Par défaut, cela est défini à 1e-5, ce qui est considéré comme sûr et raisonnable
-  # Mesuré en blocs par rapport au mouvement correct
+  # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
+  setback-decay-multiplier: 0.999
+  # Quel est l'écart maximal par rapport au mouvement du joueur pour lequel nous devrions créer une violation ?
+  # Mesuré en blocs par rapport au mouvement possible.
   threshold: 0.001
-  setbackvl: 3
+  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ?
+  # -1 pour désactiver
+  immediate-setback-threshold: 0.1
+  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ?
+  # -1 pour désactiver
+  max-advantage: 1
+  # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
+  max-ceiling: 4
+
 
 Explosion:
   threshold: 0.001
@@ -150,4 +159,4 @@ experimental-checks: false
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

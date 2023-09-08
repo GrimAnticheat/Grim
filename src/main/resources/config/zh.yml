@@ -89,11 +89,20 @@ NoSlowA:
   decay: 0.05
 
 Knockback:
-  # 有多少反击退是“作弊”
-  # 默认情况下这是 1e-5，这是安全和理智的
-  # 以正确移动的块为单位测量
+  # 当玩家合法时，我们应该将总优势乘以多少
+  setback-decay-multiplier: 0.999
+  # 我们应该为玩家的移动创建多大的偏移量？
+  # 从可能的移动中以方块为单位测量
   threshold: 0.001
-  setbackvl: 3
+  # 在玩家受到回弹之前，1 ticks 的违规行为有多大？
+  # -1 关闭
+  immediate-setback-threshold: 0.1
+  # 在我们开始遭遇回弹之前，我们的优势有多大?
+  # -1 关闭
+  max-advantage: 1
+  # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+  max-ceiling: 4
+
 
 Explosion:
   threshold: 0.001
@@ -148,4 +157,4 @@ experimental-checks: false
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9
