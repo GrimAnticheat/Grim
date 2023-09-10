@@ -141,7 +141,6 @@ exploit:
   # Mojang screwed up netcode by making elytra start client sided and elytra end server sided
   # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.
   allow-sprint-jumping-when-using-elytra: true
-  # This option mitigates players building on ghostblocks by performing resynchs when such behaviour is detected
   # This option mitigates the player's placement on ghostblocks by resynchronizing the player when it happens
   disable-ghostblock-abuses: true
 
