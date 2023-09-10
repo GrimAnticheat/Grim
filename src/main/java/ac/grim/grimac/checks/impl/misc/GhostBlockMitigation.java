@@ -10,7 +10,7 @@ import org.bukkit.block.Block;
 
 public class GhostBlockMitigation extends BlockPlaceCheck {
 
-    private boolean enabled;
+    private boolean allow;
     private int distance;
 
     public GhostBlockMitigation(GrimPlayer player) {
@@ -19,7 +19,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (!enabled || player.bukkitPlayer == null) return;
+        if (allow || player.bukkitPlayer == null) return;
 
         World world = player.bukkitPlayer.getWorld();
         Vector3i pos = place.getPlacedBlockPos();
@@ -61,7 +61,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
     @Override
     public void reload() {
         super.reload();
-        enabled = getConfig().getBooleanElse("exploit.allow-building-on-ghostblocks", true);
+        allow = getConfig().getBooleanElse("exploit.allow-building-on-ghostblocks", true);
         distance = getConfig().getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
 
         if (distance < 2 || distance > 3) distance = 2;
