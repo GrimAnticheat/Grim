@@ -142,7 +142,10 @@ exploit:
   # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.
   allow-sprint-jumping-when-using-elytra: true
   # This option mitigates the player's placement on ghostblocks by resynchronizing the player when it happens
-  disable-ghostblock-abuses: true
+  allow-building-on-ghostblocks: true
+  # This setting, influenced by the boolean above defines the distance to check for ghost blocks
+  # Its valid range is limited from 2 to 4
+  distance-to-check-if-ghostblocks: 2
 
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false

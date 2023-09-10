@@ -138,7 +138,8 @@ Reach:
 exploit:
   allow-sprint-jumping-when-using-elytra: true
   # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
-  disable-ghostblock-abuses: true
+  allow-building-on-ghostblocks: true
+  distance-to-check-if-ghostblocks: 2
 
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false

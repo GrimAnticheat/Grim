@@ -1,6 +1,5 @@
 package ac.grim.grimac.checks.impl.misc;
 
-import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -9,10 +8,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-@CheckData(experimental = true)
 public class GhostBlockMitigation extends BlockPlaceCheck {
 
     private boolean enabled;
+    private int distance;
+
     public GhostBlockMitigation(GrimPlayer player) {
         super(player);
     }
@@ -33,21 +33,26 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         int yAgainst = posAgainst.getY();
         int zAgainst = posAgainst.getZ();
 
-        for (int i = x - 2; i <= x + 2; i++) {
-            for (int j = y - 2; j <= y + 2; j++) {
-                for (int k = z - 2; k <= z + 2; k++) {
-                    if (i == x && j == y && k == z) {
-                        continue;
-                    }
-                    if (i == xAgainst && j == yAgainst && k == zAgainst) {
-                        continue;
-                    }
-                    Block type = world.getBlockAt(i, j, k);
-                    if (type.getType() != Material.AIR) {
-                        return;
+        try {
+            for (int i = x - distance; i <= x + distance; i++) {
+                for (int j = y - distance; j <= y + distance; j++) {
+                    for (int k = z - distance; k <= z + distance; k++) {
+                        if (i == x && j == y && k == z) {
+                            continue;
+                        }
+                        if (i == xAgainst && j == yAgainst && k == zAgainst) {
+                            continue;
+                        }
+                        if (world.isChunkLoaded(i, k)) {
+                            Block type = world.getBlockAt(i, j, k);
+                            if (type.getType() != Material.AIR) {
+                                return;
+                            }
+                        }
                     }
                 }
             }
+        } catch (Exception ignored) {
         }
 
         place.resync();
@@ -56,6 +61,9 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
     @Override
     public void reload() {
         super.reload();
-        enabled = getConfig().getBooleanElse("exploit.disable-ghostblock-abuses", true);
+        enabled = getConfig().getBooleanElse("exploit.allow-building-on-ghostblocks", false);
+        distance = getConfig().getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
+
+        if (distance < 2 || distance > 3) distance = 2;
     }
 }
