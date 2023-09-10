@@ -64,6 +64,6 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         allow = getConfig().getBooleanElse("exploit.allow-building-on-ghostblocks", true);
         distance = getConfig().getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
 
-        if (distance < 2 || distance > 3) distance = 2;
+        if (distance < 2 || distance > 4) distance = 2;
     }
 }
