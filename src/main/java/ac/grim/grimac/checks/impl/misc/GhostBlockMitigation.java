@@ -32,6 +32,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         int xAgainst = posAgainst.getX();
         int yAgainst = posAgainst.getY();
         int zAgainst = posAgainst.getZ();
+
         for (int i = x - 2; i <= x + 2; i++) {
             for (int j = y - 2; j <= y + 2; j++) {
                 for (int k = z - 2; k <= z + 2; k++) {
