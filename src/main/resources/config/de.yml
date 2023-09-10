@@ -138,7 +138,7 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
-
+  disable-ghostblock-abuses: true
 
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false

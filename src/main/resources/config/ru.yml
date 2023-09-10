@@ -138,7 +138,7 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
-
+  disable-ghostblock-abuses: true
 # Включить запись в журнал плагинов, которые внедрились в netty при присоединении для отладки проблем совместимости
 debug-pipeline-on-join: false
 
