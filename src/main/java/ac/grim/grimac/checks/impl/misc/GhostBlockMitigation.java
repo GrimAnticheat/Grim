@@ -25,13 +25,20 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         Vector3i pos = place.getPlacedBlockPos();
         Vector3i posAgainst = place.getPlacedAgainstBlockLocation();
 
-        for (int i = pos.getX() - 2; i <= pos.getX() + 2; i++) {
-            for (int j = pos.getY() - 2; j <= pos.getY() + 2; j++) {
-                for (int k = pos.getZ() - 2; k <= pos.getZ() + 2; k++) {
-                    if (i == pos.getX() && j == pos.getY() && k == pos.getZ()) {
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
+
+        int xAgainst = posAgainst.getX();
+        int yAgainst = posAgainst.getY();
+        int zAgainst = posAgainst.getZ();
+        for (int i = x - 2; i <= x + 2; i++) {
+            for (int j = y - 2; j <= y + 2; j++) {
+                for (int k = z - 2; k <= z + 2; k++) {
+                    if (i == x && j == y && k == z) {
                         continue;
                     }
-                    if (i == posAgainst.getX() && j == posAgainst.getY() && k == posAgainst.getZ()) {
+                    if (i == xAgainst && j == yAgainst && k == zAgainst) {
                         continue;
                     }
                     Block type = world.getBlockAt(i, j, k);
@@ -41,8 +48,8 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                 }
             }
         }
-        place.resync();
 
+        place.resync();
     }
 
     @Override

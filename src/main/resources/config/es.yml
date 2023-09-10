@@ -143,6 +143,7 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
+  # Esta opción mitiga la colocación del jugador en bloques fantasma resincronizando al jugador cuando ocurre.
   disable-ghostblock-abuses: true
 
 # Habilitar el registro de plugins que se han inyectado a netty para intentar resolver problemas de compatibilidad.
