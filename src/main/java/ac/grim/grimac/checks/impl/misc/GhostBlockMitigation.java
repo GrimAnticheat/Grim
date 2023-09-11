@@ -52,10 +52,10 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                     }
                 }
             }
+
+            place.resync();
         } catch (Exception ignored) {
         }
-
-        place.resync();
     }
 
     @Override
