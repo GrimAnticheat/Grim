@@ -90,11 +90,19 @@ NoSlowA:
   decay: 0.05
 
 Knockback:
-  # Wie viel eines Offsets ist "schummeln"?
-  # Standardmäßig ist dies 1e-5, was sicher und vernünftig ist.
-  # Gemessen in Blöcken von der korrekten Bewegung
+  # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
+  setback-decay-multiplier: 0.999
+  # Wie groß sollte der Abstand zur Bewegung des Spielers sein, um eine Verletzung zu erzeugen?
+  # Gemessen in Blöcken von der möglichen Bewegung.
   threshold: 0.001
-  setbackvl: 3
+  # Wie groß ist der Verstoß in einem Tick, bevor der Spieler sofort zurückgesetzt wird?
+  # -1 zum Deaktivieren
+  immediate-setback-threshold: 0.1
+  # Wie groß ist der Vorsprung gegenüber allen Ticks, bevor wir einen Rückschlag erleiden?
+  # -1 zum Deaktivieren
+  max-advantage: 1
+  # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
+  max-ceiling: 4
 
 Explosion:
   threshold: 0.001
@@ -150,4 +158,4 @@ experimental-checks: false
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

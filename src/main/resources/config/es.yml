@@ -93,11 +93,20 @@ NoSlowA:
   decay: 0.05
 
 Knockback:
-  # Cuanta compensación se considera como "trampa"
-  # Por defecto esto es 1e-5, lo cual se considera seguro y sano
-  # Medido en bloques a partir del movimiento correcto
+  # Por cuanto deberíamos multiplicar la ventaja total cuando el jugador es legítimo
+  setback-decay-multiplier: 0.999
+  # ¿Cuánta debería ser la compensacion del movimiento del jugador como para que creemos una violación?
+  # Medido en bloques del posible movimiento
   threshold: 0.001
-  setbackvl: 3
+  # ¿Qué tan grande debería ser una violación en un tick antes de que el jugador se retroceda inmediatamente?
+  # -1 para deshabilitar
+  immediate-setback-threshold: 0.1
+  # ¿Qué tan grande debería ser una ventaja sobre todos los ticks para que empecemos a retroceder?
+  # -1 para deshabilitar
+  max-advantage: 1
+  # Esto es para prevenir que el jugador obtenga muchas violaciones y no pueda ser capaz de borrarlas
+  max-ceiling: 4
+
 
 Explosion:
   threshold: 0.001
@@ -155,4 +164,4 @@ experimental-checks: false
 # no cuentan los paquetes cancelados por Grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

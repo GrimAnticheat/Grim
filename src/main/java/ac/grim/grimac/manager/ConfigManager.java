@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 8");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 9");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -147,6 +147,9 @@ public class ConfigManager {
         }
         if (configVersion < 8) {
             addPacketSpamThreshold(config, configString);
+        }
+        if (configVersion < 9) {
+            newOffsetHandlingAntiKB(config, configString);
         }
     }
 
@@ -290,6 +293,25 @@ public class ConfigManager {
         configString += "\n# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should\n" +
                 "# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.\n" +
                 "packet-spam-threshold: 150\n";
+        Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void newOffsetHandlingAntiKB(File config, String configString) throws IOException {
+        configString = configString.replaceAll("  # How much of an offset is \"cheating\"\r?\n  # By default this is 1e-5, which is safe and sane\r?\n  # Measured in blocks from the correct movement\r?\n  threshold: 0.001\r?\n  setbackvl: 3",
+                "  # How much should we multiply total advantage by when the player is legit\n" +
+                        "  setback-decay-multiplier: 0.999\n" +
+                        "  # How large of an offset from the player's velocity should we create a violation for?\n" +
+                        "  # Measured in blocks from the possible velocity\n" +
+                        "  threshold: 0.001\n" +
+                        "  # How large of a violation in a tick before the player gets immediately setback?\n" +
+                        "  # -1 to disable\n" +
+                        "  immediate-setback-threshold: 0.1\n" +
+                        "  # How large of an advantage over all ticks before we start to setback?\n" +
+                        "  # -1 to disable\n" +
+                        "  max-advantage: 1\n" +
+                        "  # This is to stop the player from gathering too many violations and never being able to clear them all\n" +
+                        "  max-ceiling: 4"
+        );
         Files.write(config.toPath(), configString.getBytes());
     }
 }
