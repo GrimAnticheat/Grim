@@ -238,7 +238,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         super.reload();
         offsetToFlag = getConfig().getDoubleElse("Knockback.threshold", 0.001);
         maxAdv = getConfig().getDoubleElse("Knockback.max-advantage", 1);
-        immediate = getConfig().getDoubleElse("Knockback.immediate-setback-threshol", 0.1);
+        immediate = getConfig().getDoubleElse("Knockback.immediate-setback-threshold", 0.1);
         multiplier = getConfig().getDoubleElse("Knockback.setback-decay-multiplier", 0.999);
         ceiling = getConfig().getDoubleElse("Knockback.max-ceiling", 4);
 
