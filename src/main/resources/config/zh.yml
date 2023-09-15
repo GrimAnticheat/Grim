@@ -33,6 +33,9 @@ spectators:
   allowed-worlds:
     - ""
 
+# 启用飞行速度检查（默认情况下禁用，因为像Lunar这样的有问题的客户端会标记此项)
+enable-flying-checks: false
+
 # 在我们让他们超时之前，玩家应该有多长时间？ 此处的60 指60s
 max-transaction-time: 60
 
