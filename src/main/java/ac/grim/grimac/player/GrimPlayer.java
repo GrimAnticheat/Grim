@@ -5,6 +5,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.GrimUser;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
+import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
@@ -77,7 +78,6 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
-    public final List<Short> transactionOrder = new ArrayList<>();
     private long transactionPing = 0;
     public long lastTransSent = 0;
     public long lastTransReceived = 0;
@@ -289,16 +289,20 @@ public class GrimPlayer implements GrimUser {
     public boolean addTransactionResponse(short id) {
         Pair<Short, Long> data = null;
         boolean hasID = false;
+        int skipped = 0;
         for (Pair<Short, Long> iterator : transactionsSent) {
             if (iterator.getFirst() == id) {
                 hasID = true;
                 break;
             }
+            skipped++;
         }
 
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
+
+            if (skipped > 0) checkManager.getPacketCheck(TransactionOrder.class).flagAndAlert("skipped: " + skipped);
 
             do {
                 data = transactionsSent.poll();
