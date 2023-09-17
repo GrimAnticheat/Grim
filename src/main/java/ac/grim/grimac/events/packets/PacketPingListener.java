@@ -22,7 +22,6 @@ public class PacketPingListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOWEST);
     }
 
-    private int lastReceived;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
