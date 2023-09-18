@@ -51,7 +51,8 @@ public class InventoryD extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked() ||
                 predictionComplete.getData().isTeleport() ||
-                player.getSetbackTeleportUtil().blockOffsets) {
+                player.getSetbackTeleportUtil().blockOffsets ||
+                player.packetStateData.lastPacketWasTeleport) {
             return;
         }
 
