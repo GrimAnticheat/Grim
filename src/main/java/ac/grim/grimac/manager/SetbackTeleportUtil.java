@@ -72,7 +72,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
             // The player needs to now wait for their vehicle to go into the right place before getting back in
-            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
+            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 10;
             // Teleport, let velocity be reset
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
@@ -149,16 +149,17 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         Vector clientVel = lastKnownGoodPosition.vector.clone();
 
-        Vector futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
-        Vector futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
+        Pair<VelocityData, Vector> futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
+        VelocityData futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
-        if (futureKb != null) {
-            clientVel = futureKb;
+        if (futureKb.getFirst() != null) {
+            clientVel = futureKb.getSecond();
         }
+
         // Explosion adds
-        if (futureExplosion != null) {
-            clientVel.add(futureExplosion);
+        if (futureExplosion != null && (futureKb.getFirst() == null || futureKb.getFirst().transaction < futureExplosion.transaction)) {
+            clientVel.add(futureExplosion.vector);
         }
 
         Vector3d position = lastKnownGoodPosition.pos;
@@ -417,8 +418,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     @AllArgsConstructor
     @Getter
     @Setter
-    private static class SetbackPosWithVector {
-        private final Vector3d pos;
-        private final Vector vector;
+    public static class SetbackPosWithVector {
+        private Vector3d pos;
+        private Vector vector;
     }
 }

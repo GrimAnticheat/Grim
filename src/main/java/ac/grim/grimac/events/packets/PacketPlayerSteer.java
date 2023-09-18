@@ -62,7 +62,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Update knockback and explosions after getting the vehicle
                 int controllingEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
                 player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
-                player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get());
+                player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get(), false);
 
                 // The player still applies kb even if they aren't in control of the vehicle, for some reason
                 if (player.firstBreadKB != null) {
@@ -73,7 +73,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 }
 
                 player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), false);
 
                 // Not responsible for applying knockback/explosions
                 player.checkManager.getExplosionHandler().forceExempt();

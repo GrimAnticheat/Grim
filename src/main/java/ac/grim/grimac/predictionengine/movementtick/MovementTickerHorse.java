@@ -18,14 +18,14 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         player.speed = horsePacket.movementSpeedAttribute;
 
         // Setup player inputs
-        float f = player.vehicleData.vehicleHorizontal * 0.5F;
-        float f1 = player.vehicleData.vehicleForward;
+        float horizInput = player.vehicleData.vehicleHorizontal * 0.5F;
+        float forwardsInput = player.vehicleData.vehicleForward;
 
-        if (f1 <= 0.0F) {
-            f1 *= 0.25F;
+        if (forwardsInput <= 0.0F) {
+            forwardsInput *= 0.25F;
         }
 
-        this.movementInput = new Vector(f, 0, f1);
+        this.movementInput = new Vector(horizInput, 0, forwardsInput);
         if (movementInput.lengthSquared() > 1) movementInput.normalize();
     }
 

@@ -397,7 +397,7 @@ public enum BlockPlaceResult {
             place.set();
         }
     }, ItemTypes.CARROT, ItemTypes.BEETROOT, ItemTypes.POTATO,
-            ItemTypes.PUMPKIN_SEEDS, ItemTypes.MELON_SEEDS, ItemTypes.WHEAT_SEEDS),
+            ItemTypes.PUMPKIN_SEEDS, ItemTypes.MELON_SEEDS, ItemTypes.WHEAT_SEEDS, ItemTypes.TORCHFLOWER_SEEDS),
 
     SUGARCANE((player, place) -> {
         if (place.isOn(StateTypes.SUGAR_CANE)) {
@@ -1069,7 +1069,8 @@ public enum BlockPlaceResult {
             ItemTypes.RED_TULIP, ItemTypes.ORANGE_TULIP,
             ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
-            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
+            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.PINK_PETALS,
+            ItemTypes.GRASS),
 
     POWDER_SNOW_BUCKET((player, place) -> {
         place.set();

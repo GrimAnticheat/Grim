@@ -456,9 +456,6 @@ public class CompensatedWorld {
                     case DOWN:
                         isPowered = true;
                         break;
-                    case UP:
-                        isPowered = state.isUp();
-                        break;
                     case NORTH:
                         isPowered = state.getNorth() == North.TRUE;
                         if (isPowered && (badOne == BlockFace.NORTH || badTwo == BlockFace.NORTH)) {

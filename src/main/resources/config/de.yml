@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based no slow check
 # Grim ist verantwortlich für den fehlerhaften Netcode hier... schwer zu falsen, selbst wenn man Rechtsklick und Offhand-Taste spammt.
 # Viel stabiler als andere Anticheats, aber bitte melde alle Falses... Ich habe hier eine Menge Netcode-Probleme behoben.
-NoSlow:
+NoSlowA:
   # Wie viel von einem Offset ist "schummeln"
   # Standardmäßig ist dieser Wert niedriger als andere Offs.
   # Flags um 0,03-0,2 konsequent mit NoSlow on
@@ -90,11 +90,19 @@ NoSlow:
   decay: 0.05
 
 Knockback:
-  # Wie viel eines Offsets ist "schummeln"?
-  # Standardmäßig ist dies 1e-5, was sicher und vernünftig ist.
-  # Gemessen in Blöcken von der korrekten Bewegung
+  # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
+  setback-decay-multiplier: 0.999
+  # Wie groß sollte der Abstand zur Bewegung des Spielers sein, um eine Verletzung zu erzeugen?
+  # Gemessen in Blöcken von der möglichen Bewegung.
   threshold: 0.001
-  setbackvl: 3
+  # Wie groß ist der Verstoß in einem Tick, bevor der Spieler sofort zurückgesetzt wird?
+  # -1 zum Deaktivieren
+  immediate-setback-threshold: 0.1
+  # Wie groß ist der Vorsprung gegenüber allen Ticks, bevor wir einen Rückschlag erleiden?
+  # -1 zum Deaktivieren
+  max-advantage: 1
+  # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
+  max-ceiling: 4
 
 Explosion:
   threshold: 0.001
@@ -135,6 +143,10 @@ Reach:
   # Bleibt diese Funktion deaktiviert, werden immer noch Cheater erwischt und es kommt nicht zu Fehlalarmen.
   # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
   enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
+
 
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false

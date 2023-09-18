@@ -67,13 +67,21 @@ public class BlockPlace {
     @Setter
     Vector3f cursor;
 
+    @Getter private final boolean block;
+
     public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
         this.hand = hand;
         this.blockPosition = blockPosition;
         this.face = face;
         this.itemStack = itemStack;
-        this.material = itemStack.getType().getPlacedType() == null ? StateTypes.FIRE : itemStack.getType().getPlacedType();
+        if (itemStack.getType().getPlacedType() == null) {
+            this.material = StateTypes.FIRE;
+            this.block = false;
+        } else {
+            this.material = itemStack.getType().getPlacedType();
+            this.block = true;
+        }
         this.hitData = hitData;
 
         WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());

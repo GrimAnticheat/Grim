@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based NoSlow 检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
 # 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
-NoSlow:
+NoSlowA:
   # 有多少偏移量是作弊
   # 标志 0.03-0.2 与 NoSlow 一致
   threshold: 0.001
@@ -89,11 +89,20 @@ NoSlow:
   decay: 0.05
 
 Knockback:
-  # 有多少反击退是“作弊”
-  # 默认情况下这是 1e-5，这是安全和理智的
-  # 以正确移动的块为单位测量
+  # 当玩家合法时，我们应该将总优势乘以多少
+  setback-decay-multiplier: 0.999
+  # 我们应该为玩家的移动创建多大的偏移量？
+  # 从可能的移动中以方块为单位测量
   threshold: 0.001
-  setbackvl: 3
+  # 在玩家受到回弹之前，1 ticks 的违规行为有多大？
+  # -1 关闭
+  immediate-setback-threshold: 0.1
+  # 在我们开始遭遇回弹之前，我们的优势有多大?
+  # -1 关闭
+  max-advantage: 1
+  # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+  max-ceiling: 4
+
 
 Explosion:
   threshold: 0.001
@@ -134,6 +143,9 @@ Reach:
   # 禁用此功能仍会捕获作弊者，不会导致误报
   # 除非你是专注于 1.8 PvP 的服务器，否则不建议使用这个额外的数据包
   enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
 
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false

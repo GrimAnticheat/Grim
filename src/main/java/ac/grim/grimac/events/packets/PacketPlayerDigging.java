@@ -133,17 +133,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                    ItemStack main = player.getInventory().getHeldItem();
-                    ItemStack off = player.getInventory().getOffHand();
+                    ItemStack hand = player.packetStateData.eatingHand == InteractionHand.OFF_HAND ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
 
-                    int j = 0;
-                    if (main.getType() == ItemTypes.TRIDENT) {
-                        j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                    } else if (off.getType() == ItemTypes.TRIDENT) {
-                        j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                    }
-
-                    if (j > 0) {
+                    if (hand.getType() == ItemTypes.TRIDENT
+                            && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) {
                         player.packetStateData.tryingToRiptide = true;
                     }
                 }
