@@ -22,6 +22,8 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.viaversion.viaversion.api.Via;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
 import java.util.*;
 
@@ -176,6 +178,8 @@ public enum CollisionData {
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
             StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
             StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL),
+    
+    PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), StateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {
@@ -191,7 +195,7 @@ public enum CollisionData {
                 return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         }
     }, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_WALL_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
-            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL),
+            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL, StateTypes.PIGLIN_WALL_HEAD),
 
     BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
@@ -591,8 +595,10 @@ public enum CollisionData {
                 return NoCollisionBox.INSTANCE;
             }
             // Handle viaversion mapping
-            data = data.clone();
-            data.setLayers(2);
+            if (ViaVersionUtil.isAvailable() && Via.getConfig().isSnowCollisionFix()) {
+                data = data.clone();
+                data.setLayers(2);
+            }
         }
 
         return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() - 1) * 0.125, 1);
@@ -629,7 +635,7 @@ public enum CollisionData {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
-    }, BlockTags.CARPETS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WOOL_CARPETS.getStates().toArray(new StateType[0])),
 
     MOSS_CARPET((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_7_10))
@@ -996,7 +1002,9 @@ public enum CollisionData {
         return cake;
     }, BlockTags.CANDLE_CAKES.getStates().toArray(new StateType[0])),
 
-    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR),
+    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR, StateTypes.CALIBRATED_SCULK_SENSOR),
+
+    DECORATED_POT(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0), StateTypes.DECORATED_POT),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
@@ -1118,6 +1126,42 @@ public enum CollisionData {
     SCULK_SHRIKER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D), StateTypes.SCULK_SHRIEKER),
 
     FROGSPAWN(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.5D, 16.0D), StateTypes.FROGSPAWN),
+
+    SNIFFER_EGG(new HexCollisionBox(1.0D, 0.0D, 2.0D, 15.0D, 16.0D, 14.0D), StateTypes.SNIFFER_EGG),
+
+    PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
+
+    TORCHFLOWER_CROP((player, version, data, x, y, z) -> {
+        if (data.getAge() == 0) {
+            return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
+        }
+        // age is 1
+        return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
+    }, StateTypes.TORCHFLOWER_CROP),
+
+    PITCHER_CROP((player, version, data, x, y, z) -> {
+        final SimpleCollisionBox COLLISION_SHAPE_BULB = new HexCollisionBox(5.0D, -1.0D, 5.0D, 11.0D, 3.0D, 11.0D);
+        final SimpleCollisionBox COLLISION_SHAPE_CROP = new HexCollisionBox(3.0D, -1.0D, 3.0D, 13.0D, 5.0D, 13.0D);
+
+        if (data.getAge() == 0) {
+            return COLLISION_SHAPE_BULB;
+        } else {
+            return data.getHalf() == Half.LOWER ? COLLISION_SHAPE_CROP : NoCollisionBox.INSTANCE;
+        }
+    }, StateTypes.PITCHER_CROP),
+
+    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> {
+        switch (data.getFacing()) {
+            case NORTH:
+            case SOUTH:
+                return new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
+            case WEST:
+            case EAST:
+                return new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
+            default:
+                return NoCollisionBox.INSTANCE;
+        }
+    }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 
@@ -1260,7 +1304,8 @@ public enum CollisionData {
 
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?

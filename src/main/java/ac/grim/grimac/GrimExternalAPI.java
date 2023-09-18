@@ -8,6 +8,7 @@ import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -37,8 +38,13 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     @Getter
     private final Map<String, Function<GrimUser, String>> variableReplacements = new ConcurrentHashMap<>();
 
+    @Getter private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
+
     public String replaceVariables(GrimUser user, String content, boolean colors) {
         if (colors) content = ChatColor.translateAlternateColorCodes('&', content);
+        for (Map.Entry<String, String> entry : staticReplacements.entrySet()) {
+            content = content.replace(entry.getKey(), entry.getValue());
+        }
         for (Map.Entry<String, Function<GrimUser, String>> entry : variableReplacements.entrySet()) {
             content = content.replace(entry.getKey(), entry.getValue().apply(user));
         }
@@ -48,6 +54,27 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     @Override
     public void registerVariable(String string, Function<GrimUser, String> replacement) {
         variableReplacements.put(string, replacement);
+    }
+
+    @Override
+    public void registerVariable(String variable, String replacement) {
+        staticReplacements.put(variable, replacement);
+    }
+
+    @Override
+    public String getGrimVersion() {
+        PluginDescriptionFile description = GrimAPI.INSTANCE.getPlugin().getDescription();
+        return description.getVersion();
+    }
+
+    @Override
+    public void registerFunction(String key, Function<Object, Object> function) {
+
+    }
+
+    @Override
+    public Function<Object, Object> getFunction(String key) {
+        return null;
     }
 
     @Override

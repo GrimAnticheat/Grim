@@ -397,7 +397,7 @@ public enum BlockPlaceResult {
             place.set();
         }
     }, ItemTypes.CARROT, ItemTypes.BEETROOT, ItemTypes.POTATO,
-            ItemTypes.PUMPKIN_SEEDS, ItemTypes.MELON_SEEDS, ItemTypes.WHEAT_SEEDS),
+            ItemTypes.PUMPKIN_SEEDS, ItemTypes.MELON_SEEDS, ItemTypes.WHEAT_SEEDS, ItemTypes.TORCHFLOWER_SEEDS),
 
     SUGARCANE((player, place) -> {
         if (place.isOn(StateTypes.SUGAR_CANE)) {
@@ -434,7 +434,7 @@ public enum BlockPlaceResult {
         if (!place.getBelowMaterial().isAir()) {
             place.set();
         }
-    }, ItemTags.CARPETS),
+    }, ItemTags.WOOL_CARPETS),
 
     CHORUS_FLOWER((player, place) -> {
         WrappedBlockState blockstate = place.getBelowState();
@@ -719,7 +719,8 @@ public enum BlockPlaceResult {
     FIRE((player, place) -> {
         boolean byFlammable = false;
         for (BlockFace face : BlockFace.values()) {
-            if (place.getDirectionalState(face).getType().isFlammable()) byFlammable = true;
+            // Do we care about this enuogh to fix? // TODO: Check flmmable
+            byFlammable = true;
         }
         if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
@@ -1033,7 +1034,7 @@ public enum BlockPlaceResult {
     MUSHROOM((player, place) -> {
         if (BlockTags.MUSHROOM_GROW_BLOCK.contains(place.getBelowMaterial())) {
             place.set();
-        } else if (place.isFullFace(BlockFace.DOWN) && place.getBelowMaterial().isOccluding()) {
+        } else if (place.isFullFace(BlockFace.DOWN)) { // TODO: Check occluding
             Vector3i placedPos = place.getPlacedBlockPos();
             // This is wrong and depends on lighting, but the server resync's anyways plus this isn't a solid block. so I don't care.
             place.set();
@@ -1068,7 +1069,8 @@ public enum BlockPlaceResult {
             ItemTypes.RED_TULIP, ItemTypes.ORANGE_TULIP,
             ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
-            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
+            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.PINK_PETALS,
+            ItemTypes.GRASS),
 
     POWDER_SNOW_BUCKET((player, place) -> {
         place.set();

@@ -8,6 +8,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -32,7 +33,7 @@ public class GrimLog extends BaseCommand {
 
             sender.sendMessage(MessageUtil.format(uploading));
 
-            Bukkit.getScheduler().runTaskAsynchronously(GrimAPI.INSTANCE.getPlugin(), () -> {
+            FoliaCompatUtil.runTaskAsync(GrimAPI.INSTANCE.getPlugin(), () -> {
                 try {
                     URL mUrl = new URL("https://paste.grim.ac/data/post");
                     HttpURLConnection urlConn = (HttpURLConnection) mUrl.openConnection();

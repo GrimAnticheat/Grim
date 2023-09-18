@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
@@ -37,7 +38,7 @@ public class ResyncWorldUtil {
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
-        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+        FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
             boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
 
             if (player.bukkitPlayer == null) return;
@@ -78,8 +79,8 @@ public class ResyncWorldUtil {
                     Chunk chunk = player.bukkitPlayer.getWorld().getChunkAt(currChunkX, currChunkZ);
 
                     for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
-                        int minY = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
-                        int maxY = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
+                        int minY = currChunkY == minChunkY ? minBlockY & 15 : 0; // coordinate in chunk
+                        int maxY = currChunkY == maxChunkY ? maxBlockY & 15 : 15; // coordinate in chunk
 
                         int totalBlocks = (maxX - minX + 1) * (maxZ - minZ + 1) * (maxY - minY + 1);
                         WrapperPlayServerMultiBlockChange.EncodedBlock[] encodedBlocks = new WrapperPlayServerMultiBlockChange.EncodedBlock[totalBlocks];
@@ -111,6 +112,6 @@ public class ResyncWorldUtil {
                     }
                 }
             }
-        });
+        }, null, 0);
     }
 }

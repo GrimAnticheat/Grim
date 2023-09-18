@@ -1,0 +1,162 @@
+# Configuration principale de GrimAC
+# Code source : https://github.com/MWHunter/Grim
+# Copyright 2022 DefineOutside et contributeurs, sous licence GPLv3.
+# Les binaires modifiés, ou les plugins contenant du code grim copié, doivent être privés,
+# ou avec le code source complet disponible pour les acheteurs sans frais supplémentaires.
+
+alerts:
+  # En plus de diffuser des alertes aux joueurs, doivent-elles également être afffichées dans console ?
+  print-to-console: true
+  # Cela contrôle la manière dont les alertes sont partagées entre les serveurs connectés à votre proxy.
+  # Vous devez avoir activé 'bungee-plugin-message-channel' dans la configuration de Velocity si Velocity est utilisé.
+  proxy:
+    # Les alertes doivent-elles être envoyées aux autres serveurs connectés à votre proxy ?
+    send: false
+    # Les alertes reçues des autres serveurs doivent-elles être annoncées sur ce serveur ?
+    receive: false
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Cela signifie qu'il n'enverra pas la nature du client aux opérateurs si il correspond aux clients suivants
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+    - "^Feather Fabric$"
+
+spectators:
+  # Masquer tout les spectateurs ayant la permission grim.spectator, peu importe s'ils sont actuellement en train d'observer.
+  hide-regardless: false
+  # Les spectateurs seront cachés uniquement dans ces mondes, laissez vide pour les afficher dans tous les mondes.
+  allowed-worlds:
+    - ""
+
+# Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
+max-transaction-time: 60
+
+Simulation:
+  # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
+  # Voici à quoi ressemble la configuration par défaut (l'axe x = secondes, l'axe y = 1/1000 de bloc) : https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # Quel est l'écart maximal par rapport au mouvement du joueur pour lequel nous devrions créer une violation ?
+  # Mesuré en blocs par rapport au mouvement possible.
+  # Nous prenons en compte Optifine en changeant les tables trigonométriques, mais en réduisant cela à 0.001, cela réduira les signalements de l'anticheat
+  # sur FastMath si cette compensation ne fonctionne pas...
+  threshold: 0.001
+  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ? 
+  # -1 pour désactiver
+  immediate-setback-threshold: 0.1
+  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ? 
+  # -1 pour désactiver
+  max-advantage: 1
+  # Après 50 secondes avec la configuration par défaut, le joueur passera de 4 blocs -> 1 bloc d'avantage
+  # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
+  # Plafond d'avantage par défaut (l"axe x = secondes, l'axe y = 1/1000 de bloc)) : https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Vérifications pour voir si un joueur est entré dans un bloc pendant un mouvement.
+Phase:
+  setbackvl: 1 # Rentrer dans des blocs peut permettre de grimper sur les murs, et cette vérification est relativement stable.
+  decay: 0.005
+
+AirLiquidPlace:
+  cancelvl: 0
+
+FabricatedPlace:
+  cancelvl: 5
+
+FarPlace:
+  cancelvl: 5
+
+PositionPlace:
+  cancelvl: 5
+
+RotationPlace:
+  cancelvl: 5
+
+# Vérification de no-slow basée sur la prédiction.
+# Grim tient compte des problèmes de netcode ici... difficile à tromper même en spamant le clic droit et le bouton de la main secondaire.
+# Bien plus stable que les autres anti-triche, mais veuillez signaler toute fausse détection... J'ai corrigé de nombreux problèmes de netcode ici.
+NoSlow:
+  # Quel est le niveau d'écart considéré comme "triche"
+  # Par défaut, cela est inférieur à d'autres écarts.
+  # Génère des avertissements avec des valeurs comprises entre 0,03 et 0,2 lors de l'utilisation de NoSlow
+  threshold: 0.001
+  # Renvoyer en arrière sur le premier objet pour éliminer tout avantage donné par NoSlow
+  setbackvl: 5
+  # Décroissance lorsque le joueur utilise un objet ET est ralenti par celui-ci.
+  decay: 0.05
+
+Knockback:
+  # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
+  setback-decay-multiplier: 0.999
+  # Quel est l'écart maximal par rapport au mouvement du joueur pour lequel nous devrions créer une violation ?
+  # Mesuré en blocs par rapport au mouvement possible.
+  threshold: 0.001
+  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ?
+  # -1 pour désactiver
+  immediate-setback-threshold: 0.1
+  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ?
+  # -1 pour désactiver
+  max-advantage: 1
+  # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
+  max-ceiling: 4
+
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Le nombre de millisecondes que le joueur peut accumuler pour une utilisation ultérieure lorsqu'il prend du retard.
+  # Si la valeur est trop élevée, cela pourrait potentiellement permettre de contourner les mécaniques 1.8, comme l'utilisation rapide, la guérison rapide et le tir à l'arc rapide. Une valeur de 120 ms semble être un bon équilibre.
+  drift: 120
+
+NegativeTimer:
+  # Le nombre de millisecondes perdus pendant le déplacement avant de commencer à signaler des infractions.
+  drift: 1200
+
+# Même méthode de vérification que TimerA, mais pour les véhicules.
+TimerVehicle:
+  # Cibler un chronomètre de 1,005.
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # De combien devrions-nous agrandir les hitboxes ? Une augmentation de 0,0005 devrait détecter une portée de 3,0005 ou plus.
+  # 
+  # Il y a un agrandissement forcé de 0,03 avec les versions 1.9 à 1.18.1 (pas 1.18.2) ou certaines combinaisons client/serveur en raison
+  # des changements et limitations du protocole. Cette vérification est particulièrement puissante avec les clients 1.7/1.8 sur les serveurs 1.8.
+  threshold: 0.0005
+  # Devons-nous annuler les coups que nous savons impossibles ?
+  # Les coups entre 3,00 et 3,03 peuvent passer mais seront quand même signalés en raison des limitations de l'ordre des paquets.
+  block-impossible-hits: true
+  # Cela enverra un paquet supplémentaire à la fin de chaque tick pour augmenter les chances de détecter les triches.
+  # Cela s'injecte dans la liste de connexions du serveur pour envoyer un dernier paquet juste avant que le serveur ne le vide.
+  # Activer cette fonctionnalité augmentera l'utilisation de la bande passante pour tous les joueurs.
+  # Cela n'entraînera pas de diminution des performances globales du serveur.
+  # Activer cette fonctionnalité permettra de détecter davantage de tricheurs.
+  # Laisser cette fonctionnalité désactivée permettra tout de même de détecter les tricheurs et n'entraînera pas de faux positifs.
+  # À moins d'être un serveur axé sur le PvP en 1.8, l'envoi de ce paquet supplémentaire n'est pas recommandé.
+  enable-post-packet: false
+
+exploit:
+  allow-sprint-jumping-when-using-elytra: true
+
+# Activer l'enregistrement des plugins ayant injecté dans Netty lors de la connexion pour déboguer les problèmes de compatibilité
+debug-pipeline-on-join: false
+
+# Active les vérifications expérimentales
+experimental-checks: false
+
+# Grim annule parfois des paquets illégaux, comme ceux liés au chronomètre, après avoir annulé X paquets en une seconde,
+# à partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
+# Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
+packet-spam-threshold: 100
+
+config-version: 9

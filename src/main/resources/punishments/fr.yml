@@ -1,30 +1,30 @@
-# %check_name% - name of the check
-# %vl% - violations
-# %verbose% - extra information
-# %player% - player name
-# [alert] - special command to alert
-# [webhook] - special command to alert to discord webhook
-# [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
+# %check_name% - Nom de la vérification
+# %vl% - Violations
+# %verbose% - Informations supplémentaires
+# %player% - Nom du joueur
+# [alert] - Commande spéciale pour alerter
+# [webhook] - Commande spéciale pour alerter via un Webhook Discord
+# [proxy] - Commande spéciale pour alerter les autres serveurs connectés à votre proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
-    # After how many seconds should a violation be removed?
+    # Au bout de combien de secondes une violation doit-elle être supprimée ?
     remove-violations-after: 300
-    # This section will match all checks with the name,
-    # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
-    # For example, !BadPacketsN
+    # Cette section correspondra à toutes les vérifications portant le nom indiqué,
+    # Pour exclure une vérification qui serait sinon correspondante, placez un point d'exclamation devant le nom.
+    # Par exemple, !BadPacketsN
     checks:
       - "Simulation"
       - "GroundSpoof"
       - "Timer"
       - "NoFall"
-    # Threshold:Interval Command
+    # Limite : Intervale entre chaque Commande
     #
-    # Example, to kick the player with the message "incorrect movement!" after 100 violations, with no interval
+    # Par exemple, pour exclure le joueur avec le message "Mouvement incorrect !" après 100 violations, sans intervale
     # commands:
-    # - "100:0 kick %player% incorrect movement!"
-    # 0 means execute exactly once
-    # - "100:50 say %player% is cheating"
-    # Execute when the user hits flag 100, and after that, every 50th flag after 100
+    # - "100:0 kick %player% Mouvement incorrect !"
+    # 0 pour exécuter qu'une seule fois
+    # - "100:50 say %player% est en train de tricher !"
+    # Exécuter lorsque l'utilisateur atteint 100 violations, puis toutes les 50 violations suivantes après les 100 violations.
     #
     commands:
       - "100:40 [alert]"
@@ -72,7 +72,6 @@ Punishments:
       - "Place"
       - "Baritone"
       - "FastBreak"
-      - "TransactionOrder"
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"
@@ -84,7 +83,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. Grim will include AutoClicker checks in the future.
+  # A partir de la version 2.2.10, il n'y a plus de vérifications pour AutoClicker et c'est un placeholder. Grim inclura des vérifications AutoClicker dans le futur. 
   Autoclicker:
     remove-violations-after: 300
     checks:

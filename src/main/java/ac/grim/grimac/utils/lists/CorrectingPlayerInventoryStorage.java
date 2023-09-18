@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.InventoryView;
@@ -103,9 +104,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             ItemStack existing = getItem(slot);
             ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
 
-
-            if (!ItemStack.isSameItemSameTags(existing, toPE) || existing.getAmount() != toPE.getAmount()) {
-                player.bukkitPlayer.updateInventory();
+            if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
+                FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer,GrimAPI.INSTANCE.getPlugin(), () -> {
+                    player.bukkitPlayer.updateInventory();
+                }, null, 0);
                 setItem(slot, toPE);
             }
         }
@@ -124,7 +126,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         }
 
         if (player.getInventory().needResend) {
-            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
                 // Potential race condition doing this multiple times
                 if (!player.getInventory().needResend) return;
 
@@ -133,14 +135,13 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
                     player.getInventory().needResend = false;
                     player.bukkitPlayer.updateInventory();
                 }
-            });
+            }, null, 0);
         }
 
         // Every five ticks, we pull a new item for the player
         // This means no desync will last longer than 10 seconds
         // (Required as mojang has screwed up some things with inventories that we can't easily fix.
         // Don't spam this as it could cause lag (I was getting 0.3 ms to query this, this is done async though)
-        // TODO: We could make this faster by using pooled bytebuffers
         if (tickID % 5 == 0) {
             int slotToCheck = (tickID / 5) % getSize();
             // If both these things are true, there is nothing that should be broken.

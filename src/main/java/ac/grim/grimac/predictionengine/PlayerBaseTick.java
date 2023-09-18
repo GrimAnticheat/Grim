@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -86,9 +87,6 @@ public class PlayerBaseTick {
             this.moveTowardsClosestSpace(player.lastX + (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ + (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
         }
 
-        float f = BlockProperties.getBlockSpeedFactor(player);
-        player.blockSpeedMultiplier = new Vector(f, 1.0, f);
-
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             updatePlayerSize();
         }
@@ -144,7 +142,7 @@ public class PlayerBaseTick {
         player.compensatedEntities.getSelf().playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID));
 
         // And then re-adds it using purely what the server has sent it
-        StateType type = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+        StateType type = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
 
         if (!type.isAir()) {
             int i = player.powderSnowFrozenTicks;

@@ -1,0 +1,43 @@
+name: GrimAC
+version: 2.3.45
+main: ac.grim.grimac.GrimAC
+folia-supported: true
+description: "Libre simulation anticheat designed for 1.19 with 1.8-1.19 support, powered by PacketEvents 2.0."
+author: GrimAC
+permissions:
+  grim.alerts:
+    description: Receive alerts for violations
+    default: op
+  grim.alerts.enable-on-join:
+    description: Enable alerts on join
+    default: op
+  grim.brand:
+    description: Show client brands on join
+    default: op
+  grim.exempt:
+    description: Exempt from all checks
+    default: "false"
+  grim.nomodifypacket:
+    description: Disable modifying packets
+    default: "false"
+  grim.nosetback:
+    description: Disable setback
+    default: "false"
+  grim.performance:
+    description: Check performance metrics
+    default: op
+  grim.profile:
+    description: Check user profile
+    default: op
+  grim.sendalert:
+    description: Send cheater alert
+    default: op
+api-version: 1.13
+softdepend:
+ - ProtocolLib
+ - ProtocolSupport
+ - ViaVersion
+ - Essentials
+ - ViaBackwards
+ - ViaRewind
+ - Geyser-Spigot

@@ -1,6 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -19,6 +21,7 @@ public class PacketPingListener extends PacketListenerAbstract {
     public PacketPingListener() {
         super(PacketListenerPriority.LOWEST);
     }
+
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -47,7 +50,8 @@ public class PacketPingListener extends PacketListenerAbstract {
             if (id == (short) id) {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
-                if (player.addTransactionResponse((short) id)) {
+                short shortID = ((short) id);
+                if (player.addTransactionResponse(shortID)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
                 }
@@ -90,4 +94,6 @@ public class PacketPingListener extends PacketListenerAbstract {
             }
         }
     }
+
+
 }

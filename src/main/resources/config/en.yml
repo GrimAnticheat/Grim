@@ -23,7 +23,7 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
-    - "^lunarclient:[a-z0-9]{7}"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
 
 spectators:
@@ -79,7 +79,7 @@ RotationPlace:
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
-NoSlow:
+NoSlowA:
   # How much of an offset is "cheating"
   # By default this is lower than other offs
   # Flags by 0.03-0.2 consistently with NoSlow on
@@ -90,11 +90,19 @@ NoSlow:
   decay: 0.05
 
 Knockback:
-  # How much of an offset is "cheating"
-  # By default this is 1e-5, which is safe and sane
-  # Measured in blocks from the correct movement
+  # How much should we multiply total advantage by when the player is legit
+  setback-decay-multiplier: 0.999
+  # How large of an offset from the player's velocity should we create a violation for?
+  # Measured in blocks from the possible velocity
   threshold: 0.001
-  setbackvl: 3
+  # How large of a violation in a tick before the player gets immediately setback?
+  # -1 to disable
+  immediate-setback-threshold: 0.1
+  # How large of an advantage over all ticks before we start to setback?
+  # -1 to disable
+  max-advantage: 1
+  # This is to stop the player from gathering too many violations and never being able to clear them all
+  max-ceiling: 4
 
 Explosion:
   threshold: 0.001
@@ -136,6 +144,12 @@ Reach:
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
 
+exploit:
+  # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
+  # Mojang screwed up netcode by making elytra start client sided and elytra end server sided
+  # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.
+  allow-sprint-jumping-when-using-elytra: true
+
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
@@ -146,4 +160,4 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

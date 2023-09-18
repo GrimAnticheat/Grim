@@ -5,6 +5,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.GrimUser;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
+import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
@@ -37,6 +38,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -85,11 +87,11 @@ public class GrimPlayer implements GrimUser {
     public int riptideSpinAttackTicks = 0;
     public int powderSnowFrozenTicks = 0;
     public boolean hasGravity = true;
+    public final long joinTime = System.currentTimeMillis();
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
-    public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
     public UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -183,6 +185,7 @@ public class GrimPlayer implements GrimUser {
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
+    public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
 
     public void onPacketCancel() {
         if (cancelledPackets.incrementAndGet() > spamThreshold) {
@@ -286,16 +289,20 @@ public class GrimPlayer implements GrimUser {
     public boolean addTransactionResponse(short id) {
         Pair<Short, Long> data = null;
         boolean hasID = false;
+        int skipped = 0;
         for (Pair<Short, Long> iterator : transactionsSent) {
             if (iterator.getFirst() == id) {
                 hasID = true;
                 break;
             }
+            skipped++;
         }
 
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
+
+            if (skipped > 0) checkManager.getPacketCheck(TransactionOrder.class).flagAndAlert("skipped: " + skipped);
 
             do {
                 data = transactionsSent.poll();
@@ -393,12 +400,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void disconnect(Component reason) {
+        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + reason.toString());
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
             LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
+        if (bukkitPlayer != null) {
+            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(reason.toString()), null, 1);
+        }
     }
 
     public void pollData() {

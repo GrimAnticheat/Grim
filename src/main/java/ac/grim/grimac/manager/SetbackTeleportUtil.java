@@ -25,6 +25,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
+import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,7 +72,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
             // The player needs to now wait for their vehicle to go into the right place before getting back in
-            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
+            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 10;
             // Teleport, let velocity be reset
             lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
@@ -148,16 +149,17 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         Vector clientVel = lastKnownGoodPosition.vector.clone();
 
-        Vector futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
-        Vector futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
+        Pair<VelocityData, Vector> futureKb = player.checkManager.getKnockbackHandler().getFutureKnockback();
+        VelocityData futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
-        if (futureKb != null) {
-            clientVel = futureKb;
+        if (futureKb.getFirst() != null) {
+            clientVel = futureKb.getSecond();
         }
+
         // Explosion adds
-        if (futureExplosion != null) {
-            clientVel.add(futureExplosion);
+        if (futureExplosion != null && (futureKb.getFirst() == null || futureKb.getFirst().transaction < futureExplosion.transaction)) {
+            clientVel.add(futureExplosion.vector);
         }
 
         Vector3d position = lastKnownGoodPosition.pos;
@@ -219,14 +221,14 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                     player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
 
                     // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
-                    Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
                         if (player.bukkitPlayer != null) {
                             Entity vehicle = player.bukkitPlayer.getVehicle();
                             if (vehicle != null) {
                                 vehicle.eject();
                             }
                         }
-                    });
+                    }, null, 0);
                 }
             }
 
@@ -416,8 +418,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     @AllArgsConstructor
     @Getter
     @Setter
-    private static class SetbackPosWithVector {
-        private final Vector3d pos;
-        private final Vector vector;
+    public static class SetbackPosWithVector {
+        private Vector3d pos;
+        private Vector vector;
     }
 }

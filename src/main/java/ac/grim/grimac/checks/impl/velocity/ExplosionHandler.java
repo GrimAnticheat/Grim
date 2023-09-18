@@ -62,20 +62,20 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    public Vector getFutureExplosion() {
+    public VelocityData getFutureExplosion() {
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
-            return firstBreadMap.peek().vector;
+            return firstBreadMap.peek();
         }
         // Less in the future
         if (lastExplosionsKnownTaken != null) {
-            return lastExplosionsKnownTaken.vector;
+            return lastExplosionsKnownTaken;
         }
         // Uncertain, might be in the future
         if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
-            return player.firstBreadExplosion.vector;
+            return player.firstBreadExplosion;
         } else if (player.likelyExplosions != null) { // Known to be in the present
-            return player.likelyExplosions.vector;
+            return player.likelyExplosions;
         }
         return null;
     }
@@ -184,13 +184,15 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     }
 
 
-    public VelocityData getPossibleExplosions(int lastTransaction) {
+    public VelocityData getPossibleExplosions(int lastTransaction, boolean isJustTesting) {
         handleTransactionPacket(lastTransaction);
         if (lastExplosionsKnownTaken == null)
             return null;
 
         VelocityData returnLastExplosion = lastExplosionsKnownTaken;
-        lastExplosionsKnownTaken = null;
+        if (!isJustTesting) {
+            lastExplosionsKnownTaken = null;
+        }
         return returnLastExplosion;
     }
 
