@@ -835,19 +835,53 @@ public enum CollisionData {
     BUTTON((player, version, data, x, y, z) -> {
         double f2 = (float) (data.isPowered() ? 1 : 2) / 16.0;
 
-        switch (data.getFacing()) {
-            case WEST:
-                return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
-            case EAST:
-                return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
-            case NORTH:
-                return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
-            case SOUTH:
-                return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
-            case DOWN:
-                return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
-            case UP:
-                return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            switch (data.getFacing()) {
+                case WEST:
+                    return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
+                case EAST:
+                    return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
+                case NORTH:
+                    return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
+                case SOUTH:
+                    return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
+                case DOWN:
+                    return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
+                case UP:
+                    return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
+            }
+        }
+
+        switch (data.getFace()) {
+            case CEILING:
+                switch (data.getFacing()) {
+                    case WEST:
+                    case EAST:
+                        return new SimpleCollisionBox(0.375, 1.0 - f2, 0.3125, 0.625, 1.0, 0.6875, false);
+                    case NORTH:
+                    case SOUTH:
+                        return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
+                }
+            case FLOOR:
+                switch (data.getFacing()) {
+                    case WEST:
+                    case EAST:
+                        return new SimpleCollisionBox(0.375, 0.0, 0.3125, 0.625, 0.0 + f2, 0.6875, false);
+                    case NORTH:
+                    case SOUTH:
+                        return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
+                }
+            case WALL:
+                switch (data.getFacing()) {
+                    case WEST:
+                        return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
+                    case EAST:
+                        return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
+                    case NORTH:
+                        return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
+                    case SOUTH:
+                        return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
+                }
         }
 
         return NoCollisionBox.INSTANCE;
