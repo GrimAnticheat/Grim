@@ -836,19 +836,22 @@ public enum CollisionData {
         double f2 = (float) (data.isPowered() ? 1 : 2) / 16.0;
 
         if (version.isOlderThan(ClientVersion.V_1_13)) {
-            switch (data.getFacing()) {
-                case WEST:
-                    return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
-                case EAST:
-                    return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
-                case NORTH:
-                    return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
-                case SOUTH:
-                    return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
-                case DOWN:
+            switch (data.getFace()) {
+                case CEILING:
                     return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
-                case UP:
+                case FLOOR:
                     return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
+                case WALL:
+                    switch (data.getFacing()) {
+                        case WEST:
+                            return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
+                        case EAST:
+                            return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
+                        case NORTH:
+                            return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
+                        case SOUTH:
+                            return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
+                    }
             }
         }
 
