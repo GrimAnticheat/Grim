@@ -33,6 +33,8 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         int yAgainst = posAgainst.getY();
         int zAgainst = posAgainst.getZ();
 
+        boolean loaded = false;
+
         try {
             for (int i = x - distance; i <= x + distance; i++) {
                 for (int j = y - distance; j <= y + distance; j++) {
@@ -43,7 +45,8 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                         if (i == xAgainst && j == yAgainst && k == zAgainst) {
                             continue;
                         }
-                        if (!world.isChunkLoaded(i >> 4, k >> 4)) {
+                        if (!loaded && world.isChunkLoaded(x >> 4, z >> 4)) {
+                            loaded = true;
                             continue;
                         }
                         Block type = world.getBlockAt(i, j, k);
