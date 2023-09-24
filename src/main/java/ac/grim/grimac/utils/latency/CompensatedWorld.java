@@ -267,7 +267,7 @@ public class CompensatedWorld {
         int offsetY = y - minHeight;
 
         if (column != null) {
-            if (column.getChunks().length <= (offsetY >> 4)) return;
+            if (column.getChunks().length <= (offsetY >> 4) || (offsetY >> 4) < 0) return;
 
             BaseChunk chunk = column.getChunks()[offsetY >> 4];
 
@@ -455,9 +455,6 @@ public class CompensatedWorld {
                 switch (needed) {
                     case DOWN:
                         isPowered = true;
-                        break;
-                    case UP:
-                        isPowered = state.isUp();
                         break;
                     case NORTH:
                         isPowered = state.getNorth() == North.TRUE;

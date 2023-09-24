@@ -90,11 +90,19 @@ NoSlowA:
   decay: 0.05
 
 Knockback:
-  # How much of an offset is "cheating"
-  # By default this is 1e-5, which is safe and sane
-  # Measured in blocks from the correct movement
+  # How much should we multiply total advantage by when the player is legit
+  setback-decay-multiplier: 0.999
+  # How large of an offset from the player's velocity should we create a violation for?
+  # Measured in blocks from the possible velocity
   threshold: 0.001
-  setbackvl: 3
+  # How large of a violation in a tick before the player gets immediately setback?
+  # -1 to disable
+  immediate-setback-threshold: 0.1
+  # How large of an advantage over all ticks before we start to setback?
+  # -1 to disable
+  max-advantage: 1
+  # This is to stop the player from gathering too many violations and never being able to clear them all
+  max-ceiling: 4
 
 Explosion:
   threshold: 0.001
@@ -157,4 +165,4 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9

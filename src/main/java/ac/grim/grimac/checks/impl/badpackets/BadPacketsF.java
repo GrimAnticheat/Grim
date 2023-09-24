@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 @CheckData(name = "BadPacketsF")
 public class BadPacketsF extends Check implements PacketCheck {
     public boolean lastSprinting;
-    boolean thanksMojang; // Support 1.14+ clients starting on either true or false sprinting, we don't know
+    public boolean exemptNext = true; // Support 1.14+ clients starting on either true or false sprinting, we don't know
 
     public BadPacketsF(GrimPlayer player) {
         super(player);
@@ -24,8 +24,8 @@ public class BadPacketsF extends Check implements PacketCheck {
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (lastSprinting) {
-                    if (!thanksMojang) {
-                        thanksMojang = true;
+                    if (exemptNext) {
+                        exemptNext = false;
                         return;
                     }
                     flagAndAlert();
@@ -34,8 +34,8 @@ public class BadPacketsF extends Check implements PacketCheck {
                 lastSprinting = true;
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
                 if (!lastSprinting) {
-                    if (!thanksMojang) {
-                        thanksMojang = true;
+                    if (exemptNext) {
+                        exemptNext = false;
                         return;
                     }
                     flagAndAlert();
