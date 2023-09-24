@@ -45,7 +45,7 @@ Simulation:
   # Aceitamos o Optifine trocando as tabelas trigonométricas, mas abaixar para 0.001 reduzirá o 'FastMath'
   # de falhar no anticheat caso essa compensação não funcionar...
   threshold: 0.001
-  # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo.
+  # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo?
   # -1 desabilitará
   immediate-setback-threshold: 0.1
   # O quão longe da área simulada sobre todos os ticks deverá ser para começarmos a recuar?
@@ -91,11 +91,19 @@ NoSlowA:
   decay: 0.05
 
 Knockback:
-  # Quanto de desvio da simulação é considerado não legítmo?
-  # Por padrão isso é 1e-5, o que é seguro.
-  # Medido em blocos do último movimento legítmo.
+  # Por quanto deveriamos multiplicar a vantagem caso o jogador não tenha falhado nessa verificação?
+  setback-decay-multiplier: 0.999
+  # O quão longe da área do recuo recebido o jogador deve estar para adicionarmos uma violação?
+  # Medido em blocos do recuo recebido.
   threshold: 0.001
-  setbackvl: 3
+  # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo?
+  # -1 desabilitará
+  immediate-setback-threshold: 0.1
+  # O quão longe da área simulada sobre todos os ticks deverá ser para começarmos a recuar?
+  # -1 para desablitar.
+  max-advantage: 1
+  # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
+  max-ceiling: 4
 
 Explosion:
   threshold: 0.001
@@ -121,7 +129,7 @@ EntityControl:
   setbackvl: 25
 
 Reach:
-  # Quanto devíamos expandir as hitboxes? 0.0005 deve detectar 3.0005+ de alcance.
+  # Por quanto devíamos expandir as hitboxes? 0.0005 deve detectar 3.0005+ de alcance.
   #
   # Há 0.03 de expansão forçada nas versões 1.9-1.18.1 (não a 1.18.2), ou algumas combinações de cliente/servidor por
   # conta de mudanças no protocolo e limitações. Essa verificação é mais poderosa com clientes da 1.7/1.8 em servidores
@@ -159,4 +167,4 @@ experimental-checks: false
 # cancelados pelo Grim.
 packet-spam-threshold: 100
 
-config-version: 8
+config-version: 9
