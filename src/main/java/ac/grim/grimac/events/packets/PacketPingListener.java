@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
@@ -107,9 +106,9 @@ public class PacketPingListener extends PacketListenerAbstract {
         while ((expected = player.transactionOrder.pollFirst()) != null && expected != id) {
             TransactionOrder check = player.checkManager.getPacketCheck(TransactionOrder.class);
             if (check.lastReceived != id) {
-                check.lastReceived = id;
                 check.flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
             }
+            check.lastReceived = id;
         }
 
     }
