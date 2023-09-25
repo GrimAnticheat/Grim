@@ -98,7 +98,7 @@ public class PacketPingListener extends PacketListenerAbstract {
     }
 
     private void onTransactionReceive(GrimPlayer player, short id) {
-        if (player.joinTime < 5000) {
+        if (System.currentTimeMillis() - player.joinTime < 5000) {
             return;
         }
 
