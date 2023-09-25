@@ -23,7 +23,7 @@ public class BadPacketsM extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && (!player.isTickingReliablyFor(3) || !player.skippedTickInActualMovement)) {
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && (!player.skippedTickInActualMovement || !player.isTickingReliablyFor(3))) {
             hasPlacedBlock = false;
         }
     }
@@ -45,7 +45,7 @@ public class BadPacketsM extends Check implements PostPredictionCheck {
             hasPlacedBlock = true;
         } else if (hasPlacedBlock) {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
-            if (action.equals(DiggingAction.RELEASE_USE_ITEM) || action.equals(DiggingAction.DROP_ITEM) || action.equals(DiggingAction.DROP_ITEM_STACK)) {
+            if (action == DiggingAction.RELEASE_USE_ITEM || action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK) {
                 flagAndAlert();
             }
         }

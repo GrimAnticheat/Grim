@@ -23,7 +23,7 @@ public class BadPacketsR extends Check implements PostPredictionCheck {
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
         // call onPredictionComplete to get updated value of isTickingReliablyFor
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && (!player.isTickingReliablyFor(3) || !player.skippedTickInActualMovement)) {
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && (!player.skippedTickInActualMovement || !player.isTickingReliablyFor(3))) {
             hasSentPlace = false;
         }
     }
@@ -40,9 +40,9 @@ public class BadPacketsR extends Check implements PostPredictionCheck {
         if (packetType == Client.PLAYER_BLOCK_PLACEMENT) {
             hasSentPlace = true;
         } else if (packetType == Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
-            if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                if (hasSentPlace) {
+            if (hasSentPlace) {
+                WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
+                if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                     if (flagAndAlert() && shouldModifyPackets()) {
                         player.onPacketCancel();
                         event.setCancelled(true);
