@@ -18,11 +18,14 @@ public class BadPacketsS extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity.InteractAction i = new WrapperPlayClientInteractEntity(event).getAction();
-            if (i == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                if (player.packetStateData.slowedByUsingItem) {
-                    flagAndAlert();
-                    event.setCancelled(true);
+            if (player.packetStateData.slowedByUsingItem) {
+                WrapperPlayClientInteractEntity.InteractAction action = new WrapperPlayClientInteractEntity(event).getAction();
+                if (action == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                    if (flagAndAlert() && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
+
                 }
             }
         }
