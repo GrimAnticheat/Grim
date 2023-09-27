@@ -11,7 +11,6 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.225f;
 
-    public int dashCooldown;
     public boolean forceNoDash;
     public boolean leftWhilstDashing;
     public boolean isDashing;

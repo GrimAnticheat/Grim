@@ -60,7 +60,7 @@ public class PredictionEngineRideableUtils {
                 }
 
                 player.vehicleData.horseJumping = true;
-                horse.dashCooldown = 55;
+                player.vehicleData.dashCooldown = 55;
             }
         } else {
             if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
