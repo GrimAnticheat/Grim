@@ -19,6 +19,11 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
             movementSpeedAttribute = 0.175f;
         }
 
+        if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
+            jumpStrength = 0.42f;
+            movementSpeedAttribute = 0.09f;
+        }
+
         if (type == EntityTypes.ZOMBIE_HORSE || type == EntityTypes.SKELETON_HORSE) {
             movementSpeedAttribute = 0.2f;
         }

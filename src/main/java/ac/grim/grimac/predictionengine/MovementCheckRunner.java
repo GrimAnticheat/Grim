@@ -7,10 +7,7 @@ import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
-import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
-import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
-import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
+import ac.grim.grimac.predictionengine.movementtick.*;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
@@ -60,7 +57,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // The player doesn't control this vehicle, we don't care
             if (player.compensatedEntities.getSelf().inVehicle() &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
-                    player.getClientVersion().isOlderThan(ClientVersion.V_1_9))) {
+                            player.getClientVersion().isOlderThan(ClientVersion.V_1_9))) {
                 return;
             }
 
@@ -499,6 +496,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
+            } else if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.CAMEL) {
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerCamel(player).livingEntityAIStep();
             } else if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityAIStep();
@@ -605,6 +605,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
         player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
         player.vehicleData.nextHorseJump = 0;
+        if (player.vehicleData.dashCooldown > 0) --player.vehicleData.dashCooldown;
         player.minPlayerAttackSlow = 0;
         player.maxPlayerAttackSlow = 0;
 
