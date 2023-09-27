@@ -292,15 +292,6 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
-            PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
-            if (horse != null) {
-                offset -= 0.06;
-                if (horse.leftWhilstDashing && !horse.forceNoDash)
-                    offset -= 0.1;
-            }
-        }
-
         // This is a section where I hack around current issues with Grim itself...
         if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
             offset -= 0.01;
