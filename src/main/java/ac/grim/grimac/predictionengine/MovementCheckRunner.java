@@ -605,7 +605,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
         player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
         player.vehicleData.nextHorseJump = 0;
-        if (player.vehicleData.dashCooldown > 0) --player.vehicleData.dashCooldown;
         player.minPlayerAttackSlow = 0;
         player.maxPlayerAttackSlow = 0;
 

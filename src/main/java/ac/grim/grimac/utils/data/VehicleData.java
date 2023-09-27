@@ -23,7 +23,6 @@ public class VehicleData {
     public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
     public float nextHorseJump = 0;
     public float horseJump = 0;
-    public float dashCooldown = 0;
     public boolean horseJumping = false;
 
     public VehicleData() {

@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.util.Vector;
 
@@ -23,7 +24,8 @@ public class PredictionEngineRideableUtils {
         PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
 
         // Setup player inputs
-        float f = player.vehicleData.vehicleHorizontal * 0.5F;
+        // f is not used
+        // float f = player.vehicleData.vehicleHorizontal * 0.5F;
         float f1 = player.vehicleData.vehicleForward;
 
         if (f1 <= 0.0F) {
@@ -40,8 +42,7 @@ public class PredictionEngineRideableUtils {
         // Listen to Entity Action -> start jump with horse, stop jump with horse
         //
         // There's a float/double error causing 1e-8 imprecision if anyone wants to debug it
-        if (movementSpeed == 0.09F && jumpStrength == 0.42F) {
-            // Camel
+        if (horse.type == EntityTypes.CAMEL) {
             if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
                 d0 = jumpStrength * (double) JumpPower.getPlayerJumpFactor(player);
 
@@ -59,7 +60,7 @@ public class PredictionEngineRideableUtils {
                 }
 
                 player.vehicleData.horseJumping = true;
-                player.vehicleData.dashCooldown = 55;
+                horse.dashCooldown = 55;
             }
         } else {
             if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
