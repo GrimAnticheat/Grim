@@ -262,7 +262,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     private void controlBoat(GrimPlayer player, Vector vector, boolean intermediate) {
         float f = 0.0F;
-        if (player.vehicleData.vehicleHorizontal != 0 && player.vehicleData.vehicleForward == 0) {
+        if (player.vehicleData.vehicleHorizontal != 0 && (!intermediate && player.vehicleData.vehicleForward == 0)) {
             f += 0.005F;
         }
 
