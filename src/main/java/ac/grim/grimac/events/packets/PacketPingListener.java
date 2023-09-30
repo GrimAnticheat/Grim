@@ -98,12 +98,10 @@ public class PacketPingListener extends PacketListenerAbstract {
     }
 
     private void onTransactionReceive(GrimPlayer player, short id) {
-        if (System.currentTimeMillis() - player.joinTime < 5000) {
-            return;
-        }
-
         Short expected;
         while ((expected = player.transactionOrder.pollFirst()) != null && expected != id) {
+            if (System.currentTimeMillis() - player.joinTime < 5000) return;
+
             TransactionOrder check = player.checkManager.getPacketCheck(TransactionOrder.class);
             if (check.lastReceived != id) {
                 check.flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
@@ -112,6 +110,4 @@ public class PacketPingListener extends PacketListenerAbstract {
         }
 
     }
-
-
 }
