@@ -31,6 +31,7 @@ public class InvalidBoatExitA extends Check implements PacketCheck {
                     //hard coded? yes. do i care? no. does it work: yes
                     case 2:
                     case 1:
+                        //check if deltaY is possible
                         Bukkit.broadcastMessage(String.valueOf(deltaY));
                         break;
                 }
