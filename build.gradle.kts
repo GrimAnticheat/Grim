@@ -43,7 +43,7 @@ dependencies {
     implementation("com.github.puregero:multilib:1.1.8")
 
     implementation("com.github.grimanticheat:grimapi:c3a80bdea5")
-    // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
+    // Only used in local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")

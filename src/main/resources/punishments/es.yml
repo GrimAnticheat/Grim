@@ -67,6 +67,7 @@ Punishments:
   Misc:
     remove-violations-after: 300
     checks:
+      - "InvalidBoatExitA"
       - "EntityControl"
       - "NoSlow"
       - "Place"
@@ -76,6 +77,12 @@ Punishments:
       - "10:5 [alert]"
       - "20:10 [webhook]"
       - "20:10 [proxy]"
+  Boat:
+    remove-violations-after: 300
+    checks:
+      - "InvalidBoatExitA"
+    commands:
+      - "2:2 [alert]"
   Combat:
     remove-violations-after: 300
     checks:

@@ -64,6 +64,12 @@ Punishments:
       - "5:5 [alert]"
       - "5:5 [webhook]"
       - "5:5 [proxy]"
+  Boat:
+    remove-violations-after: 300
+    checks:
+      - "InvalidBoatExitA"
+    commands:
+      - "2:2 [alert]"
   Misc:
     remove-violations-after: 300
     checks:
