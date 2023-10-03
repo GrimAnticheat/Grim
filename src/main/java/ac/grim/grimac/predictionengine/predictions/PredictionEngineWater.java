@@ -77,6 +77,10 @@ public class PredictionEngineWater extends PredictionEngine {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(vector.returnNewModified(vector.vector.clone().add(new Vector(0, 0.04f, 0)), VectorData.VectorType.Jump));
 
+            if (player.skippedTickInActualMovement) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.02f, 0)), vector, VectorData.VectorType.Jump));
+            }
+
             if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
                 Vector withJump = vector.vector.clone();
                 super.doJump(player, withJump);

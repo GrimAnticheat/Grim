@@ -13,6 +13,10 @@ public class PredictionEngineLava extends PredictionEngine {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04f, 0)), vector, VectorData.VectorType.Jump));
 
+            if (player.skippedTickInActualMovement) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.02f, 0)), vector, VectorData.VectorType.Jump));
+            }
+
             if (player.slightlyTouchingLava && player.lastOnGround && !player.onGround) {
                 Vector withJump = vector.vector.clone();
                 super.doJump(player, withJump);
