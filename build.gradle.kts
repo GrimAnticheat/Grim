@@ -6,6 +6,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.freefair.lombok") version "6.6"
     //id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
+    id("xyz.jpenilla.run-paper") version "2.2.0"
 }
 
 
@@ -148,4 +149,10 @@ tasks.shadowJar {
     relocate("org.json", "ac.grim.grimac.shaded.json")
     relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
     relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+}
+
+tasks {
+    runServer {
+        minecraftVersion("1.20.1")
+    }
 }
