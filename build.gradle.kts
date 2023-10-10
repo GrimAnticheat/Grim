@@ -34,8 +34,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT")
-    implementation("co.aikar:acf-paper:0.5.1-20230402.114301-23")
+    implementation("com.github.retrooper.packetevents:spigot:2.1.0-SNAPSHOT")
+    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("club.minnced:discord-webhooks:0.8.0")
     implementation("it.unimi.dsi:fastutil:8.5.9")
     implementation("org.jetbrains:annotations:23.1.0") // Why is this needed to compile?
