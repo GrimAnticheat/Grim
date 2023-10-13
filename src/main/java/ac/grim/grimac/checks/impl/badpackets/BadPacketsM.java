@@ -45,7 +45,7 @@ public class BadPacketsM extends Check implements PostPredictionCheck {
             hasPlacedBlock = true;
         } else if (hasPlacedBlock) {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
-            if (action == DiggingAction.RELEASE_USE_ITEM || action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK) {
+            if (action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK) {
                 flagAndAlert();
             }
         }
