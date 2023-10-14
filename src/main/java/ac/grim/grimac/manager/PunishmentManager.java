@@ -110,7 +110,7 @@ public class PunishmentManager {
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
         String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
-        String hoverString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("hover-format", "Player: %player%\nPing: %ping\nVL: %vl%\nInfo: %verbose%");
+        String hoverString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("hover-format", "%prefix%\\n§f  Ping §8» §b%ping%\\n§f  Version §8» §b%brand% %version%\\n§f  Verbose §8» §b%verbose%");
         String verboseString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
         boolean sentDebug = false;
