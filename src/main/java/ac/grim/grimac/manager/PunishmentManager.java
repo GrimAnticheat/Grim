@@ -156,17 +156,7 @@ public class PunishmentManager {
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
                                 ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
                             } else {
-                                /*if (command.command.equals("[alert]")) {
-                                    sentDebug = true;
-                                    if (testMode) { // secret test mode
-                                        player.user.sendMessage(cmd);
-                                        continue;
-                                    }
-                                    cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
-                                }
-
-                                String finalCmd = cmd;
-                                FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));*/
+                                //Made by FrancyPro for GrimAC
                                 if (command.command.equals("[alert]")) {
                                     sentDebug = true;
                                     for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
