@@ -21,7 +21,9 @@ upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this
 # %check_name%
 # %vl% - violations
 # %verbose% - extra information from the check such as offsets, not all checks will add information
-alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f)"
+hover-format: "%prefix%\n§f  Ping §8» §b%ping%\n§f  Version §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%"
+verbose-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:

@@ -9,9 +9,12 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import github.scarsz.configuralize.DynamicConfig;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import lombok.Getter;
 import lombok.Setter;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -107,6 +110,8 @@ public class PunishmentManager {
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
         String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        String hoverString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("hover-format", "Player: %player%\nPing: %ping\nVL: %vl%\nInfo: %verbose%");
+        String verboseString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
         boolean sentDebug = false;
 
@@ -115,16 +120,22 @@ public class PunishmentManager {
             if (group.getChecks().contains(check)) {
                 int violationCount = group.getViolations().size();
                 for (ParsedCommand command : group.getCommands()) {
-                    String cmd = replaceAlertPlaceholders(command.getCommand(), group, check, alertString, verbose);
+                    String cmd1 = replaceAlertPlaceholders(command.getCommand(), group, check, alertString, verbose);
+                    String cmd2 = replaceAlertPlaceholders(command.getCommand(), group, check, hoverString, verbose);
+                    String cmd3 = replaceAlertPlaceholders(command.getCommand(), group, check, verboseString, verbose);
 
                     // Verbose that prints all flags
                     if (GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().size() > 0 && command.command.equals("[alert]")) {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            bukkitPlayer.sendMessage(cmd);
+                            TextComponent message = new TextComponent(cmd1);
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp "+bukkitPlayer.getName()));
+                            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(cmd2).create()));
+
+                            bukkitPlayer.spigot().sendMessage(message);
                         }
                         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("verbose.print-to-console", false)) {
-                            LogUtil.console(cmd); // Print verbose to console
+                            LogUtil.console(cmd3); // Print verbose to console
                         }
                     }
 
@@ -133,7 +144,7 @@ public class PunishmentManager {
                         // Any other number means execute every X interval
                         boolean inInterval = command.getInterval() == 0 ? (command.executeCount == 0) : (violationCount % command.getInterval() == 0);
                         if (inInterval) {
-                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd);
+                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd1);
                             Bukkit.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
@@ -145,7 +156,7 @@ public class PunishmentManager {
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
                                 ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
                             } else {
-                                if (command.command.equals("[alert]")) {
+                                /*if (command.command.equals("[alert]")) {
                                     sentDebug = true;
                                     if (testMode) { // secret test mode
                                         player.user.sendMessage(cmd);
@@ -155,7 +166,21 @@ public class PunishmentManager {
                                 }
 
                                 String finalCmd = cmd;
-                                FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                                FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));*/
+                                if (command.command.equals("[alert]")) {
+                                    sentDebug = true;
+                                    for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
+                                        TextComponent message = new TextComponent(cmd1);
+                                        message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp "+bukkitPlayer.getName()));
+                                        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(cmd2).create()));
+
+                                        bukkitPlayer.spigot().sendMessage(message);
+                                    }
+
+                                    if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.print-to-console", true)) {
+                                        LogUtil.console(cmd3); // Print alert to console
+                                    }
+                                }
                             }
                         }
 
