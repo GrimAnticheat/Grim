@@ -16,7 +16,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -129,7 +128,7 @@ public class PunishmentManager {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
                             TextComponent message = new TextComponent(cmd1);
-                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp "+bukkitPlayer.getName()));
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/grim teleport "+bukkitPlayer.getName()));
                             message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(cmd2).create()));
 
                             bukkitPlayer.spigot().sendMessage(message);
