@@ -22,7 +22,7 @@ upload-log-upload-failure: "%prefix% &cЧто-то пошло не так при
 # %vl% - нарушения
 # %verbose% - дополнительная информация от проверки, например, смещения, не все проверки добавляют информацию.
 alerts-format: "%prefix% &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f)"
-hover-format: "%prefix%\n§f  Пинг §8» §b%ping%\n§f  Версия §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%"
+hover-format: "%prefix%\n§f  Пинг §8» §b%ping%\n§f  Версия §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%\n\n&bНажмите, чтобы телепортироваться!"
 verbose-format: "%prefix% &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
