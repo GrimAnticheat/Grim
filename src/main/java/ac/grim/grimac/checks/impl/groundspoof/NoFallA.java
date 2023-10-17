@@ -17,7 +17,7 @@ import java.util.List;
 
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
-@CheckData(name = "NoFall", configName = "nofall", setback = 10)
+@CheckData(name = "NoFall", description = "The player is trying to avoid taking damage (groundspoof)", configName = "nofall", setback = 10)
 public class NoFallA extends Check implements PacketCheck {
 
     public boolean flipPlayerGroundStatus = false;

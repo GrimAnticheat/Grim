@@ -37,7 +37,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", configName = "Reach", setback = 10)
+@CheckData(name = "Reach", description = "The player is trying to hit the entity outside of the hitbox", configName = "Reach", setback = 10)
 public class Reach extends Check implements PacketCheck {
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.

@@ -22,8 +22,16 @@ upload-log-upload-failure: "%prefix% &cBeim Hochladen dieses Protokolls ist etwa
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen aus dem Check wie z.B. Offsets, nicht alle Checks fügen Informationen hinzu
 alerts-format: "%prefix% &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f)"
-hover-format: "%prefix%\n§f  Ping §8» §b%ping%\n§f  Version §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%\n\n&bZum Teleportieren klicken!"
-verbose-format: "%prefix% &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  Ping §8» §b%ping%"
+  - "§f  Client §8» §b%brand% %version%"
+  - "§f  Ausführlich §8» §b%verbose%"
+  - "§f  Beschreibung §8» §b%description%"
+  - ""
+  - "&bKlicken Sie hier, um den Befehl auszuführen!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:

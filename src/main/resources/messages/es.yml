@@ -22,8 +22,16 @@ upload-log-upload-failure: "%prefix% &cAlgo salio mal mientras subíamos ese reg
 # %vl% - violaciones
 # %verbose% - información extra de la comprobación como compensaciones. No todas añadirán informacion.
 alerts-format: "%prefix% &f%player% &bfalló &f%check_name% &f(x&c%vl%&f)"
-hover-format: "%prefix%\n§f  Ping §8» §b%ping%\n§f  Versión §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%\n\n&bHaz clic para teletransportarte!"
-verbose-format: "%prefix% &f%player% &bfalló &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  Ping §8» §b%ping%"
+  - "§f  Cliente §8» §b%brand% %version%"
+  - "§f  Verboso §8» §b%verbose%"
+  - "§f  Descripción §8» §b%description%"
+  - ""
+  - "&b¡Haga clic para ejecutar el comando!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:

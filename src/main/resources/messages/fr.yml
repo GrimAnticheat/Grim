@@ -22,8 +22,16 @@ upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléver
 # %vl% - violations
 # %verbose% - Informations supplémentaires sur les vérifivations comme les écarts, toutes les vérifications n'ajoutent pas d'information
 alerts-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f)"
-hover-format: "%prefix%\n§f  Ping §8» §b%ping%\n§f  Version §8» §b%brand% %version%\n§f  Verbose §8» §b%verbose%\n\n&bCliquez pour vous téléporter!"
-verbose-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  Ping §8» §b%ping%"
+  - "§f  Client §8» §b%brand% %version%"
+  - "§f  Verbeux §8» §b%verbose%"
+  - "§f  Description §8» §b%description%"
+  - ""
+  - "&bCliquez pour exécuter la commande!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
