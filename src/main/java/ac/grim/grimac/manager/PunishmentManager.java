@@ -115,10 +115,10 @@ public class PunishmentManager {
         String details = String.join("\n", info);
         line = line.replace("%description%", check.getDescription());
         line = line.replace("%check_name%", check.getCheckName());
-        if (!details.isEmpty()) {
-            line = line.replace("%info%", details);
-        } else {
+        if (details.isEmpty()) {
             line = line.replace("%info%", "None provided");
+        } else {
+            line = line.replace("%info%", details);
         }
         line = line.replace("%verbose%", verbose);
         line = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, line, true);
@@ -132,6 +132,8 @@ public class PunishmentManager {
         //String verboseString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) ");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
         boolean sentDebug = false;
+
+        if (!clickAction.startsWith("/")) clickAction = "/" + clickAction;
 
         // Check commands
         for (PunishGroup group : groups) {
@@ -147,7 +149,7 @@ public class PunishmentManager {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
                             TextComponent message = new TextComponent(TextComponent.fromLegacyText(alert));
-                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/"+clickAction)); //Old: "/grim spectate "+player.getName()
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickAction)); //Old: "/grim spectate "+player.getName()
                             message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
 
                             bukkitPlayer.spigot().sendMessage(message);
