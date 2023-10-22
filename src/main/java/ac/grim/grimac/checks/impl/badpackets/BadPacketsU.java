@@ -39,6 +39,7 @@ public class BadPacketsU extends Check implements PacketCheck {
 
             //Terrible check?, it works lol
             if(lastMovement != null) {
+                //C06 only sended if player update both movement and rotation but position still the same? Not possible
                 if(flyingPacketWrapper.getLocation()
                         .getX() == lastMovement.getLocation().getX() && flyingPacketWrapper.getLocation()
                         .getY() == lastMovement.getLocation().getY() && flyingPacketWrapper.getLocation().getZ() == lastMovement.getLocation().getZ()) {
@@ -48,6 +49,7 @@ public class BadPacketsU extends Check implements PacketCheck {
                     player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
 
+                //C06 only sended if player update both movement and rotation but rotation still the same? Not possible
                 if(flyingPacketWrapper.getLocation()
                         .getYaw() == lastMovement.getLocation().getYaw() && flyingPacketWrapper.getLocation()
                         .getPitch() == lastMovement.getLocation().getPitch()) {
