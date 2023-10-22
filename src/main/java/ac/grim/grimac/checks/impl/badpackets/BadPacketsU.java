@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client;
+import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
@@ -39,20 +40,7 @@ public class BadPacketsU extends Check implements PacketCheck {
 
             //Terrible check?, it works lol
             if(lastMovement != null) {
-                //C06 only sended if player update both movement and rotation but position still the same? Not possible
-                if(flyingPacketWrapper.getLocation()
-                        .getX() == lastMovement.getLocation().getX() && flyingPacketWrapper.getLocation()
-                        .getY() == lastMovement.getLocation().getY() && flyingPacketWrapper.getLocation().getZ() == lastMovement.getLocation().getZ()) {
-                    event.setCancelled(true);
-                    flagAndAlert();
-
-                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
-                }
-
-                //C06 only sended if player update both movement and rotation but rotation still the same? Not possible
-                if(flyingPacketWrapper.getLocation()
-                        .getYaw() == lastMovement.getLocation().getYaw() && flyingPacketWrapper.getLocation()
-                        .getPitch() == lastMovement.getLocation().getPitch()) {
+                if(shouldFlag(lastMovement.getLocation(), flyingPacketWrapper.getLocation())) {
                     event.setCancelled(true);
                     flagAndAlert();
 
@@ -62,6 +50,15 @@ public class BadPacketsU extends Check implements PacketCheck {
 
             lastMovement = flyingPacketWrapper;
         }
+    }
+
+    private boolean shouldFlag(Location prev, Location current) {
+        if(prev.getYaw() == current.getYaw() && prev.getPitch() == current.getPitch() ||
+                prev.getX() == current.getX() && prev.getY() == current.getY() && prev.getZ() == current.getZ()) {
+            return true;
+        }
+
+        return false;
     }
 
 }
