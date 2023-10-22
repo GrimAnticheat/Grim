@@ -25,13 +25,14 @@ public class BadPacketsU extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        //Screw c06 exploit, thanks a lot wykt! No more sprint scaffold
+
         //We are not checking for player.packetStateData.lastPacketWasOnePointSeventeenDuplicate because that just completly ignore it!
-        if (player.packetStateData.lastPacketWasTeleport || player.compensatedEntities.getSelf().getRiding() != null) {
+        //Player still sending c06 while eating, motionXZ check was really helpful. Thanks mojang!
+        if (player.packetStateData.lastPacketWasTeleport || player.compensatedEntities.getSelf().getRiding() != null || player.packetStateData.slowedByUsingItem
+        || player.wasTouchingWater) {
             return;
         }
-
-        //Screw c06 exploit, thanks a lot wykt! No more sprint scaffold
-        //Regen, no more!
 
         if (event.getPacketType() == Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerFlying flyingPacketWrapper = new WrapperPlayClientPlayerFlying(event);
@@ -41,27 +42,19 @@ public class BadPacketsU extends Check implements PacketCheck {
                 if(flyingPacketWrapper.getLocation()
                         .getX() == lastMovement.getLocation().getX() && flyingPacketWrapper.getLocation()
                         .getY() == lastMovement.getLocation().getY() && flyingPacketWrapper.getLocation().getZ() == lastMovement.getLocation().getZ()) {
-                    violations++;
+                    event.setCancelled(true);
+                    flagAndAlert();
 
-                    if(violations > 20) {
-                        event.setCancelled(true);
-                        flagAndAlert();
-
-                        player.getSetbackTeleportUtil().executeNonSimulatingSetback();
-                    }
+                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
 
                 if(flyingPacketWrapper.getLocation()
                         .getYaw() == lastMovement.getLocation().getYaw() && flyingPacketWrapper.getLocation()
                         .getPitch() == lastMovement.getLocation().getPitch()) {
-                    violations++;
+                    event.setCancelled(true);
+                    flagAndAlert();
 
-                    if(violations > 20) {
-                        event.setCancelled(true);
-                        flagAndAlert();
-
-                        player.getSetbackTeleportUtil().executeNonSimulatingSetback();
-                    }
+                    player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
             }
 
