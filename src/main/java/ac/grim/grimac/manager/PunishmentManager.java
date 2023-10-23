@@ -180,8 +180,8 @@ public class PunishmentManager {
                                 if (command.command.equals("[alert]")) {
                                     sentDebug = true;
                                     for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
-                                        TextComponent message = new TextComponent(alert);
-                                        message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/"+clickAction)); //Old: "/grim spectate "+player.getName()
+                                        TextComponent message = new TextComponent(TextComponent.fromLegacyText(alert));
+                                        message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickAction)); //Old: "/grim spectate "+player.getName()
                                         message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
 
                                         bukkitPlayer.spigot().sendMessage(message);
