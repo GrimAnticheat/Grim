@@ -211,8 +211,8 @@ public class GrimPlayer implements GrimUser {
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
         lastInstanceManager = new LastInstanceManager(this);
-        checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
+        checkManager = new CheckManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
