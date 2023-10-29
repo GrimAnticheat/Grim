@@ -7,13 +7,13 @@ This project is considered feature complete for the 2.0 (open-source) branch of 
 GrimAC is an open source Minecraft anticheat designed for 1.20 and supports 1.8-1.20. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
 
 ### Compiling through terminal/command prompt
-1. git clone https://github.com/MWHunter/Grim (or click green code button, download code, then unzip)
+1. git clone https://github.com/GrimAnticheat/Grim (or click green code button, download code, then unzip)
 2. cd Grim
 3. gradlew build
 4. The final jar is located in build/libs
 
 ### API Information
-Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's github repository [here](https://github.com/MWHunter/GrimAPI).
+Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's github repository [here](https://github.com/GrimAnticheat/GrimAPI).
 
 ## Grim supremacy
 
