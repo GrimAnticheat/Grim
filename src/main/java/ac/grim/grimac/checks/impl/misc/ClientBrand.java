@@ -36,6 +36,7 @@ public class ClientBrand extends Check implements PacketCheck {
                     System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
                     brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
+                    brand = brand.replace("§", ""); // removes formatting codes
                     if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
                     if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
