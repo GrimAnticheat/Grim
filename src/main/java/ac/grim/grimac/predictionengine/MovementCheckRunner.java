@@ -533,7 +533,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // A player must have velocity going INTO the ground to be able to jump
             // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
             // So if they are supposed to be going upwards, or are supposed to be off the ground, resync
-            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
+            if (player.predictedVelocity.isJump()
+                    && !player.wasTouchingLava && !player.wasTouchingWater
+                    && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
             // Player ignored the knockback or is delaying it a tick... bad!
