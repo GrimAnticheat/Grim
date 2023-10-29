@@ -11,9 +11,6 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.225f;
 
-    public boolean forceNoDash;
-    public boolean leftWhilstDashing;
-    public boolean isDashing;
 
     public PacketEntityHorse(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
         super(player, type, x, y, z, xRot);

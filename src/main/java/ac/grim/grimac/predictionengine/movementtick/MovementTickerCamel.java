@@ -12,6 +12,6 @@ public class MovementTickerCamel extends MovementTickerHorse {
     @Override
     public float getExtraSpeed() {
         PacketEntityHorse horsePacket = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
-        return player.compensatedEntities.hasSprintingAttributeEnabled && player.vehicleData.dashCooldown <= 0 && !horsePacket.isDashing ? 0.1f : 0.0f;
+        return player.compensatedEntities.hasSprintingAttributeEnabled && player.vehicleData.dashCooldown <= 0 ? 0.1f : 0.0f;
     }
 }

@@ -582,6 +582,8 @@ public class GrimPlayer implements GrimUser {
 
     public void handleMountVehicle(int vehicleID) {
         compensatedEntities.serverPlayerVehicle = vehicleID;
+        LogUtil.info("rsetted cooldown");
+        vehicleData.dashCooldown = 0;
         TrackerData data = compensatedEntities.getTrackedEntity(vehicleID);
 
         if (data != null) {
