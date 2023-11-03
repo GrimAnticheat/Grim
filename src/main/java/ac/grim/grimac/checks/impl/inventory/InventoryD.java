@@ -53,7 +53,8 @@ public class InventoryD extends Check implements PostPredictionCheck {
                 predictionComplete.getData().isTeleport() ||
                 player.getSetbackTeleportUtil().blockOffsets ||
                 player.packetStateData.lastPacketWasTeleport ||
-                player.packetStateData.slowedByUsingItem) {
+                player.packetStateData.slowedByUsingItem ||
+                System.currentTimeMillis() - player.lastBlockPlaceUseItem < 50L) {
             return;
         }
 
