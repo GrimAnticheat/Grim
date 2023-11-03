@@ -135,6 +135,7 @@ public class CheckManager {
                 .put(CrashC.class, new CrashC(player))
                 .put(CrashD.class, new CrashD(player))
                 .put(CrashE.class, new CrashE(player))
+                .put(CrashF.class, new CrashF(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
