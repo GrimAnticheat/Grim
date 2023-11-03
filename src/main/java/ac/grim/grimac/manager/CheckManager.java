@@ -66,6 +66,7 @@ public class CheckManager {
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
                 .put(PacketWorldBorder.class, new PacketWorldBorder(player))
+                .put(ActionManager.class, player.actionManager)
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(BadPacketsO.class, new BadPacketsO(player))
