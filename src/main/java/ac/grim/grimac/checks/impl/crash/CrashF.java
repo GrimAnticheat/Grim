@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 
-@CheckData(name = "CrashF", experimental = true)
+@CheckData(name = "CrashF")
 public class CrashF extends Check implements PacketCheck {
 
     public CrashF(GrimPlayer playerData) {
