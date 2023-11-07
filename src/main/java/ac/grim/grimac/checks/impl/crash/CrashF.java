@@ -22,9 +22,10 @@ public class CrashF extends Check implements PacketCheck {
             int clickType = click.getWindowClickType().ordinal();
             int button = click.getButton();
             int windowId = click.getWindowId();
+            int slot = click.getSlot();
 
-            if ((clickType == 1 || clickType == 2) && windowId >= 0 && button < 0) {
-                if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
+            if ((clickType == 1 || clickType == 2) && windowId >= 0 && (slot < 0 || button < 0)) {
+                if (flagAndAlert("clickType=" + clickType + " slot=" + slot + " button=" + button)) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
