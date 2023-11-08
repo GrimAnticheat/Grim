@@ -162,6 +162,15 @@ public class CompensatedInventory extends Check implements PacketCheck {
         return item == null ? ItemStack.EMPTY : item;
     }
 
+    public ItemStack[] getArmor() {
+        ItemStack[] armor = new ItemStack[4];
+        armor[0] = getByEquipmentType(EquipmentType.HEAD);
+        armor[1] = getByEquipmentType(EquipmentType.CHEST);
+        armor[2] = getByEquipmentType(EquipmentType.LEGS);
+        armor[3] = getByEquipmentType(EquipmentType.FEET);
+        return armor;
+    }
+
     private ItemStack getByEquipmentType(EquipmentType type) {
         switch (type) {
             case HEAD:

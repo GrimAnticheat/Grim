@@ -445,9 +445,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            ItemStack boots = player.getInventory().getBoots();
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                for (ItemStack armorPiece : player.getInventory().getArmor()) {
+                    player.depthStriderLevel = Math.max(player.depthStriderLevel, armorPiece.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()));
+                }
             } else {
                 player.depthStriderLevel = 0;
             }
