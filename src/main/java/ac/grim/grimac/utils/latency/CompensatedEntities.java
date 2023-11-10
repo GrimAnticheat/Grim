@@ -388,7 +388,13 @@ public class CompensatedEntities {
                     ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                     ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
                 }
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20) && entity.type == EntityTypes.CAMEL) {
+                    EntityData dashing = WatchableIndexUtil.getIndex(watchableObjects, 18);
 
+                    if (dashing != null) {
+                        ((PacketEntityHorse) entity).isDashing = (Boolean) dashing.getValue();
+                    }
+                }
             } else {
                 EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {

@@ -73,10 +73,12 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     }
                     break;
                 case START_JUMPING_WITH_HORSE:
-                    if (action.getJumpBoost() >= 90) {
+                    int jumpBoost = action.getJumpBoost();
+                    if (jumpBoost < 0) jumpBoost = 0;
+                    if (jumpBoost >= 90) {
                         player.vehicleData.nextHorseJump = 1;
                     } else {
-                        player.vehicleData.nextHorseJump = 0.4F + 0.4F * action.getJumpBoost() / 90.0F;
+                        player.vehicleData.nextHorseJump = 0.4F + 0.4F * jumpBoost / 90.0F;
                     }
                     break;
             }

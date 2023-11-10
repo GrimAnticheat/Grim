@@ -8,6 +8,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public boolean isRearing = false;
     public boolean hasSaddle = false;
     public boolean isTame = false;
+    public boolean isDashing = false;
     public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.225f;
 

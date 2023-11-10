@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
@@ -21,6 +22,8 @@ public class BadPacketsQ extends Check implements PacketCheck {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
 
             if (wrapper.getAction() == Action.START_JUMPING_WITH_HORSE) {
+                if (wrapper.getJumpBoost() < 0 && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.CAMEL) return;
+
                 if (wrapper.getJumpBoost() < 0 || wrapper.getJumpBoost() > 100) {
                     if (flag()) {
                         alert("b=" + wrapper.getJumpBoost()); // Ban

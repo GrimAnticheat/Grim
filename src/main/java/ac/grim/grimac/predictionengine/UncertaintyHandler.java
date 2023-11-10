@@ -302,6 +302,14 @@ public class UncertaintyHandler {
         }
         // This is the end of that section.
 
+
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
+            PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
+            if (horse.isDashing && player.compensatedEntities.hasSprintingAttributeEnabled) {
+                offset -= 0.1;
+            }
+        }
+
         // I can't figure out how the client exactly tracks boost time
         if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
             PacketEntityRideable vehicle = (PacketEntityRideable) player.compensatedEntities.getSelf().getRiding();

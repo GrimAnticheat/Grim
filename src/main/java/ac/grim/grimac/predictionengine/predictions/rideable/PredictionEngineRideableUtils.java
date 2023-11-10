@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions.rideable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -44,6 +45,7 @@ public class PredictionEngineRideableUtils {
         // There's a float/double error causing 1e-8 imprecision if anyone wants to debug it
         if (horse.type == EntityTypes.CAMEL) {
             if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
+                horse.isDashing = true;
                 d0 = jumpStrength * (double) JumpPower.getPlayerJumpFactor(player);
 
                 if (player.compensatedEntities.getJumpAmplifier() != null) {
@@ -52,14 +54,13 @@ public class PredictionEngineRideableUtils {
                     d1 = d0;
                 }
 
-                double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * movementSpeed * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+                double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * (movementSpeed) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
                 Vector vec = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector(0, (double) (1.4285F * player.vehicleData.horseJump) * d1, 0));
 
                 for (VectorData vectorData : possibleVectors) {
                     vectorData.vector.add(vec);
                 }
 
-                player.vehicleData.horseJumping = true;
                 player.vehicleData.dashCooldown = 55;
             }
         } else {
@@ -77,7 +78,6 @@ public class PredictionEngineRideableUtils {
                 }
 
 
-                player.vehicleData.horseJumping = true;
 
                 float f2 = player.trigHandler.sin(player.xRot * ((float) Math.PI / 180F));
                 float f3 = player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F));
@@ -93,11 +93,11 @@ public class PredictionEngineRideableUtils {
 
         }
 
+        player.vehicleData.horseJumping = true;
         player.vehicleData.horseJump = 0.0F;
 
         // More jumping stuff
         if (player.lastOnGround) {
-            player.vehicleData.horseJump = 0.0F;
             player.vehicleData.horseJumping = false;
         }
 
