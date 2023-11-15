@@ -282,7 +282,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
             // How is this possible? Maybe transaction splitting.

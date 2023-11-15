@@ -38,6 +38,7 @@ public class CrashD extends Check implements PacketCheck {
             int clickType = click.getWindowClickType().ordinal();
             int button = click.getButton();
             int windowId = click.getWindowId();
+
             if (type == 16 && windowId > 0 && windowId == lecternId) {
                 if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
                     event.setCancelled(true);

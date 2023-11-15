@@ -61,6 +61,12 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
             Vector3d playerVelocity = velocity.getVelocity();
 
+            // Blacklist problemated vector until mojang fixes a client-sided bug
+            if (playerVelocity.getY() == -0.04) {
+                velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
+                playerVelocity = velocity.getVelocity();
+            }
+
             // Wrap velocity between two transactions
             player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));

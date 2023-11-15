@@ -533,11 +533,15 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // A player must have velocity going INTO the ground to be able to jump
             // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
             // So if they are supposed to be going upwards, or are supposed to be off the ground, resync
-            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
+            if (player.predictedVelocity.isJump()
+                    && !player.wasTouchingLava && !player.wasTouchingWater
+                    && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
+            boolean lavaBugFix = player.wasTouchingLava && player.predictedVelocity.isJump() &&
+                    player.predictedVelocity.vector.getY() < 0.06 && player.predictedVelocity.vector.getY() > -0.02;
             // Player ignored the knockback or is delaying it a tick... bad!
-            if (!player.predictedVelocity.isKnockback() && player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity() != null) {
+            if (!player.predictedVelocity.isKnockback() && !lavaBugFix && player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity() != null) {
                 // And then send it again!
                 player.getSetbackTeleportUtil().executeForceResync();
             }

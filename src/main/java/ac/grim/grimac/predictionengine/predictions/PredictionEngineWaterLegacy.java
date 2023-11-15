@@ -50,6 +50,10 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04f, 0)), vector, VectorData.VectorType.Jump));
+
+            if (player.skippedTickInActualMovement) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.02f, 0)), vector, VectorData.VectorType.Jump));
+            }
         }
     }
 

@@ -188,7 +188,7 @@ public class GrimPlayer implements GrimUser {
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
 
     public void onPacketCancel() {
-        if (cancelledPackets.incrementAndGet() > spamThreshold) {
+        if (spamThreshold != -1 && cancelledPackets.incrementAndGet() > spamThreshold) {
             LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
             disconnect(Component.translatable("disconnect.closed"));
             cancelledPackets.set(0);
@@ -211,8 +211,8 @@ public class GrimPlayer implements GrimUser {
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
         lastInstanceManager = new LastInstanceManager(this);
-        checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
+        checkManager = new CheckManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
@@ -352,6 +352,8 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void sendTransaction(boolean async) {
+        // don't send transactions in configuration phase
+        if (user.getDecoderState() == ConnectionState.CONFIGURATION) return;
         // Sending in non-play corrupts the pipeline, don't waste bandwidth when anticheat disabled
         if (user.getConnectionState() != ConnectionState.PLAY) return;
 
