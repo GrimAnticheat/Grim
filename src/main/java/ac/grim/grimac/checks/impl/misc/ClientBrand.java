@@ -24,33 +24,34 @@ public class ClientBrand extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLUGIN_MESSAGE) {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
             String channelName = packet.getChannelName();
-            if (channelName.equalsIgnoreCase("minecraft:brand") || // 1.13+
-                    packet.getChannelName().equals("MC|Brand")) { // 1.12
+            handle(channelName, packet.getData());
+        }
+    }
 
-                byte[] data = packet.getData();
+    public void handle(String channel, byte[] data) {
+        if (channel.equalsIgnoreCase("minecraft:brand") || // 1.13+
+                channel.equals("MC|Brand")) { // 1.12
+            if (data.length > 64 || data.length == 0) {
+                brand = "sent " + data.length + " bytes as brand";
+            } else if (!hasBrand) {
+                byte[] minusLength = new byte[data.length - 1];
+                System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
-                if (data.length > 64 || data.length == 0) {
-                    brand = "sent " + data.length + " bytes as brand";
-                } else if (!hasBrand) {
-                    byte[] minusLength = new byte[data.length - 1];
-                    System.arraycopy(data, 1, minusLength, 0, minusLength.length);
-
-                    brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
-                    if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
-                    if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
-                        String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
-                        message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
-                        // sendMessage is async safe while broadcast isn't due to adventure
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            if (player.hasPermission("grim.brand")) {
-                                player.sendMessage(message);
-                            }
+                brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
+                if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
+                if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
+                    String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
+                    message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
+                    // sendMessage is async safe while broadcast isn't due to adventure
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.hasPermission("grim.brand")) {
+                            player.sendMessage(message);
                         }
                     }
                 }
-
-                hasBrand = true;
             }
+
+            hasBrand = true;
         }
     }
 
