@@ -21,7 +21,8 @@ public class BadPacketsR extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION ||
+              event.getPacketType() == PacketType.Play.Client.PONG) {
             final long time = System.currentTimeMillis();
             final long diff = time - lastTransaction;
 
