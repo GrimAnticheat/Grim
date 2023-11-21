@@ -21,7 +21,17 @@ upload-log-upload-failure: "%prefix% &cЧто-то пошло не так при
 # %check_name%
 # %vl% - нарушения
 # %verbose% - дополнительная информация от проверки, например, смещения, не все проверки добавляют информацию.
-alerts-format: "%prefix% &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f)"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  Пинг §8» §b%ping%"
+  - "§f  Клиент §8» §b%brand% %version%"
+  - "§f  Подробный §8» §b%verbose%"
+  - "§f  Описание §8» §b%description%"
+  - ""
+  - "&bНажмите, чтобы выполнить команду!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bпровалил &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:

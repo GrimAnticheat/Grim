@@ -8,12 +8,17 @@ import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import github.scarsz.configuralize.DynamicConfig;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -105,26 +110,52 @@ public class PunishmentManager {
         return original;
     }
 
-    public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
-        String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+    public String replaceHoverPlaceholders(Check check, List<String> hoverString, String verbose, String... info) {
+        String line = String.join("\n", hoverString);
+        String details = String.join("\n", info);
+        line = line.replace("%description%", check.getDescription());
+        line = line.replace("%check_name%", check.getCheckName());
+        if (details.isEmpty()) {
+            line = line.replace("%info%", "None provided");
+        } else {
+            line = line.replace("%info%", details);
+        }
+        line = line.replace("%verbose%", verbose);
+        line = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, line, true);
+        return line;
+    }
+
+    public boolean handleAlert(GrimPlayer player, String verbose, Check check, String... info) {
+        String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f)");
+        String clickAction = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("click-action", "grim spectate %player%").replaceAll("%player%", player.getName());
+        List<String> hoverList = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("hover-format", Arrays.asList("%prefix%", "§f  Ping §8» §b%ping%", "§f  Version §8» §b%brand% %version%", "§f  Verbose §8» §b%verbose%", "", "&bClick to Execute the Command!"));
+        //String verboseString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) ");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
         boolean sentDebug = false;
+
+        if (!clickAction.startsWith("/")) clickAction = "/" + clickAction;
 
         // Check commands
         for (PunishGroup group : groups) {
             if (group.getChecks().contains(check)) {
                 int violationCount = group.getViolations().size();
                 for (ParsedCommand command : group.getCommands()) {
-                    String cmd = replaceAlertPlaceholders(command.getCommand(), group, check, alertString, verbose);
+                    String alert = replaceAlertPlaceholders(command.getCommand(), group, check, alertString, verbose);
+                    //String console = replaceAlertPlaceholders(command.getCommand(), group, check, verboseString, verbose);
+                    String hover = replaceHoverPlaceholders(check, hoverList, verbose, info);
 
                     // Verbose that prints all flags
                     if (GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().size() > 0 && command.command.equals("[alert]")) {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            bukkitPlayer.sendMessage(cmd);
+                            TextComponent message = new TextComponent(TextComponent.fromLegacyText(alert));
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickAction)); //Old: "/grim spectate "+player.getName()
+                            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
+
+                            bukkitPlayer.spigot().sendMessage(message);
                         }
                         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("verbose.print-to-console", false)) {
-                            LogUtil.console(cmd); // Print verbose to console
+                            LogUtil.console(alert+" §7"+verbose); // Print verbose to console
                         }
                     }
 
@@ -133,7 +164,7 @@ public class PunishmentManager {
                         // Any other number means execute every X interval
                         boolean inInterval = command.getInterval() == 0 ? (command.executeCount == 0) : (violationCount % command.getInterval() == 0);
                         if (inInterval) {
-                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd);
+                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, alert);
                             Bukkit.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
@@ -145,17 +176,21 @@ public class PunishmentManager {
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
                                 ProxyAlertMessenger.sendPluginMessage(proxyAlertString);
                             } else {
+                                //Made by FrancyPro for GrimAC
                                 if (command.command.equals("[alert]")) {
                                     sentDebug = true;
-                                    if (testMode) { // secret test mode
-                                        player.user.sendMessage(cmd);
-                                        continue;
-                                    }
-                                    cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
-                                }
+                                    for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
+                                        TextComponent message = new TextComponent(TextComponent.fromLegacyText(alert));
+                                        message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickAction)); //Old: "/grim spectate "+player.getName()
+                                        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
 
-                                String finalCmd = cmd;
-                                FoliaCompatUtil.runTask(GrimAPI.INSTANCE.getPlugin(), (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                                        bukkitPlayer.spigot().sendMessage(message);
+                                    }
+
+                                    if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.print-to-console", true)) {
+                                        LogUtil.console(alert+" §7"+verbose); // Print alert to console
+                                    }
+                                }
                             }
                         }
 

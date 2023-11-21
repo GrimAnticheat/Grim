@@ -21,6 +21,7 @@ public class Check implements AbstractCheck {
     private String checkName;
     private String configName;
     private String alternativeName;
+    private String description;
 
     private boolean experimental;
     @Setter
@@ -35,6 +36,7 @@ public class Check implements AbstractCheck {
             final CheckData checkData = checkClass.getAnnotation(CheckData.class);
             this.checkName = checkData.name();
             this.configName = checkData.configName();
+            this.description = checkData.description();
             // Fall back to check name
             if (this.configName.equals("DEFAULT")) this.configName = this.checkName;
             this.decay = checkData.decay();
@@ -50,12 +52,16 @@ public class Check implements AbstractCheck {
         return isEnabled && !player.disableGrim && !player.noModifyPacketPermission;
     }
 
-    public final boolean flagAndAlert(String verbose) {
+    public final boolean flagAndAlert(String verbose, String... info) {
         if (flag()) {
-            alert(verbose);
+            alert(verbose, info);
             return true;
         }
         return false;
+    }
+
+    public final boolean flagAndAlert(String verbose) {
+        return flagAndAlert(verbose, "");
     }
 
     public final boolean flagAndAlert() {
@@ -96,8 +102,16 @@ public class Check implements AbstractCheck {
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
+    public boolean alert(String verbose, String... info) {
+        return player.punishmentManager.handleAlert(player, verbose, this, info);
+    }
+
     public boolean alert(String verbose) {
-        return player.punishmentManager.handleAlert(player, verbose, this);
+        return alert(verbose, "");
+    }
+
+    public boolean alert() {
+        return alert("");
     }
 
     public DynamicConfig getConfig() {
@@ -115,4 +129,3 @@ public class Check implements AbstractCheck {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
     }
 }
-

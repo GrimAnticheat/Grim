@@ -21,7 +21,17 @@ upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this
 # %check_name%
 # %vl% - violations
 # %verbose% - extra information from the check such as offsets, not all checks will add information
-alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f)"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  Ping §8» §b%ping%"
+  - "§f  Client §8» §b%brand% %version%"
+  - "§f  Verbose §8» §b%verbose%"
+  - "§f  Description §8» §b%description%"
+  - ""
+  - "&bClick to Execute the Command!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:

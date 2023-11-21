@@ -21,7 +21,17 @@ upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信
 # %check_name% - 检查名字
 # %vl% - VL值
 # %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
-alerts-format: "%prefix% &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f)"
+click-action: "grim spectate %player%"
+hover-format:
+  - "%prefix%"
+  - "§f  延迟 §8» §b%ping%"
+  - "§f  客户 §8» §b%brand% %version%"
+  - "§f  详细的 §8» §b%verbose%"
+  - "§f  描述 §8» §b%description%"
+  - ""
+  - "&b点击执行命令!"
+
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
