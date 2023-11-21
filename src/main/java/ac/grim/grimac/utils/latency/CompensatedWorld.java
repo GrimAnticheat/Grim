@@ -396,6 +396,10 @@ public class CompensatedWorld {
         player.uncertaintyHandler.pistonY.add(modY);
         player.uncertaintyHandler.pistonZ.add(modZ);
 
+        removeInvalidPistonLikeStuff();
+    }
+
+    public void removeInvalidPistonLikeStuff() {
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
         openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
