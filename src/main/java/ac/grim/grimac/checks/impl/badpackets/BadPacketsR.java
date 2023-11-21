@@ -39,7 +39,8 @@ public class BadPacketsR extends Check implements PacketCheck {
         }
         //
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
-                event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
+                event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION
+                 || event.getPacketType() == Client.STEER_VEHICLE) {
             positions++;
         }
     }
