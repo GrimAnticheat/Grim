@@ -4,6 +4,8 @@ import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.FlagEvent;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
@@ -114,5 +116,11 @@ public class Check implements AbstractCheck {
     public String formatOffset(double offset) {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
     }
+
+    public boolean isTransaction(PacketTypeCommon packetType) {
+        return packetType == PacketType.Play.Client.PONG ||
+                packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
+    }
+
 }
 

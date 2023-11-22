@@ -6,9 +6,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
 @CheckData(name = "BadPacketsR")
 public class BadPacketsR extends Check implements PacketCheck {
@@ -16,32 +13,36 @@ public class BadPacketsR extends Check implements PacketCheck {
         super(player);
     }
 
-    private long lastTransaction = 0;
     private int positions = 0;
+    private long clock = 0;
+    private long lastTransTime;
+    private int oldTransId = 0;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION ||
-              event.getPacketType() == PacketType.Play.Client.PONG) {
-            final long time = System.currentTimeMillis();
-            final long diff = time - lastTransaction;
-
-            if (diff > 1000) {
-                if (positions == 0 && lastTransaction != 0) {
-                    flagAndAlert("time=" + diff + " positions=" + positions);
-                    player.compensatedWorld.removeInvalidPistonLikeStuff();
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (isTransaction(event.getPacketType()) && player.packetStateData.lastTransactionPacketWasValid) {
+            long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
+            long diff = (System.currentTimeMillis() - lastTransTime);
+            if (diff > 1500 && ms > 1500) {
+                if (positions == 0 && clock != 0) {
+                    flagAndAlert("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
                 } else {
                     reward();
                 }
+                player.compensatedWorld.removeInvalidPistonLikeStuff(oldTransId);
                 positions = 0;
-                lastTransaction = time;
+                clock = player.getPlayerClockAtLeast();
+                lastTransTime = System.currentTimeMillis();
+                oldTransId = player.lastTransactionSent.get();
             }
         }
         //
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
-                event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION
-                 || event.getPacketType() == Client.STEER_VEHICLE) {
+        if ((event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
+                event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) && !player.compensatedEntities.getSelf().inVehicle()) {
+            positions++;
+        } else if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE && player.compensatedEntities.getSelf().inVehicle()) {
             positions++;
         }
     }
+
 }

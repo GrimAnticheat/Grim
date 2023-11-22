@@ -34,8 +34,10 @@ public class PacketPingListener extends PacketListenerAbstract {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
+                player.packetStateData.lastTransactionPacketWasValid = false;
                 // Check if we sent this packet before cancelling it
                 if (player.addTransactionResponse(id)) {
+                    player.packetStateData.lastTransactionPacketWasValid = true;
                     event.setCancelled(true);
                 }
             }
@@ -51,7 +53,9 @@ public class PacketPingListener extends PacketListenerAbstract {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
                 short shortID = ((short) id);
+                player.packetStateData.lastTransactionPacketWasValid = false;
                 if (player.addTransactionResponse(shortID)) {
+                    player.packetStateData.lastTransactionPacketWasValid = true;
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
                 }
