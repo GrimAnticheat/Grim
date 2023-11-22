@@ -23,6 +23,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -42,11 +43,13 @@ public class Reach extends Check implements PacketCheck {
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
     private final Map<Integer, Vector3d> playerAttackQueue = new HashMap<>();
+    private final Map<Vector3d, WrapperPlayClientInteractEntity> actionPacketQueue = new HashMap<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
 
+    private long lastFlying;
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -90,9 +93,7 @@ public class Reach extends Check implements PacketCheck {
             if (entity.riding != null) return;
 
             boolean tooManyAttacks = playerAttackQueue.size() > 10;
-            if (!tooManyAttacks) {
-                playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
-            }
+            playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
 
             boolean knownInvalid = isKnownInvalid(entity);
 
@@ -100,12 +101,26 @@ public class Reach extends Check implements PacketCheck {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
+
+            /* Player could abuse delaying transaction, we won't let them attack till,
+                they send one back.
+             */
+
+            boolean shouldCheckFlying = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && System.currentTimeMillis() - lastFlying > 10;
+            if (player.lastTransactionSent.get() > player.lastTransactionReceived.get() || shouldCheckFlying) {
+                event.setCancelled(true);
+                player.onPacketCancel();
+
+                actionPacketQueue.put(new Vector3d(player.x, player.y, player.z) ,action);
+            }
+
         }
 
         // If the player set their look, or we know they have a new tick
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) ||
                 event.getPacketType() == PacketType.Play.Client.PONG ||
                 event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+            lastFlying = System.currentTimeMillis();
             tickBetterReachCheckWithAngle();
         }
     }
@@ -150,10 +165,16 @@ public class Reach extends Check implements PacketCheck {
                     } else {
                         flagAndAlert(result + " type=" + reachEntity.type.getName().getKey());
                     }
+                } else {
+                    /* Let's just allow player to take damage now */
+                    for (Map.Entry<Vector3d, WrapperPlayClientInteractEntity> action : actionPacketQueue.entrySet()) {
+                        PacketEvents.getAPI().getProtocolManager().receivePacket(player.user.getChannel(), action.getValue());
+                    }
                 }
             }
         }
         playerAttackQueue.clear();
+        actionPacketQueue.clear();
     }
 
     private String checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
