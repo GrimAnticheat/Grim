@@ -120,7 +120,7 @@ public class Reach extends Check implements PacketCheck {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) ||
                 event.getPacketType() == PacketType.Play.Client.PONG ||
                 event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
-            lastFlying = System.currentTimeMillis();
+            if(WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) lastFlying = System.currentTimeMillis();
             tickBetterReachCheckWithAngle();
         }
     }
