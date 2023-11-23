@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "BadPacketsR", decay = 0.1)
 public class BadPacketsR extends Check implements PacketCheck {
@@ -24,7 +25,8 @@ public class BadPacketsR extends Check implements PacketCheck {
             long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
             long diff = (System.currentTimeMillis() - lastTransTime);
             if (diff > 2000 && ms > 2000) {
-                if (positions == 0 && clock != 0) {
+                //TODO: figure out why spectators are flagging this
+                if (positions == 0 && clock != 0 && player.gamemode != GameMode.SPECTATOR) {
                     flagAndAlert("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
                 } else {
                     reward();
