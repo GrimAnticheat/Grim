@@ -2,6 +2,9 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -26,6 +29,23 @@ public enum GrimAPI {
         this.configManager = new ConfigManager();
         initManager = new InitManager();
         initManager.load();
+
+        final Package grimPackage = GrimAC.class.getPackage();
+        if (grimPackage == null) return;
+
+        try (ScanResult scanResult = new ClassGraph()
+                .enableAllInfo()
+                .acceptPackages(grimPackage.getName())
+                .scan()) {
+
+            for (ClassInfo classInfo : scanResult.getAllClasses()) {
+                try {
+                    Class.forName(classInfo.getName());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public void start(final JavaPlugin plugin) {
