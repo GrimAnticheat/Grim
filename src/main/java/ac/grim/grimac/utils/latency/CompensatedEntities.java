@@ -279,9 +279,9 @@ public class CompensatedEntities {
             if (sizeObject != null) {
                 Object value = sizeObject.getValue();
                 if (value instanceof Integer) {
-                    ((PacketEntitySizeable) entity).size = (int) value;
+                    ((PacketEntitySizeable) entity).size = Math.max((int) value, 1);
                 } else if (value instanceof Byte) {
-                    ((PacketEntitySizeable) entity).size = (byte) value;
+                    ((PacketEntitySizeable) entity).size = Math.max((byte) value, 1);
                 }
             }
         }
