@@ -29,12 +29,12 @@ public class PacketPingListener extends PacketListenerAbstract {
             WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
             short id = transaction.getActionId();
 
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+            player.packetStateData.lastTransactionPacketWasValid = false;
+
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
-
-                player.packetStateData.lastTransactionPacketWasValid = false;
                 // Check if we sent this packet before cancelling it
                 if (player.addTransactionResponse(id)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
@@ -45,15 +45,15 @@ public class PacketPingListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PONG) {
             WrapperPlayClientPong pong = new WrapperPlayClientPong(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+            player.packetStateData.lastTransactionPacketWasValid = false;
 
             int id = pong.getId();
             // If it wasn't below 0, it wasn't us
             // If it wasn't in short range, it wasn't us either
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
                 short shortID = ((short) id);
-                player.packetStateData.lastTransactionPacketWasValid = false;
                 if (player.addTransactionResponse(shortID)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters

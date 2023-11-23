@@ -79,7 +79,7 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
         } else {
             // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
             PacketTypeCommon packetType = event.getPacketType();
-            if (WINDOW_CONFIRMATION.equals(packetType) || PONG.equals(packetType)) {
+            if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
                 if (sentFlying && !post.isEmpty()) {
                     flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
                 }
