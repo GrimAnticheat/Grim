@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "BadPacketsR")
+@CheckData(name = "BadPacketsR", decay = 0.1)
 public class BadPacketsR extends Check implements PacketCheck {
     public BadPacketsR(final GrimPlayer player) {
         super(player);
@@ -23,7 +23,7 @@ public class BadPacketsR extends Check implements PacketCheck {
         if (isTransaction(event.getPacketType()) && player.packetStateData.lastTransactionPacketWasValid) {
             long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
             long diff = (System.currentTimeMillis() - lastTransTime);
-            if (diff > 1500 && ms > 1500) {
+            if (diff > 2000 && ms > 2000) {
                 if (positions == 0 && clock != 0) {
                     flagAndAlert("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
                 } else {
