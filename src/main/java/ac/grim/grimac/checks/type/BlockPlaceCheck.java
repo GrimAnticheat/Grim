@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.type;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.anticheat.update.PostBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -29,7 +30,7 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
     }
 
     // Method called the flying packet after the block place
-    public void onPostFlyingBlockPlace(BlockPlace place) {
+    public void onPostFlyingBlockPlace(PostBlockPlace place) {
     }
 
     @Override

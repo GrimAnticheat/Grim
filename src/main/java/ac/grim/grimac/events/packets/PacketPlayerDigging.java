@@ -152,7 +152,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Stop people from spamming the server with out of bounds exceptions
             if (slot.getSlot() > 8) return;
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
-            CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
+            CheckManagerListener.handleQueuedPlaces(player, false, false, 0, 0, System.currentTimeMillis());
 
             if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
                 player.packetStateData.slowedByUsingItem = false;

@@ -316,7 +316,7 @@ public class GrimPlayer implements GrimUser {
             } while (data.getFirst() != id);
 
             // A transaction means a new tick, so apply any block places
-            CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
+            CheckManagerListener.handleQueuedPlaces(this, false, false, 0, 0, System.currentTimeMillis());
             latencyUtils.handleNettySyncTransaction(lastTransactionReceived.get());
         }
 

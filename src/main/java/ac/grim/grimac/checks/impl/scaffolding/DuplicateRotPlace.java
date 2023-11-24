@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.anticheat.update.PostBlockPlace;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
 @CheckData(name = "DuplicateRotPlace", experimental = true)
@@ -29,7 +29,7 @@ public class DuplicateRotPlace extends BlockPlaceCheck {
     private float lastPlacedDeltaX;
     private double lastPlacedDeltaDotsX;
 
-    public void onPostFlyingBlockPlace(BlockPlace place) {
+    public void onPostFlyingBlockPlace(PostBlockPlace place) {
         if (rotated) {
             if (deltaX > 2) {
                 float xDiff = Math.abs(deltaX - lastPlacedDeltaX);
