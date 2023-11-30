@@ -25,8 +25,7 @@ public class BadPacketsR extends Check implements PacketCheck {
             long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
             long diff = (System.currentTimeMillis() - lastTransTime);
             if (diff > 2000 && ms > 2000) {
-                //TODO: figure out why spectators are flagging this
-                if (positions == 0 && clock != 0 && player.gamemode != GameMode.SPECTATOR) {
+                if (positions == 0 && clock != 0 && player.gamemode != GameMode.SPECTATOR && !player.compensatedEntities.getSelf().isDead) {
                     flagAndAlert("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
                 } else {
                     reward();
