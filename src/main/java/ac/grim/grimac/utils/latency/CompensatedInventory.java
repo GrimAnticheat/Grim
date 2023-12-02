@@ -460,9 +460,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     // This packet can only be used to edit the hotbar and offhand of the player's inventory if
                     // window ID is set to 0 (slots 36 through 45) if the player is in creative, with their inventory open,
                     // and not in their survival inventory tab. Otherwise, when window ID is 0, it can edit any slot in the player's inventory.
-//                    if (slot.getSlot() >= 36 && slot.getSlot() <= 45) {
+                    if (slot.getSlot() >= 0 && slot.getSlot() <= 45) {
                         inventory.getSlot(slot.getSlot()).set(slot.getItem());
-//                    }
+                    }
                 } else if (slot.getWindowId() == openWindowID) { // Opened inventory (if not valid, client crashes)
                     menu.getSlot(slot.getSlot()).set(slot.getItem());
                 }
