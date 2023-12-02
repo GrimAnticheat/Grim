@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class ShulkerData {
     public final int lastTransactionSent;
-    private final boolean isClosing;
+    public final boolean isClosing;
 
     // Keep track of one of these two things, so we can remove this later
     public PacketEntity entity = null;

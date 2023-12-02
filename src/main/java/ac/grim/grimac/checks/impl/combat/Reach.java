@@ -41,7 +41,7 @@ import java.util.*;
 public class Reach extends Check implements PacketCheck {
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
-    private final Map<Integer, Vector3d> playerAttackQueue = new LinkedHashMap<>();
+    private final Map<Integer, Vector3d> playerAttackQueue = new HashMap<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
@@ -85,23 +85,28 @@ public class Reach extends Check implements PacketCheck {
             // TODO: Remove when in front of via
             if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
 
-            if (player.gamemode == GameMode.CREATIVE) return;
+            if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return;
             if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
-            playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
+            boolean tooManyAttacks = playerAttackQueue.size() > 10;
+            if (!tooManyAttacks) {
+                playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
+            }
 
-            if (shouldModifyPackets() && cancelImpossibleHits && isKnownInvalid(entity)) {
+            boolean knownInvalid = isKnownInvalid(entity);
+
+            if ((shouldModifyPackets() && cancelImpossibleHits && knownInvalid) || tooManyAttacks) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
-            if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
-                return;
-            tickFlying();
+        // If the player set their look, or we know they have a new tick
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) ||
+                event.getPacketType() == PacketType.Play.Client.PONG ||
+                event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+            tickBetterReachCheckWithAngle();
         }
     }
 
@@ -114,45 +119,37 @@ public class Reach extends Check implements PacketCheck {
     //
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(PacketEntity reachEntity) {
-        boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
-
         // If the entity doesn't exist, or if it is exempt, or if it is dead
         if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity()) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
-        if (player.gamemode == GameMode.CREATIVE) return false;
+        if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return false;
         if (player.compensatedEntities.getSelf().inVehicle()) return false;
 
-        double lowest = 6;
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
             return checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true) != null; // If they flagged
         } else {
-            // Don't allow blatant cheats to get first hit
-            for (double eyes : player.getPossibleEyeHeights()) {
-                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-                if (reachEntity.type == EntityTypes.END_CRYSTAL) {
-                    targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
-                }
-                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
-                if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
-                Vector from = new Vector(player.x, player.y + eyes, player.z);
-                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
-                lowest = Math.min(lowest, closestPoint.distance(from));
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+            if (reachEntity.type == EntityTypes.END_CRYSTAL) {
+                targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
             }
+            return ReachUtils.getMinReachToBox(player, targetBox) > 3;
         }
-
-        return lowest > 3;
     }
 
-    private void tickFlying() {
+    private void tickBetterReachCheckWithAngle() {
         for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
-            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey());
+            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey().intValue());
 
             if (reachEntity != null) {
                 String result = checkReach(reachEntity, attack.getValue(), false);
                 if (result != null) {
-                    flagAndAlert(result);
+                    if (reachEntity.type == EntityTypes.PLAYER) {
+                        flagAndAlert(result);
+                    } else {
+                        flagAndAlert(result + " type=" + reachEntity.type.getName().getKey());
+                    }
                 }
             }
         }
@@ -184,7 +181,7 @@ public class Reach extends Check implements PacketCheck {
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
-        List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(ReachUtils.getLook(player, player.xRot, player.yRot)));
+        List<Vector> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot)));
 
         // If we are a tick behind, we don't know their next look so don't bother doing this
         if (!isPrediction) {

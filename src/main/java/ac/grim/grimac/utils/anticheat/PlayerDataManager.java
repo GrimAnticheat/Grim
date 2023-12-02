@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
-import com.github.puregero.multilib.MultiLib;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -22,7 +21,7 @@ public class PlayerDataManager {
     public final Collection<User> exemptUsers = Collections.synchronizedCollection(new HashSet<>());
 
     public GrimPlayer getPlayer(final Player player) {
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLib.isExternalPlayer(player)) return null;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(player)) return null;
 
         // Is it safe to interact with this, or is this internal PacketEvents code?
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);

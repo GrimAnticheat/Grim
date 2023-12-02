@@ -4,6 +4,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
@@ -172,5 +173,21 @@ public class ReachUtils {
 
     public static boolean isVecInside(SimpleCollisionBox self, Vector vec) {
         return vec.getX() > self.minX && vec.getX() < self.maxX && (vec.getY() > self.minY && vec.getY() < self.maxY && vec.getZ() > self.minZ && vec.getZ() < self.maxZ);
+    }
+
+    public static double getMinReachToBox(GrimPlayer player, SimpleCollisionBox targetBox) {
+        boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
+
+        double lowest = Double.MAX_VALUE;
+
+        for (double eyes : player.getPossibleEyeHeights()) {
+            if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
+            Vector from = new Vector(player.x, player.y + eyes, player.z);
+            Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
+            lowest = Math.min(lowest, closestPoint.distance(from));
+        }
+
+        return lowest;
     }
 }

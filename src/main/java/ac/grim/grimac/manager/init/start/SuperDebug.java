@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager.init.start;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -61,6 +62,8 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         if (predictionComplete.getIdentifier() == 0) return; // 1 - 256 are valid possible values
 
         StringBuilder sb = new StringBuilder();
+        sb.append("Grim Version: ").append(GrimAPI.INSTANCE.getExternalAPI().getGrimVersion());
+        sb.append("\n");
         sb.append("Player Name: ");
         sb.append(player.user.getName());
         sb.append("\nClient Version: ");

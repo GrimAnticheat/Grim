@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -396,9 +395,18 @@ public class CompensatedWorld {
         player.uncertaintyHandler.pistonY.add(modY);
         player.uncertaintyHandler.pistonZ.add(modZ);
 
+        removeInvalidPistonLikeStuff(0);
+    }
+
+    public void removeInvalidPistonLikeStuff(int transactionId) {
         // Tick the pistons and remove them if they can no longer exist
-        activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
-        openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
+        if (transactionId != 0) {
+            activePistons.removeIf(data -> data.lastTransactionSent < transactionId);
+            openShulkerBoxes.removeIf(data -> data.isClosing && data.lastTransactionSent < transactionId);
+        } else {
+            activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
+            openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
+        }
         // Remove if a shulker is not in this block position anymore
         openShulkerBoxes.removeIf(box -> {
             if (box.blockPos != null) { // Block is no longer valid

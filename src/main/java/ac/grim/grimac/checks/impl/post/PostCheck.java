@@ -3,7 +3,10 @@ package ac.grim.grimac.checks.impl.post;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.lists.EvictingQueue;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -22,16 +25,32 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post")
-public class PostCheck extends Check implements PacketCheck {
+public class PostCheck extends Check implements PacketCheck, PostPredictionCheck {
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags
     // 1.8 clients will have the same logic for simplicity, although it's not needed
-    private final List<String> flags = new ArrayList<>();
+    private final List<String> flags = new EvictingQueue<>(10);
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
 
     public PostCheck(GrimPlayer playerData) {
         super(playerData);
+    }
+
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        if (!flags.isEmpty()) {
+            // Okay, the user might be cheating, let's double check
+            // 1.8 clients have the idle packet, and this shouldn't false on 1.8 clients
+            // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
+            if (player.isTickingReliablyFor(3)) {
+                for (String flag : flags) {
+                    flagAndAlert(flag);
+                }
+            }
+
+            flags.clear();
+        }
     }
 
     @Override
@@ -55,25 +74,12 @@ public class PostCheck extends Check implements PacketCheck {
                 return;
             }
 
-            if (!flags.isEmpty()) {
-                // Okay, the user might be cheating, let's double check
-                // 1.8 clients have the idle packet, and this shouldn't false on 1.8 clients
-                // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
-                if (player.isTickingReliablyFor(3)) {
-                    for (String flag : flags) {
-                        flagAndAlert(flag);
-                    }
-                }
-
-                flags.clear();
-            }
-
             post.clear();
             sentFlying = true;
         } else {
             // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
             PacketTypeCommon packetType = event.getPacketType();
-            if (WINDOW_CONFIRMATION.equals(packetType) || PONG.equals(packetType)) {
+            if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
                 if (sentFlying && !post.isEmpty()) {
                     flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
                 }
