@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Everything in this class should be sync'd to the anticheat thread.
@@ -534,6 +535,10 @@ public class GrimPlayer implements GrimUser {
 
     public boolean canThePlayerBeCloseToZeroMovement(int ticks) {
         return (!uncertaintyHandler.lastPointThree.hasOccurredSince(ticks));
+    }
+
+    public boolean supportsBundles() {
+        return user.getClientVersion() != null && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19_4) && user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4);
     }
 
     public CompensatedInventory getInventory() {

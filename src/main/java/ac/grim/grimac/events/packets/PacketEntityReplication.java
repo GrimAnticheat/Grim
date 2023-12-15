@@ -1,5 +1,6 @@
 package ac.grim.grimac.events.packets;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -351,6 +352,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
         TrackerData data = player.compensatedEntities.getTrackedEntity(entityId);
 
+        if (player.supportsBundles()) {
+            player.user.writePacket(new WrapperPlayServerBundle());
+        }
+
         if (!hasSentPreWavePacket) {
             hasSentPreWavePacket = true;
             player.sendTransaction();
@@ -410,7 +415,17 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 xRotEntity.steps = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) ? 10 : 3;
             }
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
+
+            // 1.19.4+, we are certain the player has received this packet.
+            if (player.supportsBundles()) entity.onSecondTransaction();
         });
+
+        // 1.19.4+, no need to handle this uncertainty
+        if (player.supportsBundles()) {
+            event.getTasksAfterSend().add(() -> player.user.writePacket(new WrapperPlayServerBundle()));
+            return;
+        }
+
         player.latencyUtils.addRealTimeTask(lastTrans + 1, () -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);
             if (entity == null) return;

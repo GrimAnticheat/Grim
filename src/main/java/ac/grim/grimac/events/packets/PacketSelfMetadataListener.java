@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBundle;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUseBed;
@@ -163,6 +164,10 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     if (riptide != null && riptide.getValue() instanceof Byte) {
                         boolean isRiptiding = (((byte) riptide.getValue()) & 0x04) == 0x04;
 
+                        if (player.supportsBundles()) {
+                            player.user.writePacket(new WrapperPlayServerBundle());
+                        }
+
                         if (!hasSendTransaction) player.sendTransaction();
                         hasSendTransaction = true;
 
@@ -195,6 +200,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             int markedTransaction = player.lastTransactionSent.get();
 
                             // Player has gotten this packet
+                            // If on 1.19.4+, we know they will receive this packet on the same tick as we bundle it
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                                 ItemStack item = isOffhand ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
 
@@ -214,6 +220,10 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
                             event.getTasksAfterSend().add(player::sendTransaction);
+                        }
+
+                        if (player.supportsBundles()) {
+                            event.getTasksAfterSend().add(() -> player.user.writePacket(new WrapperPlayServerBundle()));
                         }
                     }
                 }
