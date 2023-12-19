@@ -82,10 +82,12 @@ public class FastBreak extends Check implements PacketCheck {
                     blockDelayBalance += 300 - breakDelay;
                 }
 
-                if (blockDelayBalance > 1000 && shouldModifyPackets()) { // If more than a second of advantage
-                    event.setCancelled(true); // Cancelling start digging will cause server to reject block break
-                    player.onPacketCancel();
+                if (blockDelayBalance > 1000) { // If more than a second of advantage
                     flagAndAlert("Delay=" + breakDelay);
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true); // Cancelling start digging will cause server to reject block break
+                        player.onPacketCancel();
+                    }
                 }
 
                 clampBalance();
