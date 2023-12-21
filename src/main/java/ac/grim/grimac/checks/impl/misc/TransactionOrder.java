@@ -14,4 +14,5 @@ public class TransactionOrder extends Check implements PacketCheck {
         super(player);
     }
 
+    public int lastReceived;
 }

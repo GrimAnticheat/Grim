@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
@@ -22,7 +21,6 @@ public class PacketPingListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOWEST);
     }
 
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
@@ -39,6 +37,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.addTransactionResponse(id)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
                     event.setCancelled(true);
+                    onTransactionReceive(player, id);
                 }
             }
         }
@@ -58,6 +57,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastTransactionPacketWasValid = true;
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
+                    onTransactionReceive(player, shortID);
                 }
             }
         }
@@ -77,6 +77,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.didWeSendThatTrans.remove((Short) id)) {
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    player.transactionOrder.add(id);
                 }
             }
         }
@@ -94,10 +95,23 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.didWeSendThatTrans.remove(shortID)) {
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    player.transactionOrder.add(shortID);
                 }
             }
         }
     }
 
+    private void onTransactionReceive(GrimPlayer player, short id) {
+        Short expected;
+        while ((expected = player.transactionOrder.pollFirst()) != null && expected != id) {
+            if (System.currentTimeMillis() - player.joinTime < 5000) return;
 
+            TransactionOrder check = player.checkManager.getPacketCheck(TransactionOrder.class);
+            if (check.lastReceived != id) {
+                check.flagAndAlert(String.format("Expected: %d | Received: %d", expected, id));
+            }
+            check.lastReceived = id;
+        }
+
+    }
 }

@@ -69,6 +69,7 @@ public class GrimPlayer implements GrimUser {
     public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     public final List<Short> didWeSendThatTrans = Collections.synchronizedList(new ArrayList<>());
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
+    public final Deque<Short> transactionOrder = new LinkedList<>();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // End transaction handling stuff
@@ -291,20 +292,16 @@ public class GrimPlayer implements GrimUser {
     public boolean addTransactionResponse(short id) {
         Pair<Short, Long> data = null;
         boolean hasID = false;
-        int skipped = 0;
         for (Pair<Short, Long> iterator : transactionsSent) {
             if (iterator.getFirst() == id) {
                 hasID = true;
                 break;
             }
-            skipped++;
         }
 
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
-
-            if (skipped > 0 && System.currentTimeMillis() - joinTime > 5000) checkManager.getPacketCheck(TransactionOrder.class).flagAndAlert("skipped: " + skipped);
 
             do {
                 data = transactionsSent.poll();
