@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPo
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
+import net.kyori.adventure.text.Component;
 
 public class PacketPingListener extends PacketListenerAbstract {
 
@@ -31,6 +32,12 @@ public class PacketPingListener extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
+            // The client always replies with an accepted transaction
+            // This check prevents some clients (and some bots) sending invalid packets
+            if (!transaction.isAccepted()) {
+                player.disconnect(Component.text(String.format("Invalid transaction response (%d not accepted)", id)));
+                return;
+            }
             player.packetStateData.lastTransactionPacketWasValid = false;
 
             // Vanilla always uses an ID starting from 1
