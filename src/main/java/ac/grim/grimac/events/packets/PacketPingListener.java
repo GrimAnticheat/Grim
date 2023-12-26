@@ -40,7 +40,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     // Disconnect the player for sending an invalid transaction packet
                     player.disconnect(Component.text(String.format("Invalid transaction response (%d not accepted)", id)));
                 }
-                // Ignore the packet since the player was disconnected
+                // Drop the packet to disallow further processing
                 event.setCancelled(true);
                 return;
             }
