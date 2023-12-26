@@ -39,9 +39,10 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (GrimAPI.INSTANCE.getConfigManager().isKickInvalidTransactions()) {
                     // Disconnect the player for sending an invalid transaction packet
                     player.disconnect(Component.text(String.format("Invalid transaction response (%d not accepted)", id)));
-                    // Ignore the packet since the player was disconnected
-                    return;
                 }
+                // Ignore the packet since the player was disconnected
+                event.setCancelled(true);
+                return;
             }
             player.packetStateData.lastTransactionPacketWasValid = false;
 
