@@ -35,6 +35,8 @@ spectators:
 
 # 在我们让他们超时之前，玩家应该有多长时间？ 此处的60 指60s
 max-transaction-time: 60
+# 如果玩家发送无效交易数据包，Grim 应该踢他们吗？
+kick-invalid-transactions: true
 
 Simulation:
   # 当玩家合法时，我们应该将总优势乘以多少

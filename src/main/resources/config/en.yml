@@ -35,6 +35,8 @@ spectators:
 
 # How long should players have until we kick them for timing out? Default = 60 seconds
 max-transaction-time: 60
+# Should Grim kick players if they are sending invalid transaction packets?
+kick-invalid-transactions: true
 
 Simulation:
   # How much should we multiply total advantage by when the player is legit

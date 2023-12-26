@@ -35,8 +35,13 @@ public class PacketPingListener extends PacketListenerAbstract {
             // The client always replies with an accepted transaction
             // This check prevents some clients (and some bots) sending invalid packets
             if (!transaction.isAccepted()) {
-                player.disconnect(Component.text(String.format("Invalid transaction response (%d not accepted)", id)));
-                return;
+                // Only kick the player if it's enabled in the configuration
+                if (GrimAPI.INSTANCE.getConfigManager().isKickInvalidTransactions()) {
+                    // Disconnect the player for sending an invalid transaction packet
+                    player.disconnect(Component.text(String.format("Invalid transaction response (%d not accepted)", id)));
+                    // Ignore the packet since the player was disconnected
+                    return;
+                }
             }
             player.packetStateData.lastTransactionPacketWasValid = false;
 

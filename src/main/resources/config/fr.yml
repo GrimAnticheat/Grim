@@ -35,6 +35,8 @@ spectators:
 
 # Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
 max-transaction-time: 60
+# Grim devrait-il expulser les joueurs s'ils envoient des paquets de transactions invalides?
+kick-invalid-transactions: true
 
 Simulation:
   # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?

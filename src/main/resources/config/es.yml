@@ -36,6 +36,8 @@ spectators:
 # ¿Cuánto tiempo de espera debería pasar antes de expulsar un jugador por "tiempo de espera agotado"?
 # Por defecto, este valor se encuentra en 60 segundos.
 max-transaction-time: 60
+# ¿Debería Grim expulsar a los jugadores si envían paquetes de transacciones no válidas?
+kick-invalid-transactions: true
 
 Simulation:
   # Por cuanto deberíamos multiplicar la ventaja total cuando el jugador es legítimo

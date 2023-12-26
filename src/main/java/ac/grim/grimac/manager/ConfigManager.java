@@ -31,6 +31,8 @@ public class ConfigManager {
 
     @Getter
     private boolean experimentalChecks = false;
+    @Getter
+    private boolean kickInvalidTransactions = true;
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -85,6 +87,7 @@ public class ConfigManager {
             }
         }
         experimentalChecks = config.getBooleanElse("experimental-checks", false);
+        kickInvalidTransactions = config.getBooleanElse("kick-invalid-transactions", true);
     }
 
     public boolean isIgnoredClient(String brand) {

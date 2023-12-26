@@ -35,6 +35,8 @@ spectators:
 
 # Wie lange sollen Spieler Zeit haben, bis wir sie wegen Zeitüberschreitung rauswerfen? Standard = 60 Sekunden
 max-transaction-time: 60
+# Sollte Grim Spieler rausschmeißen, wenn sie ungültige Transaktionspakete senden?
+kick-invalid-transactions: true
 
 Simulation:
   # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
