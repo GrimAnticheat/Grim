@@ -354,10 +354,9 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void sendTransaction(boolean async) {
-        // don't send transactions in configuration phase
-        if (user.getDecoderState() == ConnectionState.CONFIGURATION) return;
+        // don't send transactions outside PLAY phase
         // Sending in non-play corrupts the pipeline, don't waste bandwidth when anticheat disabled
-        if (user.getConnectionState() != ConnectionState.PLAY) return;
+        if (user.getEncoderState() != ConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
         if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
