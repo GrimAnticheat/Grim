@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsT")
+@CheckData(name = "BadPacketsT", experimental=true)
 public class BadPacketsT extends Check implements PacketCheck {
     public BadPacketsT(final GrimPlayer player) {
         super(player);
