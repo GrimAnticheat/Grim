@@ -21,6 +21,8 @@ public class TimerCheck extends Check implements PacketCheck {
     // Default: 120 milliseconds
     long clockDrift = (long) 120e6;
 
+    long limitAbuseOverPing = 1000;
+
     boolean hasGottenMovementAfterTransaction = false;
 
     // Proof for this timer check
@@ -72,15 +74,26 @@ public class TimerCheck extends Check implements PacketCheck {
 
 
     public void doCheck(final PacketReceiveEvent event) {
-        if (timerBalanceRealTime > System.nanoTime()) {
+        final double transactionPing = player.getTransactionPing();
+        // Limit using transaction ping if over 1000ms (default)
+        final boolean needsAdjustment = limitAbuseOverPing != -1 && transactionPing >= limitAbuseOverPing;
+        final boolean wouldFailNormal = timerBalanceRealTime > System.nanoTime();
+        final boolean failsAdjusted = needsAdjustment && (timerBalanceRealTime + ((transactionPing * 1e6) - clockDrift - 50e6)) > System.nanoTime();
+        if (wouldFailNormal || failsAdjusted) {
             if (flag()) {
                 // Cancel the packet
-                if (shouldModifyPackets()) {
+                // Only cancel if not an adjustment setback
+                if (wouldFailNormal && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
+
                 player.getSetbackTeleportUtil().executeNonSimulatingSetback();
-                alert("");
+
+                if (wouldFailNormal) {
+                    // Only alert if we would fail without adjusted limit
+                    alert("");
+                }
             }
 
             // Reset the violation by 1 movement
@@ -105,5 +118,6 @@ public class TimerCheck extends Check implements PacketCheck {
     public void reload() {
         super.reload();
         clockDrift = (long) (getConfig().getDoubleElse(getConfigName() + ".drift", 120.0) * 1e6);
+        limitAbuseOverPing = (long) (getConfig().getDoubleElse(getConfigName() + ".ping-abuse-limit-threshold", 1000));
     }
 }

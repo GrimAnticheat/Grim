@@ -113,6 +113,10 @@ TimerA:
   # Millisekunden, die der Spieler akkumulieren kann, um sie später zu nutzen, wenn er zurückfällt.
   # Könnte möglicherweise 1,8 schnelle Nutzung/schnelle Heilung/schnelle Bogenumgehungen ermöglichen, wenn zu hoch eingestellt, 120 ms scheint eine gute Balance zu sein
   drift: 120
+  # Ping at which the check will start to limit timer balance, to prevent abuse.
+  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+  # -1 to disable
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Anzahl der Millisekunden, die während der Bewegung verloren gehen, bevor mit der Markierung begonnen werden sollte.
