@@ -83,7 +83,6 @@ public class CheckManager {
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))
                 .put(BadPacketsS.class, new BadPacketsS(player))
-                .put(InvalidPlace.class, new InvalidPlace(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
@@ -143,6 +142,7 @@ public class CheckManager {
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
+                .put(InvalidPlace.class, new InvalidPlace(player))
                 .build();
 
         allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
