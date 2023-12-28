@@ -49,6 +49,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,7 +68,7 @@ public class GrimPlayer implements GrimUser {
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
-    public final List<Short> didWeSendThatTrans = Collections.synchronizedList(new ArrayList<>());
+    public final Set<Short> didWeSendThatTrans = ConcurrentHashMap.newKeySet();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
