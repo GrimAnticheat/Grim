@@ -29,6 +29,7 @@ import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
+import ac.grim.grimac.events.packets.patch.UseItemDelayer;
 import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
@@ -85,10 +86,12 @@ public class CheckManager {
                 .put(BadPacketsR.class, new BadPacketsR(player))
                 .put(BadPacketsS.class, new BadPacketsS(player))
                 .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(InvalidPlace.class, new InvalidPlace(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
+                .put(UseItemDelayer.class, new UseItemDelayer(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()

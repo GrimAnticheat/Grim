@@ -21,7 +21,6 @@ public class PacketPingListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOWEST);
     }
 
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {

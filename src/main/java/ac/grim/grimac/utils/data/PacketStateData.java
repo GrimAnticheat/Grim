@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.util.Vector3d;
 
 // This is to keep all the packet data out of the main player class
@@ -8,6 +9,8 @@ import com.github.retrooper.packetevents.util.Vector3d;
 public class PacketStateData {
     public boolean packetPlayerOnGround = false;
     public boolean lastPacketWasTeleport = false;
+    public boolean cancelDuplicatePacket;
+    public boolean stupidityRotChanged, detectedStupidity, lastTeleportWasPotentiallyOnePointSeventeenDuplicate;
     public boolean lastPacketWasOnePointSeventeenDuplicate = false;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
