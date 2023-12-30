@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT", experimental=true)
@@ -16,12 +17,13 @@ public class BadPacketsT extends Check implements PacketCheck {
         super(player);
     }
 
-    // Player hitbox sizes
-    // min X/Z: -0.4, max X/Z: 0.4
-    private static final double MAX_XZ = 0.4001;
-    // min Y: -0.1, max Y: 1.9
-    private static final double MIN_Y = -0.1001;
-    private static final double MAX_Y = 1.9001;
+    // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
+    // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
+    // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
+    private final boolean hasLegacyExpansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+    private final double maxXZ = 0.3001 + (hasLegacyExpansion ? 0.1 : 0);
+    private final double minY = -0.0001 - (hasLegacyExpansion ? 0.1 : 0);
+    private final double maxY = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
@@ -43,9 +45,10 @@ public class BadPacketsT extends Check implements PacketCheck {
                 // TODO:
                 //  27/12/2023 - Dynamic values for more than just one entity type?
                 //  28/12/2023 - Player-only is fine
-                if (targetVector.y > MIN_Y && targetVector.y < MAX_Y
-                        && Math.abs(targetVector.x) < MAX_XZ
-                        && Math.abs(targetVector.z) < MAX_XZ) {
+                //  30/12/2023 - Expansions differ in 1.9+
+                if (targetVector.y > minY && targetVector.y < maxY
+                        && Math.abs(targetVector.x) < maxXZ
+                        && Math.abs(targetVector.z) < maxXZ) {
                     return;
                 }
                 // Log the vector
