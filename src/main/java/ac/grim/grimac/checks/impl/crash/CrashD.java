@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "CrashD", experimental = true)
+@CheckData(name = "CrashD", experimental = false)
 public class CrashD extends Check implements PacketCheck {
 
     public CrashD(GrimPlayer playerData) {

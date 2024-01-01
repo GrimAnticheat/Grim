@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.nmsutil.Ray;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Location;
@@ -238,6 +239,29 @@ public class SimpleCollisionBox implements CollisionBox {
     @Override
     public boolean isFullBlock() {
         return isFullBlock;
+    }
+
+    @Override
+    public boolean isSideFullBlock(BlockFace axis) {
+        if (isFullBlock) {
+            return true;
+        }
+
+        // Get the direction of block we are trying to connect to -> towards the block that is trying to connect
+        final BlockFace faceToSourceConnector = axis.getOppositeFace();
+        switch (faceToSourceConnector) {
+            case EAST:
+            case WEST:
+                return this.minX == 0 && this.maxX == 1;
+            case UP:
+            case DOWN:
+                return this.minY == 0 && this.maxY == 1;
+            case NORTH:
+            case SOUTH:
+                return this.minZ == 0 && this.maxZ == 1;
+        }
+
+        return false;
     }
 
     public boolean isFullBlockNoCache() {

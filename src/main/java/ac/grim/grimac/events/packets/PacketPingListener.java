@@ -1,8 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.impl.misc.TransactionOrder;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsS;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -35,6 +34,12 @@ public class PacketPingListener extends PacketListenerAbstract {
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
+                // check if accepted
+                if (!transaction.isAccepted()) {
+                    player.checkManager.getPacketCheck(BadPacketsS.class).flag();
+                    event.setCancelled(true);
+                    return;
+                }
                 // Check if we sent this packet before cancelling it
                 if (player.addTransactionResponse(id)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;

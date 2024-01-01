@@ -41,12 +41,15 @@ import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +68,7 @@ public class GrimPlayer implements GrimUser {
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
-    public final List<Short> didWeSendThatTrans = Collections.synchronizedList(new ArrayList<>());
+    public final Set<Short> didWeSendThatTrans = ConcurrentHashMap.newKeySet();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
@@ -352,10 +355,9 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void sendTransaction(boolean async) {
-        // don't send transactions in configuration phase
-        if (user.getDecoderState() == ConnectionState.CONFIGURATION) return;
+        // don't send transactions outside PLAY phase
         // Sending in non-play corrupts the pipeline, don't waste bandwidth when anticheat disabled
-        if (user.getConnectionState() != ConnectionState.PLAY) return;
+        if (user.getEncoderState() != ConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
         if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
@@ -402,7 +404,8 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void disconnect(Component reason) {
-        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + reason.toString());
+        final String textReason = LegacyComponentSerializer.legacySection().serialize(reason);
+        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + ChatColor.stripColor(textReason));
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
@@ -410,7 +413,7 @@ public class GrimPlayer implements GrimUser {
         }
         user.closeConnection();
         if (bukkitPlayer != null) {
-            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(reason.toString()), null, 1);
+            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(textReason), null, 1);
         }
     }
 

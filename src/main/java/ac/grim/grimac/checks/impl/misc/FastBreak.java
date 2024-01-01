@@ -30,7 +30,7 @@ import org.bukkit.entity.Player;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.fandom.com/wiki/Breaking#Instant_breaking
-@CheckData(name = "FastBreak")
+@CheckData(name = "FastBreak", experimental = false)
 public class FastBreak extends Check implements PacketCheck {
     public FastBreak(GrimPlayer playerData) {
         super(playerData);
@@ -82,10 +82,12 @@ public class FastBreak extends Check implements PacketCheck {
                     blockDelayBalance += 300 - breakDelay;
                 }
 
-                if (blockDelayBalance > 1000 && shouldModifyPackets()) { // If more than a second of advantage
-                    event.setCancelled(true); // Cancelling start digging will cause server to reject block break
-                    player.onPacketCancel();
+                if (blockDelayBalance > 1000) { // If more than a second of advantage
                     flagAndAlert("Delay=" + breakDelay);
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true); // Cancelling start digging will cause server to reject block break
+                        player.onPacketCancel();
+                    }
                 }
 
                 clampBalance();

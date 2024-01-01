@@ -82,12 +82,11 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
         return true;
     }
 
-
     @Override
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two) {
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two, BlockFace direction) {
         if (BlockTags.GLASS_PANES.contains(one) || one == StateTypes.IRON_BARS)
             return true;
         else
-            return CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
+            return CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isSideFullBlock(direction);
     }
 }

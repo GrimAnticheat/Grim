@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "BadPacketsR", decay = 0.1)
+@CheckData(name = "BadPacketsR", decay = 0.25, experimental = true)
 public class BadPacketsR extends Check implements PacketCheck {
     public BadPacketsR(final GrimPlayer player) {
         super(player);
