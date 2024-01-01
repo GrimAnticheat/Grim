@@ -252,12 +252,22 @@ public class CheckManager {
         return (T) prePredictionChecks.get(check);
     }
 
+    private PacketEntityReplication packetEntityReplication = null;
+
     public PacketEntityReplication getEntityReplication() {
-        return getPacketCheck(PacketEntityReplication.class);
+        if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
+        return packetEntityReplication;
     }
 
     public NoFallA getNoFall() {
         return getPacketCheck(NoFallA.class);
+    }
+
+    private CompensatedInventory inventory = null;
+
+    public CompensatedInventory getInventory() {
+        if (inventory == null) inventory = getPacketCheck(CompensatedInventory.class);
+        return inventory;
     }
 
     public KnockbackHandler getKnockbackHandler() {
