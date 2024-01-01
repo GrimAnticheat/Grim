@@ -367,7 +367,6 @@ public class GrimPlayer implements GrimUser {
         lastTransSent = System.currentTimeMillis();
         short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
         try {
-            addTransactionSend(transactionID);
 
             PacketWrapper<?> packet;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
@@ -377,8 +376,12 @@ public class GrimPlayer implements GrimUser {
             }
 
             if (async) {
-                ChannelHelper.runInEventLoop(user.getChannel(), () -> user.writePacket(packet));
+                ChannelHelper.runInEventLoop(user.getChannel(), () -> {
+                    addTransactionSend(transactionID);
+                    user.writePacket(packet);
+                });
             } else {
+                addTransactionSend(transactionID);
                 user.writePacket(packet);
             }
         } catch (
