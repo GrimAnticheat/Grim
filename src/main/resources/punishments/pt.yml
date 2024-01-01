@@ -7,7 +7,7 @@
 # [proxy] - comando especial para notificar os outros servidores conectados no mesmo proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
-    # Depois de quantos segundos após a violação deve expirar?
+    # Depois de quantos segundos a violação deve expirar?
     remove-violations-after: 300
     # Essa sessão combina todas as verificações com os nomes listados abaixo.
     # Para excluir uma verificação que estaria combinada, adicione uma exclamação na frente do nome.
@@ -23,7 +23,7 @@ Punishments:
     # repetir o comando:
     # - "100:0 kick %player% movimento incorreto!"
     # 0 significa executar somente uma vez.
-    # - "100:50 say %player% está cheatando!"
+    # - "100:50 say %player% está trapaceando!"
     # Executa quando o jogador alcança 100 violações e depois disso a cada 50 violações após as 100.
     #
     commands:
