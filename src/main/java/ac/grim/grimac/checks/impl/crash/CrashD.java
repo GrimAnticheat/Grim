@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -19,15 +20,15 @@ public class CrashD extends Check implements PacketCheck {
         super(playerData);
     }
 
-    private int type = -1;
+    private MenuType type = MenuType.UNKNOWN;
     private int lecternId = -1;
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW && isSupportedVersion()) {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
-            this.type = window.getType();
-            if (type == 16) lecternId = window.getContainerId();
+            this.type = MenuType.getMenuType(window.getType());
+            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
         }
     }
 
@@ -39,7 +40,7 @@ public class CrashD extends Check implements PacketCheck {
             int button = click.getButton();
             int windowId = click.getWindowId();
 
-            if (type == 16 && windowId > 0 && windowId == lecternId) {
+            if (type == MenuType.LECTERN && windowId > 0 && windowId == lecternId) {
                 if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
                     event.setCancelled(true);
                     player.onPacketCancel();

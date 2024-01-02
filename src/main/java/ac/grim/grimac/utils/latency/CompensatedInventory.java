@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -8,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
-import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
+import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import ac.grim.grimac.utils.inventory.inventory.NotImplementedMenu;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -343,11 +342,13 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
+            MenuType menuType = MenuType.getMenuType(open.getType());
+
             AbstractContainerMenu newMenu;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
-                newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
+                newMenu = MenuType.getMenuFromID(player, inventory, menuType);
             } else {
-                newMenu = MenuTypes.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
+                newMenu = MenuType.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
             }
 
             packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? UNSUPPORTED_INVENTORY_CASE : newMenu.getSlots().size();
