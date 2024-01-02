@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
@@ -27,7 +28,7 @@ public class CrashD extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW && isSupportedVersion()) {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
             this.type = window.getType();
-            if (type == 16) lecternId = window.getContainerId();
+            if (type == getLecternType()) lecternId = window.getContainerId();
         }
     }
 
@@ -39,13 +40,21 @@ public class CrashD extends Check implements PacketCheck {
             int button = click.getButton();
             int windowId = click.getWindowId();
 
-            if (type == 16 && windowId > 0 && windowId == lecternId) {
+            if (type == getLecternType() && windowId > 0 && windowId == lecternId) {
                 if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
             }
         }
+    }
+
+    private int getLecternType() {
+        int baseId = 16;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_3) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_3)) {
+            baseId++;
+        }
+        return baseId;
     }
 
     private boolean isSupportedVersion() {
