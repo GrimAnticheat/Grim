@@ -29,7 +29,7 @@ client-brand:
 spectators:
   # Esconde todos espectadores com a permissão 'grim.spectator' mesmo se não estiverem espectando ativamente.
   hide-regardless: false
-  # Fará os espectadores serem escondidos apenas nos mundos listados abaixo, deixe em brano para habilitar em todos os mundos.
+  # Fará os espectadores serem escondidos apenas nos mundos listados abaixo, deixe em branco para habilitar em todos os mundos.
   allowed-worlds:
     - ""
 
