@@ -41,6 +41,7 @@ import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -407,7 +408,13 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void disconnect(Component reason) {
-        final String textReason = LegacyComponentSerializer.legacySection().serialize(reason);
+        String textReason;
+        if (reason instanceof TranslatableComponent) {
+            TranslatableComponent translatableComponent = (TranslatableComponent) reason;
+            textReason = translatableComponent.key();
+        } else {
+            textReason = LegacyComponentSerializer.legacySection().serialize(reason);
+        }
         LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + ChatColor.stripColor(textReason));
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
