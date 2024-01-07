@@ -64,6 +64,14 @@ Punishments:
       - "5:5 [alert]"
       - "5:5 [webhook]"
       - "5:5 [proxy]"
+  GhostHand:
+    remove-violations-after: 300
+    checks:
+      - "GhostHand"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+      - "5:5 [proxy]"
   Misc:
     remove-violations-after: 300
     checks:

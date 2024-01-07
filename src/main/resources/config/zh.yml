@@ -126,6 +126,9 @@ TimerVehicle:
 EntityControl:
   setbackvl: 25
 
+GhostHand:
+  cancelVL: 1
+
 Reach:
   # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
   #
