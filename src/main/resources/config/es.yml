@@ -33,6 +33,9 @@ spectators:
   allowed-worlds:
     - ""
 
+# Activa las verificaciones de velocidad en vuelo (Desactivado por defecto debido a clientes rotos como Lunar fallando esto)
+enable-flying-checks: false
+
 # ¿Cuánto tiempo de espera debería pasar antes de expulsar un jugador por "tiempo de espera agotado"?
 # Por defecto, este valor se encuentra en 60 segundos.
 max-transaction-time: 60

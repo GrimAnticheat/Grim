@@ -33,6 +33,9 @@ spectators:
   allowed-worlds:
     - ""
 
+# Ermöglicht Geschwindigkeitsüberprüfungen beim Fliegen (standardmäßig deaktiviert aufgrund von fehlerhaften Clients wie Lunar, die dies beanstanden)
+enable-flying-checks: false
+
 # Wie lange sollen Spieler Zeit haben, bis wir sie wegen Zeitüberschreitung rauswerfen? Standard = 60 Sekunden
 max-transaction-time: 60
 

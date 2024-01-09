@@ -33,6 +33,9 @@ spectators:
   allowed-worlds:
     - ""
 
+# Permet de vérifier la vitesse en vol (désactivé par défaut en raison de clients défectueux comme Lunar qui signalent cela)
+enable-flying-checks: false
+
 # Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
 max-transaction-time: 60
 

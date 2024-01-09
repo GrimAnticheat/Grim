@@ -33,6 +33,9 @@ spectators:
   allowed-worlds:
     - ""
 
+# Enables flying speed checks (disabled by default due to broken clients like Lunar flagging this)
+enable-flying-checks: false
+
 # How long should players have until we kick them for timing out? Default = 60 seconds
 max-transaction-time: 60
 
