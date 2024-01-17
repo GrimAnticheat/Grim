@@ -143,7 +143,17 @@ public class BoatPredictionEngine extends PredictionEngine {
         List<VectorData> vectors = new ArrayList<>();
 
         for (VectorData data : possibleVectors) {
-            controlBoat(player, data.vector);
+            // Boats ignore forward steering, using raw inputs instead,
+            // so if a player tries to move in both directions, a packet will
+            // show that the player is staying, but the boat will move anyway
+            if (player.vehicleData.vehicleForward == 0) {
+                Vector vector = data.vector.clone();
+                controlBoat(player, vector, true);
+                vector.multiply(player.stuckSpeedMultiplier);
+                vectors.add(data.returnNewModified(vector, VectorData.VectorType.InputResult));
+            }
+
+            controlBoat(player, data.vector, false);
             data.vector.multiply(player.stuckSpeedMultiplier);
             vectors.add(data);
         }
@@ -250,18 +260,18 @@ public class BoatPredictionEngine extends PredictionEngine {
         return (float) (l + 1);
     }
 
-    private void controlBoat(GrimPlayer player, Vector vector) {
+    private void controlBoat(GrimPlayer player, Vector vector, boolean intermediate) {
         float f = 0.0F;
-        if (player.vehicleData.vehicleHorizontal != 0 && player.vehicleData.vehicleForward == 0) {
+        if (player.vehicleData.vehicleHorizontal != 0 && (!intermediate && player.vehicleData.vehicleForward == 0)) {
             f += 0.005F;
         }
 
         //player.boatData.yRot += player.boatData.deltaRotation;
-        if (player.vehicleData.vehicleForward > 0.1) {
+        if (intermediate || player.vehicleData.vehicleForward > 0.1) {
             f += 0.04F;
         }
 
-        if (player.vehicleData.vehicleForward < -0.01) {
+        if (intermediate || player.vehicleData.vehicleForward < -0.01) {
             f -= 0.005F;
         }
 
