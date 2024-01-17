@@ -113,6 +113,10 @@ TimerA:
   # Milliseconds that the player can accumulate for later use when they fall behind
   # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
   drift: 120
+  # Ping at which the check will start to limit timer balance, to prevent abuse.
+  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+  # -1 to disable
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Number of milliseconds lost while moving before we should start flagging

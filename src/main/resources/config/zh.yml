@@ -113,6 +113,10 @@ TimerA:
   # 玩家卡顿时可以累积以供以后使用的毫秒数
   # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
   drift: 120
+  # Ping at which the check will start to limit timer balance, to prevent abuse.
+  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+  # -1 to disable
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Number of milliseconds lost while moving before we should start flagging

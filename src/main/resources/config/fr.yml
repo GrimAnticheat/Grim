@@ -114,6 +114,10 @@ TimerA:
   # Le nombre de millisecondes que le joueur peut accumuler pour une utilisation ultérieure lorsqu'il prend du retard.
   # Si la valeur est trop élevée, cela pourrait potentiellement permettre de contourner les mécaniques 1.8, comme l'utilisation rapide, la guérison rapide et le tir à l'arc rapide. Une valeur de 120 ms semble être un bon équilibre.
   drift: 120
+  # Ping at which the check will start to limit timer balance, to prevent abuse.
+  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+  # -1 to disable
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Le nombre de millisecondes perdus pendant le déplacement avant de commencer à signaler des infractions.
