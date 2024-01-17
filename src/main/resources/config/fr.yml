@@ -147,6 +147,9 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
+  # Cette option atténue le placement du joueur sur les ghostblocks en resynchronisant le joueur lorsque cela se produit.
+  allow-building-on-ghostblocks: true
+  distance-to-check-if-ghostblocks: 2
 
 # Activer l'enregistrement des plugins ayant injecté dans Netty lors de la connexion pour déboguer les problèmes de compatibilité
 debug-pipeline-on-join: false

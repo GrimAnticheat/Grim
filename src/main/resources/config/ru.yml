@@ -147,6 +147,9 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
+  # Эта опция смягчает размещение игрока на блоках-призраках, ресинхронизируя его, когда это происходит.
+  allow-building-on-ghostblocks: true
+  distance-to-check-if-ghostblocks: 2
 
 # Включить запись в журнал плагинов, которые внедрились в netty при присоединении для отладки проблем совместимости
 debug-pipeline-on-join: false

@@ -146,7 +146,11 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
-
+  # Diese Option verhindert das Platzieren von Geisterblöcken auf weitere Geisterblöcke, indem der Spieler neu synchronisiert wird.
+  allow-building-on-ghostblocks: true
+  # Diese Option, abhängig von der oben genannten Einstellung, definiert wie weit man nach Geisterblöcken suchen soll
+  # Ihr gültiger Bereich ist von 2 bis 4 begrenzt
+  distance-to-check-if-ghostblocks: 2
 
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false
