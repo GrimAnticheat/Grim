@@ -115,6 +115,10 @@ TimerA:
   # Pode permitir o uso de fast use / fast heal / fast bow na 1.8 caso o valor seja definido muito alto. 120ms parece
   # um bom balanceamento.
   drift: 120
+  # Ping no qual a verificação vai começar a limitar o balançeamento do timer para previnir abuso.
+  # Pode causar recuos a jogadores legítmos, mas somente se estiverem acima deste ping.
+  # -1 desabilitará
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Número de milissegundos perdidos ao se mover antes de começarmos a adicionar violações.
