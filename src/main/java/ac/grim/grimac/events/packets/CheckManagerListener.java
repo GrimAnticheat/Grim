@@ -361,7 +361,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Mark that we want this packet to be cancelled from reaching the server
             // Since we delay USE_ITEM until the next valid flying packet, this is not an issue.
             // Additionally, only yaw/pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
-            player.packetStateData.cancelDuplicatePacket = true;
+            // 1.9+ isn't impacted by this packet as much.
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                player.packetStateData.cancelDuplicatePacket = true;
+            } else {
+                // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
+                flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
+            }
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 

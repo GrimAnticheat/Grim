@@ -48,7 +48,10 @@ public class EnforceUseItemStupidity extends PacketListenerAbstract {
                 player.packetStateData.detectedStupidity = false;
 
                 // Possibly delay this USE_ITEM packet.
-                player.checkManager.getPacketCheck(UseItemDelayer.class).addDelayed(event);
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                    player.checkManager.getPacketCheck(UseItemDelayer.class).addDelayed(event);
+                }
+
                 player.packetStateData.stupidityRotChanged = false;
 
 //                player.packetStateData.lastStupidity = null;

@@ -6,7 +6,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -16,10 +15,12 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.Locale;
+
+// For 1.9+ clients -> 1.8 servers only.
 public class UseItemDelayer extends Check implements PacketCheck {
 
     // EvictingQueue to prevent spamming this
@@ -35,16 +36,10 @@ public class UseItemDelayer extends Check implements PacketCheck {
         // Use item packets are delayed until we have a valid flying packet
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
             for (DelayedUseItem delayedUseItemPacket : delayedUseItemPackets) {
-                PacketWrapper<?> packet;
-                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
-                    packet = new WrapperPlayClientPlayerBlockPlacement(delayedUseItemPacket.interactionHand, delayedUseItemPacket.blockPosition, delayedUseItemPacket.face, delayedUseItemPacket.cursorPosition, delayedUseItemPacket.itemStack, delayedUseItemPacket.insideBlock, delayedUseItemPacket.sequence);
-                } else {
-                    final WrapperPlayClientUseItem useItem = new WrapperPlayClientUseItem(delayedUseItemPacket.interactionHand);
-                    useItem.setSequence(delayedUseItemPacket.getSequence());
-                    packet = useItem;
-                }
+                PacketWrapper<?> packet = new WrapperPlayClientPlayerBlockPlacement(delayedUseItemPacket.interactionHand, delayedUseItemPacket.blockPosition, delayedUseItemPacket.face, delayedUseItemPacket.cursorPosition, delayedUseItemPacket.itemStack, delayedUseItemPacket.insideBlock, delayedUseItemPacket.sequence);
 
                 // Receive after flying has been received by the server
+                // PE doesn't seem to have a proper way to do this, but this works only with runInEventLoop.
                 event.getPostTasks().add(() -> ChannelHelper.runInEventLoop(player.user.getChannel(), () -> {
                     PacketEvents.getAPI().getPlayerManager().receivePacketSilently(player.bukkitPlayer, packet);
                 }));
@@ -63,20 +58,14 @@ public class UseItemDelayer extends Check implements PacketCheck {
         DelayedUseItem delayed;
 
         // This is USE_ITEM but translated by via
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
-            final WrapperPlayClientPlayerBlockPlacement placement = new WrapperPlayClientPlayerBlockPlacement(event);
-            hand = placement.getHand();
-            delayed = new DelayedUseItem(placement.getHand(), placement.getBlockPosition(), placement.getFace(), placement.getCursorPosition(), placement.getItemStack().orElse(null), placement.getInsideBlock().orElse(null), placement.getSequence());
-        } else {
-            final WrapperPlayClientUseItem useItem = new WrapperPlayClientUseItem(event);
-            hand = useItem.getHand();
-            delayed = new DelayedUseItem(useItem.getHand(), null, null, null, null, null, useItem.getSequence());
-        }
+        final WrapperPlayClientPlayerBlockPlacement placement = new WrapperPlayClientPlayerBlockPlacement(event);
+        hand = placement.getHand();
+        delayed = new DelayedUseItem(placement.getHand(), placement.getBlockPosition(), placement.getFace(), placement.getCursorPosition(), placement.getItemStack().orElse(null), placement.getInsideBlock().orElse(null), placement.getSequence());
 
-        // Only delay if it comes from a bucket, as this is the purpose of this packet
-        // Otherwise just pass use item
+        // Only delay if it comes from a bucket item, as this is the purpose of the stupidity packet.
+        // Otherwise just allow use item to pass instantly
         ItemStack stack = hand == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
-        if (stack.getType().getName().getKey().contains("BUCKET")) return;
+        if (!stack.getType().getName().getKey().toLowerCase(Locale.ROOT).contains("bucket")) return;
 
         delayedUseItemPackets.add(delayed);
         event.setCancelled(true);
