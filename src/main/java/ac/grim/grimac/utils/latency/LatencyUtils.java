@@ -16,8 +16,20 @@ public class LatencyUtils {
     }
 
     public void addRealTimeTask(int transaction, Runnable runnable) {
+        addRealTimeTask(transaction, false, runnable);
+    }
+
+    public void addRealTimeTaskAsync(int transaction, Runnable runnable) {
+        addRealTimeTask(transaction, true, runnable);
+    }
+
+    public void addRealTimeTask(int transaction, boolean async, Runnable runnable) {
         if (player.lastTransactionReceived.get() >= transaction) { // If the player already responded to this transaction
-            ChannelHelper.runInEventLoop(player.user.getChannel(), runnable); // Run it sync to player channel
+            if (async) {
+                ChannelHelper.runInEventLoop(player.user.getChannel(), runnable); // Run it sync to player channel
+            } else {
+                runnable.run();
+            }
             return;
         }
         synchronized (this) {
