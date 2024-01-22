@@ -92,6 +92,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
             player.getSetbackTeleportUtil().lastKnownGoodPosition = null;
 
+            // clear server entity positions when the world changes
+            if (isWorldChange(player, respawn)) {
+                player.compensatedEntities.serverPositionsMap.clear();
+            }
+
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 player.isSneaking = false;
@@ -110,7 +115,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
-                if (respawn.getDimension().getId() != player.dimension.getId() || !Objects.equals(respawn.getDimension().getDimensionName(), player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
+                if (isWorldChange(player, respawn)) {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
@@ -139,4 +144,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             });
         }
     }
+
+    private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
+       return respawn.getDimension().getId() != player.dimension.getId() || !Objects.equals(respawn.getDimension().getDimensionName(), player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes());
+    }
+
 }
