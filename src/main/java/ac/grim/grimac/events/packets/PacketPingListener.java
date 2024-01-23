@@ -73,13 +73,14 @@ public class PacketPingListener extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
             WrapperPlayServerWindowConfirmation confirmation = new WrapperPlayServerWindowConfirmation(event);
             short id = confirmation.getActionId();
-
+            //
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+            player.packetStateData.lastServerTransWasValid = false;
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
-
-                if (player.didWeSendThatTrans.remove((Short) id)) {
+                if (player.didWeSendThatTrans.remove(id)) {
+                    player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                 }
@@ -88,15 +89,17 @@ public class PacketPingListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Server.PING) {
             WrapperPlayServerPing pong = new WrapperPlayServerPing(event);
-
             int id = pong.getId();
+            //
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+            player.packetStateData.lastServerTransWasValid = false;
             // Check if in the short range, we only use short range
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
                 // Cast ID twice so we can use the list
                 Short shortID = ((short) id);
                 if (player.didWeSendThatTrans.remove(shortID)) {
+                    player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                 }

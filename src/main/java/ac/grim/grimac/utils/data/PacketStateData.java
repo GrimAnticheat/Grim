@@ -24,4 +24,6 @@ public class PacketStateData {
 
     public float lastHealth, lastSaturation;
     public int lastFood;
+    public boolean lastServerTransWasValid = false;
+
 }
