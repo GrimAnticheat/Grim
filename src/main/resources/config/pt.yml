@@ -117,7 +117,7 @@ TimerA:
   drift: 120
   # Ping no qual a verificação vai começar a limitar o balançeamento do timer para previnir abuso.
   # Pode causar recuos a jogadores legítmos, mas somente se estiverem acima deste ping.
-  # -1 desabilitará
+  # -1 desabilitará.
   ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
@@ -159,6 +159,11 @@ exploit:
   # As Elytras levam 0.99 de fricção horizontal, então constantemente adicionando 0.2 de velocidade horizontal resulta
   # em velocidades altíssimas.
   allow-sprint-jumping-when-using-elytra: true
+  # Essa opção mitiga o posicionamento de blocos em blocos fantasmas, ressincronizando o jogador quando isso ocorrer.
+  allow-building-on-ghostblocks: true
+  # Este ajuste, influenciado pelo booleano acima, define a distância para verificar blocos fantasmas.
+  # Seu intervalo válido é limitado de 2 a 4.
+  distance-to-check-if-ghostblocks: 2
 
 # Habilita registrar plugins que são injetados na netty ao entrar para depurar erros de compatibilidade.
 debug-pipeline-on-join: false
