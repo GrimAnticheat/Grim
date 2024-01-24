@@ -347,6 +347,10 @@ public class GrimPlayer implements GrimUser {
             return 0f;
         }
 
+        if (EntityTypes.isTypeInstanceOf(compensatedEntities.getSelf().getRiding().type, EntityTypes.CAMEL)) {
+            return 1.5f;
+        }
+
         // Pigs, horses, striders, and other vehicles all have 1 stepping height
         return 1.0f;
     }
@@ -593,6 +597,8 @@ public class GrimPlayer implements GrimUser {
 
     public void handleMountVehicle(int vehicleID) {
         compensatedEntities.serverPlayerVehicle = vehicleID;
+        LogUtil.info("rsetted cooldown");
+        vehicleData.dashCooldown = 0;
         TrackerData data = compensatedEntities.getTrackedEntity(vehicleID);
 
         if (data != null) {

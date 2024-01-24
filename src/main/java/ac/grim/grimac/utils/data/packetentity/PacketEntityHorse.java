@@ -8,8 +8,10 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public boolean isRearing = false;
     public boolean hasSaddle = false;
     public boolean isTame = false;
+    public boolean isDashing = false;
     public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.225f;
+
 
     public PacketEntityHorse(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
         super(player, type, x, y, z, xRot);
@@ -17,6 +19,11 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {
             jumpStrength = 0.5;
             movementSpeedAttribute = 0.175f;
+        }
+
+        if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
+            jumpStrength = 0.42f;
+            movementSpeedAttribute = 0.09f;
         }
 
         if (type == EntityTypes.ZOMBIE_HORSE || type == EntityTypes.SKELETON_HORSE) {

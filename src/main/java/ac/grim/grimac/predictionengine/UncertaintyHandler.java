@@ -5,12 +5,14 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.LastInstance;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
 
@@ -299,6 +301,14 @@ public class UncertaintyHandler {
             offset -= 0.03;
         }
         // This is the end of that section.
+
+
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
+            PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
+            if (horse.isDashing && player.compensatedEntities.hasSprintingAttributeEnabled) {
+                offset -= 0.1;
+            }
+        }
 
         // I can't figure out how the client exactly tracks boost time
         if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
