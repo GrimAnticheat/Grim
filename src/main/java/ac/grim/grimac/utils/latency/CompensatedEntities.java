@@ -185,7 +185,9 @@ public class CompensatedEntities {
 
         PacketEntity packetEntity;
 
-        if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
+        if (EntityTypes.CAMEL.equals(entityType)) {
+            packetEntity = new PacketEntityCamel(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (entityType == EntityTypes.SLIME || entityType == EntityTypes.MAGMA_CUBE || entityType == EntityTypes.PHANTOM) {
             packetEntity = new PacketEntitySizeable(player, entityType, position.getX(), position.getY(), position.getZ());
@@ -388,6 +390,18 @@ public class CompensatedEntities {
                     ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                     ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
                 }
+
+                // track camel dashing
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20)) {
+                    if (entity instanceof PacketEntityCamel) {
+                        PacketEntityCamel camel = (PacketEntityCamel) entity;
+                        EntityData entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
+                        if (entityData != null) {
+                            camel.dashing = (boolean) entityData.getValue();
+                        }
+                    }
+                }
+
             } else {
                 EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {
