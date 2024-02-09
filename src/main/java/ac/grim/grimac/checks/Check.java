@@ -113,6 +113,10 @@ public class Check implements AbstractCheck {
         return false;
     }
 
+    public boolean isAboveSetbackVl() {
+        return getViolations() > setbackVL;
+    }
+
     public String formatOffset(double offset) {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
     }

@@ -88,7 +88,7 @@ public class TimerCheck extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
 
-                player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+                if (isAboveSetbackVl()) player.getSetbackTeleportUtil().executeNonSimulatingSetback();
 
                 if (wouldFailNormal) {
                     // Only alert if we would fail without adjusted limit
