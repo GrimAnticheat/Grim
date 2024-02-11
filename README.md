@@ -4,16 +4,16 @@ This project is considered feature complete for the 2.0 (open-source) branch of 
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open source Minecraft anticheat designed for 1.20 and supports 1.8-1.20. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
+GrimAC is an open source Minecraft anticheat designed for 1.20 and supports 1.8-1.20. It is free while in beta. It will eventually become paid and/or will include offering additional subscription based paid checks. Geyser players are fully exempt.
 
 ### Compiling through terminal/command prompt
-1. git clone https://github.com/GrimAnticheat/Grim (or click green code button, download code, then unzip)
+1. git clone https://github.com/GrimAnticheat/Grim.git (or click the green code button, download ZIP, then unzip it.)
 2. cd Grim
 3. gradlew build
 4. The final jar is located in build/libs
 
 ### API Information
-Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's github repository [here](https://github.com/GrimAnticheat/GrimAPI).
+Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's GitHub repository [here](https://github.com/GrimAnticheat/GrimAPI).
 
 ## Grim supremacy
 
@@ -48,7 +48,7 @@ Here are the main cores that make Grim stand out against other anticheats
 * The anticheat keeps a replica of the world for each player
 * The replica is created by listening to chunk data packets, block places, and block changes
 * On all versions, chunks are compressed to 16-64 kb per chunk using palettes
-* Using this cache, the anticheat can safety access the world state
+* Using this cache, the anticheat can safely access the world state
 * Per player, the cache allows for multithreaded design
 * Sending players fake blocks with packets is safe and does not lead to falses
 * The world is recreated for each player to allow lag compensation
