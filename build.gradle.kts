@@ -23,7 +23,7 @@ repositories {
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
     maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-    maven("https://repo.codemc.io/repository/maven-snapshots/") // PacketEvents
+    maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
     mavenCentral()
     // FastUtil, Discord-Webhooks
 }
