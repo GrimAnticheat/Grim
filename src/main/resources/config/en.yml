@@ -169,4 +169,10 @@ experimental-checks: false
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-config-version: 9
+# Hitbox size were reduce in 1.9 (0.8x2.0 -> 0.6x1.8) to be more accurate with diplay hitbox in F3 + b
+# However this is unfair for 1.9+ players on 1.8 and some plugins want do bring back this behaviour
+# Enable this option to apply the same check for 1.9+ players as 1.8
+# Let it disable if you don't know what it deals with
+legacy-hitbox: false
+
+config-version: 10

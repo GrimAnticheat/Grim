@@ -166,4 +166,10 @@ experimental-checks: false
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100
 
-config-version: 9
+# Die Hitbox-Größe wurde in 1.9 reduziert (0,8x2,0 -> 0,6x1,8), um genauer mit der Hitbox-Anzeige in F3 + b übereinzustimmen
+# Dies ist jedoch unfair für 1.9+ Spieler in 1.8 und einige Plugins möchten dieses Verhalten zurückbringen
+# Aktivieren Sie diese Option, um die gleiche Überprüfung für 1.9+ Spieler wie in 1.8 anzuwenden
+# Lassen Sie es deaktiviert, wenn Sie nicht wissen, worum es sich handelt
+legacy-hitbox: false
+
+config-version: 10

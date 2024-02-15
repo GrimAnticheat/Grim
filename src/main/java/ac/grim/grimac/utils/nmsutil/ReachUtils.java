@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
@@ -177,7 +178,7 @@ public class ReachUtils {
 
     public static double getMinReachToBox(GrimPlayer player, SimpleCollisionBox targetBox) {
         boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
+        if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("legacy-hitbox", false) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
 
         double lowest = Double.MAX_VALUE;
 

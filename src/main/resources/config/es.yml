@@ -171,4 +171,10 @@ experimental-checks: false
 # no cuentan los paquetes cancelados por Grim.
 packet-spam-threshold: 100
 
-config-version: 9
+# El tamaño del hitbox se redujo en 1.9 (0.8x2.0 -> 0.6x1.8) para ser más preciso con el hitbox mostrado en F3 + b
+# Sin embargo, esto es injusto para los jugadores de 1.9+ en 1.8 y algunos complementos desean recuperar este comportamiento
+# Habilita esta opción para aplicar la misma comprobación para jugadores de 1.9+ como en 1.8
+# Déjalo desactivado si no sabes con qué trata
+legacy-hitbox: false
+
+config-version: 10

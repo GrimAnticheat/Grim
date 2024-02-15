@@ -176,4 +176,10 @@ experimental-checks: false
 # cancelados pelo Grim.
 packet-spam-threshold: 100
 
-config-version: 9
+# O tamanho da hitbox foi reduzido na versão 1.9 (0.8x2.0 -> 0.6x1.8) para ser mais preciso com a hitbox exibida em F3 + b
+# No entanto, isso é injusto para os jogadores de 1.9+ na versão 1.8 e alguns plugins querem trazer de volta esse comportamento
+# Ative esta opção para aplicar a mesma verificação para jogadores de 1.9+ como em 1.8
+# Deixe desativado se você não sabe com o que trata
+legacy-hitbox: false
+
+config-version: 10

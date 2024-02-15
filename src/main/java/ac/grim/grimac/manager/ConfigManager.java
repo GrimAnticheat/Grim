@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 9");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 10");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -150,6 +150,9 @@ public class ConfigManager {
         }
         if (configVersion < 9) {
             newOffsetHandlingAntiKB(config, configString);
+        }
+        if (configVersion < 10) {
+            addLegacyHitbox(config, configString);
         }
     }
 
@@ -312,6 +315,15 @@ public class ConfigManager {
                         "  # This is to stop the player from gathering too many violations and never being able to clear them all\n" +
                         "  max-ceiling: 4"
         );
+        Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void addLegacyHitbox(File config, String configString) throws IOException {
+        configString += "\n# Hitbox size were reduce in 1.9 (0.8x2.0 -> 0.6x1.8) to be more accurate with diplayed hitbox in F3 + b\n" +
+                "# However this is unfair for 1.9+ players on 1.8 servers and some plugins want do bring back this behaviour\n" +
+                "# Enable this option to apply the same check for 1.9+ players as 1.8\n" +
+                "# Let it disable if you don't know what it is talking about\n" +
+                "legacy-hitbox: false\n";
         Files.write(config.toPath(), configString.getBytes());
     }
 }
