@@ -23,10 +23,11 @@ public class BadPacketsL extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            // 1.7 clients flag this for some reason
-            if (packet.getAction() == DiggingAction.RELEASE_USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                // The client only sends this packet in one place, with BlockPos.ZERO and Direction.DOWN
-                if (packet.getBlockFace() != BlockFace.DOWN
+            if (packet.getAction() == DiggingAction.RELEASE_USE_ITEM) {
+                // 1.8 and above clients only send this packet in one place, with BlockPos.ZERO and Direction.DOWN
+                // 1.7 and below clients send this packet in the same place, except use Direction.SOUTH
+                if ((packet.getBlockFace() != BlockFace.DOWN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
+                        || (packet.getBlockFace() != BlockFace.SOUTH && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
                         || packet.getBlockPosition().getX() != 0
                         || packet.getBlockPosition().getY() != 0
                         || packet.getBlockPosition().getZ() != 0) {
