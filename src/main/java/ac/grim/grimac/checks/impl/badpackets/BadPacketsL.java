@@ -26,8 +26,8 @@ public class BadPacketsL extends Check implements PacketCheck {
             if (packet.getAction() == DiggingAction.RELEASE_USE_ITEM) {
                 // 1.8 and above clients only send this packet in one place, with BlockPos.ZERO and Direction.DOWN
                 // 1.7 and below clients send this packet in the same place, except use Direction.SOUTH
-                if ((packet.getBlockFace() != BlockFace.DOWN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
-                        || (packet.getBlockFace() != BlockFace.SOUTH && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
+                final BlockFace expectedFace = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? BlockFace.DOWN : BlockFace.SOUTH;
+                if (packet.getBlockFace() != expectedFace
                         || packet.getBlockPosition().getX() != 0
                         || packet.getBlockPosition().getY() != 0
                         || packet.getBlockPosition().getZ() != 0) {
