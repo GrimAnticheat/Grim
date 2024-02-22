@@ -36,7 +36,7 @@ dependencies {
     implementation("org.jetbrains:annotations:23.1.0") // Why is this needed to compile?
     implementation("github.scarsz:configuralize:1.4.0")
 
-    implementation("com.github.grimanticheat:grimapi:c3a80bdea5")
+    implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")

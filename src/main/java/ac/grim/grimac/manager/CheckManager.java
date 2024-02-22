@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.AbstractCheck;
+
+import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
