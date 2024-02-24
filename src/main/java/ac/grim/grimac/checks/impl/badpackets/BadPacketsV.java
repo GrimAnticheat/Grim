@@ -7,9 +7,13 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3f;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "BadPacketsV")
@@ -28,13 +32,17 @@ public class BadPacketsV extends Check implements PacketCheck {
                 // except y gets wrapped?
                 final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
 
-                if (packet.getBlockPosition().getX() != -1
-                        || packet.getBlockPosition().getY() != expectedY
-                        || packet.getBlockPosition().getZ() != -1
-                        || packet.getCursorPosition().getX() != 0
-                        || packet.getCursorPosition().getY() != 0
-                        || packet.getCursorPosition().getZ() != 0
-                        || !packet.getItemStack().isPresent() // never sent when not holding anything
+                final Vector3i pos = packet.getBlockPosition();
+                final Vector3f cursor = packet.getCursorPosition();
+                final ItemStack item = packet.getItemStack().get();
+
+                if (pos.getX() != -1
+                        || pos.getY() != expectedY
+                        || pos.getZ() != -1
+                        || cursor.getX() != 0
+                        || cursor.getY() != 0
+                        || cursor.getZ() != 0
+                        || item.is(ItemTypes.AIR) // never sent when not holding anything
                 ) flagAndAlert();
             }
         }
