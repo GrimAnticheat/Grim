@@ -11,6 +11,8 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
+import java.util.Locale;
+
 //checks for impossible dig packets
 @CheckData(name = "BadPacketsL")
 public class BadPacketsL extends Check implements PacketCheck {
@@ -22,16 +24,27 @@ public class BadPacketsL extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            // 1.7 clients flag this for some reason
-            if (packet.getAction() == DiggingAction.RELEASE_USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                // The client only sends this packet in one place, with BlockPos.ZERO and Direction.DOWN
-                if (packet.getBlockFace() != BlockFace.DOWN
-                        || packet.getBlockPosition().getX() != 0
-                        || packet.getBlockPosition().getY() != 0
-                        || packet.getBlockPosition().getZ() != 0) {
-                    flagAndAlert();
-                }
+            final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+
+            final boolean isUsedForDigging = packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING;
+            if (isUsedForDigging) {
+                return;
+            }
+
+            // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
+            // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
+            final BlockFace expectedFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && packet.getAction() == DiggingAction.RELEASE_USE_ITEM
+                    ? BlockFace.SOUTH : BlockFace.DOWN;
+
+            if (packet.getBlockFace() != expectedFace
+                    || packet.getBlockPosition().getX() != 0
+                    || packet.getBlockPosition().getY() != 0
+                    || packet.getBlockPosition().getZ() != 0
+            ) {
+                flagAndAlert("xyzF="
+                        + packet.getBlockPosition().getX() + ", " + packet.getBlockPosition().getY() + ", " + packet.getBlockPosition().getZ() + ", " + packet.getBlockFace()
+                        + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getVersionName()
+                );
             }
         }
     }
