@@ -46,11 +46,16 @@ public class BadPacketsV extends Check implements PacketCheck {
                         || cursor.x != 0
                         || cursor.y != 0
                         || cursor.z != 0
-                ) flagAndAlert(
-                        "xyz=" + pos.x + ", " + pos.y + ", " + pos.z
-                        + ", cursor=" + cursor.x + ", " + cursor.y + ", " + cursor.z
-                        + ", item=" + !failedItemCheck
-                );
+                ) {
+                    final String verbose = String.format(
+                            "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s",
+                            pos.x, pos.y, pos.z, cursor.x, cursor.y, cursor.z, !failedItemCheck
+                    );
+                    if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                        player.onPacketCancel();
+                        event.setCancelled(true);
+                    }
+                }
             }
         }
     }
