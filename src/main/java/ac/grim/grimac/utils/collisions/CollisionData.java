@@ -1177,7 +1177,7 @@ public enum CollisionData {
         }
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
-    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
+    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.CAVE_AIR, StateTypes.VOID_AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
