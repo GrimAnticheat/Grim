@@ -46,7 +46,11 @@ public class BadPacketsV extends Check implements PacketCheck {
                         || cursor.x != 0
                         || cursor.y != 0
                         || cursor.z != 0
-                ) flagAndAlert();
+                ) flagAndAlert(
+                        "xyz=" + pos.x + ", " + pos.y + ", " + pos.z
+                        + ", cursor=" + cursor.x + ", " + cursor.y + ", " + cursor.z
+                        + ", item=" + !failedItemCheck
+                );
             }
         }
     }
