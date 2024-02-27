@@ -10,9 +10,13 @@ public class PacketEventsInit implements Initable {
     @Override
     public void start() {
         LogUtil.info("Loading PacketEvents...");
-
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(GrimAPI.INSTANCE.getPlugin()));
-        PacketEvents.getAPI().getSettings().bStats(true).checkForUpdates(false).debug(false);
+        PacketEvents.getAPI().getSettings()
+                .bStats(true)
+                .fullStackTrace(true)
+                .kickOnPacketException(true)
+                .checkForUpdates(false)
+                .debug(false);
         PacketEvents.getAPI().load();
     }
 }
