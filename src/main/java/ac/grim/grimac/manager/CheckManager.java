@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.AbstractCheck;
+
+import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -143,6 +144,7 @@ public class CheckManager {
                 .put(CrashE.class, new CrashE(player))
                 .put(CrashF.class, new CrashF(player))
                 .put(CrashG.class, new CrashG(player))
+                .put(CrashH.class, new CrashH(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))

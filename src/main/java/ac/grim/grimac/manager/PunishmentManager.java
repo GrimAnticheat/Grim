@@ -1,9 +1,9 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.events.CommandExecuteEvent;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -13,7 +13,6 @@ import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;

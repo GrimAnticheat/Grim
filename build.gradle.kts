@@ -10,7 +10,7 @@ plugins {
 
 
 group = "ac.grim.grimac"
-version = "2.3.55"
+version = "2.3.59"
 description = "Libre simulation anticheat designed for 1.20 with 1.8-1.20 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -23,20 +23,20 @@ repositories {
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
     maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-    maven("https://repo.codemc.io/repository/maven-snapshots/") // PacketEvents
+    maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
     mavenCentral()
     // FastUtil, Discord-Webhooks
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.2.0")
+    implementation("com.github.retrooper.packetevents:spigot:2.2.1")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
-    implementation("club.minnced:discord-webhooks:0.8.0")
-    implementation("it.unimi.dsi:fastutil:8.5.9")
+    implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
+    implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("org.jetbrains:annotations:23.1.0") // Why is this needed to compile?
     implementation("github.scarsz:configuralize:1.4.0")
 
-    implementation("com.github.grimanticheat:grimapi:c3a80bdea5")
+    implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
@@ -128,7 +128,8 @@ tasks.shadowJar {
     archiveFileName.set("${project.name}-${project.version}.jar")
     relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
     relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
-    relocate("co.aikar.acf", "ac.grim.grimac.shaded.acf")
+    relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
+    relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
     relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
     relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
     relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")

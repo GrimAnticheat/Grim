@@ -23,6 +23,12 @@ public class PacketEntitySelf extends PacketEntity {
         this.player = player;
     }
 
+    public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
+        super(EntityTypes.PLAYER);
+        this.player = player;
+        this.opLevel = old.opLevel;
+    }
+
     public boolean inVehicle() {
         return getRiding() != null;
     }

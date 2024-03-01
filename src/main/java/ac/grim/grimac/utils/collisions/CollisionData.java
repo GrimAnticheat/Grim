@@ -1177,12 +1177,12 @@ public enum CollisionData {
         }
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
-    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
+    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.CAVE_AIR, StateTypes.VOID_AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
-    private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();
+    private static final Map<StateType, CollisionData> rawLookupMap = new IdentityHashMap<>();
 
     static {
         for (CollisionData data : values()) {

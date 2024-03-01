@@ -187,7 +187,97 @@ public enum HitboxData {
         final SimpleCollisionBox[] LOWER_SHAPE_BY_AGE = new SimpleCollisionBox[]{COLLISION_SHAPE_BULB, new HexCollisionBox(3.0D, -1.0D, 3.0D, 13.0D, 14.0D, 13.0D), FULL_LOWER_SHAPE, FULL_LOWER_SHAPE, FULL_LOWER_SHAPE};
 
         return data.getHalf() == Half.UPPER ? UPPER_SHAPE_BY_AGE[Math.min(Math.abs(4 - (data.getAge() + 1)), UPPER_SHAPE_BY_AGE.length - 1)] : LOWER_SHAPE_BY_AGE[data.getAge()];
-    }, StateTypes.PITCHER_CROP);
+    }, StateTypes.PITCHER_CROP),
+
+    BUTTON((player, item, version, data, x, y, z) -> {
+        final BlockFace facing = data.getFacing();
+        final boolean powered = data.isPowered();
+        switch (data.getFace()) {
+            case FLOOR:
+                // x axis
+                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+                    return powered ? new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 1.0, 11.0) : new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 2.0, 11.0);
+                }
+
+                return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
+            case WALL:
+                CollisionBox shape;
+                switch (facing) {
+                    case EAST:
+                        shape = powered ? new HexCollisionBox(0.0, 6.0, 5.0, 1.0, 10.0, 11.0) : new HexCollisionBox(0.0, 6.0, 5.0, 2.0, 10.0, 11.0);
+                        break;
+                    case WEST:
+                        shape = powered ? new HexCollisionBox(15.0, 6.0, 5.0, 16.0, 10.0, 11.0) : new HexCollisionBox(14.0, 6.0, 5.0, 16.0, 10.0, 11.0);
+                        break;
+                    case SOUTH:
+                        shape = powered ? new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 1.0) : new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 2.0);
+                        break;
+                    case NORTH:
+                    case UP:
+                    case DOWN:
+                        shape = powered ? new HexCollisionBox(5.0, 6.0, 15.0, 11.0, 10.0, 16.0) : new HexCollisionBox(5.0, 6.0, 14.0, 11.0, 10.0, 16.0);
+                        break;
+                    default:
+                        shape = NoCollisionBox.INSTANCE;
+                }
+
+                return shape;
+            case CEILING:
+            default:
+                // x axis
+                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+                    return powered ? new HexCollisionBox(6.0, 15.0, 5.0, 10.0, 16.0, 11.0) : new HexCollisionBox(6.0, 14.0, 5.0, 10.0, 16.0, 11.0);
+                } else {
+                    return powered ? new HexCollisionBox(5.0, 15.0, 6.0, 11.0, 16.0, 10.0) : new HexCollisionBox(5.0, 14.0, 6.0, 11.0, 16.0, 10.0);
+                }
+        }
+    }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
+
+    WALL_SIGN((player, item, version, data, x, y, z) -> {
+        switch (data.getFacing()) {
+            case NORTH:
+                return new HexCollisionBox(0.0, 4.5, 14.0, 16.0, 12.5, 16.0);
+            case SOUTH:
+                return new HexCollisionBox(0.0, 4.5, 0.0, 16.0, 12.5, 2.0);
+            case EAST:
+                return new HexCollisionBox(0.0, 4.5, 0.0, 2.0, 12.5, 16.0);
+            case WEST:
+                return new HexCollisionBox(14.0, 4.5, 0.0, 16.0, 12.5, 16.0);
+            default:
+                return NoCollisionBox.INSTANCE;
+        }
+    }, BlockTags.WALL_SIGNS.getStates().toArray(new StateType[0])),
+
+    WALL_HANGING_SIGN((player, item, version, data, x, y, z) -> {
+        switch (data.getFacing()) {
+            case NORTH:
+            case SOUTH:
+                return new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
+                        new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
+            default:
+                return new ComplexCollisionBox(new HexCollisionBox(6.0D, 14.0D, 0.0D, 10.0D, 16.0D, 16.0D),
+                        new HexCollisionBox(7.0D, 0.0D, 1.0D, 9.0D, 10.0D, 15.0D));
+        }
+    }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+
+    STANDING_SIGN((player, item, version, data, x, y, z) ->
+            new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0),
+            BlockTags.STANDING_SIGNS.getStates().toArray(new StateType[0])),
+
+    REDSTONE_WIRE((player, item, version, data, x, y, z) ->
+            // Easier to just use no collision box
+            // Redstone wire is very complex with its collision shapes and has many de-syncs
+            NoCollisionBox.INSTANCE,
+            StateTypes.REDSTONE_WIRE),
+
+    FIRE((player, item, version, data, x, y, z) ->
+            NoCollisionBox.INSTANCE,
+            BlockTags.FIRE.getStates().toArray(new StateType[0])),
+
+    BANNER(((player, item, version, data, x, y, z) ->
+            new SimpleCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
+            BlockTags.BANNERS.getStates().toArray(new StateType[0]));
+
 
     private static final Map<StateType, HitboxData> lookup = new HashMap<>();
 
