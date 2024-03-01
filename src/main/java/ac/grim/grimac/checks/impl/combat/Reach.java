@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -165,7 +166,7 @@ public class Reach extends Check implements PacketCheck {
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
         // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("legacy-hitbox", false) || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
             targetBox.expand(0.1f);
         }
 

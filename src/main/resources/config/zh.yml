@@ -164,4 +164,10 @@ experimental-checks: false
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
 
-config-version: 9
+# 在1.9版本中，命中箱的大小被缩小（0.8x2.0 -> 0.6x1.8）以更准确地与F3 + b中显示的命中箱匹配
+# 然而，这对于1.8版本中的1.9+玩家是不公平的，一些插件希望恢复这种行为
+# 启用此选项以对1.9+玩家执行与1.8相同的检查
+# 如果您不知道它涉及什么，请将其禁用
+legacy-hitbox: false
+
+config-version: 10

@@ -166,4 +166,10 @@ experimental-checks: false
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
 packet-spam-threshold: 100
 
-config-version: 9
+# La taille des hitboxees a été réduite en 1.9 (0.8x2.0 -> 0.6x1.8) pour correspondre à celle affiché dans le F3 + b
+# Cependant cela produit un désavantage pour les joueurs 1.9+ et certains plugins veulent ramener cette mécanique
+# Activez cette option pour utiliser la même vérification pour les joueurs 1.9+ que les joueurs 1.8
+# Laissez cette option désactivée si vous ne savez pas de quoi elle parle
+legacy-hitbox: false
+
+config-version: 10
