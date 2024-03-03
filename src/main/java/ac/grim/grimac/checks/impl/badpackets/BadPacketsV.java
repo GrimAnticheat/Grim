@@ -4,9 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -25,16 +23,16 @@ public class BadPacketsV extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             final WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
             // BlockFace.OTHER is USE_ITEM for pre 1.9
-            if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+            if (packet.getFace() == BlockFace.OTHER) {
 
                 // This packet is always sent at (-1, -1, -1) at (0, 0, 0) on the block
                 // except y gets wrapped?
                 final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
 
                 // never sent when not holding anything
-                // ViaVersion can sometimes cause this part of the check to false
-                // we could probably just exempt 1.9+ completely if we wanted to
-                final boolean failedItemCheck = packet.getItemStack().get().isEmpty() && player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+                final boolean failedItemCheck = packet.getItemStack().isPresent() && packet.getItemStack().get().isEmpty()
+                        // ViaVersion can sometimes cause this part of the check to false
+                        && player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
 
                 final Vector3i pos = packet.getBlockPosition();
                 final Vector3f cursor = packet.getCursorPosition();
