@@ -60,9 +60,10 @@ public class FastBreak extends Check implements PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging digging = new WrapperPlayClientPlayerDigging(event);
+            final Vector3i blockPosition = digging.getBlockPosition();
 
             if (digging.getAction() == DiggingAction.START_DIGGING) {
-                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(digging.getBlockPosition());
+                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(blockPosition);
                 
                 // Exempt all blocks that do not exist in the player version
                 if (WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType()).getType() == StateTypes.AIR) {
@@ -70,7 +71,7 @@ public class FastBreak extends Check implements PacketCheck {
                 }
             
                 startBreak = System.currentTimeMillis() - (targetBlock == null ? 50 : 0); // ???
-                targetBlock = digging.getBlockPosition();
+                targetBlock = blockPosition;
                 
                 maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, targetBlock);
 
@@ -111,11 +112,13 @@ public class FastBreak extends Check implements PacketCheck {
                         Player bukkitPlayer = player.bukkitPlayer;
                         if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return;
 
-                        if (bukkitPlayer.getLocation().distance(new Location(bukkitPlayer.getWorld(), digging.getBlockPosition().getX(), digging.getBlockPosition().getY(), digging.getBlockPosition().getZ())) < 64) {
-                            Chunk chunk = bukkitPlayer.getWorld().getChunkAt(digging.getBlockPosition().getX() >> 4, digging.getBlockPosition().getZ() >> 4);
-                            if (!chunk.isLoaded()) return; // Don't load chunks sync
+                        if (bukkitPlayer.getLocation().distance(new Location(bukkitPlayer.getWorld(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ())) < 64) {
+                            final int chunkX = blockPosition.getX() >> 4;
+                            final int chunkZ = blockPosition.getZ() >> 4;
+                            if (!bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 
-                            Block block = chunk.getBlock(digging.getBlockPosition().getX() & 15, digging.getBlockPosition().getY(), digging.getBlockPosition().getZ() & 15);
+                            Chunk chunk = bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                            Block block = chunk.getBlock(blockPosition.getX() & 15, blockPosition.getY(), blockPosition.getZ() & 15);
 
                             int blockId;
 
@@ -126,7 +129,7 @@ public class FastBreak extends Check implements PacketCheck {
                                 blockId = (block.getType().getId() << 4) | block.getData();
                             }
 
-                            player.user.sendPacket(new WrapperPlayServerBlockChange(digging.getBlockPosition(), blockId));
+                            player.user.sendPacket(new WrapperPlayServerBlockChange(blockPosition, blockId));
 
                             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
                                 player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(digging.getSequence())); // Make 1.19 clients apply the changes
