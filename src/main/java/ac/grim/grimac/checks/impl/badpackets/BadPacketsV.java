@@ -44,10 +44,11 @@ public class BadPacketsV extends Check implements PacketCheck {
                         || cursor.x != 0
                         || cursor.y != 0
                         || cursor.z != 0
+                        || packet.getSequence() != 0
                 ) {
                     final String verbose = String.format(
-                            "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s",
-                            pos.x, pos.y, pos.z, cursor.x, cursor.y, cursor.z, !failedItemCheck
+                            "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s, sequence=%s",
+                            pos.x, pos.y, pos.z, cursor.x, cursor.y, cursor.z, !failedItemCheck, packet.getSequence()
                     );
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         player.onPacketCancel();
