@@ -147,6 +147,14 @@ Reach:
   # Leaving this disabled will still catch cheaters and will not cause false positives
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
+  # What entities should we ignore when a player is fighting them ?
+  ignored-entities:
+  # These are examples ↓
+  # - Sheep
+  # - slime
+  # - minecraft:pig
+  # - Minecraft:Cow
+  # - Minecraft:cow
 
 exploit:
   # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false

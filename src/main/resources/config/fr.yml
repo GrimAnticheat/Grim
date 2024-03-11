@@ -148,6 +148,14 @@ Reach:
   # Laisser cette fonctionnalité désactivée permettra tout de même de détecter les tricheurs et n'entraînera pas de faux positifs.
   # À moins d'être un serveur axé sur le PvP en 1.8, l'envoi de ce paquet supplémentaire n'est pas recommandé.
   enable-post-packet: false
+  # Quelles sont les entités que nous devons ignorer lorsqu'un joueur les combats ?
+  ignored-entities:
+  # Ceci sont des exemples ↓
+  # - Sheep
+  # - slime
+  # - minecraft:pig
+  # - Minecraft:Cow
+  # - Minecraft:cow
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true

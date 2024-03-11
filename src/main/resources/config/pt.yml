@@ -151,6 +151,14 @@ Reach:
   # Deixando-o desabilitado, continuará detectando cheaters e não irá causar falsos positivos.
   # A menos que estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
   enable-post-packet: false
+  # Que entidades devemos ignorar quando um jogador está lutando contra eles ?
+  ignored-entities:
+  # Estes são exemplos ↓
+  # - Sheep
+  # - slime
+  # - minecraft:pig
+  # - Minecraft:Cow
+  # - Minecraft:cow
 
 exploit:
   # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploitação de ocorrer quando

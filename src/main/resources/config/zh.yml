@@ -147,6 +147,14 @@ Reach:
   # 禁用此功能仍会捕获作弊者，不会导致误报
   # 除非你是专注于 1.8 PvP 的服务器，否则不建议使用这个额外的数据包
   enable-post-packet: false
+  # What entities should we ignore when a player is fighting them ?
+  ignored-entities:
+  # These are examples ↓
+  # - Sheep
+  # - slime
+  # - minecraft:pig
+  # - Minecraft:Cow
+  # - Minecraft:cow
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true

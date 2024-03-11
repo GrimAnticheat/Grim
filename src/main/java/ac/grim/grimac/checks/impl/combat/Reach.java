@@ -15,13 +15,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -32,6 +32,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -78,7 +79,19 @@ public class Reach extends Check implements PacketCheck {
                 }
                 return;
             }
-            
+
+            // Check if the entity is exempt
+            List<String> ignoredEntitiesList = GrimAPI.INSTANCE.getConfigManager().getConfig().getListElse("Reach.ignored-entities", null);
+            if (ignoredEntitiesList != null) {
+                for (String Entity : ignoredEntitiesList) {
+                    // If the player only wrote "player" we add "minecraft:"
+                    if (!Entity.startsWith("minecraft:"))
+                        Entity = "minecraft:" + Entity;
+
+                    if (entity.type.getName().toString().equalsIgnoreCase(Entity)) return;
+                }
+            }
+
             // Dead entities cause false flags (https://github.com/GrimAnticheat/Grim/issues/546)
             if (entity.isDead) return;
 
