@@ -148,9 +148,9 @@ Reach:
   # Если оставить эту функцию отключенной, читеры все равно будут отлавливаться и не будут вызывать ложных срабатываний.
   # Если вы не являетесь PvP-сервером 1.8, этот дополнительный пакет не рекомендуется.
   enable-post-packet: false
-  # Какие объекты мы должны игнорировать, когда игрок борется с ними ?
+  # Which entity types should be ignored by the reach check?
   ignored-entities:
-  # это примеры ↓
+  # These are examples ↓
   # - Sheep
   # - slime
   # - minecraft:pig

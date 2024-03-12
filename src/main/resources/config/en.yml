@@ -147,7 +147,7 @@ Reach:
   # Leaving this disabled will still catch cheaters and will not cause false positives
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
-  # What entities should we ignore when a player is fighting them ?
+  # Which entity types should be ignored by the reach check?
   ignored-entities:
   # These are examples ↓
   # - Sheep

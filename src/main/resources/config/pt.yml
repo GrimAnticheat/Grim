@@ -151,7 +151,7 @@ Reach:
   # Deixando-o desabilitado, continuará detectando cheaters e não irá causar falsos positivos.
   # A menos que estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
   enable-post-packet: false
-  # Que entidades devemos ignorar quando um jogador está lutando contra eles ?
+  # Quais tipos de entidade devem ser ignorados pela verificação de alcance?
   ignored-entities:
   # Estes são exemplos ↓
   # - Sheep

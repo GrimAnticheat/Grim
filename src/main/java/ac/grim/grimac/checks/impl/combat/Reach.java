@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -48,6 +47,7 @@ public class Reach extends Check implements PacketCheck {
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
 
+    private List<String> ignoredEntitiesList;
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -80,17 +80,7 @@ public class Reach extends Check implements PacketCheck {
                 return;
             }
 
-            // Check if the entity is exempt
-            List<String> ignoredEntitiesList = GrimAPI.INSTANCE.getConfigManager().getConfig().getListElse("Reach.ignored-entities", null);
-            if (ignoredEntitiesList != null) {
-                for (String Entity : ignoredEntitiesList) {
-                    // If the player only wrote "player" we add "minecraft:"
-                    if (!Entity.startsWith("minecraft:"))
-                        Entity = "minecraft:" + Entity;
-
-                    if (entity.type.getName().toString().equalsIgnoreCase(Entity)) return;
-                }
-            }
+            if (ignoredEntitiesList.contains(entity.type.getName().toString())) return;
 
             // Dead entities cause false flags (https://github.com/GrimAnticheat/Grim/issues/546)
             if (entity.isDead) return;
@@ -250,5 +240,6 @@ public class Reach extends Check implements PacketCheck {
         super.reload();
         this.cancelImpossibleHits = getConfig().getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = getConfig().getDoubleElse("Reach.threshold", 0.0005);
+        this.ignoredEntitiesList = getConfig().getListElse("Reach.ignored-entities", new ArrayList<>());
     }
 }
