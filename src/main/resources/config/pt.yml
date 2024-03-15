@@ -154,11 +154,10 @@ Reach:
   # Quais tipos de entidade devem ser ignorados pela verificação de alcance?
   ignored-entities:
   # Estes são exemplos ↓
-  # - Sheep
-  # - slime
   # - minecraft:pig
-  # - Minecraft:Cow
-  # - Minecraft:cow
+  # - minecraft:cow
+  # - minecraft:sheep
+  # - minecraft:chicken
 
 exploit:
   # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploitação de ocorrer quando

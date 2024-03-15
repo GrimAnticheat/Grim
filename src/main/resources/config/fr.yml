@@ -151,11 +151,10 @@ Reach:
   # Quels types d’entités doivent être ignorés par le reach check ?
   ignored-entities:
   # Ceci sont des exemples ↓
-  # - Sheep
-  # - slime
   # - minecraft:pig
-  # - Minecraft:Cow
-  # - Minecraft:cow
+  # - minecraft:cow
+  # - minecraft:sheep
+  # - minecraft:chicken
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
