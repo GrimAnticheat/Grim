@@ -304,8 +304,6 @@ public class GrimPlayer implements GrimUser {
             skipped++;
         }
 
-        System.out.println(id);
-
         if (hasID) {
             // Transactions that we send don't count towards total limit
             if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
