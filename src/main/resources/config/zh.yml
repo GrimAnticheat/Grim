@@ -231,4 +231,7 @@ experimental-checks: false
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
 
+# Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
+max-ping-out-of-flying: 1000
+
 config-version: 9
