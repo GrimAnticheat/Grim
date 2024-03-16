@@ -159,6 +159,72 @@ exploit:
   # Its valid range is limited from 2 to 4
   distance-to-check-if-ghostblocks: 2
 
+
+AimConstant:
+  #How many times the player must fail to start flagging
+  buffer: 7
+  #How much the buffer will be decreased if the player does not fail
+  decay: 0.3
+  #The minimum rotation in the sample to enable this check
+  minDeltaRot: 0.4
+  #The maximum acceleration for the check to flag
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #How many rotations are collected to check
+  sampleSize: 25
+  #If the player has more than X rows with invalid divisors in the sample, he fails the check.
+  maxInvalidRows: 2
+  #The minimum number of invalid divisors to count as a row
+  minRowLength: 3
+  #The minimum average rotation in the sample to enable this check
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #The maximum number of rotations after the first detection before flagging (needed because the player can change the client sensitivity).
+  #Should be safe to lower this value but if a client fails this once it will fail it again no matter the buffer.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #The minimum distance for this check to be enabled
+  minDistance: 0.7
+
+
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 

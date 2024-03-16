@@ -155,6 +155,73 @@ exploit:
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#FR Les commentaires sur les contrôles de l'objectif et du killaura ont été traduits par une application de traduction, il est donc possible qu'ils ne soient pas traduits correctement.
+
+AimConstant:
+  #Combien de fois le joueur doit échouer pour commencer à marquer des drapeaux ?
+  buffer: 7
+  #Combien la mémoire tampon sera diminuée si le joueur n'échoue pas
+  decay: 0.3
+  #La rotation minimale de l'échantillon pour permettre cette vérification
+  minDeltaRot: 0.4
+  #L'accélération maximale pour que la vérification soit signalée.
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #Combien de rotations sont collectées pour vérifier
+  sampleSize: 25
+  #Si le joueur a plus de X rangées avec des diviseurs non valides dans l'échantillon, il échoue la vérification.
+  maxInvalidRows: 2
+  #Le nombre minimum de diviseurs non valides à compter comme une ligne
+  minRowLength: 3
+  #La rotation moyenne minimale de l'échantillon pour permettre cette vérification
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #Le nombre maximum de rotations après la première détection avant le signalement (nécessaire parce que le joueur peut changer la sensibilité du client).
+  #Il serait prudent d'abaisser cette valeur, mais si un client échoue une fois, il échouera à nouveau, quel que soit le tampon.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #La distance minimale pour que cette vérification soit activée
+  minDistance: 0.7
+
 # Activer l'enregistrement des plugins ayant injecté dans Netty lors de la connexion pour déboguer les problèmes de compatibilité
 debug-pipeline-on-join: false
 

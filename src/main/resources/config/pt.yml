@@ -165,6 +165,73 @@ exploit:
   # Seu intervalo válido é limitado de 2 a 4.
   distance-to-check-if-ghostblocks: 2
 
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#PT Os comentários sobre as verificações de pontaria e killaura são apenas traduzidos por uma aplicação de tradução, pelo que podem não estar correctos.
+
+AimConstant:
+  #Quantas vezes o jogador tem de falhar para começar a assinalar
+  buffer: 7
+  #Quanto é que a memória intermédia será reduzida se o jogador não falhar
+  decay: 0.3
+  #A rotação mínima na amostra para permitir este controlo
+  minDeltaRot: 0.4
+  #A aceleração máxima para que o controlo seja assinalado
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #Quantas rotações são recolhidas para verificar
+  sampleSize: 25
+  #Se o jogador tiver mais de X linhas com divisores inválidos na amostra, não passa no controlo.
+  maxInvalidRows: 2
+  #O número mínimo de divisores inválidos a contar como uma linha
+  minRowLength: 3
+  #A rotação média mínima na amostra para ativar este controlo
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #O número máximo de rotações após a primeira deteção antes de ser assinalado (necessário porque o jogador pode alterar a sensibilidade do cliente).
+  #Deve ser seguro baixar este valor, mas se um cliente falhar uma vez, falhará novamente, independentemente do buffer.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #A distância mínima para que este controlo seja ativado
+  minDistance: 0.7
+
 # Habilita registrar plugins que são injetados na netty ao entrar para depurar erros de compatibilidade.
 debug-pipeline-on-join: false
 

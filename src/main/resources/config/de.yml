@@ -156,6 +156,75 @@ exploit:
   # Ihr gültiger Bereich ist von 2 bis 4 begrenzt
   distance-to-check-if-ghostblocks: 2
 
+
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#DE Die Kommentare zu den Ziel- und Killaura-Prüfungen wurden nur von einer Übersetzungs-App übersetzt, daher sind sie möglicherweise nicht korrekt.
+
+AimConstant:
+  #Wie oft muss der Spieler scheitern, um mit der Markierung zu beginnen?
+  buffer: 7
+  #Wie stark der Puffer verringert wird, wenn der Spieler nicht versagt.
+  decay: 0.3
+  #Die Mindestdrehung in der Probe, um diese Prüfung zu ermöglichen.
+  minDeltaRot: 0.4
+  #Die maximale Beschleunigung, bei der die Prüfung ausgelöst wird.
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #Wie viele Umdrehungen werden zur Überprüfung gesammelt?
+  sampleSize: 25
+  #Wenn der Spieler mehr als X Reihen mit ungültigen Teilern in der Stichprobe hat, fällt er bei der Prüfung durch.
+  maxInvalidRows: 2
+  #Die Mindestanzahl der ungültigen Teiler, die als eine Reihe zählen.
+  minRowLength: 3
+  #Die minimale durchschnittliche Drehung in der Stichprobe, um diese Prüfung zu ermöglichen.
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #Die maximale Anzahl von Umdrehungen nach der ersten Erkennung, bevor eine Markierung erfolgt (erforderlich, weil der Spieler die Empfindlichkeit des Clients ändern kann).
+  #Es sollte sicher sein, diesen Wert zu senken, aber wenn ein Client dies einmal nicht schafft, wird er es wieder nicht schaffen, egal wie groß der Puffer ist.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #Der Mindestabstand, damit diese Prüfung aktiviert wird.
+  minDistance: 0.7
+
+
 # Aktivieren Sie die Protokollierung von Plugins, die in netty on join injiziert wurden, um Kompatibilitätsprobleme zu beheben.
 debug-pipeline-on-join: false
 

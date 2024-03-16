@@ -154,6 +154,73 @@ exploit:
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#ZH 关于 aim 和 killaura 检查的注释只是由翻译应用程序翻译的，因此翻译可能不正确。
+
+AimConstant:
+  #玩家必须失败多少次才能开始标记
+  buffer: 7
+  #如果玩家没有失败，缓冲区会减少多少
+  decay: 0.3
+  # 样本中的最小旋转次数，以启用此检查
+  minDeltaRot: 0.4
+  #检查标记的最大加速度
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #收集多少次旋转来检查
+  sampleSize: 25
+  # 如果棋手的样本中有超过 X 行的无效除数，他就没有通过检查。
+  maxInvalidRows: 2
+  #算作一行的无效除数的最小个数
+  minRowLength: 3
+  #样本中最小的平均旋转次数，以启用此检查
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #第一次检测后标记前的最大旋转次数（因为玩家可以更改客户端灵敏度，所以需要此值）。
+  #降低该值应该是安全的，但如果客户端一次检测失败，那么无论缓冲区大小，它都会再次检测失败。
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #启用该检查的最小距离
+  minDistance: 0.7
+
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
 

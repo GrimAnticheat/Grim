@@ -160,6 +160,75 @@ exploit:
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#ES Los comentarios sobre las comprobaciones de puntería y killaura acaban de ser traducidos por una aplicación de traducción, por lo que es posible que no se traduzcan correctamente.
+
+
+AimConstant:
+  #Cuántas veces debe fallar el jugador para empezar a marcar
+  buffer: 7
+  #Cuánto disminuirá el buffer si el jugador no falla
+  decay: 0.3
+  #La rotación mínima en la muestra para permitir esta comprobación
+  minDeltaRot: 0.4
+  #La aceleración máxima para que la comprobación marque
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #Cuántas rotaciones se recogen para comprobar
+  sampleSize: 25
+  #Si el jugador tiene más de X filas con divisores inválidos en la muestra, falla la comprobación.
+  maxInvalidRows: 2
+  #El número mínimo de divisores inválidos para contar como una fila.
+  minRowLength: 3
+  #La rotación media mínima en la muestra para permitir esta comprobación.
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #El número máximo de rotaciones después de la primera detección antes de marcar (necesario porque el jugador puede cambiar la sensibilidad del cliente).
+  #Debería ser seguro bajar este valor pero si un cliente falla esto una vez lo fallará de nuevo sin importar el buffer.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #La distancia mínima para que se active esta comprobación.
+  minDistance: 0.7
+
+
 # Habilitar el registro de plugins que se han inyectado a netty para intentar resolver problemas de compatibilidad.
 debug-pipeline-on-join: false
 

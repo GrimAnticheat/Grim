@@ -155,6 +155,75 @@ exploit:
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
+
+#EN The comments on the aim and killaura checks are just translated by a translator app, so they may not be translated correct.
+#RU Комментарии к проверкам aim и killaura только что переведены приложением-переводчиком, поэтому они могут быть переведены неправильно.
+
+
+AimConstant:
+  #Сколько раз игрок должен потерпеть неудачу, чтобы начать отмечать.
+  buffer: 7
+  #На сколько уменьшится буфер, если игрок не провалится
+  decay: 0.3
+  #Минимальный поворот в образце для включения этой проверки
+  minDeltaRot: 0.4
+  #Максимальное ускорение, при котором проверка должна быть отмечена.
+  maxDeltaRotAccel: 0.1
+
+AimConstantX:
+  buffer: 7
+  decay: 0.3
+  minDeltaX: 0.4
+  maxDeltaXAccel: 0.1
+
+AimConstantY:
+  buffer: 7
+  decay: 0.3
+  minDeltaY: 0.4
+  maxDeltaYAccel: 0.1
+
+AimDivisorX:
+  #Сколько оборотов собрано для проверки
+  sampleSize: 25
+  #Если у игрока в выборке больше X строк с недопустимыми делителями, он не проходит проверку.
+  maxInvalidRows: 2
+  #Минимальное количество недействительных делителей, чтобы считать ряд
+  minRowLength: 3
+  #Минимальное среднее вращение в образце для включения этой проверки
+  minAverageRot: 0.4
+
+AimDivisorY:
+  sampleSize: 25
+  maxInvalidRows: 2
+  minRowLength: 3
+  minAverageRot: 0.4
+
+AimStaticX:
+  buffer: 7
+  decay: 1
+  minDeltaY: 1
+  maxDeltaX: 0.0001
+
+AimStaticY:
+  buffer: 7
+  decay: 1
+  minDeltaX: 1
+  maxDeltaY: 0.0001
+
+AimInvalidSensitivity:
+  #Максимальное количество оборотов после первого обнаружения до установки флага (необходимо, потому что игрок может изменить чувствительность клиента).
+  #Можно снизить это значение, но если клиент не справился с этим один раз, он не справится снова, независимо от буфера.
+  maxRots: 80
+
+AimInvalidMode:
+  maxRots: 80
+
+KillauraAccuracy:
+  maxAccuracy: 95
+  sampleSize: 25
+  #Минимальное расстояние для включения этой проверки
+  minDistance: 0.7
+
 # Включить запись в журнал плагинов, которые внедрились в netty при присоединении для отладки проблем совместимости
 debug-pipeline-on-join: false
 
