@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class HeadRotation {
-    float pitch, yaw;
+    float yaw, pitch;
 }
