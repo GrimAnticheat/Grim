@@ -116,7 +116,7 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
                 break;
             case ENTITY_ACTION:
                 // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)
+                if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_9) || serverVersion.isOlderThanOrEquals(ServerVersion.V_1_8_8))
                     // https://github.com/GrimAnticheat/Grim/issues/824
                     if (!clientVersion.isNewerThanOrEquals(ClientVersion.V_1_19_3) || player.compensatedEntities.getSelf().getRiding() == null)
                         if (sentFlying) post.add(packetType);
