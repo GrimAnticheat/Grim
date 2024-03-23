@@ -3,7 +3,7 @@ webhook: ""
 embed-color: "#00FFFF"
 violation-content:
   - "**Giocatore**: %player%"
-  - "**Fails**: %check%"
+  - "**Cheats Rilevati**: %check%"
   - "**Violazioni**: %violations%"
   - "**Versione Client**: %version%"
   - "**Client**: %brand%"
