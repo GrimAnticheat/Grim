@@ -21,6 +21,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -445,9 +446,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            ItemStack boots = player.getInventory().getBoots();
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                player.depthStriderLevel = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             } else {
                 player.depthStriderLevel = 0;
             }
