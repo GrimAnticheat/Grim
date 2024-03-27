@@ -20,14 +20,10 @@ public class BadPacketsQ extends Check implements PacketCheck {
         if (event.getPacketType() == Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
 
-            if (wrapper.getAction() == Action.START_JUMPING_WITH_HORSE) {
-                if (wrapper.getJumpBoost() < 0 || wrapper.getJumpBoost() > 100) {
-                    if (flag()) {
-                        alert("b=" + wrapper.getJumpBoost()); // Ban
-                        if (shouldModifyPackets()) {
-                            event.setCancelled(true);
-                        }
-                    }
+            if (wrapper.getJumpBoost() < 0 || wrapper.getJumpBoost() > 100 || wrapper.getEntityId() != player.entityID || (wrapper.getAction() != Action.START_JUMPING_WITH_HORSE && wrapper.getJumpBoost() != 0)) {
+                if (flagAndAlert("boost=" + wrapper.getJumpBoost() + ", action=" + wrapper.getAction() + ", entity=" + wrapper.getEntityId()) && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
                 }
             }
         }
