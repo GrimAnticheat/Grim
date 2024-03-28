@@ -10,3 +10,5 @@ violation-content:
   - "**Brand**: %brand%"
   - "**Ping**: %ping%"
   - "**TPS**: %tps%"
+violation-minimum: 0
+violation-maximum: -1

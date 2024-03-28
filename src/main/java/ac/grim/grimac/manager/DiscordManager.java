@@ -69,6 +69,10 @@ public class DiscordManager implements Initable {
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
+            int violationMinimum = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("violation-minimum", 0);
+            int violationMaximum = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("violation-maximum", -1);
+            if (violationMinimum > Integer.parseInt(violations)) return;
+            if (violationMaximum != -1 && violationMaximum < Integer.parseInt(violations)) return;
 
             String content = staticContent + "";
             content = content.replace("%check%", checkName);

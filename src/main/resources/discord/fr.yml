@@ -9,3 +9,5 @@ violation-content:
   - "**Nature du client**: %brand%"
   - "**Latence**: %ping%"
   - "**TPS**: %tps%"
+violation-minimum: 0
+violation-maximum: -1
