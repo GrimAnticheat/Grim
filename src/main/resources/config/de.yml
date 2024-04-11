@@ -166,4 +166,8 @@ experimental-checks: false
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100
 
+# Grim kann durchsetzen, dass ein Spieler, der aus dem Flugmodus genommen wird, nicht mehr als X Millisekunden Ping haben kann.
+# Dies liegt daran, dass Grim derzeit fliegende Spieler nicht überprüft.
+max-ping-out-of-flying: 1000
+
 config-version: 9

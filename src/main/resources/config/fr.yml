@@ -166,4 +166,8 @@ experimental-checks: false
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
 packet-spam-threshold: 100
 
+# Grim est capable de faire respecter qu'un joueur sorti de l'état de vol ne peut pas avoir plus de X millisecondes de ping.
+# Cela est dû au fait que Grim ne vérifie pas actuellement les joueurs en vol.
+max-ping-out-of-flying: 1000
+
 config-version: 9

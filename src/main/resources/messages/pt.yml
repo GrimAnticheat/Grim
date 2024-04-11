@@ -19,10 +19,12 @@ upload-log-upload-failure: "%prefix% &cAlgo deu errado ao enviar essa log, veja 
 # %prefix%
 # %player%
 # %check_name%
+# %experimental%
 # %vl% - violações
 # %verbose% - Informação extra da verificação, como os desvios, nem todas as verifiações terão essa informação.
-alerts-format: "%prefix% &f%player% &bfalhou em &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfalhou em &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bfalhou em &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfalhou em &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
 
 profile:
   - "&7======================"

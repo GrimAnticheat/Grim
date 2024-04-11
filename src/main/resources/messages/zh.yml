@@ -19,10 +19,12 @@ upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信
 # %prefix% - 前缀
 # %player% - 玩家
 # %check_name% - 检查名字
+# %experimental%
 # %vl% - VL值
 # %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
-alerts-format: "%prefix% &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &b触发了 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
 
 profile:
   - "&7======================"

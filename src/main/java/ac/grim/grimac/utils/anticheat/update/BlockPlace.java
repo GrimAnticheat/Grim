@@ -34,6 +34,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class BlockPlace {
     @Getter
     StateType material;
     @Getter
-    HitData hitData;
+    @Nullable HitData hitData;
     @Setter
     BlockFace face;
     @Getter
