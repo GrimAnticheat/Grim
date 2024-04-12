@@ -40,6 +40,7 @@ import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
+import io.netty.channel.Channel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -53,6 +54,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Everything in this class should be sync'd to the anticheat thread.
@@ -692,6 +694,12 @@ public class GrimPlayer implements GrimUser {
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
         return checkManager.allChecks.values();
+    }
+
+
+    public void runNettyTaskInMs(Runnable runnable, int ms) {
+        Channel channel = (Channel) user.getChannel();
+        channel.eventLoop().schedule(runnable, ms, TimeUnit.MILLISECONDS);
     }
 
 }

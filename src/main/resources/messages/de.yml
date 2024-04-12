@@ -19,10 +19,12 @@ upload-log-upload-failure: "%prefix% &cBeim Hochladen dieses Protokolls ist etwa
 # %prefix%
 # %player%
 # %check_name%
+# %experimental%
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen aus dem Check wie z.B. Offsets, nicht alle Checks fügen Informationen hinzu
-alerts-format: "%prefix% &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bhat versagt &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bhat versagt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bhat versagt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
 
 profile:
   - "&7======================"

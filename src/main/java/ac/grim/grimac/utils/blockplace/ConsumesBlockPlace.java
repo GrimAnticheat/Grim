@@ -98,7 +98,7 @@ public class ConsumesBlockPlace {
 
     private static boolean goodBellHit(WrappedBlockState bell, BlockPlace place) {
         BlockFace direction = place.getDirection();
-        return isProperHit(bell, direction, place.getHitData().getRelativeBlockHitLocation().getY());
+        return place.getHitData() != null && isProperHit(bell, direction, place.getHitData().getRelativeBlockHitLocation().getY());
     }
 
     private static boolean isProperHit(WrappedBlockState bell, BlockFace direction, double p_49742_) {

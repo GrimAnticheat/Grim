@@ -19,10 +19,12 @@ upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléver
 # %prefix%
 # %player%
 # %check_name%
+# %experimental%
 # %vl% - violations
 # %verbose% - Informations supplémentaires sur les vérifivations comme les écarts, toutes les vérifications n'ajoutent pas d'information
-alerts-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &ba échoué &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &ba échoué &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
 
 profile:
   - "&7======================"

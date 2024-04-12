@@ -20,6 +20,7 @@ import java.util.*;
 public class PunishmentManager {
     GrimPlayer player;
     List<PunishGroup> groups = new ArrayList<>();
+    String experimentalSymbol = "*";
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;
@@ -29,6 +30,7 @@ public class PunishmentManager {
     public void reload() {
         DynamicConfig config = GrimAPI.INSTANCE.getConfigManager().getConfig();
         List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
+        experimentalSymbol = config.getStringElse("experimental-symbol", "*");
 
         try {
             groups.clear();
@@ -93,12 +95,15 @@ public class PunishmentManager {
         // Streams are slow but this isn't a hot path... it's fine.
         String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
 
-        original = original.replace("[alert]", alertString);
-        original = original.replace("[proxy]", alertString);
-        original = original.replace("%check_name%", check.getCheckName());
-        original = original.replace("%vl%", vl);
-        original = original.replace("%verbose%", verbose);
-        original = MessageUtil.format(original);
+        original = MessageUtil.format(original
+                .replace("[alert]", alertString)
+                .replace("[proxy]", alertString)
+                .replace("%check_name%", check.getCheckName())
+                .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
+                .replace("%vl%", vl)
+                .replace("%verbose%", verbose)
+        );
+
         original = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, original, true);
 
         return original;

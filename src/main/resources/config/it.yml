@@ -1,0 +1,148 @@
+# GrimAC main configuration
+# Source code: https://github.com/MWHunter/Grim
+# Copyright 2024 DefineOutside and contributors, Licensed under GPLv3.
+# Modified binaries, or plugins with copied grim code, must be private,
+# or with full source code available to buyers at no additional cost.
+
+alerts:
+  # In aggiunta alla trasmissione degli avvisi ai giocatori, dovrebbero essere inviati anche alla console?
+  print-to-console: true
+  # Questo controlla se e come gli avvisi vengono condivisi tra i server collegati al tuo proxy.
+  # Deve essere abilitato 'bungee-plugin-message-channel' nella configurazione di Velocity se Velocity è in uso.
+  proxy:
+    # Gli avvisi devono essere inviati ad altri server collegati al tuo proxy?
+    send: false
+    # Gli avvisi ricevuti da altri server devono essere annunciati a questo server?
+    receive: false
+
+verbose:
+  # Mostra dettagli su console?
+  print-to-console: false
+
+client-brand:
+  # Ignora i seguenti client nella trasmissione del marchio agli operatori
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+    - "^Feather Fabric$"
+
+spectators:
+  # Nascondi tutti gli spettatori con il permesso grim.spectator indipendentemente dal fatto che stiano effettivamente spettando attivamente
+  hide-regardless: false
+  # Renderà gli spettatori nascosti solo in questi mondi, lasciare vuoto per consentire tutti i mondi
+  allowed-worlds:
+    - ""
+
+max-transaction-time: 60
+
+Simulation:
+  # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo
+  setback-decay-multiplier: 0.999
+  # Limite per creare una violazione rispetto al movimento del giocatore
+  threshold: 0.001
+  # Soglia per arretrare immediatamente il giocatore dopo una violazione significativa
+  immediate-setback-threshold: 0.1
+  # Massimo vantaggio ammesso prima di arretrare il giocatore
+  max-advantage: 1
+  # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
+  max-ceiling: 4
+
+Phase:
+  # Livello di violazione per il glitch nel blocco
+  setbackvl: 1 
+  # Decadimento per il glitch nel blocco
+  decay: 0.005
+
+AirLiquidPlace:
+  # Livello di violazione per il piazzamento in aria o liquido
+  cancelvl: 0
+
+FabricatedPlace:
+  # Livello di violazione per il piazzamento di un blocco fabbricato
+  cancelvl: 5
+
+FarPlace:
+  # Livello di violazione per il piazzamento in un punto lontano
+  cancelvl: 5
+
+PositionPlace:
+  # Livello di violazione per il piazzamento in una posizione specifica
+  cancelvl: 5
+
+RotationPlace:
+  # Livello di violazione per il piazzamento con rotazione specifica
+  cancelvl: 5
+
+NoSlowA:
+  # Limite per rilevare l'uso scorretto dell'oggetto
+  threshold: 0.001
+  # Livello di violazione per l'uso scorretto dell'oggetto
+  setbackvl: 5
+  # Decadimento per l'uso scorretto dell'oggetto
+  decay: 0.05
+
+Knockback:
+  # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo
+  setback-decay-multiplier: 0.999
+  # Limite per creare una violazione rispetto alla velocità del giocatore
+  threshold: 0.001
+  # Soglia per arretrare immediatamente il giocatore dopo una violazione significativa
+  immediate-setback-threshold: 0.1
+  # Massimo vantaggio ammesso prima di arretrare il giocatore
+  max-advantage: 1
+  # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
+  max-ceiling: 4
+
+Explosion:
+  # Limite per rilevare l'esplosione
+  threshold: 0.001
+  # Livello di violazione per l'esplosione
+  setbackvl: 3
+
+TimerA:
+  # Livello di violazione per il timer
+  setbackvl: 10
+  # Millisecondi accumulabili per il timer
+  drift: 120
+  # Soglia per l'uso scorretto del timer in base al ping
+  ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+  # Millisecondi persi prima di rilevare il timer negativo
+  drift: 1200
+
+TimerVehicle:
+  # Livello di violazione per il timer dei veicoli
+  setbackvl: 10
+
+EntityControl:
+  # Livello di violazione per il controllo entità
+  setbackvl: 25
+
+Reach:
+  # Limite per rilevare un attacco oltre la distanza massima
+  threshold: 0.0005
+  # Annulla gli attacchi impossibili
+  block-impossible-hits: true
+  # Abilita l'invio di pacchetti aggiuntivi per il rilevamento degli attacchi
+  enable-post-packet: false
+
+exploit:
+  # Abilita il salto in sprint con l'elytra
+  allow-sprint-jumping-when-using-elytra: true
+  # Abilita la costruzione su ghost blocks
+  allow-building-on-ghostblocks: true
+  # Distanza per controllare i ghost blocks
+  distance-to-check-if-ghostblocks: 2
+
+debug-pipeline-on-join: false
+
+experimental-checks: false
+
+packet-spam-threshold: 100
+
+max-ping-out-of-flying: 1000
+# Grim is able to enforce that a player set out of flying state cannot have more than X milliseconds of ping
+# This is due to Grim not currently checking flying players
+max-ping-out-of-flying: 1000
