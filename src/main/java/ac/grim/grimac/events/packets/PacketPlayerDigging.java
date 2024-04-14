@@ -72,7 +72,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItem = false;
             }
 
-            if (material == ItemTypes.SHIELD) {
+            if (material == ItemTypes.SHIELD && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 player.packetStateData.slowedByUsingItem = true;
                 player.packetStateData.eatingHand = hand;
 
