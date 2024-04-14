@@ -87,6 +87,7 @@ public class CheckManager {
                 .put(BadPacketsR.class, new BadPacketsR(player))
                 .put(BadPacketsS.class, new BadPacketsS(player))
                 .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
