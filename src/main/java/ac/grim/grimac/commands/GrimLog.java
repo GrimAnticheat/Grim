@@ -39,8 +39,7 @@ public class GrimLog extends BaseCommand {
                     HttpURLConnection urlConn = (HttpURLConnection) mUrl.openConnection();
                     urlConn.setDoOutput(true);
                     urlConn.setRequestMethod("POST");
-
-                    urlConn.addRequestProperty("User-Agent", "grim.ac");
+                    urlConn.addRequestProperty("User-Agent", "GrimAC/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion());
                     urlConn.addRequestProperty("Content-Type", "text/yaml"); // Not really yaml, but looks nicer than plaintext
                     urlConn.setRequestProperty("Content-Length", Integer.toString(builder.length()));
                     urlConn.getOutputStream().write(builder.toString().getBytes(StandardCharsets.UTF_8));
