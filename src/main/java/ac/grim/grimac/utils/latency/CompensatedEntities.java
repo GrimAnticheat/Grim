@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -426,49 +425,6 @@ public class CompensatedEntities {
                     // Vanilla uses hasNoGravity, which is a bad name IMO
                     // hasGravity > hasNoGravity
                     entity.hasGravity = !((Boolean) gravityObject);
-                }
-            }
-        }
-
-        if (entity instanceof PacketEntitySelf) {
-            // 1.9+
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                int offset = 0;
-                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
-                    offset = 2;
-                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
-                    offset = 1;
-                }
-
-                EntityData usingItem = WatchableIndexUtil.getIndex(watchableObjects, 8 - offset);
-                if (usingItem != null) {
-                    Object usingItemObject = usingItem.getValue();
-                    if (usingItemObject instanceof Byte) {
-                        byte entityMeta = (byte) usingItemObject;
-                        // Is hand active
-                        player.packetStateData.slowedByUsingItem = (entityMeta & 1) > 0;
-                        if (player.packetStateData.slowedByUsingItem) {
-                            // Active hand (0 = main hand, 1 = offhand)
-                            player.packetStateData.eatingHand = (entityMeta & 2) > 0 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-                        }
-                        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                            // Is in riptide spin attack
-                            player.packetStateData.tryingToRiptide = (entityMeta & 4) != 0;
-                        }
-                    }
-                }
-                // 1.8
-            } else {
-                EntityData usingItem = WatchableIndexUtil.getIndex(watchableObjects, 0);
-                if (usingItem != null) {
-                    Object value = usingItem.getValue();
-                    if (value instanceof Byte) {
-                        // Eating/Drinking/Blocking
-                        player.packetStateData.slowedByUsingItem = (((byte) value) & 10) > 0;
-                        if (player.packetStateData.slowedByUsingItem) {
-                            player.packetStateData.eatingHand = InteractionHand.MAIN_HAND;
-                        }
-                    }
                 }
             }
         }
