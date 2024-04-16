@@ -5,10 +5,10 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import org.bukkit.inventory.ItemStack;
 
 @CheckData(name = "BadPacketsW", experimental = true)
 public class BadPacketsW extends Check implements PacketCheck {
@@ -22,9 +22,9 @@ public class BadPacketsW extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
             if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-            if (!player.usingItem) return;
-            ItemStack itemInUse = player.getItemInHand(player.usedItemHand);
-            if (flagAndAlert("UseItem=" + itemInUse.getType().name()) && shouldModifyPackets()) {
+            if (!player.packetStateData.slowedByUsingItem) return;
+            ItemStack itemInUse = player.getInventory().getItemInHand(player.packetStateData.eatingHand);
+            if (flagAndAlert("UseItem=" + itemInUse.getType().getName().getKey()) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

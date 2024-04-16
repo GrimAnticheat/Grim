@@ -107,6 +107,10 @@ public class CompensatedInventory extends Check implements PacketCheck {
         inventory.getInventoryStorage().handleClientClaimedSlotSet(playerInvSlotclicked);
     }
 
+    public ItemStack getItemInHand(InteractionHand hand) {
+        return hand == InteractionHand.MAIN_HAND ? getByEquipmentType(EquipmentType.MAINHAND) : getByEquipmentType(EquipmentType.OFFHAND);
+    }
+
     private void markServerForChangingSlot(int clicked, int windowID) {
         // Unsupported inventory
         if (packetSendingInventorySize == -2) return;

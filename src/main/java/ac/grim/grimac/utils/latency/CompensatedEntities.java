@@ -446,14 +446,14 @@ public class CompensatedEntities {
                     if (usingItemObject instanceof Byte) {
                         byte entityMeta = (byte) usingItemObject;
                         // Is hand active
-                        player.usingItem = (entityMeta & 1) > 0;
-                        if (player.usingItem) {
+                        player.packetStateData.slowedByUsingItem = (entityMeta & 1) > 0;
+                        if (player.packetStateData.slowedByUsingItem) {
                             // Active hand (0 = main hand, 1 = offhand)
-                            player.usedItemHand = (entityMeta & 2) > 0 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+                            player.packetStateData.eatingHand = (entityMeta & 2) > 0 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
                         }
                         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                             // Is in riptide spin attack
-                            player.spinAttack = (entityMeta & 4) != 0;
+                            player.packetStateData.tryingToRiptide = (entityMeta & 4) != 0;
                         }
                     }
                 }
@@ -464,9 +464,9 @@ public class CompensatedEntities {
                     Object value = usingItem.getValue();
                     if (value instanceof Byte) {
                         // Eating/Drinking/Blocking
-                        player.usingItem = (((byte) value) & 10) > 0;
-                        if (player.usingItem) {
-                            player.usedItemHand = InteractionHand.MAIN_HAND;
+                        player.packetStateData.slowedByUsingItem = (((byte) value) & 10) > 0;
+                        if (player.packetStateData.slowedByUsingItem) {
+                            player.packetStateData.eatingHand = InteractionHand.MAIN_HAND;
                         }
                     }
                 }

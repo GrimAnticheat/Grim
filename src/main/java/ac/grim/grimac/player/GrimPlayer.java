@@ -126,9 +126,6 @@ public class GrimPlayer implements GrimUser {
     public boolean lastSprintingForSpeed;
     public boolean isFlying;
     public boolean canFly;
-    public boolean usingItem;
-    public InteractionHand usedItemHand;
-    public boolean spinAttack;
     public boolean wasFlying;
     public boolean isSwimming;
     public boolean wasSwimming;
@@ -253,10 +250,6 @@ public class GrimPlayer implements GrimUser {
 
         set.addAll(getPossibleVelocitiesMinusKnockback());
         return set;
-    }
-
-    public ItemStack getItemInHand(InteractionHand hand) {
-        return hand == InteractionHand.MAIN_HAND ? bukkitPlayer.getInventory().getItemInHand() : bukkitPlayer.getInventory().getItemInOffHand();
     }
 
     public Set<VectorData> getPossibleVelocitiesMinusKnockback() {
