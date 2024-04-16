@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 @CheckData(name = "BadPacketsW", experimental = true)
@@ -18,16 +19,14 @@ public class BadPacketsW extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) return;
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
             if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-            ItemStack itemInUse = player.bukkitPlayer.getItemInUse();
-            if (itemInUse == null) return;
-            // When eating food or potions during combat
-            // main hand or off hand
-            // TODO SUPPORT 1.12.2
-            if (itemInUse.getType().isEdible()) {
-                if (flagAndAlert("Eating=" + itemInUse.getType().name()) && shouldModifyPackets()){
+            if (!player.usingItem) return;
+            ItemStack itemInUse = player.getItemInHand(player.usedItemHand);
+            if (itemInUse.getType() == Material.SHIELD || itemInUse.getType().isEdible()) {
+                if (flagAndAlert("UseItem=" + itemInUse.getType().name()) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
