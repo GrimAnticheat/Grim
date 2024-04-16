@@ -7,18 +7,16 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsW", experimental = true)
-public class BadPacketsW extends Check implements PacketCheck {
-    public BadPacketsW(GrimPlayer player) {
+@CheckData(name = "BadPacketsV", experimental = true)
+public class BadPacketsV extends Check implements PacketCheck {
+    public BadPacketsV(GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) return;
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
             if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;

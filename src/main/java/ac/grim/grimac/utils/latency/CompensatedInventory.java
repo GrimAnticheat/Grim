@@ -108,7 +108,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public ItemStack getItemInHand(InteractionHand hand) {
-        return hand == InteractionHand.MAIN_HAND ? getByEquipmentType(EquipmentType.MAINHAND) : getByEquipmentType(EquipmentType.OFFHAND);
+        return hand == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
     }
 
     private void markServerForChangingSlot(int clicked, int windowID) {
