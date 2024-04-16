@@ -8,7 +8,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 @CheckData(name = "BadPacketsW", experimental = true)
@@ -25,11 +24,9 @@ public class BadPacketsW extends Check implements PacketCheck {
             if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
             if (!player.usingItem) return;
             ItemStack itemInUse = player.getItemInHand(player.usedItemHand);
-            if (itemInUse.getType() == Material.SHIELD || itemInUse.getType().isEdible()) {
-                if (flagAndAlert("UseItem=" + itemInUse.getType().name()) && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+            if (flagAndAlert("UseItem=" + itemInUse.getType().name()) && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
         }
     }
