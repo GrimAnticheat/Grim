@@ -47,7 +47,7 @@ public class Reach extends Check implements PacketCheck {
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
 
-    private List<String> ignoredEntitiesList;
+    private Set<String> ignoredEntitiesList;
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -240,6 +240,6 @@ public class Reach extends Check implements PacketCheck {
         super.reload();
         this.cancelImpossibleHits = getConfig().getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = getConfig().getDoubleElse("Reach.threshold", 0.0005);
-        this.ignoredEntitiesList = getConfig().getListElse("Reach.ignored-entities", new ArrayList<>());
+        this.ignoredEntitiesList = new HashSet<>(getConfig().getList("Reach.ignored-entities"));
     }
 }
