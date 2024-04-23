@@ -27,38 +27,38 @@ public class MovementTicker {
 
     public static void handleEntityCollisions(GrimPlayer player) {
         // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
-            int possibleCollidingEntities = 0;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) return;
 
-            // Players in vehicles do not have collisions
-            if (!player.compensatedEntities.getSelf().inVehicle()) {
-                // Calculate the offset of the player to colliding other stuff
-                SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
-                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
+        int possibleCollidingEntities = 0;
 
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    // Players can only push living entities
-                    // Players can also push boats or minecarts
-                    // The one exemption to a living entity is an armor stand
-                    if (!entity.isLivingEntity() && !EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
-                        continue;
+        // Players in vehicles do not have collisions
+        if (!player.compensatedEntities.getSelf().inVehicle()) {
+            // Calculate the offset of the player to colliding other stuff
+            SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
+            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
 
-                    SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                // Players can only push living entities
+                // Players can also push boats or minecarts
+                // The one exemption to a living entity is an armor stand
+                if (!entity.isLivingEntity() && !EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
+                    continue;
 
-                    if (expandedPlayerBox.isCollided(entityBox))
-                        possibleCollidingEntities++;
-                }
+                SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+
+                if (expandedPlayerBox.isCollided(entityBox))
+                    possibleCollidingEntities++;
             }
-
-            if (player.isGliding && possibleCollidingEntities > 0) {
-                // Horizontal starting movement affects vertical movement with elytra, hack around this.
-                // This can likely be reduced but whatever, I don't see this as too much of a problem
-                player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
-                player.uncertaintyHandler.yPositiveUncertainty += 0.05;
-            }
-
-            player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
         }
+
+        if (player.isGliding && possibleCollidingEntities > 0) {
+            // Horizontal starting movement affects vertical movement with elytra, hack around this.
+            // This can likely be reduced but whatever, I don't see this as too much of a problem
+            player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
+            player.uncertaintyHandler.yPositiveUncertainty += 0.05;
+        }
+
+        player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
     public void move(Vector inputVel, Vector collide) {
@@ -308,7 +308,7 @@ public class MovementTicker {
     }
 
     public void livingEntityTravel() {
-        double playerGravity = 0.08;
+        double playerGravity = player.compensatedEntities.getSelf().getGravityAttribute();
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
         if (isFalling && player.compensatedEntities.getSlowFallingAmplifier() != null) {

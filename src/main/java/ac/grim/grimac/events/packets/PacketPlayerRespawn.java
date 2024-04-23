@@ -74,7 +74,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.dimension = joinGame.getDimension();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
-            player.compensatedWorld.setDimension(joinGame.getDimension().getDimensionName(), event.getUser());
+            System.out.println("dim name: " + joinGame.getDimension().getDimensionName());
+            player.compensatedWorld.setDimension(joinGame.getDimension(), event.getUser());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.RESPAWN) {
@@ -139,7 +140,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                    player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
+                    player.compensatedWorld.setDimension(respawn.getDimension(), event.getUser());
                 }
             });
         }

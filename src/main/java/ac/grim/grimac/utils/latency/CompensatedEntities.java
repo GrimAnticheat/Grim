@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -100,7 +101,9 @@ public class CompensatedEntities {
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                final String key = snapshotWrapper.getKey();
+                System.out.println("key: " + key);
+                if (key.toUpperCase().contains("MOVEMENT")) {
 
                     boolean found = false;
                     List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
@@ -114,11 +117,31 @@ public class CompensatedEntities {
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
                     player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
+                } else if (key.equals("minecraft:generic.gravity")) {
+                    player.compensatedEntities.getSelf().setGravityAttribute(snapshotWrapper.getValue());
+                } else if (key.equals("minecraft:player.block_interaction_range")) {
+                    player.compensatedEntities.getSelf().setBlockInteractRangeAttribute(snapshotWrapper.getValue());
+                } else if (key.equals("minecraft:player.entity_interaction_range")) {
+                    player.compensatedEntities.getSelf().setEntityInteractRangeAttribute(snapshotWrapper.getValue());
                 }
             }
         }
 
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+                final String key = snapshotWrapper.getKey();
+                if (key.equals("minecraft:generic.scale")) {
+                    // TODO is casting to float safe?
+                    System.out.println("set scale to " + snapshotWrapper.getValue());
+                    entity.scale = (float) snapshotWrapper.getValue();
+                    if (entityID == player.entityID) {
+                        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                    }
+                }
+            }
+        }
 
         if (entity instanceof PacketEntityHorse) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {

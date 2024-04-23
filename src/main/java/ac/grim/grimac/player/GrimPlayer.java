@@ -212,7 +212,7 @@ public class GrimPlayer implements GrimUser {
         this.playerUUID = user.getUUID();
         onReload();
 
-        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
+        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSizeRaw(x, y, z, 0.6f, 1.8f);
 
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
@@ -544,7 +544,8 @@ public class GrimPlayer implements GrimUser {
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
         if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
-            return Arrays.asList(0.4, 1.27, 1.62);
+            final float scale = compensatedEntities.getSelf().scale;
+            return Arrays.asList(0.4 * scale, 1.27 * scale, 1.62 * scale);
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return Arrays.asList(0.4, 1.54, 1.62);
         } else { // Only sneaking or standing
