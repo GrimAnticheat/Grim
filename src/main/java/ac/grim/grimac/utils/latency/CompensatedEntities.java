@@ -102,9 +102,7 @@ public class CompensatedEntities {
         if (entityID == player.entityID) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 final String key = snapshotWrapper.getKey();
-                System.out.println("key: " + key);
                 if (key.toUpperCase().contains("MOVEMENT")) {
-
                     boolean found = false;
                     List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
                     for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
@@ -117,12 +115,17 @@ public class CompensatedEntities {
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
                     player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
-                } else if (key.equals("minecraft:generic.gravity")) {
-                    player.compensatedEntities.getSelf().setGravityAttribute(snapshotWrapper.getValue());
+                    continue;
+                }
+
+                // Attribute limits defined by https://minecraft.wiki/w/Attribute
+                // These seem to be clamped on the client, but not the server
+                if (key.equals("minecraft:generic.gravity")) {
+                    player.compensatedEntities.getSelf().setGravityAttribute(GrimMath.clamp(snapshotWrapper.getValue(), -1, 1));
                 } else if (key.equals("minecraft:player.block_interaction_range")) {
-                    player.compensatedEntities.getSelf().setBlockInteractRangeAttribute(snapshotWrapper.getValue());
+                    player.compensatedEntities.getSelf().setBlockInteractRangeAttribute(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                 } else if (key.equals("minecraft:player.entity_interaction_range")) {
-                    player.compensatedEntities.getSelf().setEntityInteractRangeAttribute(snapshotWrapper.getValue());
+                    player.compensatedEntities.getSelf().setEntityInteractRangeAttribute(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                 }
             }
         }
@@ -134,11 +137,7 @@ public class CompensatedEntities {
                 final String key = snapshotWrapper.getKey();
                 if (key.equals("minecraft:generic.scale")) {
                     // TODO is casting to float safe?
-                    System.out.println("set scale to " + snapshotWrapper.getValue());
-                    entity.scale = (float) snapshotWrapper.getValue();
-                    if (entityID == player.entityID) {
-                        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-                    }
+                    entity.scale = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0.0625f, 16f);
                 }
             }
         }
