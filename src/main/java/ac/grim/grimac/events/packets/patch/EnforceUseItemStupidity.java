@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets.patch;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsU;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -33,7 +33,7 @@ public class EnforceUseItemStupidity extends PacketListenerAbstract {
             player.packetStateData.lastTeleportWasPotentiallyOnePointSeventeenDuplicate = false;
             if (!player.packetStateData.detectedStupidity && !wasPotentiallyOnePointSeventeenDuplicate) {
                 // The player MUST send a stupidity packet before use item
-                player.checkManager.getPacketCheck(BadPacketsU.class).flagAndAlert("type=skipped_stupid");
+                player.checkManager.getPacketCheck(BadPacketsW.class).flagAndAlert("type=skipped_stupid");
                 return;
             }
         }
