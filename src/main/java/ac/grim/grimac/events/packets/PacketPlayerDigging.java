@@ -120,13 +120,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-        if (player == null) return;
-
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
+                final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+                if (player == null) return;
+
                 player.packetStateData.slowedByUsingItem = false;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
@@ -141,8 +141,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-            player.packetStateData.wasSlowedByUsingItem = player.packetStateData.slowedByUsingItem;
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            if (!player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                player.packetStateData.wasSlowedByUsingItem = player.packetStateData.slowedByUsingItem;
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
@@ -150,6 +155,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // Stop people from spamming the server with out of bounds exceptions
             if (slot > 8) return;
+
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
@@ -167,6 +176,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER)) {
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
             final InteractionHand hand = event.getPacketType() == PacketType.Play.Client.USE_ITEM
                     ? new WrapperPlayClientUseItem(event).getHand()
                     : InteractionHand.MAIN_HAND;
