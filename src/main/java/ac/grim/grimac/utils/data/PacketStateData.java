@@ -14,8 +14,8 @@ public class PacketStateData {
     public InteractionHand eatingHand = InteractionHand.MAIN_HAND;
     public long lastRiptide = 0;
     public boolean tryingToRiptide = false;
-    public boolean slowedByUsingItem = false;
-    public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
+    public boolean slowedByUsingItem, wasSlowedByUsingItem = false;
+    public int slowedByUsingItemTransaction, slowedByUsingItemSlot = Integer.MIN_VALUE;
     public boolean receivedSteerVehicle = false;
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;

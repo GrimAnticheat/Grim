@@ -477,7 +477,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // This is the use item packet
             if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
                 player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
-                PacketPlayerDigging.handleUseItem(player, player.getInventory().getHeldItem(), InteractionHand.MAIN_HAND);
             } else {
                 // Anti-air place
                 BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
