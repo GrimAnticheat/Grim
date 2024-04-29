@@ -157,9 +157,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 if (player.packetStateData.slowedByUsingItemSlot != slot || (!player.isTickingReliablyFor(3) && player.skippedTickInActualMovement)) {
                     player.packetStateData.wasSlowedByUsingItem = player.packetStateData.slowedByUsingItem;
                     player.packetStateData.slowedByUsingItem = false;
-                } else player.packetStateData.slowedByUsingItem = player.packetStateData.wasSlowedByUsingItem;
-
-                player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
+                    player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
+                } else if (player.packetStateData.wasSlowedByUsingItem) {
+                    player.packetStateData.slowedByUsingItem = true;
+                    player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = false;
+                }
             }
             player.packetStateData.lastSlotSelected = slot;
         }
