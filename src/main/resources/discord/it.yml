@@ -1,11 +1,40 @@
 enabled: false
-webhook: ""
-embed-color: "#00FFFF"
-violation-content:
-  - "**Giocatore**: %player%"
-  - "**Cheats Rilevati**: %check%"
-  - "**Violazioni**: %violations%"
-  - "**Versione Client**: %version%"
-  - "**Client**: %brand%"
-  - "**Ping**: %ping%"
-  - "**TPS**: %tps%"
+webhook:
+  url: ""
+  embed-color: "#00FFFF"
+  show-player-head: true
+  description:
+    - "Grim Version: %grrim_version%"
+  fields:
+    - name: "Server Information"
+      value:
+        - "```properties"
+        - "Server: server_name"
+        - "TPS: %tps%"
+        - "```"
+      inline: false
+    - name: "Client Information"
+      value:
+        - "```properties"
+        - "Version: %version%"
+        - "Brand: %brand%"
+        - "```"
+      inline: false
+    - name: "Player Information"
+      value:
+        - "```properties"
+        - "Player: %player%"
+        - "UUID: %uuid%"
+        - "Ping: %ping%"
+        - "Horizontal Sensitivity: %h_sensitivity%%"
+        - "Vertical Sensitivity: %v_sensitivity%%"
+        - "Fast Math: %fast_math%"
+        - "```"
+      inline: false
+    - name: "Check Information"
+      value:
+        - "```properties"
+        - "Check: %check%"
+        - "Violations: %violations%"
+        - "```"
+      inline: false
