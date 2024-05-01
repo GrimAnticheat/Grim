@@ -270,9 +270,14 @@ public enum HitboxData {
             NoCollisionBox.INSTANCE,
             StateTypes.REDSTONE_WIRE),
 
-    FIRE((player, item, version, data, x, y, z) ->
-            NoCollisionBox.INSTANCE,
-            BlockTags.FIRE.getStates().toArray(new StateType[0])),
+    FIRE((player, item, version, data, x, y, z) -> {
+        // Since 1.16 fire has a small hitbox
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_16)) {
+            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
+        }
+
+        return NoCollisionBox.INSTANCE;
+    }, BlockTags.FIRE.getStates().toArray(new StateType[0])),
 
     BANNER(((player, item, version, data, x, y, z) ->
             new SimpleCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
