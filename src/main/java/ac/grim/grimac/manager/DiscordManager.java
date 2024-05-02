@@ -48,7 +48,7 @@ public class DiscordManager implements Initable {
                 LogUtil.warn("Discord embed color is invalid");
             }
             StringBuilder sb = new StringBuilder();
-            for (String string : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("violation-content", getDefaultContents())) {
+            for (String string : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("webhook.description", getDefaultDescription())) {
                 sb.append(string).append("\n");
             }
             staticContent = sb.toString();
@@ -62,15 +62,9 @@ public class DiscordManager implements Initable {
         }
     }
 
-    private List<String> getDefaultContents() {
+    private List<String> getDefaultDescription() {
         List<String> list = new ArrayList<>();
-        list.add("**Player**: %player%");
-        list.add("**Check**: %check%");
-        list.add("**Violations**: %violations%");
-        list.add("**Client Version**: %version%");
-        list.add("**Brand**: %brand%");
-        list.add("**Ping**: %ping%");
-        list.add("**TPS**: %tps%");
+        list.add("No Cheat Enforcer Version: %nce_version%");
         return list;
     }
 
