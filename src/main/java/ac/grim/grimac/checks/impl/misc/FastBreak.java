@@ -7,7 +7,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -21,7 +20,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
-import org.bukkit.Bukkit;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -108,7 +107,7 @@ public class FastBreak extends Check implements PacketCheck {
                 }
 
                 if (blockBreakBalance > 1000) { // If more than a second of advantage
-                    FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                    FoliaScheduler.getEntityScheduler().execute(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
                         Player bukkitPlayer = player.bukkitPlayer;
                         if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return;
 

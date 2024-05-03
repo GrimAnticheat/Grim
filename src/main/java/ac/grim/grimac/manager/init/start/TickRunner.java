@@ -3,7 +3,7 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 
 public class TickRunner implements Initable {
@@ -11,8 +11,8 @@ public class TickRunner implements Initable {
     public void start() {
         LogUtil.info("Registering tick schedulers...");
 
-        if (FoliaCompatUtil.isFolia()) {
-            FoliaCompatUtil.runTaskTimerAsync(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
+        if (FoliaScheduler.isFolia()) {
+            FoliaScheduler.getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
                 GrimAPI.INSTANCE.getTickManager().tickSync();
                 GrimAPI.INSTANCE.getTickManager().tickAsync();
             }, 1, 1);

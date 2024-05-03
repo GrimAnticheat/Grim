@@ -10,8 +10,7 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
-import org.bukkit.Bukkit;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -38,7 +37,7 @@ public class ResyncWorldUtil {
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
-        FoliaCompatUtil.runTaskForEntity(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+        FoliaScheduler.getEntityScheduler().execute(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
             boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
 
             if (player.bukkitPlayer == null) return;

@@ -38,7 +38,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import io.netty.channel.Channel;
 import net.kyori.adventure.text.Component;
@@ -425,7 +425,9 @@ public class GrimPlayer implements GrimUser {
         }
         user.closeConnection();
         if (bukkitPlayer != null) {
-            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(textReason), null, 1);
+            FoliaScheduler.getEntityScheduler().execute(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                bukkitPlayer.kickPlayer(textReason);
+            }, null, 1);
         }
     }
 
