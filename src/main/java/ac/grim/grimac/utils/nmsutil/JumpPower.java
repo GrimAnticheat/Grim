@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.util.Vector;
 
@@ -12,6 +13,8 @@ public class JumpPower {
             f += 0.1f * (player.compensatedEntities.getJumpAmplifier() + 1);
         }
 
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && f <= 1.0E-5F) return;
+
         vector.setY(f);
 
         if (player.isSprinting) {
@@ -21,7 +24,7 @@ public class JumpPower {
     }
 
     public static float getJumpPower(GrimPlayer player) {
-        return 0.42f * getPlayerJumpFactor(player);
+        return player.compensatedEntities.getSelf().getJumpStrength() * getPlayerJumpFactor(player);
     }
 
     public static float getPlayerJumpFactor(GrimPlayer player) {

@@ -44,6 +44,7 @@ public class PacketEntity {
 
     public HashMap<PotionType, Integer> potionsMap = null;
     public float scale = 1f; // 1.20.5+
+    public float stepHeight = 0.6f; // 1.20.5+
 
     public PacketEntity(EntityType type) {
         this.type = type;

@@ -19,6 +19,9 @@ public class PacketEntitySelf extends PacketEntity {
     int opLevel;
     @Getter
     @Setter
+    float jumpStrength = 0.42f;
+    @Getter
+    @Setter
     double gravityAttribute = 0.08;
     @Getter
     @Setter
@@ -33,6 +36,12 @@ public class PacketEntitySelf extends PacketEntity {
         super(EntityTypes.PLAYER);
         this.player = player;
         this.opLevel = old.opLevel;
+        this.jumpStrength = old.jumpStrength;
+        this.gravityAttribute = old.gravityAttribute;
+        this.entityInteractRangeAttribute = old.entityInteractRangeAttribute;
+        this.blockInteractRangeAttribute = old.blockInteractRangeAttribute;
+        this.scale = old.scale;
+        this.stepHeight = old.stepHeight;
     }
 
     public boolean inVehicle() {

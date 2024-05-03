@@ -14,6 +14,8 @@ import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -343,14 +345,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public float getMaxUpStep() {
-        if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
+        final PacketEntitySelf self = compensatedEntities.getSelf();
+        final PacketEntity riding = self.getRiding();
+        if (riding == null) return self.stepHeight;
 
-        if (EntityTypes.isTypeInstanceOf(compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
+        if (EntityTypes.isTypeInstanceOf(riding.type, EntityTypes.BOAT)) {
             return 0f;
         }
 
-        // Pigs, horses, striders, and other vehicles all have 1 stepping height
-        return 1.0f;
+        // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
+        return riding.stepHeight;
     }
 
     public void sendTransaction() {
