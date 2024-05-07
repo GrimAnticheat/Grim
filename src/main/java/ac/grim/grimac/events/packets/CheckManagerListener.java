@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsX;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -434,16 +435,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
             WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
 
+            player.checkManager.getPacketCheck(BadPacketsX.class).handle(event, dig, block.getType());
+
             if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
                 // Not unbreakable
-                if (block.getType().getHardness() != -1.0f) {
+                if (block.getType().getHardness() != -1.0f && !event.isCancelled()) {
                     player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
                     player.compensatedWorld.stopPredicting(dig);
                 }
             }
 
-            if (dig.getAction() == DiggingAction.START_DIGGING) {
+            if (dig.getAction() == DiggingAction.START_DIGGING && !event.isCancelled()) {
                 double damage = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition());
 
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
@@ -460,8 +463,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            if (dig.getAction() == DiggingAction.START_DIGGING || dig.getAction() == DiggingAction.FINISHED_DIGGING || dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
-                player.compensatedWorld.handleBlockBreakPrediction(dig);
+            if (!event.isCancelled()) {
+                if (dig.getAction() == DiggingAction.START_DIGGING || dig.getAction() == DiggingAction.FINISHED_DIGGING || dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
+                    player.compensatedWorld.handleBlockBreakPrediction(dig);
+                }
             }
         }
 
