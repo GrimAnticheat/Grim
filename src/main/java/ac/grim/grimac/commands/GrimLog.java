@@ -9,7 +9,6 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import io.github.retrooper.packetevents.util.FoliaCompatUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.net.HttpURLConnection;
@@ -18,8 +17,10 @@ import java.nio.charset.StandardCharsets;
 
 @CommandAlias("grim|grimac")
 public class GrimLog extends BaseCommand {
+
     @Subcommand("log|logs")
     @CommandPermission("grim.log")
+    @CommandAlias("gl")
     public void onLog(CommandSender sender, int flagId) {
         StringBuilder builder = SuperDebug.getFlag(flagId);
 
