@@ -179,10 +179,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            final InteractionHand hand = event.getPacketType() == PacketType.Play.Client.USE_ITEM
-                    ? new WrapperPlayClientUseItem(event).getHand()
-                    : InteractionHand.MAIN_HAND;
-
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)
                     && player.gamemode == GameMode.SPECTATOR)
                 return;
@@ -190,10 +186,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
             player.packetStateData.slowedByUsingItemSlot = player.packetStateData.lastSlotSelected;
 
-            final ItemStack item = hand == InteractionHand.MAIN_HAND ?
-                    player.getInventory().getHeldItem() : player.getInventory().getOffHand();
-
-            handleUseItem(player, item, hand);
+            // We have to do this twice, since the client can send the wrong hand, see https://github.com/GrimAnticheat/Grim/issues/1444
+            // but only on 1.9+, since the offhand doesn't exist in 1.8
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
+                handleUseItem(player, player.getInventory().getOffHand(), InteractionHand.OFF_HAND);
+            handleUseItem(player, player.getInventory().getHeldItem(), InteractionHand.MAIN_HAND);
         }
     }
 }
