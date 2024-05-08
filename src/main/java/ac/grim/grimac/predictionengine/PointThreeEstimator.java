@@ -405,6 +405,14 @@ public class PointThreeEstimator {
             // If less than minimum movement, then set to 0
             if (Math.abs(yVel) < minMovement) yVel = 0;
 
+            // Support for custom gravity, this means we aren't making progress
+            // 0.003 gravity
+            // iterate -> 0 - 0.003 = -0.003 * 0.98 = -0.00294
+            // 0.00294 < 0.003 -> 0
+            if (!first && yVel == 0) {
+                break;
+            }
+
             // Don't add the first vector to the movement.  We already counted it.
             if (!first) {
                 maxYTraveled += yVel;

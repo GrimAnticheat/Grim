@@ -74,7 +74,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.dimension = joinGame.getDimension();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
-            System.out.println("dim name: " + joinGame.getDimension().getDimensionName());
             player.compensatedWorld.setDimension(joinGame.getDimension(), event.getUser());
         }
 
