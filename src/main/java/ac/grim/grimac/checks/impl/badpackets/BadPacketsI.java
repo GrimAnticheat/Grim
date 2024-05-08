@@ -17,10 +17,11 @@ public class BadPacketsI extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_ABILITIES) {
-            WrapperPlayClientPlayerAbilities packet = new WrapperPlayClientPlayerAbilities(event);
-
-            if (packet.isFlying() && !player.canFly) {
-                flagAndAlert();
+            if (new WrapperPlayClientPlayerAbilities(event).isFlying() && !player.canFly) {
+                if (flagAndAlert() && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
             }
         }
     }

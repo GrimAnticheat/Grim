@@ -28,7 +28,10 @@ public class BadPacketsF extends Check implements PacketCheck {
                         exemptNext = false;
                         return;
                     }
-                    flagAndAlert();
+                    if (flagAndAlert("state=true") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                 }
 
                 lastSprinting = true;
@@ -38,7 +41,10 @@ public class BadPacketsF extends Check implements PacketCheck {
                         exemptNext = false;
                         return;
                     }
-                    flagAndAlert();
+                    if (flagAndAlert("state=false") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                 }
 
                 lastSprinting = false;
