@@ -655,7 +655,7 @@ public class BlockPlace {
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
         Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
-        final double distance = player.compensatedEntities.getSelf().getEntityInteractRangeAttribute() + 3;
+        final double distance = player.compensatedEntities.getSelf().getEntityInteractRange() + 3;
         Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();

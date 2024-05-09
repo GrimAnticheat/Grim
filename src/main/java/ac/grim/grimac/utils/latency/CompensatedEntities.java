@@ -120,11 +120,13 @@ public class CompensatedEntities {
                 // Attribute limits defined by https://minecraft.wiki/w/Attribute
                 // These seem to be clamped on the client, but not the server
                 switch (key) {
+                    case "minecraft:player.block_break_speed":
+                        player.compensatedEntities.getSelf().setBreakSpeedMultiplier(GrimMath.clamp(snapshotWrapper.getValue(), 0, 1024));
                     case "minecraft:player.block_interaction_range":
-                        player.compensatedEntities.getSelf().setBlockInteractRangeAttribute(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        player.compensatedEntities.getSelf().setBlockInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                         break;
                     case "minecraft:player.entity_interaction_range":
-                        player.compensatedEntities.getSelf().setEntityInteractRangeAttribute(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        player.compensatedEntities.getSelf().setEntityInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                         break;
                     case "minecraft:generic.jump_strength":
                         player.compensatedEntities.getSelf().setJumpStrength(GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32));

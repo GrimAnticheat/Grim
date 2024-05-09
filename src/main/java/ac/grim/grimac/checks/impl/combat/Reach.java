@@ -21,7 +21,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -134,7 +133,7 @@ public class Reach extends Check implements PacketCheck {
             if (reachEntity.type == EntityTypes.END_CRYSTAL) {
                 targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
             }
-            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getEntityInteractRangeAttribute();
+            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getEntityInteractRange();
         }
     }
 
@@ -199,7 +198,7 @@ public class Reach extends Check implements PacketCheck {
         }
 
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
-        final double distance = player.compensatedEntities.getSelf().getEntityInteractRangeAttribute() + 3;
+        final double distance = player.compensatedEntities.getSelf().getEntityInteractRange() + 3;
         for (Vector lookVec : possibleLookDirs) {
             for (double eye : player.getPossibleEyeHeights()) {
                 Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
@@ -223,7 +222,7 @@ public class Reach extends Check implements PacketCheck {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return "Missed hitbox";
-            } else if (minDistance > player.compensatedEntities.getSelf().getEntityInteractRangeAttribute()) {
+            } else if (minDistance > player.compensatedEntities.getSelf().getEntityInteractRange()) {
                 cancelBuffer = 1;
                 return String.format("%.5f", minDistance) + " blocks";
             } else {

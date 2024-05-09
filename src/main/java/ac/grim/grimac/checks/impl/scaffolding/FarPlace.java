@@ -33,7 +33,7 @@ public class FarPlace extends BlockPlaceCheck {
 
         // getPickRange() determines this?
         // TODO how does the new attribute work with creative mode?
-        double maxReach = player.gamemode == GameMode.CREATIVE ? 6.0 : player.compensatedEntities.getSelf().getBlockInteractRangeAttribute();
+        double maxReach = player.gamemode == GameMode.CREATIVE ? 6.0 : player.compensatedEntities.getSelf().getBlockInteractRange();
         double threshold = player.getMovementThreshold();
         maxReach += Math.hypot(threshold, threshold);
 
