@@ -13,6 +13,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
 
     public PacketEntityHorse(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
         super(player, type, x, y, z, xRot);
+        this.stepHeight = 1.0f;
 
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {
             jumpStrength = 0.5;
