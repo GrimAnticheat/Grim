@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
-import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -121,9 +120,6 @@ public class CompensatedEntities {
                 // Attribute limits defined by https://minecraft.wiki/w/Attribute
                 // These seem to be clamped on the client, but not the server
                 switch (key) {
-                    case "minecraft:generic.gravity":
-                        player.compensatedEntities.getSelf().setGravityAttribute(GrimMath.clamp(snapshotWrapper.getValue(), -1, 1));
-                        break;
                     case "minecraft:player.block_interaction_range":
                         player.compensatedEntities.getSelf().setBlockInteractRangeAttribute(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                         break;
@@ -142,7 +138,9 @@ public class CompensatedEntities {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 final String key = snapshotWrapper.getKey();
-                if (key.equals("minecraft:generic.scale")) {
+                if (key.equals("minecraft:generic.gravity")) {
+                    entity.gravityAttribute = GrimMath.clamp(snapshotWrapper.getValue(), -1, 1);
+                } else if (key.equals("minecraft:generic.scale")) {
                     // The game itself casts to float, this is fine.
                     entity.scale = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0.0625f, 16f);
                 } else if (key.equals("minecraft:generic.step_height")) {

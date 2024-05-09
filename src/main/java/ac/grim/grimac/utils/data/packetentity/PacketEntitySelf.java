@@ -22,9 +22,6 @@ public class PacketEntitySelf extends PacketEntity {
     float jumpStrength = 0.42f;
     @Getter
     @Setter
-    double gravityAttribute = 0.08;
-    @Getter
-    @Setter
     double entityInteractRangeAttribute = 3, blockInteractRangeAttribute = 4.5;
 
     public PacketEntitySelf(GrimPlayer player) {

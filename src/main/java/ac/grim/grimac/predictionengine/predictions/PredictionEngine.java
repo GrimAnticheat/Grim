@@ -548,9 +548,8 @@ public class PredictionEngine {
         // We can't simulate the player's Y velocity, unknown number of ticks with a gravity change
         // Feel free to simulate all 104857600000000000000000000 possibilities!
         if (!player.pointThreeEstimator.canPredictNextVerticalMovement()) {
-            minVector.setY(minVector.getY() - player.compensatedEntities.getSelf().getGravityAttribute());
+            minVector.setY(minVector.getY() - player.compensatedEntities.getSelf().gravityAttribute);
         }
-
 
         // Hidden slime block bounces by missing idle tick and 0.03
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
