@@ -17,8 +17,10 @@ import java.nio.charset.StandardCharsets;
 
 @CommandAlias("grim|grimac")
 public class GrimLog extends BaseCommand {
+
     @Subcommand("log|logs")
     @CommandPermission("grim.log")
+    @CommandAlias("gl")
     public void onLog(CommandSender sender, int flagId) {
         StringBuilder builder = SuperDebug.getFlag(flagId);
 
