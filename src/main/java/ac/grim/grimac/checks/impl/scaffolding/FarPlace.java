@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.VectorUtils;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -32,11 +33,12 @@ public class FarPlace extends BlockPlaceCheck {
         }
 
         // getPickRange() determines this?
-        // TODO how does the new attribute work with creative mode?
-        double maxReach = player.gamemode == GameMode.CREATIVE ? 6.0 : player.compensatedEntities.getSelf().getBlockInteractRange();
+        // With 1.20.5+ the new attribute determines creative mode reach using a modifier
+        double maxReach = player.gamemode == GameMode.CREATIVE && !player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
+                ? 6.0
+                : player.compensatedEntities.getSelf().getBlockInteractRange();
         double threshold = player.getMovementThreshold();
         maxReach += Math.hypot(threshold, threshold);
-
 
         if (min > maxReach * maxReach) { // fail
             if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
