@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.autoblock;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -27,6 +28,7 @@ public class AutoBlockA extends Check implements PacketCheck {
             if (wrapper.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK)) {
                 if (this.player.bukkitPlayer.isBlocking()) {
                     if (wrapper.getEntityId() != this.lastInteractEntity) {
+                        if (isAboveSetbackVl()) this.player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                         flagAndAlert();
                         event.setCancelled(true);
                     } else {
