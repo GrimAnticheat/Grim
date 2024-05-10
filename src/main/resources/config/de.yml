@@ -148,6 +148,9 @@ Reach:
   # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   allow-sprint-jumping-when-using-elytra: true
   # Diese Option verhindert das Platzieren von Geisterblöcken auf weitere Geisterblöcke, indem der Spieler neu synchronisiert wird.

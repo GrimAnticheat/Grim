@@ -154,6 +154,9 @@ Reach:
   # Excepto que seas un servidor 1.8 enfocado en el PvP, este paquete adicional no es recomendado.
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   allow-sprint-jumping-when-using-elytra: true
   # Esta opción mitiga la colocación del jugador en bloques fantasma resincronizando al jugador cuando ocurre.

@@ -152,6 +152,9 @@ Reach:
   # A menos que estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploitação de ocorrer quando
   # definido falso.

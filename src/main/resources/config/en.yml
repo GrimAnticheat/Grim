@@ -148,6 +148,9 @@ Reach:
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
   # Mojang screwed up netcode by making elytra start client sided and elytra end server sided

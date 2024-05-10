@@ -149,6 +149,9 @@ Reach:
   # À moins d'être un serveur axé sur le PvP en 1.8, l'envoi de ce paquet supplémentaire n'est pas recommandé.
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   allow-sprint-jumping-when-using-elytra: true
   # Cette option atténue le placement du joueur sur les ghostblocks en resynchronisant le joueur lorsque cela se produit.

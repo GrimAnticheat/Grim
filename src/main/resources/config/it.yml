@@ -128,6 +128,9 @@ Reach:
   # Abilita l'invio di pacchetti aggiuntivi per il rilevamento degli attacchi
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   # Abilita il salto in sprint con l'elytra
   allow-sprint-jumping-when-using-elytra: true

@@ -149,6 +149,9 @@ Reach:
   # Если вы не являетесь PvP-сервером 1.8, этот дополнительный пакет не рекомендуется.
   enable-post-packet: false
 
+AutoBlock:
+  setbackvl: -1 # silent
+
 exploit:
   allow-sprint-jumping-when-using-elytra: true
   # Эта опция смягчает размещение игрока на блоках-призраках, ресинхронизируя его, когда это происходит.
