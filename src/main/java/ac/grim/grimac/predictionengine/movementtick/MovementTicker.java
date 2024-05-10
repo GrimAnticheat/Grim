@@ -314,7 +314,7 @@ public class MovementTicker {
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
         if (isFalling && player.compensatedEntities.getSlowFallingAmplifier() != null) {
-            playerGravity = 0.01;
+            playerGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(playerGravity, 0.01);
             // Set fall distance to 0 if the player has slow falling
             player.fallDistance = 0;
         }
