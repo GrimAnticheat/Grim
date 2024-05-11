@@ -8,7 +8,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.command.CommandSender;
 
 import java.net.HttpURLConnection;
@@ -34,7 +34,7 @@ public class GrimLog extends BaseCommand {
 
             sender.sendMessage(MessageUtil.format(uploading));
 
-            FoliaCompatUtil.runTaskAsync(GrimAPI.INSTANCE.getPlugin(), () -> {
+            FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
                 try {
                     URL mUrl = new URL("https://paste.grim.ac/data/post");
                     HttpURLConnection urlConn = (HttpURLConnection) mUrl.openConnection();
