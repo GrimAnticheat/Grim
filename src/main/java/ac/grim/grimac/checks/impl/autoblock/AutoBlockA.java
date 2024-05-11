@@ -28,7 +28,7 @@ public class AutoBlockA extends Check implements PacketCheck {
             if (wrapper.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK)) {
                 if (this.player.bukkitPlayer.isBlocking()) {
                     if (wrapper.getEntityId() != this.lastInteractEntity) {
-                        if (isAboveSetbackVl()) this.player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+                        setbackIfAboveSetbackVL();
                         flagAndAlert();
                         event.setCancelled(true);
                     } else {

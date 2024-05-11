@@ -30,7 +30,7 @@ public class AutoBlockB extends Check implements PacketCheck {
 
                     //vanilla is unable to do blocking when sending more than two interact_entity packets
                     if (this.useItem == this.lastUseItem) {
-                        this.player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+                        setbackIfAboveSetbackVL();
                         flagAndAlert("Duplicate tick");
                     } else {
                         reward();
