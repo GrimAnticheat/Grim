@@ -100,8 +100,8 @@ public class CompensatedEntities {
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-
+                final String key = snapshotWrapper.getKey();
+                if (key.toUpperCase().contains("MOVEMENT")) {
                     boolean found = false;
                     List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
                     for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
@@ -114,11 +114,45 @@ public class CompensatedEntities {
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
                     player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
+                    continue;
+                }
+
+                // Attribute limits defined by https://minecraft.wiki/w/Attribute
+                // These seem to be clamped on the client, but not the server
+                switch (key) {
+                    case "minecraft:player.block_break_speed":
+                        player.compensatedEntities.getSelf().setBreakSpeedMultiplier(GrimMath.clamp(snapshotWrapper.getValue(), 0, 1024));
+                    case "minecraft:player.block_interaction_range":
+                        player.compensatedEntities.getSelf().setBlockInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        break;
+                    case "minecraft:player.entity_interaction_range":
+                        player.compensatedEntities.getSelf().setEntityInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        break;
+                    case "minecraft:generic.jump_strength":
+                        player.compensatedEntities.getSelf().setJumpStrength(GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32));
+                        break;
                 }
             }
         }
 
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+                final String key = snapshotWrapper.getKey();
+                if (key.equals("minecraft:generic.gravity")) {
+                    entity.gravityAttribute = GrimMath.clamp(snapshotWrapper.getValue(), -1, 1);
+                } else if (key.equals("minecraft:generic.scale")) {
+                    // The game itself casts to float, this is fine.
+                    entity.scale = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0.0625f, 16f);
+                } else if (key.equals("minecraft:generic.step_height")) {
+                    entity.stepHeight = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0f, 10f);
+                } else if (entity instanceof PacketEntityHorse && key.equals("minecraft:generic.jump_strength")) {
+                    // TODO check if this is how horses determine jump strength now
+                    ((PacketEntityHorse) entity).jumpStrength = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32);
+                }
+            }
+        }
 
         if (entity instanceof PacketEntityHorse) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {

@@ -119,7 +119,7 @@ public class PointThreeEstimator {
     // Handle game events that occur between skipped ticks - thanks a lot mojang for removing the idle packet!
     public void handleChangeBlock(int x, int y, int z, WrappedBlockState state) {
         CollisionBox data = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
-        SimpleCollisionBox normalBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
+        SimpleCollisionBox normalBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f);
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
@@ -128,7 +128,7 @@ public class PointThreeEstimator {
             headHitter = true;
         }
 
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
         if ((Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
@@ -208,7 +208,7 @@ public class PointThreeEstimator {
     }
 
     public void endOfTickTick() {
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
 
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
@@ -217,7 +217,7 @@ public class PointThreeEstimator {
         // Can we trust the pose height?
         for (float sizes : (player.skippedTickInActualMovement ? new float[]{0.6f, 1.5f, 1.8f} : new float[]{player.pose.height})) {
             // Try to limit collisions to be as small as possible, for maximum performance
-            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y + (sizes - 0.01f), player.z, 0.6f, 0.01f);
+            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y + (sizes - 0.01f), player.z, 0.6f, 0.01f);
             headHitter = headHitter || Collisions.collide(player, 0, 0.03, 0).getY() != 0.03;
         }
 
@@ -409,6 +409,15 @@ public class PointThreeEstimator {
             if (!first) {
                 maxYTraveled += yVel;
             }
+
+            // Support for custom gravity, this means we aren't making progress
+            // 0.003 gravity
+            // iterate -> 0 - 0.003 = -0.003 * 0.98 = -0.00294
+            // 0.00294 < 0.003 -> 0
+            if (!first && yVel == 0) {
+                break;
+            }
+
             first = false;
 
             // Simulate end of tick vector

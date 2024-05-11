@@ -17,6 +17,12 @@ public class PacketEntitySelf extends PacketEntity {
     @Getter
     @Setter
     int opLevel;
+    @Getter
+    @Setter
+    float jumpStrength = 0.42f;
+    @Getter
+    @Setter
+    double breakSpeedMultiplier = 1.0, entityInteractRange = 3, blockInteractRange = 4.5;
 
     public PacketEntitySelf(GrimPlayer player) {
         super(EntityTypes.PLAYER);
@@ -27,6 +33,12 @@ public class PacketEntitySelf extends PacketEntity {
         super(EntityTypes.PLAYER);
         this.player = player;
         this.opLevel = old.opLevel;
+        this.jumpStrength = old.jumpStrength;
+        this.gravityAttribute = old.gravityAttribute;
+        this.entityInteractRange = old.entityInteractRange;
+        this.blockInteractRange = old.blockInteractRange;
+        this.scale = old.scale;
+        this.stepHeight = old.stepHeight;
     }
 
     public boolean inVehicle() {
