@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "AutoBlockB (MultiActions)",configName = "AutoBlock",setback = 1)
+@CheckData(name = "AutoBlockB (MultiActions)", configName = "AutoBlock", setback = 1)
 public class AutoBlockB extends Check implements PacketCheck {
     private long lastUseItem = -1L;
     private long useItem = -1L;
@@ -21,17 +21,24 @@ public class AutoBlockB extends Check implements PacketCheck {
         if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK)) {
+                //slowedUseItem and wasSlowedUseItem always false,I had to use the Bukkit API
                 if (this.player.bukkitPlayer.isBlocking()) {
                     if (this.lastUseItem == -1L && this.useItem == -1L) {
                         this.useItem = this.player.lastBlockPlaceUseItem;
                         this.lastUseItem = this.useItem;
                         return;
                     }
+                    alert("useItem=" + this.useItem + ", lastUseItem=" + this.lastUseItem);
 
                     //vanilla is unable to do blocking when sending more than two interact_entity packets
                     if (this.useItem == this.lastUseItem) {
-                        setbackIfAboveSetbackVL();
-                        flagAndAlert("Duplicate tick");
+                        if (flagAndAlert("Duplicate tick")) {
+                            setbackIfAboveSetbackVL();
+                            if (shouldModifyPackets()) {
+                                event.setCancelled(true);
+                                this.player.onPacketCancel();
+                            }
+                        }
                     } else {
                         reward();
                     }

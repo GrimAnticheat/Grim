@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "AutoBlockA (Interact)",configName = "AutoBlock",setback = 1)
+@CheckData(name = "AutoBlockA (Interact)", configName = "AutoBlock", setback = 1)
 public class AutoBlockA extends Check implements PacketCheck {
     private int lastInteractEntity = -1;
     public AutoBlockA(GrimPlayer player) {
@@ -26,11 +26,15 @@ public class AutoBlockA extends Check implements PacketCheck {
 
             //Even blocking due to a delay will send Interact before then
             if (wrapper.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK)) {
-                if (this.player.bukkitPlayer.isBlocking()) {
+                if (this.player.packetStateData.slowedByUsingItem || this.player.packetStateData.wasSlowedByUsingItem) {
                     if (wrapper.getEntityId() != this.lastInteractEntity) {
-                        setbackIfAboveSetbackVL();
-                        flagAndAlert();
-                        event.setCancelled(true);
+                        if (flagAndAlert()) {
+                            setbackIfAboveSetbackVL();
+                            if (shouldModifyPackets()) {
+                                event.setCancelled(true);
+                                this.player.onPacketCancel();
+                            }
+                        }
                     } else {
                         reward();
                     }
