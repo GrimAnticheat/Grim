@@ -6,12 +6,15 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "AutoBlockB (MultiActions)", configName = "AutoBlock", setback = 1)
+@CheckData(name = "AutoBlockB (MultiActions)", configName = "AutoBlockB", setback = 1, experimental = true)
 public class AutoBlockB extends Check implements PacketCheck {
     private long lastUseItem = -1L;
     private long useItem = -1L;
+    private double buffer;
     public AutoBlockB(GrimPlayer player) {
         super(player);
     }
@@ -21,14 +24,12 @@ public class AutoBlockB extends Check implements PacketCheck {
         if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK)) {
-                //slowedUseItem and wasSlowedUseItem always false,I had to use the Bukkit API
-                if (this.player.bukkitPlayer.isBlocking()) {
+                if (this.player.packetStateData.slowedByUsingItem) {
                     if (this.lastUseItem == -1L && this.useItem == -1L) {
                         this.useItem = this.player.lastBlockPlaceUseItem;
                         this.lastUseItem = this.useItem;
                         return;
                     }
-                    alert("useItem=" + this.useItem + ", lastUseItem=" + this.lastUseItem);
 
                     //vanilla is unable to do blocking when sending more than two interact_entity packets
                     if (this.useItem == this.lastUseItem) {
@@ -41,6 +42,7 @@ public class AutoBlockB extends Check implements PacketCheck {
                         }
                     } else {
                         reward();
+                        buffer = Math.max(0,buffer - getDecay());
                     }
 
                     this.lastUseItem = this.useItem;
