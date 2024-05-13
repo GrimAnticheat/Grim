@@ -115,6 +115,8 @@ public class BlockBreakSpeed {
             isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
         }
 
+        speedMultiplier *= (float) player.compensatedEntities.getSelf().getBreakSpeedMultiplier();
+
         if (speedMultiplier > 1.0f) {
             int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             if (digSpeed > 0) {

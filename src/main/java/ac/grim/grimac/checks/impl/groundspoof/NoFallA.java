@@ -69,7 +69,7 @@ public class NoFallA extends Check implements PacketCheck {
 
     public boolean isNearGround(boolean onGround) {
         if (onGround) {
-            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 0.001f);
+            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 0.001f);
             feetBB.expand(player.getMovementThreshold()); // Movement threshold can be in any direction
 
             return checkForBoxes(feetBB);

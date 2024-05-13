@@ -151,10 +151,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
-            int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
+            final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with out of bounds exceptions
-            if (slot > 8) return;
+            if (slot > 8 || slot < 0) return;
 
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;

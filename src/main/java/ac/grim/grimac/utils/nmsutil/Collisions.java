@@ -54,7 +54,7 @@ public class Collisions {
 
     public static boolean slowCouldPointThreeHitGround(GrimPlayer player, double x, double y, double z) {
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 0.06f);
+        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, x, y, z, 0.6f, 0.06f);
 
         double posXZ = Collisions.collide(player, 0.03, -0.03, 0.03).getY();
         double negXNegZ = Collisions.collide(player, -0.03, -0.03, -0.03).getY();

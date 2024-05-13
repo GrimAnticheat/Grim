@@ -24,12 +24,14 @@ public class PlayerBaseTick {
     }
 
     public static boolean canEnterPose(GrimPlayer player, Pose pose, double x, double y, double z) {
-        return Collisions.isEmpty(player, getBoundingBoxForPose(pose, x, y, z).expand(-1.0E-7D));
+        return Collisions.isEmpty(player, getBoundingBoxForPose(player, pose, x, y, z).expand(-1.0E-7D));
     }
 
-    protected static SimpleCollisionBox getBoundingBoxForPose(Pose pose, double x, double y, double z) {
-        float radius = pose.width / 2.0F;
-        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius, false);
+    protected static SimpleCollisionBox getBoundingBoxForPose(GrimPlayer player, Pose pose, double x, double y, double z) {
+        final float width = pose.width * player.compensatedEntities.getSelf().scale;
+        final float height = pose.height * player.compensatedEntities.getSelf().scale;
+        float radius = width / 2.0F;
+        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + height, z + radius, false);
     }
 
     public void doBaseTick() {
@@ -188,7 +190,7 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
-            player.boundingBox = getBoundingBoxForPose(player.pose, player.x, player.y, player.z);
+            player.boundingBox = getBoundingBoxForPose(player, player.pose, player.x, player.y, player.z);
         }
     }
 

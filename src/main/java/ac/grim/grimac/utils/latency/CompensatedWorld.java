@@ -20,10 +20,12 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.Dimension;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
@@ -330,7 +332,7 @@ public class CompensatedWorld {
         // Occurs on player login
         if (player.boundingBox == null) return;
 
-        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
+        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
         expandedBB.expandToAbsoluteCoordinates(player.x, player.y, player.z);
         SimpleCollisionBox playerBox = expandedBB.copy().expand(1);
 
@@ -670,11 +672,22 @@ public class CompensatedWorld {
         return minHeight;
     }
 
-    public void setDimension(String dimension, User user) {
+    public void setDimension(Dimension dimension, User user) {
         // No world height NBT
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 
-        NBTCompound dimensionNBT = user.getWorldNBT(dimension).getCompoundTagOrNull("element");
+        final NBTCompound worldNBT = user.getWorldNBT(dimension);
+
+        final NBTCompound dimensionNBT = worldNBT.getCompoundTagOrNull("element");
+        // Mojang has decided to save another 1MB an hour by not sending data the client has "preinstalled"
+        // This code runs in 1.20.5+ with default world datapacks
+        if (dimensionNBT == null && user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            minHeight = user.getMinWorldHeight();
+            maxHeight = user.getMinWorldHeight() + user.getTotalWorldHeight();
+            return;
+        }
+
+        // Else get the heights directly from the NBT
         minHeight = dimensionNBT.getNumberTagOrThrow("min_y").getAsInt();
         maxHeight = minHeight + dimensionNBT.getNumberTagOrThrow("height").getAsInt();
     }

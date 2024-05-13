@@ -12,6 +12,7 @@ public class PacketEntityCamel extends PacketEntityHorse {
 
         jumpStrength = 0.42F;
         movementSpeedAttribute = 0.09f;
+        stepHeight = 1.5f;
     }
 
 }

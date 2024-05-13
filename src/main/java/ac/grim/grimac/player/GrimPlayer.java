@@ -14,6 +14,8 @@ import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -38,7 +40,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
-import io.github.retrooper.packetevents.util.FoliaCompatUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import io.netty.channel.Channel;
 import net.kyori.adventure.text.Component;
@@ -212,7 +214,7 @@ public class GrimPlayer implements GrimUser {
         this.playerUUID = user.getUUID();
         onReload();
 
-        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
+        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSizeRaw(x, y, z, 0.6f, 1.8f);
 
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
@@ -343,14 +345,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public float getMaxUpStep() {
-        if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
+        final PacketEntitySelf self = compensatedEntities.getSelf();
+        final PacketEntity riding = self.getRiding();
+        if (riding == null) return self.stepHeight;
 
-        if (EntityTypes.isTypeInstanceOf(compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
+        if (EntityTypes.isTypeInstanceOf(riding.type, EntityTypes.BOAT)) {
             return 0f;
         }
 
-        // Pigs, horses, striders, and other vehicles all have 1 stepping height
-        return 1.0f;
+        // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
+        return riding.stepHeight;
     }
 
     public void sendTransaction() {
@@ -425,7 +429,9 @@ public class GrimPlayer implements GrimUser {
         }
         user.closeConnection();
         if (bukkitPlayer != null) {
-            FoliaCompatUtil.runTaskForEntity(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> bukkitPlayer.kickPlayer(textReason), null, 1);
+            FoliaScheduler.getEntityScheduler().execute(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                bukkitPlayer.kickPlayer(textReason);
+            }, null, 1);
         }
     }
 
@@ -544,7 +550,8 @@ public class GrimPlayer implements GrimUser {
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
         if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
-            return Arrays.asList(0.4, 1.27, 1.62);
+            final float scale = compensatedEntities.getSelf().scale;
+            return Arrays.asList(0.4 * scale, 1.27 * scale, 1.62 * scale);
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return Arrays.asList(0.4, 1.54, 1.62);
         } else { // Only sneaking or standing
