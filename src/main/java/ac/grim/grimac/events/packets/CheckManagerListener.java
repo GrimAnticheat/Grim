@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsX;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsZ;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -435,6 +436,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
 
             player.checkManager.getPacketCheck(BadPacketsX.class).handle(event, dig, block.getType());
+            player.checkManager.getPacketCheck(BadPacketsZ.class).handle(event, dig);
 
             if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
                 // Not unbreakable
