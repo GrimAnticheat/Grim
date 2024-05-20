@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -20,6 +19,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
         super(player);
     }
 
+    private boolean exemptNextFinish = false;
     private Vector3i lastBlock, lastLastBlock = null;
     private final int exemptedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
 
@@ -49,6 +49,8 @@ public class BadPacketsZ extends Check implements PacketCheck {
         if (dig.getAction() == DiggingAction.START_DIGGING) {
             lastLastBlock = lastBlock;
             lastBlock = dig.getBlockPosition();
+
+            exemptNextFinish = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && getBlockDamage(player, lastBlock) >= 1;
             return;
         }
 
@@ -58,6 +60,8 @@ public class BadPacketsZ extends Check implements PacketCheck {
                 lastBlock = null;
                 return;
             }
+
+            exemptNextFinish = false;
 
             if ((lastBlock == null || !lastBlock.equals(dig.getBlockPosition())) && (lastLastBlock == null || !lastLastBlock.equals(dig.getBlockPosition()))) {
                 if (flagAndAlert("action=CANCELLED_DIGGING, last=" + formatted(lastBlock) + "/" + formatted(lastLastBlock) + ", pos=" + formatted(dig.getBlockPosition()))) {
@@ -73,6 +77,11 @@ public class BadPacketsZ extends Check implements PacketCheck {
         }
 
         if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
+            if (exemptNextFinish) {
+                exemptNextFinish = false;
+                return;
+            }
+
             if ((lastBlock == null || !lastBlock.equals(dig.getBlockPosition())) && (lastLastBlock == null || !lastLastBlock.equals(dig.getBlockPosition()))) {
                 if (flagAndAlert("action=FINISHED_DIGGING, last=" + formatted(lastBlock) + "/" + formatted(lastLastBlock) + ", pos=" + formatted(dig.getBlockPosition()))) {
                     if (shouldModifyPackets()) {
