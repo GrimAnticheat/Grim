@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
+import ac.grim.grimac.checks.impl.movement.NoSlowC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -61,6 +62,8 @@ public class PlayerBaseTick {
             player.trackBaseTickAddition(waterPushVector);
         }
 
+        final boolean wasSlowMovement = player.isSlowMovement;
+
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
             // 1.13.2 and below logic: If crouching, then slow movement, simple!
             player.isSlowMovement = player.isSneaking;
@@ -80,6 +83,8 @@ public class PlayerBaseTick {
         }
 
         if (player.compensatedEntities.getSelf().inVehicle()) player.isSlowMovement = false;
+
+        if (wasSlowMovement != player.isSlowMovement) player.checkManager.getPostPredictionCheck(NoSlowC.class).startedSprintingBeforeSlowMovement = player.isSlowMovement && player.isSprinting;
 
         // Players in boats don't care about being in blocks
         if (!player.compensatedEntities.getSelf().inVehicle()) {
