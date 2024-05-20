@@ -49,3 +49,15 @@ jobs:
 
       - name: Execute Gradle build
         run: ./gradlew build
+
+      - name: Release to Github
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/libs/**.jar
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.get-version-id.outputs.id }}
+          body_path: CHANGELOGS.txt
+          draft: false
+          prerelease: false
