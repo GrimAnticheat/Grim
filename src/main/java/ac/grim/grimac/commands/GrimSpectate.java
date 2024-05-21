@@ -33,7 +33,7 @@ public class GrimSpectate extends BaseCommand {
         }
 
         if (target == null || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(target.getPlayer()))) {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThe player isn't on this server!");
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
             sender.sendMessage(MessageUtil.format(message));
             return;
         }
@@ -41,7 +41,7 @@ public class GrimSpectate extends BaseCommand {
         if (GrimAPI.INSTANCE.getSpectateManager().enable(player)) {
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
             if (grimPlayer != null) {
-                String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "\n%prefix% &fClick here to return to previous location\n");
+                String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "\n%prefix% &fClick here to return to previous location!\n");
                 grimPlayer.user.sendMessage(
                         LegacyComponentSerializer.legacy('&')
                                 .deserialize(MessageUtil.formatWithNoColor(message))
