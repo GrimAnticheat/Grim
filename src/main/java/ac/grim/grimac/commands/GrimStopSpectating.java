@@ -23,7 +23,7 @@ public class GrimStopSpectating extends BaseCommand {
             boolean teleportBack = string == null || !string.equalsIgnoreCase("here");
             GrimAPI.INSTANCE.getSpectateManager().disable(player, teleportBack);
         } else {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player");
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player.");
             sender.sendMessage(MessageUtil.format(message));
         }
     }
