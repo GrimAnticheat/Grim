@@ -59,7 +59,7 @@ jobs:
           build/libs/**.jar
         token: ${{ secrets.GITHUB_TOKEN }}
         tag_name: ${{ steps.get-version-id.outputs.id }}
-        body_path: CHANGELOGS.txt
+        #body_path: CHANGELOGS.txt
         draft: false
         prerelease: false
 
