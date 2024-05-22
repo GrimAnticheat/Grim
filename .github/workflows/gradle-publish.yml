@@ -32,18 +32,20 @@ jobs:
       id: get-version-id
       uses: iawia002/get-tag-or-commit-id@v1
 
-    - name: Generate changelog
-      id: generate_changelog
-      run: |
-        echo "Tag: ${{ steps.get-version-id.outputs.tag }}"
-        start_sha=${{ github.event.before }}
-        end_sha=${{ github.event.after }}
+    # Impossible to build due to fatal error, so no ChangeLogs for now.
+    # TODO: fix this.
+    #- name: Generate changelog
+    #  id: generate_changelog
+    #  run: |
+    #    echo "Tag: ${{ steps.get-version-id.outputs.tag }}"
+    #    start_sha=${{ github.event.before }}
+    #    end_sha=${{ github.event.after }}
 
-        if [[ $start_sha != $end_sha ]]; then
-          mkdir changelogs
-          echo "ChangeLogs:" > CHANGELOGS.txt
-          git log --pretty=format:'- [%ad] %s (#%H) by %an' --date=format:'%d-%m-%Y | %I:%M%p' $start_sha..$end_sha >> CHANGELOGS.txt
-        fi
+    #    if [[ $start_sha != $end_sha ]]; then
+    #      mkdir changelogs
+    #      echo "ChangeLogs:" > CHANGELOGS.txt
+    #      git log --pretty=format:'- [%ad] %s (#%H) by %an' --date=format:'%d-%m-%Y | %I:%M%p' $start_sha..$end_sha >> CHANGELOGS.txt
+    #    fi
     - name: Build with Gradle
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
