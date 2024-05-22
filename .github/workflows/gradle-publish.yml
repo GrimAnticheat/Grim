@@ -15,7 +15,7 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -31,13 +31,11 @@ jobs:
     - name: Get tag or commit id
       id: get-version-id
       uses: iawia002/get-tag-or-commit-id@v1
-    - name: Print tag
-      run: |
-        echo "Tag: ${{ steps.get-version-id.outputs.tag }}"
 
     - name: Generate changelog
       id: generate_changelog
       run: |
+        echo "Tag: ${{ steps.get-version-id.outputs.tag }}"
         start_sha=${{ github.event.before }}
         end_sha=${{ github.event.after }}
 
@@ -50,6 +48,7 @@ jobs:
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
         arguments: build
+
     - name: Release to Github
       id: create_release
       uses: softprops/action-gh-release@v2
@@ -61,6 +60,7 @@ jobs:
         body_path: CHANGELOGS.txt
         draft: false
         prerelease: false
+
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.0
       with:
