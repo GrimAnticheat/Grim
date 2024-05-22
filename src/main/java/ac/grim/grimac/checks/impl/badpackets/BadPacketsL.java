@@ -26,8 +26,7 @@ public class BadPacketsL extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
-            final boolean isUsedForDigging = packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING;
-            if (isUsedForDigging) {
+            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) {
                 return;
             }
 
@@ -40,9 +39,11 @@ public class BadPacketsL extends Check implements PacketCheck {
                     || packet.getBlockPosition().getX() != 0
                     || packet.getBlockPosition().getY() != 0
                     || packet.getBlockPosition().getZ() != 0
+                    || packet.getSequence() != 0
             ) {
                 flagAndAlert("xyzF="
                         + packet.getBlockPosition().getX() + ", " + packet.getBlockPosition().getY() + ", " + packet.getBlockPosition().getZ() + ", " + packet.getBlockFace()
+                        + ", sequence=" + packet.getSequence()
                         + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getVersionName()
                 );
             }
