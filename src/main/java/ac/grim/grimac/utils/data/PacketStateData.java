@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 public class PacketStateData {
     public boolean packetPlayerOnGround = false;
     public boolean lastPacketWasTeleport = false;
-    public boolean lastPacketWasOnePointSeventeenDuplicate = false;
+    public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate = false;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
     public InteractionHand eatingHand = InteractionHand.MAIN_HAND;

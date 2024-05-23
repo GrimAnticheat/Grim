@@ -322,7 +322,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private boolean isMojangStupid(GrimPlayer player, WrapperPlayClientPlayerFlying flying) {
-        double threshold = player.getMovementThreshold();
+        final Location location = flying.getLocation();
+        final double threshold = player.getMovementThreshold();
+
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.
         //
@@ -334,21 +336,34 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         // Mojang added this stupid mechanic in 1.17
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
-                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(flying.getLocation().getPosition()) < threshold * threshold))
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(location.getPosition()) < threshold * threshold))
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.compensatedEntities.getSelf().inVehicle())) {
+
+            // Mark that we want this packet to be cancelled from reaching the server
+            // Additionally, only yaw/pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
+            // 1.9+ isn't impacted by this packet as much.
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("cancel-duplicate-packet", true)) {
+                    player.packetStateData.cancelDuplicatePacket = true;
+                }
+            } else {
+                // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
+                flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
+            }
+
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
-            if (player.xRot != flying.getLocation().getYaw() || player.yRot != flying.getLocation().getPitch()) {
+            if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
                 player.lastXRot = player.xRot;
                 player.lastYRot = player.yRot;
             }
 
             // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.xRot = flying.getLocation().getYaw();
-            player.yRot = flying.getLocation().getPitch();
+            player.xRot = location.getYaw();
+            player.yRot = location.getPitch();
 
-            player.packetStateData.lastClaimedPosition = flying.getLocation().getPosition();
+            player.packetStateData.lastClaimedPosition = location.getPosition();
             return true;
         }
         return false;
@@ -400,6 +415,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // The player flagged crasher or timer checks, therefore we must protect predictions against these attacks
         if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)) {
+            player.packetStateData.cancelDuplicatePacket = false;
             return;
         }
 
@@ -547,6 +563,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
+
+        if (player.packetStateData.cancelDuplicatePacket) {
+            event.setCancelled(true);
+            player.packetStateData.cancelDuplicatePacket = false;
+        }
 
         // Finally, remove the packet state variables on this packet
         player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;

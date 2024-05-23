@@ -36,6 +36,11 @@ spectators:
 # Quanto tempo os jogadores tem até expulsarmos eles por inatividade? Padrão = 60 segundos.
 max-transaction-time: 60
 
+# Should the duplicate movement packet be cancelled?
+# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
+# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+cancel-duplicate-packet: true
+
 Simulation:
   # Por quanto deveríamos multiplicar a vantagem caso o jogador não tenha falhado em nem uma verificação?
   # Isso é como a configuração padrão se parece (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/d4ufgxrxer
