@@ -36,6 +36,11 @@ spectators:
 # Wie lange sollen Spieler Zeit haben, bis wir sie wegen Zeitüberschreitung rauswerfen? Standard = 60 Sekunden
 max-transaction-time: 60
 
+# Should the duplicate movement packet be cancelled?
+# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
+# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+cancel-duplicate-packet: true
+
 Simulation:
   # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
   # So sieht die Standardkonfiguration aus (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/d4ufgxrxer

@@ -122,6 +122,7 @@ public class CompensatedEntities {
                 switch (key) {
                     case "minecraft:player.block_break_speed":
                         player.compensatedEntities.getSelf().setBreakSpeedMultiplier(GrimMath.clamp(snapshotWrapper.getValue(), 0, 1024));
+                        break;
                     case "minecraft:player.block_interaction_range":
                         player.compensatedEntities.getSelf().setBlockInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
                         break;
