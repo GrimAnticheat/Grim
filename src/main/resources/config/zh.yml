@@ -36,6 +36,11 @@ spectators:
 # 在我们让他们超时之前，玩家应该有多长时间？ 此处的60 指60s
 max-transaction-time: 60
 
+# Should the duplicate movement packet be cancelled?
+# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
+# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+cancel-duplicate-packet: true
+
 Simulation:
   # 当玩家合法时，我们应该将总优势乘以多少
   # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/d4ufgxrxer
