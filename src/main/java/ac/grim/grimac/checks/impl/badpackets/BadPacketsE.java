@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsE")
 public class BadPacketsE extends Check implements PacketCheck {
-    private int noReminderTicks;
+    public int noReminderTicks;
 
     public BadPacketsE(GrimPlayer player) {
         super(player);
