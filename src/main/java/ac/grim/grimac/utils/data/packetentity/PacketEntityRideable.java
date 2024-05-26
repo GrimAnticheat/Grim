@@ -11,7 +11,8 @@ public class PacketEntityRideable extends PacketEntity {
 
     public float movementSpeedAttribute = 0.1f;
 
-    public PacketEntityRideable(GrimPlayer player, EntityType type, double x, double y, double z) {
+    public PacketEntityRideable(final GrimPlayer player, final EntityType type,
+                                final double x, final double y, final double z) {
         super(player, type, x, y, z);
         this.stepHeight = 1.0f;
     }

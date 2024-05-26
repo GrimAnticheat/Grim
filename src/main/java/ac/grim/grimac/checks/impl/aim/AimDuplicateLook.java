@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
 @CheckData(name = "AimDuplicateLook")
 public class AimDuplicateLook extends Check implements RotationCheck {
-    public AimDuplicateLook(GrimPlayer playerData) {
+    public AimDuplicateLook(final GrimPlayer playerData) {
         super(playerData);
     }
 

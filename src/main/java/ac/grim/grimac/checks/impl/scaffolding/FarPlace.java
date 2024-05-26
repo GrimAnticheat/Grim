@@ -14,36 +14,37 @@ import org.bukkit.util.Vector;
 
 @CheckData(name = "FarPlace")
 public class FarPlace extends BlockPlaceCheck {
-    public FarPlace(GrimPlayer player) {
+    public FarPlace(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        Vector3i blockPos = place.getPlacedAgainstBlockLocation();
+        final Vector3i blockPos = place.getPlacedAgainstBlockLocation();
 
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
 
         double min = Double.MAX_VALUE;
-        for (double d : player.getPossibleEyeHeights()) {
-            SimpleCollisionBox box = new SimpleCollisionBox(blockPos);
-            Vector eyes = new Vector(player.x, player.y + d, player.z);
-            Vector best = VectorUtils.cutBoxToVector(eyes, box);
+        for (final double d : player.getPossibleEyeHeights()) {
+            final SimpleCollisionBox box = new SimpleCollisionBox(blockPos);
+            final Vector eyes = new Vector(player.x, player.y + d, player.z);
+            final Vector best = VectorUtils.cutBoxToVector(eyes, box);
             min = Math.min(min, eyes.distanceSquared(best));
         }
 
         // getPickRange() determines this?
         // With 1.20.5+ the new attribute determines creative mode reach using a modifier
-        double maxReach = player.gamemode == GameMode.CREATIVE && !player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
-                ? 6.0
-                : player.compensatedEntities.getSelf().getBlockInteractRange();
-        double threshold = player.getMovementThreshold();
-        maxReach += Math.hypot(threshold, threshold);
+        final boolean creativeReach = player.gamemode == GameMode.CREATIVE &&
+                !player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5);
+        final double threshold = player.getMovementThreshold();
+        final double maxReach = Math.hypot(threshold, threshold)
+                + (creativeReach ? 6.0 : player.compensatedEntities.getSelf().getBlockInteractRange());
 
-        if (min > maxReach * maxReach) { // fail
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
-                place.resync();
-            }
+        if (min <= maxReach * maxReach) return;
+
+        // fail
+        if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            place.resync();
         }
     }
 }

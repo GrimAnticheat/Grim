@@ -32,7 +32,7 @@ public class Phase extends Check implements PostPredictionCheck {
             final List<SimpleCollisionBox> boxes = new ArrayList<>();
             Collisions.getCollisionBoxes(player, newBB, boxes, false);
 
-            for (SimpleCollisionBox box : boxes) {
+            for (final SimpleCollisionBox box : boxes) {
                 if (newBB.isIntersected(box) && !oldBB.isIntersected(box)) {
                     if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
                         // A bit of a hacky way to get the block state, but this is much faster to use the tuinity method for grabbing collision boxes

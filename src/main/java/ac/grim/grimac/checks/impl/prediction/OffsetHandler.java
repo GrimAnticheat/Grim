@@ -34,7 +34,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (!predictionComplete.isChecked()) return;
 
-        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), this, predictionComplete.getOffset());
+        final CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), this, predictionComplete.getOffset());
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
         if (completePredictionEvent.isCancelled()) return;

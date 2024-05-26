@@ -7,7 +7,8 @@ public class PacketEntityHook extends PacketEntity{
     public int owner;
     public int attached = -1;
 
-    public PacketEntityHook(GrimPlayer player, EntityType type, double x, double y, double z, int owner) {
+    public PacketEntityHook(final GrimPlayer player, final EntityType type,
+                            final double x, final double y, final double z, final int owner) {
         super(player, type, x, y, z);
         this.owner = owner;
     }

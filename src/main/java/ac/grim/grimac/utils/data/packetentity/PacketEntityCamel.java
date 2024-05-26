@@ -7,7 +7,8 @@ public class PacketEntityCamel extends PacketEntityHorse {
 
     public boolean dashing = false; //TODO: handle camel dashing
 
-    public PacketEntityCamel(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
+    public PacketEntityCamel(final GrimPlayer player, final EntityType type,
+                             final double x, final double y, final double z, final float xRot) {
         super(player, type, x, y, z, xRot);
 
         jumpStrength = 0.42F;

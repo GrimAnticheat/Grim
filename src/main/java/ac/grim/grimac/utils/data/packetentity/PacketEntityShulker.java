@@ -7,7 +7,8 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 public class PacketEntityShulker extends PacketEntity {
     public BlockFace facing = BlockFace.DOWN;
 
-    public PacketEntityShulker(GrimPlayer player, EntityType type, double x, double y, double z) {
+    public PacketEntityShulker(final GrimPlayer player, final EntityType type,
+                               final double x, final double y, final double z) {
         super(player, type, x, y, z);
     }
 }

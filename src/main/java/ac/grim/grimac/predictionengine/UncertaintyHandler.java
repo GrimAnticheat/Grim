@@ -338,7 +338,7 @@ public class UncertaintyHandler {
         if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.getSelf().getRiding() && !entity.hasPassenger(entityPair.getValue())
+                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.getSelf().getRiding() && entity.doesntHavePassenger(entityPair.getValue())
                         && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -353,7 +353,7 @@ public class UncertaintyHandler {
         if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity != player.compensatedEntities.getSelf().getRiding() && (player.compensatedEntities.getSelf().getRiding() == null || !player.compensatedEntities.getSelf().getRiding().hasPassenger(entityPair.getValue())) &&
+                if (entity != player.compensatedEntities.getSelf().getRiding() && (player.compensatedEntities.getSelf().getRiding() == null || player.compensatedEntities.getSelf().getRiding().doesntHavePassenger(entityPair.getValue())) &&
                         entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
