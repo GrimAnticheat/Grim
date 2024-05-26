@@ -53,7 +53,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
             violations++;
 
             synchronized (flags) {
-                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
+                final int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
 
                 final String humanFormattedOffset = getHumanFormattedOffset(offset);
 
