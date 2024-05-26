@@ -19,13 +19,14 @@ public class BadPacketsQ extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() != Client.ENTITY_ACTION) return;
 
-        final WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
+        final WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
 
-        if (!(wrapper.getJumpBoost() < 0 ||
-                wrapper.getJumpBoost() > 100 ||
-                wrapper.getEntityId() != player.entityID ||
-                (wrapper.getAction() != Action.START_JUMPING_WITH_HORSE && wrapper.getJumpBoost() != 0))) return;
-        if (flagAndAlert("boost=" + wrapper.getJumpBoost() + ", action=" + wrapper.getAction() + ", entity=" + wrapper.getEntityId()) && shouldModifyPackets()) {
+        if (!(packet.getJumpBoost() < 0 ||
+                packet.getJumpBoost() > 100 ||
+                packet.getEntityId() != player.entityID ||
+                (packet.getAction() != Action.START_JUMPING_WITH_HORSE && packet.getJumpBoost() != 0))) return;
+        
+        if (flagAndAlert("boost=" + packet.getJumpBoost() + ", action=" + packet.getAction() + ", entity=" + packet.getEntityId()) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
