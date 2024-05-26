@@ -50,7 +50,7 @@ public class CrashD extends Check implements PacketCheck {
     }
 
     private boolean isUnsupportedVersion() {
-        return !PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
+        return PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14);
     }
 
 }

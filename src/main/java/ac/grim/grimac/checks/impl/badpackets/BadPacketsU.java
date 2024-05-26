@@ -38,10 +38,10 @@ public class BadPacketsU extends Check implements PacketCheck {
 
         final Vector3i pos = packet.getBlockPosition();
         final Vector3f cursor = packet.getCursorPosition();
-        final boolean anyZero = cursor.x != 0 || cursor.y != 0 || cursor.z != 0;
+        final boolean badCursor = cursor.x != 0 || cursor.y != 0 || cursor.z != 0;
         final boolean badPos = pos.x != -1 || pos.y != expectedY || pos.z != -1;
 
-        if (!failedItemCheck && !badPos && !anyZero && packet.getSequence() == 0) return;
+        if (!failedItemCheck && !badPos && !badCursor && packet.getSequence() == 0) return;
 
         final String verbose = String.format(
                 "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s, sequence=%s",

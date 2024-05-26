@@ -27,7 +27,7 @@ public class CrashG extends Check implements PacketCheck {
         if (!player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) &&
                 PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) return;
 
-        if(!isFlagged(event)) return;
+        if (!isFlagged(event)) return;
 
         flagAndAlert();
         event.setCancelled(true);

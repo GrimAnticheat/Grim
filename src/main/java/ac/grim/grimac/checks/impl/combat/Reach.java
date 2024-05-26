@@ -56,7 +56,7 @@ public class Reach extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if(player.disableGrim) return; // correct me if im wrong, but we shouldn't have to run any of this if grim is disabled
+        if (player.disableGrim) return; // correct me if I'm wrong, but we shouldn't have to run any of this if grim is disabled
 
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
