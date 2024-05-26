@@ -13,30 +13,24 @@ public class BadPacketsG extends Check implements PacketCheck {
     boolean wasTeleport;
     boolean lastSneaking;
 
-    public BadPacketsG(GrimPlayer player) {
+    public BadPacketsG(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         wasTeleport = player.packetStateData.lastPacketWasTeleport || wasTeleport;
 
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+        if (event.getPacketType() != PacketType.Play.Client.ENTITY_ACTION) return;
 
-            if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
-                if (lastSneaking && !wasTeleport) {
-                    flagAndAlert();
-                } else {
-                    lastSneaking = true;
-                }
-            } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
-                if (!lastSneaking && !wasTeleport) {
-                    flagAndAlert();
-                } else {
-                    lastSneaking = false;
-                }
-            }
+        final WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+
+        if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
+            if (lastSneaking && !wasTeleport) flagAndAlert();
+            else lastSneaking = true;
+        } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
+            if (!lastSneaking && !wasTeleport) flagAndAlert();
+            else lastSneaking = false;
         }
     }
 }

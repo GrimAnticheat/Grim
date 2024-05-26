@@ -8,13 +8,9 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class TrackerData {
-    @NonNull
-    double x, y, z;
-    @NonNull
-    float xRot, yRot;
-    @NonNull
-    EntityType entityType;
-    @NonNull
-    int lastTransactionHung;
-    int legacyPointEightMountedUpon;
+    private @NonNull double x, y, z;
+    private @NonNull float xRot, yRot;
+    private @NonNull EntityType entityType;
+    private @NonNull int lastTransactionHung;
+    private int legacyPointEightMountedUpon;
 }

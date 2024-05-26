@@ -10,19 +10,18 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "CrashB")
 public class CrashB extends Check implements PacketCheck {
-    public CrashB(GrimPlayer player) {
+    public CrashB(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
-            if (player.gamemode != GameMode.CREATIVE) {
-                player.getSetbackTeleportUtil().executeViolationSetback();
-                event.setCancelled(true);
-                player.onPacketCancel();
-                flagAndAlert(); // Could be transaction split, no need to setback though
-            }
-        }
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.CREATIVE_INVENTORY_ACTION ||
+                player.gamemode == GameMode.CREATIVE) return;
+
+        player.getSetbackTeleportUtil().executeViolationSetback();
+        event.setCancelled(true);
+        player.onPacketCancel();
+        flagAndAlert(); // Could be transaction split, no need to setback though
     }
 }

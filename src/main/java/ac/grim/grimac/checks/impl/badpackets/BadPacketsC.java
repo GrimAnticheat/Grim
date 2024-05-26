@@ -10,17 +10,17 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 @CheckData(name = "BadPacketsC")
 public class BadPacketsC extends Check implements PacketCheck {
-    public BadPacketsC(GrimPlayer player) {
+    public BadPacketsC(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            if (packet.getEntityId() == player.entityID) {
-                flagAndAlert(); // Instant ban
-            }
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY) return;
+
+        final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+        if (packet.getEntityId() == player.entityID) {
+            flagAndAlert(); // Instant ban
         }
     }
 }

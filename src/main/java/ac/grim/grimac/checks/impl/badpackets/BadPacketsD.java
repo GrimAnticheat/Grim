@@ -10,29 +10,28 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsD")
 public class BadPacketsD extends Check implements PacketCheck {
-    public BadPacketsD(GrimPlayer player) {
+    public BadPacketsD(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            final float pitch = new WrapperPlayClientPlayerFlying(event).getLocation().getPitch();
-            if (pitch > 90 || pitch < -90) {
-                // Ban.
-                if (flagAndAlert("pitch=" + pitch)) {
-                    if (shouldModifyPackets()) {
-                        // prevent other checks from using an invalid pitch
-                        if (player.yRot > 90) player.yRot = 90;
-                        if (player.yRot < -90) player.yRot = -90;
+        if (event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION &&
+                event.getPacketType() != PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) return;
 
-                        event.setCancelled(true);
-                        player.onPacketCancel();
-                    }
-                }
-            }
-        }
+        final float pitch = new WrapperPlayClientPlayerFlying(event).getLocation().getPitch();
+        if (pitch <= 90f && pitch >= -90f) return;
+
+        // Ban.
+        if (!flagAndAlert("pitch=" + pitch) || !shouldModifyPackets()) return;
+
+        // prevent other checks from using an invalid pitch
+        if (player.yRot > 90f) player.yRot = 90f;
+        if (player.yRot < -90f) player.yRot = -90f;
+
+        event.setCancelled(true);
+        player.onPacketCancel();
     }
 }

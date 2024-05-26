@@ -16,7 +16,7 @@ public class NoSlowA extends Check implements PostPredictionCheck {
     public boolean didSlotChangeLastTick = false;
     public boolean flaggedLastTick = false;
 
-    public NoSlowA(GrimPlayer player) {
+    public NoSlowA(final GrimPlayer player) {
         super(player);
     }
 
@@ -46,7 +46,7 @@ public class NoSlowA extends Check implements PostPredictionCheck {
         bestOffset = 1;
     }
 
-    public void handlePredictionAnalysis(double offset) {
+    public void handlePredictionAnalysis(final double offset) {
         bestOffset = Math.min(bestOffset, offset);
     }
 

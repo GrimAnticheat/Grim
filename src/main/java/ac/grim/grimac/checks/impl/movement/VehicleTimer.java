@@ -9,12 +9,12 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 public class VehicleTimer extends TimerCheck {
     boolean isDummy = false;
 
-    public VehicleTimer(GrimPlayer player) {
+    public VehicleTimer(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
+    public boolean shouldCountPacketForTimer(final PacketTypeCommon packetType) {
         // Ignore teleports
         if (player.packetStateData.lastPacketWasTeleport) return false;
 

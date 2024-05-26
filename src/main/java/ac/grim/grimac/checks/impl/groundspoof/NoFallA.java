@@ -22,34 +22,32 @@ public class NoFallA extends Check implements PacketCheck {
 
     public boolean flipPlayerGroundStatus = false;
 
-    public NoFallA(GrimPlayer player) {
+    public NoFallA(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
             // The player has already been flagged, and
             if (player.getSetbackTeleportUtil().blockOffsets) return;
 
-            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
-            boolean hasPosition = false;
+            final WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
 
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
-            if (wrapper.isOnGround() && !hasPosition) {
-                if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
-                    // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
-                    if (!GhostBlockDetector.isGhostBlock(player) && flagWithSetback()) alert("");
-                    if (shouldModifyPackets()) wrapper.setOnGround(false);
-                }
+            if (wrapper.isOnGround() &&
+                    !isNearGround(wrapper.isOnGround())) { // If player isn't near ground
+                // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
+                if (!GhostBlockDetector.isGhostBlock(player) && flagWithSetback()) alert("");
+                if (shouldModifyPackets()) wrapper.setOnGround(false);
             }
         }
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
+            final WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
             // The prediction based NoFall check (that runs before us without the packet)
             // has asked us to flip the player's onGround status
             // This happens to make both checks use the same logic... and
@@ -67,18 +65,16 @@ public class NoFallA extends Check implements PacketCheck {
         }
     }
 
-    public boolean isNearGround(boolean onGround) {
-        if (onGround) {
-            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 0.001f);
-            feetBB.expand(player.getMovementThreshold()); // Movement threshold can be in any direction
+    public boolean isNearGround(final boolean onGround) {
+        if (!onGround) return true;
 
-            return checkForBoxes(feetBB);
-        }
-        return true;
+        final SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 0.001f);
+        feetBB.expand(player.getMovementThreshold()); // Movement threshold can be in any direction
+        return checkForBoxes(feetBB);
     }
 
-    private boolean checkForBoxes(SimpleCollisionBox playerBB) {
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+    private boolean checkForBoxes(final SimpleCollisionBox playerBB) {
+        final List<SimpleCollisionBox> boxes = new ArrayList<>();
         Collisions.getCollisionBoxes(player, playerBB, boxes, false);
 
         for (SimpleCollisionBox box : boxes) {

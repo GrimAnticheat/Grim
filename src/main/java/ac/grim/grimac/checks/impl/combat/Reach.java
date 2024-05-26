@@ -50,13 +50,15 @@ public class Reach extends Check implements PacketCheck {
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
 
-    public Reach(GrimPlayer player) {
+    public Reach(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if(player.disableGrim) return; // correct me if im wrong, but we shouldn't have to run any of this if grim is disabled
+
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 
             // Don't let the player teleport to bypass reach
@@ -117,7 +119,7 @@ public class Reach extends Check implements PacketCheck {
     // than this method.  If this method flags, the other method WILL flag.
     //
     // Meaning that the other check should be the only one that flags.
-    private boolean isKnownInvalid(PacketEntity reachEntity) {
+    private boolean isKnownInvalid(final PacketEntity reachEntity) {
         // If the entity doesn't exist, or if it is exempt, or if it is dead
         if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity()) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
@@ -128,39 +130,35 @@ public class Reach extends Check implements PacketCheck {
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
             return checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true) != null; // If they flagged
-        } else {
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            if (reachEntity.type == EntityTypes.END_CRYSTAL) {
-                targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
-            }
-            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getEntityInteractRange();
         }
+        final SimpleCollisionBox targetBox = reachEntity.type == EntityTypes.END_CRYSTAL
+                ? new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1))
+                : reachEntity.getPossibleCollisionBoxes();
+        return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getEntityInteractRange();
     }
 
     private void tickBetterReachCheckWithAngle() {
         for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
-            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey().intValue());
+            final PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey().intValue());
 
-            if (reachEntity != null) {
-                String result = checkReach(reachEntity, attack.getValue(), false);
-                if (result != null) {
-                    if (reachEntity.type == EntityTypes.PLAYER) {
-                        flagAndAlert(result);
-                    } else {
-                        flagAndAlert(result + " type=" + reachEntity.type.getName().getKey());
-                    }
-                }
+            if (reachEntity == null) continue;
+
+            final String result = checkReach(reachEntity, attack.getValue(), false);
+            if (result == null) return;
+
+            if (reachEntity.type == EntityTypes.PLAYER) {
+                flagAndAlert(result);
+                continue;
             }
+            flagAndAlert(result + " type=" + reachEntity.type.getName().getKey());
         }
         playerAttackQueue.clear();
     }
 
-    private String checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
-        SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-
-        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
-            targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
-        }
+    private String checkReach(final PacketEntity reachEntity, final Vector3d from, final boolean isPrediction) {
+        final SimpleCollisionBox targetBox = reachEntity.type == EntityTypes.END_CRYSTAL
+                ? new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1))
+                : reachEntity.getPossibleCollisionBoxes();
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
         // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
@@ -184,27 +182,26 @@ public class Reach extends Check implements PacketCheck {
 
         // If we are a tick behind, we don't know their next look so don't bother doing this
         if (!isPrediction) {
-            possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.yRot));
-
-            // 1.9+ players could be a tick behind because we don't get skipped ticks
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-                possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.lastYRot));
-            }
-
-            // 1.7 players do not have any of these issues! They are always on the latest look vector
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
                 possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot));
+            } else {
+                possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.yRot));
+
+                // 1.9+ players could be a tick behind because we don't get skipped ticks
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                    possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.lastYRot));
+                }
             }
         }
 
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = player.compensatedEntities.getSelf().getEntityInteractRange() + 3;
-        for (Vector lookVec : possibleLookDirs) {
-            for (double eye : player.getPossibleEyeHeights()) {
-                Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
-                Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance));
+        for (final Vector lookVec : possibleLookDirs) {
+            for (final double eye : player.getPossibleEyeHeights()) {
+                final Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
+                final Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance));
 
-                Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).getFirst();
+                final Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).getFirst();
 
                 if (ReachUtils.isVecInside(targetBox, eyePos)) {
                     minDistance = 0;
@@ -222,12 +219,12 @@ public class Reach extends Check implements PacketCheck {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return "Missed hitbox";
-            } else if (minDistance > player.compensatedEntities.getSelf().getEntityInteractRange()) {
+            }
+            if (minDistance > player.compensatedEntities.getSelf().getEntityInteractRange()) {
                 cancelBuffer = 1;
                 return String.format("%.5f", minDistance) + " blocks";
-            } else {
-                cancelBuffer = Math.max(0, cancelBuffer - 0.25);
             }
+            cancelBuffer = Math.max(0, cancelBuffer - 0.25);
         }
 
         return null;

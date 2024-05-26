@@ -36,31 +36,31 @@ public class DebugHandler extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        double offset = predictionComplete.getOffset();
+        final double offset = predictionComplete.getOffset();
 
         // No one is listening to this debug
         if (listeners.isEmpty() && !outputToConsole) return;
         // This is pointless debug!
         if (player.predictedVelocity.vector.lengthSquared() == 0 && offset == 0) return;
 
-        ChatColor color = pickColor(offset, offset);
+        final ChatColor color = pickColor(offset, offset);
 
-        Vector predicted = player.predictedVelocity.vector;
-        Vector actually = player.actualMovement;
+        final Vector predicted = player.predictedVelocity.vector;
+        final Vector actually = player.actualMovement;
 
-        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
-        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
-        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
+        final ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
+        final ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
+        final ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
 
-        String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
-        String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
-        String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
-        String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
-        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
+        final String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
+        final String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
+        final String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
+        final String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
+        final String o = ChatColor.GRAY + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
-        String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
+        final String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
 
-        boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
+        final boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
         if (enabledFlags) {
             // If the last movement was a flag, don't duplicate messages to the player
             if (lastMovementIsFlag) {
@@ -84,7 +84,7 @@ public class DebugHandler extends Check implements PostPredictionCheck {
             }
         }
 
-        for (Player player : listeners) {
+        for (final Player player : listeners) {
             // Don't add prefix if the player is listening to oneself
             player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + p);
             player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + a);
@@ -101,20 +101,16 @@ public class DebugHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    private ChatColor pickColor(double offset, double totalOffset) {
+    private ChatColor pickColor(final double offset, final double totalOffset) {
         if (player.getSetbackTeleportUtil().blockOffsets) return ChatColor.GRAY;
-        if (offset <= 0 || totalOffset <= 0) { // If exempt don't bother coloring, so I stop getting false false reports
-            return ChatColor.GRAY;
-        } else if (offset < 0.0001) {
-            return ChatColor.GREEN;
-        } else if (offset < 0.01) {
-            return ChatColor.YELLOW;
-        } else {
-            return ChatColor.RED;
-        }
+        // If exempt don't bother coloring, so I stop getting false false reports
+        if (offset <= 0 || totalOffset <= 0) return ChatColor.GRAY;
+        if (offset < 0.0001) return ChatColor.GREEN;
+        if (offset < 0.01) return ChatColor.YELLOW;
+        return ChatColor.RED;
     }
 
-    public void toggleListener(Player player) {
+    public void toggleListener(final Player player) {
         // Toggle, if already added, remove.  If not added, then add
         if (!listeners.remove(player)) listeners.add(player);
     }

@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,37 +33,37 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
 
-    public PostCheck(GrimPlayer playerData) {
+    public PostCheck(final GrimPlayer playerData) {
         super(playerData);
     }
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!flags.isEmpty()) {
-            // Okay, the user might be cheating, let's double check
-            // 1.8 clients have the idle packet, and this shouldn't false on 1.8 clients
-            // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
-            if (player.isTickingReliablyFor(3)) {
-                for (String flag : flags) {
-                    flagAndAlert(flag);
-                }
-            }
+        if (flags.isEmpty()) return;
 
-            flags.clear();
+        // Okay, the user might be cheating, let's double check
+        // 1.8 clients have the idle packet, and this shouldn't false on 1.8 clients
+        // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
+        if (player.isTickingReliablyFor(3)) {
+            for (String flag : flags) {
+                flagAndAlert(flag);
+            }
         }
+
+        flags.clear();
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
-            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
-            if (animation.getEntityId() == player.entityID) {
-                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
-                        animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
-                    isExemptFromSwingingCheck = player.lastTransactionSent.get();
-                }
-            }
-        }
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) return;
+
+        final WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
+        if (animation.getEntityId() != player.entityID) return;
+
+        if (animation.getType() != WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM &&
+                animation.getType() != WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) return;
+
+        isExemptFromSwingingCheck = player.lastTransactionSent.get();
     }
 
     @Override
@@ -79,7 +78,7 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
             sentFlying = true;
         } else {
             // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
-            PacketTypeCommon packetType = event.getPacketType();
+            final PacketTypeCommon packetType = event.getPacketType();
             if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
                 if (sentFlying && !post.isEmpty()) {
                     flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());

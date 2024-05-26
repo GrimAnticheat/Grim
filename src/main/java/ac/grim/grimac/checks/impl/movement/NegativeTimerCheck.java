@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 @CheckData(name = "NegativeTimer", configName = "NegativeTimer", setback = 10, experimental = true)
 public class NegativeTimerCheck extends TimerCheck implements PostPredictionCheck {
 
-    public NegativeTimerCheck(GrimPlayer player) {
+    public NegativeTimerCheck(final GrimPlayer player) {
         super(player);
         timerBalanceRealTime = System.nanoTime() + clockDrift;
     }
@@ -24,7 +24,7 @@ public class NegativeTimerCheck extends TimerCheck implements PostPredictionChec
         if (timerBalanceRealTime < lastMovementPlayerClock - clockDrift) {
             int lostMS = (int) ((System.nanoTime() - timerBalanceRealTime) / 1e6);
             flagAndAlert("-" + lostMS);
-            timerBalanceRealTime += 50e6;
+            timerBalanceRealTime += (long) 50e6;
         }
     }
 

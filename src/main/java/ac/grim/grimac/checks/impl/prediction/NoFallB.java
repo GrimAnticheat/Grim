@@ -29,13 +29,11 @@ public class NoFallB extends Check implements PostPredictionCheck {
         // Viaversion sends wrong ground status... (doesn't matter but is annoying)
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        boolean invalid = player.clientClaimsLastOnGround != player.onGround;
+        if (player.clientClaimsLastOnGround == player.onGround) return;
 
-        if (invalid) {
-            if (flagWithSetback()) {
-                alert("claimed " + player.clientClaimsLastOnGround);
-            }
-            player.checkManager.getNoFall().flipPlayerGroundStatus = true;
+        if (flagWithSetback()) {
+            alert("claimed " + player.clientClaimsLastOnGround);
         }
+        player.checkManager.getNoFall().flipPlayerGroundStatus = true;
     }
 }

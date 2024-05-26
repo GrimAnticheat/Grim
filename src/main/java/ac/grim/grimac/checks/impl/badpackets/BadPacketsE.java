@@ -12,12 +12,12 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 public class BadPacketsE extends Check implements PacketCheck {
     private int noReminderTicks;
 
-    public BadPacketsE(GrimPlayer player) {
+    public BadPacketsE(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
                 event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
             noReminderTicks = 0;

@@ -11,36 +11,35 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTa
 @CheckData(name = "CrashH")
 public class CrashH extends Check implements PacketCheck {
 
-    public CrashH(GrimPlayer player) {
+    public CrashH(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.TAB_COMPLETE) {
-            WrapperPlayClientTabComplete wrapper = new WrapperPlayClientTabComplete(event);
-            String text = wrapper.getText();
-            final int length = text.length();
-            // general length limit
-            if (length > 256) {
-                if (shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-                flagAndAlert("(length) length=" + length);
-                return;
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.TAB_COMPLETE) return;
+
+        final WrapperPlayClientTabComplete wrapper = new WrapperPlayClientTabComplete(event);
+        final String text = wrapper.getText();
+        final int length = text.length();
+        // general length limit
+        if (length > 256) {
+            if (shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
-            // paper's patch
-            final int index;
-            if (text.length() > 64 && ((index = text.indexOf(' ')) == -1 || index >= 64)) {
-                if (shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-                flagAndAlert("(invalid) length=" + length);
-                return;
-            }
+            flagAndAlert("(length) length=" + length);
+            return;
         }
+        // paper's patch
+        final int index;
+        if (!(text.length() > 64 && ((index = text.indexOf(' ')) == -1 || index >= 64))) return;
+
+        if (shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
+        }
+        flagAndAlert("(invalid) length=" + length);
     }
 
 

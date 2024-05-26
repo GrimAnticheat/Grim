@@ -52,7 +52,7 @@ public class TimerCheck extends Check implements PacketCheck {
     //
     // We then take the last transaction before this to increase stability with these lag spikes and
     // to guarantee that we are at least 50 ms back before adding the time
-    public TimerCheck(GrimPlayer player) {
+    public TimerCheck(final GrimPlayer player) {
         super(player);
     }
 
@@ -67,7 +67,7 @@ public class TimerCheck extends Check implements PacketCheck {
         if (!shouldCountPacketForTimer(event.getPacketType())) return;
 
         hasGottenMovementAfterTransaction = true;
-        timerBalanceRealTime += 50e6;
+        timerBalanceRealTime += (long) 50e6;
 
         doCheck(event);
     }
@@ -97,18 +97,18 @@ public class TimerCheck extends Check implements PacketCheck {
             }
 
             // Reset the violation by 1 movement
-            timerBalanceRealTime -= 50e6;
+            timerBalanceRealTime -= (long) 50e6;
         }
 
         timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);
     }
 
-    public boolean checkForTransaction(PacketTypeCommon packetType) {
+    public boolean checkForTransaction(final PacketTypeCommon packetType) {
         return packetType == PacketType.Play.Client.PONG ||
                 packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
     }
 
-    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
+    public boolean shouldCountPacketForTimer(final PacketTypeCommon packetType) {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
         return WrapperPlayClientPlayerFlying.isFlying(packetType) &&
                 !player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
