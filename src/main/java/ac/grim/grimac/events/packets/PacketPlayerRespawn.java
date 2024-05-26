@@ -135,7 +135,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
 
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
-                    player.isSprinting = !this.hasFlag(respawn, KEEP_TRACKED_DATA);
+                    if (!this.hasFlag(respawn, KEEP_TRACKED_DATA)) {
+                        player.isSprinting = false;
+                    }
                 } else {
                     player.lastSprintingForSpeed = false;
                 }
