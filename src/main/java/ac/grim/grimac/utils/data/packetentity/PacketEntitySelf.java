@@ -25,12 +25,12 @@ public class PacketEntitySelf extends PacketEntity {
     double breakSpeedMultiplier = 1.0, entityInteractRange = 3, blockInteractRange = 4.5;
 
     public PacketEntitySelf(GrimPlayer player) {
-        super(EntityTypes.PLAYER);
+        super(player, EntityTypes.PLAYER);
         this.player = player;
     }
 
     public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
-        super(EntityTypes.PLAYER);
+        super(player, EntityTypes.PLAYER);
         this.player = player;
         this.opLevel = old.opLevel;
         this.jumpStrength = old.jumpStrength;

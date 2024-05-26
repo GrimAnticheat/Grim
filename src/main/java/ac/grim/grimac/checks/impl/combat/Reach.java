@@ -132,7 +132,7 @@ public class Reach extends Check implements PacketCheck {
             return checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true) != null; // If they flagged
         }
         final SimpleCollisionBox targetBox = reachEntity.type == EntityTypes.END_CRYSTAL
-                ? new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1))
+                ? new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1))
                 : reachEntity.getPossibleCollisionBoxes();
         return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getEntityInteractRange();
     }
@@ -157,7 +157,7 @@ public class Reach extends Check implements PacketCheck {
 
     private String checkReach(final PacketEntity reachEntity, final Vector3d from, final boolean isPrediction) {
         final SimpleCollisionBox targetBox = reachEntity.type == EntityTypes.END_CRYSTAL
-                ? new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1))
+                ? new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1))
                 : reachEntity.getPossibleCollisionBoxes();
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
