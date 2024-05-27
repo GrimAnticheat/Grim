@@ -25,6 +25,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,10 +36,11 @@ public class PacketEntity {
 
     public final TrackedPosition trackedServerPosition;
 
-    public EntityType type;
+    public final EntityType type;
 
+    @Getter
     public PacketEntity riding;
-    public List<PacketEntity> passengers = new ArrayList<>(0);
+    public final List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
@@ -50,12 +52,13 @@ public class PacketEntity {
     public float stepHeight = 0.6f; // 1.20.5+
     public double gravityAttribute = 0.08; // 1.20.5+
 
-    public PacketEntity(GrimPlayer player, EntityType type) {
+    public PacketEntity(final GrimPlayer player, final EntityType type) {
         this.type = type;
         this.trackedServerPosition = new TrackedPosition(player);
     }
 
-    public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
+    public PacketEntity(final GrimPlayer player, final EntityType type,
+                        final double x, final double y, final double z) {
         this.type = type;
         this.trackedServerPosition = new TrackedPosition(player);
         this.trackedServerPosition.setPos(new Vector3d(x, y, z));
@@ -91,12 +94,13 @@ public class PacketEntity {
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
-    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ, GrimPlayer player) {
+    public void onFirstTransaction(final boolean relative, final boolean hasPos,
+                                   final double relX, final double relY, final double relZ, final GrimPlayer player) {
         if (hasPos) {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
                 final double scale = trackedServerPosition.getScale();
-                Vector3d vec3d;
+                final Vector3d vec3d;
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
                     vec3d = trackedServerPosition.withDelta(TrackedPosition.pack(relX, scale), TrackedPosition.pack(relY, scale), TrackedPosition.pack(relZ, scale));
                 } else {
@@ -124,7 +128,7 @@ public class PacketEntity {
     }
 
     // If the old and new packet location are split, we need to combine bounding boxes
-    public void onMovement(boolean tickingReliably) {
+    public void onMovement(final boolean tickingReliably) {
         newPacketLocation.tickMovement(oldPacketLocation == null, tickingReliably);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
@@ -134,11 +138,11 @@ public class PacketEntity {
         }
     }
 
-    public boolean hasPassenger(PacketEntity entity) {
-        return passengers.contains(entity);
+    public boolean doesntHavePassenger(final PacketEntity entity) {
+        return !passengers.contains(entity);
     }
 
-    public void mount(PacketEntity vehicle) {
+    public void mount(final PacketEntity vehicle) {
         if (riding != null) eject();
         vehicle.passengers.add(this);
         riding = vehicle;
@@ -152,7 +156,7 @@ public class PacketEntity {
     }
 
     // This is for handling riding and entities attached to one another.
-    public void setPositionRaw(SimpleCollisionBox box) {
+    public void setPositionRaw(final SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
         this.trackedServerPosition.setPos(new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
@@ -168,19 +172,16 @@ public class PacketEntity {
         return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleLocationCombined(), newPacketLocation.getPossibleLocationCombined());
     }
 
-    public PacketEntity getRiding() {
-        return riding;
-    }
-
-    public void addPotionEffect(PotionType effect, int amplifier) {
+    public void addPotionEffect(final PotionType effect, final int amplifier) {
         if (potionsMap == null) {
             potionsMap = new HashMap<>();
         }
         potionsMap.put(effect, amplifier);
     }
 
-    public void removePotionEffect(PotionType effect) {
+    public void removePotionEffect(final PotionType effect) {
         if (potionsMap == null) return;
         potionsMap.remove(effect);
     }
+
 }

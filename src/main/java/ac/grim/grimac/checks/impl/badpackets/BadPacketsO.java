@@ -16,44 +16,38 @@ import java.util.Queue;
 
 @CheckData(name = "BadPacketsO")
 public class BadPacketsO extends Check implements PacketCheck {
-    Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
+    private final Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
 
-    public BadPacketsO(GrimPlayer player) {
+    public BadPacketsO(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.KEEP_ALIVE) {
-            WrapperPlayServerKeepAlive packet = new WrapperPlayServerKeepAlive(event);
-            keepaliveMap.add(new Pair<>(packet.getId(), System.nanoTime()));
-        }
+    public void onPacketSend(final PacketSendEvent event) {
+        if (event.getPacketType() != PacketType.Play.Server.KEEP_ALIVE) return;
+
+        WrapperPlayServerKeepAlive packet = new WrapperPlayServerKeepAlive(event);
+        keepaliveMap.add(new Pair<>(packet.getId(), System.nanoTime()));
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
-            WrapperPlayClientKeepAlive packet = new WrapperPlayClientKeepAlive(event);
+        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE) return;
 
-            long id = packet.getId();
-            boolean hasID = false;
+        final WrapperPlayClientKeepAlive packet = new WrapperPlayClientKeepAlive(event);
 
-            for (Pair<Long, Long> iterator : keepaliveMap) {
-                if (iterator.getFirst() == id) {
-                    hasID = true;
-                    break;
-                }
-            }
+        final long id = packet.getId();
+        final boolean hasID = keepaliveMap.stream().anyMatch(pair -> pair.getFirst().equals(id));
 
-            if (!hasID) {
-                flagAndAlert("ID: " + id);
-            } else { // Found the ID, remove stuff until we get to it (to stop very slow memory leaks)
-                Pair<Long, Long> data;
-                do {
-                    data = keepaliveMap.poll();
-                    if (data == null) break;
-                } while (data.getFirst() != id);
-            }
+        if (!hasID) {
+            flagAndAlert("ID: " + id);
+            return;
         }
+        // Found the ID, remove stuff until we get to it (to stop very slow memory leaks)
+        Pair<Long, Long> data;
+        do {
+            data = keepaliveMap.poll();
+            if (data == null) break;
+        } while (data.getFirst() != id);
     }
 }

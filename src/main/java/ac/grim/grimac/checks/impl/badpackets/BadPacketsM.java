@@ -22,41 +22,41 @@ public class BadPacketsM extends Check implements PacketCheck {
     private boolean sentInteractAt = false;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            if (exempt) return;
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY) return;
 
-            WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
+        if (exempt) return;
 
-            PacketEntity entity = player.compensatedEntities.entityMap.get(wrapper.getEntityId());
+        final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
 
-            // For armor stands, vanilla clients send:
-            //  - when renaming the armor stand or in spectator mode: INTERACT_AT + INTERACT
-            //  - in all other cases: only INTERACT
-            // Just exempt armor stands to be safe
-            if(entity != null && entity.type == EntityTypes.ARMOR_STAND) return;
+        final PacketEntity entity = player.compensatedEntities.entityMap.get(wrapper.getEntityId());
 
-            switch (wrapper.getAction()) {
-                // INTERACT_AT then INTERACT
-                case INTERACT:
-                    if (!sentInteractAt) {
-                        if (flagAndAlert("Missed Interact-At") && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
+        // For armor stands, vanilla clients send:
+        //  - when renaming the armor stand or in spectator mode: INTERACT_AT + INTERACT
+        //  - in all other cases: only INTERACT
+        // Just exempt armor stands to be safe
+        if (entity != null && entity.type == EntityTypes.ARMOR_STAND) return;
+
+        switch (wrapper.getAction()) {
+            // INTERACT_AT then INTERACT
+            case INTERACT:
+                if (!sentInteractAt) {
+                    if (flagAndAlert("Missed Interact-At") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
                     }
-                    sentInteractAt = false;
-                    break;
-                case INTERACT_AT:
-                    if (sentInteractAt) {
-                        if (flagAndAlert("Missed Interact") && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
+                }
+                sentInteractAt = false;
+                break;
+            case INTERACT_AT:
+                if (sentInteractAt) {
+                    if (flagAndAlert("Missed Interact") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
                     }
-                    sentInteractAt = true;
-                    break;
-            }
+                }
+                sentInteractAt = true;
+                break;
         }
     }
 }

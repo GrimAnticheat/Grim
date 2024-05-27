@@ -17,17 +17,17 @@ public class BadPacketsA extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
-            WrapperPlayClientHeldItemChange packet = new WrapperPlayClientHeldItemChange(event);
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.HELD_ITEM_CHANGE) return;
 
-            int slot = packet.getSlot();
+        final WrapperPlayClientHeldItemChange packet = new WrapperPlayClientHeldItemChange(event);
 
-            if (slot == lastSlot) {
-                flagAndAlert("slot=" + slot);
-            }
+        final int slot = packet.getSlot();
 
-            lastSlot = packet.getSlot();
+        if (slot == lastSlot) {
+            flagAndAlert("slot=" + slot);
         }
+
+        lastSlot = slot;
     }
 }

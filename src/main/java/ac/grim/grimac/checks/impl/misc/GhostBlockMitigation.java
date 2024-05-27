@@ -13,7 +13,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
     private boolean allow;
     private int distance;
 
-    public GhostBlockMitigation(GrimPlayer player) {
+    public GhostBlockMitigation(final GrimPlayer player) {
         super(player);
     }
 
@@ -21,17 +21,17 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
     public void onBlockPlace(final BlockPlace place) {
         if (allow || player.bukkitPlayer == null) return;
 
-        World world = player.bukkitPlayer.getWorld();
-        Vector3i pos = place.getPlacedBlockPos();
-        Vector3i posAgainst = place.getPlacedAgainstBlockLocation();
+        final World world = player.bukkitPlayer.getWorld();
+        final Vector3i pos = place.getPlacedBlockPos();
+        final Vector3i posAgainst = place.getPlacedAgainstBlockLocation();
 
-        int x = pos.getX();
-        int y = pos.getY();
-        int z = pos.getZ();
+        final int x = pos.getX(),
+                y = pos.getY(),
+                z = pos.getZ();
 
-        int xAgainst = posAgainst.getX();
-        int yAgainst = posAgainst.getY();
-        int zAgainst = posAgainst.getZ();
+        final int xAgainst = posAgainst.getX(),
+                yAgainst = posAgainst.getY(),
+                zAgainst = posAgainst.getZ();
 
         boolean loaded = false;
 
@@ -49,17 +49,16 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                             loaded = true;
                             continue;
                         }
-                        Block type = world.getBlockAt(i, j, k);
+                        final Block type = world.getBlockAt(i, j, k);
                         if (type.getType() != Material.AIR) {
                             return;
                         }
-
                     }
                 }
             }
 
             place.resync();
-        } catch (Exception ignored) {
+        } catch (final Exception ignored) {
         }
     }
 

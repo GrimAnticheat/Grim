@@ -9,14 +9,15 @@ public class PacketEntityTrackXRot extends PacketEntity {
     public float interpYaw;
     public int steps = 0;
 
-    public PacketEntityTrackXRot(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
+    public PacketEntityTrackXRot(final GrimPlayer player, final EntityType type,
+                                 final double x, final double y, final double z, final float xRot) {
         super(player, type, x, y, z);
         this.packetYaw = xRot;
         this.interpYaw = xRot;
     }
 
     @Override
-    public void onMovement(boolean highBound) {
+    public void onMovement(final boolean highBound) {
         super.onMovement(highBound);
         if (steps > 0) {
             interpYaw = interpYaw + ((packetYaw - interpYaw) / steps--);

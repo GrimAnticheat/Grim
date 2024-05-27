@@ -28,13 +28,15 @@ import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
+
     private final SimpleCollisionBox targetLocation;
     private SimpleCollisionBox startingLocation;
     private int interpolationStepsLowBound = 0;
     private int interpolationStepsHighBound = 0;
     private int interpolationSteps = 1;
 
-    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
+    public ReachInterpolationData(final GrimPlayer player, final SimpleCollisionBox startingLocation,
+                                  final TrackedPosition position, final PacketEntity entity) {
         final boolean isPointNine = !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         this.startingLocation = startingLocation;
@@ -63,7 +65,7 @@ public class ReachInterpolationData {
     }
 
     // While riding entities, there is no interpolation.
-    public ReachInterpolationData(SimpleCollisionBox finishedLoc) {
+    public ReachInterpolationData(final SimpleCollisionBox finishedLoc) {
         this.startingLocation = finishedLoc;
         this.targetLocation = finishedLoc;
     }
@@ -72,14 +74,13 @@ public class ReachInterpolationData {
         return interpolationSteps;
     }
 
-    public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {
-        double minX = Math.min(one.minX, two.minX);
-        double maxX = Math.max(one.maxX, two.maxX);
-        double minY = Math.min(one.minY, two.minY);
-        double maxY = Math.max(one.maxY, two.maxY);
-        double minZ = Math.min(one.minZ, two.minZ);
-        double maxZ = Math.max(one.maxZ, two.maxZ);
-
+    public static SimpleCollisionBox combineCollisionBox(final SimpleCollisionBox one, final SimpleCollisionBox two) {
+        final double minX = Math.min(one.minX, two.minX);
+        final double maxX = Math.max(one.maxX, two.maxX);
+        final double minY = Math.min(one.minY, two.minY);
+        final double maxY = Math.max(one.maxY, two.maxY);
+        final double minZ = Math.min(one.minZ, two.minZ);
+        final double maxZ = Math.max(one.maxZ, two.maxZ);
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
@@ -88,13 +89,13 @@ public class ReachInterpolationData {
     //
     // Designed around being unsure of minimum interp, maximum interp, and target location on 1.9 clients
     public SimpleCollisionBox getPossibleLocationCombined() {
-        int interpSteps = getInterpolationSteps();
-        double stepMinX = (targetLocation.minX - startingLocation.minX) / (double) interpSteps;
-        double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / (double) interpSteps;
-        double stepMinY = (targetLocation.minY - startingLocation.minY) / (double) interpSteps;
-        double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / (double) interpSteps;
-        double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / (double) interpSteps;
-        double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / (double) interpSteps;
+        final int interpSteps = getInterpolationSteps();
+        final double stepMinX = (targetLocation.minX - startingLocation.minX) / (double) interpSteps;
+        final double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / (double) interpSteps;
+        final double stepMinY = (targetLocation.minY - startingLocation.minY) / (double) interpSteps;
+        final double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / (double) interpSteps;
+        final double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / (double) interpSteps;
+        final double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / (double) interpSteps;
 
         SimpleCollisionBox minimumInterpLocation = new SimpleCollisionBox(
                 startingLocation.minX + (interpolationStepsLowBound * stepMinX),
@@ -117,13 +118,13 @@ public class ReachInterpolationData {
         return minimumInterpLocation;
     }
 
-    public void updatePossibleStartingLocation(SimpleCollisionBox possibleLocationCombined) {
+    public void updatePossibleStartingLocation(final SimpleCollisionBox possibleLocationCombined) {
         //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Updated new starting location as second trans hasn't arrived " + startingLocation);
         this.startingLocation = combineCollisionBox(startingLocation, possibleLocationCombined);
         //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Finished updating new starting location as second trans hasn't arrived " + startingLocation);
     }
 
-    public void tickMovement(boolean incrementLowBound, boolean tickingReliably) {
+    public void tickMovement(final boolean incrementLowBound, final boolean tickingReliably) {
         if (!tickingReliably) this.interpolationStepsHighBound = getInterpolationSteps();
         if (incrementLowBound)
             this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, getInterpolationSteps());
@@ -139,4 +140,5 @@ public class ReachInterpolationData {
                 ", interpolationStepsHighBound=" + interpolationStepsHighBound +
                 '}';
     }
+
 }

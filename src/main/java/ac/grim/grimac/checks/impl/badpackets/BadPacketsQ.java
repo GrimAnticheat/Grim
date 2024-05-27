@@ -17,15 +17,18 @@ public class BadPacketsQ extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
+        if (event.getPacketType() != Client.ENTITY_ACTION) return;
 
-            if (wrapper.getJumpBoost() < 0 || wrapper.getJumpBoost() > 100 || wrapper.getEntityId() != player.entityID || (wrapper.getAction() != Action.START_JUMPING_WITH_HORSE && wrapper.getJumpBoost() != 0)) {
-                if (flagAndAlert("boost=" + wrapper.getJumpBoost() + ", action=" + wrapper.getAction() + ", entity=" + wrapper.getEntityId()) && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            }
+        final WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+
+        if (!(packet.getJumpBoost() < 0 ||
+                packet.getJumpBoost() > 100 ||
+                packet.getEntityId() != player.entityID ||
+                (packet.getAction() != Action.START_JUMPING_WITH_HORSE && packet.getJumpBoost() != 0))) return;
+        
+        if (flagAndAlert("boost=" + packet.getJumpBoost() + ", action=" + packet.getAction() + ", entity=" + packet.getEntityId()) && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 }

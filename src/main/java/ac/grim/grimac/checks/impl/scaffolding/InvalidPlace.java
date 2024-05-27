@@ -8,18 +8,18 @@ import com.github.retrooper.packetevents.util.Vector3f;
 
 @CheckData(name = "InvalidPlace")
 public class InvalidPlace extends BlockPlaceCheck {
-    public InvalidPlace(GrimPlayer player) {
+    public InvalidPlace(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        Vector3f cursor = place.getCursor();
+        final Vector3f cursor = place.getCursor();
         if (cursor == null) return;
-        if (!Float.isFinite(cursor.getX()) || !Float.isFinite(cursor.getY()) || !Float.isFinite(cursor.getZ())) {
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
-                place.resync();
-            }
+        if (Float.isFinite(cursor.getX()) && Float.isFinite(cursor.getY()) && Float.isFinite(cursor.getZ())) return;
+
+        if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            place.resync();
         }
     }
 }

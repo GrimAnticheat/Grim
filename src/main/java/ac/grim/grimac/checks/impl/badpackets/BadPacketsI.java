@@ -10,18 +10,18 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsI")
 public class BadPacketsI extends Check implements PacketCheck {
-    public BadPacketsI(GrimPlayer player) {
+    public BadPacketsI(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ABILITIES) {
-            WrapperPlayClientPlayerAbilities packet = new WrapperPlayClientPlayerAbilities(event);
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.PLAYER_ABILITIES) return;
 
-            if (packet.isFlying() && !player.canFly) {
-                flagAndAlert();
-            }
+        final WrapperPlayClientPlayerAbilities packet = new WrapperPlayClientPlayerAbilities(event);
+
+        if (packet.isFlying() && !player.canFly) {
+            flagAndAlert();
         }
     }
 }

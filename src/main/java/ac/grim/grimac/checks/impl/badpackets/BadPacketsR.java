@@ -14,17 +14,17 @@ public class BadPacketsR extends Check implements PacketCheck {
         super(player);
     }
 
-    private int positions = 0;
-    private long clock = 0;
+    private int positions;
+    private long clock;
     private long lastTransTime;
-    private int oldTransId = 0;
+    private int oldTransId;
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (isTransaction(event.getPacketType()) && player.packetStateData.lastTransactionPacketWasValid) {
-            long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
-            long diff = (System.currentTimeMillis() - lastTransTime);
-            if (diff > 2000 && ms > 2000) {
+            final long ms = (player.getPlayerClockAtLeast() - clock) / 1_000_000L;
+            final long diff = (System.currentTimeMillis() - lastTransTime);
+            if (diff > 2000L && ms > 2000L) {
                 if (positions == 0 && clock != 0 && player.gamemode != GameMode.SPECTATOR && !player.compensatedEntities.getSelf().isDead) {
                     flagAndAlert("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
                 } else {

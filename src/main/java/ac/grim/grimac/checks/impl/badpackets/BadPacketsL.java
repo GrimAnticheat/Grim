@@ -17,36 +17,38 @@ import java.util.Locale;
 @CheckData(name = "BadPacketsL")
 public class BadPacketsL extends Check implements PacketCheck {
 
-    public BadPacketsL(GrimPlayer player) {
+    public BadPacketsL(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.PLAYER_DIGGING) return;
 
-            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) {
-                return;
-            }
+        final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
-            // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
-            // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
-            final BlockFace expectedFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && packet.getAction() == DiggingAction.RELEASE_USE_ITEM
-                    ? BlockFace.SOUTH : BlockFace.DOWN;
+        if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) {
+            return;
+        }
 
-            if (packet.getBlockFace() != expectedFace
-                    || packet.getBlockPosition().getX() != 0
-                    || packet.getBlockPosition().getY() != 0
-                    || packet.getBlockPosition().getZ() != 0
-                    || packet.getSequence() != 0
-            ) {
-                flagAndAlert("xyzF="
-                        + packet.getBlockPosition().getX() + ", " + packet.getBlockPosition().getY() + ", " + packet.getBlockPosition().getZ() + ", " + packet.getBlockFace()
-                        + ", sequence=" + packet.getSequence()
-                        + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getVersionName()
-                );
-            }
+        // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
+        // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
+        final BlockFace expectedFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && packet.getAction() == DiggingAction.RELEASE_USE_ITEM
+                ? BlockFace.SOUTH : BlockFace.DOWN;
+
+        final int x = packet.getBlockPosition().getX(),
+                y = packet.getBlockPosition().getY(),
+                z = packet.getBlockPosition().getZ();
+
+        if (packet.getBlockFace() != expectedFace ||
+                x != 0 || y != 0 || z != 0 ||
+                packet.getSequence() != 0
+        ) {
+            flagAndAlert("xyzF="
+                    + x + ", " + y + ", " + z + ", " + packet.getBlockFace()
+                    + ", sequence=" + packet.getSequence()
+                    + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getVersionName()
+            );
         }
     }
 }

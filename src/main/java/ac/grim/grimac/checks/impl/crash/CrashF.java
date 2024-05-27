@@ -11,33 +11,29 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 @CheckData(name = "CrashF")
 public class CrashF extends Check implements PacketCheck {
 
-    public CrashF(GrimPlayer playerData) {
+    public CrashF(final GrimPlayer playerData) {
         super(playerData);
     }
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
-            int clickType = click.getWindowClickType().ordinal();
-            int button = click.getButton();
-            int windowId = click.getWindowId();
-            int slot = click.getSlot();
+        if (event.getPacketType() != PacketType.Play.Client.CLICK_WINDOW) return;
 
-            if ((clickType == 1 || clickType == 2) && windowId >= 0 && button < 0) {
-                if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            }
+        final WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+        final int clickType = click.getWindowClickType().ordinal(),
+                button = click.getButton(),
+                windowId = click.getWindowId(),
+                slot = click.getSlot();
 
-            else if (windowId >= 0 && clickType == 2 && slot < 0) {
-                if (flagAndAlert("clickType=" + clickType + " button=" + button + " slot=" + slot)) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            }
-
+        final boolean flagged;
+        if ((clickType == 1 || clickType == 2) && windowId >= 0 && button < 0) {
+            flagged = flagAndAlert("clickType=" + clickType + " button=" + button);
+        } else if (windowId >= 0 && clickType == 2 && slot < 0) {
+            flagged = flagAndAlert("clickType=" + clickType + " button=" + button + " slot=" + slot);
+        } else flagged = false;
+        if (flagged) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 

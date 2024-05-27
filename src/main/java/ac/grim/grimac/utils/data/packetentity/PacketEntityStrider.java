@@ -6,7 +6,8 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 public class PacketEntityStrider extends PacketEntityRideable {
     public boolean isShaking = false;
 
-    public PacketEntityStrider(GrimPlayer player, EntityType type, double x, double y, double z) {
+    public PacketEntityStrider(final GrimPlayer player, final EntityType type,
+                               final double x, final double y, final double z) {
         super(player, type, x, y, z);
     }
 }

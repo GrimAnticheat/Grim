@@ -10,16 +10,16 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "BadPacketsK")
 public class BadPacketsK extends Check implements PacketCheck {
-    public BadPacketsK(GrimPlayer player) {
+    public BadPacketsK(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.SPECTATE) {
-            if (player.gamemode != GameMode.SPECTATOR) {
-                flagAndAlert();
-            }
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.SPECTATE) return;
+
+        if (player.gamemode != GameMode.SPECTATOR) {
+            flagAndAlert();
         }
     }
 }

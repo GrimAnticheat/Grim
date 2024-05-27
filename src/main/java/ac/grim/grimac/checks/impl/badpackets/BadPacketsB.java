@@ -10,21 +10,21 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSt
 
 @CheckData(name = "BadPacketsB")
 public class BadPacketsB extends Check implements PacketCheck {
-    public BadPacketsB(GrimPlayer player) {
+    public BadPacketsB(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
-            WrapperPlayClientSteerVehicle packet = new WrapperPlayClientSteerVehicle(event);
+        if (event.getPacketType() != PacketType.Play.Client.STEER_VEHICLE) return;
 
-            float forwards = Math.abs(packet.getForward());
-            float sideways = Math.abs(packet.getSideways());
+        final WrapperPlayClientSteerVehicle packet = new WrapperPlayClientSteerVehicle(event);
 
-            if (forwards > 0.98f || sideways > 0.98f) {
-                flagAndAlert();
-            }
+        final float forwards = Math.abs(packet.getForward());
+        final float sideways = Math.abs(packet.getSideways());
+
+        if (forwards > 0.98f || sideways > 0.98f) {
+            flagAndAlert();
         }
     }
 }

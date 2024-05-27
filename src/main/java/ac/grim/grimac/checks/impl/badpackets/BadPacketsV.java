@@ -11,21 +11,22 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 @CheckData(name = "BadPacketsV", experimental = true)
 public class BadPacketsV extends Check implements PacketCheck {
-    public BadPacketsV(GrimPlayer player) {
+    public BadPacketsV(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
-            if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-            if (!player.packetStateData.slowedByUsingItem) return;
-            ItemStack itemInUse = player.getInventory().getItemInHand(player.packetStateData.eatingHand);
-            if (flagAndAlert("UseItem=" + itemInUse.getType().getName().getKey()) && shouldModifyPackets()) {
-                event.setCancelled(true);
-                player.onPacketCancel();
-            }
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY) return;
+
+        final WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
+        if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK
+                || !player.packetStateData.slowedByUsingItem) return;
+
+        final ItemStack itemInUse = player.getInventory().getItemInHand(player.packetStateData.eatingHand);
+        if (flagAndAlert("UseItem=" + itemInUse.getType().getName().getKey()) && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 }

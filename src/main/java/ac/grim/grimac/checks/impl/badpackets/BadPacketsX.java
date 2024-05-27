@@ -15,13 +15,13 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsX", experimental = true)
 public class BadPacketsX extends Check implements PacketCheck {
-    public BadPacketsX(GrimPlayer player) {
+    public BadPacketsX(final GrimPlayer player) {
         super(player);
     }
 
-    public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
+    private final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
 
-    public final void handle(PacketReceiveEvent event, WrapperPlayClientPlayerDigging dig, StateType block) {
+    public final void handle(final PacketReceiveEvent event, final WrapperPlayClientPlayerDigging dig, final StateType block) {
         if (dig.getAction() != DiggingAction.START_DIGGING && dig.getAction() != DiggingAction.FINISHED_DIGGING)
             return;
 
@@ -29,13 +29,16 @@ public class BadPacketsX extends Check implements PacketCheck {
 
         if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
             invalid = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition()) >= 1 || block.getHardness() == -1.0f;
-        } else invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)))
-                || block.isAir()
-                || block == StateTypes.WATER
-                || block == StateTypes.LAVA
-                || block == StateTypes.BUBBLE_COLUMN
-                || block == StateTypes.MOVING_PISTON
-                || (block == StateTypes.FIRE && noFireHitbox);
+        } else {
+            final boolean isFluid = block == StateTypes.WATER || block == StateTypes.LAVA || block == StateTypes.BUBBLE_COLUMN;
+            final boolean light = (block == StateTypes.LIGHT &&
+                    !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)));
+            invalid = light
+                    || isFluid
+                    || block == StateTypes.MOVING_PISTON
+                    || (block == StateTypes.FIRE && noFireHitbox)
+                    || block.isAir();
+        }
 
         if (invalid && flagAndAlert("block=" + block.getName() + ", type=" + dig.getAction()) && shouldModifyPackets()) {
             event.setCancelled(true);

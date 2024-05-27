@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 
 @CheckData(name = "Entity control", configName = "EntityControl")
 public class EntityControl extends Check implements PostPredictionCheck {
-    public EntityControl(GrimPlayer player) {
+    public EntityControl(final GrimPlayer player) {
         super(player);
     }
 

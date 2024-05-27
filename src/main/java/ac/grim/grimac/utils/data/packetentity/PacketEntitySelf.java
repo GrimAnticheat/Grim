@@ -24,12 +24,12 @@ public class PacketEntitySelf extends PacketEntity {
     @Setter
     double breakSpeedMultiplier = 1.0, entityInteractRange = 3, blockInteractRange = 4.5;
 
-    public PacketEntitySelf(GrimPlayer player) {
+    public PacketEntitySelf(final GrimPlayer player) {
         super(player, EntityTypes.PLAYER);
         this.player = player;
     }
 
-    public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
+    public PacketEntitySelf(final GrimPlayer player, final PacketEntitySelf old) {
         super(player, EntityTypes.PLAYER);
         this.player = player;
         this.opLevel = old.opLevel;
@@ -46,19 +46,20 @@ public class PacketEntitySelf extends PacketEntity {
     }
 
     @Override
-    public void addPotionEffect(PotionType effect, int amplifier) {
+    public void addPotionEffect(final PotionType effect, final int amplifier) {
         player.pointThreeEstimator.updatePlayerPotions(effect, amplifier);
         super.addPotionEffect(effect, amplifier);
     }
 
     @Override
-    public void removePotionEffect(PotionType effect) {
+    public void removePotionEffect(final PotionType effect) {
         player.pointThreeEstimator.updatePlayerPotions(effect, null);
         super.removePotionEffect(effect);
     }
 
     @Override
-    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ, GrimPlayer player) {
+    public void onFirstTransaction(final boolean relative, final boolean hasPos,
+                                   final double relX, final double relY, final double relZ, final GrimPlayer player) {
         // Player ignores this
     }
 

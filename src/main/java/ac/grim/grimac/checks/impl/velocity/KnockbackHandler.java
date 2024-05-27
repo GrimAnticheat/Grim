@@ -23,91 +23,91 @@ import java.util.LinkedList;
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
-    Deque<VelocityData> firstBreadMap = new LinkedList<>();
+    private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
-    VelocityData firstBreadOnlyKnockback = null;
+    private final Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
+    private VelocityData firstBreadOnlyKnockback = null;
     @Getter
-    boolean knockbackPointThree = false;
+    private boolean knockbackPointThree = false;
 
-    double offsetToFlag;
-    double maxAdv, immediate, ceiling, multiplier;
+    private double offsetToFlag;
+    private double maxAdv, immediate, ceiling, multiplier;
 
-    double threshold;
+    private double threshold;
 
-    public KnockbackHandler(GrimPlayer player) {
+    public KnockbackHandler(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
-            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
-            int entityId = velocity.getEntityId();
+        if (event.getPacketType() != PacketType.Play.Server.ENTITY_VELOCITY) return;
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+        final WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
+        final int entityId = velocity.getEntityId();
 
-            // Detect whether this knockback packet affects the player or if it is useless
-            // Mojang sends extra useless knockback packets for no apparent reason
-            if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
-                return;
-            }
-            if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
-                return;
-            }
+        final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        if (player == null) return;
 
-            // If the player isn't in a vehicle and the ID is for the player, the player will take kb
-            // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
-            Vector3d playerVelocity = velocity.getVelocity();
-
-            // Blacklist problemated vector until mojang fixes a client-sided bug
-            if (playerVelocity.getY() == -0.04) {
-                velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
-                playerVelocity = velocity.getVelocity();
-            }
-
-            // Wrap velocity between two transactions
-            player.sendTransaction();
-            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.getTasksAfterSend().add(player::sendTransaction);
+        // Detect whether this knockback packet affects the player or if it is useless
+        // Mojang sends extra useless knockback packets for no apparent reason
+        if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
+            return;
         }
+        if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
+            return;
+        }
+
+        // If the player isn't in a vehicle and the ID is for the player, the player will take kb
+        // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
+        Vector3d playerVelocity = velocity.getVelocity();
+
+        // Blacklist problemated vector until mojang fixes a client-sided bug
+        if (playerVelocity.getY() == -0.04) {
+            velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
+            playerVelocity = velocity.getVelocity();
+        }
+
+        // Wrap velocity between two transactions
+        player.sendTransaction();
+        addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+        event.getTasksAfterSend().add(player::sendTransaction);
     }
 
     @NotNull public Pair<VelocityData, Vector> getFutureKnockback() {
         // Chronologically in the future
-        if (firstBreadMap.size() > 0) {
-            VelocityData data = firstBreadMap.peek();
+        if (!firstBreadMap.isEmpty()) {
+            final VelocityData data = firstBreadMap.peek();
             return new Pair<>(data, data != null ? data.vector : null);
         }
         // Less in the future
-        if (lastKnockbackKnownTaken.size() > 0) {
-            VelocityData data = lastKnockbackKnownTaken.peek();
+        if (!lastKnockbackKnownTaken.isEmpty()) {
+            final VelocityData data = lastKnockbackKnownTaken.peek();
             return new Pair<>(data, data != null ? data.vector : null);
         }
         // Uncertain, might be in the future
         if (player.firstBreadKB != null && player.likelyKB == null) {
-            VelocityData data = player.firstBreadKB;
+            final VelocityData data = player.firstBreadKB;
             return new Pair<>(data, data.vector.clone());
         } else if (player.likelyKB != null) { // Known to be in the present
-            VelocityData data = player.likelyKB;
+            final VelocityData data = player.likelyKB;
             return new Pair<>(data, data.vector.clone());
         }
         return new Pair<>(null, null);
     }
 
-    private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
+    private void addPlayerKnockback(final int entityID, final int breadOne, final Vector knockback) {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 
-    public VelocityData calculateRequiredKB(int entityID, int transaction, boolean isJustTesting) {
+    public VelocityData calculateRequiredKB(final int entityID, final int transaction, final boolean isJustTesting) {
         tickKnockback(transaction);
 
-        VelocityData returnLastKB = null;
-        for (VelocityData data : lastKnockbackKnownTaken) {
-            if (data.entityID == entityID)
-                returnLastKB = data;
-        }
+        // once again correct me if I'm wrong, but there should only be 1 data with the entity id, right?
+        final VelocityData returnLastKB = lastKnockbackKnownTaken.stream()
+                .filter(data -> data.entityID == entityID)
+                .findFirst()
+                .orElse(null);
 
         if (!isJustTesting) {
             lastKnockbackKnownTaken.clear();
@@ -115,7 +115,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         return returnLastKB;
     }
 
-    private void tickKnockback(int transactionID) {
+    private void tickKnockback(final int transactionID) {
         firstBreadOnlyKnockback = null;
         if (firstBreadMap.isEmpty()) return;
         VelocityData data = firstBreadMap.peek();
@@ -149,11 +149,11 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    public void setPointThree(boolean isPointThree) {
+    public void setPointThree(final boolean isPointThree) {
         knockbackPointThree = knockbackPointThree || isPointThree;
     }
 
-    public void handlePredictionAnalysis(double offset) {
+    public void handlePredictionAnalysis(final double offset) {
         if (player.firstBreadKB != null) {
             player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
         }
@@ -165,23 +165,21 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        double offset = predictionComplete.getOffset();
+        final double offset = predictionComplete.getOffset();
         if (!predictionComplete.isChecked() || predictionComplete.getData().isTeleport()) {
             forceExempt();
             return;
         }
 
-        boolean wasZero = knockbackPointThree;
-        knockbackPointThree = false;
-
-        if (player.likelyKB == null && player.firstBreadKB == null) {
-            return;
-        }
+        if (player.likelyKB == null && player.firstBreadKB == null) return;
 
         if (player.predictedVelocity.isFirstBreadKb()) {
             firstBreadOnlyKnockback = null;
             firstBreadMap.poll(); // Remove from map so we don't pull it again
         }
+
+        final boolean wasZero = knockbackPointThree;
+        knockbackPointThree = false;
 
         if (wasZero || player.predictedVelocity.isKnockback()) {
             // Unsure knockback was taken
@@ -195,33 +193,33 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             }
         }
 
-        if (player.likelyKB != null) {
-            if (player.likelyKB.offset > offsetToFlag) {
-                threshold = Math.min(threshold + player.likelyKB.offset, ceiling);
-                if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
+        if (player.likelyKB == null) return;
+
+        if (player.likelyKB.offset > offsetToFlag) {
+            threshold = Math.min(threshold + player.likelyKB.offset, ceiling);
+            if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
+                player.getSetbackTeleportUtil().executeViolationSetback();
+            } else if (flag()) { // This velocity was sent by the server.
+                if (player.likelyKB.offset >= immediate || threshold >= maxAdv) {
                     player.getSetbackTeleportUtil().executeViolationSetback();
-                } else if (flag()) { // This velocity was sent by the server.
-                    if (player.likelyKB.offset >= immediate || threshold >= maxAdv) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
-
-                    String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
-
-                    if (player.likelyKB.offset == Integer.MAX_VALUE) {
-                        formatOffset = "ignored knockback";
-                    }
-
-                    alert(formatOffset);
-                } else {
-                    reward();
                 }
-            } else if (threshold > 0.05) {
-                threshold *= multiplier;
+
+                String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
+
+                if (player.likelyKB.offset == Integer.MAX_VALUE) {
+                    formatOffset = "ignored knockback";
+                }
+
+                alert(formatOffset);
+            } else {
+                reward();
             }
+        } else if (threshold > 0.05) {
+            threshold *= multiplier;
         }
     }
 
-    public boolean shouldIgnoreForPrediction(VectorData data) {
+    public boolean shouldIgnoreForPrediction(final VectorData data) {
         if (data.isKnockback() && data.isFirstBreadKb()) {
             return player.firstBreadKB.offset > offsetToFlag;
         }
@@ -232,7 +230,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         return (player.likelyKB != null && player.likelyKB.offset > offsetToFlag) || (player.firstBreadKB != null && player.firstBreadKB.offset > offsetToFlag);
     }
 
-    public VelocityData calculateFirstBreadKnockback(int entityID, int transaction) {
+    public VelocityData calculateFirstBreadKnockback(final int entityID, final int transaction) {
         tickKnockback(transaction);
         if (firstBreadOnlyKnockback != null && firstBreadOnlyKnockback.entityID == entityID)
             return firstBreadOnlyKnockback;

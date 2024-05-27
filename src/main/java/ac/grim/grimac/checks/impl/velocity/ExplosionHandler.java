@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.Deque;
@@ -21,50 +20,50 @@ import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
 public class ExplosionHandler extends Check implements PostPredictionCheck {
-    Deque<VelocityData> firstBreadMap = new LinkedList<>();
+    private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    VelocityData lastExplosionsKnownTaken = null;
-    VelocityData firstBreadAddedExplosion = null;
+    private VelocityData lastExplosionsKnownTaken = null;
+    private VelocityData firstBreadAddedExplosion = null;
 
     @Getter
-    boolean explosionPointThree = false;
+    private boolean explosionPointThree = false;
 
-    double offsetToFlag;
-    double setbackVL;
+    private double offsetToFlag;
+    private double setbackVL;
 
-    public ExplosionHandler(GrimPlayer player) {
+    public ExplosionHandler(final GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
-            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
+        if (event.getPacketType() != PacketType.Play.Server.EXPLOSION) return;
 
-            Vector3f velocity = explosion.getPlayerMotion();
+        final WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
-            if (!explosion.getRecords().isEmpty()) {
-                player.sendTransaction();
+        final Vector3f velocity = explosion.getPlayerMotion();
 
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    for (Vector3i records : explosion.getRecords()) {
-                        player.compensatedWorld.updateBlock(records.x, records.y, records.z, 0);
-                    }
-                });
-            }
+        if (!explosion.getRecords().isEmpty()) {
+            player.sendTransaction();
 
-            if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
-                // No need to spam transactions
-                if (explosion.getRecords().isEmpty()) player.sendTransaction();
-                addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.getTasksAfterSend().add(player::sendTransaction);
-            }
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                for (final Vector3i records : explosion.getRecords()) {
+                    player.compensatedWorld.updateBlock(records.x, records.y, records.z, 0);
+                }
+            });
+        }
+
+        if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
+            // No need to spam transactions
+            if (explosion.getRecords().isEmpty()) player.sendTransaction();
+            addPlayerExplosion(player.lastTransactionSent.get(), velocity);
+            event.getTasksAfterSend().add(player::sendTransaction);
         }
     }
 
     public VelocityData getFutureExplosion() {
         // Chronologically in the future
-        if (firstBreadMap.size() > 0) {
+        if (!firstBreadMap.isEmpty()) {
             return firstBreadMap.peek();
         }
         // Less in the future
@@ -72,15 +71,15 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
             return lastExplosionsKnownTaken;
         }
         // Uncertain, might be in the future
-        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
+        if (player.firstBreadExplosion != null && player.likelyExplosions == null)
             return player.firstBreadExplosion;
-        } else if (player.likelyExplosions != null) { // Known to be in the present
+        // Known to be in the present
+        if (player.likelyExplosions != null)
             return player.likelyExplosions;
-        }
         return null;
     }
 
-    public boolean shouldIgnoreForPrediction(VectorData data) {
+    public boolean shouldIgnoreForPrediction(final VectorData data) {
         if (data.isExplosion() && data.isFirstBreadExplosion()) {
             return player.firstBreadExplosion.offset > offsetToFlag;
         }
@@ -91,15 +90,15 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         return (player.likelyExplosions != null && player.likelyExplosions.offset > offsetToFlag) || (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > offsetToFlag);
     }
 
-    public void addPlayerExplosion(int breadOne, Vector3f explosion) {
+    public void addPlayerExplosion(final int breadOne, final Vector3f explosion) {
         firstBreadMap.add(new VelocityData(-1, breadOne, player.getSetbackTeleportUtil().isSendingSetback, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
-    public void setPointThree(boolean isPointThree) {
+    public void setPointThree(final boolean isPointThree) {
         explosionPointThree = explosionPointThree || isPointThree;
     }
 
-    public void handlePredictionAnalysis(double offset) {
+    public void handlePredictionAnalysis(final double offset) {
         if (player.firstBreadExplosion != null) {
             player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
         }
@@ -122,9 +121,9 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        double offset = predictionComplete.getOffset();
+        final double offset = predictionComplete.getOffset();
 
-        boolean wasZero = explosionPointThree;
+        final boolean wasZero = explosionPointThree;
         explosionPointThree = false;
 
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
@@ -139,9 +138,9 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         // We then compare this against the maximum velocity transaction that could override
         //
         // If velocity is over transaction, exempt
-        int minTrans = Math.min(player.likelyExplosions != null ? player.likelyExplosions.transaction : Integer.MAX_VALUE,
+        final int minTrans = Math.min(player.likelyExplosions != null ? player.likelyExplosions.transaction : Integer.MAX_VALUE,
                 player.firstBreadExplosion != null ? player.firstBreadExplosion.transaction : Integer.MAX_VALUE);
-        int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
+        final int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
         if (player.predictedVelocity.isFirstBreadExplosion()) {
@@ -162,41 +161,37 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         }
 
         // 100% known kb was taken
-        if (player.likelyExplosions != null) {
-            if (player.likelyExplosions.offset > offsetToFlag) {
-                if (flag()) {
-                    if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
-                }
+        if (player.likelyExplosions == null) return;
 
-                String formatOffset = "o: " + formatOffset(offset);
+        if (player.likelyExplosions.offset <= offsetToFlag) reward();
 
-                if (player.likelyExplosions.offset == Integer.MAX_VALUE) {
-                    formatOffset = "ignored explosion";
-                }
-
-                alert(formatOffset);
-            } else {
-                reward();
+        if (flag()) {
+            if (getViolations() > setbackVL) {
+                player.getSetbackTeleportUtil().executeViolationSetback();
             }
         }
+
+        final String formatOffset = player.likelyExplosions.offset == Integer.MAX_VALUE
+                                    ? "ignored explosion"
+                                    : "o: " + formatOffset(offset);
+
+        alert(formatOffset);
     }
 
 
-    public VelocityData getPossibleExplosions(int lastTransaction, boolean isJustTesting) {
+    public VelocityData getPossibleExplosions(final int lastTransaction, final boolean isJustTesting) {
         handleTransactionPacket(lastTransaction);
         if (lastExplosionsKnownTaken == null)
             return null;
 
-        VelocityData returnLastExplosion = lastExplosionsKnownTaken;
+        final VelocityData returnLastExplosion = lastExplosionsKnownTaken;
         if (!isJustTesting) {
             lastExplosionsKnownTaken = null;
         }
         return returnLastExplosion;
     }
 
-    private void handleTransactionPacket(int transactionID) {
+    private void handleTransactionPacket(final int transactionID) {
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread explosion
@@ -221,7 +216,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    public VelocityData getFirstBreadAddedExplosion(int lastTransaction) {
+    public VelocityData getFirstBreadAddedExplosion(final int lastTransaction) {
         handleTransactionPacket(lastTransaction);
         return firstBreadAddedExplosion;
     }

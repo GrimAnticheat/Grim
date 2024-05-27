@@ -18,31 +18,31 @@ public class BadPacketsF extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.ENTITY_ACTION) return;
 
-            if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
-                if (lastSprinting) {
-                    if (exemptNext) {
-                        exemptNext = false;
-                        return;
-                    }
-                    flagAndAlert();
+        final WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+
+        if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
+            if (lastSprinting) {
+                if (exemptNext) {
+                    exemptNext = false;
+                    return;
                 }
-
-                lastSprinting = true;
-            } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
-                if (!lastSprinting) {
-                    if (exemptNext) {
-                        exemptNext = false;
-                        return;
-                    }
-                    flagAndAlert();
-                }
-
-                lastSprinting = false;
+                flagAndAlert();
             }
+
+            lastSprinting = true;
+        } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
+            if (!lastSprinting) {
+                if (exemptNext) {
+                    exemptNext = false;
+                    return;
+                }
+                flagAndAlert();
+            }
+
+            lastSprinting = false;
         }
     }
 }

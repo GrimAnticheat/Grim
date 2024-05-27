@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 @CheckData(name = "DuplicateRotPlace", experimental = true)
 public class DuplicateRotPlace extends BlockPlaceCheck {
 
-    public DuplicateRotPlace(GrimPlayer player) {
+    public DuplicateRotPlace(final GrimPlayer player) {
         super(player);
     }
 
@@ -29,24 +29,24 @@ public class DuplicateRotPlace extends BlockPlaceCheck {
     private float lastPlacedDeltaX;
     private double lastPlacedDeltaDotsX;
 
-    public void onPostFlyingBlockPlace(BlockPlace place) {
-        if (rotated) {
-            if (deltaX > 2) {
-                float xDiff = Math.abs(deltaX - lastPlacedDeltaX);
-                double xDiffDots = Math.abs(deltaDotsX - lastPlacedDeltaDotsX);
+    public void onPostFlyingBlockPlace(final BlockPlace place) {
+        if (!rotated) return;
 
-                if (xDiff < 0.0001) {
-                    flagAndAlert("x=" + xDiff + " xdots=" + xDiffDots + " y=" + deltaY);
-                } else {
-                    reward();
-                }
+        if (deltaX > 2) {
+            final float xDiff = Math.abs(deltaX - lastPlacedDeltaX);
+            final double xDiffDots = Math.abs(deltaDotsX - lastPlacedDeltaDotsX);
+
+            if (xDiff < 0.0001) {
+                flagAndAlert("x=" + xDiff + " xdots=" + xDiffDots + " y=" + deltaY);
             } else {
                 reward();
             }
-            this.lastPlacedDeltaX = deltaX;
-            this.lastPlacedDeltaDotsX = deltaDotsX;
-            rotated = false;
+        } else {
+            reward();
         }
+        this.lastPlacedDeltaX = deltaX;
+        this.lastPlacedDeltaDotsX = deltaDotsX;
+        rotated = false;
     }
 
 
