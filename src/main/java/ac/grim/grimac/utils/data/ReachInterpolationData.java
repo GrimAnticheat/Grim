@@ -42,13 +42,13 @@ public class ReachInterpolationData {
             targetLocation.expand(0.03125);
         }
 
-        if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT)) {
+        if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT)) {
             interpolationSteps = 10;
-        } else if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.MINECART_ABSTRACT)) {
+        } else if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.MINECART_ABSTRACT)) {
             interpolationSteps = 5;
-        } else if (entity.type == EntityTypes.SHULKER) {
+        } else if (entity.getType() == EntityTypes.SHULKER) {
             interpolationSteps = 1;
-        } else if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.LIVINGENTITY)) {
+        } else if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.LIVINGENTITY)) {
             interpolationSteps = 3;
         } else {
             interpolationSteps = 1;
