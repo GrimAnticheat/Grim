@@ -55,7 +55,7 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) return;
+        if (event.getPacketType() != PacketType.Play.Server.ENTITY_ANIMATION) return;
 
         final WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
         if (animation.getEntityId() != player.entityID) return;
