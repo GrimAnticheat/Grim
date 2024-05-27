@@ -19,6 +19,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
                 event.setCancelled(true); // Player is in the vehicle
+                return;
             }
         }
 

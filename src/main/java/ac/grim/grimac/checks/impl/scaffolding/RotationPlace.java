@@ -22,7 +22,7 @@ import java.util.List;
 
 @CheckData(name = "RotationPlace")
 public class RotationPlace extends BlockPlaceCheck {
-    double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    double flagBuffer; // If the player flags once, force them to play legit, or we will cancel the tick before.
     boolean ignorePost = false;
 
     public RotationPlace(final GrimPlayer player) {
