@@ -183,4 +183,5 @@ public class PacketEntity {
         if (potionsMap == null) return;
         potionsMap.remove(effect);
     }
+
 }

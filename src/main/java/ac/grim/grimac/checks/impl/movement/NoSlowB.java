@@ -36,4 +36,5 @@ public class NoSlowB extends Check implements PacketCheck {
         alert("");
         player.getSetbackTeleportUtil().executeNonSimulatingSetback();
     }
+
 }

@@ -79,4 +79,5 @@ public class AimProcessor extends Check implements RotationCheck {
         final double var9 = Math.cbrt(var11);
         return (var9 - 0.2f) / 0.6f;
     }
+
 }
