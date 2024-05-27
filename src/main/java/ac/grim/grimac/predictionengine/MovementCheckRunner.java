@@ -55,19 +55,14 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
         // Keep re-teleporting until they load the chunk!
         if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
-            player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
-
             // The player doesn't control this vehicle, we don't care
-            if (player.compensatedEntities.getSelf().inVehicle() &&
+            final boolean invalidVehicle = player.compensatedEntities.getSelf().inVehicle() &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
-                    player.getClientVersion().isOlderThan(ClientVersion.V_1_9))) {
-                return;
-            }
+                            player.getClientVersion().isOlderThan(ClientVersion.V_1_9));
 
-            if (!data.isTeleport()) {
+            if (!invalidVehicle && !data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
                 player.getSetbackTeleportUtil().executeForceResync();
-                return;
             }
         }
 
