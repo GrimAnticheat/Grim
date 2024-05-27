@@ -408,7 +408,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (entity instanceof PacketEntityTrackXRot && yaw != null) {
                 PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
                 xRotEntity.packetYaw = yaw;
-                xRotEntity.steps = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) ? 10 : 3;
+                xRotEntity.steps = EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT) ? 10 : 3;
             }
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });
