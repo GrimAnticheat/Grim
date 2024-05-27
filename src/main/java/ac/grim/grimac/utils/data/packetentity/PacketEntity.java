@@ -18,7 +18,6 @@ package ac.grim.grimac.utils.data.packetentity;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
-import ac.grim.grimac.utils.data.TrackedPosition;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -32,9 +31,7 @@ import java.util.List;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
-
-    public final TrackedPosition trackedServerPosition;
-
+    public Vector3d desyncClientPos;
     public EntityType type;
 
     public PacketEntity riding;
@@ -50,19 +47,18 @@ public class PacketEntity {
     public float stepHeight = 0.6f; // 1.20.5+
     public double gravityAttribute = 0.08; // 1.20.5+
 
-    public PacketEntity(GrimPlayer player, EntityType type) {
+    public PacketEntity(EntityType type) {
         this.type = type;
-        this.trackedServerPosition = new TrackedPosition(player);
     }
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
-        this.type = type;
-        this.trackedServerPosition = new TrackedPosition(player);
-        this.trackedServerPosition.setPos(new Vector3d(x, y, z));
+        this.desyncClientPos = new Vector3d(x, y, z);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
-            trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
+            desyncClientPos = new Vector3d(((int) (desyncClientPos.getX() * 32)) / 32d, ((int) (desyncClientPos.getY() * 32)) / 32d, ((int) (desyncClientPos.getZ() * 32)) / 32d);
         }
-        this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, this), trackedServerPosition, this);
+        this.type = type;
+        this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, this),
+                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     public boolean isLivingEntity() {
@@ -95,27 +91,21 @@ public class PacketEntity {
         if (hasPos) {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
-                final double scale = trackedServerPosition.getScale();
-                Vector3d vec3d;
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
-                    vec3d = trackedServerPosition.withDelta(TrackedPosition.pack(relX, scale), TrackedPosition.pack(relY, scale), TrackedPosition.pack(relZ, scale));
-                } else {
-                    vec3d = trackedServerPosition.withDeltaLegacy(TrackedPosition.packLegacy(relX, scale), TrackedPosition.packLegacy(relY, scale), TrackedPosition.packLegacy(relZ, scale));
-                }
-                trackedServerPosition.setPos(vec3d);
+                desyncClientPos = new Vector3d(Math.floor(desyncClientPos.getX() * 4096) / 4096, Math.floor(desyncClientPos.getY() * 4096) / 4096, Math.floor(desyncClientPos.getZ() * 4096) / 4096);
+                desyncClientPos = desyncClientPos.add(new Vector3d(relX, relY, relZ));
             } else {
-                trackedServerPosition.setPos(new Vector3d(relX, relY, relZ));
+                desyncClientPos = new Vector3d(relX, relY, relZ);
                 // ViaVersion desync's here for teleports
                 // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
                 // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                    trackedServerPosition.setPos(new Vector3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
+                    desyncClientPos = new Vector3d(((int) (desyncClientPos.getX() * 32)) / 32d, ((int) (desyncClientPos.getY() * 32)) / 32d, ((int) (desyncClientPos.getZ() * 32)) / 32d);
                 }
             }
         }
 
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     // Remove the possibility of the old packet location
@@ -155,7 +145,7 @@ public class PacketEntity {
     public void setPositionRaw(SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
-        this.trackedServerPosition.setPos(new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
+        this.desyncClientPos = new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
         // This disables interpolation
         this.newPacketLocation = new ReachInterpolationData(box);
     }
