@@ -1,0 +1,181 @@
+# GrimAC configuratie
+# Broncode: https://github.com/MWHunter/Grim
+# Copyright 2024 DefineOutside en bijdragers, gelicentieerd onder GPLv3.
+# Gewijzigde binaire bestanden, of plugins met gekopieerde Grim code, moeten privé zijn,
+# of met volledige broncode beschikbaar voor kopers zonder extra kosten.
+
+alerts:
+  # Moeten er naast het uitzenden van waarschuwingen naar spelers ook waarschuwingen naar de console worden gestuurd?
+  print-to-console: true
+  # Dit bepaalt of/hoe waarschuwingen worden gedeeld tussen servers die zijn verbonden met je proxy.
+  # Je moet 'bungee-plugin-message-channel' ingeschakeld hebben in je Velocity-configuratie als Velocity in gebruik is.
+  proxy:
+    # Moeten er waarschuwingen worden verzonden naar andere servers die verbonden zijn met je proxy?
+    send: false
+    # Moeten de waarschuwingen die worden ontvangen van andere servers worden aangekondigd op deze server?
+    receive: false
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Dit betekent dat het merk niet wordt uitgezonden naar operators als het merk overeenkomt met de volgende regexen
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+    - "^Feather Fabric$"
+
+spectators:
+  # Verberg alle toeschouwers met de grim.spectator-toestemming, ongeacht of ze daadwerkelijk actief toeschouwer zijn
+  hide-regardless: false
+  # Maakt toeschouwers alleen verborgen in deze werelden, houdt leeg om alle werelden toe te laten
+  allowed-worlds:
+    - ""
+
+# Hoe lang moeten spelers hebben voordat we ze schoppen voor timing-out? Standaard = 60 seconden
+max-transaction-time: 60
+
+# Moet het dubbele bewegingspakket worden geannuleerd?
+# Mojang heeft dit probleem opgelost in 1.21. Dit was hun poging om de "bucket desync" op te lossen. https://bugs.mojang.com/browse/MC-12363
+# Deze instelling geldt alleen voor 1.17-1.20.5 clients op 1.8 servers
+cancel-duplicate-packet: true
+
+Simulation:
+  # Met hoeveel moeten we het totale voordeel vermenigvuldigen als de speler legitiem is?
+  # Zo ziet de standaardconfiguratie eruit (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # Hoe groot moet de afwijking van de beweging van de speler zijn?
+  # Gemeten in blokken van de mogelijke beweging
+  # We houden rekening met Optifine door trig-tabellen te verwisselen, maar door dit te verlagen naar 0,001 zal FastMath
+  # zal ervoor zorgen dat Grim wordt gemarkeerd als deze compensatie niet werkt...
+  threshold: 0.001
+  # Hoe groot is de overtreding in een tick voordat de speler onmiddellijk een terugslag krijgt?
+  # -1 om uit te schakelen
+  immediate-setback-threshold: 0.1
+  # Hoe groot is het voordeel ten opzichte van alle teken voordat we een terugslag krijgen?
+  # -1 om uit te schakelen
+  max-advantage: 1
+  # Na 50 seconden met de standaardinstellingen zal de speler van 4 blokken -> 1 blok voordeel gaan
+  # Dit is om te voorkomen dat de speler te veel schendingen verzamelt en ze nooit allemaal kan opruimen
+  # Standaard voordelenplatform (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Controleert of een speler een blok is binnengegaan tijdens een beweging
+Phase:
+  setbackvl: 1 # Glitching in blokken kan muurklimmen mogelijk maken, plus deze controle is relatief stabiel
+  decay: 0.005
+
+AirLiquidPlace:
+  cancelvl: 0
+
+FabricatedPlace:
+  cancelvl: 5
+
+FarPlace:
+  cancelvl: 5
+
+PositionPlace:
+  cancelvl: 5
+
+RotationPlace:
+  cancelvl: 5
+
+# Op voorspelling gebaseerde NoSlow-controle
+# Grim is verantwoordelijk voor buggy netcode hier... moeilijk om vals te spelen, zelfs als je met rechts klikt en de offhand-knop spamt
+# Veel stabieler dan andere anticheats, maar rapporteer alsjeblieft alle falses... Ik heb hier een heleboel netcode-problemen opgelost.
+NoSlowA:
+  # Hoeveel van een offset is "valsspelen"?
+  # Standaard is dit lager dan andere offs
+  # Flaggen met 0.03-0.2 consequent met NoSlow aan
+  threshold: 0.001
+  # Snel terugzetten op het eerste item om elk voordeel dat NoSlow geeft te verwijderen
+  setbackvl: 5
+  # Verval treedt op wanneer de speler een voorwerp gebruikt EN erdoor wordt vertraagd
+  decay: 0.05
+
+Knockback:
+  # Met hoeveel moeten we het totale voordeel vermenigvuldigen als de speler legitiem is?
+  setback-decay-multiplier: 0.999
+  # Hoe groot moet de afwijking van de snelheid van de speler zijn?
+  # Gemeten in blokken van de mogelijke snelheid
+  threshold: 0.001
+  # Hoe groot is de overtreding in een tick voordat de speler onmiddellijk een terugslag krijgt?
+  # -1 om uit te schakelen
+  immediate-setback-threshold: 0.1
+  # Hoe groot is het voordeel ten opzichte van alle teken voordat we een terugslag krijgen?
+  # -1 om uit te schakelen
+  max-advantage: 1
+  # Dit is om te voorkomen dat de speler te veel overtredingen verzamelt en ze nooit allemaal kan verwijderen
+  max-ceiling: 4
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Milliseconden die de speler kan verzamelen om later te gebruiken als hij achterop raakt
+  # Kan mogelijk 1.8 snel gebruik/snelle genezing/snelle bron omleidingen toestaan als het te hoog is ingesteld, 120 ms lijkt een goede balans
+  drift: 120
+  # Ping waarop de controle zal beginnen om de timer-balans te beperken, om misbruik te voorkomen
+  # Kan wat tegenslag veroorzaken voor legitieme spelers, maar alleen als ze boven deze ping drempel zitten.
+  # -1 om uit te schakelen
+  ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+  # Aantal milliseconden dat verloren gaat tijdens het bewegen voordat we moeten beginnen met flaggen
+  drift: 1200
+
+# Dezelfde controlemethode als TimerA, maar dan voor voertuigen
+TimerVehicle:
+  # Doel 1.005 timer
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # Met hoeveel moeten we hitboxes uitbreiden? 0.0005 moet 3.0005+ bereik detecteren
+  #
+  # Er is 0.03 geforceerde uitbreiding met 1.9-1.18.1 (niet 1.18.2), of sommige client/server combinaties vanwege
+  # protocol veranderingen en beperkingen. Deze controle is het krachtigst met 1.7/1.8 clients op 1.8 servers
+  threshold: 0.0005
+  # Moeten we hits annuleren waarvan we weten dat ze onmogelijk zijn?
+  # 3.00-3.03 hits kunnen doorkomen, maar toch gemarkeerd worden, vanwege pakketvolgorderbeperkingen
+  block-impossible-hits: true
+  # Dit stuurt een extra pakket aan het eind van elke tick om de kans op het vangen van valsspelers te vergroten
+  # Dit injecteert in de verbindingslijst van de server om een laatste pakket te sturen net voordat de server doorspoelt
+  # Door dit in te schakelen zal het bandbreedtegebruik voor alle spelers toenemen
+  # Dit zal de algehele serverprestaties niet verlagen
+  # Door dit in te schakelen worden meer valsspelers gepakt
+  # Als je dit uitgeschakeld laat, worden nog steeds valsspelers gepakt en zullen er geen valse positieven ontstaan
+  # Tenzij je een 1.8 PvP server bent, wordt dit extra pakket niet aangeraden
+  enable-post-packet: false
+
+exploit:
+  # Je kunt hoge snelheden krijgen als je sprint met een elytra, dit voorkomt de exploit als het op false staat
+  # Mojang heeft de netcode verpest door elytra's client-sided te laten starten en elytra's server-sided te laten eindigen
+  # Elytra's hebben 0.99 horizontale wrijving, dus het constant toevoegen van 0.2 horizontale snelheden resulteert in zeer hoge snelheden.
+  allow-sprint-jumping-when-using-elytra: true
+  # Deze optie verzacht de plaatsing van de speler op ghostblocks door de speler opnieuw te synchroniseren wanneer dit gebeurt
+  allow-building-on-ghostblocks: true
+  # Deze instelling, beïnvloed door de boolean hierboven, bepaalt de afstand om te controleren op ghostblocks
+  # Het geldige bereik is beperkt van 2 tot 4
+  distance-to-check-if-ghostblocks: 2
+
+# Logging plugins inschakelen die geïnjecteerd zijn in netty on join om compatibiliteitsproblemen te debuggen
+debug-pipeline-on-join: false
+
+# Experimentele controles inschakelen
+experimental-checks: false
+
+# Grim annuleert soms illegale pakketten zoals met timer, na X pakketten in een seconde geannuleerd, wanneer moeten
+# we de speler gewoon schoppen? Dit is nodig omdat sommige pakket-begrenzers pakketten die door grim worden geannuleerd niet tellen
+packet-spam-threshold: 100
+
+# Grim kan afdwingen dat een speler die uit vliegt niet meer dan X milliseconden ping kan hebben
+# Dit komt doordat Grim momenteel vliegende spelers niet controleert
+max-ping-out-of-flying: 1000
+
+config-version: 9
