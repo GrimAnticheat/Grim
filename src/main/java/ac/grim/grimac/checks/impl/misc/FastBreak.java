@@ -37,14 +37,11 @@ public class FastBreak extends Check implements PacketCheck {
     // The block the player is currently breaking
     private Vector3i targetBlock;
 
-    // The maximum amount of damage the player deals to the block
-    private double maximumBlockDamage;
+    private double maximumBlockDamage, // The maximum amount of damage the player deals to the block
+                    blockBreakBalance, blockDelayBalance; // The buffer to this check
 
     private long lastFinishBreak, // The last time a finish digging packet was sent, to enforce 0.3-second delay after non-instabreak
         startBreak; // The time the player started to break the block, to know how long the player waited until they finished breaking the block
-
-    // The buffer to this check
-    private double blockBreakBalance, blockDelayBalance;
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
