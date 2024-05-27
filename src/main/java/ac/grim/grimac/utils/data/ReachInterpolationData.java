@@ -28,6 +28,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
+
     private final SimpleCollisionBox targetLocation;
     private SimpleCollisionBox startingLocation;
     private int interpolationStepsLowBound = 0;
@@ -139,4 +140,5 @@ public class ReachInterpolationData {
                 ", interpolationStepsHighBound=" + interpolationStepsHighBound +
                 '}';
     }
+
 }
