@@ -37,59 +37,41 @@ public class PacketEntity {
     public final TrackedPosition trackedServerPosition;
 
     public final EntityType type;
+    @Getter // what the hell type of name is "isSize" can someone make a better name for this
+    private boolean isLivingEntity, isMinecart, isHorse, isAgeable, isAnimal, isSize;
 
     @Getter
     public PacketEntity riding;
     public final List<PacketEntity> passengers = new ArrayList<>(0);
-    public boolean isDead = false;
-    public boolean isBaby = false;
-    public boolean hasGravity = true;
-    private ReachInterpolationData oldPacketLocation;
-    private ReachInterpolationData newPacketLocation;
+    public boolean isDead = false, isBaby = false, hasGravity = true;
+    private ReachInterpolationData oldPacketLocation, newPacketLocation;
 
     public HashMap<PotionType, Integer> potionsMap = null;
-    public float scale = 1f; // 1.20.5+
-    public float stepHeight = 0.6f; // 1.20.5+
+    public float scale = 1f, stepHeight = 0.6f; // 1.20.5+
     public double gravityAttribute = 0.08; // 1.20.5+
 
     public PacketEntity(final GrimPlayer player, final EntityType type) {
         this.type = type;
         this.trackedServerPosition = new TrackedPosition(player);
+
+        this.isLivingEntity = EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY);
+        this.isMinecart = EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT);
+        this.isAgeable = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_AGEABLE);
+        this.isSize = type == EntityTypes.PHANTOM || type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE;
+
+        // unused
+        this.isAnimal = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
+        this.isHorse = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE);
     }
 
     public PacketEntity(final GrimPlayer player, final EntityType type,
                         final double x, final double y, final double z) {
-        this.type = type;
-        this.trackedServerPosition = new TrackedPosition(player);
+        this(player, type);
         this.trackedServerPosition.setPos(new Vector3d(x, y, z));
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
             trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
         }
         this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, this), trackedServerPosition, this);
-    }
-
-    public boolean isLivingEntity() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY);
-    }
-
-    public boolean isMinecart() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT);
-    }
-
-    public boolean isHorse() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE);
-    }
-
-    public boolean isAgeable() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_AGEABLE);
-    }
-
-    public boolean isAnimal() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
-    }
-
-    public boolean isSize() {
-        return type == EntityTypes.PHANTOM || type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE;
     }
 
     // Set the old packet location to the new one
