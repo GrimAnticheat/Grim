@@ -20,7 +20,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -30,9 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 
 // You may not copy this check unless your anticheat is licensed under GPL
-public class PacketEntity {
+public class PacketEntity extends TypedPacketEntity {
     public Vector3d desyncClientPos;
-    public EntityType type;
 
     public PacketEntity riding;
     public List<PacketEntity> passengers = new ArrayList<>(0);
@@ -48,41 +46,17 @@ public class PacketEntity {
     public double gravityAttribute = 0.08; // 1.20.5+
 
     public PacketEntity(EntityType type) {
-        this.type = type;
+        super(type);
     }
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
+        super(type);
         this.desyncClientPos = new Vector3d(x, y, z);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
             desyncClientPos = new Vector3d(((int) (desyncClientPos.getX() * 32)) / 32d, ((int) (desyncClientPos.getY() * 32)) / 32d, ((int) (desyncClientPos.getZ() * 32)) / 32d);
         }
-        this.type = type;
         this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, this),
                 desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
-    }
-
-    public boolean isLivingEntity() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY);
-    }
-
-    public boolean isMinecart() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT);
-    }
-
-    public boolean isHorse() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE);
-    }
-
-    public boolean isAgeable() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_AGEABLE);
-    }
-
-    public boolean isAnimal() {
-        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
-    }
-
-    public boolean isSize() {
-        return type == EntityTypes.PHANTOM || type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE;
     }
 
     // Set the old packet location to the new one

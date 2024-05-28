@@ -276,7 +276,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
                 EntityControl control = player.checkManager.getPostPredictionCheck(EntityControl.class);
 
-                ItemType requiredItem = player.compensatedEntities.getSelf().getRiding().type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
+                ItemType requiredItem = player.compensatedEntities.getSelf().getRiding().getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.getInventory().getHeldItem();
                 ItemStack offHand = player.getInventory().getOffHand();
 
@@ -323,7 +323,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.isSprinting = false;
             player.isSneaking = false;
 
-            if (player.compensatedEntities.getSelf().getRiding().type != EntityTypes.PIG && player.compensatedEntities.getSelf().getRiding().type != EntityTypes.STRIDER) {
+            if (player.compensatedEntities.getSelf().getRiding().getType() != EntityTypes.PIG && player.compensatedEntities.getSelf().getRiding().getType() != EntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
         }
@@ -495,17 +495,17 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
-            if (EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
+            if (EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().getType(), EntityTypes.BOAT)) {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
             } else if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityAIStep();
-            } else if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.PIG) {
+            } else if (player.compensatedEntities.getSelf().getRiding().getType() == EntityTypes.PIG) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityAIStep();
-            } else if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.STRIDER) {
+            } else if (player.compensatedEntities.getSelf().getRiding().getType() == EntityTypes.STRIDER) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);
