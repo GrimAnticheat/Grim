@@ -34,7 +34,7 @@ public class BadPacketsM extends Check implements PacketCheck {
             //  - when renaming the armor stand or in spectator mode: INTERACT_AT + INTERACT
             //  - in all other cases: only INTERACT
             // Just exempt armor stands to be safe
-            if(entity != null && entity.type == EntityTypes.ARMOR_STAND) return;
+            if(entity != null && entity.getType() == EntityTypes.ARMOR_STAND) return;
 
             switch (wrapper.getAction()) {
                 // INTERACT_AT then INTERACT

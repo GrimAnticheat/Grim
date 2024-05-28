@@ -102,7 +102,7 @@ public class PlayerBaseTick {
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
-        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT) && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().getType(), EntityTypes.BOAT) && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -379,7 +379,7 @@ public class PlayerBaseTick {
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT));
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().getType(), EntityTypes.BOAT));
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }
