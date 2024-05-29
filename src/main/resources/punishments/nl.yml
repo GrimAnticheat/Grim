@@ -19,7 +19,7 @@ Punishments:
       - "NoFall"
     # Drempel: Interval-commando
     #
-    # Voorbeeld, om de speler te schoppen met het bericht “verkeerde beweging!” na 100 overtredingen, zonder interval
+    # Voorbeeld, om de speler te schoppen met het bericht "verkeerde beweging!" na 100 overtredingen, zonder interval
     # commando's:
     # - "100:0 kick %player% incorrecte beweging!"
     # 0 betekent precies één keer uitvoeren
