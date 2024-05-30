@@ -138,8 +138,8 @@ public class UncertaintyHandler {
             if (entity == null) continue;
 
             SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
-            float width = BoundingBoxSize.getWidth(player, entity);
-            float height = BoundingBoxSize.getHeight(player, entity);
+            float width = BoundingBoxSize.getWidth(player, entity) * entity.scale;
+            float height = BoundingBoxSize.getHeight(player, entity) * entity.scale;
 
             // Convert back to coordinates instead of hitbox
             entityBox.maxY -= height;

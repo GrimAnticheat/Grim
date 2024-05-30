@@ -574,8 +574,8 @@ public class BlockPlace {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
-                    double width = BoundingBoxSize.getWidth(player, entity);
-                    double height = BoundingBoxSize.getHeight(player, entity);
+                    double width = BoundingBoxSize.getWidth(player, entity) * entity.scale;
+                    double height = BoundingBoxSize.getHeight(player, entity) * entity.scale;
                     double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
                     double interpHeight = interpBox.maxY - interpBox.minY;
 
