@@ -51,7 +51,6 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
 
             final @Nullable WrapperPlayServerExplosion.BlockInteraction blockInteraction = explosion.getBlockInteraction();
             final boolean shouldDestroy = blockInteraction != WrapperPlayServerExplosion.BlockInteraction.KEEP_BLOCKS;
-            Bukkit.broadcastMessage("should destroy? " + shouldDestroy + ", type: " + blockInteraction);
             if (!explosion.getRecords().isEmpty() && shouldDestroy) {
                 player.sendTransaction();
 
