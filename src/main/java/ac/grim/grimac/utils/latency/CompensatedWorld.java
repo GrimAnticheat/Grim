@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
-import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.User;
@@ -293,9 +292,9 @@ public class CompensatedWorld {
     }
 
     public void tickOpenable(int blockX, int blockY, int blockZ) {
-        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
-
-        if (BlockTags.WOODEN_DOORS.contains(data.getType()) || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && data.getType() == StateTypes.IRON_DOOR)) {
+        final WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
+        final StateType type = data.getType();
+        if (BlockTags.WOODEN_DOORS.contains(type) || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && type == StateTypes.IRON_DOOR)) {
             WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
@@ -317,12 +316,13 @@ public class CompensatedWorld {
                     player.compensatedWorld.updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
-        } else if (BlockTags.WOODEN_TRAPDOORS.contains(data.getType()) || BlockTags.FENCE_GATES.contains(data.getType())
-                || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && data.getType() == StateTypes.IRON_TRAPDOOR)) {
+        } else if ((player.getClientVersion().isOlderThan(ClientVersion.V_1_8) || type != StateTypes.IRON_TRAPDOOR) // 1.7 can open iron trapdoors.
+                    && BlockTags.TRAPDOORS.contains(type)
+                    || BlockTags.FENCE_GATES.contains(type)) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
             player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
-        } else if (BlockTags.BUTTONS.contains(data.getType())) {
+        } else if (BlockTags.BUTTONS.contains(type)) {
             data.setPowered(true);
         }
     }

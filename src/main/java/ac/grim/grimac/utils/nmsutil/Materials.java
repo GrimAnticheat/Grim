@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Materials {
     private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
@@ -88,7 +89,7 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.SHULKER_BOXES.getStates());
         CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
         CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
-        CLIENT_SIDE.addAll(BlockTags.WOODEN_TRAPDOORS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates().stream().filter(type -> type != StateTypes.IRON_TRAPDOOR).collect(Collectors.toSet()));
         CLIENT_SIDE.addAll(BlockTags.WOODEN_DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
