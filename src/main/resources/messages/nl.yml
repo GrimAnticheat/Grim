@@ -45,6 +45,6 @@ help:
   - "/grim perf &f- &7Ontwikkelaar ms/voorspelling"
   - "/grim reload &f- &7Laadt de configuratie opnieuw"
   - "/grim spectate <player> &f- &7Een speler bekijken"
-  - "/grim verbose &f- &fToont elke flag, zonder buffers"
+  - "/grim verbose &f- &7Toont elke flag, zonder buffers"
   - "/grim log [0-255] &f- &7Uploadt een debug-log voor voorspellings-flaggen"
   - "&7======================"

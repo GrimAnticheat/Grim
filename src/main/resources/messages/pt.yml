@@ -45,6 +45,6 @@ help:
   - "/grim perf &f- &7Depurar performance para Desenvolvedores."
   - "/grim reload &f- &7Recarrega a pasta de configurações."
   - "/grim spectate <player> &f- &7Especta um jogador."
-  - "/grim verbose &f- &fMostra todos os flags para você sem os buffers."
+  - "/grim verbose &f- &7Mostra todos os flags para você sem os buffers."
   - "/grim log [0-255] &f- &7Envia a log da simulação."
   - "&7======================"

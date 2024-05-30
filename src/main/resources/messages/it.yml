@@ -36,6 +36,6 @@ help:
   - "/grim perf &f- &7Ms/predizione dello sviluppatore"
   - "/grim reload &f- &7Ricarica la configurazione"
   - "/grim spectate <giocatore> &f- &7Osserva un giocatore"
-  - "/grim verbose &f- &fMostra ogni segnalazione a te, senza buffer"
+  - "/grim verbose &f- &7Mostra ogni segnalazione a te, senza buffer"
   - "/grim log [0-255] &f- &7Carica un registro di debug per le segnalazioni di previsione"
   - "&7======================"
