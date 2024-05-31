@@ -1,0 +1,93 @@
+# %check_name% - naam van de controle
+# %vl% - overtredingen
+# %verbose% - extra informatie
+# %player% - spelersnaam
+# [alert] - speciaal commando om te waarschuwen
+# [webhook] - speciaal commando om discord webhook te waarschuwen
+# [proxy] - speciaal commando om te waarschuwen voor andere servers die verbonden zijn met je proxy (BungeeCord/Velocity)
+Punishments:
+  Simulation:
+    # Na hoeveel seconden moet een overtreding worden verwijderd?
+    remove-violations-after: 300
+    # Deze sectie zal overeenkomen met alle controles met de naam,
+    # Om een controle uit te sluiten die anders wel overeen zou komen, zet je een uitroepteken voor de naam.
+    # Bijvoorbeeld, !BadPacketsN
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # Drempel: Interval-commando
+    #
+    # Voorbeeld, om de speler te schoppen met het bericht "verkeerde beweging!" na 100 overtredingen, zonder interval
+    # commando's:
+    # - "100:0 kick %player% incorrecte beweging!"
+    # 0 betekent precies één keer uitvoeren
+    # - "100:50 say %player% is cheating"
+    # Uitvoeren wanneer de gebruiker flag 100 raakt, en daarna elke 50e flag na 100
+    #
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+      - "100:100 [proxy]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+      - "5:5 [proxy]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+      - "TransactionOrder"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+      - "20:10 [proxy]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # Vanaf 2.2.10 zijn er geen AutoClicker-controles en is dit een placeholder. Grim zal in de toekomst AutoClicker-controles toevoegen.
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
