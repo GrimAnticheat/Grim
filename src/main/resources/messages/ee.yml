@@ -9,32 +9,43 @@ player-not-found: "%prefix% &cMängija on kaitstud või mängust väljas!"
 player-not-this-server: "%prefix% &cMängija ei ole selles serveris!"
 spectate-return: "\n%prefix% &fVajuta siia et minna eelmisesse asukohta\n"
 cannot-spectate-return: "%prefix% &cSa saad ainult seda teha kui oled mängijat uurinud"
+cannot-run-on-self: "%prefix% &cSa ei saa kasutada seda käsku enda peal!"
+upload-log: "%prefix% &fDebug üles laetud: %url%"
+upload-log-start: "%prefix% &fLaen logi üles.. palun oota"
+upload-log-not-found: "%prefix% &cSeda logi ei leitud"
+upload-log-upload-failure: "%prefix% &cMidagi läks valesti selle logi üleslaadimisel, vaata konsooli et saada rohkem infot."
 
 # Valid placeholders:
 # %prefix%
 # %player%
 # %check_name%
+# %experimental%
 # %vl% - violations
 # %verbose% - extra information from the check such as offsets, not all checks will add information
-alerts-format: "%prefix% &f%player% &bflaggis &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bflaggis &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bflaggis &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
 
 profile:
   - "&7======================"
-  - "%prefix% &f%player% &bprofiil"
+  - "%prefix% &Profiil for &f%player%"
   - "&bPing: &f%ping%"
   - "&bVersioon: &f%version%"
   - "&bKlient: &f%brand%"
-  - "&bHorisontaalne hiire tundlikkus: &f%h_sensitivity%%"
-  - "&bVertikaalne hiire tundlikkus: &f%v_sensitivity%%"
+  - "&bHorisontaalne hiiretundlikkus: &f%h_sensitivity%%"
+  - "&bVertikaalne hiiretundlikkus: &f%v_sensitivity%%"
   - "&bFastMath: &f%fast_math%"
   - "&7======================"
 help:
   - "&7======================"
-  - "/grim alerts &f- &7Luba teavitused"
-  - "/grim profile &f- &7Vaata mängija profiili"
+  - "/grim alerts &f- &Luba märguanded"
+  - "/grim profile <player> &f- &7Vaata mängija infot"
   - "/grim help &f- &7Vaata seda abi sõnumit"
-  - "/grim debug <player> &f- &7Ennustuse informatsioon kooderitele"
-  - "/grim perf &f- &7Kooderite ennustuse informatsiooni ajad"
-  - "/grim reload &f- &7Uuenda konfiguratsiooni"
-  - "/grim spectate <player> &f- &7Uuri mängijat lähemalt"
+  - "/grim debug <player> &f- &7Arendaja Prediction debug"
+  - "/grim perf &f- &7Developer ms/prediction"
+  - "/grim reload &f- &7Uuendab konfiguratsiooni"
+  - "/grim spectate <player> &f- &7Pealtvaata mängijat"
+  - "/grim verbose &f- &7Näitab iga märguande sulle, ilma puhvrita"
+  - "/grim log [0-255] &f- &7Laeb üles prediction debug loggi"
   - "&7======================"
