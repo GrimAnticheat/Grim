@@ -45,6 +45,6 @@ help:
   - "/grim perf &f- &7Entwickler ms/vorhersage"
   - "/grim reload &f- &7Lädt die Konfiguration neu"
   - "/grim spectate <Spieler> &f- &7Spectate einen Spieler"
-  - "/grim verbose &f- &fZeigt dir jede Flagge an, ohne Puffer"
+  - "/grim verbose &f- &7Zeigt dir jede Flagge an, ohne Puffer"
   - "/grim log [0-255] &f- &7Lädt ein Debug-Protokoll für Vorhersage-Flags hoch"
   - "&7======================"

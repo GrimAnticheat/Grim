@@ -1,0 +1,50 @@
+# \u00BB is » (double >>), ANSI en UTF-8 interpreteren dit anders... je kunt zelfs "?" zien als gevolg hiervan
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fMeldingen ingeschakeld"
+alerts-disabled: "%prefix% &fMeldingen uitgeschakeld"
+client-brand-format: "%prefix% &f%player% is lid geworden met %brand%"
+console-specify-target: "%prefix% &cJe moet een doel opgeven als de console!"
+player-not-found: "%prefix% &cSpeler is vrijgesteld of offline!"
+player-not-this-server: "%prefix% &cSpeler is niet op deze server!"
+spectate-return: "\n%prefix% &fKlik hier om terug te keren naar de vorige locatie\n"
+cannot-spectate-return: "%prefix% &cJe kunt dit alleen doen nadat je een speler hebt bekeken"
+cannot-run-on-self: "%prefix% &cJe kunt dit commando niet op jezelf gebruiken!"
+upload-log: "%prefix% &fDebug geüpload naar: %url%"
+upload-log-start: "%prefix% &fLog wordt geüpload... even geduld"
+upload-log-not-found: "%prefix% &cKan dat log niet vinden"
+upload-log-upload-failure: "%prefix% &cEr is iets misgegaan tijdens het uploaden van dit log, zie console voor meer informatie"
+
+# Geldige plaatsaanduidingen:
+# %prefix%
+# %player%
+# %check_name%
+# %experimental%
+# %vl% - overtredingen
+# %verbose% - extra informatie van de controle zoals offsets, niet alle controles voegen informatie toe
+alerts-format: "%prefix% &f%player% &bmislukt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bmislukt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfiel voor &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersie: &f%version%"
+  - "&bClient Merk: &f%brand%"
+  - "&bHorizontale Gevoeligheid: &f%h_sensitivity%%"
+  - "&bVerticale Gevoeligheid: &f%v_sensitivity%%"
+  - "&bFastMath Ingeschakeld: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Meldingen inschakelen"
+  - "/grim profile <player> &f- &7Bekijk speler info"
+  - "/grim help &f- &7Bekijk dit helpbericht"
+  - "/grim debug <player> &f- &7Voorspellingsuitvoer ontwikkelaar"
+  - "/grim perf &f- &7Ontwikkelaar ms/voorspelling"
+  - "/grim reload &f- &7Laadt de configuratie opnieuw"
+  - "/grim spectate <player> &f- &7Een speler bekijken"
+  - "/grim verbose &f- &7Toont elke flag, zonder buffers"
+  - "/grim log [0-255] &f- &7Uploadt een debug-log voor voorspellings-flaggen"
+  - "&7======================"

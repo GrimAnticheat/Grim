@@ -18,7 +18,8 @@ import com.github.retrooper.packetevents.util.Vector3d;
  * I could PR a ton of classes in order to accomplish it but then no one would use it
  * (And even if they did they would likely be breaking my license...)
  */
-public class BoundingBoxSize {
+public final class BoundingBoxSize {
+
     public static float getWidth(GrimPlayer player, PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
         if (packetEntity.getType() == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36f;
@@ -111,6 +112,8 @@ public class BoundingBoxSize {
             return 1.9f;
         } else if (EntityTypes.CAMEL.equals(type)) {
             return 1.7f;
+        } else if (EntityTypes.WIND_CHARGE.equals(type)) {
+            return 0.3125F;
         }
         return 0.6f;
     }
@@ -363,6 +366,12 @@ public class BoundingBoxSize {
             return 1.75f;
         } else if (EntityTypes.CAMEL.equals(type)) {
             return 2.375f;
+        } else if (EntityTypes.BREEZE.equals(type)) {
+            return 1.77F;
+        } else if (EntityTypes.BOGGED.equals(type)) {
+            return 1.99F;
+        } else if (EntityTypes.WIND_CHARGE.equals(type)) {
+            return 0.3125F;
         }
         return 1.95f;
     }

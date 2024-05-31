@@ -16,6 +16,10 @@ public class TeleportData {
     @Setter
     int teleportId;
 
+    public boolean isRelative() {
+        return isRelativeX() || isRelativeY() || isRelativeZ();
+    }
+
     public boolean isRelativeX() {
         return flags.isSet(RelativeFlag.X.getMask());
     }

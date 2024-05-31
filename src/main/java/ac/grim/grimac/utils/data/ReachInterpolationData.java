@@ -18,11 +18,12 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
@@ -32,9 +33,12 @@ public class ReachInterpolationData {
     private int interpolationStepsHighBound = 0;
     private int interpolationSteps = 1;
 
-    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
+    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
+        final boolean isPointNine = !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+
         this.startingLocation = startingLocation;
-        this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(entity, x, y, z, BoundingBoxSize.getWidth(player, entity), BoundingBoxSize.getHeight(player, entity));
+        final Vector3d pos = position.getPos();
+        this.targetLocation = GetBoundingBox.getPacketEntityBoundingBox(player, pos.x, pos.y, pos.z, entity);
 
         // 1.9 -> 1.8 precision loss in packets
         // (ViaVersion is doing some stuff that makes this code difficult)
@@ -44,11 +48,11 @@ public class ReachInterpolationData {
 
         if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT)) {
             interpolationSteps = 10;
-        } else if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.MINECART_ABSTRACT)) {
+        } else if (entity.isMinecart()) {
             interpolationSteps = 5;
         } else if (entity.getType() == EntityTypes.SHULKER) {
             interpolationSteps = 1;
-        } else if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.LIVINGENTITY)) {
+        } else if (entity.isLivingEntity()) {
             interpolationSteps = 3;
         } else {
             interpolationSteps = 1;
@@ -85,12 +89,12 @@ public class ReachInterpolationData {
     public SimpleCollisionBox getPossibleLocationCombined() {
         int interpSteps = getInterpolationSteps();
 
-        double stepMinX = (targetLocation.minX - startingLocation.minX) / interpSteps;
-        double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / interpSteps;
-        double stepMinY = (targetLocation.minY - startingLocation.minY) / interpSteps;
-        double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / interpSteps;
-        double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / interpSteps;
-        double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / interpSteps;
+        double stepMinX = (targetLocation.minX - startingLocation.minX) / (double) interpSteps;
+        double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / (double) interpSteps;
+        double stepMinY = (targetLocation.minY - startingLocation.minY) / (double) interpSteps;
+        double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / (double) interpSteps;
+        double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / (double) interpSteps;
+        double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / (double) interpSteps;
 
         SimpleCollisionBox minimumInterpLocation = new SimpleCollisionBox(
                 startingLocation.minX + (interpolationStepsLowBound * stepMinX),

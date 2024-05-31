@@ -16,8 +16,7 @@ public class GetBoundingBox {
     public static SimpleCollisionBox getPacketEntityBoundingBox(GrimPlayer player, double centerX, double minY, double centerZ, PacketEntity entity) {
         float width = BoundingBoxSize.getWidth(player, entity);
         float height = BoundingBoxSize.getHeight(player, entity);
-
-        return getBoundingBoxFromPosAndSize(player, centerX, minY, centerZ, width, height);
+        return getBoundingBoxFromPosAndSize(entity, centerX, minY, centerZ, width, height);
     }
 
     // Size regular: 0.6 width 1.8 height

@@ -9,12 +9,18 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -43,12 +49,35 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
 
             Vector3f velocity = explosion.getPlayerMotion();
 
-            if (!explosion.getRecords().isEmpty()) {
+            final @Nullable WrapperPlayServerExplosion.BlockInteraction blockInteraction = explosion.getBlockInteraction();
+            final boolean shouldDestroy = blockInteraction != WrapperPlayServerExplosion.BlockInteraction.KEEP_BLOCKS;
+            if (!explosion.getRecords().isEmpty() && shouldDestroy) {
                 player.sendTransaction();
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    for (Vector3i records : explosion.getRecords()) {
-                        player.compensatedWorld.updateBlock(records.x, records.y, records.z, 0);
+                    for (Vector3i record : explosion.getRecords()) {
+                        // Null OR not flip redstone blocks, then set to air
+                        if (blockInteraction != WrapperPlayServerExplosion.BlockInteraction.TRIGGER_BLOCKS) {
+                            player.compensatedWorld.updateBlock(record.x, record.y, record.z, 0);
+                        } else {
+                            // We need to flip redstone blocks, or do special things with other blocks
+                            final WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(record);
+                            final StateType type = state.getType();
+                            if (BlockTags.CANDLES.contains(type) || BlockTags.CANDLE_CAKES.contains(type)) {
+                                state.setLit(false);
+                                continue;
+                            } else if (type == StateTypes.BELL) {
+                                // Does this affect anything? I don't know, I don't see anything that relies on whether a bell is ringing.
+                                continue;
+                            }
+
+                            // Otherwise try and flip/open it.
+                            final Object poweredValue = state.getInternalData().get(StateValue.POWERED);
+                            final boolean canFlip = (poweredValue != null && !(Boolean) poweredValue) || type == StateTypes.LEVER;
+                            if (canFlip) {
+                                player.compensatedWorld.tickOpenable(record.x, record.y, record.z);
+                            }
+                        }
                     }
                 });
             }
