@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Vulnerability must be reproducable on the latest grim commit.
+Vulnerability must be reproducible on the latest grim commit.
 
 ## Reporting a Vulnerability
 
