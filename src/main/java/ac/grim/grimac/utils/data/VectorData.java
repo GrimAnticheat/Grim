@@ -138,10 +138,10 @@ public class VectorData {
         TridentJump,
         Trident,
         SlimePistonBounce,
-        Entity_Pushing,
         ZeroPointZeroThree,
         AttackSlow,
         Flip_Sneaking,
-        Flip_Use_Item
+        Flip_Use_Item,
+        EntityPushing
     }
 }

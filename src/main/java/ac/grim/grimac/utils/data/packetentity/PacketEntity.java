@@ -24,16 +24,20 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity extends TypedPacketEntity {
     
     public final TrackedPosition trackedServerPosition;
 
+    @Getter
+    private final UUID uuid; // NULL ON VERSIONS BELOW 1.9
     public PacketEntity riding;
     public List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
@@ -49,11 +53,13 @@ public class PacketEntity extends TypedPacketEntity {
 
     public PacketEntity(EntityType type) {
         super(type);
+        this.uuid = null;
         this.trackedServerPosition = new TrackedPosition();
     }
 
-    public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
+    public PacketEntity(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z) {
         super(type);
+        this.uuid = uuid;
         this.trackedServerPosition = new TrackedPosition();
         this.trackedServerPosition.setPos(new Vector3d(x, y, z));
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion

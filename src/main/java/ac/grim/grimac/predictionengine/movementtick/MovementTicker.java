@@ -10,6 +10,8 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.utils.team.EntityPredicates;
+import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -35,16 +37,22 @@ public class MovementTicker {
         if (!player.compensatedEntities.getSelf().inVehicle()) {
             // Calculate the offset of the player to colliding other stuff
             SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
-            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
+            playerBox.union(GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f).expand(player.getMovementThreshold()));
+            playerBox.expand(0.2);
+
+            final TeamHandler teamHandler = player.checkManager.getPacketCheck(TeamHandler.class);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 if (!entity.isPushable())
                     continue;
 
+                if (!EntityPredicates.canBePushedBy(player, entity, teamHandler).test(player)) continue;
+
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
 
-                if (expandedPlayerBox.isCollided(entityBox))
+                if (playerBox.isCollided(entityBox)) {
                     possibleCollidingEntities++;
+                }
             }
         }
 
