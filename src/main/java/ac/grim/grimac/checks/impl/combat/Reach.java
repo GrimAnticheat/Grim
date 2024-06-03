@@ -31,6 +31,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -46,6 +47,7 @@ public class Reach extends Check implements PacketCheck {
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
 
+    private Set<String> ignoredEntitiesList;
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -77,7 +79,9 @@ public class Reach extends Check implements PacketCheck {
                 }
                 return;
             }
-            
+
+            if (ignoredEntitiesList.contains(entity.type.getName().toString())) return;
+
             // Dead entities cause false flags (https://github.com/GrimAnticheat/Grim/issues/546)
             if (entity.isDead) return;
 
@@ -238,5 +242,6 @@ public class Reach extends Check implements PacketCheck {
         super.reload();
         this.cancelImpossibleHits = getConfig().getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = getConfig().getDoubleElse("Reach.threshold", 0.0005);
+        this.ignoredEntitiesList = new HashSet<>(getConfig().getList("Reach.ignored-entities"));
     }
 }

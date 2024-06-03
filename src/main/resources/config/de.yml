@@ -152,6 +152,13 @@ Reach:
   # Bleibt diese Funktion deaktiviert, werden immer noch Cheater erwischt und es kommt nicht zu Fehlalarmen.
   # Sofern es sich nicht um einen 1.8 PvP-Server handelt, wird dieses zusätzliche Paket nicht empfohlen.
   enable-post-packet: false
+  # Welche Entitätstypen sollten beim Reach-Check ignoriert werden?
+  ignored-entities:
+  # Dies sind Beispiele ↓
+  # - minecraft:pig
+  # - minecraft:cow
+  # - minecraft:sheep
+  # - minecraft:chicken
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true

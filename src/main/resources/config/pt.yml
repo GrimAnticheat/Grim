@@ -156,6 +156,13 @@ Reach:
   # Deixando-o desabilitado, continuará detectando cheaters e não irá causar falsos positivos.
   # A menos que estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
   enable-post-packet: false
+  # Quais tipos de entidade devem ser ignorados pela verificação de alcance?
+  ignored-entities:
+  # Estes são exemplos ↓
+  # - minecraft:pig
+  # - minecraft:cow
+  # - minecraft:sheep
+  # - minecraft:chicken
 
 exploit:
   # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploitação de ocorrer quando
