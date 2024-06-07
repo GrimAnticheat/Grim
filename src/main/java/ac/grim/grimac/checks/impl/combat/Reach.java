@@ -21,6 +21,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -68,7 +69,8 @@ public class Reach extends Check implements PacketCheck {
 
             PacketEntity entity = player.compensatedEntities.entityMap.get(action.getEntityId());
             // Stop people from freezing transactions before an entity spawns to bypass reach
-            if (entity == null) {
+            // TODO: implement dragon parts?
+            if (entity == null || entity instanceof PacketEntityEnderDragonPart) {
                 // Only cancel if and only if we are tracking this entity
                 // This is because we don't track paintings.
                 if (shouldModifyPackets() && player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
@@ -140,7 +142,6 @@ public class Reach extends Check implements PacketCheck {
     private void tickBetterReachCheckWithAngle() {
         for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey().intValue());
-
             if (reachEntity != null) {
                 String result = checkReach(reachEntity, attack.getValue(), false);
                 if (result != null) {

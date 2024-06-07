@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
+import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragon;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
@@ -62,6 +63,13 @@ public class CompensatedEntities {
     public void removeEntity(int entityID) {
         PacketEntity entity = entityMap.remove(entityID);
         if (entity == null) return;
+
+        if (entity instanceof PacketEntityEnderDragon) {
+            PacketEntityEnderDragon dragon = (PacketEntityEnderDragon) entity;
+            for (int i = 1; i < dragon.getParts().size() + 1; i++) {
+                entityMap.remove(entityID + i);
+            }
+        }
 
         for (PacketEntity passenger : new ArrayList<>(entity.passengers)) {
             passenger.eject();
@@ -237,6 +245,8 @@ public class CompensatedEntities {
                 packetEntity = new PacketEntityTrackXRot(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
             } else if (EntityTypes.FISHING_BOBBER.equals(entityType)) {
                 packetEntity = new PacketEntityHook(player, entityType, position.getX(), position.getY(), position.getZ(), data);
+            } else if (EntityTypes.ENDER_DRAGON.equals(entityType)) {
+                packetEntity = new PacketEntityEnderDragon(player, entityID, position.getX(), position.getY(), position.getZ());
             } else {
                 packetEntity = new PacketEntity(player, entityType, position.getX(), position.getY(), position.getZ());
             }
