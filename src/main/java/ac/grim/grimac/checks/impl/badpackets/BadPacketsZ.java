@@ -19,8 +19,8 @@ public class BadPacketsZ extends Check implements PacketCheck {
         super(player);
     }
 
-    private boolean exemptNextFinish = false;
-    private Vector3i lastBlock, lastLastBlock = null;
+    private boolean lastBlockWasInstantBreak = false;
+    private Vector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
     private final int exemptedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
 
     // The client sometimes sends a wierd cancel packet
@@ -47,50 +47,58 @@ public class BadPacketsZ extends Check implements PacketCheck {
 
     public void handle(PacketReceiveEvent event, WrapperPlayClientPlayerDigging dig) {
         if (dig.getAction() == DiggingAction.START_DIGGING) {
-            lastLastBlock = lastBlock;
-            lastBlock = dig.getBlockPosition();
+            final Vector3i pos = dig.getBlockPosition();
 
-            exemptNextFinish = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && getBlockDamage(player, lastBlock) >= 1;
-            return;
+            lastBlockWasInstantBreak = getBlockDamage(player, pos) >= 1;
+            lastCancelledBlock = null;
+            lastLastBlock = lastBlock;
+            lastBlock = pos;
         }
 
         if (dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
-            if (shouldExempt(dig.getBlockPosition())) {
+            final Vector3i pos = dig.getBlockPosition();
+
+            if (shouldExempt(pos)) {
+                lastCancelledBlock = null;
                 lastLastBlock = null;
                 lastBlock = null;
                 return;
             }
 
-            exemptNextFinish = false;
-
-            if ((lastBlock == null || !lastBlock.equals(dig.getBlockPosition())) && (lastLastBlock == null || !lastLastBlock.equals(dig.getBlockPosition()))) {
-                if (flagAndAlert("action=CANCELLED_DIGGING, last=" + formatted(lastBlock) + "/" + formatted(lastLastBlock) + ", pos=" + formatted(dig.getBlockPosition()))) {
-                    if (shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
+            if (!pos.equals(lastBlock)) {
+                // https://github.com/GrimAnticheat/Grim/issues/1512
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
+                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
+                        if (shouldModifyPackets()) {
+                            event.setCancelled(true);
+                            player.onPacketCancel();
+                            resyncPosition(player, pos);
+                        }
                     }
                 }
             }
 
+            lastCancelledBlock = pos;
             lastLastBlock = null;
             lastBlock = null;
+            return;
         }
 
         if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
-            if (exemptNextFinish) {
-                exemptNextFinish = false;
-                return;
-            }
+            final Vector3i pos = dig.getBlockPosition();
 
-            if ((lastBlock == null || !lastBlock.equals(dig.getBlockPosition())) && (lastLastBlock == null || !lastLastBlock.equals(dig.getBlockPosition()))) {
-                if (flagAndAlert("action=FINISHED_DIGGING, last=" + formatted(lastBlock) + "/" + formatted(lastLastBlock) + ", pos=" + formatted(dig.getBlockPosition()))) {
+            // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
+            if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
+                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
-                        resyncPosition(player, dig.getBlockPosition());
+                        resyncPosition(player, pos);
                     }
                 }
             }
+
+            lastCancelledBlock = null;
 
             // 1.14.4+ clients don't send another start break in protected regions
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) {
