@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-Vulnerability must be reproducable on the latest grim version on spigotmc or newer.
+Vulnerability must be reproducible on the latest grim commit.
 
 ## Reporting a Vulnerability
 
-If there's a major bypass that would affect gameplay if reported publicly then join Grim's discord [here](https://discord.com/invite/FNRrcGAybJ) and message DefineOutside.
+If there's a major bypass that would affect gameplay if reported publicly then join Grim's discord [here](https://discord.com/invite/kqQAhTmkUF) and reach out to staff.
