@@ -1,11 +1,8 @@
-//import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
-
 plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.freefair.lombok") version "8.6"
-    //id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
 }
 
 
@@ -47,72 +44,6 @@ dependencies {
     //
     compileOnly("io.netty:netty-all:4.1.85.Final")
 }
-
-/*bukkit {
-    name = "GrimAC"
-    author = "GrimAC"
-
-    main = "ac.grim.grimac.GrimAC"
-    apiVersion = "1.13"
-
-    softDepend = listOf(
-        "ProtocolLib",
-        "ProtocolSupport",
-        "ViaVersion",
-        "Essentials",
-        "ViaBackwards",
-        "ViaRewind",
-        "Geyser-Spigot"
-    )
-
-    permissions {
-        register("grim.alerts") {
-            description = "Receive alerts for violations"
-            default = Permission.Default.OP
-        }
-
-        register("grim.alerts.enable-on-join") {
-            description = "Enable alerts on join"
-            default = Permission.Default.OP
-        }
-
-        register("grim.performance") {
-            description = "Check performance metrics"
-            default = Permission.Default.OP
-        }
-
-        register("grim.profile") {
-            description = "Check user profile"
-            default = Permission.Default.OP
-        }
-
-        register("grim.brand") {
-            description = "Show client brands on join"
-            default = Permission.Default.OP
-        }
-
-        register("grim.sendalert") {
-            description = "Send cheater alert"
-            default = Permission.Default.OP
-        }
-
-        register("grim.nosetback") {
-            description = "Disable setback"
-            default = Permission.Default.FALSE
-        }
-
-        register("grim.nomodifypacket") {
-            description = "Disable modifying packets"
-            default = Permission.Default.FALSE
-        }
-
-        register("grim.exempt") {
-            description = "Exempt from all checks"
-            default = Permission.Default.FALSE
-        }
-    }
-
-}*/
 
 tasks.build {
     dependsOn(tasks.shadowJar)
