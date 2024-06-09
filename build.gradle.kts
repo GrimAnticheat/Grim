@@ -136,7 +136,7 @@ tasks.shadowJar {
     relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
     relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
     relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
-    relocate("com.google.gson", "ac.grim.grimac.shaded.gson")
+    relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
     relocate("alexh", "ac.grim.grimac.shaded.maps")
     relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
     relocate("net.kyori", "ac.grim.grimac.shaded.kyori")
