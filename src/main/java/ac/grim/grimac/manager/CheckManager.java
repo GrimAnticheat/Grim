@@ -125,6 +125,7 @@ public class CheckManager {
                 .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(EntityControl.class, new EntityControl(player))
+                .put(BadPackets3.class, new BadPackets3(player))
                 .put(NoSlowA.class, new NoSlowA(player))
                 .put(NoSlowC.class, new NoSlowC(player))
                 .put(NoSlowD.class, new NoSlowD(player))
