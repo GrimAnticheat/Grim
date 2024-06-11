@@ -74,9 +74,11 @@ public final class BoundingBoxSize {
             return 1.4f;
         } else if (EntityTypes.MAGMA_CUBE.equals(type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * (float) ((PacketEntitySizeable) packetEntity).size)
-                        : 0.51000005f * ((PacketEntitySizeable) packetEntity).size;
+                float size = ((PacketEntitySizeable) packetEntity).size;
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
+                        ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                        ? 2.04f * (0.255f * size)
+                        : 0.51000005f * size;
             }
 
             return 0.98f;
@@ -92,9 +94,10 @@ public final class BoundingBoxSize {
             return 1.0f;
         } else if (EntityTypes.SLIME.equals(type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * (float) ((PacketEntitySizeable) packetEntity).size)
-                        : 0.51000005f * ((PacketEntitySizeable) packetEntity).size;
+                float size = ((PacketEntitySizeable) packetEntity).size;
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
+                        ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                        ? 2.04f * (0.255f * size) : 0.51000005f * size;
             }
 
             return 0.3125f;
@@ -292,9 +295,11 @@ public final class BoundingBoxSize {
             return 0.4f;
         } else if (EntityTypes.MAGMA_CUBE.equals(type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * (float) ((PacketEntitySizeable) packetEntity).size)
-                        : 0.51000005f * ((PacketEntitySizeable) packetEntity).size;
+                float size = ((PacketEntitySizeable) packetEntity).size;
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
+                        ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                        ? 2.04f * (0.255f * size)
+                        : 0.51000005f * size;
             }
 
             return 0.7f;
@@ -338,9 +343,11 @@ public final class BoundingBoxSize {
             return 1.6f;
         } else if (EntityTypes.SLIME.equals(type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * (float) ((PacketEntitySizeable) packetEntity).size)
-                        : 0.51000005f * ((PacketEntitySizeable) packetEntity).size;
+                float size = ((PacketEntitySizeable) packetEntity).size;
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
+                        ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                        ? 2.04f * (0.255f * size)
+                        : 0.51000005f * size;
             }
 
             return 0.3125f;
