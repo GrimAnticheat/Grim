@@ -10,8 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "BadPacketsG")
 public class BadPacketsG extends Check implements PacketCheck {
-    boolean wasTeleport;
-    boolean lastSneaking;
+    private boolean lastSneaking, respawn;
 
     public BadPacketsG(GrimPlayer player) {
         super(player);
@@ -19,24 +18,30 @@ public class BadPacketsG extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        wasTeleport = player.packetStateData.lastPacketWasTeleport || wasTeleport;
-
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
-                if (lastSneaking && !wasTeleport) {
+                // The player may send two START_SNEAKING packets if they respawned
+                if (lastSneaking && !respawn) {
                     flagAndAlert();
                 } else {
                     lastSneaking = true;
                 }
+                respawn = false;
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
-                if (!lastSneaking && !wasTeleport) {
+                if (!lastSneaking && !respawn) {
                     flagAndAlert();
                 } else {
                     lastSneaking = false;
                 }
+                respawn = false;
             }
         }
+    }
+
+    public void handleRespawn() {
+        // Clients could potentially not send a STOP_SNEAKING packet when they die, so we need to track it
+        respawn = true;
     }
 }
