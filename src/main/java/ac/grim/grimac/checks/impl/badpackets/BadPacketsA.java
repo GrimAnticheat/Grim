@@ -19,15 +19,14 @@ public class BadPacketsA extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
-            WrapperPlayClientHeldItemChange packet = new WrapperPlayClientHeldItemChange(event);
+            final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
-            int slot = packet.getSlot();
-
-            if (slot == lastSlot) {
-                flagAndAlert("slot=" + slot);
+            if (slot == lastSlot && flagAndAlert("slot=" + slot) && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
 
-            lastSlot = packet.getSlot();
+            lastSlot = slot;
         }
     }
 }

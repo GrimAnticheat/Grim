@@ -17,7 +17,10 @@ public class BadPacketsJ extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
             if (!player.compensatedEntities.getSelf().inVehicle()) {
-                flagAndAlert();
+                if (flagAndAlert() && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
             }
         }
     }
