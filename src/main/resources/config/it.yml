@@ -141,13 +141,22 @@ exploit:
   # Distanza per controllare i ghost blocks
   distance-to-check-if-ghostblocks: 2
 
+# Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
+# Enables experimental checks
 experimental-checks: false
 
+# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
+# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
 
-max-ping-out-of-flying: 1000
 # Grim is able to enforce that a player set out of flying state cannot have more than X milliseconds of ping
 # This is due to Grim not currently checking flying players
 max-ping-out-of-flying: 1000
+
+# Maximum ping when a firework boost is removed from the player.
+# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+max-ping-firework-boost: 1000
+
+config-version: 9

@@ -26,6 +26,7 @@ public class BadPacketsH extends Check implements PacketCheck {
             if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
             if (!sentAnimation && flagAndAlert()) {
                 event.setCancelled(true);
+                player.onPacketCancel();
             }
 
             sentAnimation = false;

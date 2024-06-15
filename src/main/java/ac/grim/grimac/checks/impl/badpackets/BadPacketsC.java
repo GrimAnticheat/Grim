@@ -17,9 +17,12 @@ public class BadPacketsC extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            if (packet.getEntityId() == player.entityID) {
-                flagAndAlert(); // Instant ban
+            if (new WrapperPlayClientInteractEntity(event).getEntityId() == player.entityID) {
+                // Instant ban
+                if (flagAndAlert() && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
             }
         }
     }
