@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper.packetevents:spigot:2.3.1-SNAPSHOT")
+    implementation("com.github.retrooper:packetevents-spigot:2.3.1-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
     implementation("it.unimi.dsi:fastutil:8.5.13")
@@ -136,7 +136,7 @@ tasks.shadowJar {
     relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
     relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
     relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
-    relocate("com.google.gson", "ac.grim.grimac.shaded.gson")
+    relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
     relocate("alexh", "ac.grim.grimac.shaded.maps")
     relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
     relocate("net.kyori", "ac.grim.grimac.shaded.kyori")

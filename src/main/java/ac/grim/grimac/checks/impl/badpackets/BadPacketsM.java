@@ -23,18 +23,17 @@ public class BadPacketsM extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            if (exempt) return;
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && !exempt) {
 
-            WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
+            final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
 
-            PacketEntity entity = player.compensatedEntities.entityMap.get(wrapper.getEntityId());
+            final PacketEntity entity = player.compensatedEntities.entityMap.get(wrapper.getEntityId());
 
             // For armor stands, vanilla clients send:
             //  - when renaming the armor stand or in spectator mode: INTERACT_AT + INTERACT
             //  - in all other cases: only INTERACT
             // Just exempt armor stands to be safe
-            if(entity != null && entity.getType() == EntityTypes.ARMOR_STAND) return;
+            if (entity != null && entity.getType() == EntityTypes.ARMOR_STAND) return;
 
             switch (wrapper.getAction()) {
                 // INTERACT_AT then INTERACT

@@ -26,13 +26,19 @@ public class BadPacketsG extends Check implements PacketCheck {
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
                 if (lastSneaking && !wasTeleport) {
-                    flagAndAlert();
+                    if (flagAndAlert("state=true") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                 } else {
                     lastSneaking = true;
                 }
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
                 if (!lastSneaking && !wasTeleport) {
-                    flagAndAlert();
+                    if (flagAndAlert("state=false") && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
                 } else {
                     lastSneaking = false;
                 }

@@ -36,21 +36,25 @@ public class BadPacketsT extends Check implements PacketCheck {
                 if (packetEntity == null) {
                     return;
                 }
+
                 // Make sure our target entity is actually a player (Player NPCs work too)
                 if (!EntityTypes.PLAYER.equals(packetEntity.getType())) {
                     // We can't check for any entity that is not a player
                     return;
                 }
+
                 // Perform the interaction vector check
                 // TODO:
                 //  27/12/2023 - Dynamic values for more than just one entity type?
                 //  28/12/2023 - Player-only is fine
                 //  30/12/2023 - Expansions differ in 1.9+
-                if (targetVector.y > minY && targetVector.y < maxY
-                        && Math.abs(targetVector.x) < maxXZ
-                        && Math.abs(targetVector.z) < maxXZ) {
+                final float scale = packetEntity.scale;
+                if (targetVector.y > (minY * scale) && targetVector.y < (maxY * scale)
+                        && Math.abs(targetVector.x) < (maxXZ * scale)
+                        && Math.abs(targetVector.z) < (maxXZ * scale)) {
                     return;
                 }
+
                 // Log the vector
                 final String verbose = String.format("%.5f/%.5f/%.5f",
                         targetVector.x, targetVector.y, targetVector.z);
