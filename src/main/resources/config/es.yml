@@ -180,4 +180,8 @@ packet-spam-threshold: 100
 # Esto se debe a que Grim actualmente no revisa a los jugadores que están volando.
 max-ping-out-of-flying: 1000
 
+# Maximum ping when a firework boost is removed from the player.
+# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+max-ping-firework-boost: 1000
+
 config-version: 9

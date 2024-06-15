@@ -172,4 +172,8 @@ packet-spam-threshold: 100
 # Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
 max-ping-out-of-flying: 1000
 
+# Maximum ping when a firework boost is removed from the player.
+# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+max-ping-firework-boost: 1000
+
 config-version: 9

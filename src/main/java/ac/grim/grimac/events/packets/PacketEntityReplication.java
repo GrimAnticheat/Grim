@@ -1,5 +1,6 @@
 package ac.grim.grimac.events.packets;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -46,6 +47,9 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     //
     // Another valid solution is to simply spam more transactions, but let's not waste bandwidth.
     private final List<Integer> despawnedEntitiesThisTransaction = new ArrayList<>();
+
+    // Maximum ping when a firework boost is removed from the player.
+    private final int maxFireworkBoostPing = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping-firework-boost", 1000);
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
@@ -300,12 +304,26 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 }
             }
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+            final int destroyTransaction = player.lastTransactionSent.get() + 1;
+            player.latencyUtils.addRealTimeTask(destroyTransaction, () -> {
                 for (int integer : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(integer);
                     player.compensatedFireworks.removeFirework(integer);
                 }
             });
+
+            // Don't let the player freeze transactions to keep the firework boost velocity + uncertainty
+            // Also generally prevents people with high ping gaining too high an advantage in firework use
+            player.runNettyTaskInMs(() -> {
+                if (player.lastTransactionReceived.get() >= destroyTransaction) return;
+                for (int entityID : destroyEntityIds) {
+                    // If the player has a firework boosting them, setback
+                    if (player.compensatedFireworks.hasFirework(entityID)) {
+                        player.getSetbackTeleportUtil().executeViolationSetback();
+                        break;
+                    }
+                }
+            }, maxFireworkBoostPing);
         }
     }
 
