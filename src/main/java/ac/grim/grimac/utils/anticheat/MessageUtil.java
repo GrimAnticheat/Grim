@@ -14,7 +14,7 @@ public class MessageUtil {
 
     public String format(String string) {
         string = formatWithNoColor(string);
-        if(!PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_16))
+        if(PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16))
             string = translateHexCodes(string);
         return ChatColor.translateAlternateColorCodes('&', string);
     }
