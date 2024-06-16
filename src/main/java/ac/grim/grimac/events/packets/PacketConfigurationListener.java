@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
+import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
 
 public class PacketConfigurationListener extends PacketListenerAbstract {
 
@@ -21,7 +21,7 @@ public class PacketConfigurationListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             //
-            WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);
+            WrapperConfigClientPluginMessage wrapper = new WrapperConfigClientPluginMessage(event);
             String channelName = wrapper.getChannelName();
             byte[] data = wrapper.getData();
             if (channelName.equalsIgnoreCase("minecraft:brand") || channelName.equals("MC|Brand")) {
