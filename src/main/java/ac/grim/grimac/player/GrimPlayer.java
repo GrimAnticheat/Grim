@@ -349,7 +349,7 @@ public class GrimPlayer implements GrimUser {
         final PacketEntity riding = self.getRiding();
         if (riding == null) return self.stepHeight;
 
-        if (EntityTypes.isTypeInstanceOf(riding.getType(), EntityTypes.BOAT)) {
+        if (riding.isBoat()) {
             return 0f;
         }
 
