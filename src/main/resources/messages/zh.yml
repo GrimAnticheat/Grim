@@ -1,3 +1,5 @@
+# 您也可以使用十六进制代码，格式为 #FFFFFF 或 #ffffff。
+
 # \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
 prefix: "&bGrim &8\u00BB"
 
