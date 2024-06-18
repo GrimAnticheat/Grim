@@ -1,13 +1,12 @@
-//import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 
 plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.freefair.lombok") version "8.6"
-    //id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
 }
-
 
 group = "ac.grim.grimac"
 version = "2.3.65"
@@ -48,21 +47,23 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.85.Final")
 }
 
-/*bukkit {
+bukkit {
     name = "GrimAC"
     author = "GrimAC"
-
     main = "ac.grim.grimac.GrimAC"
     apiVersion = "1.13"
+    foliaSupported = true
 
     softDepend = listOf(
         "ProtocolLib",
         "ProtocolSupport",
-        "ViaVersion",
         "Essentials",
+        "ViaVersion",
         "ViaBackwards",
         "ViaRewind",
-        "Geyser-Spigot"
+        "Geyser-Spigot",
+        "floodgate",
+        "FastLogin"
     )
 
     permissions {
@@ -111,8 +112,7 @@ dependencies {
             default = Permission.Default.FALSE
         }
     }
-
-}*/
+}
 
 tasks.build {
     dependsOn(tasks.shadowJar)

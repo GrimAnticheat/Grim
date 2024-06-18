@@ -1,3 +1,5 @@
+# Vous pouvez également utiliser des codes hexadécimaux, au format #FFFFFF ou #ffffff.
+
 # \u00BB se traduit par » (double >>). Les interprétations diffèrent entre les normes ANSI et UTF-8... vous pouvez même voir ? en raison de cela
 prefix: "&bGrim &8\u00BB"
 

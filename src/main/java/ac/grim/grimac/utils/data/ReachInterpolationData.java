@@ -46,7 +46,7 @@ public class ReachInterpolationData {
             targetLocation.expand(0.03125);
         }
 
-        if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT)) {
+        if (entity.isBoat()) {
             interpolationSteps = 10;
         } else if (entity.isMinecart()) {
             interpolationSteps = 5;

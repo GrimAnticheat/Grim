@@ -6,7 +6,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 public abstract class TypedPacketEntity {
 
     private final EntityType type;
-    private final boolean isLiving, isSize, isMinecart, isHorse, isAgeable, isAnimal;
+    private final boolean isLiving, isSize, isMinecart, isHorse, isAgeable, isAnimal, isBoat;
 
     public TypedPacketEntity(EntityType type) {
         this.type = type;
@@ -16,6 +16,7 @@ public abstract class TypedPacketEntity {
         this.isHorse = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE);
         this.isAgeable = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_AGEABLE);
         this.isAnimal = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
+        this.isBoat = EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT);
     }
 
     public boolean isLivingEntity() {
@@ -40,6 +41,18 @@ public abstract class TypedPacketEntity {
 
     public boolean isAnimal() {
         return isAnimal;
+    }
+
+    public boolean isBoat() {
+        return isBoat;
+    }
+
+    public boolean isPushable() {
+        // Players can only push living entities
+        // Minecarts and boats are the only non-living that can push
+        // Bats, parrots, and armor stands cannot
+        if (type == EntityTypes.ARMOR_STAND || type == EntityTypes.BAT || type == EntityTypes.PARROT) return false;
+        return isLiving || isBoat || isMinecart;
     }
 
     public EntityType getType() {

@@ -1,3 +1,5 @@
+# U kunt ook hex-codes gebruiken, in de indeling #FFFFFF of #ffffff.
+
 # \u00BB is » (double >>), ANSI en UTF-8 interpreteren dit anders... je kunt zelfs "?" zien als gevolg hiervan
 prefix: "&bGrim &8\u00BB"
 
