@@ -172,6 +172,7 @@ packet-spam-threshold: 100
 
 # Грим может обеспечить, что игрок, выведенный из состояния полёта, не может иметь пинг более X миллисекунд.
 # Это связано с тем, что Грим в настоящее время не проверяет летающих игроков.
+# TO DISABLE, PLEASE USE -1 - ONLY DISABLE IF YOU'RE USING A BEDWARS PLUGIN, FLY DISABLER (also known for some reason to some people as grim disabler which is incorrect) IS DUE TO THE BEDWARS PLUGIN.
 max-ping-out-of-flying: 1000
 
 # Maximum ping when a firework boost is removed from the player.

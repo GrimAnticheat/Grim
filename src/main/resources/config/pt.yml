@@ -183,6 +183,7 @@ packet-spam-threshold: 100
 
 # Grim é capaz de garantir que um jogador fora do estado de voo não possa ter mais de X milissegundos de ping.
 # Isso ocorre porque o Grim atualmente não verifica os jogadores que estão voando.
+# TO DISABLE, PLEASE USE -1 - ONLY DISABLE IF YOU'RE USING A BEDWARS PLUGIN, FLY DISABLER (also known for some reason to some people as grim disabler which is incorrect) IS DUE TO THE BEDWARS PLUGIN.
 max-ping-out-of-flying: 1000
 
 # Maximum ping when a firework boost is removed from the player.
