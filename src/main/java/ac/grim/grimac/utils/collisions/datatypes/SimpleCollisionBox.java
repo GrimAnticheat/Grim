@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleCollisionBox implements CollisionBox {
+
     public static final double COLLISION_EPSILON = 1.0E-7;
+
     public double minX, minY, minZ, maxX, maxY, maxZ;
-    boolean isFullBlock = false;
+    private boolean isFullBlock = false;
 
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0, false);
