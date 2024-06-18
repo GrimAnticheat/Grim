@@ -1,3 +1,6 @@
+# Puoi usare anche codici esadecimali, nel formato #FFFFFF o #ffffff.
+
+# » è » (doppia >>), ANSI e UTF-8 lo interpretano in modo diverso... si può anche vedere ? A causa di ciò
 prefix: "&bGrim &8\u00BB"
 
 alerts-enabled: "%prefix% &fAlerts abilitati"

@@ -38,10 +38,7 @@ public class MovementTicker {
             SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                // Players can only push living entities
-                // Players can also push boats or minecarts
-                // The one exemption to a living entity is an armor stand
-                if (!entity.isLivingEntity() && !EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT) && !entity.isMinecart() || entity.getType() == EntityTypes.ARMOR_STAND)
+                if (!entity.isPushable())
                     continue;
 
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
@@ -107,7 +104,8 @@ public class MovementTicker {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
-        if (!player.wasTouchingWater && (player.compensatedEntities.getSelf().getRiding() == null || !EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().getType(), EntityTypes.BOAT))) {
+        final PacketEntity riding = player.compensatedEntities.getSelf().getRiding();
+        if (!player.wasTouchingWater && (riding == null || !riding.isBoat())) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
@@ -119,7 +117,7 @@ public class MovementTicker {
         }
 
         // Striders call the method for inside blocks AGAIN!
-        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
+        if (riding instanceof PacketEntityStrider) {
             Collisions.handleInsideBlocks(player);
         }
 
@@ -138,13 +136,13 @@ public class MovementTicker {
                 } else {
                     if (player.clientVelocity.getY() < 0.0) {
                         player.clientVelocity.setY(-player.clientVelocity.getY() *
-                                (player.compensatedEntities.getSelf().getRiding() != null && !player.compensatedEntities.getSelf().getRiding().isLivingEntity() ? 0.8 : 1.0));
+                                (riding != null && !riding.isLivingEntity() ? 0.8 : 1.0));
                     }
                 }
             } else if (BlockTags.BEDS.contains(onBlock) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
-                            (player.compensatedEntities.getSelf().getRiding() != null && !player.compensatedEntities.getSelf().getRiding().isLivingEntity() ? 0.8 : 1.0));
+                            (riding != null && !riding.isLivingEntity() ? 0.8 : 1.0));
                 }
             } else {
                 player.clientVelocity.setY(0);
