@@ -36,14 +36,15 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
             player.sendTransaction();
 
             if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
-                int noFlying = player.lastTransactionSent.get(),
-                        maxFlyingPing = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping-out-of-flying", 1000);
-                if (maxFlyingPing == -1) return;
-                player.runNettyTaskInMs(() -> {
-                    if (player.lastTransactionReceived.get() < noFlying) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
-                }, maxFlyingPing);
+                int noFlying = player.lastTransactionSent.get();
+                int maxFlyingPing = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping-out-of-flying", 1000);
+                if (maxFlyingPing != -1) {
+                    player.runNettyTaskInMs(() -> {
+                        if (player.lastTransactionReceived.get() < noFlying) {
+                            player.getSetbackTeleportUtil().executeViolationSetback();
+                        }
+                    }, maxFlyingPing);
+                }
             }
 
             lastSentPlayerCanFly = abilities.isFlightAllowed();
