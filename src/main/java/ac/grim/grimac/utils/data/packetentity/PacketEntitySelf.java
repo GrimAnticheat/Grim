@@ -42,6 +42,9 @@ public class PacketEntitySelf extends PacketEntity {
     public PacketEntitySelf(GrimPlayer player) {
         super(EntityTypes.PLAYER);
         this.player = player;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+            this.stepHeight = 0.5f;
+        }
     }
 
     public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
