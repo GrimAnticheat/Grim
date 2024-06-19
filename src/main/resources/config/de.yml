@@ -173,6 +173,7 @@ packet-spam-threshold: 100
 
 # Grim kann durchsetzen, dass ein Spieler, der aus dem Flugmodus genommen wird, nicht mehr als X Millisekunden Ping haben kann.
 # Dies liegt daran, dass Grim derzeit fliegende Spieler nicht überprüft.
+# To disable, use -1
 max-ping-out-of-flying: 1000
 
 # Maximum ping when a firework boost is removed from the player.
