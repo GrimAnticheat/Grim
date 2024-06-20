@@ -41,6 +41,9 @@ max-transaction-time: 60
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
 cancel-duplicate-packet: true
 
+# Whether or not to ignore the rotation in duplicate packets
+ignore-duplicate-packet-rotation: false
+
 Simulation:
   # На сколько мы должны умножить общее преимущество, когда игрок легален.
   # Вот как выглядит конфигурация по умолчанию (ось x = секунды, ось y = 1/1000 блока): https://www.desmos.com/calculator/d4ufgxrxer

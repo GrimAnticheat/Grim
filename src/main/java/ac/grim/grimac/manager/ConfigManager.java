@@ -28,6 +28,8 @@ public class ConfigManager {
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
     private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
+    @Getter
+    private boolean ignoreDuplicatePacketRotation = false;
 
     @Getter
     private boolean experimentalChecks = false;
@@ -85,6 +87,7 @@ public class ConfigManager {
             }
         }
         experimentalChecks = config.getBooleanElse("experimental-checks", false);
+        ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
     }
 
     public boolean isIgnoredClient(String brand) {

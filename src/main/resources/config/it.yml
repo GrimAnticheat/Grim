@@ -41,6 +41,9 @@ max-transaction-time: 60
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
 cancel-duplicate-packet: true
 
+# Whether or not to ignore the rotation in duplicate packets
+ignore-duplicate-packet-rotation: false
+
 Simulation:
   # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo
   setback-decay-multiplier: 0.999
