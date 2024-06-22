@@ -41,6 +41,9 @@ max-transaction-time: 60
 # Deze instelling geldt alleen voor 1.17-1.20.5 clients op 1.8 servers
 cancel-duplicate-packet: true
 
+# Whether or not to ignore the rotation in duplicate packets
+ignore-duplicate-packet-rotation: false
+
 Simulation:
   # Met hoeveel moeten we het totale voordeel vermenigvuldigen als de speler legitiem is?
   # Zo ziet de standaardconfiguratie eruit (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/d4ufgxrxer

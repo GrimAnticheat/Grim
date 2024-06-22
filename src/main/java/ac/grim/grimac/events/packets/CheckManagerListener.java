@@ -354,14 +354,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
-            if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
-            }
+            if (!GrimAPI.INSTANCE.getConfigManager().isIgnoreDuplicatePacketRotation()) {
+                if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
+                    player.lastXRot = player.xRot;
+                    player.lastYRot = player.yRot;
+                }
 
-            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.xRot = location.getYaw();
-            player.yRot = location.getPitch();
+                // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
+                player.xRot = location.getYaw();
+                player.yRot = location.getPitch();
+            }
 
             player.packetStateData.lastClaimedPosition = location.getPosition();
             return true;
@@ -422,7 +424,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             Location pos = flying.getLocation();
-            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
+            boolean ignoreRotation = player.packetStateData.lastPacketWasOnePointSeventeenDuplicate && GrimAPI.INSTANCE.getConfigManager().isIgnoreDuplicatePacketRotation();
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), ignoreRotation ? player.xRot : pos.getYaw(), ignoreRotation ? player.yRot : pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.compensatedEntities.getSelf().inVehicle()) {
