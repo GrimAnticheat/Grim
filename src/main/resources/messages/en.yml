@@ -1,6 +1,6 @@
 # You can use hex codes too, in the format #FFFFFF or #ffffff.
 
-# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this.
 prefix: "&bGrim &8\u00BB"
 
 alerts-enabled: "%prefix% &fAlerts enabled"
@@ -9,13 +9,13 @@ client-brand-format: "%prefix% &f%player% joined using %brand%"
 console-specify-target: "%prefix% &cYou must specify a target as the console!"
 player-not-found: "%prefix% &cPlayer is exempt or offline!"
 player-not-this-server: "%prefix% &cPlayer is not on this server!"
-spectate-return: "\n%prefix% &fClick here to return to previous location\n"
+spectate-return: "\n%prefix% &fClick here to return to the previous location\n"
 cannot-spectate-return: "%prefix% &cYou can only do this after spectating a player"
 cannot-run-on-self: "%prefix% &cYou cannot use this command on yourself!"
 upload-log: "%prefix% &fUploaded debug to: %url%"
 upload-log-start: "%prefix% &fUploading log... please wait"
 upload-log-not-found: "%prefix% &cUnable to find that log"
-upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this log, see console for more info"
+upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this log, see the console for more info"
 
 # Valid placeholders:
 # %prefix%
@@ -38,15 +38,16 @@ profile:
   - "&bVertical Sensitivity: &f%v_sensitivity%%"
   - "&bFastMath Enabled: &f%fast_math%"
   - "&7======================"
+
 help:
   - "&7======================"
   - "/grim alerts &f- &7Toggle alerts"
   - "/grim profile <player> &f- &7View player info"
   - "/grim help &f- &7View this help message"
-  - "/grim debug <player> &f- &7Developer Prediction output"
+  - "/grim debug <player> &f- &7Developer prediction output"
   - "/grim perf &f- &7Developer ms/prediction"
-  - "/grim reload &f- &7Reloads the config"
+  - "/grim reload &f- &7Reload the config"
   - "/grim spectate <player> &f- &7Spectate a player"
-  - "/grim verbose &f- &7Shows every flag to you, without buffers"
-  - "/grim log [0-255] &f- &7Uploads a debug log for prediction flags"
+  - "/grim verbose &f- &7Show every flag to you, without buffers"
+  - "/grim log [0-255] &f- &7Upload a debug log for prediction flags"
   - "&7======================"

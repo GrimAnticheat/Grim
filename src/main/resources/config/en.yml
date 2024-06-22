@@ -1,7 +1,7 @@
 # GrimAC main configuration
 # Source code: https://github.com/MWHunter/Grim
 # Copyright 2024 DefineOutside and contributors, Licensed under GPLv3.
-# Modified binaries, or plugins with copied grim code, must be private,
+# Modified binaries or plugins with copied Grim code must be private,
 # or with full source code available to buyers at no additional cost.
 
 alerts:
@@ -12,7 +12,7 @@ alerts:
   proxy:
     # Should alerts be sent to other servers connected to your proxy?
     send: false
-    # Should the alerts received from other servers be announced to this server?
+    # Should the alerts received from other servers be announced on this server?
     receive: false
 
 verbose:
@@ -27,7 +27,7 @@ client-brand:
     - "^Feather Fabric$"
 
 spectators:
-  # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
+  # Hide all spectators with the grim.spectator permission regardless if they are actively spectating
   hide-regardless: false
   # Will make spectators hidden only in these worlds, keep blank to allow all worlds
   allowed-worlds:
@@ -37,31 +37,31 @@ spectators:
 max-transaction-time: 60
 
 # Should the duplicate movement packet be cancelled?
-# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
+# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync." https://bugs.mojang.com/browse/MC-12363
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
 cancel-duplicate-packet: true
 
 Simulation:
   # How much should we multiply total advantage by when the player is legit
-  # This is what the default config looks like (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/d4ufgxrxer
+  # This is what the default config looks like (x-axis = seconds, y-axis = 1/1000 block): https://www.desmos.com/calculator/d4ufgxrxer
   setback-decay-multiplier: 0.999
   # How large of an offset from the player's movement should we create a violation for?
   # Measured in blocks from the possible movement
   # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
   # flagging the anticheat if this compensation doesn't work...
   threshold: 0.001
-  # How large of a violation in a tick before the player gets immediately setback?
+  # How large of a violation in a tick before the player gets immediately set back?
   # -1 to disable
   immediate-setback-threshold: 0.1
-  # How large of an advantage over all ticks before we start to setback?
+  # How large of an advantage over all ticks before we start to set back?
   # -1 to disable
   max-advantage: 1
   # After 50 seconds with default config, the player will go from 4 blocks -> 1 block of advantage
   # This is to stop the player from gathering too many violations and never being able to clear them all
-  # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
+  # Default advantage ceiling (x-axis = seconds, y-axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
 
-# Checks to see if a player entered a block during a movement
+# Checks to see if a player entered a block during movement
 Phase:
   setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable
   decay: 0.005
@@ -82,16 +82,16 @@ RotationPlace:
   cancelvl: 5
 
 # Prediction-based no slow check
-# Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
+# Grim accounts for buggy netcode here... hard to false even when spamming right-click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
 NoSlowA:
   # How much of an offset is "cheating"
-  # By default this is lower than other offs
+  # By default, this is lower than other offs
   # Flags by 0.03-0.2 consistently with NoSlow on
   threshold: 0.001
   # Setback fast on the first item to remove any advantage NoSlow gives
   setbackvl: 5
-  # Decay's when the player uses an item AND is slowed by it
+  # Decays when the player uses an item AND is slowed by it
   decay: 0.05
 
 Knockback:
@@ -100,10 +100,10 @@ Knockback:
   # How large of an offset from the player's velocity should we create a violation for?
   # Measured in blocks from the possible velocity
   threshold: 0.001
-  # How large of a violation in a tick before the player gets immediately setback?
+  # How large of a violation in a tick before the player gets immediately set back?
   # -1 to disable
   immediate-setback-threshold: 0.1
-  # How large of an advantage over all ticks before we start to setback?
+  # How large of an advantage over all ticks before we start to set back?
   # -1 to disable
   max-advantage: 1
   # This is to stop the player from gathering too many violations and never being able to clear them all
@@ -145,7 +145,7 @@ Reach:
   # 3.00-3.03 hits may go through but still be flagged, due to packet order limitations
   block-impossible-hits: true
   # This will send an additional packet at the end of every tick to increase the likelihood of catching cheats
-  # This injects into server's connection list to send a final packet just before the server flushes
+  # This injects into the server's connection list to send a final packet just before the server flushes
   # Enabling this will increase bandwidth usage for all players
   # This will not decrease overall server performance
   # Enabling this will catch more cheaters.
@@ -155,23 +155,23 @@ Reach:
 
 exploit:
   # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
-  # Mojang screwed up netcode by making elytra start client sided and elytra end server sided
+  # Mojang screwed up netcode by making elytra start client-sided and elytra end server-sided
   # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.
   allow-sprint-jumping-when-using-elytra: true
-  # This option mitigates the player's placement on ghostblocks by resynchronizing the player when it happens
+  # This option mitigates the player's placement on ghost blocks by resynchronizing the player when it happens
   allow-building-on-ghostblocks: true
-  # This setting, influenced by the boolean above defines the distance to check for ghost blocks
+  # This setting, influenced by the boolean above, defines the distance to check for ghost blocks
   # Its valid range is limited from 2 to 4
   distance-to-check-if-ghostblocks: 2
 
-# Enable logging plugins who have injected into netty on join to debug compatibility issues
+# Enable logging plugins that have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
 
-# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
-# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+# Grim sometimes cancels illegal packets such as with timer, after X packets in a second canceled, when should
+# we simply kick the player? This is required as some packet limiters don't count packets canceled by Grim.
 packet-spam-threshold: 100
 
 # Grim is able to enforce that a player set out of flying state cannot have more than X milliseconds of ping
