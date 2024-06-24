@@ -141,8 +141,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 return;
             }
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
-                event.getTasksAfterSend().add(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) player.sendTransaction();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
@@ -155,8 +154,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.REMOVE_ENTITY_EFFECT) {
             WrapperPlayServerRemoveEntityEffect effect = new WrapperPlayServerRemoveEntityEffect(event);
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
-                event.getTasksAfterSend().add(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) player.sendTransaction();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
