@@ -122,17 +122,17 @@ public class Collisions {
                 // 1.21 significantly refactored this
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) {
                     SimpleCollisionBox box2 = movingIntoGroundReal ? player.boundingBox.copy().offset(0.0, collisionResult.getY(), 0.0) : player.boundingBox.copy();
-                    SimpleCollisionBox box3 = box2.expandToCoordinate(desiredX, stepUpHeight, desiredZ);
+                    SimpleCollisionBox box3 = box2.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ);
                     if (!movingIntoGroundReal) {
-                        box3 = box3.expandToCoordinate(0.0, -1.0E-5F, 0.0);
+                        box3 = box3.copy().expandToCoordinate(0.0, -1.0E-5F, 0.0);
                     }
 
                     final List<SimpleCollisionBox> list2 = new ArrayList<>();
                     getCollisionBoxes(player, box3, list2, false);
                     final float[] stepHeights = collectStepHeights(box2, list2, (float) stepUpHeight, (float) collisionResult.getY());
 
-                    for (float g : stepHeights) {
-                        Vector vec3d2 = collideBoundingBoxLegacy(new Vector(desiredX, g, desiredZ), box2, list2, order);
+                    for (float stepHeight : stepHeights) {
+                        Vector vec3d2 = collideBoundingBoxLegacy(new Vector(desiredX, stepHeight, desiredZ), box2, list2, order);
                         if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
                             final double d = player.boundingBox.minY - box2.minY;
                             collisionResult = vec3d2.add(new Vector(0.0, -d, 0.0));
@@ -177,21 +177,18 @@ public class Collisions {
         return bestOrderResult;
     }
 
-    private static float[] collectStepHeights(SimpleCollisionBox collisionBox, List<SimpleCollisionBox> collisions, float f, float stepHeight) {
-        FloatSet floatSet = new FloatArraySet(4);
+    private static float[] collectStepHeights(SimpleCollisionBox collisionBox, List<SimpleCollisionBox> collisions, float stepHeight, float collideY) {
+        final FloatSet floatSet = new FloatArraySet(4);
 
         for (SimpleCollisionBox blockBox : collisions) {
-            // I DON'T KNOW WHAT THIS DOES, MOJANG!!!!!
-            // STOP USING ABSTRACTED-TO-HELL CONCEPTS IN IMPORTANT CODE
-            // I GIVE UP, SOMEONE ELSE IMPLEMENT THIS
-            for (double d : blockBox.getPointPositions(blockBox, Axis.Y)) {
-                float g = (float)(d - collisionBox.minY);
-                if (!(g < 0.0F) && g != stepHeight) {
-                    if (g > f) {
+            for (double possibleStepY : blockBox.getYPointPositions()) {
+                float yDiff = (float) (possibleStepY - collisionBox.minY);
+                if (!(yDiff < 0.0F) && yDiff != collideY) {
+                    if (yDiff > stepHeight) {
                         break;
                     }
 
-                    floatSet.add(g);
+                    floatSet.add(yDiff);
                 }
             }
         }
