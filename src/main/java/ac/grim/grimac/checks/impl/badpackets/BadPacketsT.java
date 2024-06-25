@@ -21,9 +21,9 @@ public class BadPacketsT extends Check implements PacketCheck {
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
     private final boolean hasLegacyExpansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
-    private final double maxXZ = 0.3001 + (hasLegacyExpansion ? 0.1 : 0);
-    private final double minY = -0.0001 - (hasLegacyExpansion ? 0.1 : 0);
-    private final double maxY = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
+    private final double maxHorizontalDisplacement = 0.3001 + (hasLegacyExpansion ? 0.1 : 0);
+    private final double minVerticalDisplacement = -0.0001 - (hasLegacyExpansion ? 0.1 : 0);
+    private final double maxVerticalDisplacement = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
@@ -49,9 +49,9 @@ public class BadPacketsT extends Check implements PacketCheck {
                 //  28/12/2023 - Player-only is fine
                 //  30/12/2023 - Expansions differ in 1.9+
                 final float scale = packetEntity.scale;
-                if (targetVector.y > (minY * scale) && targetVector.y < (maxY * scale)
-                        && Math.abs(targetVector.x) < (maxXZ * scale)
-                        && Math.abs(targetVector.z) < (maxXZ * scale)) {
+                if (targetVector.y > (minVerticalDisplacement * scale) && targetVector.y < (maxVerticalDisplacement * scale)
+                        && Math.abs(targetVector.x) < (maxHorizontalDisplacement * scale)
+                        && Math.abs(targetVector.z) < (maxHorizontalDisplacement * scale)) {
                     return;
                 }
 
