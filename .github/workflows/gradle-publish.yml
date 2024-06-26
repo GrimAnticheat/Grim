@@ -1,38 +1,32 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
 # This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
 
-name: Gradle Package
+name: Build Latest Commits
 
 on:
-  [push, workflow_dispatch]
+  push: 
+  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.7
+        with:
+          path: main
 
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: build
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        path: /home/runner/work/Grim/Grim/build/libs/**.jar
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.2.1
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - name: Build
+        working-directory: ${{ github.workspace }}/main
+        run: gradle build
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          path: ${{ github.workspace }}/main/build/libs/**.jar
