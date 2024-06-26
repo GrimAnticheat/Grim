@@ -4,6 +4,9 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -11,9 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleCollisionBox implements CollisionBox {
+
     public static final double COLLISION_EPSILON = 1.0E-7;
+
     public double minX, minY, minZ, maxX, maxY, maxZ;
-    boolean isFullBlock = false;
+    private boolean isFullBlock = false;
 
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0, false);
@@ -423,6 +428,55 @@ public class SimpleCollisionBox implements CollisionBox {
 
     public Vector min() {
         return new Vector(minX, minY, minZ);
+    }
+
+    public DoubleList getYPointPositions() {
+        return create(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    private DoubleList create(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        if (!(maxX - minX < 1.0E-7) && !(maxY - minY < 1.0E-7) && !(maxZ - minZ < 1.0E-7)) {
+            int i = findBits(minX, maxX);
+            int j = findBits(minY, maxY);
+            int k = findBits(minZ, maxZ);
+            if (i < 0 || j < 0 || k < 0) {
+                return DoubleArrayList.wrap(new double[]{minY, maxY});
+            } else if (i == 0 && j == 0 && k == 0) {
+                return DoubleArrayList.wrap(new double[]{0, 1});
+            } else {
+                int m = 1 << j;
+
+                return new AbstractDoubleList() {
+                    @Override
+                    public double getDouble(int index) {
+                        return (double) index / (double) m;
+                    }
+
+                    @Override
+                    public int size() {
+                        return m + 1;
+                    }
+                };
+            }
+        } else {
+            return DoubleArrayList.of();
+        }
+    }
+
+    private int findBits(double min, double max) {
+        if (!(min < -COLLISION_EPSILON) && !(max > 1.0000001)) {
+            for (int i = 0; i <= 3; i++) {
+                int j = 1 << i;
+                double d = min * (double)j;
+                double e = max * (double)j;
+                boolean bl = Math.abs(d - (double)Math.round(d)) < COLLISION_EPSILON * (double)j;
+                boolean bl2 = Math.abs(e - (double)Math.round(e)) < COLLISION_EPSILON * (double)j;
+                if (bl && bl2) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     @Override
