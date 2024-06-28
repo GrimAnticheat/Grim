@@ -52,7 +52,8 @@ public class GrimSpectate extends BaseCommand {
         }
 
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(target.getPlayer());
+        GrimAPI.INSTANCE.getTeleportationManager().teleport(player, target.getPlayer().getLocation());
+        //player.teleport(target.getPlayer());
     }
 
 

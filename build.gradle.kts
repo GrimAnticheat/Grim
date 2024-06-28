@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 
 plugins {
@@ -114,6 +115,16 @@ bukkit {
     }
 }
 
+gradle.projectsEvaluated {
+    tasks.withType<ShadowJar> {
+        dependsOn(":teleportation:jar")
+        from(project(":teleportation").tasks.jar)
+        minimize()
+        archiveFileName.set("${project.name}-${project.version}.jar")
+        relocate("dev.tieseler.teleportation", "ac.grim.grimac.shaded.teleportation")
+    }
+}
+
 tasks.build {
     dependsOn(tasks.shadowJar)
 }
@@ -129,6 +140,7 @@ publishing.publications.create<MavenPublication>("maven") {
 tasks.shadowJar {
     minimize()
     archiveFileName.set("${project.name}-${project.version}.jar")
+    relocate("dev.tieseler.teleportation", "ac.grim.grimac.shaded.teleportation")
     relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
     relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
     relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")

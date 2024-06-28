@@ -61,7 +61,8 @@ public class SpectateManager implements Initable {
     public void disable(Player player, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
-            if (teleportBack) player.teleport(previousState.location);
+            //if (teleportBack) player.teleport(previousState.location);
+            if (teleportBack) GrimAPI.INSTANCE.getTeleportationManager().teleport(player, previousState.location);
             player.setGameMode(previousState.gameMode);
         }
         handlePlayerStopSpectating(player.getUniqueId());
