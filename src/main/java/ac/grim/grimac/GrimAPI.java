@@ -3,6 +3,7 @@ package ac.grim.grimac;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
+import ac.grim.grimac.utils.teleportation.DefaultTeleporter;
 import ac.grim.grimac.utils.teleportation.TeleportationManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -24,7 +25,7 @@ public enum GrimAPI {
     private InitManager initManager;
     private ConfigManager configManager;
     private JavaPlugin plugin;
-    private TeleportationManager teleportationManager;
+    private TeleportationManager teleportationManager = new DefaultTeleporter();
 
     public void load(final JavaPlugin plugin) {
         if (Bukkit.getVersion().contains("Folia")) {
