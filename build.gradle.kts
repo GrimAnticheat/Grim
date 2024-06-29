@@ -25,6 +25,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
     maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
     maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://papermc.io/repo/repository/maven-public/") // PaperLib
     mavenCentral()
     // FastUtil, Discord-Webhooks
 }
