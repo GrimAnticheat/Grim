@@ -37,7 +37,7 @@ dependencies {
     implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("github.scarsz:configuralize:1.4.0")
 
-    implementation("io.papermc:paperlib:1.0.7")
+    implementation("io.papermc:paperlib:1.0.8")
 
     implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
