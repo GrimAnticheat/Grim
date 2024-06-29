@@ -462,7 +462,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
                 // Not unbreakable
-                if (block.getType().getHardness() != -1.0f && !event.isCancelled()) {
+                if (!block.getType().isAir() && block.getType().getHardness() != -1.0f && !event.isCancelled()) {
                     player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
                     player.compensatedWorld.stopPredicting(dig);
