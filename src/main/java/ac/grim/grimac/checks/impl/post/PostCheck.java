@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -19,11 +20,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post")
 public class PostCheck extends Check implements PacketCheck, PostPredictionCheck {
@@ -59,8 +57,8 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
             if (animation.getEntityId() == player.entityID) {
-                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
-                        animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
+                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM
+                        || animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
                     isExemptFromSwingingCheck = player.lastTransactionSent.get();
                 }
             }
@@ -77,36 +75,56 @@ public class PostCheck extends Check implements PacketCheck, PostPredictionCheck
 
             post.clear();
             sentFlying = true;
-        } else {
-            // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
-            PacketTypeCommon packetType = event.getPacketType();
-            if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
-                if (sentFlying && !post.isEmpty()) {
-                    flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
-                }
-                post.clear();
-                sentFlying = false;
-            } else if (PLAYER_ABILITIES.equals(packetType)
-                    || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
-                    || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
-                if (sentFlying) post.add(event.getPacketType());
-            } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
-                // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
-                if (sentFlying) post.add(event.getPacketType());
-            } else if (ANIMATION.equals(packetType)
-                    && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients
-                    || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) // when on 1.9+ servers
-                    && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) // 1.13 clicking inventory causes weird animations
-                    && isExemptFromSwingingCheck < player.lastTransactionReceived.get()) { // Exempt when the server sends animations because viaversion
-                if (sentFlying) post.add(event.getPacketType());
-            } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                    && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
-                // https://github.com/GrimAnticheat/Grim/issues/824
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.compensatedEntities.getSelf().getRiding() != null) {
-                    return;
-                }
-                if (sentFlying) post.add(event.getPacketType());
+            return;
+        }
+
+        // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
+        final PacketTypeCommon packetType = event.getPacketType();
+        if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
+            if (sentFlying && !post.isEmpty()) {
+                flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
             }
+            post.clear();
+            sentFlying = false;
+            return;
+        }
+
+        // This is safe because grim only listens for play packets
+        switch ((PacketType.Play.Client) packetType) {
+            default: break;
+            case PLAYER_ABILITIES:
+            case INTERACT_ENTITY:
+            case PLAYER_BLOCK_PLACEMENT:
+            case USE_ITEM:
+            case PLAYER_DIGGING:
+                if (sentFlying) post.add(packetType);
+                break;
+            case CLICK_WINDOW:
+                // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && sentFlying) {
+                    post.add(packetType);
+                }
+                break;
+            case ANIMATION:
+                // ViaVersion delays animations for 1.8 clients when on 1.9+ servers
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) { // 1.13 clicking inventory causes weird animations
+                        // Exempt when the server sends animations because viaversion
+                        if (isExemptFromSwingingCheck < player.lastTransactionReceived.get()) {
+                            if (sentFlying) post.add(packetType);
+                        }
+                    }
+                }
+                break;
+            case ENTITY_ACTION:
+                // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
+                    // https://github.com/GrimAnticheat/Grim/issues/824
+                    if (!player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) || player.compensatedEntities.getSelf().getRiding() == null) {
+                        if (sentFlying) post.add(packetType);
+                    }
+                }
+                break;
         }
     }
 }
