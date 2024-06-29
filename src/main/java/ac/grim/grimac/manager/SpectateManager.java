@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -61,7 +62,7 @@ public class SpectateManager implements Initable {
     public void disable(Player player, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
-            if (teleportBack) player.teleport(previousState.location);
+            if (teleportBack) PaperLib.teleportAsync(player, previousState.location);
             player.setGameMode(previousState.gameMode);
         }
         handlePlayerStopSpectating(player.getUniqueId());

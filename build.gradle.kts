@@ -36,6 +36,8 @@ dependencies {
     implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("github.scarsz:configuralize:1.4.0")
 
+    implementation("io.papermc:paperlib:1.0.7")
+
     implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
@@ -146,4 +148,5 @@ tasks.shadowJar {
     relocate("org.json", "ac.grim.grimac.shaded.json")
     relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
     relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+    relocate("io.papermc.lib", "ac.grim.grimac.shaded.io.papermc.lib")
 }
