@@ -1,15 +1,22 @@
 package ac.grim.grimac.utils.data.attribute;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static ac.grim.grimac.utils.latency.CompensatedEntities.SPRINTING_MODIFIER_UUID;
 
 public final class ValuedAttribute {
+
+    private static final Function<Double, Double> DEFAULT_GET_REWRITE = Function.identity();
 
     private final Attribute attribute;
     // Attribute limits defined by https://minecraft.wiki/w/Attribute
@@ -19,6 +26,11 @@ public final class ValuedAttribute {
     private WrapperPlayServerUpdateAttributes.Property lastProperty;
     private final double defaultValue;
     private double value;
+
+    // BiFunction of <Old, New, Output>
+    // This allows us to rewrite the value based on client & server version
+    private BiFunction<Double, Double, Double> rewriteFunction;
+    private Function<Double, Double> getRewriteFunction;
 
     private ValuedAttribute(Attribute attribute, double defaultValue, double min, double max) {
         if (defaultValue < min || defaultValue > max) {
@@ -30,10 +42,37 @@ public final class ValuedAttribute {
         this.value = defaultValue;
         this.min = min;
         this.max = max;
+        this.getRewriteFunction = DEFAULT_GET_REWRITE;
     }
 
     public static ValuedAttribute ranged(Attribute attribute, double defaultValue, double min, double max) {
         return new ValuedAttribute(attribute, defaultValue, min, max);
+    }
+
+    public ValuedAttribute withRewriter(BiFunction<Double, Double, Double> rewriteFunction) {
+        this.rewriteFunction = rewriteFunction;
+        return this;
+    }
+
+    /**
+     * Creates a rewriter that prevents the value from ever being modified unless the player meets the required version.
+     * @param player the player
+     * @param requiredVersion the required version for the attribute
+     * @return this instance for chaining
+     */
+    public ValuedAttribute versionedRewriter(GrimPlayer player, ClientVersion requiredVersion) {
+        withRewriter((oldValue, newValue) -> {
+            if (player.getClientVersion().isOlderThan(requiredVersion)) {
+                return oldValue;
+            }
+            return newValue;
+        });
+        return this;
+    }
+
+    public ValuedAttribute withGetRewriter(Function<Double, Double> getRewriteFunction) {
+        this.getRewriteFunction = getRewriteFunction;
+        return this;
     }
 
     public Attribute attribute() {
@@ -45,7 +84,7 @@ public final class ValuedAttribute {
     }
 
     public double get() {
-        return value;
+        return getRewriteFunction.apply(this.value);
     }
 
     public void override(double value) {
@@ -84,7 +123,16 @@ public final class ValuedAttribute {
                 d1 *= 1.0D + attributemodifier.getAmount();
         }
 
+        double newValue = GrimMath.clampFloat((float) d1, (float) min, (float) max);
+        if (rewriteFunction != null) {
+            newValue = rewriteFunction.apply(this.value, newValue);
+        }
+
+        if (newValue < min || newValue > max) {
+            throw new IllegalArgumentException("New value must be between min and max!");
+        }
+
         this.lastProperty = property;
-        return this.value = GrimMath.clampFloat((float) d1, (float) min, (float) max);
+        return this.value = newValue;
     }
 }

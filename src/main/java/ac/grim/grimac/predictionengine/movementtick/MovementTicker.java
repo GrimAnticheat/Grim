@@ -358,16 +358,10 @@ public class MovementTicker {
                 player.depthStriderLevel *= 0.5F;
             }
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) {
-                if (player.depthStriderLevel > 0.0F) {
-                    swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel;
-                    swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel;
-                }
-            } else {
-                if (player.depthStriderLevel > 0.0F) {
-                    swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / 3.0F;
-                    swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
-                }
+            if (player.depthStriderLevel > 0.0F) {
+                final float divisor = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) ? 1.0F : 3.0F;
+                swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / divisor;
+                swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / divisor;
             }
 
             if (player.compensatedEntities.getDolphinsGraceAmplifier() != null) {

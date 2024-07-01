@@ -445,24 +445,14 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            final boolean hasAttributes = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21);
-            if (hasAttributes && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.depthStriderLevel = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY).get();
             } else {
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                    player.depthStriderLevel = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                    if (hasAttributes && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21)) {
-                        // This is what via does
-                        player.depthStriderLevel /= 3.0;
-                    }
-                } else {
-                    player.depthStriderLevel = 0;
-                }
+                player.depthStriderLevel = 0;
             }
 
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                ItemStack leggings = player.getInventory().getLeggings();
-                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (leggings.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
+                player.sneakingSpeedMultiplier = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_SNEAKING_SPEED).get();
             } else {
                 player.sneakingSpeedMultiplier = 0.3F;
             }
