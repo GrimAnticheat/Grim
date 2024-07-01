@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -116,7 +117,7 @@ public class BlockBreakSpeed {
             isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
         }
 
-        speedMultiplier *= (float) player.compensatedEntities.getSelf().getBreakSpeedMultiplier();
+        speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_BLOCK_BREAK_SPEED).get();
 
         if (speedMultiplier > 1.0f) {
             int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());

@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -31,7 +32,7 @@ public class BlockProperties {
             if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
                 PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
                 // Vanilla multiplies by 0.1 to calculate speed
-                return strider.movementSpeedAttribute * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
+                return (float) strider.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get() * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }
         }
 

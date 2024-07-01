@@ -6,6 +6,7 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class PredictionEngineRideableUtils {
         //
         // There's a float/double error causing 1e-8 imprecision if anyone wants to debug it
         if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
-            double d0 = horse.jumpStrength * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
+            double d0 = horse.getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get() * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
             // This doesn't even work because vehicle jump boost has (likely) been

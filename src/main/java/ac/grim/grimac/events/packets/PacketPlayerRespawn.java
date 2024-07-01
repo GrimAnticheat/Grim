@@ -186,14 +186,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 // TODO And there should probably be some attribute holder that we can just call reset() on.
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && !this.hasFlag(respawn, KEEP_ATTRIBUTES)) {
                     // Reset attributes if not kept
-                    final PacketEntitySelf self = player.compensatedEntities.getSelf();
-                    self.gravityAttribute = 0.08d;
-                    self.stepHeight = 0.6f;
-                    self.scale = 1.0f;
-                    self.setJumpStrength(0.42f);
-                    self.setBreakSpeedMultiplier(1.0f);
-                    self.setBlockInteractRange(4.5);
-                    self.setEntityInteractRange(3.0);
+                    player.compensatedEntities.getSelf().resetAttributes();
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;
                 }
             });

@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -48,7 +49,7 @@ public class BadPacketsT extends Check implements PacketCheck {
                 //  27/12/2023 - Dynamic values for more than just one entity type?
                 //  28/12/2023 - Player-only is fine
                 //  30/12/2023 - Expansions differ in 1.9+
-                final float scale = packetEntity.scale;
+                final float scale = (float) packetEntity.getAttribute(Attributes.GENERIC_SCALE).get();
                 if (targetVector.y > (minVerticalDisplacement * scale) && targetVector.y < (maxVerticalDisplacement * scale)
                         && Math.abs(targetVector.x) < (maxHorizontalDisplacement * scale)
                         && Math.abs(targetVector.z) < (maxHorizontalDisplacement * scale)) {

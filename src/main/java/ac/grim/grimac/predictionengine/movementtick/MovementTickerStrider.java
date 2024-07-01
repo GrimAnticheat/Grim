@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -47,7 +48,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
     @Override
     public float getSteeringSpeed() {
         PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
-        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
+        return (float) strider.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get() * (strider.isShaking ? 0.23F : 0.55F);
     }
 
     @Override

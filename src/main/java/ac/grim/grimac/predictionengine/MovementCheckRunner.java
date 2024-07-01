@@ -29,6 +29,7 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
@@ -189,8 +190,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
                 // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
-                float width = BoundingBoxSize.getWidth(player, riding) * riding.scale;
-                float height = BoundingBoxSize.getHeight(player, riding) * riding.scale;
+                final float scale = (float) riding.getAttribute(Attributes.GENERIC_SCALE).get();
+                float width = BoundingBoxSize.getWidth(player, riding) * scale;
+                float height = BoundingBoxSize.getHeight(player, riding) * scale;
                 interTruePositions.expand(-width, 0, -width);
                 interTruePositions.expandMax(0, -height, 0);
 
@@ -236,7 +238,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         if (player.isInBed) return;
 
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.speed = player.compensatedEntities.getPlayerMovementSpeed();
+            player.speed = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get();
             if (player.hasGravity != player.playerEntityHasGravity) {
                 player.pointThreeEstimator.updatePlayerGravity();
             }
@@ -443,10 +445,19 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+            final boolean hasAttributes = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21);
+            if (hasAttributes && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+                player.depthStriderLevel = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY).get();
             } else {
-                player.depthStriderLevel = 0;
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                    player.depthStriderLevel = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                    if (hasAttributes && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21)) {
+                        // This is what via does
+                        player.depthStriderLevel /= 3.0;
+                    }
+                } else {
+                    player.depthStriderLevel = 0;
+                }
             }
 
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {

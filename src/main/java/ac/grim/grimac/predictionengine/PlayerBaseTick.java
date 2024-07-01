@@ -3,14 +3,14 @@ package ac.grim.grimac.predictionengine;
 import ac.grim.grimac.checks.impl.movement.NoSlowC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
@@ -31,8 +31,9 @@ public class PlayerBaseTick {
     }
 
     protected static SimpleCollisionBox getBoundingBoxForPose(GrimPlayer player, Pose pose, double x, double y, double z) {
-        final float width = pose.width * player.compensatedEntities.getSelf().scale;
-        final float height = pose.height * player.compensatedEntities.getSelf().scale;
+        final float scale = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_SCALE).get();
+        final float width = pose.width * scale;
+        final float height = pose.height * scale;
         float radius = width / 2.0F;
         return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + height, z + radius, false);
     }
@@ -149,7 +150,9 @@ public class PlayerBaseTick {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
 
         // The client first desync's this attribute
-        player.compensatedEntities.getSelf().playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID) || modifier.getName().getKey().equals("powder_snow"));
+        final ValuedAttribute playerSpeed = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED);
+        playerSpeed.property().get().getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID) || modifier.getName().getKey().equals("powder_snow"));
+        playerSpeed.recalculate();
 
         // And then re-adds it using purely what the server has sent it
         StateType type = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
@@ -161,7 +164,9 @@ public class PlayerBaseTick {
                 // Remember, floats are not commutative, we must do it in the client's specific order
                 float percentFrozen = (float) Math.min(i, ticksToFreeze) / (float) ticksToFreeze;
                 float percentFrozenReducedToSpeed = -0.05F * percentFrozen;
-                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerUpdateAttributes.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION));
+
+                playerSpeed.property().get().getModifiers().add(new WrapperPlayServerUpdateAttributes.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION));
+                playerSpeed.recalculate();
             }
         }
     }
