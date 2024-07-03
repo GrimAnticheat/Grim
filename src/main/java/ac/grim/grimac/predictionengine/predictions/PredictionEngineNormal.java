@@ -18,17 +18,17 @@ import java.util.Set;
 public class PredictionEngineNormal extends PredictionEngine {
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
-        double d9 = vector.getY();
+        double adjustedY = vector.getY();
         if (player.compensatedEntities.getLevitationAmplifier() != null) {
-            d9 += (0.05 * (player.compensatedEntities.getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
+            adjustedY += (0.05 * (player.compensatedEntities.getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
             // Reset fall distance with levitation
             player.fallDistance = 0;
         } else if (player.hasGravity) {
-            d9 -= player.gravity;
+            adjustedY -= player.gravity;
         }
 
         vector.setX(vector.getX() * player.friction);
-        vector.setY(d9 * 0.98F);
+        vector.setY(adjustedY * 0.98F);
         vector.setZ(vector.getZ() * player.friction);
     }
 
@@ -61,8 +61,8 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public void endOfTick(GrimPlayer player, double d) {
-        super.endOfTick(player, d);
+    public void endOfTick(GrimPlayer player, double delta) {
+        super.endOfTick(player, delta);
 
         boolean walkingOnPowderSnow = false;
 
@@ -78,9 +78,9 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
-            Vector ladder = player.clientVelocity.clone().setY(0.2);
-            staticVectorEndOfTick(player, ladder);
-            player.lastWasClimbing = ladder.getY();
+            Vector ladderVelocity = player.clientVelocity.clone().setY(0.2);
+            staticVectorEndOfTick(player, ladderVelocity);
+            player.lastWasClimbing = ladderVelocity.getY();
         }
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
