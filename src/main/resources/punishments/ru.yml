@@ -1,4 +1,5 @@
 # %check_name% - название проверки
+# %description% - description of the check
 # %vl% - нарушения
 # %verbose% - дополнительная информация
 # %player% - имя игрока

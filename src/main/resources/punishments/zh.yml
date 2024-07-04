@@ -1,4 +1,5 @@
 # %check_name% - 检查名称
+# %description% - description of the check
 # %vl% - 违规
 # %verbose% - 额外信息
 # %player% - 玩家名字

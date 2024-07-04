@@ -21,6 +21,7 @@ upload-log-upload-failure: "%prefix% &cBeim Hochladen dieses Protokolls ist etwa
 # %prefix%
 # %player%
 # %check_name%
+# %description%
 # %experimental%
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen aus dem Check wie z.B. Offsets, nicht alle Checks fügen Informationen hinzu

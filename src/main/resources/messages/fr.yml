@@ -21,6 +21,7 @@ upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléver
 # %prefix%
 # %player%
 # %check_name%
+# %description%
 # %experimental%
 # %vl% - violations
 # %verbose% - Informations supplémentaires sur les vérifivations comme les écarts, toutes les vérifications n'ajoutent pas d'information
