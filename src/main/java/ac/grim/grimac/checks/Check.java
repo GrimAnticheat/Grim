@@ -23,6 +23,7 @@ public class Check implements AbstractCheck {
     private String checkName;
     private String configName;
     private String alternativeName;
+    private String description;
 
     private boolean experimental;
     @Setter
@@ -43,6 +44,7 @@ public class Check implements AbstractCheck {
             this.setbackVL = checkData.setback();
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
+            this.description = checkData.description();
         }
 
         reload();

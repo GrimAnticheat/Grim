@@ -21,6 +21,7 @@ upload-log-upload-failure: "%prefix% &cЧто-то пошло не так при
 # %prefix%
 # %player%
 # %check_name%
+# %description%
 # %experimental%
 # %vl% - нарушения
 # %verbose% - дополнительная информация от проверки, например, смещения, не все проверки добавляют информацию.

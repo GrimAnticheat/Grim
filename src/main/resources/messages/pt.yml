@@ -21,6 +21,7 @@ upload-log-upload-failure: "%prefix% &cAlgo deu errado ao enviar essa log, veja 
 # %prefix%
 # %player%
 # %check_name%
+# %description%
 # %experimental%
 # %vl% - violações
 # %verbose% - Informação extra da verificação, como os desvios, nem todas as verifiações terão essa informação.

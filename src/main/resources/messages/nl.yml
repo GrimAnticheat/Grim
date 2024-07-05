@@ -21,6 +21,7 @@ upload-log-upload-failure: "%prefix% &cEr is iets misgegaan tijdens het uploaden
 # %prefix%
 # %player%
 # %check_name%
+# %description%
 # %experimental%
 # %vl% - overtredingen
 # %verbose% - extra informatie van de controle zoals offsets, niet alle controles voegen informatie toe

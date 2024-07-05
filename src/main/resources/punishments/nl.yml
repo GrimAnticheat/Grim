@@ -1,4 +1,5 @@
 # %check_name% - naam van de controle
+# %description% - description of the check
 # %vl% - overtredingen
 # %verbose% - extra informatie
 # %player% - spelersnaam

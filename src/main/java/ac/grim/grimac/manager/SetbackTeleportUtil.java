@@ -137,6 +137,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
     private void blockMovementsUntilResync(boolean simulateNextTickPosition, boolean isResync) {
         if (requiredSetBack == null) return; // Hasn't spawned
+        if (player.bukkitPlayer != null && player.noSetbackPermission) return; // The player has permission to cheat
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (isPendingSetback()) return; // Don't spam setbacks
 
