@@ -117,14 +117,16 @@ public class BlockBreakSpeed {
             isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
         }
 
-        speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_BLOCK_BREAK_SPEED).get();
-
         if (speedMultiplier > 1.0f) {
+            speedMultiplier += (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_MINING_EFFICIENCY);
+
             int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             if (digSpeed > 0) {
                 speedMultiplier += digSpeed * digSpeed + 1;
             }
         }
+
+        speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_BREAK_SPEED);
 
         Integer digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
         Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);

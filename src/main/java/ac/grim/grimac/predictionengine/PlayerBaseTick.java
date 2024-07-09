@@ -31,7 +31,7 @@ public class PlayerBaseTick {
     }
 
     protected static SimpleCollisionBox getBoundingBoxForPose(GrimPlayer player, Pose pose, double x, double y, double z) {
-        final float scale = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_SCALE).get();
+        final float scale = (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
         final float width = pose.width * scale;
         final float height = pose.height * scale;
         float radius = width / 2.0F;
@@ -150,7 +150,7 @@ public class PlayerBaseTick {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
 
         // The client first desync's this attribute
-        final ValuedAttribute playerSpeed = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED);
+        final ValuedAttribute playerSpeed = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get();
         playerSpeed.property().get().getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID) || modifier.getName().getKey().equals("powder_snow"));
         playerSpeed.recalculate();
 

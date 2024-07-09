@@ -190,7 +190,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
                 // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
-                final float scale = (float) riding.getAttribute(Attributes.GENERIC_SCALE).get();
+                final float scale = (float) riding.getAttributeValue(Attributes.GENERIC_SCALE);
                 float width = BoundingBoxSize.getWidth(player, riding) * scale;
                 float height = BoundingBoxSize.getHeight(player, riding) * scale;
                 interTruePositions.expand(-width, 0, -width);
@@ -238,7 +238,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         if (player.isInBed) return;
 
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.speed = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get();
+            player.speed = player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED);
             if (player.hasGravity != player.playerEntityHasGravity) {
                 player.pointThreeEstimator.updatePlayerGravity();
             }
@@ -444,18 +444,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         } else if (riding == null) {
             wasChecked = true;
 
-            // Depth strider was added in 1.8
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY).get();
-            } else {
-                player.depthStriderLevel = 0;
-            }
-
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                player.sneakingSpeedMultiplier = (float) player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_SNEAKING_SPEED).get();
-            } else {
-                player.sneakingSpeedMultiplier = 0.3F;
-            }
+            player.depthStriderLevel = (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY);
+            player.sneakingSpeedMultiplier = (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_SNEAKING_SPEED);
 
             // This is wrong and the engine was not designed around stuff like this
             player.verticalCollision = false;

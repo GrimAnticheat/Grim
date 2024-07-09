@@ -8,7 +8,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -29,8 +28,8 @@ public final class ValuedAttribute {
 
     // BiFunction of <Old, New, Output>
     // This allows us to rewrite the value based on client & server version
-    private BiFunction<Double, Double, Double> rewriteFunction;
-    private Function<Double, Double> getRewriteFunction;
+    private BiFunction<Double, Double, Double> setRewriter;
+    private Function<Double, Double> getRewriter;
 
     private ValuedAttribute(Attribute attribute, double defaultValue, double min, double max) {
         if (defaultValue < min || defaultValue > max) {
@@ -42,15 +41,15 @@ public final class ValuedAttribute {
         this.value = defaultValue;
         this.min = min;
         this.max = max;
-        this.getRewriteFunction = DEFAULT_GET_REWRITE;
+        this.getRewriter = DEFAULT_GET_REWRITE;
     }
 
     public static ValuedAttribute ranged(Attribute attribute, double defaultValue, double min, double max) {
         return new ValuedAttribute(attribute, defaultValue, min, max);
     }
 
-    public ValuedAttribute withRewriter(BiFunction<Double, Double, Double> rewriteFunction) {
-        this.rewriteFunction = rewriteFunction;
+    public ValuedAttribute withSetRewriter(BiFunction<Double, Double, Double> rewriteFunction) {
+        this.setRewriter = rewriteFunction;
         return this;
     }
 
@@ -60,8 +59,8 @@ public final class ValuedAttribute {
      * @param requiredVersion the required version for the attribute
      * @return this instance for chaining
      */
-    public ValuedAttribute versionedRewriter(GrimPlayer player, ClientVersion requiredVersion) {
-        withRewriter((oldValue, newValue) -> {
+    public ValuedAttribute requiredVersion(GrimPlayer player, ClientVersion requiredVersion) {
+        withSetRewriter((oldValue, newValue) -> {
             if (player.getClientVersion().isOlderThan(requiredVersion)) {
                 return oldValue;
             }
@@ -71,7 +70,7 @@ public final class ValuedAttribute {
     }
 
     public ValuedAttribute withGetRewriter(Function<Double, Double> getRewriteFunction) {
-        this.getRewriteFunction = getRewriteFunction;
+        this.getRewriter = getRewriteFunction;
         return this;
     }
 
@@ -84,7 +83,7 @@ public final class ValuedAttribute {
     }
 
     public double get() {
-        return getRewriteFunction.apply(this.value);
+        return getRewriter.apply(this.value);
     }
 
     public void override(double value) {
@@ -124,8 +123,8 @@ public final class ValuedAttribute {
         }
 
         double newValue = GrimMath.clampFloat((float) d1, (float) min, (float) max);
-        if (rewriteFunction != null) {
-            newValue = rewriteFunction.apply(this.value, newValue);
+        if (setRewriter != null) {
+            newValue = setRewriter.apply(this.value, newValue);
         }
 
         if (newValue < min || newValue > max) {

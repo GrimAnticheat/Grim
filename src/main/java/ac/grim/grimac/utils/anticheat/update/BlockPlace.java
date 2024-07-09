@@ -587,7 +587,7 @@ public class BlockPlace {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
-                    final double scale = entity.getAttribute(Attributes.GENERIC_SCALE).get();
+                    final double scale = entity.getAttributeValue(Attributes.GENERIC_SCALE);
                     double width = BoundingBoxSize.getWidth(player, entity) * scale;
                     double height = BoundingBoxSize.getHeight(player, entity) * scale;
                     double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
@@ -669,7 +669,7 @@ public class BlockPlace {
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
         Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
-        final double distance = player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_BLOCK_INTERACTION_RANGE).get() + 3;
+        final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE) + 3;
         Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();

@@ -127,17 +127,17 @@ public class CompensatedEntities {
 
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
-                    player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).with(snapshotWrapper);
+                    player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
                     continue;
                 }
 
-                final ValuedAttribute valuedAttribute = player.compensatedEntities.getSelf().getAttribute(attribute);
-                if (valuedAttribute == null) {
+                final Optional<ValuedAttribute> valuedAttribute = player.compensatedEntities.getSelf().getAttribute(attribute);
+                if (!valuedAttribute.isPresent()) {
                     // Not an attribute we want to track
                     continue;
                 }
 
-                valuedAttribute.with(snapshotWrapper);
+                valuedAttribute.get().with(snapshotWrapper);
             }
             return;
         }
@@ -148,24 +148,24 @@ public class CompensatedEntities {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 final Attribute attribute = snapshotWrapper.getAttribute();
-                final ValuedAttribute valuedAttribute = entity.getAttribute(attribute);
-                if (valuedAttribute == null) {
+                final Optional<ValuedAttribute> valuedAttribute = entity.getAttribute(attribute);
+                if (!valuedAttribute.isPresent()) {
                     // Not an attribute we want to track
                     continue;
                 }
 
-                valuedAttribute.with(snapshotWrapper);
+                valuedAttribute.get().with(snapshotWrapper);
             }
         }
 
         if (entity instanceof PacketEntityHorse) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).with(snapshotWrapper);
+                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
                 }
 
                 if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
-                    entity.getAttribute(Attributes.GENERIC_JUMP_STRENGTH).with(snapshotWrapper);
+                    entity.getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get().with(snapshotWrapper);
                 }
             }
         }
@@ -173,7 +173,7 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).with(snapshotWrapper);
+                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
                 }
             }
         }

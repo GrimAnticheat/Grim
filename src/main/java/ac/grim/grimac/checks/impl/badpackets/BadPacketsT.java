@@ -49,7 +49,7 @@ public class BadPacketsT extends Check implements PacketCheck {
                 //  27/12/2023 - Dynamic values for more than just one entity type?
                 //  28/12/2023 - Player-only is fine
                 //  30/12/2023 - Expansions differ in 1.9+
-                final float scale = (float) packetEntity.getAttribute(Attributes.GENERIC_SCALE).get();
+                final float scale = (float) packetEntity.getAttributeValue(Attributes.GENERIC_SCALE);
                 if (targetVector.y > (minVerticalDisplacement * scale) && targetVector.y < (maxVerticalDisplacement * scale)
                         && Math.abs(targetVector.x) < (maxHorizontalDisplacement * scale)
                         && Math.abs(targetVector.z) < (maxHorizontalDisplacement * scale)) {

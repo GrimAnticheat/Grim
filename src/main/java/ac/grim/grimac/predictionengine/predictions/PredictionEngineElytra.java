@@ -45,7 +45,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         // So we actually use the player's actual movement to get the gravity/slow falling status
         // However, this is wrong with elytra movement because players can control vertical movement after gravity is calculated
         // Yeah, slow falling needs a refactor in grim.
-        double recalculatedGravity = player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_GRAVITY).get();
+        double recalculatedGravity = player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_GRAVITY);
         if (player.clientVelocity.getY() <= 0 && player.compensatedEntities.getSlowFallingAmplifier() != null) {
             recalculatedGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(recalculatedGravity, 0.01);
         }

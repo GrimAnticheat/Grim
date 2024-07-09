@@ -350,14 +350,14 @@ public class GrimPlayer implements GrimUser {
     public float getMaxUpStep() {
         final PacketEntitySelf self = compensatedEntities.getSelf();
         final PacketEntity riding = self.getRiding();
-        if (riding == null) return (float) self.getAttribute(Attributes.GENERIC_STEP_HEIGHT).get();
+        if (riding == null) return (float) self.getAttributeValue(Attributes.GENERIC_STEP_HEIGHT);
 
         if (riding.isBoat()) {
             return 0f;
         }
 
         // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
-        return (float) riding.getAttribute(Attributes.GENERIC_STEP_HEIGHT).get();
+        return (float) riding.getAttributeValue(Attributes.GENERIC_STEP_HEIGHT);
     }
 
     public void sendTransaction() {
@@ -553,7 +553,7 @@ public class GrimPlayer implements GrimUser {
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
         if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
-            final float scale = (float) compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_SCALE).get();
+            final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
             return Arrays.asList(0.4 * scale, 1.27 * scale, 1.62 * scale);
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return Arrays.asList(0.4, 1.54, 1.62);

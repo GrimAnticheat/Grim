@@ -35,7 +35,7 @@ public class GetBoundingBox {
     }
 
     public static SimpleCollisionBox getBoundingBoxFromPosAndSize(PacketEntity entity, double centerX, double minY, double centerZ, float width, float height) {
-        final float scale = (float) entity.getAttribute(Attributes.GENERIC_SCALE).get();
+        final float scale = (float) entity.getAttributeValue(Attributes.GENERIC_SCALE);
         return getBoundingBoxFromPosAndSizeRaw(centerX, minY, centerZ, width * scale, height * scale);
     }
 

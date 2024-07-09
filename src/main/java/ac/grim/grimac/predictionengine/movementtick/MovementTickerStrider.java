@@ -48,7 +48,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
     @Override
     public float getSteeringSpeed() {
         PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
-        return (float) strider.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get() * (strider.isShaking ? 0.23F : 0.55F);
+        return (float) strider.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * (strider.isShaking ? 0.23F : 0.55F);
     }
 
     @Override

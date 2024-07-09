@@ -32,7 +32,7 @@ public class BlockProperties {
             if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
                 PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
                 // Vanilla multiplies by 0.1 to calculate speed
-                return (float) strider.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get() * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
+                return (float) strider.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }
         }
 

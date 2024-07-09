@@ -136,7 +136,7 @@ public class Reach extends Check implements PacketCheck {
             if (reachEntity.getType() == EntityTypes.END_CRYSTAL) {
                 targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
             }
-            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_ENTITY_INTERACTION_RANGE).get();
+            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE);
         }
     }
 
@@ -200,7 +200,7 @@ public class Reach extends Check implements PacketCheck {
         }
 
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
-        final double distance = player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_ENTITY_INTERACTION_RANGE).get() + 3;
+        final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE) + 3;
         for (Vector lookVec : possibleLookDirs) {
             for (double eye : player.getPossibleEyeHeights()) {
                 Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
@@ -224,7 +224,7 @@ public class Reach extends Check implements PacketCheck {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return "Missed hitbox";
-            } else if (minDistance > player.compensatedEntities.getSelf().getAttribute(Attributes.PLAYER_ENTITY_INTERACTION_RANGE).get()) {
+            } else if (minDistance > player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE)) {
                 cancelBuffer = 1;
                 return String.format("%.5f", minDistance) + " blocks";
             } else {

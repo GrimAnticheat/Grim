@@ -32,7 +32,7 @@ public class PredictionEngineRideableUtils {
         //
         // There's a float/double error causing 1e-8 imprecision if anyone wants to debug it
         if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
-            double d0 = horse.getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get() * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
+            double d0 = horse.getAttributeValue(Attributes.GENERIC_JUMP_STRENGTH) * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
             // This doesn't even work because vehicle jump boost has (likely) been

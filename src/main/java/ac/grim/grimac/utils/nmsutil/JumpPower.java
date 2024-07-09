@@ -25,7 +25,7 @@ public class JumpPower {
     }
 
     public static float getJumpPower(GrimPlayer player) {
-        return (float) player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get() * getPlayerJumpFactor(player);
+        return (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_JUMP_STRENGTH) * getPlayerJumpFactor(player);
     }
 
     public static float getPlayerJumpFactor(GrimPlayer player) {

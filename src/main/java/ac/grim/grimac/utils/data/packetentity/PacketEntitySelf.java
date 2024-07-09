@@ -36,35 +36,50 @@ public class PacketEntitySelf extends PacketEntity {
                     || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5))) {
             return 5.0;
         }
-        return attributeMap.get(Attributes.PLAYER_BLOCK_INTERACTION_RANGE).get();
+        return getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
     }
 
     public PacketEntitySelf(GrimPlayer player) {
-        super(EntityTypes.PLAYER);
+        super(player, EntityTypes.PLAYER);
         this.player = player;
+    }
+
+    public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
+        super(player, EntityTypes.PLAYER);
+        this.player = player;
+        this.opLevel = old.opLevel;
+        this.attributeMap.putAll(old.attributeMap);
+    }
+
+    @Override
+    protected void initAttributes(GrimPlayer player) {
+        super.initAttributes(player);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-            getAttribute(Attributes.GENERIC_STEP_HEIGHT).override(0.5f);
+            getAttribute(Attributes.GENERIC_STEP_HEIGHT).get().override(0.5f);
         }
 
         final ValuedAttribute movementSpeed = ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.1f, 0, 1024);
         movementSpeed.with(new WrapperPlayServerUpdateAttributes.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>()));
-        attributeMap.put(Attributes.GENERIC_MOVEMENT_SPEED, movementSpeed);
-        attributeMap.put(Attributes.GENERIC_JUMP_STRENGTH, ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.42f, 0, 32)
-                .versionedRewriter(player, ClientVersion.V_1_20_5));
-        attributeMap.put(Attributes.PLAYER_BLOCK_BREAK_SPEED, ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_BREAK_SPEED, 1.0, 0, 1024)
-                .versionedRewriter(player, ClientVersion.V_1_20_5));
-        attributeMap.put(Attributes.PLAYER_ENTITY_INTERACTION_RANGE, ValuedAttribute.ranged(Attributes.PLAYER_ENTITY_INTERACTION_RANGE, 3, 0, 64)
-                .versionedRewriter(player, ClientVersion.V_1_20_5));
-        attributeMap.put(Attributes.PLAYER_BLOCK_INTERACTION_RANGE, ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_INTERACTION_RANGE, 4.5, 0, 64)
-                .versionedRewriter(player, ClientVersion.V_1_20_5));
-        attributeMap.put(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY, ValuedAttribute.ranged(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY, 0, 0, 1)
+        trackAttribute(movementSpeed);
+        trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.42f, 0, 32)
+                .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_BREAK_SPEED, 1.0, 0, 1024)
+                .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_MINING_EFFICIENCY, 0, 0, 1024)
+                .requiredVersion(player, ClientVersion.V_1_21));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_ENTITY_INTERACTION_RANGE, 3, 0, 64)
+                .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_INTERACTION_RANGE, 4.5, 0, 64)
+                .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY, 0, 0, 1)
                 .withGetRewriter(value -> {
-                    // On clients < 1.21, use depth strider enchant level always
-                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-                    if (depthStrider == 0) {
+                    // Depth strider was added in 1.8
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
                         return 0d;
                     }
 
+                    // On clients < 1.21, use depth strider enchant level always
+                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return depthStrider;
                     }
@@ -78,31 +93,28 @@ public class PacketEntitySelf extends PacketEntity {
                     // We are on a version that fully supports this value!
                     return value;
                 })
-                .versionedRewriter(player, ClientVersion.V_1_21));
-        attributeMap.put(Attributes.PLAYER_SNEAKING_SPEED, ValuedAttribute.ranged(Attributes.PLAYER_SNEAKING_SPEED, 0.3, 0, 1)
-                        .withGetRewriter(value -> {
-                            final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
-                            final double clamped = GrimMath.clampFloat(0.3F + (swiftSneak * 0.15F), 0f, 1f);
-                            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
-                                return clamped;
-                            }
+                .requiredVersion(player, ClientVersion.V_1_21));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_SNEAKING_SPEED, 0.3, 0, 1)
+                .withGetRewriter(value -> {
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19)) {
+                        return (double) 0.3f;
+                    }
 
-                            // https://github.com/ViaVersion/ViaVersion/blob/dc503cd613f5cf00a6f11b78e52b1a76a42acf91/common/src/main/java/com/viaversion/viaversion/protocols/v1_20_5to1_21/storage/EfficiencyAttributeStorage.java#L32
-                            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21)) {
-                                return clamped;
-                            }
+                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
+                    final double clamped = GrimMath.clampFloat(0.3F + (swiftSneak * 0.15F), 0f, 1f);
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
+                        return clamped;
+                    }
 
-                            // We are on a version that fully supports this value!
-                            return value;
-                        })
-                .versionedRewriter(player, ClientVersion.V_1_21));
-    }
+                    // https://github.com/ViaVersion/ViaVersion/blob/dc503cd613f5cf00a6f11b78e52b1a76a42acf91/common/src/main/java/com/viaversion/viaversion/protocols/v1_20_5to1_21/storage/EfficiencyAttributeStorage.java#L32
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21)) {
+                        return clamped;
+                    }
 
-    public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
-        super(EntityTypes.PLAYER);
-        this.player = player;
-        this.opLevel = old.opLevel;
-        this.attributeMap.putAll(old.attributeMap);
+                    // We are on a version that fully supports this value!
+                    return value;
+                })
+                .requiredVersion(player, ClientVersion.V_1_21));
     }
 
     public boolean inVehicle() {
