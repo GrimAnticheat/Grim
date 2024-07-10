@@ -361,7 +361,6 @@ public class MovementTicker {
 
             if (player.depthStriderLevel > 0.0F) {
                 final float divisor = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) ? 1.0F : 3.0F;
-                Bukkit.broadcastMessage("level: " + player.depthStriderLevel);
                 swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / divisor;
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / divisor;
             }

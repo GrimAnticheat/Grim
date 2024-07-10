@@ -28,17 +28,6 @@ public class PacketEntitySelf extends PacketEntity {
     @Setter
     int opLevel;
 
-    public double getBlockInteractRange() {
-        // Server versions older than 1.20.5 don't send the attribute, if the player is in creative then assume legacy max reach distance.
-        // Or if they are on a client version older than 1.20.5.
-        if (player.gamemode == GameMode.CREATIVE
-                && (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5)
-                    || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5))) {
-            return 5.0;
-        }
-        return getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-    }
-
     public PacketEntitySelf(GrimPlayer player) {
         super(player, EntityTypes.PLAYER);
         this.player = player;
@@ -70,6 +59,15 @@ public class PacketEntitySelf extends PacketEntity {
         trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_ENTITY_INTERACTION_RANGE, 3, 0, 64)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_INTERACTION_RANGE, 4.5, 0, 64)
+                .withGetRewriter(value -> {
+                    // Server versions older than 1.20.5 don't send the attribute, if the player is in creative then assume legacy max reach distance.
+                    if (player.gamemode == GameMode.CREATIVE
+                            && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)) {
+                        return 5.0;
+                    }
+                    // < 1.20.5 is unchanged due to requiredVersion, otherwise controlled by the server
+                    return value;
+                })
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY, 0, 0, 1)
                 .withGetRewriter(value -> {
