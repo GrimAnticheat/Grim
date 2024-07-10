@@ -17,7 +17,11 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 repositories {
     mavenLocal()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") // Grim API
+    maven("https://jitpack.io/") { // Grim API
+        content {
+            includeGroup("com.github.grimanticheat")
+        }
+    }
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
