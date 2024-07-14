@@ -55,9 +55,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
     private boolean hasFlag(WrapperPlayServerRespawn respawn, byte flag) {
         // This packet was added in 1.16
-        // On versions older than 1.16, via keeps all data.
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_16)) {
-            return true;
+        // On versions older than 1.15, via does not keep all data.
+        // https://github.com/ViaVersion/ViaVersion/blob/master/common/src/main/java/com/viaversion/viaversion/protocols/v1_15_2to1_16/rewriter/EntityPacketRewriter1_16.java#L124
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_15)) {
+            return false;
         }
         return (respawn.getKeptData() & flag) != 0;
     }
