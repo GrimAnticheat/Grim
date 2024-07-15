@@ -37,7 +37,7 @@ public final class ValuedAttribute {
         }
 
         this.attribute = attribute;
-        this.defaultValue = value;
+        this.defaultValue = defaultValue;
         this.value = defaultValue;
         this.min = min;
         this.max = max;
