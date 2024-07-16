@@ -112,72 +112,40 @@ public class CompensatedEntities {
 
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
+            // Check for sprinting attribute. Note that this value can desync: https://bugs.mojang.com/browse/MC-69459
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
                 final Attribute attribute = snapshotWrapper.getAttribute();
-                if (attribute == Attributes.GENERIC_MOVEMENT_SPEED) {
-                    boolean found = false;
-                    List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                    for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
-                        final ResourceLocation name = modifier.getName();
-                        if (name.getKey().equals(SPRINTING_MODIFIER_UUID.toString()) || name.getKey().equals("sprinting")) {
-                            found = true;
-                            break;
-                        }
+                if (attribute != Attributes.GENERIC_MOVEMENT_SPEED) continue;
+
+                boolean found = false;
+                List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
+                    final ResourceLocation name = modifier.getName();
+                    if (name.getKey().equals(SPRINTING_MODIFIER_UUID.toString()) || name.getKey().equals("sprinting")) {
+                        found = true;
+                        break;
                     }
-
-                    // The server can set the player's sprinting attribute
-                    hasSprintingAttributeEnabled = found;
-                    player.compensatedEntities.getSelf().getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
-                    continue;
                 }
 
-                final Optional<ValuedAttribute> valuedAttribute = player.compensatedEntities.getSelf().getAttribute(attribute);
-                if (!valuedAttribute.isPresent()) {
-                    // Not an attribute we want to track
-                    continue;
-                }
-
-                valuedAttribute.get().with(snapshotWrapper);
+                // The server can set the player's sprinting attribute
+                hasSprintingAttributeEnabled = found;
+                break;
             }
-            return;
         }
 
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                final Attribute attribute = snapshotWrapper.getAttribute();
-                final Optional<ValuedAttribute> valuedAttribute = entity.getAttribute(attribute);
-                if (!valuedAttribute.isPresent()) {
-                    // Not an attribute we want to track
-                    continue;
-                }
-
-                valuedAttribute.get().with(snapshotWrapper);
+        for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+            final Attribute attribute = snapshotWrapper.getAttribute();
+            if (attribute == null) continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
+            final Optional<ValuedAttribute> valuedAttribute = entity.getAttribute(attribute);
+            if (!valuedAttribute.isPresent()) {
+                // Not an attribute we want to track
+                continue;
             }
-        }
 
-        if (entity instanceof PacketEntityHorse) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getAttribute() == null) continue;
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
-                }
-
-                if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
-                    entity.getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get().with(snapshotWrapper);
-                }
-            }
-        }
-
-        if (entity instanceof PacketEntityRideable) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getAttribute() == null) continue;
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    entity.getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().with(snapshotWrapper);
-                }
-            }
+            valuedAttribute.get().with(snapshotWrapper);
         }
     }
 
