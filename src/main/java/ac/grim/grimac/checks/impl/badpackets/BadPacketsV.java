@@ -20,7 +20,7 @@ public class BadPacketsV extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interactEntity = new WrapperPlayClientInteractEntity(event);
             if (interactEntity.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-            if (!player.packetStateData.slowedByUsingItem) return;
+            if (!player.packetStateData.isSlowedByUsingItem()) return;
             ItemStack itemInUse = player.getInventory().getItemInHand(player.packetStateData.eatingHand);
             if (flagAndAlert("UseItem=" + itemInUse.getType().getName().getKey()) && shouldModifyPackets()) {
                 event.setCancelled(true);

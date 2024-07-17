@@ -191,7 +191,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
-                                    () -> player.packetStateData.slowedByUsingItem = false);
+                                    () -> player.packetStateData.setSlowedByUsingItem(false));
 
                             int markedTransaction = player.lastTransactionSent.get();
 
@@ -205,7 +205,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                 if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
                                     PacketPlayerDigging.handleUseItem(player, item, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
                                     // The above line is a hack to fake activate use item
-                                    player.packetStateData.slowedByUsingItem = isActive;
+                                    player.packetStateData.setSlowedByUsingItem(isActive);
 
                                     player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.slowedByUsingItem && player.isSprinting;
 
