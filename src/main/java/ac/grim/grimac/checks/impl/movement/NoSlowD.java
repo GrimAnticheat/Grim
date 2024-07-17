@@ -33,7 +33,7 @@ public class NoSlowD extends Check implements PostPredictionCheck, PacketCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        if (player.packetStateData.slowedByUsingItem) {
+        if (player.packetStateData.isSlowedByUsingItem()) {
             // https://bugs.mojang.com/browse/MC-152728
             if (startedSprintingBeforeUse && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_2)) {
                 reward();

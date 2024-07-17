@@ -125,12 +125,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (material == ItemTypes.SPYGLASS && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.packetStateData.slowedByUsingItem = true;
+            player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.eatingHand = hand;
         }
 
         if (material == ItemTypes.GOAT_HORN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-            player.packetStateData.slowedByUsingItem = true;
+            player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.eatingHand = hand;
         }
 
@@ -216,12 +216,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             final ItemStack item = hand == InteractionHand.MAIN_HAND ?
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
-            final boolean wasSlow = player.packetStateData.slowedByUsingItem;
+            final boolean wasSlow = player.packetStateData.isSlowedByUsingItem();
 
             handleUseItem(player, item, hand);
 
             if (!wasSlow) {
-                player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.slowedByUsingItem && player.isSprinting;
+                player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.isSlowedByUsingItem() && player.isSprinting;
             }
         }
     }

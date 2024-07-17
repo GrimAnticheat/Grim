@@ -207,7 +207,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                     // The above line is a hack to fake activate use item
                                     player.packetStateData.setSlowedByUsingItem(isActive);
 
-                                    player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.slowedByUsingItem && player.isSprinting;
+                                    player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.isSlowedByUsingItem() && player.isSprinting;
 
                                     if (isActive) {
                                         player.packetStateData.eatingHand = isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
