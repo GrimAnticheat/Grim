@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlowA;
+import ac.grim.grimac.checks.impl.movement.NoSlowD;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -217,7 +218,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             final ItemStack item = hand == InteractionHand.MAIN_HAND ?
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
+            final boolean wasSlow = player.packetStateData.slowedByUsingItem;
+
             handleUseItem(player, item, hand);
+
+            if (!wasSlow) {
+                player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.slowedByUsingItem && player.isSprinting;
+            }
         }
     }
 }

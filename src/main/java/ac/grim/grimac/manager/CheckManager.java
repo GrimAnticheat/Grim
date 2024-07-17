@@ -125,6 +125,9 @@ public class CheckManager {
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(EntityControl.class, new EntityControl(player))
                 .put(NoSlowA.class, new NoSlowA(player))
+                .put(NoSlowC.class, new NoSlowC(player))
+                .put(NoSlowD.class, new NoSlowD(player))
+                .put(NoSlowE.class, new NoSlowE(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
