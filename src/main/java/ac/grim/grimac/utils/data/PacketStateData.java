@@ -17,7 +17,9 @@ public class PacketStateData {
     public boolean tryingToRiptide = false;
     @Getter
     private boolean slowedByUsingItem;
-    public int slowedByUsingItemTransaction, slowedByUsingItemSlot = Integer.MIN_VALUE;
+    @Getter
+    private int slowedByUsingItemSlot = Integer.MIN_VALUE;
+    public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
     public boolean receivedSteerVehicle = false;
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;

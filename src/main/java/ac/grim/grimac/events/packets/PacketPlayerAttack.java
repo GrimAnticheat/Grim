@@ -17,6 +17,8 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
+import static ac.grim.grimac.utils.inventory.Inventory.HOTBAR_OFFSET;
+
 public class PacketPlayerAttack extends PacketListenerAbstract {
 
     public PacketPlayerAttack() {
@@ -45,9 +47,11 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
-                if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                    if (heldItem.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD))
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && player.packetStateData.isSlowedByUsingItem()) {
+                    ItemStack item = player.getInventory().inventory.getPlayerInventoryItem(player.packetStateData.getSlowedByUsingItemSlot() + HOTBAR_OFFSET);
+                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
                         player.packetStateData.setSlowedByUsingItem(false);
+                    }
                 }
 
                 if (entity != null && (!(entity.isLivingEntity()) || entity.getType() == EntityTypes.PLAYER)) {
