@@ -12,6 +12,8 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
 import ac.grim.grimac.utils.team.EntityPredicates;
 import ac.grim.grimac.utils.team.TeamHandler;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -29,7 +31,9 @@ public class MovementTicker {
 
     public static void handleEntityCollisions(GrimPlayer player) {
         // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) return;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+                // Assume that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
 
         int possibleCollidingEntities = 0;
 
