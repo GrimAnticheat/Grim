@@ -20,6 +20,8 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.viaversion.viaversion.api.Via;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.util.Vector;
 
 public class MovementTicker {
@@ -32,8 +34,9 @@ public class MovementTicker {
     public static void handleEntityCollisions(GrimPlayer player) {
         // 1.7 and 1.8 do not have player collision
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
-                // Assume that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
-                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
+                // Check that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
+                || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
+                    && (!ViaVersionUtil.isAvailable() || Via.getConfig().isPreventCollision()))) return;
 
         int possibleCollidingEntities = 0;
 
@@ -50,7 +53,9 @@ public class MovementTicker {
                 if (!entity.isPushable())
                     continue;
 
-                if (!EntityPredicates.canBePushedBy(player, entity, teamHandler).test(player)) continue;
+                // 1.9+ player on 1.8- server with ViaVersion prevent-collision disabled.
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8)
+                        && !EntityPredicates.canBePushedBy(player, entity, teamHandler).test(player)) continue;
 
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
 

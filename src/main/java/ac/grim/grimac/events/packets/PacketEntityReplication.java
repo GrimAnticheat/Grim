@@ -123,8 +123,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         }
 
-        // Updating
-        // todo: legacy support
         // 1.19.3+
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_UPDATE) {
             WrapperPlayServerPlayerInfoUpdate info = new WrapperPlayServerPlayerInfoUpdate(event);
