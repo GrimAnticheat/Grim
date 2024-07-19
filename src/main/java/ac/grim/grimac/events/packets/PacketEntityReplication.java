@@ -138,6 +138,19 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_REMOVE) {
             WrapperPlayServerPlayerInfoRemove remove = new WrapperPlayServerPlayerInfoRemove(event);
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> remove.getProfileIds().forEach(player.compensatedEntities.profiles::remove));
+        } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
+            WrapperPlayServerPlayerInfo info = new WrapperPlayServerPlayerInfo(event);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                if (info.getAction() == WrapperPlayServerPlayerInfo.Action.ADD_PLAYER) {
+                    for (WrapperPlayServerPlayerInfo.PlayerData entry : info.getPlayerDataList()) {
+                        final UserProfile gameProfile = entry.getUserProfile();
+                        final UUID uuid = gameProfile.getUUID();
+                        player.compensatedEntities.profiles.put(uuid, gameProfile);
+                    }
+                } else if (info.getAction() == WrapperPlayServerPlayerInfo.Action.REMOVE_PLAYER) {
+                    info.getPlayerDataList().forEach(profile -> player.compensatedEntities.profiles.remove(profile.getUserProfile().getUUID()));
+                }
+            });
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_EFFECT) {
