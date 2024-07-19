@@ -135,7 +135,8 @@ public class CheckManager {
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
-                .put(InvalidPlace.class, new InvalidPlace(player))
+                .put(InvalidPlaceA.class, new InvalidPlaceA(player))
+                .put(InvalidPlaceB.class, new InvalidPlaceB(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(FarPlace.class, new FarPlace(player))
                 .put(FabricatedPlace.class, new FabricatedPlace(player))
