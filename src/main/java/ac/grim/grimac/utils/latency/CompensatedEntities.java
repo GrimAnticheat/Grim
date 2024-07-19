@@ -137,8 +137,14 @@ public class CompensatedEntities {
         if (entity == null) return;
 
         for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-            final Attribute attribute = snapshotWrapper.getAttribute();
+            Attribute attribute = snapshotWrapper.getAttribute();
             if (attribute == null) continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
+
+            // Rewrite horse.jumpStrength -> modern equivalent
+            if (attribute == Attributes.HORSE_JUMP_STRENGTH) {
+                attribute = Attributes.GENERIC_JUMP_STRENGTH;
+            }
+
             final Optional<ValuedAttribute> valuedAttribute = entity.getAttribute(attribute);
             if (!valuedAttribute.isPresent()) {
                 // Not an attribute we want to track
