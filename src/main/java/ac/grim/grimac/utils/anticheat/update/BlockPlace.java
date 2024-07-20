@@ -59,7 +59,8 @@ public class BlockPlace {
     StateType material;
     @Getter
     @Nullable HitData hitData;
-    @Setter
+    @Getter
+    int faceId;
     BlockFace face;
     @Getter
     @Setter
@@ -70,10 +71,11 @@ public class BlockPlace {
 
     @Getter private final boolean block;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
         this.hand = hand;
         this.blockPosition = blockPosition;
+        this.faceId = faceId;
         this.face = face;
         this.itemStack = itemStack;
         if (itemStack.getType().getPlacedType() == null) {
@@ -434,6 +436,16 @@ public class BlockPlace {
 
     public BlockFace getDirection() {
         return face;
+    }
+
+    public void setFace(BlockFace face) {
+        this.face = face;
+        this.faceId = face.getFaceValue();
+    }
+
+    public void setFaceId(int face) {
+        this.faceId = face;
+        this.face = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) ? BlockFace.getBlockFaceByValue(faceId) : BlockFace.getLegacyBlockFaceByValue(faceId);
     }
 
     private List<BlockFace> getNearestLookingDirections() {
