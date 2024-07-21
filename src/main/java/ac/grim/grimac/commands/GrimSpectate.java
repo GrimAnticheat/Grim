@@ -10,6 +10,8 @@ import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+import io.papermc.lib.PaperLib;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -52,8 +54,7 @@ public class GrimSpectate extends BaseCommand {
         }
 
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(target.getPlayer());
+        PaperLib.teleportAsync(player, target.getPlayer().getLocation());
     }
-
 
 }

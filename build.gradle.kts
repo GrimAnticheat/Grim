@@ -29,6 +29,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
     maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
     maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://papermc.io/repo/repository/maven-public/") // PaperLib
     mavenCentral()
     // FastUtil, Discord-Webhooks
 }
@@ -39,6 +40,8 @@ dependencies {
     implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
     implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("github.scarsz:configuralize:1.4.0")
+
+    implementation("io.papermc:paperlib:1.0.8")
 
     implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
@@ -150,4 +153,5 @@ tasks.shadowJar {
     relocate("org.json", "ac.grim.grimac.shaded.json")
     relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
     relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+    relocate("io.papermc.lib", "ac.grim.grimac.shaded.io.papermc.lib")
 }
