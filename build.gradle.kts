@@ -44,11 +44,11 @@ dependencies {
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     implementation("org.jetbrains:annotations:24.1.0")
-    compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
-    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
-    compileOnly("com.viaversion:viaversion-api:4.9.4-SNAPSHOT")
+    compileOnly("org.geysermc.floodgate:api:2.2.2-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.20.6-R0.1-SNAPSHOT")
+    compileOnly("com.viaversion:viaversion-api:4.10.2-SNAPSHOT")
     //
-    compileOnly("io.netty:netty-all:4.1.85.Final")
+    compileOnly("io.netty:netty-all:4.1.111.Final")
 }
 
 bukkit {
