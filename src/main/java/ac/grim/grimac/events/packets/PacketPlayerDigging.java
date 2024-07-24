@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPackets4;
 import ac.grim.grimac.checks.impl.movement.NoSlowA;
 import ac.grim.grimac.checks.impl.movement.NoSlowD;
 import ac.grim.grimac.player.GrimPlayer;
@@ -34,6 +35,23 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         if (item == null) {
             player.packetStateData.setSlowedByUsingItem(false);
             return;
+        }
+
+        if (hand == InteractionHand.OFF_HAND && player.packetStateData.isSlowedByUsingItem()) {
+            int slot = player.packetStateData.slowedByUsingItemSlot;
+            InteractionHand eatingHand = player.packetStateData.eatingHand;
+            player.packetStateData.setSlowedByUsingItem(false);
+
+            handleUseItem(player, player.getInventory().getHeldItem(), InteractionHand.MAIN_HAND);
+
+            // The player should have used the mainhand
+            if (player.packetStateData.isSlowedByUsingItem()) {
+                player.checkManager.getPacketCheck(BadPackets4.class).flagAndAlert();
+            }
+
+            player.packetStateData.eatingHand = eatingHand;
+            player.packetStateData.setSlowedByUsingItem(true);
+            player.packetStateData.slowedByUsingItemSlot = slot;
         }
 
         final ItemType material = item.getType();
