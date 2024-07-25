@@ -43,6 +43,7 @@ public class GrimProfile extends BaseCommand {
 
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
             message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(grimPlayer, message, true);
+            message = MessageUtil.setPlaceholders(grimPlayer.bukkitPlayer, message);
             sender.sendMessage(message);
         }
     }

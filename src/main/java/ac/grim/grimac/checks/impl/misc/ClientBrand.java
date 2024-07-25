@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
@@ -42,6 +43,7 @@ public class ClientBrand extends Check implements PacketCheck {
                 if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                     String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                     message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
+                    message = MessageUtil.setPlaceholders(getPlayer().bukkitPlayer, message);
                     // sendMessage is async safe while broadcast isn't due to adventure
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.hasPermission("grim.brand")) {

@@ -107,7 +107,7 @@ public class PunishmentManager {
 
         original = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, original, true);
 
-        return original;
+        return MessageUtil.setPlaceholders(player.bukkitPlayer, original);
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {

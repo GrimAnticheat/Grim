@@ -4,13 +4,29 @@ import ac.grim.grimac.GrimAPI;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.experimental.UtilityClass;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @UtilityClass
 public class MessageUtil {
+    private final boolean hasPlaceholderAPI;
+
+    static {
+        boolean placeholderAPI;
+
+        try {
+            Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+            placeholderAPI = true;
+        } catch (ClassNotFoundException ignored) {
+            placeholderAPI = false;
+        }
+
+        hasPlaceholderAPI = placeholderAPI;
+    }
 
     public String format(String string) {
         string = formatWithNoColor(string);
@@ -21,6 +37,14 @@ public class MessageUtil {
 
     public String formatWithNoColor(String string) {
         return string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
+    }
+
+    public String setPlaceholders(Player player, String string) {
+        if (!hasPlaceholderAPI) {
+            return string;
+        }
+
+        return PlaceholderAPI.setPlaceholders(player, string);
     }
 
     private String translateHexCodes(String message) {
