@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlowA;
+import ac.grim.grimac.checks.impl.movement.NoSlowD;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -31,14 +32,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     public static void handleUseItem(GrimPlayer player, ItemStack item, InteractionHand hand) {
         if (item == null) {
-            player.packetStateData.slowedByUsingItem = false;
+            player.packetStateData.setSlowedByUsingItem(false);
             return;
         }
 
         final ItemType material = item.getType();
 
         if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
-            player.packetStateData.slowedByUsingItem = false; // resync, not required
+            player.packetStateData.setSlowedByUsingItem(false); // resync, not required
             return; // The player has a cooldown, and therefore cannot use this item!
         }
 
@@ -46,11 +47,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
             if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
-                player.packetStateData.slowedByUsingItem = true;
+                player.packetStateData.setSlowedByUsingItem(true);
                 player.packetStateData.eatingHand = hand;
                 return;
             } else {
-                player.packetStateData.slowedByUsingItem = false;
+                player.packetStateData.setSlowedByUsingItem(false);
             }
         }
 
@@ -72,24 +73,24 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     || material == ItemTypes.GOLDEN_APPLE || material == ItemTypes.ENCHANTED_GOLDEN_APPLE
                     || material == ItemTypes.HONEY_BOTTLE || material == ItemTypes.SUSPICIOUS_STEW ||
                     material == ItemTypes.CHORUS_FRUIT) {
-                player.packetStateData.slowedByUsingItem = true;
+                player.packetStateData.setSlowedByUsingItem(true);
                 player.packetStateData.eatingHand = hand;
                 return;
             }
 
             // The other items that do require it
             if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.bukkitPlayer != null && player.food < 20) || player.gamemode == GameMode.CREATIVE)) {
-                player.packetStateData.slowedByUsingItem = true;
+                player.packetStateData.setSlowedByUsingItem(true);
                 player.packetStateData.eatingHand = hand;
                 return;
             }
 
             // The player cannot eat this item, resync use status
-            player.packetStateData.slowedByUsingItem = false;
+            player.packetStateData.setSlowedByUsingItem(false);
         }
 
         if (material == ItemTypes.SHIELD && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            player.packetStateData.slowedByUsingItem = true;
+            player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.eatingHand = hand;
             return;
         }
@@ -97,13 +98,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         // Avoid releasing crossbow as being seen as slowing player
         final NBTCompound nbt = item.getNBT(); // How can this be null?
         if (material == ItemTypes.CROSSBOW && nbt != null && nbt.getBoolean("Charged")) {
-            player.packetStateData.slowedByUsingItem = false; // TODO: Fix this
+            player.packetStateData.setSlowedByUsingItem(false); // TODO: Fix this
             return;
         }
 
         // The client and server don't agree on trident status because mojang is incompetent at netcode.
         if (material == ItemTypes.TRIDENT) {
-            player.packetStateData.slowedByUsingItem = item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0;
+            player.packetStateData.setSlowedByUsingItem(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0);
             player.packetStateData.eatingHand = hand;
         }
 
@@ -120,25 +121,25 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // On 1.8, it wouldn't be too bad to handle bows correctly
             // But on 1.9+, no idle packet and clients/servers don't agree on bow status
             // Mojang pls fix
-            player.packetStateData.slowedByUsingItem = false;
+            player.packetStateData.setSlowedByUsingItem(false);
         }
 
         if (material == ItemTypes.SPYGLASS && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.packetStateData.slowedByUsingItem = true;
+            player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.eatingHand = hand;
         }
 
         if (material == ItemTypes.GOAT_HORN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-            player.packetStateData.slowedByUsingItem = true;
+            player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.eatingHand = hand;
         }
 
         // Only 1.8 and below players can block with swords
         if (material.hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
-                player.packetStateData.slowedByUsingItem = true;
+                player.packetStateData.setSlowedByUsingItem(true);
             else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
-                player.packetStateData.slowedByUsingItem = false;
+                player.packetStateData.setSlowedByUsingItem(false);
         }
     }
 
@@ -151,7 +152,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
-                player.packetStateData.slowedByUsingItem = false;
+                player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
@@ -170,7 +171,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player == null) return;
 
             if (!player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                player.packetStateData.wasSlowedByUsingItem = player.packetStateData.slowedByUsingItem;
+                if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.slowedByUsingItemSlot != player.packetStateData.lastSlotSelected) {
+                    player.packetStateData.setSlowedByUsingItem(false);
+                    player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
+                }
             }
         }
 
@@ -187,13 +191,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
             if (player.packetStateData.lastSlotSelected != slot) {
-                if (player.packetStateData.slowedByUsingItemSlot != slot || (!player.isTickingReliablyFor(3) && player.skippedTickInActualMovement)) {
-                    player.packetStateData.wasSlowedByUsingItem = player.packetStateData.slowedByUsingItem;
-                    player.packetStateData.slowedByUsingItem = false;
-                    player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
-                } else if (player.packetStateData.wasSlowedByUsingItem) {
-                    player.packetStateData.slowedByUsingItem = true;
-                    player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = false;
+                // just assume they tick after this
+                if (!player.isTickingReliablyFor(3) && player.skippedTickInActualMovement) {
+                    player.packetStateData.setSlowedByUsingItem(false);
                 }
             }
             player.packetStateData.lastSlotSelected = slot;
@@ -212,12 +212,17 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
-            player.packetStateData.slowedByUsingItemSlot = player.packetStateData.lastSlotSelected;
 
             final ItemStack item = hand == InteractionHand.MAIN_HAND ?
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
+            final boolean wasSlow = player.packetStateData.isSlowedByUsingItem();
+
             handleUseItem(player, item, hand);
+
+            if (!wasSlow) {
+                player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.isSlowedByUsingItem() && player.isSprinting;
+            }
         }
     }
 }

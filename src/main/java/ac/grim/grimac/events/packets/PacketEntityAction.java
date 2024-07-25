@@ -1,6 +1,9 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.movement.NoSlowC;
+import ac.grim.grimac.checks.impl.movement.NoSlowD;
+import ac.grim.grimac.checks.impl.movement.NoSlowE;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;

@@ -125,6 +125,9 @@ public class CheckManager {
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(EntityControl.class, new EntityControl(player))
                 .put(NoSlowA.class, new NoSlowA(player))
+                .put(NoSlowC.class, new NoSlowC(player))
+                .put(NoSlowD.class, new NoSlowD(player))
+                .put(NoSlowE.class, new NoSlowE(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
@@ -132,7 +135,8 @@ public class CheckManager {
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
-                .put(InvalidPlace.class, new InvalidPlace(player))
+                .put(InvalidPlaceA.class, new InvalidPlaceA(player))
+                .put(InvalidPlaceB.class, new InvalidPlaceB(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(FarPlace.class, new FarPlace(player))
                 .put(FabricatedPlace.class, new FabricatedPlace(player))

@@ -29,6 +29,11 @@ public class Check implements AbstractCheck {
     @Setter
     private boolean isEnabled;
 
+    @Override
+    public boolean isExperimental() {
+        return experimental;
+    }
+
     public Check(final GrimPlayer player) {
         this.player = player;
 

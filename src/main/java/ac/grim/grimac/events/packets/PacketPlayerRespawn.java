@@ -135,7 +135,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastOnGround = false;
                 player.onGround = false;
                 player.isInBed = false;
-                player.packetStateData.slowedByUsingItem = player.packetStateData.wasSlowedByUsingItem = false;
+                player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
