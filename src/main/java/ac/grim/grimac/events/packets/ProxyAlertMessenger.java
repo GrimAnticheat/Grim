@@ -59,7 +59,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         }
 
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            bukkitPlayer.sendMessage(alert);
+            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(alert));
     }
 
     public static void sendPluginMessage(String message) {

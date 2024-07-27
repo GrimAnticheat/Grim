@@ -26,13 +26,13 @@ public class GrimLog extends BaseCommand {
 
         if (builder == null) {
             String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
-            sender.sendMessage(MessageUtil.format(failure));
+            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(failure));
         } else {
             String uploading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-start", "%prefix% &fUploading log... please wait");
             String success = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log", "%prefix% &fUploaded debug to: %url%");
             String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-upload-failure", "%prefix% &cSomething went wrong while uploading this log, see console for more information.");
 
-            sender.sendMessage(MessageUtil.format(uploading));
+            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(uploading));
 
             FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
                 try {
@@ -51,15 +51,16 @@ public class GrimLog extends BaseCommand {
 
                     if (response == HttpURLConnection.HTTP_CREATED) {
                         String responseURL = urlConn.getHeaderField("Location");
-                        sender.sendMessage(MessageUtil.format(success.replace("%url%", "https://paste.grim.ac/" + responseURL)));
+                        String message = success.replace("%url%", "https://paste.grim.ac/" + responseURL);
+                        MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
                     } else {
-                        sender.sendMessage(MessageUtil.format(failure));
+                        MessageUtil.sendMessage(sender, MessageUtil.miniMessage(failure));
                         LogUtil.error("Returned response code " + response + ": " + urlConn.getResponseMessage());
                     }
 
                     urlConn.disconnect();
                 } catch (Exception e) {
-                    sender.sendMessage(MessageUtil.format(failure));
+                    MessageUtil.sendMessage(sender, MessageUtil.miniMessage(failure));
                     e.printStackTrace();
                 }
             });

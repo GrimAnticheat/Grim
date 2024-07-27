@@ -1,14 +1,11 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
-import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -25,7 +22,8 @@ public class GrimReload extends BaseCommand {
             return;
         }
 
-        sender.sendMessage(MessageUtil.format("%prefix% &fConfig has been reloaded."));
+        String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reload", "%prefix% &fConfig has been reloaded.");
+        MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
     }
 
 }
