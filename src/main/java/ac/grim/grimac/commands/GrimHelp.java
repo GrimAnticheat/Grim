@@ -16,8 +16,7 @@ public class GrimHelp extends BaseCommand {
     @CommandPermission("grim.help")
     public void onHelp(CommandSender sender) {
         for (String string : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("help")) {
-            string = MessageUtil.format(string);
-            sender.sendMessage(string);
+            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(string));
         }
     }
 }

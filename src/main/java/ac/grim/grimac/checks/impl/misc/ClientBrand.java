@@ -5,9 +5,11 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -41,11 +43,14 @@ public class ClientBrand extends Check implements PacketCheck {
                 if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
                 if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                     String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
-                    message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
+                    message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, false);
+
+                    Component component = MessageUtil.miniMessage(message);
+
                     // sendMessage is async safe while broadcast isn't due to adventure
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.hasPermission("grim.brand")) {
-                            player.sendMessage(message);
+                            MessageUtil.sendMessage(player, component);
                         }
                     }
                 }
