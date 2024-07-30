@@ -1176,10 +1176,6 @@ public enum CollisionData {
         }
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
-    HEAVY_CORE((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 8.0, 12.0);
-    }, StateTypes.HEAVY_CORE),
-
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.CAVE_AIR, StateTypes.VOID_AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
