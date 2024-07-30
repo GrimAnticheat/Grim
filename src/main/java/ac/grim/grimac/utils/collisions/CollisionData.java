@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -1176,6 +1175,10 @@ public enum CollisionData {
                 return NoCollisionBox.INSTANCE;
         }
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+
+    HEAVY_CORE((player, version, data, x, y, z) -> {
+        return new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 8.0, 12.0);
+    }, StateTypes.HEAVY_CORE),
 
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.CAVE_AIR, StateTypes.VOID_AIR, StateTypes.LIGHT),
 
