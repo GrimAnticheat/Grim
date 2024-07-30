@@ -43,7 +43,7 @@ public class ClientBrand extends Check implements PacketCheck {
                 if (player.checkManager.getPrePredictionCheck(ExploitA.class).checkString(brand)) brand = "sent log4j";
                 if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                     String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
-                    message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, false);
+                    message = MessageUtil.replacePlaceholders(getPlayer(), message);
 
                     Component component = MessageUtil.miniMessage(message);
 

@@ -15,6 +15,7 @@ public class GrimSendAlert extends BaseCommand {
     @Subcommand("sendalert")
     @CommandPermission("grim.sendalert")
     public void sendAlert(String string) {
+        string = MessageUtil.replacePlaceholders((Object) null, string);
         Component message = MessageUtil.miniMessage(string);
 
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {

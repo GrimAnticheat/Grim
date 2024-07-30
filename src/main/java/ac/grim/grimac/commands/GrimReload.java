@@ -23,7 +23,7 @@ public class GrimReload extends BaseCommand {
         }
 
         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reload", "%prefix% &fConfig has been reloaded.");
+        message = MessageUtil.replacePlaceholders(sender, message);
         MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
     }
-
 }

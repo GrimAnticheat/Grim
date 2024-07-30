@@ -95,17 +95,16 @@ public class PunishmentManager {
         // Streams are slow but this isn't a hot path... it's fine.
         String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
 
-        original = MessageUtil.format(original
+        original = original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
                 .replace("%check_name%", check.getCheckName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", vl)
                 .replace("%verbose%", verbose)
-                .replace("%description%", check.getDescription())
-        );
+                .replace("%description%", check.getDescription());
 
-        original = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, original, true);
+        original = MessageUtil.replacePlaceholders(player, original);
 
         return original;
     }

@@ -1,15 +1,19 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.experimental.UtilityClass;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,20 +21,42 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class MessageUtil {
     private final BukkitAudiences adventure = BukkitAudiences.create(GrimAPI.INSTANCE.getPlugin());
+    private final boolean hasPlaceholderAPI;
 
-    public String format(String string) {
-        string = formatWithNoColor(string);
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16))
-            string = translateHexCodes(string);
-        return ChatColor.translateAlternateColorCodes('&', string);
+    static {
+        boolean placeholderAPI;
+
+        try {
+            Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+            placeholderAPI = true;
+        } catch (ClassNotFoundException ignored) {
+            placeholderAPI = false;
+        }
+
+        hasPlaceholderAPI = placeholderAPI;
     }
 
-    public String formatWithNoColor(String string) {
-        return string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
+    public @NotNull String replacePlaceholders(@NotNull GrimPlayer player, @NotNull String string) {
+        return replacePlaceholders(player.bukkitPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
     }
 
-    public @NotNull Component miniMessage(String string) {
-        string = formatWithNoColor(string);
+    public @NotNull String replacePlaceholders(@Nullable Object object, @NotNull String string) {
+        if (!hasPlaceholderAPI) return string;
+
+        OfflinePlayer player = null;
+        if (object instanceof OfflinePlayer) {
+            player = (OfflinePlayer) object;
+        }
+
+        return PlaceholderAPI.setPlaceholders(player, string);
+    }
+
+    public @NotNull String replacePlaceholders(@Nullable OfflinePlayer player, @NotNull String string) {
+        return hasPlaceholderAPI ? PlaceholderAPI.setPlaceholders(player, string) : string;
+    }
+
+    public @NotNull Component miniMessage(@NotNull String string) {
+        string = string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
 
         // hex codes
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
@@ -75,15 +101,5 @@ public class MessageUtil {
 
     public void sendMessage(CommandSender commandSender, @NotNull Component component) {
         adventure.sender(commandSender).sendMessage(component);
-    }
-
-    private String translateHexCodes(String message) {
-        Matcher matcher = Pattern.compile("&#[A-Fa-f0-9]{6}").matcher(message);
-        StringBuffer sb = new StringBuffer(message.length());
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, ChatColor.of("#" + matcher.group(1)).toString());
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
     }
 }

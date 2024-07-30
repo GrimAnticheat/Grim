@@ -25,10 +25,12 @@ public class AlertManagerImpl implements AlertManager {
     public void toggleAlerts(Player player) {
         if (!enabledAlerts.remove(player)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-enabled", "%prefix% &fAlerts enabled");
+            alertString = MessageUtil.replacePlaceholders(player, alertString);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(alertString));
             enabledAlerts.add(player);
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-disabled", "%prefix% &fAlerts disabled");
+            alertString = MessageUtil.replacePlaceholders(player, alertString);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(alertString));
         }
     }
@@ -42,10 +44,12 @@ public class AlertManagerImpl implements AlertManager {
     public void toggleVerbose(Player player) {
         if (!enabledVerbose.remove(player)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-enabled", "%prefix% &fVerbose enabled");
+            alertString = MessageUtil.replacePlaceholders(player, alertString);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(alertString));
             enabledVerbose.add(player);
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-disabled", "%prefix% &fVerbose disabled");
+            alertString = MessageUtil.replacePlaceholders(player, alertString);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(alertString));
         }
     }
