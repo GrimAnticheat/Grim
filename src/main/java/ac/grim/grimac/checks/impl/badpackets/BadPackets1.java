@@ -16,12 +16,16 @@ public class BadPackets1 extends Check implements PacketCheck {
         super(player);
     }
 
-    private boolean lastLastPacketWasTeleport = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate && !player.packetStateData.lastPacketWasTeleport && !lastLastPacketWasTeleport && player.checkManager.getPacketCheck(BadPacketsE.class).noReminderTicks < 20 && !player.skippedTickInActualMovement) {
+            if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate
+                    && !player.packetStateData.lastPacketWasTeleport
+                    && player.checkManager.getPacketCheck(BadPacketsE.class).noReminderTicks < 20
+                    && !player.skippedTickInActualMovement
+                    && !player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(2)
+                    && !player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(1)
+            ) {
                 final double delta = new WrapperPlayClientPlayerFlying(event).getLocation().getPosition().distance(new Vector3d(player.lastX, player.lastY, player.lastZ));
                 if (delta <= player.getMovementThreshold() && flagWithSetback()) {
                     alert("delta=" + delta);
@@ -31,11 +35,6 @@ public class BadPackets1 extends Check implements PacketCheck {
                     }
                 }
             }
-        }
-
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            // for lunar & some forge clients. Stopped between 1.13 and 1.16.5, exempt pre-1.16.5 just to be safe
-            lastLastPacketWasTeleport = player.packetStateData.lastPacketWasTeleport && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
         }
     }
 }
