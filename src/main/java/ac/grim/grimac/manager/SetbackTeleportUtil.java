@@ -303,6 +303,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 // The player ignored the teleport (and this teleport matters), resynchronize
                 player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
                 pendingTeleports.poll();
+                if (player.bukkitPlayer != null && player.noSetbackPermission) continue; // The player has permission to cheat
                 requiredSetBack.setPlugin(false);
                 if (pendingTeleports.isEmpty()) {
                     sendSetback(requiredSetBack);
