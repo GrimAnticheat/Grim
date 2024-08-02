@@ -85,7 +85,7 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
 
         if (weirdBoxes.contains(place.getPlacedAgainstMaterial())) {
             // Invert the box to give lenience
-            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY() + 1.5, clicked.getZ());
+            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
         }
 
         if (buggyBoxes.contains(place.getPlacedAgainstMaterial())) {
