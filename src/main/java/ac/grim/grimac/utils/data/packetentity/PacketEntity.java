@@ -19,7 +19,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.data.TrackedPosition;
-import ac.grim.grimac.utils.data.TrackedPosition;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -60,7 +59,8 @@ public class PacketEntity extends TypedPacketEntity {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
             trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
         }
-        this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, this), trackedServerPosition, this);
+        final Vector3d pos = trackedServerPosition.getPos();
+        this.newPacketLocation = new ReachInterpolationData(player, GetBoundingBox.getPacketEntityBoundingBox(player, pos.x, pos.y, pos.z, this), trackedServerPosition, this);
     }
 
     // Set the old packet location to the new one

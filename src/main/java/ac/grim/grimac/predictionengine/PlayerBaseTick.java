@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
+import ac.grim.grimac.checks.impl.movement.NoSlowC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -8,6 +9,8 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
@@ -61,6 +64,8 @@ public class PlayerBaseTick {
             player.trackBaseTickAddition(waterPushVector);
         }
 
+        final boolean wasSlowMovement = player.isSlowMovement;
+
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
             // 1.13.2 and below logic: If crouching, then slow movement, simple!
             player.isSlowMovement = player.isSneaking;
@@ -80,6 +85,8 @@ public class PlayerBaseTick {
         }
 
         if (player.compensatedEntities.getSelf().inVehicle()) player.isSlowMovement = false;
+
+        if (wasSlowMovement != player.isSlowMovement) player.checkManager.getPostPredictionCheck(NoSlowC.class).startedSprintingBeforeSlowMovement = player.isSlowMovement && player.isSprinting;
 
         // Players in boats don't care about being in blocks
         if (!player.compensatedEntities.getSelf().inVehicle()) {
@@ -142,7 +149,7 @@ public class PlayerBaseTick {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
 
         // The client first desync's this attribute
-        player.compensatedEntities.getSelf().playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID));
+        player.compensatedEntities.getSelf().playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID) || modifier.getName().getKey().equals("powder_snow"));
 
         // And then re-adds it using purely what the server has sent it
         StateType type = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));

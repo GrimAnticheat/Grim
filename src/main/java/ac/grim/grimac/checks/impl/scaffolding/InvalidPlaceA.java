@@ -6,9 +6,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.util.Vector3f;
 
-@CheckData(name = "InvalidPlace")
-public class InvalidPlace extends BlockPlaceCheck {
-    public InvalidPlace(GrimPlayer player) {
+@CheckData(name = "InvalidPlaceA")
+public class InvalidPlaceA extends BlockPlaceCheck {
+    public InvalidPlaceA(GrimPlayer player) {
         super(player);
     }
 

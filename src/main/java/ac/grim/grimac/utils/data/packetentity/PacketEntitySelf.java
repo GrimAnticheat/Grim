@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.checks.impl.movement.NoSlowE;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -8,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,6 +44,9 @@ public class PacketEntitySelf extends PacketEntity {
     public PacketEntitySelf(GrimPlayer player) {
         super(EntityTypes.PLAYER);
         this.player = player;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+            this.stepHeight = 0.5f;
+        }
     }
 
     public PacketEntitySelf(GrimPlayer player, PacketEntitySelf old) {
@@ -62,6 +67,10 @@ public class PacketEntitySelf extends PacketEntity {
 
     @Override
     public void addPotionEffect(PotionType effect, int amplifier) {
+        if (effect == PotionTypes.BLINDNESS && (potionsMap == null || !potionsMap.containsKey(PotionTypes.BLINDNESS))) {
+            player.checkManager.getPostPredictionCheck(NoSlowE.class).startedSprintingBeforeBlind = player.isSprinting;
+        }
+
         player.pointThreeEstimator.updatePlayerPotions(effect, amplifier);
         super.addPotionEffect(effect, amplifier);
     }

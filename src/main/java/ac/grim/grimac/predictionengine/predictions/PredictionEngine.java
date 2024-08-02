@@ -6,7 +6,6 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -38,7 +37,7 @@ public class PredictionEngine {
             bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
         }
 
-        if (player.packetStateData.slowedByUsingItem) {
+        if (player.packetStateData.isSlowedByUsingItem()) {
             bestPossibleX *= 0.2F;
             bestPossibleZ *= 0.2F;
         }
@@ -170,7 +169,7 @@ public class PredictionEngine {
             // Whatever, if someone uses phase or something they will get caught by everything else...
             // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
             // As not flipping item is preferred... it gets ran before any other options
-            if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
+            if (player.packetStateData.isSlowedByUsingItem() && !clientVelAfterInput.isFlipItem()) {
                 player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
@@ -725,7 +724,7 @@ public class PredictionEngine {
                     }
                 }
 
-                player.packetStateData.slowedByUsingItem = !player.packetStateData.slowedByUsingItem;
+                player.packetStateData.setSlowedByUsingItem(!player.packetStateData.isSlowedByUsingItem());
             }
             // TODO: Secure this? Do we care about minor 1.9-1.18.1 (not 1.18.2+!) bypasses that no client exploits yet?
             // I personally don't care because 1.8 and 1.18.2 are much more popular than any weird version

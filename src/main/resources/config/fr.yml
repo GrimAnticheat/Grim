@@ -41,6 +41,9 @@ max-transaction-time: 60
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
 cancel-duplicate-packet: true
 
+# Whether or not to ignore the rotation in duplicate packets
+ignore-duplicate-packet-rotation: false
+
 Simulation:
   # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
   # Voici à quoi ressemble la configuration par défaut (l'axe x = secondes, l'axe y = 1/1000 de bloc) : https://www.desmos.com/calculator/d4ufgxrxer
@@ -173,6 +176,7 @@ packet-spam-threshold: 100
 
 # Grim est capable de faire respecter qu'un joueur sorti de l'état de vol ne peut pas avoir plus de X millisecondes de ping.
 # Cela est dû au fait que Grim ne vérifie pas actuellement les joueurs en vol.
+# To disable, use -1
 max-ping-out-of-flying: 1000
 
 # Maximum ping when a firework boost is removed from the player.

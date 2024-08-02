@@ -14,11 +14,11 @@ public class LogUtil {
     }
 
     public void warn(final String warn) {
-        getLogger().info(warn);
+        getLogger().warning(warn);
     }
 
     public void error(final String error) {
-        getLogger().info(error);
+        getLogger().severe(error);
     }
 
     public Logger getLogger() {

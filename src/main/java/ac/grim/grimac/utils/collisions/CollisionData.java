@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -177,7 +176,7 @@ public enum CollisionData {
 
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
             StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
-            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL),
+            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL, StateTypes.HEAVY_CORE),
     
     PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), StateTypes.PIGLIN_HEAD),
 
@@ -1319,7 +1318,7 @@ public enum CollisionData {
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?

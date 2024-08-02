@@ -41,6 +41,9 @@ max-transaction-time: 60
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
 cancel-duplicate-packet: true
 
+# Whether or not to ignore the rotation in duplicate packets
+ignore-duplicate-packet-rotation: false
+
 Simulation:
   # На сколько мы должны умножить общее преимущество, когда игрок легален.
   # Вот как выглядит конфигурация по умолчанию (ось x = секунды, ось y = 1/1000 блока): https://www.desmos.com/calculator/d4ufgxrxer
@@ -172,6 +175,7 @@ packet-spam-threshold: 100
 
 # Грим может обеспечить, что игрок, выведенный из состояния полёта, не может иметь пинг более X миллисекунд.
 # Это связано с тем, что Грим в настоящее время не проверяет летающих игроков.
+# To disable, use -1
 max-ping-out-of-flying: 1000
 
 # Maximum ping when a firework boost is removed from the player.

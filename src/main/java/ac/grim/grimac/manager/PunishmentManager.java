@@ -102,6 +102,7 @@ public class PunishmentManager {
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", vl)
                 .replace("%verbose%", verbose)
+                .replace("%description%", check.getDescription())
         );
 
         original = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, original, true);

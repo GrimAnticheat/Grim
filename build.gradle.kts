@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ac.grim.grimac"
-version = "2.3.65"
+version = "2.3.66"
 description = "Libre simulation anticheat designed for 1.20 with 1.8-1.20 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -17,7 +17,11 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 repositories {
     mavenLocal()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") // Grim API
+    maven("https://jitpack.io/") { // Grim API
+        content {
+            includeGroup("com.github.grimanticheat")
+        }
+    }
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
@@ -30,13 +34,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.retrooper:packetevents-spigot:2.3.1-SNAPSHOT")
+    implementation("com.github.retrooper:packetevents-spigot:2.4.1-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
     implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("github.scarsz:configuralize:1.4.0")
 
-    implementation("com.github.grimanticheat:grimapi:9f5aaef74b")
+    implementation("com.github.grimanticheat:grimapi:f10e6fd1b0")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     implementation("org.jetbrains:annotations:24.1.0")

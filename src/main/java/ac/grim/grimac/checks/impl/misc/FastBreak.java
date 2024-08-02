@@ -144,10 +144,6 @@ public class FastBreak extends Check implements PacketCheck {
 
                 lastFinishBreak = System.currentTimeMillis();
             }
-
-            if (digging.getAction() == DiggingAction.CANCELLED_DIGGING) {
-                targetBlock = null;
-            }
         }
     }
 

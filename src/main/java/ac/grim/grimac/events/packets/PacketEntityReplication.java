@@ -141,8 +141,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 return;
             }
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
-                event.getTasksAfterSend().add(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) player.sendTransaction();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
@@ -155,8 +154,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.REMOVE_ENTITY_EFFECT) {
             WrapperPlayServerRemoveEntityEffect effect = new WrapperPlayServerRemoveEntityEffect(event);
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
-                event.getTasksAfterSend().add(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) player.sendTransaction();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
@@ -192,8 +190,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (status.getStatus() == 9) {
                 if (status.getEntityId() != player.entityID) return;
 
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
             }
 
             if (status.getStatus() == 31) {
@@ -219,13 +217,13 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (slot.getWindowId() == 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = false;
+                        player.packetStateData.setSlowedByUsingItem(false);
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = false;
+                        player.packetStateData.setSlowedByUsingItem(false);
                     }
                 });
             }
@@ -235,19 +233,19 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
 
             if (items.getWindowId() == 0) { // Player inventory
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
             }
         }
 
         // 1.8 clients fail to send the RELEASE_USE_ITEM packet when a window is opened client sided while using an item
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
         }
         if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
         }
 
         if (event.getPacketType() == PacketType.Play.Server.SET_PASSENGERS) {

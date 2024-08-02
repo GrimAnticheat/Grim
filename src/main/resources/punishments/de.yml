@@ -1,4 +1,5 @@
 # %check_name% - Name der Prüfung
+# %description% - description of the check
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen
 # %player% - Spielername
