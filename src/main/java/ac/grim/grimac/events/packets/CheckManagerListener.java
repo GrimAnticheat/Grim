@@ -48,8 +48,10 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
@@ -57,6 +59,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
     }
+
+    private static final long TIME_WINDOW = TimeUnit.SECONDS.toMillis(1),
+            ANIMATION_WINDOW = 200; // 200 milliseconds for right-click animation
+    private long lastCPSCheck = 0;
+    private final ArrayDeque<Long> leftClickTimestamps = new ArrayDeque<>(),
+            rightClickTimestamps = new ArrayDeque<>();
 
     // Copied from MCP...
     // Returns null if there isn't anything.
@@ -379,6 +387,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
+        long currentTime = System.currentTimeMillis();
+
+        boolean digging = false;
 
         // Determine if teleport BEFORE we call the pre-prediction vehicle
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -461,6 +472,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.checkManager.getPacketCheck(BadPacketsZ.class).handle(event, dig);
 
             if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
+                digging = false;
                 // Not unbreakable
                 if (!block.getType().isAir() && block.getType().getHardness() != -1.0f && !event.isCancelled()) {
                     player.compensatedWorld.startPredicting();
@@ -470,6 +482,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (dig.getAction() == DiggingAction.START_DIGGING && !event.isCancelled()) {
+                digging = true;
                 double damage = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition());
 
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
@@ -486,8 +499,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
+            if (dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
+                digging = false;
+            }
+
             if (!event.isCancelled()) {
                 if (dig.getAction() == DiggingAction.START_DIGGING || dig.getAction() == DiggingAction.FINISHED_DIGGING || dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
+                    leftClickTimestamps.clear();
                     player.compensatedWorld.handleBlockBreakPrediction(dig);
                 }
             }
@@ -564,6 +582,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
+        }
+
+        // Handle left-clicks
+        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+            if (isRecentRightClick(currentTime)) return;
+            if (digging) return;
+            handleLeftClick(currentTime);
+        }
+
+        if (currentTime - lastCPSCheck >= TIME_WINDOW) {
+            final ArmAnimationUpdate update = new ArmAnimationUpdate(leftClickTimestamps.size(), rightClickTimestamps.size());
+            player.checkManager.onArmAnimation(update);
+            leftClickTimestamps.clear();
+            rightClickTimestamps.clear();
+            lastCPSCheck = currentTime;
         }
 
         // Call the packet checks last as they can modify the contents of the packet
@@ -825,6 +858,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             return null;
         });
+    }
+
+    private boolean isRecentRightClick(final long currentTime) {
+        return !rightClickTimestamps.isEmpty() && currentTime - rightClickTimestamps.peekLast() <= ANIMATION_WINDOW;
+    }
+
+    private void handleLeftClick(final long currentTime) {
+        leftClickTimestamps.addLast(currentTime);
+        removeOldTimestamps(currentTime, leftClickTimestamps);
+    }
+
+    private void handleRightClick(final long currentTime) {
+        rightClickTimestamps.addLast(currentTime);
+        removeOldTimestamps(currentTime, rightClickTimestamps);
+    }
+
+    private void removeOldTimestamps(final long currentTime, final ArrayDeque<Long> timestamps) {
+        while (!timestamps.isEmpty() && currentTime - timestamps.peek() > TIME_WINDOW) timestamps.pollFirst();
     }
 
     @Override
