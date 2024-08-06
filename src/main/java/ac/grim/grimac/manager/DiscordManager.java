@@ -64,7 +64,7 @@ public class DiscordManager implements Initable {
 
     private List<String> getDefaultDescription() {
         List<String> list = new ArrayList<>();
-        list.add("No Cheat Enforcer Version: %nce_version%");
+        list.add("Grim Version: %grim_version%");
         return list;
     }
 
