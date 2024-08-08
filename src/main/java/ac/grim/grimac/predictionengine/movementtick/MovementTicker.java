@@ -54,7 +54,7 @@ public class MovementTicker {
                     continue;
 
                 // 1.9+ player on 1.8- server with ViaVersion prevent-collision disabled.
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8)
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)
                         && !EntityPredicates.canBePushedBy(player, entity, teamHandler).test(player)) continue;
 
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
