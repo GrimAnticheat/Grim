@@ -7,9 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.ArmAnimationUpdate;
 
 /*
- This check is responsible for alerting everyone with grim.alerts when a player is clicking too fast.
- This check is a simple example of how to use the ArmAnimationCheck interface.
- You can even create your own heuristics to detect autoclickers.
+ Information in regard to why this was added can be found here:
+ https://github.com/GrimAnticheat/Grim/pull/1631
  */
 @CheckData(name = "AutoClickerA", alternativeName = "AutoclickerA")
 public class AutoClickerA extends Check implements ArmAnimationCheck {
