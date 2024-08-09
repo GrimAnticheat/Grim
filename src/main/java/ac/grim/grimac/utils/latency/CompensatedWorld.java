@@ -503,7 +503,7 @@ public class CompensatedWorld {
         } else if (state.getType() == StateTypes.OBSERVER) {
             return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REPEATER) {
-            return state.getFacing() == face && state.isPowered() ? state.getPower() : 0;
+            return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.LECTERN) {
             return state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.TARGET) {
@@ -531,7 +531,7 @@ public class CompensatedWorld {
         } else if (state.getType() == StateTypes.OBSERVER) {
             return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REPEATER) {
-            return state.getFacing() == face && state.isPowered() ? state.getPower() : 0;
+            return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REDSTONE_WIRE) {
             BlockFace needed = face.getOppositeFace();
 
