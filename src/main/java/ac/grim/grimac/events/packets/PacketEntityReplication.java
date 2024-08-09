@@ -312,16 +312,18 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             // Don't let the player freeze transactions to keep the firework boost velocity + uncertainty
             // Also generally prevents people with high ping gaining too high an advantage in firework use
-            player.runNettyTaskInMs(() -> {
-                if (player.lastTransactionReceived.get() >= destroyTransaction) return;
-                for (int entityID : destroyEntityIds) {
-                    // If the player has a firework boosting them, setback
-                    if (player.compensatedFireworks.hasFirework(entityID)) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                        break;
+            if (maxFireworkBoostPing > 0) {
+                player.runNettyTaskInMs(() -> {
+                    if (player.lastTransactionReceived.get() >= destroyTransaction) return;
+                    for (int entityID : destroyEntityIds) {
+                        // If the player has a firework boosting them, setback
+                        if (player.compensatedFireworks.hasFirework(entityID)) {
+                            player.getSetbackTeleportUtil().executeViolationSetback();
+                            break;
+                        }
                     }
-                }
-            }, maxFireworkBoostPing);
+                }, maxFireworkBoostPing);
+            }
         }
     }
 
