@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsX;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsZ;
+import ac.grim.grimac.checks.impl.breaking.WrongBlock;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -52,6 +52,8 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+
+import static ac.grim.grimac.events.packets.patch.ResyncWorldUtil.resyncPosition;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
@@ -456,39 +458,50 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
-            WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
+            DiggingAction action = dig.getAction();
 
-            player.checkManager.getPacketCheck(BadPacketsX.class).handle(event, dig, block.getType());
-            player.checkManager.getPacketCheck(BadPacketsZ.class).handle(event, dig);
+            if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
+                Vector3i position = dig.getBlockPosition();
+                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
 
-            if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
-                // Not unbreakable
-                if (!block.getType().isAir() && block.getType().getHardness() != -1.0f && !event.isCancelled()) {
-                    player.compensatedWorld.startPredicting();
-                    player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
-                    player.compensatedWorld.stopPredicting(dig);
+                BlockBreak blockBreak = new BlockBreak(position, dig.getBlockFace(), action, player, block);
+                player.checkManager.onBlockBreak(blockBreak);
+
+                if (blockBreak.isCancelled()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                    resyncPosition(player, position);
                 }
-            }
 
-            if (dig.getAction() == DiggingAction.START_DIGGING && !event.isCancelled()) {
-                double damage = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition());
+                player.checkManager.getPacketCheck(BadPacketsX.class).handle(event, dig, block.getType());
 
-                //Instant breaking, no damage means it is unbreakable by creative players (with swords)
-                if (damage >= 1) {
-                    player.compensatedWorld.startPredicting();
-                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), block)) {
-                        // Vanilla uses a method to grab water flowing, but as you can't break flowing water
-                        // We can simply treat all waterlogged blocks or source blocks as source blocks
-                        player.compensatedWorld.updateBlock(dig.getBlockPosition(), StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
-                    } else {
-                        player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
+                if (!event.isCancelled()) {
+                    if (action == DiggingAction.FINISHED_DIGGING) {
+                        // Not unbreakable
+                        if (!block.getType().isAir() && block.getType().getHardness() != -1.0f) {
+                            player.compensatedWorld.startPredicting();
+                            player.compensatedWorld.updateBlock(position.x, position.y, position.z, 0);
+                            player.compensatedWorld.stopPredicting(dig);
+                        }
                     }
-                    player.compensatedWorld.stopPredicting(dig);
-                }
-            }
 
-            if (!event.isCancelled()) {
-                if (dig.getAction() == DiggingAction.START_DIGGING || dig.getAction() == DiggingAction.FINISHED_DIGGING || dig.getAction() == DiggingAction.CANCELLED_DIGGING) {
+                    if (action == DiggingAction.START_DIGGING) {
+                        double damage = BlockBreakSpeed.getBlockDamage(player, position);
+
+                        //Instant breaking, no damage means it is unbreakable by creative players (with swords)
+                        if (damage >= 1) {
+                            player.compensatedWorld.startPredicting();
+                            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), block)) {
+                                // Vanilla uses a method to grab water flowing, but as you can't break flowing water
+                                // We can simply treat all waterlogged blocks or source blocks as source blocks
+                                player.compensatedWorld.updateBlock(position, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
+                            } else {
+                                player.compensatedWorld.updateBlock(position.x, position.y, position.z, 0);
+                            }
+                            player.compensatedWorld.stopPredicting(dig);
+                        }
+                    }
+
                     player.compensatedWorld.handleBlockBreakPrediction(dig);
                 }
             }
