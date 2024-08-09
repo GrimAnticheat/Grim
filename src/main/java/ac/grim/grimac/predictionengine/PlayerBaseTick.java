@@ -133,10 +133,10 @@ public class PlayerBaseTick {
 
     public void updateInWaterStateAndDoFluidPushing() {
         updateInWaterStateAndDoWaterCurrentPushing();
-        double d = player.bukkitPlayer != null && player.bukkitPlayer.getWorld().getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
+        final double multiplier = player.dimensionType.isUltraWarm() ? 0.007 : 0.0023333333333333335;
         // 1.15 and below clients use block collisions to check for being in lava
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16))
-            player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
+            player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, multiplier);
             // 1.13 and below clients use this stupid method to check if in lava
         else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
