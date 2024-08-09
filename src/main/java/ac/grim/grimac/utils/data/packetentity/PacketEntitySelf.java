@@ -56,6 +56,8 @@ public class PacketEntitySelf extends PacketEntity {
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_MINING_EFFICIENCY, 0, 0, 1024)
                 .requiredVersion(player, ClientVersion.V_1_21));
+        trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_SUBMERGED_MINING_SPEED, 0.2, 0, 20)
+                .requiredVersion(player, ClientVersion.V_1_21));
         trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_ENTITY_INTERACTION_RANGE, 3, 0, 64)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.PLAYER_BLOCK_INTERACTION_RANGE, 4.5, 0, 64)

@@ -4,7 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -16,6 +18,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.bukkit.Bukkit;
 
 public class BlockBreakSpeed {
     public static double getBlockDamage(GrimPlayer player, Vector3i position) {
@@ -43,17 +46,17 @@ public class BlockBreakSpeed {
         if (blockHardness == -1) return 0; // Unbreakable block
 
         boolean isCorrectToolForDrop = false;
-        float speedMultiplier = 1.0f;
+        float speedMultiplier = 1.0F;
 
         // 1.13 and below need their own huge methods to support this...
         if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.AXE)) {
-            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_AXE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_AXE.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.PICKAXE)) {
-            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_PICKAXE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_PICKAXE.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SHOVEL)) {
-            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_SHOVEL.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_SHOVEL.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.HOE)) {
-            isCorrectToolForDrop = BlockTags.MINEABLE_WITH_HOE.contains(block.getType());
+            isCorrectToolForDrop = BlockTags.MINEABLE_HOE.contains(block.getType());
         }
 
         if (isCorrectToolForDrop) {
@@ -118,22 +121,22 @@ public class BlockBreakSpeed {
         }
 
         if (speedMultiplier > 1.0f) {
-            speedMultiplier += (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_MINING_EFFICIENCY);
-
-            int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-            if (digSpeed > 0) {
-                speedMultiplier += digSpeed * digSpeed + 1;
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+                speedMultiplier += (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_MINING_EFFICIENCY);
+            } else {
+                int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                if (digSpeed > 0) {
+                    speedMultiplier += digSpeed * digSpeed + 1;
+                }
             }
         }
-
-        speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_BREAK_SPEED);
 
         Integer digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
         Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
         if (digSpeed != null || conduit != null) {
             int hasteLevel = Math.max(digSpeed == null ? 0 : digSpeed, conduit == null ? 0 : conduit);
-            speedMultiplier *= 1 + (0.2 * (hasteLevel + 1));
+            speedMultiplier *= 1.0F + (0.2F * (hasteLevel + 1));
         }
 
         Integer miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
@@ -141,22 +144,28 @@ public class BlockBreakSpeed {
         if (miningFatigue != null) {
             switch (miningFatigue) {
                 case 0:
-                    speedMultiplier *= 0.3;
+                    speedMultiplier *= 0.3F;
                     break;
                 case 1:
-                    speedMultiplier *= 0.09;
+                    speedMultiplier *= 0.09F;
                     break;
                 case 2:
-                    speedMultiplier *= 0.0027;
+                    speedMultiplier *= 0.0027F;
                     break;
                 default:
-                    speedMultiplier *= 0.00081;
+                    speedMultiplier *= 0.00081F;
             }
         }
 
+        speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_BREAK_SPEED);
+
         if (player.fluidOnEyes == FluidTag.WATER) {
-            if (EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) {
-                speedMultiplier /= 5;
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+                speedMultiplier *= (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_SUBMERGED_MINING_SPEED);
+            } else {
+                if (EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) {
+                    speedMultiplier /= 5;
+                }
             }
         }
 
@@ -168,9 +177,9 @@ public class BlockBreakSpeed {
 
         boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop;
         if (canHarvest) {
-            damage /= 30;
+            damage /= 30F;
         } else {
-            damage /= 100;
+            damage /= 100F;
         }
 
         return damage;
