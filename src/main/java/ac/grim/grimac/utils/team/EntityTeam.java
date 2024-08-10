@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.team;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
+import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -11,25 +12,13 @@ import java.util.Set;
 public final class EntityTeam {
 
     private final GrimPlayer player;
-    private final String name;
-    private final Set<String> entries = new HashSet<>();
-    private WrapperPlayServerTeams.CollisionRule collisionRule;
+    @Getter private final String name;
+    @Getter private final Set<String> entries = new HashSet<>();
+    @Getter private WrapperPlayServerTeams.CollisionRule collisionRule;
 
     public EntityTeam(GrimPlayer player, String name) {
         this.player = player;
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Set<String> getEntries() {
-        return entries;
-    }
-
-    public WrapperPlayServerTeams.CollisionRule getCollisionRule() {
-        return collisionRule;
     }
 
     public void update(WrapperPlayServerTeams teams) {
