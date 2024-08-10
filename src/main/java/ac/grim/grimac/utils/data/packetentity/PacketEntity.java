@@ -96,9 +96,15 @@ public class PacketEntity extends TypedPacketEntity {
         return Optional.ofNullable(attributeMap.get(attribute));
     }
 
+    public void setAttribute(Attribute attribute, double value) {
+        ValuedAttribute property = getAttribute(attribute).orElse(null);
+        if (property == null) throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+        property.override(value);
+    }
+
     public double getAttributeValue(Attribute attribute) {
         return getAttribute(attribute).map(ValuedAttribute::get)
-                .orElseThrow(() -> new IllegalArgumentException("No such attribute exists on entity " + getType().getName().toString() + "!"));
+                .orElseThrow(() -> new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!"));
     }
 
     public void resetAttributes() {

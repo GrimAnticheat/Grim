@@ -15,7 +15,7 @@ public class PacketEntityRideable extends PacketEntity {
 
     public PacketEntityRideable(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z) {
         super(player, uuid, type, x, y, z);
-        getAttribute(Attributes.GENERIC_STEP_HEIGHT).get().override(1.0f);
+        setAttribute(Attributes.GENERIC_STEP_HEIGHT, 1.0f);
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.1f, 0, 1024));
     }
 }

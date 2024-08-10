@@ -44,7 +44,7 @@ public class PacketEntitySelf extends PacketEntity {
     protected void initAttributes(GrimPlayer player) {
         super.initAttributes(player);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-            getAttribute(Attributes.GENERIC_STEP_HEIGHT).get().override(0.5f);
+            setAttribute(Attributes.GENERIC_STEP_HEIGHT, 0.5f);
         }
 
         final ValuedAttribute movementSpeed = ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.1f, 0, 1024);

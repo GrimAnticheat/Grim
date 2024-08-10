@@ -17,19 +17,19 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
 
     public PacketEntityHorse(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z, float xRot) {
         super(player, uuid, type, x, y, z, xRot);
-        getAttribute(Attributes.GENERIC_STEP_HEIGHT).get().override(1.0f);
+        setAttribute(Attributes.GENERIC_STEP_HEIGHT, 1.0f);
 
         final boolean preAttribute = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5);
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.7, 0, preAttribute ? 2 : 32));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.225f, 0, 1024));
 
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {
-            getAttribute(Attributes.GENERIC_JUMP_STRENGTH).get().override(0.5);
-            getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().override(0.175f);
+            setAttribute(Attributes.GENERIC_JUMP_STRENGTH, 0.5);
+            setAttribute(Attributes.GENERIC_MOVEMENT_SPEED, 0.175f);
         }
 
         if (type == EntityTypes.ZOMBIE_HORSE || type == EntityTypes.SKELETON_HORSE) {
-            getAttribute(Attributes.GENERIC_MOVEMENT_SPEED).get().override(0.2f);
+            setAttribute(Attributes.GENERIC_MOVEMENT_SPEED, 0.2f);
         }
     }
 }
