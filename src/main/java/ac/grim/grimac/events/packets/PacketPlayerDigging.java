@@ -171,7 +171,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player == null) return;
 
             if (!player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.slowedByUsingItemSlot != player.packetStateData.lastSlotSelected) {
+                if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected) {
                     player.packetStateData.setSlowedByUsingItem(false);
                     player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
                 }
