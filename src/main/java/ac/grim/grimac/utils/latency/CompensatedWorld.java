@@ -19,12 +19,10 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.Dimension;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
@@ -32,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalett
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.LegacyFlexibleStorage;
+import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
@@ -503,7 +502,7 @@ public class CompensatedWorld {
         } else if (state.getType() == StateTypes.OBSERVER) {
             return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REPEATER) {
-            return state.getFacing() == face && state.isPowered() ? state.getPower() : 0;
+            return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.LECTERN) {
             return state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.TARGET) {
@@ -531,7 +530,7 @@ public class CompensatedWorld {
         } else if (state.getType() == StateTypes.OBSERVER) {
             return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REPEATER) {
-            return state.getFacing() == face && state.isPowered() ? state.getPower() : 0;
+            return state.getFacing() == face && state.isPowered() ? 15 : 0;
         } else if (state.getType() == StateTypes.REDSTONE_WIRE) {
             BlockFace needed = face.getOppositeFace();
 
@@ -672,24 +671,12 @@ public class CompensatedWorld {
         return minHeight;
     }
 
-    public void setDimension(Dimension dimension, User user) {
+    public void setDimension(DimensionType dimension, User user) {
         // No world height NBT
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 
-        final NBTCompound worldNBT = user.getWorldNBT(dimension);
-
-        final NBTCompound dimensionNBT = worldNBT.getCompoundTagOrNull("element");
-        // Mojang has decided to save another 1MB an hour by not sending data the client has "preinstalled"
-        // This code runs in 1.20.5+ with default world datapacks
-        if (dimensionNBT == null && user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
-            minHeight = user.getMinWorldHeight();
-            maxHeight = user.getMinWorldHeight() + user.getTotalWorldHeight();
-            return;
-        }
-
-        // Else get the heights directly from the NBT
-        minHeight = dimensionNBT.getNumberTagOrThrow("min_y").getAsInt();
-        maxHeight = minHeight + dimensionNBT.getNumberTagOrThrow("height").getAsInt();
+        minHeight = dimension.getMinY();
+        maxHeight = minHeight + dimension.getHeight();
     }
 
     public int getMaxHeight() {
