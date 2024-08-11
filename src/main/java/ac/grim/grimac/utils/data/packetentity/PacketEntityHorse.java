@@ -4,6 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
+import java.util.UUID;
+
 public class PacketEntityHorse extends PacketEntityTrackXRot {
     public boolean isRearing = false;
     public boolean hasSaddle = false;
@@ -11,8 +13,8 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.225f;
 
-    public PacketEntityHorse(GrimPlayer player, EntityType type, double x, double y, double z, float xRot) {
-        super(player, type, x, y, z, xRot);
+    public PacketEntityHorse(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z, float xRot) {
+        super(player, uuid, type, x, y, z, xRot);
         this.stepHeight = 1.0f;
 
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {

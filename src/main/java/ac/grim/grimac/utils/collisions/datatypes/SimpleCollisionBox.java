@@ -142,6 +142,16 @@ public class SimpleCollisionBox implements CollisionBox {
         return vectors;
     }
 
+    public SimpleCollisionBox union(SimpleCollisionBox other) {
+        this.minX = Math.min(this.minX, other.minX);
+        this.minY = Math.min(this.minY, other.minY);
+        this.minZ = Math.min(this.minZ, other.minZ);
+        this.maxX = Math.max(this.maxX, other.maxX);
+        this.maxY = Math.max(this.maxY, other.maxY);
+        this.maxZ = Math.max(this.maxZ, other.maxZ);
+        return this;
+    }
+
     public SimpleCollisionBox expandToAbsoluteCoordinates(double x, double y, double z) {
         return expandToCoordinate(x - ((minX + maxX) / 2), y - ((minY + maxY) / 2), z - ((minZ + maxZ) / 2));
     }
