@@ -4,7 +4,7 @@ webhook:
   embed-color: "#00FFFF"
   show-player-head: true
   description:
-    - "Grim Version: %grrim_version%"
+    - "Grim Version: %grim_version%"
   fields:
     - name: "Server Information"
       value:
