@@ -6,8 +6,9 @@ import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
+import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
 import ac.grim.grimac.checks.impl.breaking.WrongBlock;
-import ac.grim.grimac.checks.impl.breaking.PositionBreak;
+import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
@@ -151,7 +152,8 @@ public class CheckManager {
 
         blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()
                 .put(WrongBlock.class, new WrongBlock(player))
-                .put(PositionBreak.class, new PositionBreak(player))
+                .put(PositionBreakA.class, new PositionBreakA(player))
+                .put(PositionBreakB.class, new PositionBreakB(player))
                 .build();
 
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()

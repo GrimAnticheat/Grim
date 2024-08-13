@@ -11,8 +11,8 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import java.util.Collections;
 
 @CheckData(name = "PositionBreak")
-public class PositionBreak extends BlockBreakCheck {
-    public PositionBreak(GrimPlayer player) {
+public class PositionBreakA extends BlockBreakCheck {
+    public PositionBreakA(GrimPlayer player) {
         super(player);
     }
 
