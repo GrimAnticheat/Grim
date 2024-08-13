@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 
 public class GetBoundingBox {
     public static SimpleCollisionBox getCollisionBoxForPlayer(GrimPlayer player, double centerX, double centerY, double centerZ) {
@@ -34,7 +35,8 @@ public class GetBoundingBox {
     }
 
     public static SimpleCollisionBox getBoundingBoxFromPosAndSize(PacketEntity entity, double centerX, double minY, double centerZ, float width, float height) {
-        return getBoundingBoxFromPosAndSizeRaw(centerX, minY, centerZ, width * entity.scale, height * entity.scale);
+        final float scale = (float) entity.getAttributeValue(Attributes.GENERIC_SCALE);
+        return getBoundingBoxFromPosAndSizeRaw(centerX, minY, centerZ, width * scale, height * scale);
     }
 
     public static SimpleCollisionBox getBoundingBoxFromPosAndSizeRaw(double centerX, double minY, double centerZ, float width, float height) {

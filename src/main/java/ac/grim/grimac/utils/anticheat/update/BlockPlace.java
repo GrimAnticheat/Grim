@@ -18,6 +18,7 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -586,8 +587,9 @@ public class BlockPlace {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
-                    double width = BoundingBoxSize.getWidth(player, entity) * entity.scale;
-                    double height = BoundingBoxSize.getHeight(player, entity) * entity.scale;
+                    final double scale = entity.getAttributeValue(Attributes.GENERIC_SCALE);
+                    double width = BoundingBoxSize.getWidth(player, entity) * scale;
+                    double height = BoundingBoxSize.getHeight(player, entity) * scale;
                     double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
                     double interpHeight = interpBox.maxY - interpBox.minY;
 
@@ -667,7 +669,7 @@ public class BlockPlace {
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
         Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
-        final double distance = player.compensatedEntities.getSelf().getEntityInteractRange() + 3;
+        final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE) + 3;
         Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();

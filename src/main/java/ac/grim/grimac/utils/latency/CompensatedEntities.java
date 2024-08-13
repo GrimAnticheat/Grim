@@ -3,13 +3,14 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragon;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -30,7 +31,7 @@ import java.util.*;
 
 public class CompensatedEntities {
 
-    private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+    public static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
 
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
@@ -109,115 +110,49 @@ public class CompensatedEntities {
         return effects.get(type);
     }
 
-    public double getPlayerMovementSpeed() {
-        return calculateAttribute(player.compensatedEntities.getSelf().playerSpeed, 0.0, 1024.0);
-    }
-
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
+            // Check for sprinting attribute. Note that this value can desync: https://bugs.mojang.com/browse/MC-69459
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getAttribute() == Attributes.GENERIC_MOVEMENT_SPEED) {
-                    boolean found = false;
-                    List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                    for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
-                        final ResourceLocation name = modifier.getName();
-                        if (name.getKey().equals(SPRINTING_MODIFIER_UUID.toString()) || name.getKey().equals("sprinting")) {
-                            found = true;
-                            break;
-                        }
+                final Attribute attribute = snapshotWrapper.getAttribute();
+                if (attribute != Attributes.GENERIC_MOVEMENT_SPEED) continue;
+
+                boolean found = false;
+                List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
+                    final ResourceLocation name = modifier.getName();
+                    if (name.getKey().equals(SPRINTING_MODIFIER_UUID.toString()) || name.getKey().equals("sprinting")) {
+                        found = true;
+                        break;
                     }
-
-                    // The server can set the player's sprinting attribute
-                    hasSprintingAttributeEnabled = found;
-                    player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
-                    continue;
                 }
 
-                // TODO recode our attribute handling
-                final String key = snapshotWrapper.getKey();
-                // Attribute limits defined by https://minecraft.wiki/w/Attribute
-                // These seem to be clamped on the client, but not the server
-                switch (key) {
-                    case "minecraft:player.block_break_speed":
-                        player.compensatedEntities.getSelf().setBreakSpeedMultiplier(GrimMath.clamp(snapshotWrapper.getValue(), 0, 1024));
-                        break;
-                    case "minecraft:player.block_interaction_range":
-                        player.compensatedEntities.getSelf().setBlockInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
-                        break;
-                    case "minecraft:player.entity_interaction_range":
-                        player.compensatedEntities.getSelf().setEntityInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
-                        break;
-                    case "minecraft:generic.jump_strength":
-                        player.compensatedEntities.getSelf().setJumpStrength(GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32));
-                        break;
-                }
+                // The server can set the player's sprinting attribute
+                hasSprintingAttributeEnabled = found;
+                break;
             }
         }
 
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+        if (entity == null) return;
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                final String key = snapshotWrapper.getKey();
-                if (key.equals("minecraft:generic.gravity")) {
-                    entity.gravityAttribute = GrimMath.clamp(snapshotWrapper.getValue(), -1, 1);
-                } else if (key.equals("minecraft:generic.scale")) {
-                    // The game itself casts to float, this is fine.
-                    entity.scale = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0.0625f, 16f);
-                } else if (key.equals("minecraft:generic.step_height")) {
-                    entity.stepHeight = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0f, 10f);
-                } else if (entity instanceof PacketEntityHorse && key.equals("minecraft:generic.jump_strength")) {
-                    // TODO check if this is how horses determine jump strength now
-                    ((PacketEntityHorse) entity).jumpStrength = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32);
-                }
+        for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+            Attribute attribute = snapshotWrapper.getAttribute();
+            if (attribute == null) continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
+
+            // Rewrite horse.jumpStrength -> modern equivalent
+            if (attribute == Attributes.HORSE_JUMP_STRENGTH) {
+                attribute = Attributes.GENERIC_JUMP_STRENGTH;
             }
-        }
 
-        if (entity instanceof PacketEntityHorse) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                }
-
-                if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
-                    ((PacketEntityHorse) entity).jumpStrength = calculateAttribute(snapshotWrapper, 0.0, 2.0);
-                }
+            final Optional<ValuedAttribute> valuedAttribute = entity.getAttribute(attribute);
+            if (!valuedAttribute.isPresent()) {
+                // Not an attribute we want to track
+                continue;
             }
+
+            valuedAttribute.get().with(snapshotWrapper);
         }
-
-        if (entity instanceof PacketEntityRideable) {
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                }
-            }
-        }
-    }
-
-    private double calculateAttribute(WrapperPlayServerUpdateAttributes.Property snapshotWrapper, double minValue, double maxValue) {
-        double d0 = snapshotWrapper.getValue();
-
-        List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-        modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID) || modifier.getName().getKey().equals("sprinting"));
-
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION)
-                d0 += attributemodifier.getAmount();
-        }
-
-        double d1 = d0;
-
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE)
-                d1 += d0 * attributemodifier.getAmount();
-        }
-
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_TOTAL)
-                d1 *= 1.0D + attributemodifier.getAmount();
-        }
-
-        return GrimMath.clampFloat((float) d1, (float) minValue, (float) maxValue);
     }
 
     private void tickPassenger(PacketEntity riding, PacketEntity passenger) {

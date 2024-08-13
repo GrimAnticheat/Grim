@@ -29,6 +29,7 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
@@ -189,8 +190,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
                 // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
-                float width = BoundingBoxSize.getWidth(player, riding) * riding.scale;
-                float height = BoundingBoxSize.getHeight(player, riding) * riding.scale;
+                final float scale = (float) riding.getAttributeValue(Attributes.GENERIC_SCALE);
+                float width = BoundingBoxSize.getWidth(player, riding) * scale;
+                float height = BoundingBoxSize.getHeight(player, riding) * scale;
                 interTruePositions.expand(-width, 0, -width);
                 interTruePositions.expandMax(0, -height, 0);
 
@@ -236,7 +238,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         if (player.isInBed) return;
 
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.speed = player.compensatedEntities.getPlayerMovementSpeed();
+            player.speed = player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED);
             if (player.hasGravity != player.playerEntityHasGravity) {
                 player.pointThreeEstimator.updatePlayerGravity();
             }
@@ -442,19 +444,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         } else if (riding == null) {
             wasChecked = true;
 
-            // Depth strider was added in 1.8
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-            } else {
-                player.depthStriderLevel = 0;
-            }
-
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                ItemStack leggings = player.getInventory().getLeggings();
-                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (leggings.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
-            } else {
-                player.sneakingSpeedMultiplier = 0.3F;
-            }
+            player.depthStriderLevel = (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_WATER_MOVEMENT_EFFICIENCY);
+            player.sneakingSpeedMultiplier = (float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_SNEAKING_SPEED);
 
             // This is wrong and the engine was not designed around stuff like this
             player.verticalCollision = false;

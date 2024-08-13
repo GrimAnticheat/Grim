@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
@@ -548,7 +549,7 @@ public class PredictionEngine {
         // We can't simulate the player's Y velocity, unknown number of ticks with a gravity change
         // Feel free to simulate all 104857600000000000000000000 possibilities!
         if (!player.pointThreeEstimator.canPredictNextVerticalMovement()) {
-            minVector.setY(minVector.getY() - player.compensatedEntities.getSelf().gravityAttribute);
+            minVector.setY(minVector.getY() - player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_GRAVITY));
         }
 
         // Hidden slime block bounces by missing idle tick and 0.03

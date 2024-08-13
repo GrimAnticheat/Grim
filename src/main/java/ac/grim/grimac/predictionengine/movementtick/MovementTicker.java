@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.utils.team.EntityPredicates;
 import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -20,6 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import org.bukkit.Bukkit;
 import com.viaversion.viaversion.api.Via;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.util.Vector;
@@ -324,8 +326,8 @@ public class MovementTicker {
 
     public void livingEntityTravel() {
         double playerGravity = player.compensatedEntities.getSelf().getRiding() == null
-                ? player.compensatedEntities.getSelf().gravityAttribute
-                : player.compensatedEntities.getSelf().getRiding().gravityAttribute;
+                ? player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_GRAVITY)
+                : player.compensatedEntities.getSelf().getRiding().getAttributeValue(Attributes.GENERIC_GRAVITY);
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
         if (isFalling && player.compensatedEntities.getSlowFallingAmplifier() != null) {
@@ -349,7 +351,7 @@ public class MovementTicker {
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : (isSkeletonHorse ? 0.96F : 0.8F);
             float swimSpeed = 0.02F;
 
-            if (player.depthStriderLevel > 3.0F) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && player.depthStriderLevel > 3.0F) {
                 player.depthStriderLevel = 3.0F;
             }
 
@@ -358,8 +360,9 @@ public class MovementTicker {
             }
 
             if (player.depthStriderLevel > 0.0F) {
-                swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / 3.0F;
-                swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
+                final float divisor = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) ? 1.0F : 3.0F;
+                swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / divisor;
+                swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / divisor;
             }
 
             if (player.compensatedEntities.getDolphinsGraceAmplifier() != null) {

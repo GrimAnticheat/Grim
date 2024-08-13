@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
@@ -138,8 +139,9 @@ public class UncertaintyHandler {
             if (entity == null) continue;
 
             SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
-            float width = BoundingBoxSize.getWidth(player, entity) * entity.scale;
-            float height = BoundingBoxSize.getHeight(player, entity) * entity.scale;
+            final float scale = (float) entity.getAttributeValue(Attributes.GENERIC_SCALE);
+            float width = BoundingBoxSize.getWidth(player, entity) * scale;
+            float height = BoundingBoxSize.getHeight(player, entity) * scale;
 
             // Convert back to coordinates instead of hitbox
             entityBox.maxY -= height;

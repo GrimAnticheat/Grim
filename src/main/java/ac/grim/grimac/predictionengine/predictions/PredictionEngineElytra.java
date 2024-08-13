@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
@@ -44,7 +45,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         // So we actually use the player's actual movement to get the gravity/slow falling status
         // However, this is wrong with elytra movement because players can control vertical movement after gravity is calculated
         // Yeah, slow falling needs a refactor in grim.
-        double recalculatedGravity = player.compensatedEntities.getSelf().gravityAttribute;
+        double recalculatedGravity = player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_GRAVITY);
         if (player.clientVelocity.getY() <= 0 && player.compensatedEntities.getSlowFallingAmplifier() != null) {
             recalculatedGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(recalculatedGravity, 0.01);
         }

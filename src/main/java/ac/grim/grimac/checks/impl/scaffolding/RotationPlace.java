@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -94,7 +95,7 @@ public class RotationPlace extends BlockPlaceCheck {
             possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
         }
 
-        final double distance = player.compensatedEntities.getSelf().getBlockInteractRange();
+        final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
         for (double d : player.getPossibleEyeHeights()) {
             for (Vector3f lookDir : possibleLookDirs) {
                 // x, y, z are correct for the block placement even after post tick because of code elsewhere
