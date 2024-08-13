@@ -71,6 +71,8 @@ Punishments:
       - "EntityControl"
       - "NoSlow"
       - "Place"
+      - "Break"
+      - "WrongBlock"
       - "Baritone"
       - "FastBreak"
       - "TransactionOrder"
