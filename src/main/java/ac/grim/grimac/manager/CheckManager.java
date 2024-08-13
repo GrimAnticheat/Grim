@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
+import ac.grim.grimac.checks.impl.breaking.LiquidAirBreak;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
 import ac.grim.grimac.checks.impl.breaking.WrongBlock;
@@ -94,7 +95,6 @@ public class CheckManager {
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
-                .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
@@ -152,6 +152,7 @@ public class CheckManager {
 
         blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()
                 .put(WrongBlock.class, new WrongBlock(player))
+                .put(LiquidAirBreak.class, new LiquidAirBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .build();

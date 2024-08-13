@@ -1,8 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsX;
-import ac.grim.grimac.checks.impl.breaking.WrongBlock;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -472,8 +470,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     player.onPacketCancel();
                     resyncPosition(player, position);
                 }
-
-                player.checkManager.getPacketCheck(BadPacketsX.class).handle(event, dig, block.getType());
 
                 if (!event.isCancelled()) {
                     if (action == DiggingAction.FINISHED_DIGGING) {

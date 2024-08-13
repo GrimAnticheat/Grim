@@ -13,7 +13,6 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class BlockBreak {
     public final Vector3i position;
     public final BlockFace face;
@@ -22,7 +21,7 @@ public class BlockBreak {
     private boolean cancelled;
 
     private final GrimPlayer player;
-    private final WrappedBlockState block;
+    public final WrappedBlockState block;
 
     public BlockBreak(Vector3i position, BlockFace face, DiggingAction action, GrimPlayer player, WrappedBlockState block) {
         this.position = position;
