@@ -91,10 +91,12 @@ public class BlockProperties {
 
         WrappedBlockState inBlock = player.compensatedWorld.getWrappedBlockStateAt(playerPos.getX(), playerPos.getY(), playerPos.getZ());
         float inBlockSpeedFactor = getBlockSpeedFactor(player, inBlock.getType());
-        if (inBlockSpeedFactor != 1.0f || inBlock.getType() == StateTypes.WATER || inBlock.getType() == StateTypes.BUBBLE_COLUMN) return inBlockSpeedFactor;
+        if (inBlockSpeedFactor != 1.0f || inBlock.getType() == StateTypes.WATER || inBlock.getType() == StateTypes.BUBBLE_COLUMN) {
+            return getModernVelocityMultiplier(player, inBlockSpeedFactor);
+        }
 
         StateType underPlayer = getBlockPosBelowThatAffectsMyMovement(player, mainSupportingBlockData, playerPos);
-        return getBlockSpeedFactor(player, underPlayer);
+        return getModernVelocityMultiplier(player, getBlockSpeedFactor(player, underPlayer));
     }
 
     public static boolean onHoneyBlock(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
@@ -187,10 +189,18 @@ public class BlockProperties {
         if (type == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
+            // On 1.21, let attributes handle this
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)
+                    && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2)
+                    && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
                 return 1.0f;
             return 0.4f;
         }
         return 1.0f;
+    }
+
+    private static float getModernVelocityMultiplier(GrimPlayer player, float blockSpeedFactor) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) return blockSpeedFactor;
+        return (float) GrimMath.lerp((float) player.compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_MOVEMENT_EFFICIENCY), blockSpeedFactor, 1.0F);
     }
 }
