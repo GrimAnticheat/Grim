@@ -33,13 +33,19 @@ public class NoSlowC extends Check implements PostPredictionCheck, PacketCheck {
         if (!predictionComplete.isChecked()) return;
 
         if (player.isSlowMovement) {
+            ClientVersion client = player.getClientVersion();
+
             // https://bugs.mojang.com/browse/MC-152728
-            if (startedSprintingBeforeSlowMovement && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_2)) {
+            if (startedSprintingBeforeSlowMovement && client.isNewerThanOrEquals(ClientVersion.V_1_14_2)) {
                 reward();
                 return;
             }
 
-            if (player.isSprinting && player.sneakingSpeedMultiplier < 0.8f) {
+            if (player.isSprinting
+                    // you can sneak and swim in 1.13 - 1.14.1
+                    && (!player.isSwimming || client.isNewerThan(ClientVersion.V_1_14_1) || client.isOlderThan(ClientVersion.V_1_13))
+                    && player.sneakingSpeedMultiplier < 0.8f
+            ) {
                 if (flagWithSetback()) alert("");
             } else reward();
         }
