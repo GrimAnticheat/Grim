@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
+import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -85,6 +86,7 @@ public class GrimPlayer implements GrimUser {
     public ActionManager actionManager;
     public PunishmentManager punishmentManager;
     public MovementCheckRunner movementCheckRunner;
+    public SyncedTags tagManager;
     // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
@@ -225,6 +227,7 @@ public class GrimPlayer implements GrimUser {
         actionManager = new ActionManager(this);
         checkManager = new CheckManager(this);
         punishmentManager = new PunishmentManager(this);
+        tagManager = new SyncedTags(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
         compensatedWorld = new CompensatedWorld(this);

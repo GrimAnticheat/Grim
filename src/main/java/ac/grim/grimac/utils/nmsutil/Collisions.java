@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -718,7 +719,7 @@ public class Collisions {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17);
         }
 
-        if (BlockTags.CLIMBABLE.contains(blockMaterial)) {
+        if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(blockMaterial)) {
             return true;
         }
 

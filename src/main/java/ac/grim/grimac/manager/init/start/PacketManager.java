@@ -30,6 +30,10 @@ public class PacketManager implements Initable {
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
 
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketServerTags());
+        }
+
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
         } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {

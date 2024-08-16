@@ -152,10 +152,6 @@ public class Materials {
         return PANES.contains(type);
     }
 
-    public static boolean isClimbable(StateType type) {
-        return BlockTags.CLIMBABLE.contains(type);
-    }
-
     public static boolean isCauldron(StateType type) {
         return BlockTags.CAULDRONS.contains(type);
     }
