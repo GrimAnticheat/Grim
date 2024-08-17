@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class TeamHandler extends Check implements PacketCheck {
 
@@ -34,7 +35,9 @@ public class TeamHandler extends Check implements PacketCheck {
     }
 
     public Optional<EntityTeam> getEntityTeam(PacketEntity entity) {
-        return Optional.ofNullable(entityToTeam.get(entity.getUuid().toString()));
+        // TODO in what cases is UUID null in 1.9+?
+        final UUID uuid = entity.getUuid();
+        return uuid == null ? Optional.empty() : Optional.ofNullable(entityToTeam.get(uuid.toString()));
     }
 
     @Override
