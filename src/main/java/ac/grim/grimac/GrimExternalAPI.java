@@ -3,6 +3,7 @@ package ac.grim.grimac;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -97,6 +98,11 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
         GrimAPI.INSTANCE.getDiscordManager().start();
         GrimAPI.INSTANCE.getSpectateManager().start();
         GrimAPI.INSTANCE.getExternalAPI().start();
+    }
+
+    @Override
+    public AlertManager getAlertManager() {
+        return GrimAPI.INSTANCE.getAlertManager();
     }
 
     @Override

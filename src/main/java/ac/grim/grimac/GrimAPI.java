@@ -12,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public enum GrimAPI {
     INSTANCE;
 
-    private final AlertManager alertManager = new AlertManager();
+    private final AlertManagerImpl alertManager = new AlertManagerImpl();
     private final SpectateManager spectateManager = new SpectateManager();
     private final DiscordManager discordManager = new DiscordManager();
     private final PlayerDataManager playerDataManager = new PlayerDataManager();

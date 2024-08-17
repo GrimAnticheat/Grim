@@ -40,7 +40,7 @@ dependencies {
     implementation("it.unimi.dsi:fastutil:8.5.13")
     implementation("github.scarsz:configuralize:1.4.0")
 
-    implementation("com.github.grimanticheat:grimapi:f10e6fd1b0")
+    implementation("com.github.grimanticheat:grimapi:f3c5eed2e7")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
     implementation("org.jetbrains:annotations:24.1.0")
