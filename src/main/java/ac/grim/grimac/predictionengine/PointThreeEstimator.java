@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -13,6 +14,7 @@ import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
 import lombok.Setter;
@@ -119,7 +121,8 @@ public class PointThreeEstimator {
 
     // Handle game events that occur between skipped ticks - thanks a lot mojang for removing the idle packet!
     public void handleChangeBlock(int x, int y, int z, WrappedBlockState state) {
-        CollisionBox data = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
+        final StateType stateType = state.getType();
+        CollisionBox data = CollisionData.getData(stateType).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
         SimpleCollisionBox normalBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f);
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
@@ -130,10 +133,10 @@ public class PointThreeEstimator {
         }
 
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - 0.03, player.z, 0.66f, 1.86f);
-        if ((Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA) &&
+        if ((Materials.isWater(player.getClientVersion(), state) || stateType == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
-            if (state.getType() == StateTypes.BUBBLE_COLUMN) {
+            if (stateType == StateTypes.BUBBLE_COLUMN) {
                 isNearBubbleColumn = true;
             }
 
@@ -164,8 +167,8 @@ public class PointThreeEstimator {
             }
         }
 
-        if (!player.compensatedEntities.getSelf().inVehicle() && ((state.getType() == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
-                || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (!player.compensatedEntities.getSelf().inVehicle() && ((stateType == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+                || player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }
@@ -245,16 +248,17 @@ public class PointThreeEstimator {
 
         // Check for flowing water
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
-            WrappedBlockState state = pair.getFirst();
-            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
+            final WrappedBlockState state = pair.getFirst();
+            final StateType stateType = state.getType();
+            if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
-            if (BlockTags.TRAPDOORS.contains(state.getType())) {
+            if (BlockTags.TRAPDOORS.contains(stateType)) {
                 isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pair.getSecond().getX(), pair.getSecond().getY(), pair.getSecond().getZ(), state);
             }
 
-            if (state.getType() == StateTypes.BUBBLE_COLUMN) {
+            if (stateType == StateTypes.BUBBLE_COLUMN) {
                 isNearBubbleColumn = true;
             }
 
