@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ac.grim.grimac"
-version = "2.3.66"
+version = "2.3.67"
 description = "Libre simulation anticheat designed for 1.20 with 1.8-1.20 support, powered by PacketEvents 2.0."
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
