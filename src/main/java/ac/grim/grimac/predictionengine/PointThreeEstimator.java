@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;
 
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -436,9 +437,10 @@ public class PointThreeEstimator {
     }
 
     private double iterateGravity(GrimPlayer player, double y) {
-        if (player.compensatedEntities.getLevitationAmplifier() != null) {
+        final OptionalInt levitation = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.LEVITATION);
+        if (levitation.isPresent()) {
             // This supports both positive and negative levitation
-            y += (0.05 * (player.compensatedEntities.getLevitationAmplifier() + 1) - y * 0.2);
+            y += (0.05 * (levitation.getAsInt() + 1) - y * 0.2);
         } else if (player.hasGravity) {
             // Simulate gravity
             y -= player.gravity;

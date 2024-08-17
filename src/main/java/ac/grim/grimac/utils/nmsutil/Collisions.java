@@ -450,7 +450,7 @@ public class Collisions {
                     StateType blockType = block.getType();
 
                     if (blockType == StateTypes.COBWEB) {
-                        if (player.compensatedEntities.getSelf().potionsMap.containsKey(PotionTypes.WEAVING)) {
+                        if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
                             player.stuckSpeedMultiplier = new Vector(0.5, 0.25, 0.5);
                         } else {
                             player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);

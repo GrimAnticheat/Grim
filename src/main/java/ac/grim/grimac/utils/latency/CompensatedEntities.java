@@ -85,29 +85,20 @@ public class CompensatedEntities {
         }
     }
 
-    public Integer getJumpAmplifier() {
-        return getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
+    public OptionalInt getSlowFallingAmplifier() {
+        return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) ? OptionalInt.empty() : getPotionLevelForPlayer(PotionTypes.SLOW_FALLING);
     }
 
-    public Integer getLevitationAmplifier() {
-        return getPotionLevelForPlayer(PotionTypes.LEVITATION);
+    public OptionalInt getPotionLevelForPlayer(PotionType type) {
+        return getEntityInControl().getPotionEffectLevel(type);
     }
 
-    public Integer getSlowFallingAmplifier() {
-        return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) ? null : getPotionLevelForPlayer(PotionTypes.SLOW_FALLING);
+    public boolean hasPotionEffect(PotionType type) {
+        return getEntityInControl().hasPotionEffect(type);
     }
 
-    public Integer getDolphinsGraceAmplifier() {
-        return getPotionLevelForPlayer(PotionTypes.DOLPHINS_GRACE);
-    }
-
-    public Integer getPotionLevelForPlayer(PotionType type) {
-        PacketEntity desiredEntity = playerEntity.getRiding() != null ? playerEntity.getRiding() : playerEntity;
-
-        HashMap<PotionType, Integer> effects = desiredEntity.potionsMap;
-        if (effects == null) return null;
-
-        return effects.get(type);
+    public PacketEntity getEntityInControl() {
+        return playerEntity.getRiding() != null ? playerEntity.getRiding() : playerEntity;
     }
 
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {

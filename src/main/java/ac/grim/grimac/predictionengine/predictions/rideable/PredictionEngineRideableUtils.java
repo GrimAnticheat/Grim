@@ -7,10 +7,12 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 
 public class PredictionEngineRideableUtils {
@@ -39,8 +41,9 @@ public class PredictionEngineRideableUtils {
             // broken ever since vehicle control became client sided
             //
             // But plugins can still send this, so support it anyways
-            if (player.compensatedEntities.getJumpAmplifier() != null) {
-                d1 = d0 + ((player.compensatedEntities.getJumpAmplifier() + 1) * 0.1F);
+            final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
+            if (jumpBoost.isPresent()) {
+                d1 = d0 + ((jumpBoost.getAsInt() + 1) * 0.1F);
             } else {
                 d1 = d0;
             }

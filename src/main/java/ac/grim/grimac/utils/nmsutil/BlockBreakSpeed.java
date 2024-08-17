@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -18,7 +17,8 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
-import org.bukkit.Bukkit;
+
+import java.util.OptionalInt;
 
 public class BlockBreakSpeed {
     public static double getBlockDamage(GrimPlayer player, Vector3i position) {
@@ -131,29 +131,29 @@ public class BlockBreakSpeed {
             }
         }
 
-        Integer digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
-        Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
+        OptionalInt digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
+        OptionalInt conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
-        if (digSpeed != null || conduit != null) {
-            int hasteLevel = Math.max(digSpeed == null ? 0 : digSpeed, conduit == null ? 0 : conduit);
-            speedMultiplier *= 1.0F + (0.2F * (hasteLevel + 1));
+        if (digSpeed.isPresent() || conduit.isPresent()) {
+            int hasteLevel = Math.max(!digSpeed.isPresent() ? 0 : digSpeed.getAsInt(), !conduit.isPresent() ? 0 : conduit.getAsInt());
+            speedMultiplier *= (float) (1 + (0.2 * (hasteLevel + 1)));
         }
 
-        Integer miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
+        OptionalInt miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
 
-        if (miningFatigue != null) {
-            switch (miningFatigue) {
+        if (miningFatigue.isPresent()) {
+            switch (miningFatigue.getAsInt()) {
                 case 0:
-                    speedMultiplier *= 0.3F;
+                    speedMultiplier *= 0.3f;
                     break;
                 case 1:
-                    speedMultiplier *= 0.09F;
+                    speedMultiplier *= 0.09f;
                     break;
                 case 2:
-                    speedMultiplier *= 0.0027F;
+                    speedMultiplier *= 0.0027f;
                     break;
                 default:
-                    speedMultiplier *= 0.00081F;
+                    speedMultiplier *= 0.00081f;
             }
         }
 

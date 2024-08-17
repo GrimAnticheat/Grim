@@ -17,6 +17,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -330,7 +331,7 @@ public class MovementTicker {
                 : player.compensatedEntities.getSelf().getRiding().getAttributeValue(Attributes.GENERIC_GRAVITY);
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
-        if (isFalling && player.compensatedEntities.getSlowFallingAmplifier() != null) {
+        if (isFalling && player.compensatedEntities.getSlowFallingAmplifier().isPresent()) {
             playerGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(playerGravity, 0.01);
             // Set fall distance to 0 if the player has slow falling
             player.fallDistance = 0;
@@ -365,7 +366,7 @@ public class MovementTicker {
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / divisor;
             }
 
-            if (player.compensatedEntities.getDolphinsGraceAmplifier() != null) {
+            if (player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.DOLPHINS_GRACE).isPresent()) {
                 swimFriction = 0.96F;
             }
 

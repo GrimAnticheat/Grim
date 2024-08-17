@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +53,7 @@ public class PacketEntity extends TypedPacketEntity {
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
 
-    public HashMap<PotionType, Integer> potionsMap = null;
+    private Map<PotionType, Integer> potionsMap = null;
     protected final Map<Attribute, ValuedAttribute> attributeMap = new IdentityHashMap<>();
 
     public PacketEntity(GrimPlayer player, EntityType type) {
@@ -192,6 +193,15 @@ public class PacketEntity extends TypedPacketEntity {
 
     public PacketEntity getRiding() {
         return riding;
+    }
+
+    public OptionalInt getPotionEffectLevel(PotionType effect) {
+        final Integer amplifier = potionsMap == null ? null : potionsMap.get(effect);
+        return amplifier == null ? OptionalInt.empty() : OptionalInt.of(amplifier);
+    }
+
+    public boolean hasPotionEffect(PotionType effect) {
+        return potionsMap != null && potionsMap.containsKey(effect);
     }
 
     public void addPotionEffect(PotionType effect, int amplifier) {
