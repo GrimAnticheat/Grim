@@ -1,8 +1,9 @@
 package ac.grim.grimac.utils.data.tags;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -18,7 +19,9 @@ import java.util.function.Function;
  */
 public final class SyncedTags {
 
-    private static final ResourceLocation BLOCK = ResourceLocation.minecraft("block");
+    private static final ServerVersion VERSION = PacketEvents.getAPI().getServerManager().getVersion();
+
+    private static final ResourceLocation BLOCK = VERSION.isNewerThanOrEquals(ServerVersion.V_1_21) ? ResourceLocation.minecraft("block") : ResourceLocation.minecraft("blocks");
 
     public static final ResourceLocation CLIMBABLE = ResourceLocation.minecraft("climbable");
 
