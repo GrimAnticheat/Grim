@@ -31,7 +31,7 @@ public final class SyncedTags {
     public SyncedTags(GrimPlayer player) {
         this.player = player;
         this.synced = new HashMap<>();
-        trackTags(BLOCK, id -> StateTypes.getById(player.getClientVersion(), id),
+        trackTags(BLOCK, id -> StateTypes.getById(VERSION.toClientVersion(), id),
                 SyncedTag.<StateType>builder(CLIMBABLE).defaults(BlockTags.CLIMBABLE.getStates()));
     }
 
