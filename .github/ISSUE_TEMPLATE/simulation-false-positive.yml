@@ -1,5 +1,5 @@
 name: Simulation false positive
-description: Report a simulation false positive here
+description: Report a simulation (movement-related) false positive here
 labels: ["false positive", "simulation"]
 body:
   - type: textarea

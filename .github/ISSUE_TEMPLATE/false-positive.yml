@@ -1,5 +1,5 @@
 name: False positive
-description: Report a non-simulation related false positive here
+description: Report a **NON-SIMULATION** related false positive here
 labels: ["false positive"]
 body:
   - type: textarea
