@@ -144,6 +144,7 @@ public class CheckManager {
                 .put(PositionPlace.class, new PositionPlace(player))
                 .put(RotationPlace.class, new RotationPlace(player))
                 .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
+                .put(CorrectPlace.class, new CorrectPlace(player))
                 .put(GhostBlockMitigation.class, new GhostBlockMitigation(player))
                 .build();
 
