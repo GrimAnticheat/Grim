@@ -17,9 +17,7 @@ public class CorrectPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(BlockPlace event) {
-        if (player.yRot < 82.6 && player.yRot > 76.7) {
-            return;
-        }
+        if (player.yRot < 82.6 && player.yRot > 76.7) return;
 
         if (previousBlockPlaced != null && previousBlockPlaced.getY() - event.getPlacedBlockPos().getY() == 0) {
             if (flagAndAlert() && shouldCancel() && shouldModifyPackets()) {
