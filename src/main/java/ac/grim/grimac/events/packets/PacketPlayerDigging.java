@@ -103,7 +103,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         // The client and server don't agree on trident status because mojang is incompetent at netcode.
-        if (material == ItemTypes.TRIDENT) {
+        if (material == ItemTypes.TRIDENT && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13_2) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
             player.packetStateData.setSlowedByUsingItem(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0);
             player.packetStateData.eatingHand = hand;
         }
