@@ -1,14 +1,14 @@
 name: False positive
-description: Report a false positive here
+description: Report a non-simulation related false positive here
 labels: ["false positive"]
 body:
   - type: textarea
     attributes:
       label: Describe the false positive and how to replicate it
       description: |
-        Video is always useful. /grim log is required for reporting simulation falses.
-        Use /grim verbose and /grim log to get the debug information.
-        For non-simulation falses, a minimally reproducable description is best.
+        Video is always useful.
+        Use /grim verbose to get debug information from the failing check.
+        A minimally reproducible description is best.
       placeholder: |
         Step 1. Do this
         Step 2. Then do this
@@ -33,10 +33,20 @@ body:
     validations:
       required: true
 
+  - type: input
+    attributes:
+      label: Client version
+      description: |
+        Provide the version of your Minecraft client. You must be able to reproduce the false positive using the vanilla client. 
+        Lunar Client, TLauncher etc. will result in your issue being closed.
+    validations:
+      required: true
+
   - type: textarea
     attributes:
       label: Plugins
       description: |
         List all plugins running on your server. To list plugins, run `/plugins`.
+        If your server is behind a proxy such as Bungeecord, you should list the proxy's plugins as well.
     validations:
       required: true

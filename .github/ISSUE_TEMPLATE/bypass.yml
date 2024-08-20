@@ -35,5 +35,6 @@ body:
       label: Plugins
       description: |
         List all plugins running on your server. To list plugins, run `/plugins`.
+        If your server is behind a proxy such as Bungeecord, you should list the proxy's plugins as well.
     validations:
       required: true
