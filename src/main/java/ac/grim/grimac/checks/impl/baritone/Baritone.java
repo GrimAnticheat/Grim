@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.math.GrimMath;
 
+// This check has been patched by Baritone for a long time and it also seems to false with cinematic camera now, so it is disabled.
 @CheckData(name = "Baritone")
 public class Baritone extends Check implements RotationCheck {
     public Baritone(GrimPlayer playerData) {
