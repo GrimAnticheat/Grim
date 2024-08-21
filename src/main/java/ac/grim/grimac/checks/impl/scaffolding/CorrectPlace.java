@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -13,14 +14,13 @@ public class CorrectPlace extends BlockPlaceCheck {
 
     private Vector3i previousBlockPlaced = null;
 
-    private double maxPitch = 0; // when player is Jumping can place a block with a 85.4
-
     public CorrectPlace(GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onBlockPlace(BlockPlace event) {
+        if (player.getInventory().inventory.getHeldItem().getType().equals(ItemTypes.AIR)) return;
         if (player.y < event.getPlacedBlockPos().getY()) return;
 
         Vector3f cursor = event.getCursor();
@@ -30,9 +30,9 @@ public class CorrectPlace extends BlockPlaceCheck {
 
         double diffY = player.y - event.getPlacedBlockPos().toVector3d().getY();
 
-        maxPitch = 2.33d * diffY + 80.97d;
+        double adjustedPitch = 2.33d * diffY;
 
-        if (player.yRot < maxPitch && player.yRot > 74.5) return;
+        if (player.yRot < 80.97d + adjustedPitch && player.yRot > 74.5 - adjustedPitch) return;
 
         Vector3d pos = event.getPlacedBlockPos().toVector3d().subtract(0, 0.6, 0);
         if (!player.compensatedWorld.getWrappedBlockStateAt(pos.toVector3i()).getType().isAir()) return;
