@@ -23,6 +23,7 @@ public class Check implements AbstractCheck {
     private String checkName;
     private String configName;
     private String alternativeName;
+    private String displayName;
     private String description;
 
     private boolean experimental;
@@ -50,6 +51,7 @@ public class Check implements AbstractCheck {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+            this.displayName = this.checkName;
         }
 
         reload();
@@ -101,6 +103,7 @@ public class Check implements AbstractCheck {
     public void reload() {
         decay = getConfig().getDoubleElse(configName + ".decay", decay);
         setbackVL = getConfig().getDoubleElse(configName + ".setbackvl", setbackVL);
+        displayName = getConfig().getStringElse(configName + ".displayname", checkName);
 
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }

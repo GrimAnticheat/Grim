@@ -98,7 +98,7 @@ public class PunishmentManager {
         original = MessageUtil.format(original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
-                .replace("%check_name%", check.getCheckName())
+                .replace("%check_name%", check.getDisplayName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", vl)
                 .replace("%verbose%", verbose)
@@ -144,7 +144,7 @@ public class PunishmentManager {
 
                             if (command.command.equals("[webhook]")) {
                                 String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
-                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
+                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
                             } else if (command.command.equals("[proxy]")) {
                                 String proxyAlertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
                                 proxyAlertString = replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose);
