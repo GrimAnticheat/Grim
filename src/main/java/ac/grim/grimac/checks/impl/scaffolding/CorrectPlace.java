@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -13,6 +14,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 public class CorrectPlace extends BlockPlaceCheck {
 
     private Vector3i previousBlockPlaced = null;
+    private int lastBlockFaceID = -1;
 
     public CorrectPlace(GrimPlayer player) {
         super(player);
@@ -37,11 +39,15 @@ public class CorrectPlace extends BlockPlaceCheck {
         Vector3d pos = event.getPlacedBlockPos().toVector3d().subtract(0, 0.6, 0);
         if (!player.compensatedWorld.getWrappedBlockStateAt(pos.toVector3i()).getType().isAir()) return;
 
-        if (previousBlockPlaced != null && previousBlockPlaced.getY() - event.getPlacedBlockPos().getY() == 0) {
-            if (flagAndAlert() && shouldCancel() && shouldModifyPackets()) {
-                event.resync();
+        if (lastBlockFaceID == event.getFaceId()) {
+            if (previousBlockPlaced != null && previousBlockPlaced.getY() - event.getPlacedBlockPos().getY() == 0) {
+                if (flagAndAlert() && shouldCancel() && shouldModifyPackets()) {
+                    event.resync();
+                }
             }
         }
+
         previousBlockPlaced = event.getPlacedBlockPos();
+        lastBlockFaceID = event.getFaceId();
     }
 }
