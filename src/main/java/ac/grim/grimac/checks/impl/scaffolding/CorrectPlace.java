@@ -32,6 +32,12 @@ public class CorrectPlace extends BlockPlaceCheck {
 
         double diffY = player.y - event.getPlacedBlockPos().toVector3d().getY();
 
+        // player is too distant from the block and he isn't placing a block above him but like 2 blocks below
+        // ^ this isn't related to scaffold cheat. Scaffold cheat place a block below you
+        if (diffY > 2) {
+            return;
+        }
+
         double adjustedPitch = 2.33d * diffY;
 
         if (player.yRot < 80.97d + adjustedPitch && player.yRot > 74.5 - adjustedPitch) return;
