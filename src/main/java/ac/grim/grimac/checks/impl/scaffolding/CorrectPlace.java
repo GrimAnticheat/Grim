@@ -28,7 +28,7 @@ public class CorrectPlace extends BlockPlaceCheck {
         Vector3f cursor = event.getCursor();
 
         // player is looking at the end of block (at left or right), this won't affect the center
-        if ((cursor.getX() < 0.2 && cursor.getX() > 0.8) || (cursor.getZ() < 0.2 && cursor.getZ() > 0.8)) return;
+        if ((cursor.getX() < 0.2 || cursor.getX() > 0.8) || (cursor.getZ() < 0.2 || cursor.getZ() > 0.8)) return;
 
         double diffY = player.y - event.getPlacedBlockPos().toVector3d().getY();
 
