@@ -1,0 +1,56 @@
+# Hex kodlarını #FFFFFF veya #ffffff formatında kullanabilirsiniz :)
+
+# \u00BB eşittir » (çift >>), ANSI ve UTF-8 bunu farklı yorumlar. bu nedenle ? bile görebilirsiniz
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fUyarılar aktif edildi."
+alerts-disabled: "%prefix% &fUyarılar deaktif edildi."
+client-brand-format: "%prefix% &f%player% adlı oyuncu %brand% kullanarak giriş yaptı."
+console-specify-target: "%prefix% &cKonsol olarak bir hedef belirtmelisiniz!"
+player-not-found: "%prefix% &cOyuncu bulunamadı veya aktif değil!"
+player-not-this-server: "%prefix% &cBu oyuncu sunucuda değil!"
+spectate-return: "\n%prefix% &fBir önceki konuma dönmek için buraya tıklayın.\n"
+cannot-spectate-return: "%prefix% &cBunu yalnızca bir oyuncuyu izledikten sonra yapabilirsiniz."
+cannot-run-on-self: "%prefix% &cBu komutu kendi üzerinizde kullanamazsınız!"
+upload-log: "%prefix% &fDebug şu adrese yüklendi: %url%"
+upload-log-start: "%prefix% &fLog yükleniyor... lütfen bekleyin."
+upload-log-not-found: "%prefix% &cLog bulunamadı."
+upload-log-upload-failure: "%prefix% &cLog yüklenirken bir problem oluştu, lütfen konsolu kontrol edin."
+
+# Geçerli placeholderlar:
+# %prefix%
+# %player%
+# %check_name%
+# %description%
+# %experimental%
+# %vl% - ihlal uyarıları
+# %verbose% - detaylı olarak verilen tüm uyarılar, checkler tüm bilgileri vermez
+alerts-format: "%prefix% &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet &b%check_name%%experimental% &ftespit edildi: &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet &b%check_name%%experimental% &ftespit edildi: &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &badlı oyuncunun profili:"
+  - "&bGecikme: &f%ping%"
+  - "&bVersiyon: &f%version%"
+  - "&bKullanılan Client: &f%brand%"
+  - "&bDikey Hassasiyet: &f%h_sensitivity%%"
+  - "&bYatay Hassasiyet: &f%v_sensitivity%%"
+  - "&bFastMath Ayarı: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Uyarıları aktif/deaktif eder"
+  - "/grim profile (oyuncu) &f- &7Oyuncu profilini gösterir"
+  - "/grim help &f- &7Bu yardım mesajını gösterir"
+  - "/grim debug <player> &f- &7Geliştirici Debug'ını verir"
+  - "/grim perf &f- &7Geliştirici Performansını verir"
+  - "/grim reload &f- &7Configi yeniden yükler"
+  - "/grim spectate (oyuncu) &f- &7Bir oyuncuyu izlemenizi sağlar"
+  - "/grim verbose &f- &7Arabelleğe almadan tüm uyarıları görmenizi sağlar"
+  - "/grim log (0-255) &f- &7Uyarılar için bir debug logu çıktısı verir"
+  - "&7======================"
+
+# Translated by Kayera
+# Have a nice day ;)
