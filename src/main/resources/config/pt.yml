@@ -10,16 +10,17 @@ alerts:
   # Isso controla se/como os alertas são compartilhados entre os servidores conectados ao proxy.
   # Deve-se ter 'bungee-plugin-message-channel' habilitado na configuração do Velocity se estiver usando.
   proxy:
-    # Os alertas deveriam ser enviados para outros servidores conectados no mesmo proxy?
+    # Deviam os alertas ser enviados para outros servidores conectados no mesmo proxy?
     send: false
-    # Os alertas deveriam ser recebidos de outros servidores conectados no mesmo proxy?
+    # Deviam os alertas ser recebidos de outros servidores conectados no mesmo proxy?
     receive: false
 
 verbose:
   print-to-console: false
 
 client-brand:
-  # Isso signifia que, caso o nome do cliente seja igual aos listados abaixo, não será notificados aos operadores.
+  # Isso signifia que, caso a marca do cliente seja igual às listadas abaixo, não será notificado aos
+  # administradores.
   ignored-clients:
     - "^vanilla$"
     - "^fabric$"
@@ -27,7 +28,7 @@ client-brand:
     - "^Feather Fabric$"
 
 spectators:
-  # Esconde todos espectadores com a permissão 'grim.spectator' mesmo se não estiverem espectando ativamente.
+  # Esconde todos espectadores com a permissão 'grim.spectator' mesmo se não estiverem ativamente espectando.
   hide-regardless: false
   # Fará os espectadores serem escondidos apenas nos mundos listados abaixo, deixe em branco para habilitar em todos os mundos.
   allowed-worlds:
@@ -36,35 +37,35 @@ spectators:
 # Quanto tempo os jogadores tem até expulsarmos eles por inatividade? Padrão = 60 segundos.
 max-transaction-time: 60
 
-# Should the duplicate movement packet be cancelled?
-# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
-# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+# Deve-se cancelar o pacote de movimento duplicado?
+# A Mojang arrumou esse erro na 1.21, sendo sua tentativa de concertar a dessincronização do balde. https://bugs.mojang.com/browse/MC-12363
+# Isso só se aplica à clientes da 1.17-1.20.5 em servidores da 1.8.
 cancel-duplicate-packet: true
 
-# Whether or not to ignore the rotation in duplicate packets
+# Deve-se ignorar rotação em pacotes duplicados?
 ignore-duplicate-packet-rotation: false
 
 Simulation:
-  # Por quanto deveríamos multiplicar a vantagem caso o jogador não tenha falhado em nem uma verificação?
+  # Por quanto deve-se multiplicar a vantagem desde a última vez que falhou uma verificação?
   # Isso é como a configuração padrão se parece (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/d4ufgxrxer
   setback-decay-multiplier: 0.999
   # O quão longe o jogador deve estar da área simulada para adicionarmos violações?
   # Medido em blocos do último movimento legítmo.
-  # Aceitamos o Optifine trocando as tabelas trigonométricas, mas abaixar para 0.001 reduzirá o 'FastMath'
-  # de falhar, caso esta compensação não funcionar...
+  # Incluímos o Optifine trocando as tabelas trigonométricas; entretanto, abaixar para 0.001 reduzirá o 'FastMath'
+  # de falhar, caso essa compensação não funcionar.
   threshold: 0.001
   # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo?
   # -1 desabilitará
   immediate-setback-threshold: 0.1
-  # O quão longe da área simulada sobre todos os ticks para começarmos a recuar?
+  # Qual é a soma do desalinhamento da simulação em todos os ticks até começarmos a recuar?
   # -1 desabilitará
   max-advantage: 1
-  # Depois de 50 segundos, com a configuração padrão, o jogador irá de 4 blocos -> 1 bloco de vantagem.
+  # Depois de 50 segundos, com a configuração padrão, o jogador irá de 4 blocos a 1 bloco de vantagem.
   # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
   # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
 
-# Verifica se um jogador entrou em um bloco durante o movimento.
+# Verifica se um jogador entrou em um bloco ao se mover.
 Phase:
   setbackvl: 1 # Entrar em blocos possibilita escalar paredes, além disso, essa verificação é relativamente estável.
   decay: 0.005
@@ -85,21 +86,21 @@ RotationPlace:
   cancelvl: 5
 
 # Verificação de NoSlow por simulação.
-# Grim considera erros no netcode... difícil de gerar falsos positivos, até mesmo spamando o blotão direito e a offhand.
-# Muito mais estável que outros anticheats, mas por favor, reporte quaisquer falsos positivos... eu já arrumei diversos
+# Grim considera erros no netcode. Difícil de gerar falsos positivos, até mesmo spamando o blotão direito e a offhand.
+# Muito mais estável que outros anticheats, mas por favor, reporte quaisquer falsos positivos. Eu já arrumei diversos
 # erros de netcode.
 NoSlowA:
-  # Quanto de desvio da simulação é considerado trapaça?
-  # Por padrão isso é menor que outros desvios.
-  # Acusa com 0.03-0.2 com consistência com o NoSlow ativo.
+  # Quanto de desalinhamento é considerado trapaça?
+  # Por padrão é menor que os outros.
+  # Em 0.03-0.2 detecta com consistência.
   threshold: 0.001
-  # Recua rapidamente no primeiro item para remover quaisquer vantagens que o NoSlow dá.
+  # Recuo imediato para inibir as vantagens rapidamente.
   setbackvl: 5
-  # Decai quando o jogador usa um item E é desasceletado por isso.
+  # Decai quando o jogador usa um item e é efetivamente desacelerado.
   decay: 0.05
 
 Knockback:
-  # Por quanto deveriamos multiplicar a vantagem caso o jogador não tenha falhado nessa verificação?
+  # Por quanto deve-se multiplicar a vantagem desde a última vez que falhou na verificação?
   setback-decay-multiplier: 0.999
   # O quão longe da área do recuo recebido o jogador deve estar para adicionarmos uma violação?
   # Medido em blocos do recuo recebido.
@@ -107,7 +108,7 @@ Knockback:
   # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo?
   # -1 desabilitará.
   immediate-setback-threshold: 0.1
-  # O quão longe da área simulada sobre todos os ticks deverá ser para começarmos a recuar?
+  # Qual é a soma do desalinhamento da simulação em todos os ticks até começarmos a recuar?
   # -1 desabilitará.
   max-advantage: 1
   # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
@@ -120,11 +121,11 @@ Explosion:
 TimerA:
   setbackvl: 10
   # Milissegundos que o jogador pode acumular para depois usar quando eles têm um atraso no ping.
-  # Pode permitir o uso de fast use / fast heal / fast bow na 1.8 caso o valor seja definido muito alto. 120ms parece
-  # um bom balanceamento.
+  # Pode ignorar o uso de fast use / fast heal / fast bow na 1.8 caso o valor seja definido muito alto.
+  # 120ms parece um bom balanceamento.
   drift: 120
   # Ping no qual a verificação vai começar a limitar o balançeamento do timer para previnir abuso.
-  # Pode causar recuos a jogadores legítmos, mas somente se estiverem acima deste ping.
+  # Pode causar recuos a jogadores legítmos, mas somente se estiverem acima desse ping.
   # -1 desabilitará.
   ping-abuse-limit-threshold: 1000
 
@@ -141,56 +142,54 @@ EntityControl:
   setbackvl: 25
 
 Reach:
-  # Por quanto devíamos expandir as caixas de colisão? 0.0005 deve detectar 3.0005+ de alcance.
+  # Por quanto deve-se expandir as caixas de colisão? 0.0005 deve detectar 3.0005+ de alcance.
   #
   # Há 0.03 de expansão forçada nas versões 1.9-1.18.1 (não a 1.18.2), ou algumas combinações de cliente/servidor por
   # conta de mudanças no protocolo e limitações. Essa verificação é mais poderosa com clientes da 1.7/1.8 em servidores
   # da 1.8.
   threshold: 0.0005
-  # Deveríamos cancelar hits que sabemos que são impossíveis?
-  # O alcance de 3.00-3.03 pode acabar passando, mas continuarão adicionando violações, por conta de limitações na
-  # ordem de pacotes.
+  # Deve-se cancelar hits que sabemos que são impossíveis?
+  # O alcance de 3.00-3.03 pode acabar passando, por conta da ordem de pacotes, mas continuará adicionando violações.
   block-impossible-hits: true
   # Isso enviará um pacote adicional no final de todos os ticks para aumentar a probabilidade de detectarmos trapaceiros.
   # Isso injeta na lista de conecção do servidor para envar um pacote final logo antes do servidor recarregar.
   # Habilitando isso, irá aumentar o uso de banda para todos os jogadores.
   # Isso não irá interferir na performance do servidor.
   # Habilitando isso, aumentará a probabilidade de detectarmos trapaceiros.
-  # Deixando-o desabilitado, continuará detectando cheaters e não irá causar falsos positivos.
-  # A menos que estiver em um servidor focado em PvP esse pacote adicional não é recomendado.
+  # Deixando-o desabilitado, continuará detectando trapaceiros e não irá causar falsos positivos.
+  # A menos que estiver em um servidor focado em PvP, esse pacote adicional não é recomendado.
   enable-post-packet: false
 
 exploit:
-  # Você pode ganhar altas velocidades enquanto pular correndo com uma elytra, isso previne o exploitação de ocorrer quando
-  # definido falso.
+  # Você pode ganhar altas velocidades se pular correndo com uma elytra, previne isso de ocorrer quando definido falso.
   # A Mojang vacilou com o netcode por fazer a Elytra iniciar pelo lado do cliente.
   # As Elytras levam 0.99 de fricção horizontal, então constantemente adicionando 0.2 de velocidade horizontal resulta
   # em velocidades altíssimas.
   allow-sprint-jumping-when-using-elytra: true
-  # Essa opção mitiga o posicionamento de blocos em blocos fantasmas, ressincronizando o jogador quando isso ocorrer.
+  # Essa opção mitiga posicionar blocos em blocos fantasma, ressincronizando o jogador quando isso ocorrer.
   allow-building-on-ghostblocks: true
-  # Este ajuste, influenciado pelo booleano acima, define a distância para verificar blocos fantasmas.
-  # Seu intervalo válido é limitado de 2 a 4.
+  # Esse ajuste, influído pela opção acima, define a distância para verificar blocos fantasmas.
+  # O valor válido é limitado de 2 a 4.
   distance-to-check-if-ghostblocks: 2
 
-# Habilita registrar plugins que são injetados na netty ao entrar para depurar erros de compatibilidade.
+# Registra plugins que são injetados na netty ao entrar para depurar erros de compatibilidade.
 debug-pipeline-on-join: false
 
 # Habilita verificações experimentais.
 experimental-checks: false
 
 # Grim às vezes cancela pacotes ilegais como com o timer, depois de X pacotes em um segundo que foram cancelados, quando
-# devemos simplesmente expulsar o jogador? Isso é requirido já que alguns limitadores de pacotes não contam pacotes
+# deve-se simplesmente expulsar o jogador? Isso é requirido já que alguns limitadores de pacotes não contam pacotes
 # cancelados pelo Grim.
 packet-spam-threshold: 100
 
-# Grim é capaz de garantir que um jogador fora do estado de voo não possa ter mais de X milissegundos de ping.
+# Grim pode impor que o jogador fora do estado de voo não possa ter mais de X milissegundos de ping.
 # Isso ocorre porque o Grim atualmente não verifica os jogadores que estão voando.
-# To disable, use -1
+# -1 desabilitará.
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# Ping máximo quando o impulso do foguete acaba.
+# Previne jogadores com ping alto de usarem um foguete ara voar indefinidamente.
 max-ping-firework-boost: 1000
 
 config-version: 9
