@@ -1,5 +1,5 @@
 # %check_name% - nome da verificação
-# %description% - description of the check
+# %description% - descrição da verificação
 # %vl% - violações
 # %verbose% - informação extra
 # %player% - nome do jogador
