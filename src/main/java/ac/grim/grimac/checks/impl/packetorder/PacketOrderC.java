@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.badpackets;
+package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -11,9 +11,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsM", experimental = true)
-public class BadPacketsM extends Check implements PacketCheck {
-    public BadPacketsM(final GrimPlayer player) {
+@CheckData(name = "PacketOrderC", experimental = true)
+public class PacketOrderC extends Check implements PacketCheck {
+    public PacketOrderC(final GrimPlayer player) {
         super(player);
     }
 
