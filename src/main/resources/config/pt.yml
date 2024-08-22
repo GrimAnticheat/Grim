@@ -49,7 +49,7 @@ Simulation:
   # Por quanto deve-se multiplicar a vantagem desde a última vez que falhou uma verificação?
   # Isso é como a configuração padrão se parece (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/d4ufgxrxer
   setback-decay-multiplier: 0.999
-  # O quão longe o jogador deve estar da área simulada para adicionarmos violações?
+  # O quão longe o jogador deve estar da área simulada para registrar violações?
   # Medido em blocos do último movimento legítmo.
   # Incluímos o Optifine trocando as tabelas trigonométricas; entretanto, abaixar para 0.001 reduzirá o 'FastMath'
   # de falhar, caso essa compensação não funcionar.
@@ -102,7 +102,7 @@ NoSlowA:
 Knockback:
   # Por quanto deve-se multiplicar a vantagem desde a última vez que falhou na verificação?
   setback-decay-multiplier: 0.999
-  # O quão longe da área do recuo recebido o jogador deve estar para adicionarmos uma violação?
+  # O quão longe da área do recuo recebido o jogador deve estar para registrar violações?
   # Medido em blocos do recuo recebido.
   threshold: 0.001
   # O quão longe o jogador deve estar da área simulada para imediatamente recuá-lo?
@@ -130,7 +130,7 @@ TimerA:
   ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
-  # Número de milissegundos perdidos ao se mover antes de começarmos a adicionar violações.
+  # Número de milissegundos perdidos ao se mover antes de começarmos a registrar violações.
   drift: 1200
 
 # Mesmo método usado no TimerA, mas para veículos.
@@ -149,7 +149,7 @@ Reach:
   # da 1.8.
   threshold: 0.0005
   # Deve-se cancelar hits que sabemos que são impossíveis?
-  # O alcance de 3.00-3.03 pode acabar passando, por conta da ordem de pacotes, mas continuará adicionando violações.
+  # O alcance de 3.00-3.03 pode acabar passando, por conta da ordem de pacotes, mas continuará registrando violações.
   block-impossible-hits: true
   # Isso enviará um pacote adicional no final de todos os ticks para aumentar a probabilidade de detectarmos trapaceiros.
   # Isso injeta na lista de conecção do servidor para envar um pacote final logo antes do servidor recarregar.
