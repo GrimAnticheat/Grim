@@ -120,6 +120,7 @@ public class CheckManager {
                 .put(Phase.class, new Phase(player))
                 .put(PacketOrderA.class, new PacketOrderA(player))
                 .put(PacketOrderE.class, new PacketOrderE(player))
+                .put(PacketOrderF.class, new PacketOrderF(player))
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(SuperDebug.class, new SuperDebug(player))
