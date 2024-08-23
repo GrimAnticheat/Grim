@@ -60,26 +60,27 @@ public class BlockRayTrace {
         double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;
         double posZInverse = zSign == 0 ? Double.MAX_VALUE : zSign / zDiff;
 
-        double d12 = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
-        double d13 = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
-        double d14 = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
+        double tMaxX = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
+        double tMaxY = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
+        double tMaxZ = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
 
-        // Can't figure out what this code does currently
-        while (d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
-            if (d12 < d13) {
-                if (d12 < d14) {
+        // tMax represents the maximum distance along each axis before crossing a block boundary
+        // The loop continues until the ray has crossed a block boundary along all axes
+        while (tMaxX <= 1.0D || tMaxY <= 1.0D || tMaxZ <= 1.0D) {
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
                     floorStartX += xSign;
-                    d12 += posXInverse;
+                    tMaxX += posXInverse;
                 } else {
                     floorStartZ += zSign;
-                    d14 += posZInverse;
+                    tMaxZ += posZInverse;
                 }
-            } else if (d13 < d14) {
+            } else if (tMaxY < tMaxZ) {
                 floorStartY += ySign;
-                d13 += posYInverse;
+                tMaxY += posYInverse;
             } else {
                 floorStartZ += zSign;
-                d14 += posZInverse;
+                tMaxZ += posZInverse;
             }
 
             state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
