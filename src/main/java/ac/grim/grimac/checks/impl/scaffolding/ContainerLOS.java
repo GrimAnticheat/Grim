@@ -42,69 +42,56 @@ public class ContainerLOS extends BlockPlaceCheck {
       System.out.println("Ray trace hit");
       return;
     }
+    System.out.println("Potential invalid place");
     place.resync();
   }
 
   private boolean didRayTraceHit(BlockPlace place) {
-//    Location location = new Location(this.player.bukkitPlayer.getWorld(),
-//        place.getPlacedAgainstBlockLocation().getX(),
-//        place.getPlacedAgainstBlockLocation().getY(),
-//        place.getPlacedAgainstBlockLocation().getZ());
     Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
         place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
     WrappedBlockState interactBlock = player.compensatedWorld.getWrappedBlockStateAt(interactBlockVec);
 
-
-//    if (!isInteractableBlock(interactBlock.getType())) {
-//      return false;
-//    }
     double maxDistance = player.compensatedEntities.getSelf()
         .getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-//    List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-//        new Vector3f(player.lastXRot, player.yRot, 0),
-//        new Vector3f(player.xRot, player.yRot, 0)
-//    ));
-//    for (double eyeHeight : player.getPossibleEyeHeights()) {
-//      for (Vector3f lookDir : possibleLookDirs) {
-//        // x, y, z are correct for the block placement even after post tick because of code elsewhere
-//        Vector3d starting = new Vector3d(player.x, player.y + eyeHeight, player.z);
-//        // xRot and yRot are a tick behind
-//        Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-//        Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
-//
-//        if (intercept.getFirst() != null) return true;
-//      }
-//    }
+    List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
+        new Vector3f(player.lastXRot, player.yRot, 0),
+        new Vector3f(player.xRot, player.yRot, 0)
+    ));
+    for (double eyeHeight : player.getPossibleEyeHeights()) {
+      for (Vector3f lookDir : possibleLookDirs) {
+        Vector3d eyePosition = new Vector3d(player.x, player.y + eyeHeight, player.z);
+        // Why do we have our own vector classes and MC vector classes mixed throughout this codebase?
+        Vector eyeLookDirBukkitVector = new Ray(player, eyePosition.x, eyePosition.y, eyePosition.z, lookDir.x, lookDir.y).calculateDirection();
+        Vector3d eyeLookDirection = new Vector3d(eyeLookDirBukkitVector.getX() ,
+            eyeLookDirBukkitVector.getY(), eyeLookDirBukkitVector.getZ());
 
-    Vector3d eyePosition = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
-    // Why do we have our own vector classes and MC vector classes mixed throughout this codebase?
-    Vector eyeLookDirBukkitVector = new Ray(player, eyePosition.x, eyePosition.y, eyePosition.z, player.xRot, player.yRot).calculateDirection();
-    Vector3d eyeLookDirection = new Vector3d(eyeLookDirBukkitVector.getX() ,
-        eyeLookDirBukkitVector.getY(), eyeLookDirBukkitVector.getZ());
+        WrappedBlockState targetBlock;
+        Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDirection, maxDistance);
 
-    WrappedBlockState targetBlock;
-    Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDirection, maxDistance);
-
-    if (targetBlockVec == null) {
-      System.out.println("Impossible for no ray trace block to exist.");
-      return false;
+        if (targetBlockVec == null) {
+//          System.out.println("Impossible for no ray trace block to exist.");
+          continue;
 //      flagAndAlert("no-ray-trace-block");
-    } else {
-      targetBlock = player.compensatedWorld.getWrappedBlockStateAt(targetBlockVec);
+        } else {
+          targetBlock = player.compensatedWorld.getWrappedBlockStateAt(targetBlockVec);
+        }
+
+        if (interactBlock.equals(targetBlock)) {
+//      System.out.println("Nothing to see here, nothing wrong");
+          return true;
+        } else {
+//          System.out.println(
+//              "Player interacted with block at: " + interactBlockVec.getX() + " " + interactBlockVec.getY() +
+//                  " " + interactBlockVec.getZ());
+//          System.out.println(
+//              "Raytrace check hit block at: " + targetBlockVec.getX() + " " +
+//                  targetBlockVec.getY() + " " + targetBlockVec.getZ());
+//      flagAndAlert("raytrace-hit-wrong-block");
+          continue;
+        }
+      }
     }
 
-    if (interactBlock.equals(targetBlock)) {
-//      System.out.println("Nothing to see here, nothing wrong");
-      return true;
-    } else {
-      System.out.println(
-          "Player interacted with block at: " + interactBlockVec.getX() + " " + interactBlockVec.getY() +
-              " " + interactBlockVec.getZ());
-      System.out.println(
-          "Raytrace check hit block at: " + targetBlockVec.getX() + " " +
-              targetBlockVec.getY() + " " + targetBlockVec.getZ());
-//      flagAndAlert("raytrace-hit-wrong-block");
-    }
     return false;
   }
 
