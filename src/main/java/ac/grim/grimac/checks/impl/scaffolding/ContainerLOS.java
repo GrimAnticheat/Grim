@@ -5,7 +5,9 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.nmsutil.BlockRayTrace;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -39,10 +41,12 @@ public class ContainerLOS extends BlockPlaceCheck {
     if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
 
     if (didRayTraceHit(place)) {
-      System.out.println("Ray trace hit");
       return;
     }
-    System.out.println("Potential invalid place");
+    System.out.println("Invalid place");
+    flagAndAlert("Invalid place, failed los check");
+
+    // How do I actually cancel the interaction cause resync doesn't work
     place.resync();
   }
 
@@ -69,25 +73,12 @@ public class ContainerLOS extends BlockPlaceCheck {
         Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDirection, maxDistance);
 
         if (targetBlockVec == null) {
-//          System.out.println("Impossible for no ray trace block to exist.");
           continue;
-//      flagAndAlert("no-ray-trace-block");
-        } else {
-          targetBlock = player.compensatedWorld.getWrappedBlockStateAt(targetBlockVec);
         }
+        targetBlock = player.compensatedWorld.getWrappedBlockStateAt(targetBlockVec);
 
         if (interactBlock.equals(targetBlock)) {
-//      System.out.println("Nothing to see here, nothing wrong");
           return true;
-        } else {
-//          System.out.println(
-//              "Player interacted with block at: " + interactBlockVec.getX() + " " + interactBlockVec.getY() +
-//                  " " + interactBlockVec.getZ());
-//          System.out.println(
-//              "Raytrace check hit block at: " + targetBlockVec.getX() + " " +
-//                  targetBlockVec.getY() + " " + targetBlockVec.getZ());
-//      flagAndAlert("raytrace-hit-wrong-block");
-          continue;
         }
       }
     }
@@ -96,22 +87,13 @@ public class ContainerLOS extends BlockPlaceCheck {
   }
 
   private Vector3i getTargetBlock(Vector3d eyePosition, Vector3d eyeDirection, double maxDistance) {
-    eyeDirection = eyeDirection.normalize();
-    WrappedBlockState wrappedBlockState;
-    Vector3i blockLoc;
 
-    for (int i = 0; i <= maxDistance; i++) {
-      Vector3d rayTrace = eyeDirection.multiply(i);
-      Vector3d blockVector = eyePosition.add(rayTrace);
-      blockLoc = blockVector.toVector3i();
-      wrappedBlockState = player.compensatedWorld.getWrappedBlockStateAt(blockLoc);
+    Vector eyePositionBukkit = new Vector(eyePosition.x, eyePosition.y, eyePosition.z);
+    Vector eyeDirectionBukkit = new Vector(eyeDirection.x, eyeDirection.y, eyeDirection.z);
 
-      if (!wrappedBlockState.getType().isAir()) {
-        return blockLoc;
-      }
-    }
-
-    return null;
+    HitData hitData = BlockRayTrace.getNearestReachHitResult(player, eyePositionBukkit, eyeDirectionBukkit, maxDistance, maxDistance);
+    if (hitData == null) return null;
+    return hitData.getPosition();
   }
 
   private boolean isInteractableBlock(Material type) {
