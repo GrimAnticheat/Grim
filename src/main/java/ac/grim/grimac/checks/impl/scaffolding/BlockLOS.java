@@ -63,14 +63,12 @@ public class ContainerLOS extends BlockPlaceCheck {
     ));
     for (double eyeHeight : player.getPossibleEyeHeights()) {
       for (Vector3f lookDir : possibleLookDirs) {
-        Vector3d eyePosition = new Vector3d(player.x, player.y + eyeHeight, player.z);
+        Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
         // Why do we have our own vector classes and MC vector classes mixed throughout this codebase?
-        Vector eyeLookDirBukkitVector = new Ray(player, eyePosition.x, eyePosition.y, eyePosition.z, lookDir.x, lookDir.y).calculateDirection();
-        Vector3d eyeLookDirection = new Vector3d(eyeLookDirBukkitVector.getX() ,
-            eyeLookDirBukkitVector.getY(), eyeLookDirBukkitVector.getZ());
+        Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
 
         WrappedBlockState targetBlock;
-        Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDirection, maxDistance);
+        Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDir, maxDistance);
 
         if (targetBlockVec == null) {
           continue;
@@ -86,17 +84,13 @@ public class ContainerLOS extends BlockPlaceCheck {
     return false;
   }
 
-  private Vector3i getTargetBlock(Vector3d eyePosition, Vector3d eyeDirection, double maxDistance) {
-
-    Vector eyePositionBukkit = new Vector(eyePosition.x, eyePosition.y, eyePosition.z);
-    Vector eyeDirectionBukkit = new Vector(eyeDirection.x, eyeDirection.y, eyeDirection.z);
-
-    HitData hitData = BlockRayTrace.getNearestReachHitResult(player, eyePositionBukkit, eyeDirectionBukkit, maxDistance, maxDistance);
+  private Vector3i getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance) {
+    HitData hitData = BlockRayTrace.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance);
     if (hitData == null) return null;
     return hitData.getPosition();
   }
 
-  private boolean isInteractableBlock(Material type) {
+  private boolean checkBlockType(Material type) {
     switch (type) {
       case ANVIL:
       case BARREL:
