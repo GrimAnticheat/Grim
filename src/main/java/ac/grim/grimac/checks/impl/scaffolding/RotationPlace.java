@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -33,6 +34,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
             ignorePost = true;
             // If the player hit and has flagged this check recently
@@ -46,6 +48,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
 
         // Don't flag twice
         if (ignorePost) {
