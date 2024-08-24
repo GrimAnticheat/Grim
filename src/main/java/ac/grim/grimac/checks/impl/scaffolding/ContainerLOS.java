@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -37,47 +38,86 @@ public class ContainerLOS extends BlockPlaceCheck {
   public void onPostFlyingBlockPlace(BlockPlace place) {
     if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
 
-    Location location = new Location(this.player.bukkitPlayer.getWorld(),
-        place.getPlacedAgainstBlockLocation().getX(),
-        place.getPlacedAgainstBlockLocation().getY(),
-        place.getPlacedAgainstBlockLocation().getZ());
-    Block interactBlock = location.getBlock();
-
-
-    if (!isInteractableBlock(interactBlock.getType())) {
+    if (didRayTraceHit(place)) {
+      System.out.println("Ray trace hit");
       return;
     }
-    double maxDistance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-
-
-    Block targetBlock = getTargetBlock(player, maxDistance);
-    if (targetBlock == null) {
-      System.out.println("Impossible for no ray trace block to exist.");
-      flagAndAlert("no-ray-trace-block");
-      return;
-    }
-
-    if (targetBlock.equals(interactBlock)) {
-      System.out.println("Nothing to see here, nothing wrong");
-    } else {
-      System.out.println("Player interacted with block at: " + interactBlock.getX() + " " + interactBlock.getY() + " " + interactBlock.getZ());
-      System.out.println("Raytrace check hit " + targetBlock.getType() + " block at: " + targetBlock.getX() + " " + targetBlock.getY() + " " + targetBlock.getZ());
-      flagAndAlert("raytrace-hit-wrong-block");
-    }
+    place.resync();
   }
 
-  private Block getTargetBlock(GrimPlayer player, double maxDistance) {
-    Location eyeLocation = player.bukkitPlayer.getEyeLocation(); // How do I compensate for latency?
-    Vector direction = eyeLocation.getDirection().normalize();
+  private boolean didRayTraceHit(BlockPlace place) {
+//    Location location = new Location(this.player.bukkitPlayer.getWorld(),
+//        place.getPlacedAgainstBlockLocation().getX(),
+//        place.getPlacedAgainstBlockLocation().getY(),
+//        place.getPlacedAgainstBlockLocation().getZ());
+    Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
+        place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
+    WrappedBlockState interactBlock = player.compensatedWorld.getWrappedBlockStateAt(interactBlockVec);
+
+
+//    if (!isInteractableBlock(interactBlock.getType())) {
+//      return false;
+//    }
+    double maxDistance = player.compensatedEntities.getSelf()
+        .getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
+//    List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
+//        new Vector3f(player.lastXRot, player.yRot, 0),
+//        new Vector3f(player.xRot, player.yRot, 0)
+//    ));
+//    for (double eyeHeight : player.getPossibleEyeHeights()) {
+//      for (Vector3f lookDir : possibleLookDirs) {
+//        // x, y, z are correct for the block placement even after post tick because of code elsewhere
+//        Vector3d starting = new Vector3d(player.x, player.y + eyeHeight, player.z);
+//        // xRot and yRot are a tick behind
+//        Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
+//        Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+//
+//        if (intercept.getFirst() != null) return true;
+//      }
+//    }
+
+    Location eyeLocation = player.bukkitPlayer.getEyeLocation();
+    Vector eyePosition = new Vector(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ());
+
+    WrappedBlockState targetBlock;
+    Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLocation.getDirection(), maxDistance);
+
+    if (targetBlockVec == null) {
+      System.out.println("Impossible for no ray trace block to exist.");
+      return false;
+//      flagAndAlert("no-ray-trace-block");
+    } else {
+      targetBlock = player.compensatedWorld.getWrappedBlockStateAt(targetBlockVec);
+    }
+
+    if (interactBlock.equals(targetBlock)) {
+//      System.out.println("Nothing to see here, nothing wrong");
+      return true;
+    } else {
+      System.out.println(
+          "Player interacted with block at: " + interactBlockVec.getX() + " " + interactBlockVec.getY() +
+              " " + interactBlockVec.getZ());
+      System.out.println(
+          "Raytrace check hit block at: " + targetBlockVec.getX() + " " +
+              targetBlockVec.getY() + " " + targetBlockVec.getZ());
+//      flagAndAlert("raytrace-hit-wrong-block");
+    }
+    return false;
+  }
+
+  private Vector3i getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance) {
+    eyeDirection = eyeDirection.normalize();
+    WrappedBlockState wrappedBlockState;
 
     for (int i = 0; i <= maxDistance; i++) {
-      Vector vec = direction.clone().multiply(i);
-      Block block = eyeLocation.add(vec).getBlock();
-      eyeLocation.subtract(vec);
+      Vector rayTrace = eyeDirection.clone().multiply(i);
+      Vector blockVector = eyePosition.add(rayTrace);
+      wrappedBlockState = player.compensatedWorld.getWrappedBlockStateAt(blockVector);
 
-      if (block.getType() != Material.AIR) {
-        return block;
+      if (!wrappedBlockState.getType().isAir()) {
+        return new Vector3i(blockVector.getBlockX(), blockVector.getBlockY(), blockVector.getBlockZ());
       }
+      eyePosition.subtract(rayTrace);
     }
 
     return null;
