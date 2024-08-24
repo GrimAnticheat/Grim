@@ -76,11 +76,14 @@ public class ContainerLOS extends BlockPlaceCheck {
 //      }
 //    }
 
-    Location eyeLocation = player.bukkitPlayer.getEyeLocation();
-    Vector eyePosition = new Vector(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ());
+    Vector3d eyePosition = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
+    // Why do we have our own vector classes and MC vector classes mixed throughout this codebase?
+    Vector eyeLookDirBukkitVector = new Ray(player, eyePosition.x, eyePosition.y, eyePosition.z, player.xRot, player.yRot).calculateDirection();
+    Vector3d eyeLookDirection = new Vector3d(eyeLookDirBukkitVector.getX() ,
+        eyeLookDirBukkitVector.getY(), eyeLookDirBukkitVector.getZ());
 
     WrappedBlockState targetBlock;
-    Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLocation.getDirection(), maxDistance);
+    Vector3i targetBlockVec = getTargetBlock(eyePosition, eyeLookDirection, maxDistance);
 
     if (targetBlockVec == null) {
       System.out.println("Impossible for no ray trace block to exist.");
@@ -105,19 +108,20 @@ public class ContainerLOS extends BlockPlaceCheck {
     return false;
   }
 
-  private Vector3i getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance) {
+  private Vector3i getTargetBlock(Vector3d eyePosition, Vector3d eyeDirection, double maxDistance) {
     eyeDirection = eyeDirection.normalize();
     WrappedBlockState wrappedBlockState;
+    Vector3i blockLoc;
 
     for (int i = 0; i <= maxDistance; i++) {
-      Vector rayTrace = eyeDirection.clone().multiply(i);
-      Vector blockVector = eyePosition.add(rayTrace);
-      wrappedBlockState = player.compensatedWorld.getWrappedBlockStateAt(blockVector);
+      Vector3d rayTrace = eyeDirection.multiply(i);
+      Vector3d blockVector = eyePosition.add(rayTrace);
+      blockLoc = blockVector.toVector3i();
+      wrappedBlockState = player.compensatedWorld.getWrappedBlockStateAt(blockLoc);
 
       if (!wrappedBlockState.getType().isAir()) {
-        return new Vector3i(blockVector.getBlockX(), blockVector.getBlockY(), blockVector.getBlockZ());
+        return blockLoc;
       }
-      eyePosition.subtract(rayTrace);
     }
 
     return null;
