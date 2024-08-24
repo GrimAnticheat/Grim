@@ -155,6 +155,9 @@ Reach:
   # Als je dit uitgeschakeld laat, worden nog steeds valsspelers gepakt en zullen er geen valse positieven ontstaan
   # Tenzij je een 1.8 PvP server bent, wordt dit extra pakket niet aangeraden
   enable-post-packet: false
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.25
 
 exploit:
   # Je kunt hoge snelheden krijgen als je sprint met een elytra, dit voorkomt de exploit als het op false staat

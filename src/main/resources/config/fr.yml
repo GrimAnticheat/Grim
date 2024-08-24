@@ -156,6 +156,9 @@ Reach:
   # Laisser cette fonctionnalité désactivée permettra tout de même de détecter les tricheurs et n'entraînera pas de faux positifs.
   # À moins d'être un serveur axé sur le PvP en 1.8, l'envoi de ce paquet supplémentaire n'est pas recommandé.
   enable-post-packet: false
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.25
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true

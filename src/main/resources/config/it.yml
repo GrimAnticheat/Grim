@@ -135,6 +135,9 @@ Reach:
   block-impossible-hits: true
   # Abilita l'invio di pacchetti aggiuntivi per il rilevamento degli attacchi
   enable-post-packet: false
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.25
 
 exploit:
   # Abilita il salto in sprint con l'elytra
