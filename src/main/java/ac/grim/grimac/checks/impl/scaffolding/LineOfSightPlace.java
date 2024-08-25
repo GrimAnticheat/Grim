@@ -9,12 +9,12 @@ import ac.grim.grimac.utils.nmsutil.BlockRayTrace;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.MaterialType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.HashMap;
-import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -22,14 +22,14 @@ import java.util.Arrays;
 import java.util.List;
 
 @CheckData(name = "BlockLOS")
-public class BlockLOS extends BlockPlaceCheck {
+public class LineOfSightPlace extends BlockPlaceCheck {
 
   double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
   boolean ignorePost = false;
-  boolean useBlockWhitelist = false;
-  HashMap<StateType, Boolean> blockWhitelist = new HashMap<>();
+  boolean useBlockWhitelist;
+  HashMap<MaterialType, Boolean> blockWhitelist = new HashMap<>();
 
-  public BlockLOS(GrimPlayer player) {
+  public LineOfSightPlace(GrimPlayer player) {
     super(player);
   }
 
@@ -43,8 +43,6 @@ public class BlockLOS extends BlockPlaceCheck {
       if (flagAndAlert("pre-flying") && shouldModifyPackets() && shouldCancel()) {
         System.out.println("Canceling block at " + place.getPlacedBlockPos().getX() + " " + place.getPlacedBlockPos().getY() + " " + place.getPlacedBlockPos().getZ());
         place.resync();  // Deny the block placement.
-        // TODO figure out way to deny chest/container opening.
-        // resync prevents block placements but not interacting with containers
       }
     }
   }
@@ -56,7 +54,7 @@ public class BlockLOS extends BlockPlaceCheck {
     if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
 
     if (useBlockWhitelist) {
-      if (!isBlockTypeWhitelisted(place.getPlacedAgainstMaterial())) {
+      if (!isBlockTypeWhitelisted(place.getPlacedAgainstMaterial().getMaterialType())) {
         return;
       }
     }
@@ -115,7 +113,18 @@ public class BlockLOS extends BlockPlaceCheck {
     return hitData.getPosition();
   }
 
-  private boolean isBlockTypeWhitelisted(StateType type) {
+  private boolean isBlockTypeWhitelisted(MaterialType type) {
     return blockWhitelist.get(type) != null;
+  }
+
+  @Override
+  public void reload() {
+    super.reload();
+    useBlockWhitelist = getConfig().getBooleanElse("LineOfSightPlace.use-block-whitelist", false);
+    List<String> blocks = getConfig().getList("LineOfSightPlace.block-whitelist");
+    for (String block : blocks) {
+      MaterialType type = MaterialType.valueOf(block.trim().toUpperCase());
+      blockWhitelist.put(type, true);
+    }
   }
 }
