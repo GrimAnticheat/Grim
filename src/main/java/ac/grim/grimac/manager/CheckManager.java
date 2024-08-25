@@ -142,7 +142,6 @@ public class CheckManager {
                 .put(FarPlace.class, new FarPlace(player))
                 .put(FabricatedPlace.class, new FabricatedPlace(player))
                 .put(PositionPlace.class, new PositionPlace(player))
-                .put(RotationPlace.class, new RotationPlace(player))
                 .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
                 .put(LineOfSightPlace.class, new LineOfSightPlace(player))
                 .put(GhostBlockMitigation.class, new GhostBlockMitigation(player))

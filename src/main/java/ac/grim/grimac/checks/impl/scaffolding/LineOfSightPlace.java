@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@CheckData(name = "BlockLOS")
+@CheckData(name = "LineOfSightPlace")
 public class LineOfSightPlace extends BlockPlaceCheck {
 
   double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.

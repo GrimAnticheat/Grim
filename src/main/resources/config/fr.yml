@@ -81,9 +81,6 @@ FarPlace:
 PositionPlace:
   cancelvl: 5
 
-RotationPlace:
-  cancelvl: 5
-
 LineOfSightPlace:
   cancelvl: 1
   # Determines whether to only run the LineOfSightPlace check on specific blocks
