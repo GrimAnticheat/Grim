@@ -139,12 +139,17 @@ public class BlockRayTrace {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
-                // Expand hitbox
+                // Expand hitbox for 0.03/0.0002
                 if (vector3i.equals(targetBlockVec)) {
                     box.expand(player.getMovementThreshold());
                 } else {
-                    // TODO figure out a way to shirnk every simplecollisionbox that makes up the CollisionBox by 0.03/0.0002
-                    // In every direction except faces where they are joined together
+                    // TODO figure out a better way to shrink every SimpleCollisionBox that makes up the CollisionBox by 0.03/0.0002
+                    // Such that every direction except faces where the sub-boxes are joined together
+
+                    // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
+                    // This makes it possible to bypass the check and still open chests behind walls
+                    // If you look at the edges of a block
+                    // box.expand(player.getMovementThreshold() * -1);
                 }
 
 

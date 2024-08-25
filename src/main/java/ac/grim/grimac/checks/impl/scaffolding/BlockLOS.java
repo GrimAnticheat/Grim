@@ -8,10 +8,12 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.nmsutil.BlockRayTrace;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
+import java.util.HashMap;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -19,26 +21,62 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@CheckData(name = "ContainerLOS")
+@CheckData(name = "BlockLOS")
 public class BlockLOS extends BlockPlaceCheck {
+
+  double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+  boolean ignorePost = false;
+  boolean useBlockWhitelist = false;
+  HashMap<StateType, Boolean> blockWhitelist = new HashMap<>();
 
   public BlockLOS(GrimPlayer player) {
     super(player);
+  }
+
+  @Override
+  public void onBlockPlace(final BlockPlace place) {
+    if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+    if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+    if (flagBuffer > 0 && !didRayTraceHit(place)) {
+      System.out.println("Flagged previously and currently");
+      // If the player hit and has flagged this check recently
+      if (flagAndAlert("pre-flying") && shouldModifyPackets() && shouldCancel()) {
+        System.out.println("Canceling block at " + place.getPlacedBlockPos().getX() + " " + place.getPlacedBlockPos().getY() + " " + place.getPlacedBlockPos().getZ());
+        place.resync();  // Deny the block placement.
+        // TODO figure out way to deny chest/container opening.
+        // resync prevents block placements but not interacting with containers
+      }
+    }
   }
 
   // Use post flying because it has the correct rotation, and can't false easily.
   @Override
   public void onPostFlyingBlockPlace(BlockPlace place) {
     if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+    if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
 
-    if (didRayTraceHit(place)) {
+    if (useBlockWhitelist) {
+      if (!isBlockTypeWhitelisted(place.getPlacedAgainstMaterial())) {
+        return;
+      }
+    }
+
+    // Don't flag twice
+    if (ignorePost) {
+      ignorePost = false;
       return;
     }
-    System.out.println("Invalid place");
-    flagAndAlert("Invalid place, failed los check");
 
-    // How do I actually cancel the interaction cause resync doesn't work
-    place.resync();
+    // Ray trace to try and hit the target block.
+    boolean hit = didRayTraceHit(place);
+    // This can false with rapidly moving yaw in 1.8+ clients
+    if (!hit) {
+      flagBuffer = 1;
+      flagAndAlert("post-flying");
+      System.out.println("Cheater detected in post, failed check for placing block at " + place.getPlacedBlockPos().getX() + " " + place.getPlacedBlockPos().getY() + " " + place.getPlacedBlockPos().getZ());
+    } else {
+      flagBuffer = Math.max(0, flagBuffer - 0.1);
+    }
   }
 
   private boolean didRayTraceHit(BlockPlace place) {
@@ -77,52 +115,7 @@ public class BlockLOS extends BlockPlaceCheck {
     return hitData.getPosition();
   }
 
-  private boolean checkBlockType(Material type) {
-    switch (type) {
-      case ANVIL:
-      case BARREL:
-      case BEACON:
-      case BEEHIVE:
-      case BEE_NEST:
-      case BLAST_FURNACE:
-      case BREWING_STAND:
-      case CAMPFIRE:
-      case CARTOGRAPHY_TABLE:
-      case CHEST:
-      case CHEST_MINECART:
-      case CHIPPED_ANVIL:
-      case COMPOSTER:
-      case CRAFTING_TABLE:
-      case DAMAGED_ANVIL:
-      case DISPENSER:
-      case DROPPER:
-      case ENCHANTING_TABLE:
-      case ENDER_CHEST:
-      case FURNACE:
-      case FURNACE_MINECART:
-      case FLETCHING_TABLE:
-      case GRINDSTONE:
-      case HOPPER:
-      case HOPPER_MINECART:
-      case ITEM_FRAME:
-      case JUKEBOX:
-      case LECTERN:
-      case LOOM:
-      case RESPAWN_ANCHOR:
-      case SHULKER_BOX:
-      case SMITHING_TABLE:
-      case SMOKER:
-      case SOUL_CAMPFIRE:
-      case STONECUTTER:
-      case TRAPPED_CHEST:
-
-        // Do we really need to check for creative mode blocks?
-      case COMMAND_BLOCK:
-      case STRUCTURE_BLOCK:
-      case JIGSAW:
-        return true;
-      default:
-        return true;
-    }
+  private boolean isBlockTypeWhitelisted(StateType type) {
+    return blockWhitelist.get(type) != null;
   }
 }
