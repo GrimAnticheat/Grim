@@ -84,6 +84,52 @@ PositionPlace:
 RotationPlace:
   cancelvl: 5
 
+LineOfSightPlace:
+  cancelvl: 1
+  # Determines whether to only run the LineOfSightPlace check on specific blocks
+  # Increases performance, mainly intended for mini-game servers which already prevent block placement
+  # And want to stop container or workstation access through walls
+  use-block-whitelist: false
+  block-whitelist:
+    - ANVIL
+    - BARREL
+    - BEACON
+    - BEEHIVE
+    - BEE_NEST
+    - BLAST_FURNACE
+    - BREWING_STAND
+    - CAMPFIRE
+    - CARTOGRAPHY_TABLE
+    - CHEST
+    - CHEST_MINECART
+    - CHIPPED_ANVIL
+    - COMPOSTER
+    - CRAFTING_TABLE
+    - DAMAGED_ANVIL
+    - DISPENSER
+    - DROPPER
+    - ENCHANTING_TABLE
+    - ENDER_CHEST
+    - FURNACE
+    - FURNACE_MINECART
+    - FLETCHING_TABLE
+    - GRINDSTONE
+    - HOPPER
+    - HOPPER_MINECART
+    - ITEM_FRAME
+    - JUKEBOX
+    - LECTERN
+    - LOOM
+    - RESPAWN_ANCHOR
+    - SHULKER_BOX
+    - SMITHING_TABLE
+    - SMOKER
+    - SOUL_CAMPFIRE
+    - STONECUTTER
+    - TRAPPED_CHEST
+    - COMMAND_BLOCK
+    - STRUCTURE_BLOCK
+    - JIGSAW
 # Op voorspelling gebaseerde NoSlow-controle
 # Grim is verantwoordelijk voor buggy netcode hier... moeilijk om vals te spelen, zelfs als je met rechts klikt en de offhand-knop spamt
 # Veel stabieler dan andere anticheats, maar rapporteer alsjeblieft alle falses... Ik heb hier een heleboel netcode-problemen opgelost.

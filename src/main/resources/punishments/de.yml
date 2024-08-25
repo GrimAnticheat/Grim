@@ -74,6 +74,7 @@ Punishments:
       - "Baritone"
       - "FastBreak"
       - "TransactionOrder"
+      - "LineOfSightPlace"
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"

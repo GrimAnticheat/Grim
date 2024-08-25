@@ -84,6 +84,52 @@ PositionPlace:
 RotationPlace:
   cancelvl: 5
 
+LineOfSightPlace:
+  cancelvl: 1
+  # Determines whether to only run the LineOfSightPlace check on specific blocks
+  # Increases performance, mainly intended for mini-game servers which already prevent block placement
+  # And want to stop container or workstation access through walls
+  use-block-whitelist: false
+  block-whitelist:
+    - ANVIL
+    - BARREL
+    - BEACON
+    - BEEHIVE
+    - BEE_NEST
+    - BLAST_FURNACE
+    - BREWING_STAND
+    - CAMPFIRE
+    - CARTOGRAPHY_TABLE
+    - CHEST
+    - CHEST_MINECART
+    - CHIPPED_ANVIL
+    - COMPOSTER
+    - CRAFTING_TABLE
+    - DAMAGED_ANVIL
+    - DISPENSER
+    - DROPPER
+    - ENCHANTING_TABLE
+    - ENDER_CHEST
+    - FURNACE
+    - FURNACE_MINECART
+    - FLETCHING_TABLE
+    - GRINDSTONE
+    - HOPPER
+    - HOPPER_MINECART
+    - ITEM_FRAME
+    - JUKEBOX
+    - LECTERN
+    - LOOM
+    - RESPAWN_ANCHOR
+    - SHULKER_BOX
+    - SMITHING_TABLE
+    - SMOKER
+    - SOUL_CAMPFIRE
+    - STONECUTTER
+    - TRAPPED_CHEST
+    - COMMAND_BLOCK
+    - STRUCTURE_BLOCK
+    - JIGSAW
 # Prediction-based NoSlow 检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
 # 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
