@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.MaterialType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -81,8 +80,10 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
         place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
 
+    // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
+    // Since we expand the hitboxes of the expectedTargetBlock by 0.03/0.002 already later
     double maxDistance = player.compensatedEntities.getSelf()
-        .getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE) + player.getMovementThreshold();
+        .getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
     List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
         new Vector3f(player.lastXRot, player.yRot, 0),
         new Vector3f(player.xRot, player.yRot, 0)
@@ -108,7 +109,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
   }
 
   private Vector3i getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
-    HitData hitData = BlockRayTrace.getNearestReachHitResult003Compensated(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
+    HitData hitData = BlockRayTrace.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
     if (hitData == null) return null;
     return hitData.getPosition();
   }

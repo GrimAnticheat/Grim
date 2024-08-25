@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.util.Vector;
@@ -116,8 +115,10 @@ public class BlockRayTrace {
         return getTraverseResult(player, null, startingPos, startingVec, trace, endPos, false, true, currentDistance);
     }
 
+    // This overload is intended for the LineOfSightPlace check and is expected to return blocks
+    // Its (mostly) 0.03/0.0002 compensated unlike the other trace functions
     @Nullable
-    public static HitData getNearestReachHitResult003Compensated(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
+    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
         Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(eyePos, lookVec);
