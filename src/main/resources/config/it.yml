@@ -78,10 +78,6 @@ PositionPlace:
   # Livello di violazione per il piazzamento in una posizione specifica
   cancelvl: 5
 
-RotationPlace:
-  # Livello di violazione per il piazzamento con rotazione specifica
-  cancelvl: 5
-
 LineOfSightPlace:
   cancelvl: 1
   # Determines whether to only run the LineOfSightPlace check on specific blocks
