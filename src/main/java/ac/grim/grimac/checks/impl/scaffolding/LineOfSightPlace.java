@@ -10,6 +10,8 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.MaterialType;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -26,7 +28,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
   double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
   boolean ignorePost = false;
   boolean useBlockWhitelist;
-  HashMap<MaterialType, Boolean> blockWhitelist = new HashMap<>();
+  private HashMap<StateType, Boolean> blockWhitelist;
 
   public LineOfSightPlace(GrimPlayer player) {
     super(player);
@@ -36,6 +38,12 @@ public class LineOfSightPlace extends BlockPlaceCheck {
   public void onBlockPlace(final BlockPlace place) {
     if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
     if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+    if (useBlockWhitelist) {
+      if (!isBlockTypeWhitelisted(player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType())) {
+        return;
+      }
+    }
+
     if (flagBuffer > 0 && !didRayTraceHit(place)) {
       System.out.println("Flagged previously and currently");
       // If the player hit and has flagged this check recently
@@ -53,7 +61,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
 
     if (useBlockWhitelist) {
-      if (!isBlockTypeWhitelisted(place.getPlacedAgainstMaterial().getMaterialType())) {
+      if (!isBlockTypeWhitelisted(player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType())) {
         return;
       }
     }
@@ -114,18 +122,19 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     return hitData.getPosition();
   }
 
-  private boolean isBlockTypeWhitelisted(MaterialType type) {
+  private boolean isBlockTypeWhitelisted(StateType type) {
     return blockWhitelist.get(type) != null;
   }
 
   @Override
   public void reload() {
     super.reload();
+
     useBlockWhitelist = getConfig().getBooleanElse("LineOfSightPlace.use-block-whitelist", false);
+    blockWhitelist = new HashMap<>();
     List<String> blocks = getConfig().getList("LineOfSightPlace.block-whitelist");
     for (String block : blocks) {
-      MaterialType type = MaterialType.valueOf(block.trim().toUpperCase());
-      blockWhitelist.put(type, true);
+      blockWhitelist.put(StateTypes.getByName(block), true);
     }
   }
 }
