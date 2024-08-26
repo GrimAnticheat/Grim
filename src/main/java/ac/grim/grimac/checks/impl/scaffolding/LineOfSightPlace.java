@@ -40,10 +40,8 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         }
 
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
-//      System.out.println("Flagged previously and currently");
             // If the player hit and has flagged this check recently
             if (flagAndAlert("pre-flying") && shouldModifyPackets() && shouldCancel()) {
-//        System.out.println("Canceling block at " + place.getPlacedBlockPos().getX() + " " + place.getPlacedBlockPos().getY() + " " + place.getPlacedBlockPos().getZ());
                 place.resync();  // Deny the block placement.
             }
         }
@@ -73,7 +71,6 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         if (!hit) {
             flagBuffer = 1;
             flagAndAlert("post-flying");
-//      System.out.println("Cheater detected in post, failed check for placing block at " + place.getPlacedBlockPos().getX() + " " + place.getPlacedBlockPos().getY() + " " + place.getPlacedBlockPos().getZ());
         } else {
             flagBuffer = Math.max(0, flagBuffer - 0.1);
         }
