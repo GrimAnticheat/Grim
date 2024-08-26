@@ -15,16 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.HitData;
-import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.nmsutil.BlockRayTrace;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -34,22 +30,12 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // You may not copy the check unless you are licensed under GPL
 @CheckData(name = "Reach", configName = "Reach", setback = 10)
@@ -57,9 +43,6 @@ public class Reach extends Check implements PacketCheck {
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
     private final Map<Integer, Vector3d> playerAttackQueue = new HashMap<>();
-    // Used to prevent falses in the wall hit check
-    private final Set<Vector3i> blocksChangedThisTick = new HashSet<>();
-
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
@@ -122,11 +105,10 @@ public class Reach extends Check implements PacketCheck {
         }
 
         // If the player set their look, or we know they have a new tick
-        final boolean isFlying = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
-        if (isFlying ||
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) ||
                 event.getPacketType() == PacketType.Play.Client.PONG ||
                 event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
-            tickBetterReachCheckWithAngle(isFlying);
+            tickBetterReachCheckWithAngle();
         }
     }
 
@@ -158,7 +140,7 @@ public class Reach extends Check implements PacketCheck {
         }
     }
 
-    private void tickBetterReachCheckWithAngle(boolean isFlying) {
+    private void tickBetterReachCheckWithAngle() {
         for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey().intValue());
             if (reachEntity != null) {
@@ -173,9 +155,6 @@ public class Reach extends Check implements PacketCheck {
             }
         }
         playerAttackQueue.clear();
-        // We can't use transactions for this because of this problem:
-        // transaction -> block changed applied -> 2nd transaction -> list cleared -> attack packet -> flying -> reach block hit checked, falses
-        if (isFlying) blocksChangedThisTick.clear();
     }
 
     private String checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
@@ -240,26 +219,9 @@ public class Reach extends Check implements PacketCheck {
             }
         }
 
-        final boolean experimentalChecks = true; //GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks(); // TODO fix for undraft
-        HitData foundHitData = null;
-        // If the entity is within range of the player (we'll flag anyway if not, so no point checking blocks in this case)
-        // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
-        if (experimentalChecks && minDistance <= 3 && !player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) {
-            final @Nullable Pair<Double, HitData> targetBlock = getTargetBlock(player, possibleLookDirs, from, minDistance);
-            // And if the target block is closer to the player than the entity box, they should hit the block instead
-            // So, this hit is invalid.
-            if (targetBlock != null && targetBlock.getFirst() < (minDistance * minDistance)) { // targetBlock is squared
-                minDistance = Double.MIN_VALUE;
-                foundHitData = targetBlock.getSecond();
-            }
-        }
-
         // if the entity is not exempt and the entity is alive
         if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity()) || reachEntity.getType() == EntityTypes.END_CRYSTAL) {
-            if (minDistance == Double.MIN_VALUE && foundHitData != null) {
-                cancelBuffer = 1;
-                return "Hit block block=" + foundHitData.getState().getType().getName();
-            } else if (minDistance == Double.MAX_VALUE) {
+            if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return "Missed hitbox";
             } else if (minDistance > player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE)) {
@@ -271,45 +233,6 @@ public class Reach extends Check implements PacketCheck {
         }
 
         return null;
-    }
-
-    public void handleBlockChange(Vector3i vector3i, WrappedBlockState state) {
-        if (blocksChangedThisTick.size() >= 40) return; // Don't let players freeze movement packets to grow this
-        // Only do this for nearby blocks
-        if (new Vector(vector3i.x, vector3i.y, vector3i.z).distanceSquared(new Vector(player.x, player.y, player.z)) > 6) return;
-        // Only do this if the state really had any world impact
-        if (state.equals(player.compensatedWorld.getWrappedBlockStateAt(vector3i))) return;
-        blocksChangedThisTick.add(vector3i);
-    }
-
-    // Returns a pair so we can check the block type in the flag
-    @Nullable
-    private Pair<Double, HitData> getTargetBlock(GrimPlayer player, List<Vector> possibleLookDirs, Vector3d from, double minDistance) {
-        // Check every possible look direction and every possible eye height
-        // IF *NONE* of them allow the player to hit the entity, this is an invalid hit
-        HitData bestHitData = null;
-        double min = Double.MAX_VALUE;
-        for (Vector lookVec : possibleLookDirs) {
-            for (double eye : player.getPossibleEyeHeights()) {
-                Vector eyes = new Vector(from.getX(), from.getY() + eye, from.getZ());
-                final double reach = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-                final HitData hitResult = BlockRayTrace.getNearestReachHitResult(player, eyes, lookVec, minDistance, reach);
-                if (hitResult == null) {
-                    return null;
-                }
-
-                final double distance = eyes.distanceSquared(hitResult.getBlockHitLocation());
-                // Block changes are uncertain, can't check this tick
-                if (distance < (minDistance * minDistance) && blocksChangedThisTick.contains(hitResult.getPosition())) {
-                    return null;
-                }
-
-                bestHitData = hitResult;
-                min = Math.min(min, distance);
-            }
-        }
-
-        return bestHitData == null ? null : Pair.of(min, bestHitData);
     }
 
     @Override
