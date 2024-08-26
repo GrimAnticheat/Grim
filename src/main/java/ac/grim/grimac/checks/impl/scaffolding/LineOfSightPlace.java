@@ -22,9 +22,9 @@ import java.util.*;
 @CheckData(name = "LineOfSightPlace")
 public class LineOfSightPlace extends BlockPlaceCheck {
 
-    double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
-    boolean ignorePost = false;
-    boolean useBlockWhitelist;
+    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    private boolean ignorePost = false;
+    private boolean useBlockWhitelist;
     private HashSet<StateType> blockWhitelist;
 
     public LineOfSightPlace(GrimPlayer player) {
