@@ -16,7 +16,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import java.util.*;
 
 
-
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData {
     SCAFFOLDING((player, item, version, data, x, y, z) -> {
@@ -190,6 +189,44 @@ public enum HitboxData {
 
         return data.getHalf() == Half.UPPER ? UPPER_SHAPE_BY_AGE[Math.min(Math.abs(4 - (data.getAge() + 1)), UPPER_SHAPE_BY_AGE.length - 1)] : LOWER_SHAPE_BY_AGE[data.getAge()];
     }, StateTypes.PITCHER_CROP),
+
+    WHEAT_BEETROOTS((player, item, version, data, x, y, z) -> {
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, (data.getAge() + 1) * 2, 16.0D);
+    }, StateTypes.WHEAT, StateTypes.BEETROOTS),
+
+    CARROT_POTATOES((player, item, version, data, x, y, z) -> {
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, data.getAge() + 2, 16.0D);
+    }, StateTypes.CARROTS, StateTypes.POTATOES),
+
+    NETHER_WART((player, item, version, data, x, y, z) -> {
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0, 5 + (data.getAge() * 3), 16.0D);
+    }, StateTypes.NETHER_WART),
+
+    ATTACHED_PUMPKIN_STEM((player, item, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_13))
+            return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+
+        switch (data.getFacing()) {
+            case SOUTH:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 16.0D);
+            case WEST:
+                return new HexCollisionBox(0.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
+            case NORTH:
+                return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 10.0D, 10.0D);
+            case EAST:
+            default:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 16.0D, 10.0D, 10.0D);
+        }
+    }, StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM),
+
+    PUMPKIN_STEM((player, item, version, data, x, y, z) -> {
+        return new HexCollisionBox(7, 0, 7, 9, 2 * (data.getAge() + 1), 9);
+    }, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM),
+
+    // Hitbox/Outline is Same as Collision
+    COCOA_BEANS((player, item, version, data, x, y, z) -> {
+        return CollisionData.getCocoa(version, data.getAge(), data.getFacing());
+    }, StateTypes.COCOA),
 
     BUTTON((player, item, version, data, x, y, z) -> {
         final BlockFace facing = data.getFacing();

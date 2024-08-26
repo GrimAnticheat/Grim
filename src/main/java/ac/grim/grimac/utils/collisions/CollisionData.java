@@ -830,19 +830,23 @@ public enum CollisionData {
             BlockTags.STANDING_SIGNS.getStates().toArray(new StateType[0])),
 
     BEETROOT((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, (data.getAge() + 1) * 2, 1.0D);
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.BEETROOTS),
 
+    POTATOES((player, version, data, x, y, z) -> {
+        return NoCollisionBox.INSTANCE;
+    }, StateTypes.POTATOES),
+
     WHEAT((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, (data.getAge() + 1) * 2, 1.0D);
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.WHEAT),
 
-    CARROT_NETHERWART((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, data.getAge() + 2, 1.0D);
-    }, StateTypes.CARROTS, StateTypes.NETHER_WART),
+    CARROT((player, version, data, x, y, z) -> {
+        return NoCollisionBox.INSTANCE;
+    }, StateTypes.CARROTS),
 
     NETHER_WART((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 5 + (data.getAge() * 3), 1.0D);
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.NETHER_WART),
 
     BUTTON((player, version, data, x, y, z) -> {
@@ -921,24 +925,11 @@ public enum CollisionData {
     }, StateTypes.TRIPWIRE),
 
     ATTACHED_PUMPKIN_STEM((player, version, data, x, y, z) -> {
-        if (version.isOlderThan(ClientVersion.V_1_13))
-            return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
-
-        switch (data.getFacing()) {
-            case SOUTH:
-                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 16.0D);
-            case WEST:
-                return new HexCollisionBox(0.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-            case NORTH:
-                return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 10.0D, 10.0D);
-            case EAST:
-            default:
-                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 16.0D, 10.0D, 10.0D);
-        }
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM),
 
     PUMPKIN_STEM((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(7, 0, 7, 9, 2 * (data.getAge() + 1), 9);
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM),
 
     TRIPWIRE_HOOK((player, version, data, x, y, z) -> {
@@ -1249,7 +1240,7 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
     }
 
-    private static CollisionBox getCocoa(ClientVersion version, int age, BlockFace direction) {
+    public static CollisionBox getCocoa(ClientVersion version, int age, BlockFace direction) {
         // From 1.9 - 1.10, the large cocoa block is the same as the medium one
         // https://bugs.mojang.com/browse/MC-94274
         if (version.isNewerThanOrEquals(ClientVersion.V_1_9_1) && version.isOlderThan(ClientVersion.V_1_11))
