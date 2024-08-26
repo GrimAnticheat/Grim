@@ -15,10 +15,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @CheckData(name = "LineOfSightPlace")
 public class LineOfSightPlace extends BlockPlaceCheck {
@@ -26,7 +23,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
     boolean ignorePost = false;
     boolean useBlockWhitelist;
-    private HashMap<StateType, Boolean> blockWhitelist;
+    private HashSet<StateType> blockWhitelist;
 
     public LineOfSightPlace(GrimPlayer player) {
         super(player);
@@ -121,7 +118,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     private boolean isBlockTypeWhitelisted(StateType type) {
-        return blockWhitelist.get(type) != null;
+        return blockWhitelist.contains(type);
     }
 
     @Override
@@ -129,10 +126,10 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         super.reload();
 
         useBlockWhitelist = getConfig().getBooleanElse("LineOfSightPlace.use-block-whitelist", false);
-        blockWhitelist = new HashMap<>();
+        blockWhitelist = new HashSet<>();
         List<String> blocks = getConfig().getList("LineOfSightPlace.block-whitelist");
         for (String block : blocks) {
-            blockWhitelist.put(StateTypes.getByName(block), true);
+            blockWhitelist.add(StateTypes.getByName(block));
         }
     }
 }
