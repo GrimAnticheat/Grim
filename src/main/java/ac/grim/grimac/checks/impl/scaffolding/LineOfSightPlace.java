@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -78,6 +79,22 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     private boolean didRayTraceHit(BlockPlace place) {
+        List<Double> possibleEyeHeights = player.getPossibleEyeHeights();
+
+        // Start checking if player is in the block
+        double minEyeHeight = Collections.min(possibleEyeHeights);
+        double maxEyeHeight = Collections.max(possibleEyeHeights);
+
+        SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
+        eyePositions.expand(player.getMovementThreshold());
+
+        // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
+        // This may potentially be exploitable as a minor bypass
+        if (eyePositions.isIntersected(new SimpleCollisionBox(place.getPlacedAgainstBlockLocation()))) {
+            return true;
+        }
+        // End checking if the player is in the block
+
         Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
                 place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
 
@@ -99,7 +116,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
         // Since we expand the hitboxes of the expectedTargetBlock by 0.03/0.002 already later
         double maxDistance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-        for (double eyeHeight : player.getPossibleEyeHeights()) {
+        for (double eyeHeight : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
                 Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
