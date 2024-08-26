@@ -778,6 +778,67 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
+        Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
+        Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
+        Ray trace = new Ray(eyePos, lookVec);
+        Vector endVec = trace.getPointAtDistance(maxDistance);
+        Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
+
+        StateType heldItem = null;
+//        boolean sourcesHaveHitbox = false;
+        boolean checkInside = true;
+        double knownDistance = currentDistance;
+
+        return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
+            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            List<SimpleCollisionBox> boxes = new ArrayList<>();
+            data.downCast(boxes);
+
+            double bestHitResult = Double.MAX_VALUE;
+            Vector bestHitLoc = null;
+            BlockFace bestFace = null;
+
+            for (SimpleCollisionBox box : boxes) {
+                // Expand hitbox for 0.03/0.0002
+                if (vector3i.equals(targetBlockVec)) {
+                    box.expand(player.getMovementThreshold());
+                } else {
+                    // TODO figure out a better way to shrink every SimpleCollisionBox that makes up the CollisionBox by 0.03/0.0002
+                    // Such that every direction except faces where the sub-boxes are joined together
+
+                    // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
+                    // This makes it possible to bypass the check and still open chests behind walls
+                    // If you look at the edges of a block
+                    // box.expand(player.getMovementThreshold() * -1);
+                }
+
+
+                Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(knownDistance));
+                if (intercept.getFirst() == null) continue; // No intercept
+
+                Vector hitLoc = intercept.getFirst();
+
+                // If inside a block, return empty result for reach check (don't bother checking this?)
+                if (checkInside && ReachUtils.isVecInside(box, trace.getOrigin())) {
+                    return null;
+                }
+
+                if (hitLoc.distanceSquared(startingVec) < bestHitResult) {
+                    bestHitResult = hitLoc.distanceSquared(startingVec);
+                    bestHitLoc = hitLoc;
+                    bestFace = intercept.getSecond();
+                }
+            }
+
+            if (bestHitLoc != null) {
+                return new HitData(vector3i, bestHitLoc, bestFace, block);
+            }
+
+            return null;
+        });
+    }
+
     private static HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox) {
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
