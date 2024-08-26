@@ -786,7 +786,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
 
         StateType heldItem = null;
-//        boolean sourcesHaveHitbox = false;
         boolean checkInside = true;
         double knownDistance = currentDistance;
 
@@ -810,7 +809,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
                     // This makes it possible to bypass the check and still open chests behind walls
                     // If you look at the edges of a block
-                    // box.expand(player.getMovementThreshold() * -1);
+                    // box.expand(-player.getMovementThreshold());
                 }
 
 
