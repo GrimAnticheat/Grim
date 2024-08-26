@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -80,14 +81,24 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
                 place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
 
-        // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
-        // Since we expand the hitboxes of the expectedTargetBlock by 0.03/0.002 already later
-        double maxDistance = player.compensatedEntities.getSelf()
-                .getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
                 new Vector3f(player.lastXRot, player.yRot, 0),
                 new Vector3f(player.xRot, player.yRot, 0)
         ));
+
+        // 1.9+ players could be a tick behind because we don't get skipped ticks
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+            possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
+        }
+
+        // 1.7 players do not have any of these issues! They are always on the latest look vector
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+            possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
+        }
+
+        // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
+        // Since we expand the hitboxes of the expectedTargetBlock by 0.03/0.002 already later
+        double maxDistance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
         for (double eyeHeight : player.getPossibleEyeHeights()) {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
