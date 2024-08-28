@@ -23,22 +23,19 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            switch (new WrapperPlayClientInteractEntity(event).getAction()) {
-                case ATTACK:
-                    if (sent) {
-                        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-                            if (flagAndAlert() && shouldModifyPackets()) {
-                                event.setCancelled(true);
-                                player.onPacketCancel();
-                            }
-                        } else {
-                            invalid++;
+            if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                if (sent) {
+                    if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+                        if (flagAndAlert() && shouldModifyPackets()) {
+                            event.setCancelled(true);
+                            player.onPacketCancel();
                         }
+                    } else {
+                        invalid++;
                     }
-                    break;
-                case INTERACT_AT:
-                case INTERACT:
-                    sent = true;
+                }
+            } else {
+                sent = true;
             }
         }
 
