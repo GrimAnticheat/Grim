@@ -48,6 +48,10 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
             }
         }
 
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            sent = true;
+        }
+
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && !player.packetStateData.lastPacketWasTeleport) {
             sent = false;
         }
