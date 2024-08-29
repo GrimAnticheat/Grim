@@ -44,6 +44,7 @@ public class ComplexCollisionBox implements CollisionBox {
     @Override
     public CollisionBox offset(double x, double y, double z) {
         for (CollisionBox b : boxes)
+            // This function is
             b.offset(x, y, z);
         return this;
     }

@@ -50,13 +50,33 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
+    }
+
+    private static final Set<StateType> fenceStates = new HashSet<>();
+
+    static {
+        fenceStates.add(StateTypes.OAK_FENCE);
+        fenceStates.add(StateTypes.ACACIA_FENCE);
+        fenceStates.add(StateTypes.BIRCH_FENCE);
+        fenceStates.add(StateTypes.DARK_OAK_FENCE);
+        fenceStates.add(StateTypes.JUNGLE_FENCE);
+        fenceStates.add(StateTypes.SPRUCE_FENCE);
+        fenceStates.add(StateTypes.DARK_OAK_FENCE);
+        fenceStates.add(StateTypes.BAMBOO_FENCE);
+        fenceStates.add(StateTypes.CHERRY_FENCE);
+        fenceStates.add(StateTypes.CRIMSON_FENCE);
+        fenceStates.add(StateTypes.WARPED_FENCE);
+        fenceStates.add(StateTypes.MANGROVE_FENCE);
+        fenceStates.add(StateTypes.NETHER_BRICK_FENCE);
     }
 
     // Copied from MCP...
@@ -799,6 +819,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
+                // Hacky temporary fix until we can break apart and truly fix the complicated error-prone stack trace
+                // Of the collision box hiearchy and HitboxData.getBlockHitbox()
+                // Also, for some reason a fence connected on east and west returns 3 collision boxes instead of 1 ?
+                // Seems like an obvious optimization but oh well
+                if (isFence(player.compensatedWorld.getWrappedBlockStateAt(vector3i).getType())) {
+                    box.offset(-vector3i.getX(), -vector3i.getY(), -vector3i.getZ());
+                    box.maxY = box.minY + 1;
+                }
+
                 // Expand hitbox for 0.03/0.0002
                 if (vector3i.equals(targetBlockVec)) {
                     box.expand(player.getMovementThreshold());
@@ -895,5 +924,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (player == null) return;
 
         player.checkManager.onPacketSend(event);
+    }
+
+    private static boolean isFence(StateType state) {
+        return fenceStates.contains(state);
     }
 }
