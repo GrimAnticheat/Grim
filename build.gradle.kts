@@ -14,6 +14,10 @@ description = "Libre simulation anticheat designed for 1.21 with 1.8-1.21 suppor
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
 
+// Set to false for debug builds
+// You cannot live reload classes if the jar relocates dependencies
+var relocate = false;
+
 repositories {
     mavenLocal()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
@@ -118,10 +122,6 @@ bukkit {
     }
 }
 
-tasks.build {
-    dependsOn(tasks.shadowJar)
-}
-
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
@@ -133,21 +133,37 @@ publishing.publications.create<MavenPublication>("maven") {
 tasks.shadowJar {
     minimize()
     archiveFileName.set("${project.name}-${project.version}.jar")
-    relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
-    relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
-    relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
-    relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
-    relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
-    relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
-    relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
-    relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
-    relocate("alexh", "ac.grim.grimac.shaded.maps")
-    relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
-    relocate("net.kyori", "ac.grim.grimac.shaded.kyori")
-    relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
-    relocate("okio", "ac.grim.grimac.shaded.okio")
-    relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")
-    relocate("org.json", "ac.grim.grimac.shaded.json")
-    relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
-    relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+    if (relocate) {
+        relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
+        relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
+        relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
+        relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
+        relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
+        relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
+        relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
+        relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
+        relocate("alexh", "ac.grim.grimac.shaded.maps")
+        relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
+        relocate("net.kyori", "ac.grim.grimac.shaded.kyori")
+        relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
+        relocate("okio", "ac.grim.grimac.shaded.okio")
+        relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")
+        relocate("org.json", "ac.grim.grimac.shaded.json")
+        relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
+        relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+    }
+}
+
+tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJarDebug") {
+    archiveFileName.set("${project.name}-${project.version}-debug.jar")
+    from(sourceSets.main.get().output)
+
+    // Include dependencies in the jar, but don't relocate
+    configurations = listOf(project.configurations.runtimeClasspath.get())
+
+    minimize()
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
