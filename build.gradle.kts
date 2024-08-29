@@ -16,7 +16,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 // Set to false for debug builds
 // You cannot live reload classes if the jar relocates dependencies
-var relocate = false;
+var relocate = true;
 
 repositories {
     mavenLocal()
@@ -122,6 +122,10 @@ bukkit {
     }
 }
 
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}
+
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
@@ -152,18 +156,4 @@ tasks.shadowJar {
         relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
         relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
     }
-}
-
-tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJarDebug") {
-    archiveFileName.set("${project.name}-${project.version}-debug.jar")
-    from(sourceSets.main.get().output)
-
-    // Include dependencies in the jar, but don't relocate
-    configurations = listOf(project.configurations.runtimeClasspath.get())
-
-    minimize()
-}
-
-tasks.build {
-    dependsOn(tasks.shadowJar)
 }
