@@ -115,8 +115,6 @@ public enum HitboxData {
         CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z).downCast(boxes);
 
         for (SimpleCollisionBox box : boxes) {
-            // Since we're checking for block placement/interaction that isn't the player colliding with the fence
-            // We set the maxY to 1, the height of the fence?
             box.maxY = 1;
         }
 
