@@ -36,6 +36,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
@@ -59,24 +60,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
-    }
-
-    private static final Set<StateType> fenceStates = new HashSet<>();
-
-    static {
-        fenceStates.add(StateTypes.OAK_FENCE);
-        fenceStates.add(StateTypes.ACACIA_FENCE);
-        fenceStates.add(StateTypes.BIRCH_FENCE);
-        fenceStates.add(StateTypes.DARK_OAK_FENCE);
-        fenceStates.add(StateTypes.JUNGLE_FENCE);
-        fenceStates.add(StateTypes.SPRUCE_FENCE);
-        fenceStates.add(StateTypes.DARK_OAK_FENCE);
-        fenceStates.add(StateTypes.BAMBOO_FENCE);
-        fenceStates.add(StateTypes.CHERRY_FENCE);
-        fenceStates.add(StateTypes.CRIMSON_FENCE);
-        fenceStates.add(StateTypes.WARPED_FENCE);
-        fenceStates.add(StateTypes.MANGROVE_FENCE);
-        fenceStates.add(StateTypes.NETHER_BRICK_FENCE);
     }
 
     // Copied from MCP...
