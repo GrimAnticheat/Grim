@@ -927,6 +927,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static boolean isFence(StateType state) {
-        return fenceStates.contains(state);
+        return BlockTags.FENCES.contains(state);
     }
 }
