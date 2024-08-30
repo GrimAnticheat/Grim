@@ -28,6 +28,7 @@ public class Check implements AbstractCheck {
     private boolean experimental;
     @Setter
     private boolean isEnabled;
+    private boolean exempted;
 
     @Override
     public boolean isExperimental() {
@@ -56,7 +57,7 @@ public class Check implements AbstractCheck {
     }
 
     public boolean shouldModifyPackets() {
-        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission;
+        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exempted;
     }
 
     public final boolean flagAndAlert(String verbose) {
@@ -72,7 +73,7 @@ public class Check implements AbstractCheck {
     }
 
     public final boolean flag() {
-        if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()))
+        if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()) || exempted)
             return false; // Avoid calling event if disabled
 
         FlagEvent event = new FlagEvent(player, this);
@@ -103,6 +104,8 @@ public class Check implements AbstractCheck {
         setbackVL = getConfig().getDoubleElse(configName + ".setbackvl", setbackVL);
 
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+
+        exempted = player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.exempt." + checkName.toLowerCase());
     }
 
     public boolean alert(String verbose) {
