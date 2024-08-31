@@ -20,6 +20,7 @@ public class SimpleCollisionBox implements CollisionBox {
     public double minX, minY, minZ, maxX, maxY, maxZ;
     private boolean isFullBlock = false;
 
+    // If your min/max values are > 1 you should probably check out HexCollisionBox
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0, false);
     }
