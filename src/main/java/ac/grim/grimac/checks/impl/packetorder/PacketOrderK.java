@@ -12,7 +12,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 
 @CheckData(name = "PacketOrderK", experimental = true)
 public class PacketOrderK extends Check implements PostPredictionCheck {
