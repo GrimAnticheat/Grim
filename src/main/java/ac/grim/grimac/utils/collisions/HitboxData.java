@@ -318,6 +318,15 @@ public enum HitboxData {
         return NoCollisionBox.INSTANCE;
     }, BlockTags.FIRE.getStates().toArray(new StateType[0])),
 
+    SWEET_BERRY((player, item, version, data, x, y, z) -> {
+        if (data.getAge() == 0) {
+            return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
+        } else if (data.getAge() < 3) {
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+        }
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+    }, StateTypes.SWEET_BERRY_BUSH),
+
     LEVER(((player, item, version, data, x, y, z) -> {
         SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
         SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 6.0, false);
@@ -332,9 +341,11 @@ public enum HitboxData {
         BlockFace facing = data.getFacing();
         switch (data.getFace()) {
             case FLOOR:
+                // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
                         return FLOOR_X_AXIS_SHAPE;
                 }
+                // Z-AXIS
                 return FLOOR_Z_AXIS_SHAPE;
             case WALL:
                 switch (blockFace) {
@@ -350,14 +361,18 @@ public enum HitboxData {
                 }
             case CEILING:
             default:
+                // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
                     return CEILING_X_AXIS_SHAPE;
                 }
+                // Z-Axis
                 return CEILING_Z_AXIS_SHAPE;
         }
     }), StateTypes.LEVER),
 
-    BANNER(((player, item, version, data, x, y, z) -> new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)));
+    BANNER(((player, item, version, data, x, y, z) ->
+            new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
+            BlockTags.BANNERS.getStates().toArray(new StateType[0]));
 
 
     private static final Map<StateType, HitboxData> lookup = new HashMap<>();

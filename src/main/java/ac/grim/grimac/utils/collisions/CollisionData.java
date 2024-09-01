@@ -282,12 +282,7 @@ public enum CollisionData {
     }, StateTypes.STONECUTTER),
 
     SWEET_BERRY((player, version, data, x, y, z) -> {
-        if (data.getAge() == 0) {
-            return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
-        } else if (data.getAge() < 3) {
-            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
-        }
-        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        return NoCollisionBox.INSTANCE;
     }, StateTypes.SWEET_BERRY_BUSH),
 
     SAPLING(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
