@@ -4,7 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 
-public class BlockBreakCheck extends Check {
+public class BlockBreakCheck extends Check implements PacketCheck {
     public BlockBreakCheck(GrimPlayer player) {
         super(player);
     }

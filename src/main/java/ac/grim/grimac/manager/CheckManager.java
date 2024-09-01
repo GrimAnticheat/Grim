@@ -6,17 +6,14 @@ import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
-import ac.grim.grimac.checks.impl.breaking.LiquidAirBreak;
-import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
-import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
-import ac.grim.grimac.checks.impl.breaking.WrongBlock;
+import ac.grim.grimac.checks.impl.breaking.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
-import ac.grim.grimac.checks.impl.misc.FastBreak;
+import ac.grim.grimac.checks.impl.misc.OldFastBreak;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.movement.*;
@@ -96,7 +93,7 @@ public class CheckManager {
                 .put(BadPacketsV.class, new BadPacketsV(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
-                .put(FastBreak.class, new FastBreak(player))
+                .put(OldFastBreak.class, new OldFastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
@@ -155,6 +152,7 @@ public class CheckManager {
                 .put(LiquidAirBreak.class, new LiquidAirBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
+                .put(FastBreak.class, new FastBreak(player))
                 .build();
 
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -213,6 +211,9 @@ public class CheckManager {
             check.onPacketReceive(packet);
         }
         for (BlockPlaceCheck check : blockPlaceCheck.values()) {
+            check.onPacketReceive(packet);
+        }
+        for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onPacketReceive(packet);
         }
     }
