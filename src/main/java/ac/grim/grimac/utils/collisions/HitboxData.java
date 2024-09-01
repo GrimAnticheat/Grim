@@ -320,9 +320,7 @@ public enum HitboxData {
         }
     }), StateTypes.LEVER),
 
-    BANNER(((player, item, version, data, x, y, z) ->
-            new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75)),
-            BlockTags.BANNERS.getStates().toArray(new StateType[0]));
+    BANNER(((player, item, version, data, x, y, z) -> new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)));
 
 
     private static final Map<StateType, HitboxData> lookup = new HashMap<>();
