@@ -326,10 +326,8 @@ public enum HitboxData {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
     }, StateTypes.SWEET_BERRY_BUSH),
 
-    FLOWER((player, item, version, data, x, y, z) -> {
-        return new FlowerCollisionBox( 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D);
-    },
-        BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
+    SMALL_FLOWER((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
+    BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
 
