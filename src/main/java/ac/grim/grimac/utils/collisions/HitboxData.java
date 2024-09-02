@@ -327,9 +327,10 @@ public enum HitboxData {
     }, StateTypes.SWEET_BERRY_BUSH),
 
     SMALL_FLOWER((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
-    BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
+            BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    TALL_FLOWERS((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0, 0, 0, 1, 1, 1), BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
+    TALL_FLOWERS((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0, 0, 0, 1, 1, 1),
+            BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
 
@@ -410,7 +411,15 @@ public enum HitboxData {
 
     BANNER(((player, item, version, data, x, y, z) ->
             new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
-            BlockTags.BANNERS.getStates().toArray(new StateType[0]));
+            BlockTags.BANNERS.getStates().toArray(new StateType[0])),
+
+    MANGROVE_PROPAGULE(((player, item, version, data, x, y, z) -> {
+        if (data.isHanging()) {
+            return new HexOffsetCollisionBox(data.getType(), 7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
+        } else {
+            return new HexOffsetCollisionBox(data.getType(),7.0, getPropaguleMinHeight(data.getAge()), 7.0, 9.0, 16.0, 9.0);
+        }
+    }), StateTypes.MANGROVE_PROPAGULE);
 
 
     private static final Map<StateType, HitboxData> lookup = new HashMap<>();
@@ -462,5 +471,18 @@ public enum HitboxData {
         CollisionBox collisionBox = hitBoxFactory.fetch(player, heldItem, version, block, x, y, z);
         collisionBox.offset(x, y, z);
         return collisionBox;
+    }
+
+    private static int getPropaguleMinHeight(int age) {
+        switch (age) {
+            case 0:
+            case 1:
+            case 2:
+                return 13 - age * 3;
+            case 3:
+            case 4:
+                return (4 - age) * 3;
+        }
+        throw new RuntimeException("Impossible State");
     }
 }
