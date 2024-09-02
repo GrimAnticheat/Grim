@@ -113,7 +113,7 @@ public enum HitboxData {
         }
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z).downCast(boxes);
+        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state).downCast(boxes);
 
         for (SimpleCollisionBox box : boxes) {
             box.maxY = 1;
@@ -327,8 +327,10 @@ public enum HitboxData {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
     }, StateTypes.SWEET_BERRY_BUSH),
 
-    FLOWER(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D),
-            BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
+    FLOWER((player, item, version, data, x, y, z) -> {
+        return new FlowerCollisionBox( 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D);
+    },
+        BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
 
@@ -367,7 +369,7 @@ public enum HitboxData {
 
     LEVER(((player, item, version, data, x, y, z) -> {
         SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
-        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 6.0, false);
+        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
         SimpleCollisionBox WEST_WALL_SHAPE = new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
         SimpleCollisionBox EAST_WALL_SHAPE = new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
         SimpleCollisionBox FLOOR_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);

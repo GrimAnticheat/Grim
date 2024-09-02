@@ -802,15 +802,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
-                // Hacky temporary fix until we can break apart and truly fix the complicated error-prone stack trace
-                // Of the collision box hiearchy and HitboxData.getBlockHitbox()
-                // Also, for some reason a fence connected on east and west returns 3 collision boxes instead of 1 ?
-                // Seems like an obvious optimization but oh well
-                if (isFence(player.compensatedWorld.getWrappedBlockStateAt(vector3i).getType())) {
-                    box.offset(-vector3i.getX(), -vector3i.getY(), -vector3i.getZ());
-                    box.maxY = box.minY + 1;
-                }
-
                 // Expand hitbox for 0.03/0.0002
                 if (vector3i.equals(targetBlockVec)) {
                     box.expand(player.getMovementThreshold());
