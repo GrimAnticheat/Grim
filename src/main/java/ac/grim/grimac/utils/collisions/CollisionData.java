@@ -979,34 +979,29 @@ public enum CollisionData {
 
     }, StateTypes.BIG_DRIPLEAF),
 
-    DRIPSTONE((player, version, data, x, y, z) -> {
+    POINTED_DRIPSTONE((player, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_17))
             return getEndRod(version, BlockFace.UP);
 
-        HexCollisionBox box;
+        SimpleCollisionBox box;
 
         if (data.getThickness() == Thickness.TIP_MERGE) {
-            box = new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 16.0, 11.0);
+            box = new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 16.0, 11.0);
         } else if (data.getThickness() == Thickness.TIP) {
             if (data.getVerticalDirection() == VerticalDirection.DOWN) {
-                box = new HexCollisionBox(5.0, 5.0, 5.0, 11.0, 16.0, 11.0);
+                box = new HexOffsetCollisionBox(data.getType(), 5.0, 5.0, 5.0, 11.0, 16.0, 11.0);
             } else {
-                box = new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 11.0, 11.0);
+                box = new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 11.0, 11.0);
             }
         } else if (data.getThickness() == Thickness.FRUSTUM) {
-            box = new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0);
+            box = new HexOffsetCollisionBox(data.getType(), 4.0, 0.0, 4.0, 12.0, 16.0, 12.0);
         } else if (data.getThickness() == Thickness.MIDDLE) {
-            box = new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 16.0, 13.0);
+            box = new HexOffsetCollisionBox(data.getType(), 3.0, 0.0, 3.0, 13.0, 16.0, 13.0);
         } else {
-            box = new HexCollisionBox(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
+            box = new HexOffsetCollisionBox(data.getType(), 2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
         }
 
-        // Copied from NMS and it works!  That's all you need to know.
-        long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
-        i = i * i * 42317861L + i * 11L;
-        i = i >> 16;
-
-        return box.offset(GrimMath.clamp((((i & 15L) / 15.0F) - 0.5D) * 0.5D, -0.125f, 0.125f), 0, GrimMath.clamp((((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D, -0.125f, 0.125f));
+        return box;
     }, StateTypes.POINTED_DRIPSTONE),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {

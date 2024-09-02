@@ -30,18 +30,20 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
         // Can we add a hasOffSet to StateType() ?
         // Or a new BlockTag for XZ and XYZ Offset ?
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.MANGROVE_PROPAGULE);
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS); // Only offsets rendering not hitbox
+
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.SMALL_FLOWERS.getStates());
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.TALL_FLOWERS.getStates());
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_GRASS); // Only offsets rendering not hitbox
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.LARGE_FERN); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO_SAPLING);
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO);
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.WARPED_ROOTS); // Only offsets rendering not hitbox
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.NETHER_SPROUTS); // Only offsets rendering not hitbox
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.CRIMSON_ROOTS); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.POINTED_DRIPSTONE);
-//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.HANGING_ROOTS); // Only offsets rendering not hitbox
+        // Only offsets rendering HitBox on XZ // we should document this somewhere for future reference
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_GRASS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.LARGE_FERN);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.WARPED_ROOTS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.NETHER_SPROUTS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.CRIMSON_ROOTS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.HANGING_ROOTS);
 
         // Only offsets rendering on XYZ, not HitBox
 //        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SHORT_GRASS);
@@ -53,9 +55,10 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
         super(minX, minY, minZ, maxX, maxY, maxZ);
         if (block.equals(StateTypes.POINTED_DRIPSTONE)) {
             maxHorizontalModelOffset = 0.125F;
-        } else if (block.equals(StateTypes.SMALL_DRIPLEAF)) {
-            maxVerticalModelOffset = 0.1F;
         }
+//        else if (block.equals(StateTypes.SMALL_DRIPLEAF)) {
+//            maxVerticalModelOffset = 0.1F;
+//        }
 
         if (XZ_OFFSET_BLOCKSTATES.contains(block)) {
             offsetType = OffsetType.XZ;
