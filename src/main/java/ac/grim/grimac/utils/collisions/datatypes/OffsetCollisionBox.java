@@ -37,11 +37,11 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
 //        XZ_OFFSET_BLOCKSTATES.add(StateTypes.LARGE_FERN); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO_SAPLING);
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.WARPED_ROOTS);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.NETHER_SPROUTS);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.CRIMSON_ROOTS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.WARPED_ROOTS); // Only offsets rendering not hitbox
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.NETHER_SPROUTS); // Only offsets rendering not hitbox
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.CRIMSON_ROOTS); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.POINTED_DRIPSTONE);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.HANGING_ROOTS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.HANGING_ROOTS); // Only offsets rendering not hitbox
 
         XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SHORT_GRASS);
         XYZ_OFFSET_BLOCKSTATES.add(StateTypes.FERN);

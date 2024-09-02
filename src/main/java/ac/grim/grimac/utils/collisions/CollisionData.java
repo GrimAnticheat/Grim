@@ -273,7 +273,7 @@ public enum CollisionData {
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
-            StateTypes.LARGE_FERN, StateTypes.BAMBOO, StateTypes.BAMBOO_SAPLING),
+            StateTypes.LARGE_FERN, StateTypes.BAMBOO, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -632,8 +632,6 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
     }, StateTypes.FARMLAND),
-
-    HANGING_ROOTS(new HexCollisionBox(2.0D, 10.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.HANGING_ROOTS),
 
     GRASS_PATH((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(ClientVersion.V_1_9))
