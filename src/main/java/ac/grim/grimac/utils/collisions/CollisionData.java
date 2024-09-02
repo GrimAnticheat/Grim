@@ -281,38 +281,17 @@ public enum CollisionData {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, StateTypes.STONECUTTER),
 
-    SWEET_BERRY((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.SWEET_BERRY_BUSH),
-
-    SAPLING(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
-            BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
-
-    ROOTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
-            StateTypes.WARPED_ROOTS, StateTypes.CRIMSON_ROOTS),
-
-    FLOWER(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D),
+    FLOWER(NoCollisionBox.INSTANCE,
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    DEAD_BUSH(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D), StateTypes.DEAD_BUSH),
+    SAPLING(NoCollisionBox.INSTANCE,
+            BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
 
-    SUGARCANE(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.SUGAR_CANE),
-
-    NETHER_SPROUTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 3.0D, 14.0D), StateTypes.NETHER_SPROUTS),
-
-    GRASS_FERN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
-            StateTypes.GRASS, StateTypes.FERN),
-
-    TALL_GRASS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.TALL_GRASS),
-
-    SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
-            StateTypes.SEAGRASS),
-
-    CAVE_VINES(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT),
-
-    TWISTING_VINES_BLOCK(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 15.0D, 12.0D), StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES),
-
-    TWISTING_VINES(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D), StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT),
+    NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
+            StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
+            StateTypes.SEAGRASS, StateTypes.TALL_GRASS, StateTypes.GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
+            StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
+            StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -1127,16 +1106,6 @@ public enum CollisionData {
     FROGSPAWN(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.5D, 16.0D), StateTypes.FROGSPAWN),
 
     SNIFFER_EGG(new HexCollisionBox(1.0D, 0.0D, 2.0D, 15.0D, 16.0D, 14.0D), StateTypes.SNIFFER_EGG),
-
-    PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
-
-    TORCHFLOWER_CROP((player, version, data, x, y, z) -> {
-        if (data.getAge() == 0) {
-            return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
-        }
-        // age is 1
-        return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
-    }, StateTypes.TORCHFLOWER_CROP),
 
     PITCHER_CROP((player, version, data, x, y, z) -> {
         final SimpleCollisionBox COLLISION_SHAPE_BULB = new HexCollisionBox(5.0D, -1.0D, 5.0D, 11.0D, 3.0D, 11.0D);

@@ -327,6 +327,44 @@ public enum HitboxData {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
     }, StateTypes.SWEET_BERRY_BUSH),
 
+    FLOWER(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D),
+            BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
+
+    PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
+
+    TORCHFLOWER_CROP((player, item, version, data, x, y, z) -> {
+        if (data.getAge() == 0) {
+            return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
+        }
+        // age is 1
+        return new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
+    }, StateTypes.TORCHFLOWER_CROP),
+
+    SAPLING(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
+            BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
+
+    ROOTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
+            StateTypes.WARPED_ROOTS, StateTypes.CRIMSON_ROOTS),
+
+    DEAD_BUSH(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D), StateTypes.DEAD_BUSH),
+
+    SUGARCANE(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.SUGAR_CANE),
+
+    NETHER_SPROUTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 3.0D, 14.0D), StateTypes.NETHER_SPROUTS),
+
+    GRASS_FERN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
+            StateTypes.GRASS, StateTypes.FERN),
+
+    SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
+            StateTypes.SEAGRASS),
+    TALL_GRASS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.TALL_GRASS),
+
+    CAVE_VINES(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT),
+
+    TWISTING_VINES_BLOCK(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 15.0D, 12.0D), StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES),
+
+    TWISTING_VINES(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D), StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT),
+
     LEVER(((player, item, version, data, x, y, z) -> {
         SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
         SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 6.0, false);
