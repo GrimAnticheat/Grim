@@ -292,7 +292,7 @@ public enum CollisionData {
 
     NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
             StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
-            StateTypes.SEAGRASS, StateTypes.GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
+            StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS),
 
