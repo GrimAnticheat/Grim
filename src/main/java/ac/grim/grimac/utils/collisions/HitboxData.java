@@ -15,7 +15,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.*;
 
-
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData {
     SCAFFOLDING((player, item, version, data, x, y, z) -> {
