@@ -43,9 +43,10 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.POINTED_DRIPSTONE);
 //        XZ_OFFSET_BLOCKSTATES.add(StateTypes.HANGING_ROOTS); // Only offsets rendering not hitbox
 
-        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SHORT_GRASS);
-        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.FERN);
-        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SMALL_DRIPLEAF);
+        // Only offsets rendering on XYZ, not HitBox
+//        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SHORT_GRASS);
+//        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.FERN);
+//        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SMALL_DRIPLEAF);
     }
 
     public OffsetCollisionBox(StateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
