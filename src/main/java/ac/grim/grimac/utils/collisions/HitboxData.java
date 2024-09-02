@@ -329,6 +329,8 @@ public enum HitboxData {
     SMALL_FLOWER((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
     BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
+    TALL_FLOWERS((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0, 0, 0, 1, 1, 1), BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
+
     PINK_PETALS_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D), StateTypes.PINK_PETALS),
 
     TORCHFLOWER_CROP((player, item, version, data, x, y, z) -> {
@@ -356,7 +358,6 @@ public enum HitboxData {
 
     SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
             StateTypes.SEAGRASS),
-    TALL_GRASS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.TALL_GRASS),
 
     CAVE_VINES(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT),
 
