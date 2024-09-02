@@ -33,8 +33,7 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
 //        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.SMALL_FLOWERS.getStates());
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.TALL_FLOWERS.getStates());
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.BROWN_MUSHROOM);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_GRASS);
+        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_GRASS); // start here todo
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.LARGE_FERN);
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO_SAPLING);
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO);
