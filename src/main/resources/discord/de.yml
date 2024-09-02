@@ -1,6 +1,7 @@
 # Ob Discord Webhook aktiviert werden soll
 enabled: false
 webhook: ""
+embed-title: "**Grim Alert**"
 embed-color: "#00FFFF"
 violation-content:
   - "**Spieler**: %player%"
