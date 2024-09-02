@@ -428,8 +428,6 @@ public enum HitboxData {
     private CollisionBox box;
     private HitBoxFactory dynamic;
 
-
-
     HitboxData(CollisionBox box, StateType... materials) {
         this.box = box;
         Set<StateType> mList = new HashSet<>(Arrays.asList(materials));
