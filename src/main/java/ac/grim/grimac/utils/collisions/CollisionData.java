@@ -85,28 +85,6 @@ public enum CollisionData {
 
     }, StateTypes.BREWING_STAND),
 
-    BAMBOO((player, version, block, x, y, z) -> {
-        // ViaVersion replacement block - sugarcane
-        if (version.isOlderThan(ClientVersion.V_1_13_2))
-            return NoCollisionBox.INSTANCE;
-
-        // Offset taken from NMS
-        long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
-        i = i * i * 42317861L + i * 11L;
-        i = i >> 16;
-
-        return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D).offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
-    }, StateTypes.BAMBOO),
-
-
-    BAMBOO_SAPLING((player, version, block, x, y, z) -> {
-        long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
-        i = i * i * 42317861L + i * 11L;
-        i = i >> 16;
-
-        return new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D).offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
-    }, StateTypes.BAMBOO_SAPLING),
-
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
 
@@ -294,7 +272,8 @@ public enum CollisionData {
             StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
-            StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS, StateTypes.LARGE_FERN),
+            StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
+            StateTypes.LARGE_FERN, StateTypes.BAMBOO, StateTypes.BAMBOO_SAPLING),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct

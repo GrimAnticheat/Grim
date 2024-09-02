@@ -311,6 +311,14 @@ public enum HitboxData {
 
     TALL_PLANT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.TALL_GRASS, StateTypes.LARGE_FERN),
 
+    BAMBOO((player, item, version, data, x, y, z) -> {
+        return new HexOffsetCollisionBox(data.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
+    }, StateTypes.BAMBOO),
+
+    BAMBOO_SAPLING((player, item, version, data, x, y, z) -> {
+        return new HexOffsetCollisionBox(data.getType(), 4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D);
+    }, StateTypes.BAMBOO_SAPLING),
+
     LEVER(((player, item, version, data, x, y, z) -> {
         SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
         SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
