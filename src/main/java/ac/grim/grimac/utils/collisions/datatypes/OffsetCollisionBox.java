@@ -30,7 +30,7 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
         // Can we add a hasOffSet to StateType() ?
         // Or a new BlockTag for XZ and XYZ Offset ?
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.MANGROVE_PROPAGULE);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS);
+//        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS); // Only offsets rendering not hitbox
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.SMALL_FLOWERS.getStates());
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.TALL_FLOWERS.getStates());
         XZ_OFFSET_BLOCKSTATES.add(StateTypes.BROWN_MUSHROOM);
