@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "FastBreak")
-public class FastBreak extends BlockBreakCheck {
+public class FastBreak extends Check implements BlockBreakCheck {
     public FastBreak(GrimPlayer playerData) {
         super(playerData);
     }

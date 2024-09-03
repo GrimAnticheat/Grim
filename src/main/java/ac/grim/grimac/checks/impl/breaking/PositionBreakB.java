@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 @CheckData(name = "PositionBreakB")
-public class PositionBreakB extends BlockBreakCheck {
+public class PositionBreakB extends Check implements BlockBreakCheck {
     public PositionBreakB(GrimPlayer player) {
         super(player);
     }
