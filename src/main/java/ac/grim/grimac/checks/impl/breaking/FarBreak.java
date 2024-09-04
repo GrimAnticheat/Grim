@@ -26,7 +26,7 @@ public class FarBreak extends Check implements BlockBreakCheck {
         double z = player.z;
 
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            if (((WrongBreak) player.checkManager.allChecks.get(WrongBreak.class)).shouldExempt(blockBreak.position)) {
+            if (blockBreak.isWeirdCancel) {
                 return;
             }
 

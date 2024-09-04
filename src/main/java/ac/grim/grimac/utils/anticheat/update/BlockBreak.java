@@ -20,6 +20,9 @@ public class BlockBreak {
     @Getter
     private boolean cancelled;
 
+    // set by WrongBreak
+    public boolean isWeirdCancel;
+
     private final GrimPlayer player;
     public final WrappedBlockState block;
 

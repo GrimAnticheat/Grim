@@ -19,9 +19,8 @@ public class PositionBreakA extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            return; // buggy
-        }
+        if (player.compensatedEntities.getSelf().inVehicle()) return; // falses
+        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // buggy
 
         SimpleCollisionBox combined = blockBreak.getCombinedBox();
 

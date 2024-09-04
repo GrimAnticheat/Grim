@@ -25,7 +25,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
     private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
 
     // The client sometimes sends a wierd cancel packet
-    public boolean shouldExempt(final Vector3i pos) {
+    private boolean shouldExempt(final Vector3i pos) {
         // lastLastBlock is always null when this happens, and lastBlock isn't
         if (lastLastBlock != null || lastBlock == null)
             return false;
@@ -59,6 +59,8 @@ public class WrongBreak extends Check implements BlockBreakCheck {
                         }
                     }
                 }
+            } else {
+                blockBreak.isWeirdCancel = true;
             }
 
             lastCancelledBlock = blockBreak.position;
