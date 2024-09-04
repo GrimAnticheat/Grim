@@ -14,9 +14,9 @@ import com.github.retrooper.packetevents.util.Vector3i;
 
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
-@CheckData(name = "WrongBlock", experimental = true)
-public class WrongBlock extends Check implements BlockBreakCheck {
-    public WrongBlock(final GrimPlayer player) {
+@CheckData(name = "WrongBreak", experimental = true)
+public class WrongBreak extends Check implements BlockBreakCheck {
+    public WrongBreak(final GrimPlayer player) {
         super(player);
     }
 

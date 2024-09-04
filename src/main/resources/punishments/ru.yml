@@ -72,7 +72,6 @@ Punishments:
       - "NoSlow"
       - "Place"
       - "Break"
-      - "WrongBlock"
       - "Baritone"
       - "FastBreak"
       - "TransactionOrder"

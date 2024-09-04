@@ -149,7 +149,7 @@ public class CheckManager {
 
         blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()
                 .put(FarBreak.class, new FarBreak(player))
-                .put(WrongBlock.class, new WrongBlock(player))
+                .put(WrongBreak.class, new WrongBreak(player))
                 .put(LiquidAirBreak.class, new LiquidAirBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
