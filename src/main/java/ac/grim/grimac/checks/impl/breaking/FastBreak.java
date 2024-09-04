@@ -55,23 +55,25 @@ public class FastBreak extends Check implements BlockBreakCheck {
         }
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            // check if the player is within range of the block
-            double min = Double.MAX_VALUE;
-            for (double d : player.getPossibleEyeHeights()) {
-                SimpleCollisionBox box = new SimpleCollisionBox(targetBlock);
-                Vector eyes = new Vector(player.x, player.y + d, player.z);
-                Vector best = VectorUtils.cutBoxToVector(eyes, box);
-                min = Math.min(min, eyes.distanceSquared(best));
-            }
+            if (!player.compensatedEntities.getSelf().inVehicle()) { // falses
+                // check if the player is within range of the block
+                double min = Double.MAX_VALUE;
+                for (double d : player.getPossibleEyeHeights()) {
+                    SimpleCollisionBox box = new SimpleCollisionBox(targetBlock);
+                    Vector eyes = new Vector(player.x, player.y + d, player.z);
+                    Vector best = VectorUtils.cutBoxToVector(eyes, box);
+                    min = Math.min(min, eyes.distanceSquared(best));
+                }
 
-            // getPickRange() determines this?
-            // With 1.20.5+ the new attribute determines creative mode reach using a modifier
-            double maxReach = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-            double threshold = player.getMovementThreshold();
-            maxReach += Math.hypot(threshold, threshold);
+                // getPickRange() determines this?
+                // With 1.20.5+ the new attribute determines creative mode reach using a modifier
+                double maxReach = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
+                double threshold = player.getMovementThreshold();
+                maxReach += Math.hypot(threshold, threshold);
 
-            if (min > maxReach * maxReach) {
-                return;
+                if (min > maxReach * maxReach) {
+                    return;
+                }
             }
 
             progress += BlockBreakSpeed.getBlockDamage(player, targetBlock);

@@ -19,6 +19,8 @@ public class FarBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
+        if (player.compensatedEntities.getSelf().inVehicle()) return; // falses
+
         double x = player.x;
         double y = player.y;
         double z = player.z;
