@@ -1,21 +1,40 @@
-# Configuraciones del webhook de Discord
-# Si tienes dudas en como usarlos, puedes consultar el artículo de soporte de Discord: https://support.discord.com/hc/es/articles/228383668
-
-# ¿Deberíamos usar webhooks?
 enabled: false
-
-# La URL del webhook.
-webhook: ""
-
-# El color del embed que se mandara por este webhook.
-embed-color: "#00FFFF"
-
-# El contenido del embed que se mandara por este webhook.
-violation-content:
-  - "**Jugador**: %player%"
-  - "**Comprobación**: %check%"
-  - "**Violaciones**: %violations%"
-  - "**Version del cliente**: %version%"
-  - "**Marca del cliente**: %brand%"
-  - "**Latencia**: %ping%"
-  - "**TPS**: %tps%"
+webhook:
+  url: ""
+  embed-color: "#00FFFF"
+  show-player-head: true
+  description:
+    - "Grim Version: %grim_version%"
+  fields:
+    - name: "Server Information"
+      value:
+        - "```properties"
+        - "Server: server_name"
+        - "TPS: %tps%"
+        - "```"
+      inline: false
+    - name: "Client Information"
+      value:
+        - "```properties"
+        - "Version: %version%"
+        - "Brand: %brand%"
+        - "```"
+      inline: false
+    - name: "Player Information"
+      value:
+        - "```properties"
+        - "Player: %player%"
+        - "UUID: %uuid%"
+        - "Ping: %ping%"
+        - "Horizontal Sensitivity: %h_sensitivity%%"
+        - "Vertical Sensitivity: %v_sensitivity%%"
+        - "Fast Math: %fast_math%"
+        - "```"
+      inline: false
+    - name: "Check Information"
+      value:
+        - "```properties"
+        - "Check: %check%"
+        - "Violations: %violations%"
+        - "```"
+      inline: false

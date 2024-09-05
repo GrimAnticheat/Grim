@@ -5,6 +5,7 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.autoclicker.AutoClickerA;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
@@ -44,6 +45,7 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
 public class CheckManager {
+    ClassToInstanceMap<ArmAnimationCheck> armAnimationCheck;
     ClassToInstanceMap<PacketCheck> packetChecks;
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
@@ -56,6 +58,11 @@ public class CheckManager {
     public ClassToInstanceMap<AbstractCheck> allChecks;
 
     public CheckManager(GrimPlayer player) {
+
+        armAnimationCheck = new ImmutableClassToInstanceMap.Builder<ArmAnimationCheck>()
+                .put(AutoClickerA.class, new AutoClickerA(player))
+                .build();
+
         // Include post checks in the packet check too
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(Reach.class, new Reach(player))
@@ -163,6 +170,7 @@ public class CheckManager {
                 .build();
 
         allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
+                .putAll(armAnimationCheck)
                 .putAll(packetChecks)
                 .putAll(positionCheck)
                 .putAll(rotationCheck)
@@ -251,6 +259,12 @@ public class CheckManager {
     public void onPostFlyingBlockPlace(final BlockPlace place) {
         for (BlockPlaceCheck check : blockPlaceCheck.values()) {
             check.onPostFlyingBlockPlace(place);
+        }
+    }
+
+    public void onArmAnimation(final ArmAnimationUpdate armAnimationUpdate) {
+        for (ArmAnimationCheck check : armAnimationCheck.values()) {
+            check.process(armAnimationUpdate);
         }
     }
 
