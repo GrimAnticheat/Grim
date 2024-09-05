@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -34,8 +35,6 @@ public class MovementTickerStrider extends MovementTickerRideable {
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
 
-        ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking = true;
-
         StateType posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
         StateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
 
@@ -48,7 +47,10 @@ public class MovementTickerStrider extends MovementTickerRideable {
     @Override
     public float getSteeringSpeed() {
         PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
-        return (float) strider.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * (strider.isShaking ? 0.23F : 0.55F);
+        // Unsure which version the speed changed in
+        final boolean newSpeed = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20);
+        final float coldSpeed = newSpeed ? 0.35F : 0.23F;
+        return (float) strider.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * (strider.isShaking ? coldSpeed : 0.55F);
     }
 
     @Override
