@@ -207,6 +207,40 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    public static void handleQueuedBreaks(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
+        BlockBreak blockBreak;
+        while ((blockBreak = player.queuedBreaks.poll()) != null) {
+            double lastX = player.x;
+            double lastY = player.y;
+            double lastZ = player.z;
+
+            player.x = player.packetStateData.lastClaimedPosition.getX();
+            player.y = player.packetStateData.lastClaimedPosition.getY();
+            player.z = player.packetStateData.lastClaimedPosition.getZ();
+
+            if (player.compensatedEntities.getSelf().getRiding() != null) {
+                Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.compensatedEntities.getSelf().getRiding(), player);
+                player.x = posFromVehicle.getX();
+                player.y = posFromVehicle.getY();
+                player.z = posFromVehicle.getZ();
+            }
+
+            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
+            // Or mojang had the idle packet... for the 1.7/1.8 clients
+            // No idle packet on 1.9+
+            if ((now - player.lastBlockBreak < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+                player.xRot = yaw;
+                player.yRot = pitch;
+            }
+
+            player.checkManager.onPostFlyingBlockBreak(blockBreak);
+
+            player.x = lastX;
+            player.y = lastY;
+            player.z = lastZ;
+        }
+    }
+
     private static void handleUseItem(GrimPlayer player, ItemStack placedWith, InteractionHand hand) {
         // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
         if (placedWith.getType() == ItemTypes.LILY_PAD) {
@@ -459,19 +493,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
             DiggingAction action = dig.getAction();
 
             if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
+                player.lastBlockBreak = System.currentTimeMillis();
+
                 Vector3i position = dig.getBlockPosition();
                 WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(position);
 
                 BlockBreak blockBreak = new BlockBreak(position, dig.getBlockFace(), action, player, block);
                 player.checkManager.onBlockBreak(blockBreak);
 
-                if (blockBreak.isCancelled()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                    resyncPosition(player, position);
-                }
+                if (event.isCancelled() || blockBreak.isCancelled()) {
+                    if (!event.isCancelled()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                    }
 
-                if (!event.isCancelled()) {
+                    resyncPosition(player, position);
+                } else {
+                    player.queuedBreaks.add(blockBreak);
+
                     if (action == DiggingAction.FINISHED_DIGGING) {
                         // Not unbreakable
                         if (!block.getType().isAir() && block.getType().getHardness() != -1.0f) {
@@ -484,7 +523,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (action == DiggingAction.START_DIGGING) {
                         double damage = BlockBreakSpeed.getBlockDamage(player, position);
 
-                        //Instant breaking, no damage means it is unbreakable by creative players (with swords)
+                        // Instant breaking, no damage means it is unbreakable by creative players (with swords)
                         if (damage >= 1) {
                             player.compensatedWorld.startPredicting();
                             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), block)) {
@@ -689,6 +728,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
+        handleQueuedBreaks(player, hasLook, pitch, yaw, now);
 
         // We can set the new pos after the places
         if (hasPosition) {

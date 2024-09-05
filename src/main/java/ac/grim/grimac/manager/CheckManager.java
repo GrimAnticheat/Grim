@@ -148,6 +148,7 @@ public class CheckManager {
                 .build();
 
         blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()
+                .put(RotationBreak.class, new RotationBreak(player))
                 .put(WrongBreak.class, new WrongBreak(player))
                 .put(LiquidAirBreak.class, new LiquidAirBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
@@ -270,15 +271,21 @@ public class CheckManager {
         }
     }
 
+    public void onPostFlyingBlockPlace(final BlockPlace place) {
+        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
+            check.onPostFlyingBlockPlace(place);
+        }
+    }
+
     public void onBlockBreak(final BlockBreak blockBreak) {
         for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onBlockBreak(blockBreak);
         }
     }
 
-    public void onPostFlyingBlockPlace(final BlockPlace place) {
-        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
-            check.onPostFlyingBlockPlace(place);
+    public void onPostFlyingBlockBreak(final BlockBreak blockBreak) {
+        for (BlockBreakCheck check : blockBreakChecks.values()) {
+            check.onPostFlyingBlockBreak(blockBreak);
         }
     }
 

@@ -7,19 +7,15 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -27,81 +23,58 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "FastBreak")
-public class FastBreak extends Check implements BlockBreakCheck {
-    public FastBreak(GrimPlayer playerData) {
-        super(playerData);
+@CheckData(name = "RotationBreak")
+public class RotationBreak extends Check implements BlockBreakCheck {
+    public RotationBreak(GrimPlayer player) {
+        super(player);
     }
 
-    private Vector3i targetBlock = null;
-    private double progress;
+    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    private boolean ignorePost = false;
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            return;
-        }
+        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.compensatedEntities.getSelf().inVehicle()) return; // falses
+        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
 
-        if (blockBreak.action == DiggingAction.START_DIGGING) {
-            targetBlock = blockBreak.position;
-            progress = BlockBreakSpeed.getBlockDamage(player, targetBlock);
-        }
-
-        if (blockBreak.action == DiggingAction.FINISHED_DIGGING && progress < 1) {
-            if (flagAndAlert(String.format("progress=%.2f", progress)) && shouldModifyPackets()) {
+        if (flagBuffer > 0 && !didRayTraceHit(blockBreak)) {
+            ignorePost = true;
+            // If the player hit and has flagged this check recently
+            if (flagAndAlert("pre-flying, action=" + blockBreak.action) && shouldModifyPackets()) {
                 blockBreak.cancel();
-                player.onPacketCancel();
             }
-        }
-
-        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING && player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) {
-            progress = 0;
         }
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (targetBlock == null) {
+    public void onPostFlyingBlockBreak(BlockBreak blockBreak) {
+        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.compensatedEntities.getSelf().inVehicle()) return; // falses
+        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
+
+        // Don't flag twice
+        if (ignorePost) {
+            ignorePost = false;
             return;
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            if (!player.compensatedEntities.getSelf().inVehicle()) {
-                if (!didRayTraceHit() || !isWithinRange()) {
-                    return;
-                }
-            }
-
-            progress += BlockBreakSpeed.getBlockDamage(player, targetBlock);
+        if (didRayTraceHit(blockBreak)) {
+            flagBuffer = Math.max(0, flagBuffer - 0.1);
+        } else {
+            flagBuffer = 1;
+            flagAndAlert("post-flying, action=" + blockBreak.action);
         }
     }
 
-    private boolean isWithinRange() {
-        double min = Double.MAX_VALUE;
-        for (double d : player.getPossibleEyeHeights()) {
-            SimpleCollisionBox box = new SimpleCollisionBox(targetBlock);
-            Vector eyes = new Vector(player.x, player.y + d, player.z);
-            Vector best = VectorUtils.cutBoxToVector(eyes, box);
-            min = Math.min(min, eyes.distanceSquared(best));
-        }
-
-        // getPickRange() determines this?
-        // With 1.20.5+ the new attribute determines creative mode reach using a modifier
-        double maxReach = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-        double threshold = player.getMovementThreshold();
-        maxReach += Math.hypot(threshold, threshold);
-
-        return min <= maxReach * maxReach;
-    }
-
-    private boolean didRayTraceHit() {
-        SimpleCollisionBox box = new SimpleCollisionBox(targetBlock);
+    private boolean didRayTraceHit(BlockBreak blockBreak) {
+        SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
 
         // Start checking if player is in the block
         double minEyeHeight = Collections.min(player.getPossibleEyeHeights());
         double maxEyeHeight = Collections.max(player.getPossibleEyeHeights());
 
-        SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.lastX, player.lastY + minEyeHeight, player.lastZ, player.lastX, player.lastY + maxEyeHeight, player.lastZ);
+        SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
         eyePositions.expand(player.getMovementThreshold());
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
@@ -128,7 +101,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
         final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
         for (double d : player.getPossibleEyeHeights()) {
             for (Vector3f lookDir : possibleLookDirs) {
-                Vector3d starting = new Vector3d(player.lastX, player.lastY + d, player.lastZ);
+                Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
                 Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
                 Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
 
