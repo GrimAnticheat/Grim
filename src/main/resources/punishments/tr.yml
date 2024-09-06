@@ -1,0 +1,92 @@
+# %check_name% - Kontrolün ismi
+# %description% - Kontrolün açıklaması
+# %vl% - Yapılan ihlaller
+# %verbose% - Ekstra bilgilendirme
+# %player% - Oyuncu ismi
+# [alert] - Uyarılar için bunu kullanın
+# [webhook] - Discord webhook için bunu kullanın
+# [proxy] - Proxy'nize bağlı diğer sunuculara uyarı göndermek için bunu kullanın (BungeeCord/Velocity)
+Punishments:
+  Simulation:
+    # Kaç saniye sonra ihlaller kaldırılsın?
+    remove-violations-after: 300
+    # Bu bölüm, aşağıdaki adlara sahip tüm kontrollerle eşleşecektir,
+    # Aksi takdirde eşleşecek bir denetimi hariç tutmak için, isminin önüne ünlem işareti koyun
+    # Örnek olarak, !BadPacketsN
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # Eşik:Aralık Komutu
+    #
+    # Örnek: 100 ihlalde "yanlış hareket!" mesajıyla oyuncuyu atmak için, aralık komutu olmadan:
+    # - "100:0 kick %player% Yanlış hareket!"
+    # 0, tam olarak bir kez çalıştırılmasını ifade eder
+    # - "100:50 say %player% Hile yapıyor!"
+    # Kullanıcı 100 işaretine ulaştığında çalışır ve bundan sonra, 100'ün üzerindeki her 50. işarette çalışır
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+      - "100:100 [proxy]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+      - "5:5 [proxy]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+      - "TransactionOrder"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+      - "20:10 [proxy]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # 2.2.10 itibarıyla, AutoClicker denetimleri yoktur ve bu bir yer tutucudur. Grim, gelecekte AutoClicker denetimlerini dahil edecektir.
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
