@@ -364,7 +364,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
             }
-            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
             if (BlockTags.ICE.contains(data.getType())) {
