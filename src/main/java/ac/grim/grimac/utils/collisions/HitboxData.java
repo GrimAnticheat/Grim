@@ -72,11 +72,58 @@ public enum HitboxData {
         return new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
     }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
+    LEVER(((player, item, version, data, x, y, z) -> {
+        SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
+        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
+        SimpleCollisionBox WEST_WALL_SHAPE = new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
+        SimpleCollisionBox EAST_WALL_SHAPE = new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
+        SimpleCollisionBox FLOOR_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
+        SimpleCollisionBox FLOOR_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
+        SimpleCollisionBox CEILING_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
+        SimpleCollisionBox CEILING_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
+
+        BlockFace blockFace = data.getFacing();
+        BlockFace facing = data.getFacing();
+        switch (data.getFace()) {
+            case FLOOR:
+                // X-AXIS
+                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+                    return FLOOR_X_AXIS_SHAPE;
+                }
+                // Z-AXIS
+                return FLOOR_Z_AXIS_SHAPE;
+            case WALL:
+                switch (blockFace) {
+                    case EAST:
+                        return EAST_WALL_SHAPE;
+                    case WEST:
+                        return WEST_WALL_SHAPE;
+                    case SOUTH:
+                        return SOUTH_WALL_SHAPE;
+                    case NORTH:
+                    default:
+                        return NORTH_WALL_SHAPE;
+                }
+            case CEILING:
+            default:
+                // X-AXIS
+                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+                    return CEILING_X_AXIS_SHAPE;
+                }
+                // Z-Axis
+                return CEILING_Z_AXIS_SHAPE;
+        }
+    }), StateTypes.LEVER),
+
     BUTTON((player, item, version, data, x, y, z) -> {
         final BlockFace facing = data.getFacing();
         final boolean powered = data.isPowered();
         switch (data.getFace()) {
             case FLOOR:
+                // ViaVersion shows lever
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+                    return LEVER.dynamic.fetch(player, item, version, data, x, y, z);
+                }
                 // x axis
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
                     return powered ? new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 1.0, 11.0) : new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 2.0, 11.0);
@@ -106,13 +153,18 @@ public enum HitboxData {
 
                 return shape;
             case CEILING:
-            default:
+                // ViaVersion shows lever
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+                    return LEVER.dynamic.fetch(player, item, version, data, x, y, z);
+                }
                 // x axis
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
                     return powered ? new HexCollisionBox(6.0, 15.0, 5.0, 10.0, 16.0, 11.0) : new HexCollisionBox(6.0, 14.0, 5.0, 10.0, 16.0, 11.0);
                 } else {
                     return powered ? new HexCollisionBox(5.0, 15.0, 6.0, 11.0, 16.0, 10.0) : new HexCollisionBox(5.0, 14.0, 6.0, 11.0, 16.0, 10.0);
                 }
+            default:
+                throw new RuntimeException("Impossible Hitbox State");
         }
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
@@ -322,49 +374,6 @@ public enum HitboxData {
     BAMBOO_SAPLING((player, item, version, data, x, y, z) -> {
         return new HexOffsetCollisionBox(data.getType(), 4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D);
     }, StateTypes.BAMBOO_SAPLING),
-
-    LEVER(((player, item, version, data, x, y, z) -> {
-        SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
-        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
-        SimpleCollisionBox WEST_WALL_SHAPE = new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
-        SimpleCollisionBox EAST_WALL_SHAPE = new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
-        SimpleCollisionBox FLOOR_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
-        SimpleCollisionBox FLOOR_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
-        SimpleCollisionBox CEILING_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
-        SimpleCollisionBox CEILING_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
-
-        BlockFace blockFace = data.getFacing();
-        BlockFace facing = data.getFacing();
-        switch (data.getFace()) {
-            case FLOOR:
-                // X-AXIS
-                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                        return FLOOR_X_AXIS_SHAPE;
-                }
-                // Z-AXIS
-                return FLOOR_Z_AXIS_SHAPE;
-            case WALL:
-                switch (blockFace) {
-                    case EAST:
-                        return EAST_WALL_SHAPE;
-                    case WEST:
-                        return WEST_WALL_SHAPE;
-                    case SOUTH:
-                        return SOUTH_WALL_SHAPE;
-                    case NORTH:
-                    default:
-                        return NORTH_WALL_SHAPE;
-                }
-            case CEILING:
-            default:
-                // X-AXIS
-                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return CEILING_X_AXIS_SHAPE;
-                }
-                // Z-Axis
-                return CEILING_Z_AXIS_SHAPE;
-        }
-    }), StateTypes.LEVER),
 
     SCAFFOLDING((player, item, version, data, x, y, z) -> {
         // If is holding scaffolding
