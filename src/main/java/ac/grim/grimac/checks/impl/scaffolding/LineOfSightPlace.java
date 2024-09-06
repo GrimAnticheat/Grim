@@ -33,10 +33,13 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
+        StateType targetBlockStateType = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType();
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
+
         if (useBlockWhitelist) {
-            if (!isBlockTypeWhitelisted(player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType())) {
+            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
                 return;
             }
         }
@@ -52,11 +55,13 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     // Use post flying because it has the correct rotation, and can't false easily.
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
+        StateType targetBlockStateType = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType();
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
 
         if (useBlockWhitelist) {
-            if (!isBlockTypeWhitelisted(player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType())) {
+            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
                 return;
             }
         }
