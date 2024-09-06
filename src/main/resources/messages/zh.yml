@@ -17,12 +17,12 @@ upload-log-start: "%prefix% &f上传中...请等待"
 upload-log-not-found: "%prefix% &c找不到该日志."
 upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信息, 请参阅控制台"
 
-# Valid placeholders:
+# 变量:
 # %prefix% - 前缀
 # %player% - 玩家
 # %check_name% - 检查名字
-# %description%
-# %experimental%
+# %description% - 检查的介绍
+# %experimental% - 检查是否是实验性
 # %vl% - VL值
 # %verbose% - 检查中的额外信息，例如偏移量，并非所有检查都会添加信息
 alerts-format: "%prefix% &f%player% &b触发了 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
