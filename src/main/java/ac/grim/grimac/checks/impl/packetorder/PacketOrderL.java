@@ -9,6 +9,8 @@ import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
@@ -38,6 +40,16 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
                     }
                 case RELEASE_USE_ITEM:
                     sent = true;
+            }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
+            WrapperPlayClientEntityAction.Action action = new WrapperPlayClientEntityAction(event).getAction();
+            if (action == WrapperPlayClientEntityAction.Action.START_SNEAKING
+                    || action == WrapperPlayClientEntityAction.Action.STOP_SNEAKING
+                    || action == WrapperPlayClientEntityAction.Action.START_SPRINTING
+                    || action == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
+                sent = true;
             }
         }
 
