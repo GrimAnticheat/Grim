@@ -27,10 +27,8 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
 
             if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
-                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
-                    sent = true;
-                    return;
-                }
+                sent = true;
+                return;
             }
 
             if (sent) {
