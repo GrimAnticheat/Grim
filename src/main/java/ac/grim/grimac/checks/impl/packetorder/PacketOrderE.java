@@ -25,9 +25,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             if (sent) {
-                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-                    flagAndAlert();
-                } else {
+                if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) || flagAndAlert()) {
                     invalidSlots++;
                 }
             }
@@ -55,8 +53,14 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        // we don't need to check pre-1.9 players here (no tick skipping)
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+            if (invalidSlots > 0) {
+                setbackIfAboveSetbackVL();
+            }
+
+            invalidSlots = 0;
+            return;
+        }
 
         if (!player.skippedTickInActualMovement) {
             for (; invalidSlots >= 1; invalidSlots--) {
