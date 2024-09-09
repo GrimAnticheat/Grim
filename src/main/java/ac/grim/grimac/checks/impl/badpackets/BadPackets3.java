@@ -19,60 +19,63 @@ public class BadPackets3 extends Check implements PacketCheck, PostPredictionChe
         super(player);
     }
 
-    private float sprints = 0;
-    private float sneaks = 0;
+    private boolean sprint;
+    private boolean sneak;
+    private int flags = 0;
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        // we don't need to check pre-1.9 players here (no tick skipping)
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) return;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+            if (flags > 0) {
+                setbackIfAboveSetbackVL();
+            }
 
-        if (player.skippedTickInActualMovement) {
-            sprints *= 0.05f;
-            sneaks *= 0.05f;
+            flags = 0;
+            return;
         }
 
-        for (; sneaks > 1; sneaks--) flagAndAlert("sneak");
-        for (; sprints > 1; sprints--) flagAndAlert("sprint");
-        sneaks = 0;
-        sprints = 0;
+        if (!player.skippedTickInActualMovement) {
+            for (; flags > 0; flags--) {
+                if (flagAndAlert()) {
+                    setbackIfAboveSetbackVL();
+                }
+            }
+        }
+
+        sprint = sneak = false;
+        flags = 0;
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && !player.packetStateData.lastPacketWasTeleport) {
-            sprints = 0;
-            sneaks = 0;
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && !player.packetStateData.lastPacketWasTeleport) {
+            sprint = sneak = false;
             return;
         }
 
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
-
-            // the client does not send flying packets when spectating entities
-            if (player.gamemode == GameMode.SPECTATOR) {
-                return;
-            }
+            if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
 
             switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SNEAKING:
                 case STOP_SNEAKING:
-                    sneaks++;
-                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && sneaks > 1) {
-                        if (flagAndAlert("sneak") && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
+                    if (sneak) {
+                        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) || flagAndAlert()) {
+                            flags++;
                         }
                     }
+
+                    sneak = true;
                     break;
                 case START_SPRINTING:
                 case STOP_SPRINTING:
-                    sprints++;
-                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && sprints > 1) {
-                        if (flagAndAlert("sprint") && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
+                    if (sprint) {
+                        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) || flagAndAlert()) {
+                            flags++;
                         }
                     }
+
+                    sprint = true;
                     break;
             }
         }
