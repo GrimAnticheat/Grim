@@ -367,9 +367,9 @@ public enum HitboxData {
 
     TALL_PLANT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.TALL_GRASS, StateTypes.LARGE_FERN),
 
-    BAMBOO((player, item, version, data, x, y, z) -> {
-        return new HexOffsetCollisionBox(data.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
-    }, StateTypes.BAMBOO),
+    BAMBOO((player, item, version, data, x, y, z) -> data.getLeaves() == Leaves.LARGE
+            ? new HexOffsetCollisionBox(data.getType(), 3.0, 0.0, 3.0, 13.0, 16.0, 13.0)
+            : new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 16.0, 11.0), StateTypes.BAMBOO),
 
     BAMBOO_SAPLING((player, item, version, data, x, y, z) -> {
         return new HexOffsetCollisionBox(data.getType(), 4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D);

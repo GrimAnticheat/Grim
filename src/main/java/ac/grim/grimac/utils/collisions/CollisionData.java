@@ -85,6 +85,14 @@ public enum CollisionData {
 
     }, StateTypes.BREWING_STAND),
 
+    BAMBOO((player, version, block, x, y, z) -> {
+        // Via Version replacement, sugarcane
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+            return NoCollisionBox.INSTANCE;
+        }
+        return new HexOffsetCollisionBox(block.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
+    }),
+
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
 
