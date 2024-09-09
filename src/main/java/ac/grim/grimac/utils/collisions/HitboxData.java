@@ -214,10 +214,12 @@ public enum HitboxData {
             new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
 
-    SMALL_FLOWER((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
+    SMALL_FLOWER((player, item, version, data, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+            ? new SimpleCollisionBox(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D)
+            : new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    TALL_FLOWERS((player, item, version, data, x, y, z) -> new OffsetCollisionBox(data.getType(), 0, 0, 0, 1, 1, 1),
+    TALL_FLOWERS((player, item, version, data, x, y, z) -> new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
             BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     FIRE((player, item, version, data, x, y, z) -> {

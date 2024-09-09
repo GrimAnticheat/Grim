@@ -91,7 +91,7 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
         }
         return new HexOffsetCollisionBox(block.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
-    }),
+    }, StateTypes.BAMBOO),
 
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
