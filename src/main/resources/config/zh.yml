@@ -2,7 +2,7 @@
 # 源代码链接: https://github.com/MWHunter/Grim
 # 版权归 DefineOutside 和 贡献者所有，基于GPLv3开源协议。
 # 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
-# 中文翻译提供 nuym ,如有错误请提交 Issues 并@我
+# 中文翻译提供 nuym/Dg32z_ ,如有错误请提交 Issues 并@我
 
 alerts:
   # 是否在控制台显示作弊消息？
@@ -27,21 +27,22 @@ client-brand:
     - "^Feather Fabric$"
 
 spectators:
-  # 把所有拥有 grim.spectartor 权限的人都隐藏起来，不管他是否观察玩家。
+  # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
   hide-regardless: false
   # 观察者这些世界不会隐藏
   allowed-worlds:
     - ""
 
-# 在我们让他们超时之前，玩家应该有多长时间？ 此处的60 指60s
+# 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
+# 踢出原因为: disconnect.timeout
 max-transaction-time: 60
 
-# Should the duplicate movement packet be cancelled?
-# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
-# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+# 是否对重复的移动数据包进行撤销?
+# 这可以修复 "bucket desync". https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
+# 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家
 cancel-duplicate-packet: true
 
-# Whether or not to ignore the rotation in duplicate packets
+# 是否忽视重复的数据包中的玩家转头
 ignore-duplicate-packet-rotation: false
 
 Simulation:
@@ -127,7 +128,8 @@ LineOfSightPlace:
     - COMMAND_BLOCK
     - STRUCTURE_BLOCK
     - JIGSAW
-# Prediction-based NoSlow 检查
+
+# 使用模拟移动进行的NoSlow(使用物品时不会减速)检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
 # 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
 NoSlowA:
@@ -164,13 +166,13 @@ TimerA:
   # 玩家卡顿时可以累积以供以后使用的毫秒数
   # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
   drift: 120
-  # Ping at which the check will start to limit timer balance, to prevent abuse.
-  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
-  # -1 to disable
+  # 在检查玩家的延迟时对timer balance进行限制, 防止滥用
+  # 在合法玩家的延迟超过这个延迟阈值时可能会造成误拉回
+  # 填写-1则关闭
   ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
-  # Number of milliseconds lost while moving before we should start flagging
+  # 在开始检查玩家时，玩家的移动丢失了多少毫秒数
   drift: 1200
 
 # 与 TimerA 相同的检查方法，但适用于坐骑
@@ -200,8 +202,10 @@ Reach:
   enable-post-packet: false
 
 exploit:
+  #是否允许玩家在使用鞘翅时候进行的疾跑跳跃
   allow-sprint-jumping-when-using-elytra: true
   # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
+  # 这可以在玩家遇到幽灵方块时进行同步，这可以减少玩家所碰到幽灵方块
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
@@ -216,11 +220,12 @@ experimental-checks: false
 packet-spam-threshold: 100
 
 # Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
-# To disable, use -1
+# 填写-1则关闭
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# 限制玩家在使用鞘翅飞行时使用烟花加速的延迟
+# 这可以解决高延迟的玩家可以使用鞘翅时一直使用 1 个烟花就可以加速
+# 填写-1则关闭
 max-ping-firework-boost: 1000
 
 config-version: 9

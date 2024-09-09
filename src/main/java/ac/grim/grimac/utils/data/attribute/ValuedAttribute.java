@@ -80,6 +80,7 @@ public final class ValuedAttribute {
 
     public void reset() {
         this.value = defaultValue;
+        this.lastProperty = null; // Remove the old property with its modifiers so we don't accidentally use it again, messing up the calculation.
     }
 
     public double get() {

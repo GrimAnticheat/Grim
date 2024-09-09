@@ -130,7 +130,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedEntities.serverPositionsMap.clear();
             }
 
-            // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 player.isSneaking = false;
                 player.lastOnGround = false;
@@ -141,8 +140,16 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
 
+                final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
+
+                if (!keepTrackedData) {
+                    player.powderSnowFrozenTicks = 0;
+                    player.compensatedEntities.getSelf().hasGravity = true;
+                    player.playerEntityHasGravity = true;
+                }
+
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
-                    if (!this.hasFlag(respawn, KEEP_TRACKED_DATA)) {
+                    if (!keepTrackedData) {
                         player.isSprinting = false;
                     }
                 } else {
@@ -184,7 +191,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.setDimension(respawn.getDimensionType(), event.getUser());
                 }
 
-                // TODO And there should probably be some attribute holder that we can just call reset() on.
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && !this.hasFlag(respawn, KEEP_ATTRIBUTES)) {
                     // Reset attributes if not kept
                     player.compensatedEntities.getSelf().resetAttributes();
