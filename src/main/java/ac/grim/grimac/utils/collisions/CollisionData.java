@@ -273,7 +273,7 @@ public enum CollisionData {
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.SHORT_GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
-            StateTypes.LARGE_FERN, StateTypes.BAMBOO, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
+            StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
             StateTypes.SMALL_DRIPLEAF),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
