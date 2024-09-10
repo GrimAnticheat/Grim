@@ -5,7 +5,6 @@ import org.apache.commons.lang.StringUtils;
 public enum CheckType {
 
     MOVEMENT,
-    PREDICTION,
     ROTATION,
     COMBAT,
     PACKETS,

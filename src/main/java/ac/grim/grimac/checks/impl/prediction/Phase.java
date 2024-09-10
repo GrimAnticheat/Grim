@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "Phase", configName = "Phase", setback = 1, decay = 0.005, checkType = CheckType.PREDICTION)
+@CheckData(name = "Phase", configName = "Phase", setback = 1, decay = 0.005, checkType = CheckType.MOVEMENT)
 public class Phase extends Check implements PostPredictionCheck {
     SimpleCollisionBox oldBB;
 

@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "GroundSpoof", configName = "GroundSpoof", setback = 10, decay = 0.01, checkType = CheckType.PREDICTION)
+@CheckData(name = "GroundSpoof", configName = "GroundSpoof", setback = 10, decay = 0.01, checkType = CheckType.MOVEMENT)
 public class NoFallB extends Check implements PostPredictionCheck {
 
     public NoFallB(GrimPlayer player) {
