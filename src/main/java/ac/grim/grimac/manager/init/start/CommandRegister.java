@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.commands.*;
 import ac.grim.grimac.manager.init.Initable;
 import co.aikar.commands.PaperCommandManager;
+import github.scarsz.configuralize.DynamicConfig;
 
 public class CommandRegister implements Initable {
     @Override
@@ -11,6 +12,7 @@ public class CommandRegister implements Initable {
         // This does not make Grim require paper
         // It only enables new features such as asynchronous tab completion on paper
         PaperCommandManager commandManager = new PaperCommandManager(GrimAPI.INSTANCE.getPlugin());
+        commandManager.registerDependency(DynamicConfig.class, GrimAPI.INSTANCE.getConfigManager().getConfig());
 
         commandManager.registerCommand(new GrimPerf());
         commandManager.registerCommand(new GrimDebug());
@@ -23,5 +25,7 @@ public class CommandRegister implements Initable {
         commandManager.registerCommand(new GrimStopSpectating());
         commandManager.registerCommand(new GrimLog());
         commandManager.registerCommand(new GrimVerbose());
+        commandManager.registerCommand(new GrimChecks());
+
     }
 }

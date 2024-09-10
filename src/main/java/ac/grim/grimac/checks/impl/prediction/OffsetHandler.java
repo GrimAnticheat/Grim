@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.prediction;
 import ac.grim.grimac.api.events.CompletePredictionEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -10,7 +11,7 @@ import org.bukkit.Bukkit;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
+@CheckData(name = "Simulation", configName = "Simulation", decay = 0.02, checkType = CheckType.PREDICTION)
 public class OffsetHandler extends Check implements PostPredictionCheck {
     // Config
     double setbackDecayMultiplier;

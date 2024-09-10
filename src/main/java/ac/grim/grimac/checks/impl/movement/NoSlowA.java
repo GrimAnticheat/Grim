@@ -2,12 +2,13 @@ package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "NoSlowA (Prediction)", configName = "NoSlowA", setback = 5)
+@CheckData(name = "NoSlowA (Prediction)", configName = "NoSlowA", setback = 5, checkType = CheckType.MOVEMENT)
 public class NoSlowA extends Check implements PostPredictionCheck {
     double offsetToFlag;
     double bestOffset = 1;

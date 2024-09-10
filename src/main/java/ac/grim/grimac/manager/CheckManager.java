@@ -2,6 +2,8 @@ package ac.grim.grimac.manager;
 
 
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -42,6 +44,9 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CheckManager {
     ClassToInstanceMap<PacketCheck> packetChecks;
@@ -266,6 +271,13 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
         return (T) prePredictionChecks.get(check);
+    }
+
+    public <T extends Check> List<T> getChecksByType(CheckType type) {
+        return allChecks.values().stream()
+                .map(check -> (T) check)
+                .filter(check -> check.getType().equals(type))
+                .collect(Collectors.toList());
     }
 
     private PacketEntityReplication packetEntityReplication = null;
