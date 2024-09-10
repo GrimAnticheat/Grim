@@ -20,7 +20,7 @@ import java.util.*;
 public class PunishmentManager {
     GrimPlayer player;
     List<PunishGroup> groups = new ArrayList<>();
-    String experimentalSymbol = "*";
+    @Getter private String experimentalSymbol = "*";
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;

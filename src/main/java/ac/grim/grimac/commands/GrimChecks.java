@@ -8,9 +8,7 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
-import co.aikar.commands.annotation.Dependency;
 import co.aikar.commands.annotation.Subcommand;
-import github.scarsz.configuralize.DynamicConfig;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -21,35 +19,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 @CommandAlias("grim|grimac")
 public class GrimChecks extends BaseCommand {
     
-    @Dependency private DynamicConfig config;
-    
     @Subcommand("checks")
     @CommandAlias("checks")
     @CommandPermission("grim.checks")
     public void onChecks(Player player) {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
-        if(grimPlayer == null) {
-            player.sendMessage(MessageUtil.format(config.getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!")));
+        if (grimPlayer == null) {
+            player.sendMessage(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!")));
             return;
         }
 
         AtomicInteger totalChecks = new AtomicInteger(0);
-        String typeSpace = config.getStringElse("checks.category-space", " ");
-        String typeNone = config.getStringElse("checks.not-found-category", "&cNone.");
-        String experimentalSymbol = config.getStringElse("experimental-symbol", "*");
-        String separator = config.getStringElse("checks.separator", "&7, ");
+        String typeSpace = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("checks.category-space", " ");
+        String typeNone = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("checks.not-found-category", "&cNone.");
+        String experimentalSymbol = grimPlayer.punishmentManager.getExperimentalSymbol();
+        String separator = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("checks.separator", "&7, ");
         String formattedSeparator = MessageUtil.format(separator);
 
         // Make this async to be 100% sure that it will not cause any lag
         CompletableFuture.supplyAsync(() ->{
             List<String> messageLines = new ArrayList<>();
             messageLines.add(MessageUtil.format(typeSpace));
-            for(CheckType type : CheckType.values()){
-                if(type != CheckType.OTHER) {
+            for (CheckType type : CheckType.values()){
+                if (type != CheckType.OTHER) {
                     List<Check> checks = grimPlayer.checkManager.getChecksByType(type);
                     totalChecks.set(totalChecks.get() + checks.size());
 
-                    messageLines.add(MessageUtil.format(config
+                    messageLines.add(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                             .getStringElse("checks.type", " &8» &f%checkType% checks:")
                             .replace("%checkType%", type.displayName())));
 
@@ -73,18 +69,18 @@ public class GrimChecks extends BaseCommand {
                         for (Check check : checks) {
                             if (check.isEnabled()) {
                                 if (check.isExempted()) {
-                                    checkList.append(MessageUtil.format(config
+                                    checkList.append(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                                             .getStringElse("checks.check.exempted", "&e%checkName%%experimental%")
                                             .replace("%checkName%", check.getCheckName())
                                             .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "") + separator));
                                 } else {
-                                    checkList.append(MessageUtil.format(config
+                                    checkList.append(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                                             .getStringElse("checks.check.enabled", "&a%checkName%%experimental%")
                                             .replace("%checkName%", check.getCheckName())
                                             .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "") + separator));
                                 }
                             } else {
-                                checkList.append(MessageUtil.format(config
+                                checkList.append(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                                         .getStringElse("checks.check.disabled", "&c%checkName%%experimental%")
                                         .replace("%checkName%", check.getCheckName())
                                         .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "") + separator));
@@ -102,23 +98,22 @@ public class GrimChecks extends BaseCommand {
             return messageLines;
         }).exceptionally(e -> {
             e.printStackTrace();
-            player.sendMessage(MessageUtil.format(config
+            player.sendMessage(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                     .getStringElse("checks.not-found-total", "&cNo checks found.") + " (Check console)"));
             return null;
         }).thenAccept(messageLines -> {
-            if(messageLines != null) {
+            if (messageLines != null) {
                 if (totalChecks.get() != 0) {
-                    String space = config
+                    String space = GrimAPI.INSTANCE.getConfigManager().getConfig()
                             .getStringElse("checks.space", "&7======================");
                     messageLines.add(0, MessageUtil.format(space));
-                    messageLines.add(MessageUtil.format(config
+                    messageLines.add(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                             .getStringElse("checks.space", space)));
 
-                    for (String line : messageLines) {
-                        player.sendMessage(line);
-                    }
+
+                    player.sendMessage(String.join("\n", messageLines));
                 } else {
-                    player.sendMessage(MessageUtil.format(config
+                    player.sendMessage(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig()
                             .getStringElse("checks.not-found-total", "&cNo checks found.")));
                 }
             }
