@@ -31,6 +31,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class Collisions {
@@ -699,7 +700,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
                             if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z)))) return true;
                         }
@@ -708,6 +709,85 @@ public class Collisions {
             }
         }
         return false;
+    }
+
+    // Thanks Tuinity
+    public static void forEachCollisionBoxes(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<Vector3d> searchingFor) {
+        int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
+        int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
+        int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
+        int maxBlockY = (int) Math.floor(checkBox.maxY + COLLISION_EPSILON) + 1;
+        int minBlockZ = (int) Math.floor(checkBox.minZ - COLLISION_EPSILON) - 1;
+        int maxBlockZ = (int) Math.floor(checkBox.maxZ + COLLISION_EPSILON) + 1;
+
+        final int minSection = player.compensatedWorld.getMinHeight() >> 4;
+        final int minBlock = minSection << 4;
+        final int maxBlock = player.compensatedWorld.getMaxHeight() - 1;
+
+        int minChunkX = minBlockX >> 4;
+        int maxChunkX = maxBlockX >> 4;
+
+        int minChunkZ = minBlockZ >> 4;
+        int maxChunkZ = maxBlockZ >> 4;
+
+        int minYIterate = Math.max(minBlock, minBlockY);
+        int maxYIterate = Math.min(maxBlock, maxBlockY);
+
+        for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
+            int minZ = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
+            int maxZ = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
+
+            for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
+                int minX = currChunkX == minChunkX ? minBlockX & 15 : 0; // coordinate in chunk
+                int maxX = currChunkX == maxChunkX ? maxBlockX & 15 : 15; // coordinate in chunk
+
+                int chunkXGlobalPos = currChunkX << 4;
+                int chunkZGlobalPos = currChunkZ << 4;
+
+                Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
+
+                if (chunk == null) continue;
+                BaseChunk[] sections = chunk.getChunks();
+
+                for (int y = minYIterate; y <= maxYIterate; ++y) {
+                    BaseChunk section = sections[(y >> 4) - minSection];
+
+                    if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
+                        // empty
+                        // skip to next section
+                        y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
+                        continue;
+                    }
+
+                    for (int currZ = minZ; currZ <= maxZ; ++currZ) {
+                        for (int currX = minX; currX <= maxX; ++currX) {
+                            int x = currX | chunkXGlobalPos;
+                            int z = currZ | chunkZGlobalPos;
+
+                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
+
+                            // Works on both legacy and modern!  Faster than checking for material types, most common case
+                            if (data.getGlobalId() == 0) continue;
+
+                            // Thanks SpottedLeaf for this optimization, I took edgeCount from Tuinity
+                            int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
+                                    ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
+                                    ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
+
+                            final StateType type = data.getType();
+                            if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
+                                    && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
+                                final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
+
+                                if (collisionBox.isIntersected(checkBox)) {
+                                    searchingFor.accept(new Vector3d(x, y, z));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
