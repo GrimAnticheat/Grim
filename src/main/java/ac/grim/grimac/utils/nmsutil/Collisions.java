@@ -712,7 +712,7 @@ public class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBoxes(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<Vector3d> searchingFor) {
+    public static void forEachCollisionBox(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<Vector3d> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
