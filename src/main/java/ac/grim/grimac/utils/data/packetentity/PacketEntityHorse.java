@@ -2,6 +2,8 @@ package ac.grim.grimac.utils.data.packetentity;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -20,8 +22,16 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
         setAttribute(Attributes.GENERIC_STEP_HEIGHT, 1.0f);
 
         final boolean preAttribute = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5);
+        // This was horse.jump_strength pre-attribute
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.7, 0, preAttribute ? 2 : 32)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .withSetRewriter((oldValue, newValue) -> {
+                    // Seems viabackwards doesn't rewrite this (?)
+                    if (preAttribute && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5)) {
+                        return oldValue;
+                    }
+                    // Modern player OR an old server setting legacy horse.jump_strength attribute
+                    return newValue;
+                }));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.225f, 0, 1024));
 
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {
