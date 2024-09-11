@@ -1,8 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.CollisionData;
-import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -42,12 +40,8 @@ public class MainSupportingBlockPosFinder {
         AtomicReference<Vector3i> bestBlockPos = new AtomicReference<>();
         AtomicDouble blockPosDistance = new AtomicDouble(Double.MAX_VALUE);
 
-        Collisions.hasMaterial(player, searchBox, (thing) -> {
-            Vector3i blockPos = thing.getSecond().toVector3i();
-
-            CollisionBox collision = CollisionData.getData(thing.getFirst().getType()).getMovementCollisionBox(player, player.getClientVersion(), thing.getFirst(), blockPos.getX(), blockPos.getY(), blockPos.getZ());
-            if (!collision.isIntersected(searchBox)) return false;
-
+        Collisions.forEachCollisionBox(player, searchBox, (pos) -> {
+            Vector3i blockPos = pos.toVector3i();
             Vector3d blockPosAsVector3d = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
             double distance = playerPos.distanceSquared(blockPosAsVector3d);
 
@@ -55,8 +49,6 @@ public class MainSupportingBlockPosFinder {
                 bestBlockPos.set(blockPos);
                 blockPosDistance.set(distance);
             }
-
-            return false;
         });
 
 
