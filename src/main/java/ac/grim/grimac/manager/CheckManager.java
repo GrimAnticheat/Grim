@@ -273,10 +273,11 @@ public class CheckManager {
         return (T) prePredictionChecks.get(check);
     }
 
-    public <T extends Check> List<T> getChecksByType(CheckType type) {
+    public List<Check> getChecksByType(CheckType type) {
         return allChecks.values().stream()
-                .map(check -> (T) check)
-                .filter(check -> check.getType().equals(type))
+                .filter(check -> check instanceof Check)
+                .map(check -> (Check) check)
+                .filter(check -> check.getType() == type)
                 .collect(Collectors.toList());
     }
 
