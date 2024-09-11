@@ -35,6 +35,8 @@ public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
     private boolean ignoreDuplicatePacketRotation = false;
+    @Getter // intended for anarchy servers that want elytra fly bypasses
+    private boolean exemptElytra = false;
 
     @Getter
     private boolean experimentalChecks = false;
@@ -98,6 +100,7 @@ public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
         }
         experimentalChecks = config.getBooleanElse("experimental-checks", false);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
+        exemptElytra = config.getBooleanElse("exempt-elytra", false);
     }
 
     public boolean isIgnoredClient(String brand) {
