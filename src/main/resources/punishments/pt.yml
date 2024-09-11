@@ -63,6 +63,7 @@ Punishments:
     checks:
       - "EntityControl"
       - "NoSlow"
+      - "MultiActions"
       - "Place"
       - "Baritone"
       - "FastBreak"
