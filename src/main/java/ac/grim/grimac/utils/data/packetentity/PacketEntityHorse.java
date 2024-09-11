@@ -20,7 +20,8 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
         setAttribute(Attributes.GENERIC_STEP_HEIGHT, 1.0f);
 
         final boolean preAttribute = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5);
-        trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.7, 0, preAttribute ? 2 : 32));
+        trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_JUMP_STRENGTH, 0.7, 0, preAttribute ? 2 : 32)
+                .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.225f, 0, 1024));
 
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CHESTED_HORSE)) {
