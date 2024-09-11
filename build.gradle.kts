@@ -33,6 +33,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
     maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
     maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // placeholderapi
     mavenCentral()
     // FastUtil, Discord-Webhooks
 }
@@ -47,11 +48,14 @@ dependencies {
     implementation("com.github.grimanticheat:grimapi:1193c4fa41")
     // Used for local testing: implementation("ac.grim.grimac:grimapi:1.0")
 
+    implementation("net.kyori:adventure-text-minimessage:4.17.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.3.3")
+
     implementation("org.jetbrains:annotations:24.1.0")
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
     compileOnly("com.viaversion:viaversion-api:4.9.4-SNAPSHOT")
-    //
+    compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.netty:netty-all:4.1.85.Final")
 }
 

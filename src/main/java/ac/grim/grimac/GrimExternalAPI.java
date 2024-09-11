@@ -43,8 +43,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
 
     @Getter private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
 
-    public String replaceVariables(GrimUser user, String content, boolean colors) {
-        if (colors) content = ChatColor.translateAlternateColorCodes('&', content);
+    public String replaceVariables(GrimUser user, String content) {
         for (Map.Entry<String, String> entry : staticReplacements.entrySet()) {
             content = content.replace(entry.getKey(), entry.getValue());
         }
