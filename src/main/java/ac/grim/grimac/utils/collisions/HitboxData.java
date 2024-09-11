@@ -112,7 +112,7 @@ public enum HitboxData {
         }
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z).downCast(boxes);
+        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state).downCast(boxes);
 
         for (SimpleCollisionBox box : boxes) {
             box.maxY = 1;
