@@ -7,6 +7,8 @@ enabled: false
 # La URL del webhook.
 webhook: ""
 
+embed-title: "**Grim Alert**"
+
 # El color del embed que se mandara por este webhook.
 embed-color: "#00FFFF"
 
