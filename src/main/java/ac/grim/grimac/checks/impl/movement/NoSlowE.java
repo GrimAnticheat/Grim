@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 import static com.github.retrooper.packetevents.protocol.potion.PotionTypes.BLINDNESS;
 
 @CheckData(name = "NoSlowE", setback = 5, experimental = true)
-public class NoSlowE extends Check implements PostPredictionCheck, PacketCheck {
+public class NoSlowE extends Check implements PostPredictionCheck {
     public NoSlowE(GrimPlayer player) {
         super(player);
     }
