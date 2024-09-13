@@ -36,7 +36,6 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
     private Vector3i targetBlock = null;
     private double progress;
-    private boolean sentAnimation;
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
@@ -64,26 +63,13 @@ public class FastBreak extends Check implements BlockBreakCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (targetBlock == null) {
-            sentAnimation = false;
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
-            sentAnimation = true;
-        }
-
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            if (!player.compensatedEntities.getSelf().inVehicle()) {
-                if (!didRayTraceHit() || !isWithinRange()) {
-                    return;
-                }
-            }
-
-            if (sentAnimation) {
+            if (player.compensatedEntities.getSelf().inVehicle() || didRayTraceHit() && isWithinRange()) {
                 progress += BlockBreakSpeed.getBlockDamage(player, targetBlock);
             }
-
-            sentAnimation = false;
         }
     }
 
