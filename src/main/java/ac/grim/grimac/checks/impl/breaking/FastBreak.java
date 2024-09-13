@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -35,6 +36,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
     private Vector3i targetBlock = null;
     private double progress;
+    private boolean sentAnimation;
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
@@ -62,7 +64,12 @@ public class FastBreak extends Check implements BlockBreakCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (targetBlock == null) {
+            sentAnimation = false;
             return;
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+            sentAnimation = true;
         }
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
@@ -72,7 +79,11 @@ public class FastBreak extends Check implements BlockBreakCheck {
                 }
             }
 
-            progress += BlockBreakSpeed.getBlockDamage(player, targetBlock);
+            if (sentAnimation) {
+                progress += BlockBreakSpeed.getBlockDamage(player, targetBlock);
+            }
+
+            sentAnimation = false;
         }
     }
 

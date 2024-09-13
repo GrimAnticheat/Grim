@@ -154,6 +154,7 @@ public class CheckManager {
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .put(FarBreak.class, new FarBreak(player))
+                .put(NoSwingBreak.class, new NoSwingBreak(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .build();
 
