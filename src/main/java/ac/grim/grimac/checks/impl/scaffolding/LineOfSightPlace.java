@@ -45,6 +45,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         }
 
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
+            ignorePost = true;
             // If the player hit and has flagged this check recently
             if (flagAndAlert("pre-flying: " + player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType()) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();  // Deny the block placement.

@@ -812,6 +812,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
                     // This makes it possible to bypass the check and still open chests behind walls
                     // If you look at the edges of a block
+                    System.out.println(player.actualMovement);
                     box.expand(-player.getMovementThreshold());
                 }
 
