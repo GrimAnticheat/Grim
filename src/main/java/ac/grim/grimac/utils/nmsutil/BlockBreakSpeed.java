@@ -110,10 +110,11 @@ public class BlockBreakSpeed {
         if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
             if (block.getType() == StateTypes.COBWEB) {
                 speedMultiplier = 15.0f;
-            } else if (block.getType().getMaterialType() == MaterialType.PLANT ||
-                    BlockTags.LEAVES.contains(block.getType()) ||
-                    block.getType() == StateTypes.PUMPKIN ||
-                    block.getType() == StateTypes.MELON) {
+            } else if (block.getType().getMaterialType() == MaterialType.PLANT
+                    || BlockTags.LEAVES.contains(block.getType())
+                    || block.getType() == StateTypes.VINE
+                    || block.getType() == StateTypes.PUMPKIN
+                    || block.getType() == StateTypes.MELON) {
                 speedMultiplier = 1.5f;
             }
 

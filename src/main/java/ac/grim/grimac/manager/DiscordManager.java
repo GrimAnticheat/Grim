@@ -19,6 +19,7 @@ public class DiscordManager implements Initable {
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
+    private String embedTitle = "";
 
     public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
 
@@ -39,6 +40,8 @@ public class DiscordManager implements Initable {
             }
             client = WebhookClient.withId(Long.parseUnsignedLong(matcher.group(1)), matcher.group(2));
             client.setTimeout(15000); // Requests expire after 15 seconds
+
+            embedTitle = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-title", "**Grim Alert**");
 
             try {
                 embedColor = Color.decode(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-color", "#00FFFF")).getRGB();
@@ -70,7 +73,7 @@ public class DiscordManager implements Initable {
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
 
-            String content = staticContent + "";
+            String content = staticContent;
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
             content = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, content, false);
@@ -80,7 +83,7 @@ public class DiscordManager implements Initable {
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
                     .setThumbnailUrl("https://crafthead.net/helm/" + player.user.getProfile().getUUID())
                     .setColor(embedColor)
-                    .setTitle(new WebhookEmbed.EmbedTitle("**Grim Alert**", null))
+                    .setTitle(new WebhookEmbed.EmbedTitle(embedTitle, null))
                     .setDescription(content)
                     .setTimestamp(Instant.now())
                     .setFooter(new WebhookEmbed.EmbedFooter("", "https://grim.ac/images/grim.png"));

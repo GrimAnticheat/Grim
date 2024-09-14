@@ -1,6 +1,7 @@
 # Включать ли веб-крючок discord
 enabled: false
 webhook: ""
+embed-title: "**Grim Alert**"
 embed-color: "#00FFFF"
 violation-content:
   - "**Игрок**: %player%"

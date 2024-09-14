@@ -1,6 +1,7 @@
 # 是否启用discord webhook
 enabled: false
 webhook: ""
+embed-title: "**Grim Alert**"
 embed-color: "#00FFFF"
 violation-content:
   - "**玩家名**: %player%"

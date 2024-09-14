@@ -33,10 +33,6 @@ public class BadPacketsZ extends Check implements PacketCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) && pos.y != exemptedY)
             return false;
 
-        // the client only sends this packet if the last block was an instant break
-        if (getBlockDamage(player, lastBlock) < 1)
-            return false;
-
         // and if this block is not an instant break
         return player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || getBlockDamage(player, pos) < 1;
     }
