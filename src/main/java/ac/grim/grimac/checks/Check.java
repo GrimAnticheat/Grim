@@ -65,7 +65,7 @@ public class Check implements AbstractCheck {
         if (player.bukkitPlayer == null || checkName == null) return;
         FoliaScheduler.getEntityScheduler().run(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(),
                 t -> exempted = player.bukkitPlayer.hasPermission("grim.exempt." + checkName.toLowerCase()),
-                ()->{});
+                () -> {});
     }
 
     public final boolean flagAndAlert(String verbose) {
