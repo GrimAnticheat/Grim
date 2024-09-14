@@ -138,6 +138,10 @@ TimerVehicle:
 EntityControl:
   setbackvl: 25
 
+PacketOrderL:
+  # enable if players are getting flagged for using 1.7 animations mods
+  exemptBreaking: false
+
 Reach:
   # Um wie viel sollen wir die Hitboxen erweitern? 0,0005 sollte 3,0005+ Reichweite erkennen
   #

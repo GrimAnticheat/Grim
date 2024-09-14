@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
@@ -19,6 +18,9 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
     public PacketOrderL(final GrimPlayer player) {
         super(player);
     }
+
+    // fixes issues with pvp clients
+    private static boolean exemptBreaking;
 
     private int invalid = 0;
     private boolean sent = false;
@@ -35,7 +37,7 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
                     }
                 case CANCELLED_DIGGING:
                 case FINISHED_DIGGING:
-                    if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
+                    if (exemptBreaking || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
                         return; // valid on 1.7
                     }
                 case RELEASE_USE_ITEM:
@@ -84,5 +86,11 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
 
         invalid = 0;
         sent = false;
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        exemptBreaking = getConfig().getBooleanElse(getConfigName() + ".exemptBreaking", false);
     }
 }
