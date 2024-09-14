@@ -61,7 +61,7 @@ public class Check implements AbstractCheck {
         return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exempted;
     }
 
-    public void updateExempted () {
+    public void updateExempted() {
         if (player.bukkitPlayer == null || checkName == null) return;
         FoliaScheduler.getEntityScheduler().run(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(),
                 t -> exempted = player.bukkitPlayer.hasPermission("grim.exempt." + checkName.toLowerCase()),
