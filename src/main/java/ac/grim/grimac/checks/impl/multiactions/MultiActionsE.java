@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 
 @CheckData(name = "MultiActionsE", experimental = true)
 public class MultiActionsE extends Check implements PacketCheck {
@@ -16,7 +17,7 @@ public class MultiActionsE extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (player.packetStateData.isSlowedByUsingItem() && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.eatingHand == InteractionHand.OFF_HAND) && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
             // this is possible to false on 1.7
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
                 return;
