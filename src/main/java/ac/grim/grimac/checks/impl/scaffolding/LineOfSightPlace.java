@@ -37,6 +37,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
         if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
+        if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return; // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
 
         if (useBlockWhitelist) {
             if (!isBlockTypeWhitelisted(targetBlockStateType)) {
@@ -60,6 +61,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
         if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
+        if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return; // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
 
         if (useBlockWhitelist) {
             if (!isBlockTypeWhitelisted(targetBlockStateType)) {
