@@ -13,12 +13,12 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-public class DynamicHitboxPane extends DynamicConnecting implements CollisionFactory {
+public class DynamicHitboxPane extends DynamicConnecting implements HitBoxFactory {
 
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, StateType item, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         boolean east, north, south, west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
@@ -61,29 +61,34 @@ public class DynamicHitboxPane extends DynamicConnecting implements CollisionFac
     }
 
     private CollisionBox getLegacyCollisionBox(boolean north, boolean east, boolean south, boolean west) {
-        ComplexCollisionBox boxes = new ComplexCollisionBox();
+        float minX = 0.4375F;
+        float maxX = 0.5625F;
+        float minZ = 0.4375F;
+        float maxZ = 0.5625F;
 
         if ((!west || !east) && (west || east || north || south)) {
             if (west) {
-                boxes.add(new SimpleCollisionBox(0.0F, 0.0F, 0.4375F, 0.5F, 1.0F, 0.5625F));
+                minX = 0.0F;
             } else if (east) {
-                boxes.add(new SimpleCollisionBox(0.5F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F));
+                maxX = 1.0F;
             }
         } else {
-            boxes.add(new SimpleCollisionBox(0.0F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F));
+            minX = 0.0F;
+            maxX = 1.0F;
         }
 
         if ((!north || !south) && (west || east || north || south)) {
             if (north) {
-                boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 0.5F));
+                minZ = 0.0F;
             } else if (south) {
-                boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.5F, 0.5625F, 1.0F, 1.0F));
+                maxZ = 1.0F;
             }
         } else {
-            boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 1.0F));
+            minZ = 0.0F;
+            maxZ = 1.0F;
         }
 
-        return boxes;
+        return new SimpleCollisionBox(minX, 0.0F, minZ, maxX, 1.0F, maxZ);
     }
 
     @Override
