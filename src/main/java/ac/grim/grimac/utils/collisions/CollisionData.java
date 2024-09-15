@@ -929,14 +929,7 @@ public enum CollisionData {
     }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
 
     RAILS((player, version, data, x, y, z) -> {
-        Shape shape = data.getShape();
-        if (shape == Shape.ASCENDING_EAST || shape == Shape.ASCENDING_WEST ||
-                shape == Shape.ASCENDING_NORTH || shape == Shape.ASCENDING_SOUTH) {
-            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
-        }
-
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
-
+        return NoCollisionBox.INSTANCE;
     }, BlockTags.RAILS.getStates().toArray(new StateType[0])),
 
     // Known as block 36 - has no collision box

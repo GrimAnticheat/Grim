@@ -20,6 +20,25 @@ import java.util.*;
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData {
 
+    RAILS((player, item, version, data, x, y, z) -> {
+        Shape shape = data.getShape();
+        if (shape == Shape.ASCENDING_EAST || shape == Shape.ASCENDING_WEST ||shape == Shape.ASCENDING_NORTH || shape == Shape.ASCENDING_SOUTH) {
+            if (version.isOlderThan(ClientVersion.V_1_8)) {
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
+            } else if (version.isOlderThan(ClientVersion.V_1_10)) {
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
+            } else if (version.isOlderThan(ClientVersion.V_1_11)) {
+                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+            } else if (version.isOlderThan(ClientVersion.V_1_12)) {
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
+            }
+            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+        }
+
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
+
+    }, BlockTags.RAILS.getStates().toArray(new StateType[0])),
+
     FENCE_GATE((player, item, version, data, x, y, z) -> {
         // This technically should be taken from the block data/made multi-version/run block updates... but that's too far even for me
         // This way is so much easier and works unless the magic stick wand is used
