@@ -268,7 +268,7 @@ public enum HitboxData {
             // https://bugs.mojang.com/browse/MC-85109
             return NoCollisionBox.INSTANCE;
         } else if (version.isOlderThan(ClientVersion.V_1_13)) {
-            return NoCollisionBox.INSTANCE;
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
         } else {
             return new ComplexCollisionBox(
                     new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 2.0, 15.0),
@@ -304,7 +304,7 @@ public enum HitboxData {
             return new SimpleCollisionBox((double)((float)x + var5), (double)y, (double)((float)z + var5), (double)((float)(x + 1) - var5), (double)(y + 1), (double)((float)(z + 1) - var5));
         }
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
-    }}, StateTypes.CACTUS),
+    }, StateTypes.CACTUS),
 
     SNOW((player, item, version, data, x, y, z) -> {
         return new SimpleCollisionBox(0, 0, 0, 1, data.getLayers() * 0.125, 1);
