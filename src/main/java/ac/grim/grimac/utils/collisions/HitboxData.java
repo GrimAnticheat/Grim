@@ -41,9 +41,9 @@ public enum HitboxData {
 
     END_PORTAL((player, item, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_9)) {
-            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F);
+            return new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 0.0625D, 1.0D);
         } else if (version.isOlderThan(ClientVersion.V_1_17)) {
-            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.75F, 1.0F);
+            return new SimpleCollisionBox(0.0, 0.0D, 0.0D, 1.0D, 0.75D, 1.0D);
         }
         return new HexCollisionBox(0.0D, 6.0D, 0.0D, 16.0D, 12.0D, 16.0D);
     }, StateTypes.END_PORTAL),
@@ -350,8 +350,7 @@ public enum HitboxData {
 
     CACTUS((player, item, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
-            float var5 = 0.0625F;
-            return new SimpleCollisionBox((double)((float)x + var5), (double)y, (double)((float)z + var5), (double)((float)(x + 1) - var5), (double)(y + 1), (double)((float)(z + 1) - var5));
+            return new SimpleCollisionBox(0.0625D, 0, 0.0625D, 0.9375D, 1, 0.9375D, false);
         }
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
     }, StateTypes.CACTUS),

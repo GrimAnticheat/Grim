@@ -781,7 +781,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
+    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double hitboxExpansion, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
         Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(eyePos, lookVec);
@@ -804,7 +804,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             for (SimpleCollisionBox box : boxes) {
                 // Expand hitbox for 0.03/0.0002
                 if (vector3i.equals(targetBlockVec)) {
-                    box.expand(player.getMovementThreshold());
+                    box.expand(hitboxExpansion);
                 } else {
                     // TODO figure out a better way to shrink every SimpleCollisionBox that makes up the CollisionBox by 0.03/0.0002
                     // Such that every direction except faces where the sub-boxes are joined together
@@ -812,7 +812,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
                     // This makes it possible to bypass the check and still open chests behind walls
                     // If you look at the edges of a block
-                    box.expand(-player.getMovementThreshold());
+                    box.expand(-hitboxExpansion);
                 }
 
 

@@ -112,6 +112,10 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                 new Vector3f(player.xRot, player.yRot, 0)
         ));
 
+        // Sometimes adjusting for 0.03 is unnecessary and can cause the returned blockface to be wrong
+        // We check both the unexpanded and expanded hitbox, if any match exepcted block + blockFace, we assume player is legit
+        List<Double> possibleHitBoxExpansions = Arrays.asList(player.getMovementThreshold(), 0.0);
+
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
@@ -130,17 +134,19 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                 Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
                 Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
 
-                Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
+                for (double hitBoxExpansion : possibleHitBoxExpansions) {
+                    Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, hitBoxExpansion, maxDistance, interactBlockVec);
 
-                // Player is inside complex 0.03/0.002 expanded hitbox
-                if (rayTracedBlockData == null) {
-                    return true;
-                } else if (rayTracedBlockData.getFirst() == null) {
-                    continue;
-                }
+                    // Player is inside complex 0.03/0.002 expanded hitbox
+                    if (rayTracedBlockData == null) {
+                        return true;
+                    } else if (rayTracedBlockData.getFirst() == null) {
+                        continue;
+                    }
 
-                if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
-                    return true;
+                    if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
+                        return true;
+                    }
                 }
             }
         }
@@ -148,8 +154,8 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         return false;
     }
 
-    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
-        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
+    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double hitBoxExpansion, double maxDistance, Vector3i targetBlockVec) {
+        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, hitBoxExpansion, maxDistance, maxDistance, targetBlockVec);
         if (hitData == null) return null;
         return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }
