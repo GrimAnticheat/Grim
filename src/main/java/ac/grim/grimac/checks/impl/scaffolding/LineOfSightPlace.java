@@ -129,33 +129,59 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
         // Since we expand the hitboxes of the expectedTargetBlock by 0.03/0.002 already later
         double maxDistance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
+
+        // Define possible offsets
+        List<Vector> offsets = Arrays.asList(
+                new Vector(0, 0, 0),
+                new Vector(player.getMovementThreshold(), 0, 0),
+                new Vector(-player.getMovementThreshold(), 0, 0),
+                new Vector(0, player.getMovementThreshold(), 0),
+                new Vector(0, -player.getMovementThreshold(), 0),
+                new Vector(0, 0, player.getMovementThreshold()),
+                new Vector(0, 0, -player.getMovementThreshold())
+        );
+
+        Map<BlockFace, Integer> faceScores = new EnumMap<>(BlockFace.class);
+        for (BlockFace face : BlockFace.values()) {
+            faceScores.put(face, 0);
+        }
+
         for (double eyeHeight : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
-                Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
-                Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
+                for (Vector offset : offsets) {
+                    Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z).add(offset);
+                    Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
 
-                for (double hitBoxExpansion : possibleHitBoxExpansions) {
-                    Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, hitBoxExpansion, maxDistance, interactBlockVec);
+                    Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
 
-                    // Player is inside complex 0.03/0.002 expanded hitbox
                     if (rayTracedBlockData == null) {
-                        return true;
+                        return true; // Player is inside the block
                     } else if (rayTracedBlockData.getFirst() == null) {
                         continue;
                     }
 
-                    if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
-                        return true;
+                    if (interactBlockVec.equals(rayTracedBlockData.getFirst())) {
+                        faceScores.put(rayTracedBlockData.getSecond(), faceScores.get(rayTracedBlockData.getSecond()) + 1);
                     }
                 }
             }
         }
 
+        // Find the face with the highest score
+        BlockFace mostLikelyFace = Collections.max(faceScores.entrySet(), Map.Entry.comparingByValue()).getKey();
+        int highestScore = faceScores.get(mostLikelyFace);
+
+        // You might want to set a minimum threshold, e.g., more than 25% of checks
+        int totalChecks = possibleEyeHeights.size() * possibleLookDirs.size() * offsets.size();
+        if (highestScore > totalChecks / 4 && mostLikelyFace == place.getDirection()) {
+            return true;
+        }
+
         return false;
     }
 
-    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double hitBoxExpansion, double maxDistance, Vector3i targetBlockVec) {
-        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, hitBoxExpansion, maxDistance, maxDistance, targetBlockVec);
+    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
+        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, 0, maxDistance, maxDistance, targetBlockVec);
         if (hitData == null) return null;
         return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }

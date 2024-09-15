@@ -802,28 +802,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
-                // Expand hitbox for 0.03/0.0002
-                if (vector3i.equals(targetBlockVec)) {
-                    box.expand(hitboxExpansion);
-                } else {
-                    // TODO figure out a better way to shrink every SimpleCollisionBox that makes up the CollisionBox by 0.03/0.0002
-                    // Such that every direction except faces where the sub-boxes are joined together
-
-                    // Is this even neccessary? After extensive testing I've failed to false flag even without the line above
-                    // This makes it possible to bypass the check and still open chests behind walls
-                    // If you look at the edges of a block
-                    box.expand(-hitboxExpansion);
-                }
-
-
+                // Remove hitbox expansion
                 Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(knownDistance));
                 if (intercept.getFirst() == null) continue; // No intercept
 
                 Vector hitLoc = intercept.getFirst();
 
                 // If inside a block, return empty result for reach check
-                // Because we expand the hitbox inside this function, we have to have this check here
-                // And handle it by checking for null and assuming that means the player is legit
                 if (checkInside && ReachUtils.isVecInside(box, trace.getOrigin())) {
                     return null;
                 }
