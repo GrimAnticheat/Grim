@@ -39,6 +39,15 @@ public enum HitboxData {
 
     }, BlockTags.RAILS.getStates().toArray(new StateType[0])),
 
+    END_PORTAL((player, item, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_9)) {
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F);
+        } else if (version.isOlderThan(ClientVersion.V_1_17)) {
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.75F, 1.0F);
+        }
+        return new HexCollisionBox(0.0D, 6.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+    }, StateTypes.END_PORTAL),
+
     FENCE_GATE((player, item, version, data, x, y, z) -> {
         // This technically should be taken from the block data/made multi-version/run block updates... but that's too far even for me
         // This way is so much easier and works unless the magic stick wand is used
