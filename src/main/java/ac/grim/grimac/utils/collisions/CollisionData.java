@@ -4,11 +4,10 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.*;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicPane;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -564,7 +563,7 @@ public enum CollisionData {
 
     FENCE(new DynamicFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
-    PANE(new DynamicPane(), Materials.getPanes().toArray(new StateType[0])),
+    PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new StateType[0])),
 
     SNOW((player, version, data, x, y, z) -> {
         if (data.getLayers() == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {

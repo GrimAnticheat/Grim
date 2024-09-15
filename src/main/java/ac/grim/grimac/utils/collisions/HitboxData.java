@@ -1,7 +1,9 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -71,6 +73,8 @@ public enum HitboxData {
 
         return new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
     }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
+
+    PANE(new DynamicHitboxPane(), Materials.getPanes().toArray(new StateType[0])),
 
     LEVER(((player, item, version, data, x, y, z) -> {
         SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
