@@ -21,22 +21,32 @@ import java.util.*;
 public enum HitboxData {
 
     RAILS((player, item, version, data, x, y, z) -> {
-        Shape shape = data.getShape();
-        if (shape == Shape.ASCENDING_EAST || shape == Shape.ASCENDING_WEST ||shape == Shape.ASCENDING_NORTH || shape == Shape.ASCENDING_SOUTH) {
-            if (version.isOlderThan(ClientVersion.V_1_8)) {
-                return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
-            } else if (version.isOlderThan(ClientVersion.V_1_10)) {
+        switch (data.getShape()) {
+            case ASCENDING_NORTH:
+            case ASCENDING_SOUTH:
+            case ASCENDING_EAST:
+            case ASCENDING_WEST:
+                if (version.isOlderThan(ClientVersion.V_1_8)) {
+                    StateType railType = data.getType();
+                    // Activator rails always appear as flat detector rails in 1.7.10 because of ViaVersion
+                    // Ascending power rails in 1.7 have flat rail hitbox https://bugs.mojang.com/browse/MC-9134
+                    if (railType == StateTypes.ACTIVATOR_RAIL || railType == StateTypes.POWERED_RAIL) {
+                        return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false);
+                    }
+                    return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F, false);
+                } else if (version.isNewerThanOrEquals(ClientVersion.V_1_9) && version.isOlderThan(ClientVersion.V_1_10)) {
+                    // https://bugs.mojang.com/browse/MC-89552 sloped rails in 1.9 - it is slightly taller than a regular rail
+                    return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false);
+                } else if (version.isOlderThan(ClientVersion.V_1_11)) {
+                    // https://bugs.mojang.com/browse/MC-102638 All sloped rails are full blocks in 1.10
+                    return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+                } else if (version.isOlderThan(ClientVersion.V_1_12)) {
+                    return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
+                }
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+            default:
                 return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
-            } else if (version.isOlderThan(ClientVersion.V_1_11)) {
-                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
-            } else if (version.isOlderThan(ClientVersion.V_1_12)) {
-                return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
-            }
-            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
         }
-
-        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
-
     }, BlockTags.RAILS.getStates().toArray(new StateType[0])),
 
     END_PORTAL((player, item, version, data, x, y, z) -> {
