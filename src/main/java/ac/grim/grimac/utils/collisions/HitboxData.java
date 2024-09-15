@@ -210,9 +210,34 @@ public enum HitboxData {
     ROOTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
             StateTypes.WARPED_ROOTS, StateTypes.CRIMSON_ROOTS),
 
-    BANNER(((player, item, version, data, x, y, z) ->
-            new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0)),
-            BlockTags.BANNERS.getStates().toArray(new StateType[0])),
+    BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
+            StateTypes.WHITE_BANNER, StateTypes.ORANGE_BANNER, StateTypes.MAGENTA_BANNER, StateTypes.LIGHT_BLUE_BANNER,
+            StateTypes.YELLOW_BANNER, StateTypes.LIME_BANNER, StateTypes.PINK_BANNER, StateTypes.GRAY_BANNER,
+            StateTypes.LIGHT_GRAY_BANNER, StateTypes.CYAN_BANNER, StateTypes.PURPLE_BANNER, StateTypes.BLUE_BANNER,
+            StateTypes.BROWN_BANNER, StateTypes.GREEN_BANNER, StateTypes.RED_BANNER, StateTypes.BLACK_BANNER),
+
+    WALL_BANNER((player, item, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_8)) {
+            WALL_SIGN.dynamic.fetch(player, item, version, data, x, y, z);
+        }
+
+        switch (data.getFacing()) {
+            case NORTH:
+                return new HexCollisionBox(0.0, 0.0, 14.0, 16.0, 12.5, 16.0);
+            case EAST:
+                return new HexCollisionBox(0.0, 0.0, 0.0, 2.0, 12.5, 16.0);
+            case WEST:
+                return new HexCollisionBox(14.0, 0.0, 0.0, 16.0, 12.5, 16.0);
+            case SOUTH:
+                return new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 12.5, 2.0);
+            default:
+                throw new RuntimeException("Impossible Banner Facing State; Something very wrong is going on");
+        }
+    }, StateTypes.WHITE_WALL_BANNER, StateTypes.ORANGE_WALL_BANNER, StateTypes.MAGENTA_WALL_BANNER,
+            StateTypes.LIGHT_BLUE_WALL_BANNER, StateTypes.YELLOW_WALL_BANNER, StateTypes.LIME_WALL_BANNER,
+            StateTypes.PINK_WALL_BANNER, StateTypes.GRAY_WALL_BANNER, StateTypes.LIGHT_GRAY_WALL_BANNER,
+            StateTypes.CYAN_WALL_BANNER, StateTypes.PURPLE_WALL_BANNER, StateTypes.BLUE_WALL_BANNER,
+            StateTypes.BROWN_WALL_BANNER, StateTypes.GREEN_WALL_BANNER, StateTypes.RED_WALL_BANNER, StateTypes.BLACK_WALL_BANNER),
 
     SMALL_FLOWER((player, item, version, data, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
             ? new SimpleCollisionBox(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D)

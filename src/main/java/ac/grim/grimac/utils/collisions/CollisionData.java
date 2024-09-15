@@ -196,7 +196,7 @@ public enum CollisionData {
         }
     }, StateTypes.PIGLIN_WALL_HEAD),
 
-    BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
+    BANNER(NoCollisionBox.INSTANCE,
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
 
     CORAL_FAN((player, version, data, x, y, z) -> {
