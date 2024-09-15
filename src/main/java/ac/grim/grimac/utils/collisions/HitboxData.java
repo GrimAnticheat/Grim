@@ -217,6 +217,7 @@ public enum HitboxData {
             StateTypes.BROWN_BANNER, StateTypes.GREEN_BANNER, StateTypes.RED_BANNER, StateTypes.BLACK_BANNER),
 
     WALL_BANNER((player, item, version, data, x, y, z) -> {
+        // ViaVersion replacement block
         if (version.isOlderThan(ClientVersion.V_1_8)) {
             WALL_SIGN.dynamic.fetch(player, item, version, data, x, y, z);
         }

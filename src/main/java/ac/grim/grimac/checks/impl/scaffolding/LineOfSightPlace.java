@@ -7,10 +7,12 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -96,15 +98,14 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
         eyePositions.expand(player.getMovementThreshold());
 
+        Vector3i interactBlockVec = place.getPlacedAgainstBlockLocation();
+
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         // This may potentially be exploitable as a minor bypass
-        if (eyePositions.isIntersected(new SimpleCollisionBox(place.getPlacedAgainstBlockLocation()))) {
+        if (eyePositions.isIntersected(new SimpleCollisionBox(interactBlockVec))) {
             return true;
         }
         // End checking if the player is in the block
-
-        Vector3i interactBlockVec = new Vector3i(place.getPlacedAgainstBlockLocation().getX(),
-                place.getPlacedAgainstBlockLocation().getY(), place.getPlacedAgainstBlockLocation().getZ());
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
                 new Vector3f(player.lastXRot, player.yRot, 0),
@@ -129,13 +130,13 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                 Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z);
                 Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
 
-                Vector3i rayTracedBlockVec = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
+                Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
 
-                if (rayTracedBlockVec == null) {
+                if (rayTracedBlockData.getFirst() == null) {
                     continue;
                 }
 
-                if (interactBlockVec.equals(rayTracedBlockVec)) {
+                if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
                     return true;
                 }
             }
@@ -144,10 +145,9 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         return false;
     }
 
-    private Vector3i getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
+    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
         HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
-        if (hitData == null) return null;
-        return hitData.getPosition();
+        return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }
 
     private boolean isBlockTypeWhitelisted(StateType type) {
