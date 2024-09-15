@@ -253,7 +253,7 @@ public enum HitboxData {
         }
     }, StateTypes.BREWING_STAND),
 
-    SMALL_FLOWER((player, item, version, data, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+    SMALL_FLOWER((player, item, version, data, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_13)
             ? new SimpleCollisionBox(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D)
             : new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
@@ -389,8 +389,13 @@ public enum HitboxData {
 
     HANGING_ROOTS(new HexCollisionBox(2.0D, 10.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.HANGING_ROOTS),
 
-    GRASS_FERN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
-            StateTypes.SHORT_GRASS, StateTypes.FERN),
+    GRASS_FERN((player, item, version, data, x ,y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            float var1 = 0.4F;
+            return new SimpleCollisionBox(0.5F - var1, 0.0F, 0.5F - var1, 0.5F + var1, 0.8F, 0.5F + var1);
+        }
+        return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
+    }, StateTypes.SHORT_GRASS, StateTypes.FERN),
 
     SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
             StateTypes.SEAGRASS),
