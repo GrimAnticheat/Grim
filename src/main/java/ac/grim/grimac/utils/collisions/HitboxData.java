@@ -298,7 +298,13 @@ public enum HitboxData {
 
     SOUL_SAND(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.SOUL_SAND),
 
-    CACTUS(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CACTUS),
+    CACTUS((player, item, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            float var5 = 0.0625F;
+            return new SimpleCollisionBox((double)((float)x + var5), (double)y, (double)((float)z + var5), (double)((float)(x + 1) - var5), (double)(y + 1), (double)((float)(z + 1) - var5));
+        }
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+    }}, StateTypes.CACTUS),
 
     SNOW((player, item, version, data, x, y, z) -> {
         return new SimpleCollisionBox(0, 0, 0, 1, data.getLayers() * 0.125, 1);
