@@ -281,7 +281,7 @@ public enum CollisionData {
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
             StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
-            StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL),
+            StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -832,28 +832,6 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
 
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
-
-    LEVER((player, version, data, x, y, z) -> {
-        double f = 0.1875;
-
-        switch (data.getFacing()) {
-            case WEST:
-                return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f, false);
-            case EAST:
-                return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f, false);
-            case NORTH:
-                return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0, false);
-            case SOUTH:
-                return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0, false);
-            case DOWN:
-                return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75, false);
-            case UP:
-                return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75, false);
-        }
-
-        return NoCollisionBox.INSTANCE;
-
-    }, StateTypes.LEVER),
 
     STONE_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.isPowered()) { // Pressed
