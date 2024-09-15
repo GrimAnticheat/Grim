@@ -136,6 +136,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                     continue;
                 }
 
+
                 if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
                     return true;
                 }

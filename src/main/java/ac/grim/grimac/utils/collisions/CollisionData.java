@@ -73,7 +73,7 @@ public enum CollisionData {
 
     WATER(NoCollisionBox.INSTANCE, StateTypes.WATER),
 
-    BREWINGSTAND((player, version, block, x, y, z) -> {
+    BREWING_STAND((player, version, block, x, y, z) -> {
         int base = 0;
 
         if (version.isNewerThanOrEquals(ClientVersion.V_1_13))

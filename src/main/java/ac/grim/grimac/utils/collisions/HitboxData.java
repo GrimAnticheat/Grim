@@ -219,7 +219,7 @@ public enum HitboxData {
     WALL_BANNER((player, item, version, data, x, y, z) -> {
         // ViaVersion replacement block
         if (version.isOlderThan(ClientVersion.V_1_8)) {
-            WALL_SIGN.dynamic.fetch(player, item, version, data, x, y, z);
+            return WALL_SIGN.dynamic.fetch(player, item, version, data, x, y, z);
         }
 
         switch (data.getFacing()) {
@@ -239,6 +239,19 @@ public enum HitboxData {
             StateTypes.PINK_WALL_BANNER, StateTypes.GRAY_WALL_BANNER, StateTypes.LIGHT_GRAY_WALL_BANNER,
             StateTypes.CYAN_WALL_BANNER, StateTypes.PURPLE_WALL_BANNER, StateTypes.BLUE_WALL_BANNER,
             StateTypes.BROWN_WALL_BANNER, StateTypes.GREEN_WALL_BANNER, StateTypes.RED_WALL_BANNER, StateTypes.BLACK_WALL_BANNER),
+
+    BREWING_STAND((player, item, version, block, x, y, z) -> {
+        if (version.isNewerThan(ClientVersion.V_1_7_10) && version.isOlderThan(ClientVersion.V_1_9)) {
+            // https://bugs.mojang.com/browse/MC-85109
+            return NoCollisionBox.INSTANCE;
+        } else if (version.isOlderThan(ClientVersion.V_1_13)) {
+            return NoCollisionBox.INSTANCE;
+        } else {
+            return new ComplexCollisionBox(
+                    new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 2.0, 15.0),
+                    new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625, false));
+        }
+    }, StateTypes.BREWING_STAND),
 
     SMALL_FLOWER((player, item, version, data, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
             ? new SimpleCollisionBox(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D)
