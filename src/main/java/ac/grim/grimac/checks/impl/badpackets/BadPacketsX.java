@@ -25,17 +25,16 @@ public class BadPacketsX extends Check implements PacketCheck {
         if (dig.getAction() != DiggingAction.START_DIGGING && dig.getAction() != DiggingAction.FINISHED_DIGGING)
             return;
 
-        final boolean invalid;
-
-        if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
-            invalid = BlockBreakSpeed.getBlockDamage(player, dig.getBlockPosition()) >= 1 || block.getHardness() == -1.0f;
-        } else invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)))
+        // the block does not have a hitbox
+        boolean invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)))
                 || block.isAir()
                 || block == StateTypes.WATER
                 || block == StateTypes.LAVA
                 || block == StateTypes.BUBBLE_COLUMN
                 || block == StateTypes.MOVING_PISTON
-                || (block == StateTypes.FIRE && noFireHitbox);
+                || (block == StateTypes.FIRE && noFireHitbox)
+                // or the client claims to have broken an unbreakable block
+                || block.getHardness() == -1.0f && dig.getAction() == DiggingAction.FINISHED_DIGGING;
 
         if (invalid && flagAndAlert("block=" + block.getName() + ", type=" + dig.getAction()) && shouldModifyPackets()) {
             event.setCancelled(true);
