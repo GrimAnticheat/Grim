@@ -821,7 +821,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 Vector hitLoc = intercept.getFirst();
 
-                // If inside a block, return empty result for reach check (don't bother checking this?)
+                // If inside a block, return empty result for reach check
+                // Because we expand the hitbox inside this function, we have to have this check here
+                // And handle it by checking for null and assuming that means the player is legit
                 if (checkInside && ReachUtils.isVecInside(box, trace.getOrigin())) {
                     return null;
                 }

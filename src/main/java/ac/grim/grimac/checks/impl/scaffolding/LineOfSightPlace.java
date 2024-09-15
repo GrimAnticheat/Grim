@@ -132,10 +132,12 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
                 Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
 
-                if (rayTracedBlockData.getFirst() == null) {
+                // Player is inside complex 0.03/0.002 expanded hitbox
+                if (rayTracedBlockData == null) {
+                    return true;
+                } else if (rayTracedBlockData.getFirst() == null) {
                     continue;
                 }
-
 
                 if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
                     return true;
@@ -148,6 +150,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
     private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
         HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
+        if (hitData == null) return null;
         return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }
 
