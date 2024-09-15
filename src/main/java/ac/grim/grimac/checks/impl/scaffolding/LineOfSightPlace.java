@@ -131,6 +131,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         double maxDistance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
 
         // Define possible offsets
+        // TODO, vectorize this with SIMD or AVX for performance
         List<Vector> offsets = Arrays.asList(
                 new Vector(0, 0, 0),
                 new Vector(player.getMovementThreshold(), 0, 0),
@@ -140,11 +141,6 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                 new Vector(0, 0, player.getMovementThreshold()),
                 new Vector(0, 0, -player.getMovementThreshold())
         );
-
-        Map<BlockFace, Integer> faceScores = new EnumMap<>(BlockFace.class);
-        for (BlockFace face : BlockFace.values()) {
-            faceScores.put(face, 0);
-        }
 
         for (double eyeHeight : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
@@ -160,24 +156,14 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                         continue;
                     }
 
-                    if (interactBlockVec.equals(rayTracedBlockData.getFirst())) {
-                        faceScores.put(rayTracedBlockData.getSecond(), faceScores.get(rayTracedBlockData.getSecond()) + 1);
+                    if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
+                        return true; // If any possible face matches the client-side placement, assume it's legitimate
                     }
                 }
             }
         }
 
-        // Find the face with the highest score
-        BlockFace mostLikelyFace = Collections.max(faceScores.entrySet(), Map.Entry.comparingByValue()).getKey();
-        int highestScore = faceScores.get(mostLikelyFace);
-
-        // You might want to set a minimum threshold, e.g., more than 25% of checks
-        int totalChecks = possibleEyeHeights.size() * possibleLookDirs.size() * offsets.size();
-        if (highestScore > totalChecks / 4 && mostLikelyFace == place.getDirection()) {
-            return true;
-        }
-
-        return false;
+        return false; // No matching face found
     }
 
     private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
