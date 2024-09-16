@@ -84,17 +84,22 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     private boolean didRayTraceHit(BlockPlace place) {
-        List<Double> possibleEyeHeights = player.getPossibleEyeHeights();
+        double[] possibleEyeHeights = player.getPossibleEyeHeightsArray();
+
+        double minEyeHeight = Double.MAX_VALUE;
+        double maxEyeHeight = Double.MIN_VALUE;
+        for (double height : possibleEyeHeights) {
+            minEyeHeight = Math.min(minEyeHeight, height);
+            maxEyeHeight = Math.max(maxEyeHeight, height);
+        }
+
+        double movementThreshold = player.getMovementThreshold();
 
         // Start checking if player is in the block
-        double minEyeHeight = Collections.min(possibleEyeHeights);
-        double maxEyeHeight = Collections.max(possibleEyeHeights);
-
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
-        eyePositions.expand(player.getMovementThreshold());
+        eyePositions.expand(movementThreshold);
 
         Vector3i interactBlockVec = place.getPlacedAgainstBlockLocation();
-        BlockFace expectedBlockFace = place.getDirection();
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         // This may potentially be exploitable as a minor bypass
@@ -102,24 +107,25 @@ public class LineOfSightPlace extends BlockPlaceCheck {
             return true;
         }
         // End checking if the player is in the block
+        BlockFace expectedBlockFace = place.getDirection();
 
-        List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.lastXRot, player.yRot, 0),
-                new Vector3f(player.xRot, player.yRot, 0)
-        ));
-
-        // Sometimes adjusting for 0.03 is unnecessary and can cause the returned blockface to be wrong
-        // We check both the unexpanded and expanded hitbox, if any match exepcted block + blockFace, we assume player is legit
-        List<Double> possibleHitBoxExpansions = Arrays.asList(player.getMovementThreshold(), 0.0);
-
-        // 1.9+ players could be a tick behind because we don't get skipped ticks
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
-        }
-
-        // 1.7 players do not have any of these issues! They are always on the latest look vector
+        Vector3f[] possibleLookDirs;
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-            possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
+            // 1.7 players do not have any of these issues! They are always on the latest look vector
+            possibleLookDirs = new Vector3f[]{new Vector3f(player.xRot, player.yRot, 0)};
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+            // 1.9+ players could be a tick behind because we don't get skipped ticks
+            possibleLookDirs = new Vector3f[]{
+                    new Vector3f(player.lastXRot, player.yRot, 0),
+                    new Vector3f(player.xRot, player.yRot, 0),
+                    new Vector3f(player.lastXRot, player.lastYRot, 0)
+            };
+        } else {
+            // 1.8 players could have xRot a tick behind
+            possibleLookDirs = new Vector3f[]{
+                    new Vector3f(player.lastXRot, player.yRot, 0),
+                    new Vector3f(player.xRot, player.yRot, 0)
+            };
         }
 
         // We do not need to add 0.03/0.0002 to maxDistance to ensure our raytrace hits blocks
@@ -128,15 +134,15 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
         // Define possible offsets
         // TODO, vectorize this with SIMD or AVX for performance
-        List<Vector> offsets = Arrays.asList(
+        Vector[] offsets = {
                 new Vector(0, 0, 0),
-                new Vector(player.getMovementThreshold(), 0, 0),
-                new Vector(-player.getMovementThreshold(), 0, 0),
-                new Vector(0, player.getMovementThreshold(), 0),
-                new Vector(0, -player.getMovementThreshold(), 0),
-                new Vector(0, 0, player.getMovementThreshold()),
-                new Vector(0, 0, -player.getMovementThreshold())
-        );
+                new Vector(movementThreshold, 0, 0),
+                new Vector(-movementThreshold, 0, 0),
+                new Vector(0, movementThreshold, 0),
+                new Vector(0, -movementThreshold, 0),
+                new Vector(0, 0, movementThreshold),
+                new Vector(0, 0, -movementThreshold)
+        };
 
         for (double eyeHeight : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
@@ -147,7 +153,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                     Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec, expectedBlockFace);
 
                     if (rayTracedBlockData == null) {
-                        return true; // Player is inside the block
+                        return true;
                     }
                     // Should never be null since we only return if hitLoc exists
 //                    else if (rayTracedBlockData.getFirst() == null) {
@@ -164,7 +170,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
             }
         }
 
-        return false; // No matching face found
+        return false;
     }
 
     private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
