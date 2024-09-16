@@ -779,10 +779,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
-        Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
+    public static HitData getNearestReachHitResult(GrimPlayer player, double[] eyePos, double[] lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
+        Vector3d startingPos = new Vector3d(eyePos[0], eyePos[1], eyePos[2]);
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
-        Ray trace = new Ray(eyePos, lookVec);
+
+        // Convert double[] to Vector for Ray constructor
+        Vector eyePosVector = new Vector(eyePos[0], eyePos[1], eyePos[2]);
+        Vector lookVecVector = new Vector(lookVec[0], lookVec[1], lookVec[2]);
+        Ray trace = new Ray(eyePosVector, lookVecVector);
         Vector endVec = trace.getPointAtDistance(maxDistance);
         Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
 
