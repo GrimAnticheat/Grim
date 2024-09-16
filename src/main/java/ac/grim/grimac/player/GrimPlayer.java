@@ -554,18 +554,7 @@ public class GrimPlayer implements GrimUser {
         return checkManager.getInventory();
     }
 
-    public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
-            final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
-            return Arrays.asList(0.4 * scale, 1.27 * scale, 1.62 * scale);
-        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
-            return Arrays.asList(0.4, 1.54, 1.62);
-        } else { // Only sneaking or standing
-            return Arrays.asList((double) (1.62f - 0.08f), (double) (1.62f));
-        }
-    }
-
-    public double[] getPossibleEyeHeightsArray() { // We don't return sleeping eye height
+    public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
         if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
             final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
             return new double[]{0.4 * scale, 1.27 * scale, 1.62 * scale};

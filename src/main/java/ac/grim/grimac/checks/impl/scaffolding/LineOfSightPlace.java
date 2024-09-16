@@ -7,17 +7,13 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -76,15 +72,13 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return true; // Shulkers and Pistons are too buggy
 
         if (useBlockWhitelist) {
-            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
-                return true;
-            }
+            return !isBlockTypeWhitelisted(targetBlockStateType);
         }
         return false;
     }
 
     private boolean didRayTraceHit(BlockPlace place) {
-        double[] possibleEyeHeights = player.getPossibleEyeHeightsArray();
+        double[] possibleEyeHeights = player.getPossibleEyeHeights();
 
         // Start checking if player is in the block
         double minEyeHeight = Double.MAX_VALUE;
@@ -177,7 +171,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
     private boolean getTargetBlock(double[] eyePosition, double[] eyeDirection, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
         HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
-        return hitData != null  // Player is inside the block, from expanded hitbox, do we still need this?
+        return hitData != null  // Player is inside the block, from expanded hitbox, or there was no result, do we still need this?
                 && targetBlockVec.equals(hitData.getPosition());
     }
 
