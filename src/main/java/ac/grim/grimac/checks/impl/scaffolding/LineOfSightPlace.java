@@ -94,6 +94,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         eyePositions.expand(player.getMovementThreshold());
 
         Vector3i interactBlockVec = place.getPlacedAgainstBlockLocation();
+        BlockFace expectedBlockFace = place.getDirection();
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         // This may potentially be exploitable as a minor bypass
@@ -143,15 +144,20 @@ public class LineOfSightPlace extends BlockPlaceCheck {
                     Vector eyePosition = new Vector(player.x, player.y + eyeHeight, player.z).add(offset);
                     Vector eyeLookDir = new Ray(player, eyePosition.getX(), eyePosition.getY(), eyePosition.getZ(), lookDir.x, lookDir.y).calculateDirection();
 
-                    Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec);
+                    Pair<Vector3i, BlockFace> rayTracedBlockData = getTargetBlock(eyePosition, eyeLookDir, maxDistance, interactBlockVec, expectedBlockFace);
 
                     if (rayTracedBlockData == null) {
                         return true; // Player is inside the block
-                    } else if (rayTracedBlockData.getFirst() == null) {
-                        continue;
                     }
+                    // Should never be null since we only return if hitLoc exists
+//                    else if (rayTracedBlockData.getFirst() == null) {
+//                        continue;
+//                    }
 
-                    if (interactBlockVec.equals(rayTracedBlockData.getFirst()) && place.getDirection().equals(rayTracedBlockData.getSecond())) {
+                    if (interactBlockVec.equals(rayTracedBlockData.getFirst())
+                        // Our CheckManagerListener.getNearestReachHitResult already checks if the blockFace is correct
+                        // && expectedBlockFace.equals(rayTracedBlockData.getSecond())
+                    ) {
                         return true; // If any possible face matches the client-side placement, assume it's legitimate
                     }
                 }
@@ -161,8 +167,8 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         return false; // No matching face found
     }
 
-    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
-        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
+    private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
+        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
         if (hitData == null) return null;
         return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }

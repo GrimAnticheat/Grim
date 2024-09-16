@@ -51,9 +51,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
@@ -781,7 +779,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
+    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
         Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(eyePos, lookVec);
@@ -790,10 +788,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         StateType heldItem = null;
         boolean checkInside = true;
-        double knownDistance = currentDistance;
 
         return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
-            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            ClientVersion clientVersion = player.getClientVersion();
+            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, clientVersion, block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             data.downCast(boxes);
 
@@ -801,9 +799,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector bestHitLoc = null;
             BlockFace bestFace = null;
 
+            // BEWARE OF https://bugs.mojang.com/browse/MC-85109 FOR 1.8 PLAYERS
+            // 1.8 Brewing Stand hitbox is a fullblock until it is hit sometimes, can be caused be restarting client and joining server
+            if (vector3i.equals(targetBlockVec) && clientVersion.isNewerThan(ClientVersion.V_1_7_10) && clientVersion.isOlderThan(ClientVersion.V_1_9) && block.getType() == StateTypes.BREWING_STAND) {
+                boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true));
+            }
+
             for (SimpleCollisionBox box : boxes) {
-                Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(knownDistance));
-                if (intercept.getFirst() == null) continue; // No intercept
+                Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(currentDistance));
+                if (intercept.getFirst() == null || intercept.getSecond() != expectedBlockFace) continue; // No intercept or wrong blockFace
 
                 Vector hitLoc = intercept.getFirst();
 
