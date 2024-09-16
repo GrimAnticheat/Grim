@@ -1,10 +1,10 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -251,10 +251,7 @@ public enum HitboxData {
         }
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
-    WALL((player, item, version, data, x, y, z) -> {
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-        return new DynamicWall().fetchRegularBox(player, state, version, x, y, z);
-    }, BlockTags.WALLS.getStates().toArray(new StateType[0])),
+    WALL(new DynamicHitboxWall(), BlockTags.WALLS.getStates().toArray(new StateType[0])),
 
     WALL_SIGN((player, item, version, data, x, y, z) -> {
         switch (data.getFacing()) {

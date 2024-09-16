@@ -5,7 +5,7 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.*;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -144,7 +144,7 @@ public enum CollisionData {
         }
     }, BlockTags.ANVIL.getStates().toArray(new StateType[0])),
 
-    WALL(new DynamicWall(), BlockTags.WALLS.getStates().toArray(new StateType[0])),
+    WALL(new DynamicCollisionWall(), BlockTags.WALLS.getStates().toArray(new StateType[0])),
 
     SLAB((player, version, data, x, y, z) -> {
         Type slabType = data.getTypeData();
