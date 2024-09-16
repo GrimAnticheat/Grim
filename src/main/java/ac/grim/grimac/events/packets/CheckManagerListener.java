@@ -781,7 +781,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double hitboxExpansion, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
+    public static HitData getNearestReachHitResult(GrimPlayer player, Vector eyePos, Vector lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec) {
         Vector3d startingPos = new Vector3d(eyePos.getX(), eyePos.getY(), eyePos.getZ());
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(eyePos, lookVec);
@@ -802,7 +802,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
-                // Remove hitbox expansion
                 Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(knownDistance));
                 if (intercept.getFirst() == null) continue; // No intercept
 

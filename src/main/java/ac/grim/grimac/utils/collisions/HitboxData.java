@@ -323,10 +323,8 @@ public enum HitboxData {
             StateTypes.BROWN_WALL_BANNER, StateTypes.GREEN_WALL_BANNER, StateTypes.RED_WALL_BANNER, StateTypes.BLACK_WALL_BANNER),
 
     BREWING_STAND((player, item, version, block, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_7_10) && version.isOlderThan(ClientVersion.V_1_9)) {
-            // https://bugs.mojang.com/browse/MC-85109
-            return NoCollisionBox.INSTANCE;
-        } else if (version.isOlderThan(ClientVersion.V_1_13)) {
+        // BEWARE OF https://bugs.mojang.com/browse/MC-85109 FOR 1.8 PLAYERS
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
         } else {
             return new ComplexCollisionBox(

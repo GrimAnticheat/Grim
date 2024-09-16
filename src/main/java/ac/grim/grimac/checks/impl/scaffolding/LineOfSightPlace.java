@@ -35,17 +35,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        StateType targetBlockStateType = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType();
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
-        if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
-        if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return; // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
-
-        if (useBlockWhitelist) {
-            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
-                return;
-            }
-        }
+        if (checkIfShouldSkip(place)) return;
 
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
             ignorePost = true;
@@ -59,17 +49,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     // Use post flying because it has the correct rotation, and can't false easily.
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
-        StateType targetBlockStateType = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType();
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
-        if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return; // Redstone too buggy
-        if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return; // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
-
-        if (useBlockWhitelist) {
-            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
-                return;
-            }
-        }
+        if (checkIfShouldSkip(place)) return;
 
         // Don't flag twice
         if (ignorePost) {
@@ -86,6 +66,21 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         } else {
             flagBuffer = Math.max(0, flagBuffer - 0.1);
         }
+    }
+
+    private boolean checkIfShouldSkip(BlockPlace place) {
+        StateType targetBlockStateType = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation()).getType();
+        if (place.getMaterial() == StateTypes.SCAFFOLDING) return true; // Scaffolding
+        if (player.gamemode == GameMode.SPECTATOR) return true; // A waste to check creative mode players
+        if (targetBlockStateType == StateTypes.REDSTONE_WIRE) return true; // Redstone too buggy
+        if (player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) return true; // Shulkers and Pistons are too buggy
+
+        if (useBlockWhitelist) {
+            if (!isBlockTypeWhitelisted(targetBlockStateType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean didRayTraceHit(BlockPlace place) {
@@ -167,7 +162,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     private Pair<Vector3i, BlockFace> getTargetBlock(Vector eyePosition, Vector eyeDirection, double maxDistance, Vector3i targetBlockVec) {
-        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, 0, maxDistance, maxDistance, targetBlockVec);
+        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec);
         if (hitData == null) return null;
         return new Pair<>(hitData.getPosition(), hitData.getClosestDirection());
     }
