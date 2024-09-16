@@ -83,21 +83,24 @@ public class DynamicHitboxWall extends DynamicConnecting implements HitBoxFactor
 
     private CollisionBox getLegacyHitBox(int north, int south, int west, int east) {
         float minX = 0.25F, maxX = 0.75F, minZ = 0.25F, maxZ = 0.75F;
+        float maxY = 1.0F;
 
         if (north == 1) minZ = 0.0F;
         if (south == 1) maxZ = 1.0F;
         if (west == 1) minX = 0.0F;
         if (east == 1) maxX = 1.0F;
 
-        if (north == 1 && south == 1 && west != 0 && east != 0) {
+        if (north == 1 && south == 1 && west == 0 && east == 0) {
+            maxY = 0.8125F;
             minX = 0.3125F;
             maxX = 0.6875F;
-        } else if (north != 1 && south != 1 && west == 0 && east == 0) {
+        } else if (west == 1 && east == 1 && north == 0 && south == 0) {
+            maxY = 0.8125F;
             minZ = 0.3125F;
             maxZ = 0.6875F;
         }
 
-        return new SimpleCollisionBox(minX, 0.0F, minZ, maxX, 1, maxZ);
+        return new SimpleCollisionBox(minX, 0.0F, minZ, maxX, maxY, maxZ);
     }
 
     @Override
