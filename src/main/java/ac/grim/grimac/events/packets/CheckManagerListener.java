@@ -866,7 +866,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // BEWARE OF https://bugs.mojang.com/browse/MC-85109 FOR 1.8 PLAYERS
             // 1.8 Brewing Stand hitbox is a fullblock until it is hit sometimes, can be caused be restarting client and joining server
-            if (vector3i.equals(targetBlockVec) && clientVersion.isNewerThan(ClientVersion.V_1_7_10) && clientVersion.isOlderThan(ClientVersion.V_1_9) && block.getType() == StateTypes.BREWING_STAND) {
+            if (vector3i.equals(targetBlockVec) && clientVersion.equals(ClientVersion.V_1_8) && block.getType() == StateTypes.BREWING_STAND) {
                 boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true));
             }
 
