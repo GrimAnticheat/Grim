@@ -92,26 +92,29 @@ public class CheckManagerListener extends PacketListenerAbstract {
         double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;
         double posZInverse = zSign == 0 ? Double.MAX_VALUE : zSign / zDiff;
 
-        double d12 = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
-        double d13 = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
-        double d14 = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
+        double tMaxX = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
+        double tMaxY = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
+        double tMaxZ = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
 
-        // Can't figure out what this code does currently
-        while (d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
-            if (d12 < d13) {
-                if (d12 < d14) {
+        // tMax represents the maximum distance along each axis before crossing a block boundary
+        // The loop continues as long as the ray hasn't reached its end point along at least one axis.
+        // In each iteration, it moves to the next block boundary along the axis with the smallest tMax value,
+        // updates the corresponding coordinate, and checks for a hit in the new block, Google "3D DDA" for more info
+        while (tMaxX <= 1.0D || tMaxY <= 1.0D || tMaxZ <= 1.0D) {
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
                     floorStartX += xSign;
-                    d12 += posXInverse;
+                    tMaxX += posXInverse;
                 } else {
                     floorStartZ += zSign;
-                    d14 += posZInverse;
+                    tMaxZ += posZInverse;
                 }
-            } else if (d13 < d14) {
+            } else if (tMaxY < tMaxZ) {
                 floorStartY += ySign;
-                d13 += posYInverse;
+                tMaxY += posYInverse;
             } else {
                 floorStartZ += zSign;
-                d14 += posZInverse;
+                tMaxZ += posZInverse;
             }
 
             state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
@@ -850,8 +853,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 eyePos[1] + lookVec[1] * maxDistance,
                 eyePos[2] + lookVec[2] * maxDistance
         };
-
-        StateType heldItem = null;
 
         return traverseBlocks(player, eyePos, endPos, (block, vector3i) -> {
             ClientVersion clientVersion = player.getClientVersion();
