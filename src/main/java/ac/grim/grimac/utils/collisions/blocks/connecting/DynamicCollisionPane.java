@@ -19,7 +19,7 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-public class DynamicPane extends DynamicConnecting implements CollisionFactory {
+public class DynamicCollisionPane extends DynamicConnecting implements CollisionFactory {
 
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true);
 
