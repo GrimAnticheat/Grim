@@ -852,11 +852,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         };
 
         StateType heldItem = null;
-        boolean checkInside = true;
 
         return traverseBlocks(player, eyePos, endPos, (block, vector3i) -> {
             ClientVersion clientVersion = player.getClientVersion();
-            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, clientVersion, block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            CollisionBox data = HitboxData.getBlockHitbox(player, null, clientVersion, block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             data.downCast(boxes);
 
@@ -883,7 +882,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 double[] hitLoc = intercept.getFirst();
 
                 // If inside a block, return empty result for reach check
-                if (checkInside && ReachUtilsPrimitives.isVecInside(box, eyePos)) {
+                if (ReachUtilsPrimitives.isVecInside(box, eyePos)) {
                     return null;
                 }
 
