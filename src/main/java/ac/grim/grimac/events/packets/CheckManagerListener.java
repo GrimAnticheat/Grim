@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.inventory.Inventory;
@@ -857,6 +858,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         return traverseBlocks(player, eyePos, endPos, (block, vector3i) -> {
             ClientVersion clientVersion = player.getClientVersion();
             CollisionBox data = HitboxData.getBlockHitbox(player, null, clientVersion, block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            if (data == NoCollisionBox.INSTANCE) return null;
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             data.downCast(boxes);
 
@@ -882,10 +884,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 double[] hitLoc = intercept.getFirst();
 
-                // If inside a block, return empty result for reach check
-                if (ReachUtilsPrimitives.isVecInside(box, eyePos)) {
-                    return null;
-                }
+                // We should no longer need this since we no longer expand/shrink the hitbox, may need more testing
+//                if (ReachUtilsPrimitives.isVecInside(box, eyePos)) {
+//                    return null;
+//                }
 
                 double distSq = distanceSquared(hitLoc, eyePos);
                 if (distSq < bestHitResult) {
