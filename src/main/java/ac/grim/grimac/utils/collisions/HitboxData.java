@@ -357,7 +357,8 @@ public enum HitboxData {
 
     CACTUS((player, item, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
-            return new SimpleCollisionBox(0.0625D, 0, 0.0625D, 0.9375D, 1, 0.9375D, false);
+            // https://bugs.mojang.com/browse/MC-59610
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
     }, StateTypes.CACTUS),
