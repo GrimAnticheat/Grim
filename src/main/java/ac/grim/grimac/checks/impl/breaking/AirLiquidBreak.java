@@ -11,9 +11,9 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-@CheckData(name = "LiquidAirBreak", experimental = true)
-public class LiquidAirBreak extends Check implements BlockBreakCheck {
-    public LiquidAirBreak(GrimPlayer player) {
+@CheckData(name = "AirLiquidBreak", experimental = true)
+public class AirLiquidBreak extends Check implements BlockBreakCheck {
+    public AirLiquidBreak(GrimPlayer player) {
         super(player);
     }
 
