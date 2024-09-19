@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -14,8 +15,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static ac.grim.grimac.utils.anticheat.MessageUtil.toUnlabledString;
 
 @CheckData(name = "MultiPlace", experimental = true)
 public class MultiPlace extends BlockPlaceCheck {
@@ -38,8 +37,8 @@ public class MultiPlace extends BlockPlaceCheck {
 
         if (hasPlaced && (face != lastFace || !cursor.equals(lastCursor) || !pos.equals(lastPos))) {
             final String verbose = "face=" + face + ", lastFace=" + lastFace
-                    + ", cursor=" + toUnlabledString(cursor) + ", lastCursor=" + toUnlabledString(lastCursor)
-                    + ", pos=" + toUnlabledString(pos) + ", lastPos=" + toUnlabledString(lastPos);
+                    + ", cursor=" + MessageUtil.toUnlabledString(cursor) + ", lastCursor=" + MessageUtil.toUnlabledString(lastCursor)
+                    + ", pos=" + MessageUtil.toUnlabledString(pos) + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
                 if (flagAndAlert(verbose) && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
