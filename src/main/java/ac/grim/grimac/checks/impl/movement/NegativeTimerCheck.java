@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-@CheckData(name = "NegativeTimer", configName = "NegativeTimer", setback = 10, experimental = true)
+@CheckData(name = "NegativeTimer", configName = "NegativeTimer", setback = -1, experimental = true)
 public class NegativeTimerCheck extends TimerCheck implements PostPredictionCheck {
 
     public NegativeTimerCheck(GrimPlayer player) {
@@ -23,7 +23,7 @@ public class NegativeTimerCheck extends TimerCheck implements PostPredictionChec
 
         if (timerBalanceRealTime < lastMovementPlayerClock - clockDrift) {
             int lostMS = (int) ((System.nanoTime() - timerBalanceRealTime) / 1e6);
-            flagAndAlert("-" + lostMS);
+            if (flagAndAlert("-" + lostMS)) setbackIfAboveSetbackVL();
             timerBalanceRealTime += 50e6;
         }
     }
