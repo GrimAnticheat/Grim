@@ -79,6 +79,7 @@ Punishments:
   Combat:
     remove-violations-after: 300
     checks:
+      - "Interact"
       - "Killaura"
       - "Aim"
     commands:
