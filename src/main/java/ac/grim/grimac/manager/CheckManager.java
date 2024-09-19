@@ -153,6 +153,7 @@ public class CheckManager {
                 .put(LiquidAirBreak.class, new LiquidAirBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
+                .put(MultiBreak.class, new MultiBreak(player))
                 .put(FarBreak.class, new FarBreak(player))
                 .put(NoSwingBreak.class, new NoSwingBreak(player))
                 .put(FastBreak.class, new FastBreak(player))
@@ -262,6 +263,9 @@ public class CheckManager {
             check.onPredictionComplete(complete);
         }
         for (BlockPlaceCheck check : blockPlaceCheck.values()) {
+            check.onPredictionComplete(complete);
+        }
+        for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onPredictionComplete(complete);
         }
     }
