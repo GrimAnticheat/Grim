@@ -88,15 +88,6 @@ public enum HitboxData {
     PANE(new DynamicHitboxPane(), Materials.getPanes().toArray(new StateType[0])),
 
     LEVER(((player, item, version, data, x, y, z) -> {
-        SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
-        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
-        SimpleCollisionBox WEST_WALL_SHAPE = new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
-        SimpleCollisionBox EAST_WALL_SHAPE = new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
-        SimpleCollisionBox FLOOR_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
-        SimpleCollisionBox FLOOR_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
-        SimpleCollisionBox CEILING_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
-        SimpleCollisionBox CEILING_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
-
         Face face = data.getFace();
         BlockFace facing = data.getFacing();
         if (version.isOlderThan(ClientVersion.V_1_13)) {
@@ -125,30 +116,30 @@ public enum HitboxData {
             case FLOOR:
                 // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return FLOOR_X_AXIS_SHAPE;
+                    return new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
                 }
                 // Z-AXIS
-                return FLOOR_Z_AXIS_SHAPE;
+                return new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
             case WALL:
                 switch (facing) {
                     case EAST:
-                        return EAST_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
                     case WEST:
-                        return WEST_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
                     case SOUTH:
-                        return SOUTH_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
                     case NORTH:
                     default:
-                        return NORTH_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
                 }
             case CEILING:
             default:
                 // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return CEILING_X_AXIS_SHAPE;
+                    return new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
                 }
                 // Z-Axis
-                return CEILING_Z_AXIS_SHAPE;
+                return new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
         }
     }), StateTypes.LEVER),
 
