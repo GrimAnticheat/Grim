@@ -17,7 +17,6 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
@@ -29,9 +28,9 @@ import org.bukkit.entity.Player;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "OldFastBreak")
-public class OldFastBreak extends Check implements PacketCheck {
-    public OldFastBreak(GrimPlayer playerData) {
+@CheckData(name = "FastBreakA")
+public class FastBreakA extends Check implements PacketCheck {
+    public FastBreakA(GrimPlayer playerData) {
         super(playerData);
     }
 
@@ -51,7 +50,7 @@ public class OldFastBreak extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()) {
             return;
         }
 

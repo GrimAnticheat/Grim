@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -28,9 +27,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "FastBreak")
-public class FastBreak extends Check implements BlockBreakCheck {
-    public FastBreak(GrimPlayer playerData) {
+@CheckData(name = "FastBreakB", experimental = true)
+public class FastBreakB extends Check implements BlockBreakCheck {
+    public FastBreakB(GrimPlayer playerData) {
         super(playerData);
     }
 

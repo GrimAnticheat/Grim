@@ -13,7 +13,7 @@ import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
-import ac.grim.grimac.checks.impl.misc.OldFastBreak;
+import ac.grim.grimac.checks.impl.misc.FastBreakA;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.movement.*;
@@ -93,7 +93,7 @@ public class CheckManager {
                 .put(BadPacketsV.class, new BadPacketsV(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
-                .put(OldFastBreak.class, new OldFastBreak(player))
+                .put(FastBreakA.class, new FastBreakA(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
@@ -156,7 +156,7 @@ public class CheckManager {
                 .put(MultiBreak.class, new MultiBreak(player))
                 .put(FarBreak.class, new FarBreak(player))
                 .put(NoSwingBreak.class, new NoSwingBreak(player))
-                .put(FastBreak.class, new FastBreak(player))
+                .put(FastBreakB.class, new FastBreakB(player))
                 .build();
 
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
