@@ -69,20 +69,7 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
     }
 
     private CollisionBox getLegacyCollisionBox(boolean north, boolean east, boolean south, boolean west) {
-        int i = 0;
-        if (south) {
-            i |= 0b1;
-        }
-        if (west) {
-            i |= 0b10;
-        }
-        if (north) {
-            i |= 0b100;
-        }
-        if (east) {
-            i |= 0b1000;
-        }
-        return LEGACY_HITBOXES[i].copy();
+        return LEGACY_HITBOXES[getAABBIndex(north, east, south, west)].copy();
     }
 
     private CollisionBox getModernCollisionBox(boolean north, boolean east, boolean south, boolean west) {
