@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "NoSwingBreak")
+@CheckData(name = "NoSwingBreak", experimental = true)
 public class NoSwingBreak extends Check implements BlockBreakCheck {
     public NoSwingBreak(GrimPlayer playerData) {
         super(playerData);

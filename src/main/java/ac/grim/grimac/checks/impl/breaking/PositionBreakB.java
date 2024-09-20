@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "PositionBreakB")
+@CheckData(name = "PositionBreakB", experimental = true)
 public class PositionBreakB extends Check implements BlockBreakCheck {
     public PositionBreakB(GrimPlayer player) {
         super(player);

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak")
+@CheckData(name = "RotationBreak", experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
     public RotationBreak(GrimPlayer player) {
         super(player);

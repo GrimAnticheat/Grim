@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import org.bukkit.util.Vector;
 
-@CheckData(name = "FarBreak")
+@CheckData(name = "FarBreak", experimental = true)
 public class FarBreak extends Check implements BlockBreakCheck {
     public FarBreak(GrimPlayer player) {
         super(player);
