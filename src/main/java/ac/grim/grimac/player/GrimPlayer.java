@@ -561,7 +561,7 @@ public class GrimPlayer implements GrimUser {
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return new double[]{0.4, 1.54, 1.62};
         } else { // Only sneaking or standing
-            return new double[]{1.62 - 0.08, 1.62};
+            return new double[]{(double) (1.62f - 0.08f), (double) (1.62f)};
         }
     }
 
