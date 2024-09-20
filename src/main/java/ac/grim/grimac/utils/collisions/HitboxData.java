@@ -83,17 +83,7 @@ public enum HitboxData {
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
 
-    FENCE((player, item, version, data, x, y, z) -> {
-        CollisionBox collisionBox = new DynamicHitboxFence().fetch(player, item, version, data, x, y, z);
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
-        collisionBox.downCast(boxes);
-
-        for (SimpleCollisionBox box : boxes) {
-            box.maxY = 1;
-        }
-
-        return new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
-    }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
+    FENCE(new DynamicHitboxFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
     PANE(new DynamicHitboxPane(), Materials.getPanes().toArray(new StateType[0])),
 

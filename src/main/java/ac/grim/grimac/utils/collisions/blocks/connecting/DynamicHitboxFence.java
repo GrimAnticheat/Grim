@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.collisions.blocks.connecting;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
-import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -12,17 +12,33 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
+import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFactory {
-    private static final CollisionBox[] COLLISION_BOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F, true);
+import java.util.ArrayList;
+import java.util.List;
 
-    public static SimpleCollisionBox[] LEGACY_BOUNDING_BOXES = new SimpleCollisionBox[] {new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D)};
+public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFactory {
+    private static final CollisionBox[] MODERN_HITBOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F, true);
+
+    public static SimpleCollisionBox[] LEGACY_HITBOXES = new SimpleCollisionBox[] {new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 0.625D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 0.625D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.375D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.375D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.625D), new SimpleCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D)};
+
+    static {
+        for (int i = 0; i < MODERN_HITBOXES.length; i++) {
+            CollisionBox collisionBox = MODERN_HITBOXES[i];
+            List<SimpleCollisionBox> boxes = new ArrayList<>();
+            collisionBox.downCast(boxes);
+
+            for (SimpleCollisionBox box : boxes) {
+                if (box.maxY > 1) {
+                    box.maxY = 1;
+                }
+            }
+
+            MODERN_HITBOXES[i] = new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
+        }
+    }
 
     @Override
     public CollisionBox fetch(GrimPlayer player, StateType heldItem, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
@@ -45,7 +61,7 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
             west = connectsTo(player, version, x, y, z, BlockFace.WEST);
         }
 
-        return version.isNewerThanOrEquals(ClientVersion.V_1_9)
+        return version.isNewerThanOrEquals(ClientVersion.V_1_12_2)
                 ? getModernCollisionBox(north, east, south, west)
                 : getLegacyCollisionBox(north, east, south, west);
 
@@ -66,11 +82,11 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
         if (east) {
             i |= 0b1000;
         }
-        return LEGACY_BOUNDING_BOXES[i].copy();
+        return LEGACY_HITBOXES[i].copy();
     }
 
     private CollisionBox getModernCollisionBox(boolean north, boolean east, boolean south, boolean west) {
-        return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
+        return MODERN_HITBOXES[getAABBIndex(north, east, south, west)].copy();
     }
 
     @Override
