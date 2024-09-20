@@ -140,7 +140,7 @@ EntityControl:
 
 PacketOrderL:
   # enable if players are getting flagged for using 1.7 animations mods
-  exemptBreaking: false
+  exempt-breaking: false
 
 Reach:
   # Met hoeveel moeten we hitboxes uitbreiden? 0.0005 moet 3.0005+ bereik detecteren

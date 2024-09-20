@@ -91,6 +91,6 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
     @Override
     public void reload() {
         super.reload();
-        exemptBreaking = getConfig().getBooleanElse(getConfigName() + ".exemptBreaking", false);
+        exemptBreaking = getConfig().getBooleanElse(getConfigName() + ".exempt-breaking", false);
     }
 }

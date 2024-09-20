@@ -130,7 +130,7 @@ EntityControl:
 
 PacketOrderL:
   # enable if players are getting flagged for using 1.7 animations mods
-  exemptBreaking: false
+  exempt-breaking: false
 
 Reach:
   # Limite per rilevare un attacco oltre la distanza massima

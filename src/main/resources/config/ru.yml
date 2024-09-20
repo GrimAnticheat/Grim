@@ -141,7 +141,7 @@ EntityControl:
 
 PacketOrderL:
   # enable if players are getting flagged for using 1.7 animations mods
-  exemptBreaking: false
+  exempt-breaking: false
 
 Reach:
   # На сколько мы должны расширить хитбоксы? 0.0005 должно определять 3.0005+ дополнительное достижение
