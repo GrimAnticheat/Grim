@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionFence;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -84,28 +84,9 @@ public enum HitboxData {
 
 
     FENCE((player, item, version, data, x, y, z) -> {
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
-            int i = 0;
-            if (data.getSouth() == South.TRUE) {
-                i |= 0b1;
-            }
-            if (data.getWest() == West.TRUE) {
-                i |= 0b10;
-            }
-            if (data.getNorth() == North.TRUE) {
-                i |= 0b100;
-            }
-            if (data.getEast() == East.TRUE) {
-                i |= 0b1000;
-            }
-
-            return DynamicFence.LEGACY_BOUNDING_BOXES[i].copy();
-        }
-
+        CollisionBox collisionBox = new DynamicHitboxFence().fetch(player, item, version, data, x, y, z);
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state).downCast(boxes);
+        collisionBox.downCast(boxes);
 
         for (SimpleCollisionBox box : boxes) {
             box.maxY = 1;
