@@ -61,7 +61,7 @@ public class FastBreakB extends Check implements BlockBreakCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (targetBlock == null) {
+        if (targetBlock == null || progress > 1) {
             return;
         }
 
