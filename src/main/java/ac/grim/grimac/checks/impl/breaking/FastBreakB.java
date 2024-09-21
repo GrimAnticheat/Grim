@@ -53,15 +53,11 @@ public class FastBreakB extends Check implements BlockBreakCheck {
                 player.onPacketCancel();
             }
         }
-
-        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING && player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) {
-            progress = 0;
-        }
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (targetBlock == null || progress > 1) {
+        if (targetBlock == null || progress >= 1) {
             return;
         }
 
