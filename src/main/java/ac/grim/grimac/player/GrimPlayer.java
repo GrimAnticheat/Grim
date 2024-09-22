@@ -199,6 +199,8 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
+    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra and only exists in 1.9+
+    public double[][] possibleEyeHeights = new double[3][];
 
     public void onPacketCancel() {
         if (spamThreshold != -1 && cancelledPackets.incrementAndGet() > spamThreshold) {
@@ -240,6 +242,24 @@ public class GrimPlayer implements GrimUser {
         packetStateData = new PacketStateData();
 
         uncertaintyHandler.collidingEntities.add(0);
+
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+            // Todo figure out how to deal with scale changing
+        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
+            if (this.isGliding || this.isSwimming) {
+                possibleEyeHeights[2] = new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.14)
+            } else if (this.isSneaking) {
+                possibleEyeHeights[1] = new double[]{1.54, 1.62, 0.4}; // sneaking (1.14), standing, Elytra
+            } else {
+                possibleEyeHeights[0] = new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.14), Elytra
+            }
+        } else { // Only standing or sneaking
+            if (this.isSneaking) {
+                possibleEyeHeights[1] = new double[]{(double) (1.62f - 0.08f), (double) (1.62f)};
+            } else {
+                possibleEyeHeights[0] = new double[]{(double) (1.62f), (double) (1.62f - 0.08f)};
+            }
+        }
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -564,20 +584,15 @@ public class GrimPlayer implements GrimUser {
             } else {
                 return new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytra
             }
-        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
+        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             if (this.isGliding || this.isSwimming) {
-                return new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.14)
-            } else if (this.isSneaking) {
-                return new double[]{1.54, 1.62, 0.4}; // sneaking (1.14), standing, Elytra
-            } else {
-                return new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.14), Elytra
+                return possibleEyeHeights[2]; // Elytra
             }
-        } else { // Only standing or sneaking
-            if (this.isSneaking) {
-                return new double[]{(double) (1.62f - 0.08f), (double) (1.62f)};
-            } else {
-                return new double[]{(double) (1.62f), (double) (1.62f - 0.08f)};
-            }
+        }
+        if (this.isSneaking) {
+            return possibleEyeHeights[1];
+        } else {
+            return possibleEyeHeights[0];
         }
     }
 
