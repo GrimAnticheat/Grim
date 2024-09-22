@@ -75,9 +75,15 @@ public class RotationPlace extends BlockPlaceCheck {
                 new Vector3f(player.xRot, player.yRot, 0)
         ));
 
+        double[] possibleEyeHeights = player.getPossibleEyeHeights();
+
         // Start checking if player is in the block
-        double minEyeHeight = Collections.min(player.getPossibleEyeHeights());
-        double maxEyeHeight = Collections.max(player.getPossibleEyeHeights());
+        double minEyeHeight = Double.MAX_VALUE;
+        double maxEyeHeight = Double.MIN_VALUE;
+        for (double height : possibleEyeHeights) {
+            minEyeHeight = Math.min(minEyeHeight, height);
+            maxEyeHeight = Math.max(maxEyeHeight, height);
+        }
 
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
         eyePositions.expand(player.getMovementThreshold());
@@ -99,7 +105,7 @@ public class RotationPlace extends BlockPlaceCheck {
         }
 
         final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE);
-        for (double d : player.getPossibleEyeHeights()) {
+        for (double d : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 // x, y, z are correct for the block placement even after post tick because of code elsewhere
                 Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
