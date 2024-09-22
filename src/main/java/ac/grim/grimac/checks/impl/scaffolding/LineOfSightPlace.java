@@ -103,21 +103,20 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         }
         // End checking if the player is in the block
         double[][] possibleLookDirs;
-
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             possibleLookDirs = new double[][]{
-                    {player.lastXRot, player.yRot, 0},
                     {player.xRot, player.yRot, 0},
-                    {player.lastXRot, player.lastYRot, 0}
+                    {player.lastXRot, player.lastYRot, 0},
+                    {player.lastXRot, player.yRot, 0}
             };
         } else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
             // 1.7 players do not have any of these issues! They are always on the latest look vector
             possibleLookDirs = new double[][]{{player.xRot, player.yRot, 0}};
         } else {
             possibleLookDirs = new double[][]{
-                    {player.lastXRot, player.yRot, 0},
-                    {player.xRot, player.yRot, 0}
+                    {player.xRot, player.yRot, 0},
+                    {player.lastXRot, player.yRot, 0}
             };
         }
 

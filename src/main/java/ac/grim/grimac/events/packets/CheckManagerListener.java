@@ -884,11 +884,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 double[] hitLoc = intercept.getFirst();
 
-                // We should no longer need this since we no longer expand/shrink the hitbox, may need more testing
-//                if (ReachUtilsPrimitives.isVecInside(box, eyePos)) {
-//                    return null;
-//                }
-
                 double distSq = distanceSquared(hitLoc, eyePos);
                 if (distSq < bestHitResult) {
                     bestHitResult = distSq;

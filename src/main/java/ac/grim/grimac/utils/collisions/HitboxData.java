@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxWall;
