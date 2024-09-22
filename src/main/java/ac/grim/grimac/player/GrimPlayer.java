@@ -555,13 +555,29 @@ public class GrimPlayer implements GrimUser {
     }
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // standing, sneaking (1.14), Elytra
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
             final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
-            return new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale};
+            if (this.isGliding || this.isSwimming) {
+                return new double[]{0.4 * scale, 1.62 * scale, 1.27 * scale}; // Elytra, standing, sneaking (1.14)
+            } else if (this.isSneaking) {
+                return new double[]{1.27 * scale, 1.62 * scale, 0.4 * scale}; // sneaking (1.14), standing, Elytra
+            } else {
+                return new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytra
+            }
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
-            return new double[]{1.62, 1.54, 0.4};
+            if (this.isGliding || this.isSwimming) {
+                return new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.14)
+            } else if (this.isSneaking) {
+                return new double[]{1.54, 1.62, 0.4}; // sneaking (1.14), standing, Elytra
+            } else {
+                return new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.14), Elytra
+            }
         } else { // Only standing or sneaking
-            return new double[]{(double) (1.62f), (double) (1.62f - 0.08f)};
+            if (this.isSneaking) {
+                return new double[]{(double) (1.62f - 0.08f), (double) (1.62f)};
+            } else {
+                return new double[]{(double) (1.62f), (double) (1.62f - 0.08f)};
+            }
         }
     }
 
