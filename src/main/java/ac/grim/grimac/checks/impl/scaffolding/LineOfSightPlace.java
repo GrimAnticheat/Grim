@@ -172,8 +172,8 @@ public class LineOfSightPlace extends BlockPlaceCheck {
 
     private boolean getTargetBlock(double[] eyePosition, double[] eyeDirection, double maxDistance, int[] targetBlockVec, BlockFace expectedBlockFace) {
         Pair<int[], BlockFace> hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
-        return hitData != null  // Player is inside the block, from expanded hitbox, or there was no result, do we still need this?
-                && ArraysSupport.mismatch(targetBlockVec, hitData.getFirst(), targetBlockVec.length) == -1;
+        // we check for hitdata != null because of being in expanded hitbox, or there was no result, do we still need this?
+        return hitData != null && Arrays.equals(targetBlockVec, hitData.getFirst()) && hitData.getSecond() == expectedBlockFace;
     }
 
     private boolean isBlockTypeWhitelisted(StateType type) {
