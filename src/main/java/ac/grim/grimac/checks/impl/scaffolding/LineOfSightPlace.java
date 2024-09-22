@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -14,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
+import jdk.internal.util.ArraysSupport;
 
 import java.util.*;
 
@@ -93,12 +95,12 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
         eyePositions.expand(movementThreshold);
 
-        Vector3i interactBlockVec = place.getPlacedAgainstBlockLocation();
+        int[] interactBlockVec = new int[]{place.blockPosition.x, place.blockPosition.y, place.blockPosition.z};
         BlockFace expectedBlockFace = place.getDirection();
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         // This may potentially be exploitable as a minor bypass
-        if (eyePositions.isIntersected(new SimpleCollisionBox(interactBlockVec))) {
+        if (eyePositions.isIntersected(new SimpleCollisionBox(interactBlockVec[0], interactBlockVec[1], interactBlockVec[2]))) {
             return true;
         }
         // End checking if the player is in the block
@@ -106,17 +108,17 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             possibleLookDirs = new double[][]{
-                    {player.xRot, player.yRot, 0},
-                    {player.lastXRot, player.lastYRot, 0},
-                    {player.lastXRot, player.yRot, 0}
+                    {player.xRot, player.yRot},
+                    {player.lastXRot, player.lastYRot},
+                    {player.lastXRot, player.yRot}
             };
         } else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
             // 1.7 players do not have any of these issues! They are always on the latest look vector
-            possibleLookDirs = new double[][]{{player.xRot, player.yRot, 0}};
+            possibleLookDirs = new double[][]{{player.xRot, player.yRot}};
         } else {
             possibleLookDirs = new double[][]{
-                    {player.xRot, player.yRot, 0},
-                    {player.lastXRot, player.yRot, 0}
+                    {player.xRot, player.yRot},
+                    {player.lastXRot, player.yRot}
             };
         }
 
@@ -168,10 +170,10 @@ public class LineOfSightPlace extends BlockPlaceCheck {
         result[2] = xz * player.trigHandler.cos(rotX);
     }
 
-    private boolean getTargetBlock(double[] eyePosition, double[] eyeDirection, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
-        HitData hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
+    private boolean getTargetBlock(double[] eyePosition, double[] eyeDirection, double maxDistance, int[] targetBlockVec, BlockFace expectedBlockFace) {
+        Pair<int[], BlockFace> hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
         return hitData != null  // Player is inside the block, from expanded hitbox, or there was no result, do we still need this?
-                && targetBlockVec.equals(hitData.getPosition());
+                && ArraysSupport.mismatch(targetBlockVec, hitData.getFirst(), targetBlockVec.length) == -1;
     }
 
     private boolean isBlockTypeWhitelisted(StateType type) {

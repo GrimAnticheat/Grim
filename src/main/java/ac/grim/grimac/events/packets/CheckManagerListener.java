@@ -49,9 +49,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import jdk.internal.util.ArraysSupport;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -59,6 +61,78 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
+    }
+
+    // Copied from MCP...
+    // Returns null if there isn't anything.
+    //
+    // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
+    // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
+    public static Pair<int[], BlockFace> traverseBlocksLOSP(GrimPlayer player, double[] start, double[] end, BiFunction<WrappedBlockState, int[], Pair<int[], BlockFace>> predicate) {
+        // I guess go back by the collision epsilon?
+        double endX = GrimMath.lerp(-1.0E-7D, end[0], start[0]);
+        double endY = GrimMath.lerp(-1.0E-7D, end[1], start[1]);
+        double endZ = GrimMath.lerp(-1.0E-7D, end[2], start[2]);
+        double startX = GrimMath.lerp(-1.0E-7D, start[0], end[0]);
+        double startY = GrimMath.lerp(-1.0E-7D, start[1], end[1]);
+        double startZ = GrimMath.lerp(-1.0E-7D, start[2], end[2]);
+
+        int[] floorStart = new int[]{GrimMath.floor(startX), GrimMath.floor(startY), GrimMath.floor(startZ)};
+
+        if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2]) return null;
+
+        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(floorStart[0], floorStart[1], floorStart[2]);
+        Pair<int[], BlockFace> apply = predicate.apply(state, floorStart);
+
+        if (apply != null) {
+            return apply;
+        }
+
+        double xDiff = endX - startX;
+        double yDiff = endY - startY;
+        double zDiff = endZ - startZ;
+        double xSign = Math.signum(xDiff);
+        double ySign = Math.signum(yDiff);
+        double zSign = Math.signum(zDiff);
+
+        double posXInverse = xSign == 0 ? Double.MAX_VALUE : xSign / xDiff;
+        double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;
+        double posZInverse = zSign == 0 ? Double.MAX_VALUE : zSign / zDiff;
+
+        double tMaxX = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
+        double tMaxY = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
+        double tMaxZ = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
+
+        // tMax represents the maximum distance along each axis before crossing a block boundary
+        // The loop continues as long as the ray hasn't reached its end point along at least one axis.
+        // In each iteration, it moves to the next block boundary along the axis with the smallest tMax value,
+        // updates the corresponding coordinate, and checks for a hit in the new block, Google "3D DDA" for more info
+        while (tMaxX <= 1.0D || tMaxY <= 1.0D || tMaxZ <= 1.0D) {
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
+                    floorStart[0] += xSign;
+                    tMaxX += posXInverse;
+                } else {
+                    floorStart[2] += zSign;
+                    tMaxZ += posZInverse;
+                }
+            } else if (tMaxY < tMaxZ) {
+                floorStart[1] += ySign;
+                tMaxY += posYInverse;
+            } else {
+                floorStart[2] += zSign;
+                tMaxZ += posZInverse;
+            }
+
+            state = player.compensatedWorld.getWrappedBlockStateAt(floorStart[0], floorStart[1], floorStart[2]);
+            apply = predicate.apply(state, floorStart);
+
+            if (apply != null) {
+                return apply;
+            }
+        }
+
+        return null;
     }
 
     public static HitData traverseBlocks(GrimPlayer player, double[] start, double[] end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
@@ -129,75 +203,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         return null;
     }
 
-    // Copied from MCP...
-    // Returns null if there isn't anything.
-    //
-    // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
-    // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
     public static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
-        // I guess go back by the collision epsilon?
-        double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
-        double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
-        double endZ = GrimMath.lerp(-1.0E-7D, end.z, start.z);
-        double startX = GrimMath.lerp(-1.0E-7D, start.x, end.x);
-        double startY = GrimMath.lerp(-1.0E-7D, start.y, end.y);
-        double startZ = GrimMath.lerp(-1.0E-7D, start.z, end.z);
-        int floorStartX = GrimMath.floor(startX);
-        int floorStartY = GrimMath.floor(startY);
-        int floorStartZ = GrimMath.floor(startZ);
-
-
-        if (start.equals(end)) return null;
-
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
-        HitData apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
-
-        if (apply != null) {
-            return apply;
-        }
-
-        double xDiff = endX - startX;
-        double yDiff = endY - startY;
-        double zDiff = endZ - startZ;
-        double xSign = Math.signum(xDiff);
-        double ySign = Math.signum(yDiff);
-        double zSign = Math.signum(zDiff);
-
-        double posXInverse = xSign == 0 ? Double.MAX_VALUE : xSign / xDiff;
-        double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;
-        double posZInverse = zSign == 0 ? Double.MAX_VALUE : zSign / zDiff;
-
-        double d12 = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
-        double d13 = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
-        double d14 = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
-
-        // Can't figure out what this code does currently
-        while (d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
-            if (d12 < d13) {
-                if (d12 < d14) {
-                    floorStartX += xSign;
-                    d12 += posXInverse;
-                } else {
-                    floorStartZ += zSign;
-                    d14 += posZInverse;
-                }
-            } else if (d13 < d14) {
-                floorStartY += ySign;
-                d13 += posYInverse;
-            } else {
-                floorStartZ += zSign;
-                d14 += posZInverse;
-            }
-
-            state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
-            apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
-
-            if (apply != null) {
-                return apply;
-            }
-        }
-
-        return null;
+        return traverseBlocks(player, new double[]{start.x, start.y, start.z}, new double[]{end.x, end.y, end.z}, predicate);
     }
 
     private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
@@ -848,16 +855,22 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static HitData getNearestReachHitResult(GrimPlayer player, double[] eyePos, double[] lookVec, double currentDistance, double maxDistance, Vector3i targetBlockVec, BlockFace expectedBlockFace) {
+    public static Pair<int[], BlockFace> getNearestReachHitResult(GrimPlayer player, double[] eyePos, double[] lookVec, double currentDistance, double maxDistance, int[] targetBlockVec, BlockFace expectedBlockFace) {
         double[] endPos = new double[]{
                 eyePos[0] + lookVec[0] * maxDistance,
                 eyePos[1] + lookVec[1] * maxDistance,
                 eyePos[2] + lookVec[2] * maxDistance
         };
 
-        return traverseBlocks(player, eyePos, endPos, (block, vector3i) -> {
+        double[] currentEnd = new double[]{
+                eyePos[0] + lookVec[0] * currentDistance,
+                eyePos[1] + lookVec[1] * currentDistance,
+                eyePos[2] + lookVec[2] * currentDistance
+        };
+
+        return traverseBlocksLOSP(player, eyePos, endPos, (block, vector3i) -> {
             ClientVersion clientVersion = player.getClientVersion();
-            CollisionBox data = HitboxData.getBlockHitbox(player, null, clientVersion, block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            CollisionBox data = HitboxData.getBlockHitbox(player, null, clientVersion, block, vector3i[0], vector3i[1], vector3i[2]);
             if (data == NoCollisionBox.INSTANCE) return null;
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             data.downCast(boxes);
@@ -868,15 +881,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // BEWARE OF https://bugs.mojang.com/browse/MC-85109 FOR 1.8 PLAYERS
             // 1.8 Brewing Stand hitbox is a fullblock until it is hit sometimes, can be caused be restarting client and joining server
-            if (vector3i.equals(targetBlockVec) && clientVersion.equals(ClientVersion.V_1_8) && block.getType() == StateTypes.BREWING_STAND) {
+            if (block.getType() == StateTypes.BREWING_STAND && clientVersion.equals(ClientVersion.V_1_8) && ArraysSupport.mismatch(vector3i, targetBlockVec, 3) == -1) {
                 boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true));
             }
 
-            double[] currentEnd = new double[]{
-                    eyePos[0] + lookVec[0] * currentDistance,
-                    eyePos[1] + lookVec[1] * currentDistance,
-                    eyePos[2] + lookVec[2] * currentDistance
-            };
+            currentEnd[0] = eyePos[0] + lookVec[0] * currentDistance;
+            currentEnd[1] = eyePos[1] + lookVec[1] * currentDistance;
+            currentEnd[2] = eyePos[2] + lookVec[2] * currentDistance;
 
             for (SimpleCollisionBox box : boxes) {
                 Pair<double[], BlockFace> intercept = ReachUtilsPrimitives.calculateIntercept(box, eyePos, currentEnd);
@@ -893,7 +904,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (bestHitLoc != null) {
-                return new HitData(vector3i, new Vector(bestHitLoc[0], bestHitLoc[1], bestHitLoc[2]), bestFace, block);
+                return new Pair<>(vector3i, bestFace);
             }
 
             return null;

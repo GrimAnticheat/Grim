@@ -46,7 +46,7 @@ public class BlockPlace {
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
     static final BlockFace[] BY_3D = new BlockFace[]{BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
     @Setter
-    Vector3i blockPosition;
+    public Vector3i blockPosition;
     @Getter
     InteractionHand hand;
     @Getter
