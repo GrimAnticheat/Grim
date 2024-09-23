@@ -99,8 +99,8 @@ public class PacketEntity extends TypedPacketEntity {
     }
 
     public void setAttribute(Attribute attribute, double value) {
-        ValuedAttribute property = getAttribute(attribute).orElse(null);
-        if (property == null) throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+        ValuedAttribute property = getAttribute(attribute)
+                .orElseThrow(() -> new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!"));
         property.override(value);
     }
 
