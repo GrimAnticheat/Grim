@@ -18,64 +18,42 @@ public class BlockFaceHelper {
      */
     @Deprecated
     public static BlockFace fromBukkitFace(org.bukkit.block.BlockFace face) {
-        switch (face) {
-            case NORTH:
-                return BlockFace.NORTH;
-            case SOUTH:
-                return BlockFace.SOUTH;
-            case WEST:
-                return BlockFace.WEST;
-            case EAST:
-                return BlockFace.EAST;
-            case UP:
-                return BlockFace.UP;
-            case DOWN:
-                return BlockFace.DOWN;
-            default:
-                return BlockFace.OTHER;
-        }
+        return switch (face) {
+            case NORTH -> BlockFace.NORTH;
+            case SOUTH -> BlockFace.SOUTH;
+            case WEST -> BlockFace.WEST;
+            case EAST -> BlockFace.EAST;
+            case UP -> BlockFace.UP;
+            case DOWN -> BlockFace.DOWN;
+            default -> BlockFace.OTHER;
+        };
     }
 
     public static BlockFace getClockWise(BlockFace face) {
-        switch (face) {
-            case NORTH:
-                return BlockFace.EAST;
-            case SOUTH:
-                return BlockFace.WEST;
-            case WEST:
-                return BlockFace.NORTH;
-            case EAST:
-            default:
-                return BlockFace.SOUTH;
-        }
+        return switch (face) {
+            case NORTH -> BlockFace.EAST;
+            case SOUTH -> BlockFace.WEST;
+            case WEST -> BlockFace.NORTH;
+            default -> BlockFace.SOUTH;
+        };
     }
 
     public static BlockFace getPEClockWise(BlockFace face) {
-        switch (face) {
-            case NORTH:
-                return BlockFace.EAST;
-            case SOUTH:
-                return BlockFace.WEST;
-            case WEST:
-                return BlockFace.NORTH;
-            case EAST:
-            default:
-                return BlockFace.SOUTH;
-        }
+        return switch (face) {
+            case NORTH -> BlockFace.EAST;
+            case SOUTH -> BlockFace.WEST;
+            case WEST -> BlockFace.NORTH;
+            default -> BlockFace.SOUTH;
+        };
     }
 
     public static BlockFace getCounterClockwise(BlockFace face) {
-        switch (face) {
-            case NORTH:
-                return BlockFace.WEST;
-            case SOUTH:
-                return BlockFace.EAST;
-            case WEST:
-                return BlockFace.SOUTH;
-            case EAST:
-            default:
-                return BlockFace.NORTH;
-        }
+        return switch (face) {
+            case NORTH -> BlockFace.WEST;
+            case SOUTH -> BlockFace.EAST;
+            case WEST -> BlockFace.SOUTH;
+            default -> BlockFace.NORTH;
+        };
     }
 
     public Vector offset(Vector toOffset, BlockFace face) {

@@ -44,27 +44,21 @@ public class PositionPlace extends BlockPlaceCheck {
 
         // So now we have the player's possible eye positions
         // So then look at the face that the player has clicked
-        boolean flag = false;
-        switch (place.getDirection()) {
-            case NORTH: // Z- face
-                flag = eyePositions.minZ > combined.minZ;
-                break;
-            case SOUTH: // Z+ face
-                flag = eyePositions.maxZ < combined.maxZ;
-                break;
-            case EAST: // X+ face
-                flag = eyePositions.maxX < combined.maxX;
-                break;
-            case WEST: // X- face
-                flag = eyePositions.minX > combined.minX;
-                break;
-            case UP: // Y+ face
-                flag = eyePositions.maxY < combined.maxY;
-                break;
-            case DOWN: // Y- face
-                flag = eyePositions.minY > combined.minY;
-                break;
-        }
+        boolean flag = switch (place.getDirection()) {
+            case NORTH -> // Z- face
+                    eyePositions.minZ > combined.minZ;
+            case SOUTH -> // Z+ face
+                    eyePositions.maxZ < combined.maxZ;
+            case EAST -> // X+ face
+                    eyePositions.maxX < combined.maxX;
+            case WEST -> // X- face
+                    eyePositions.minX > combined.minX;
+            case UP -> // Y+ face
+                    eyePositions.maxY < combined.maxY;
+            case DOWN -> // Y- face
+                    eyePositions.minY > combined.minY;
+            default -> false;
+        };
 
         if (flag) {
             if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {

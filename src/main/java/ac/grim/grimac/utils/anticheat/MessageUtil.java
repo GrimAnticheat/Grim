@@ -35,7 +35,7 @@ public class MessageUtil {
     private String translateHexCodes(String message) {
         final String hexPattern = "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})";
         Matcher matcher = Pattern.compile(hexPattern).matcher(message);
-        StringBuffer sb = new StringBuffer(message.length());
+        StringBuilder sb = new StringBuilder(message.length());
         while (matcher.find()) {
             String hex = matcher.group(1);
             ChatColor color = ChatColor.of("#" + hex);

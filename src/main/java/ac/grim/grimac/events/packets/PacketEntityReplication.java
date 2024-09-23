@@ -228,9 +228,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             if (status.getStatus() == 31) {
                 PacketEntity hook = player.compensatedEntities.getEntity(status.getEntityId());
-                if (!(hook instanceof PacketEntityHook)) return;
+                if (!(hook instanceof PacketEntityHook hookEntity)) return;
 
-                PacketEntityHook hookEntity = (PacketEntityHook) hook;
                 if (hookEntity.attached == player.entityID) {
                     player.sendTransaction();
                     // We don't transaction sandwich this, it's too rare to be a real problem.
@@ -455,8 +454,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         player.latencyUtils.addRealTimeTask(lastTrans, () -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);
             if (entity == null) return;
-            if (entity instanceof PacketEntityTrackXRot && yaw != null) {
-                PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
+            if (entity instanceof PacketEntityTrackXRot xRotEntity && yaw != null) {
                 xRotEntity.packetYaw = yaw;
                 xRotEntity.steps = entity.isBoat() ? 10 : 3;
             }

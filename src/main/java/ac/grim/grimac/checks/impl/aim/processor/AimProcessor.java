@@ -59,15 +59,15 @@ public class AimProcessor extends Check implements RotationCheck {
 
         if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeX = this.xRotMode.getMode();
-            if (modeX.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.modeX = modeX.getFirst();
+            if (modeX.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modeX = modeX.first();
                 this.sensitivityX = convertToSensitivity(this.modeX);
             }
         }
         if (this.yRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeY = this.yRotMode.getMode();
-            if (modeY.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.modeY = modeY.getFirst();
+            if (modeY.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modeY = modeY.first();
                 this.sensitivityY = convertToSensitivity(this.modeY);
             }
         }

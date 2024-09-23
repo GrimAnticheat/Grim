@@ -21,7 +21,7 @@ public class MainSupportingBlockPosFinder {
         SimpleCollisionBox slightlyBelowPlayer = new SimpleCollisionBox(maxPose.minX, maxPose.minY - 1.0E-6D, maxPose.minZ, maxPose.maxX, maxPose.minY, maxPose.maxZ);
 
         Optional<Vector3i> supportingBlock = findSupportingBlock(player, slightlyBelowPlayer);
-        if (!supportingBlock.isPresent() && (!lastSupportingBlock.lastOnGroundAndNoBlock())) {
+        if (supportingBlock.isEmpty() && (!lastSupportingBlock.lastOnGroundAndNoBlock())) {
             if (lastMovement != null) {
                 SimpleCollisionBox aabb2 = slightlyBelowPlayer.offset(-lastMovement.x, 0.0D, -lastMovement.z);
                 supportingBlock = findSupportingBlock(player, aabb2);

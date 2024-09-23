@@ -13,18 +13,13 @@ public enum EquipmentType {
     HEAD;
 
     public static EquipmentType byArmorID(int id) {
-        switch (id) {
-            case 0:
-                return HEAD;
-            case 1:
-                return CHEST;
-            case 2:
-                return LEGS;
-            case 3:
-                return FEET;
-            default:
-                return MAINHAND;
-        }
+        return switch (id) {
+            case 0 -> HEAD;
+            case 1 -> CHEST;
+            case 2 -> LEGS;
+            case 3 -> FEET;
+            default -> MAINHAND;
+        };
     }
 
     public static EquipmentType getEquipmentSlotForItem(ItemStack p_147234_) {
@@ -64,21 +59,11 @@ public enum EquipmentType {
     }
 
     public int getIndex() {
-        switch (this) {
-            case MAINHAND:
-                return 0;
-            case OFFHAND:
-                return 1;
-            case FEET:
-                return 0;
-            case LEGS:
-                return 1;
-            case CHEST:
-                return 2;
-            case HEAD:
-                return 3;
-            default:
-                return -1;
-        }
+        return switch (this) {
+            case MAINHAND, FEET -> 0;
+            case OFFHAND, LEGS -> 1;
+            case CHEST -> 2;
+            case HEAD -> 3;
+        };
     }
 }

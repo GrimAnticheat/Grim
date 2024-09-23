@@ -136,7 +136,7 @@ public class BlockBreakSpeed {
         OptionalInt conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
         if (digSpeed.isPresent() || conduit.isPresent()) {
-            int hasteLevel = Math.max(!digSpeed.isPresent() ? 0 : digSpeed.getAsInt(), !conduit.isPresent() ? 0 : conduit.getAsInt());
+            int hasteLevel = Math.max(digSpeed.isEmpty() ? 0 : digSpeed.getAsInt(), !conduit.isPresent() ? 0 : conduit.getAsInt());
             speedMultiplier *= (float) (1 + (0.2 * (hasteLevel + 1)));
         }
 

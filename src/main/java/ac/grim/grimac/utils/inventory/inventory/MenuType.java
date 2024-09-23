@@ -58,38 +58,24 @@ public enum MenuType {
 
 
     public static AbstractContainerMenu getMenuFromID(GrimPlayer player, Inventory playerInventory, MenuType type) {
-        switch (type) {
-            case GENERIC_9x1:
-            case GENERIC_9x2:
-            case GENERIC_9x3:
-            case GENERIC_9x4:
-            case GENERIC_9x5:
-            case GENERIC_9x6:
-                return new BasicInventoryMenu(player, playerInventory, type.getId() + 1);
-            case GENERIC_3x3:
-                return new DispenserMenu(player, playerInventory);
-            case HOPPER:
-                return new HopperMenu(player, playerInventory);
-            default:
-                return new NotImplementedMenu(player, playerInventory);
-        }
+        return switch (type) {
+            case GENERIC_9x1, GENERIC_9x2, GENERIC_9x3, GENERIC_9x4, GENERIC_9x5, GENERIC_9x6 ->
+                    new BasicInventoryMenu(player, playerInventory, type.getId() + 1);
+            case GENERIC_3x3 -> new DispenserMenu(player, playerInventory);
+            case HOPPER -> new HopperMenu(player, playerInventory);
+            default -> new NotImplementedMenu(player, playerInventory);
+        };
     }
 
     public static AbstractContainerMenu getMenuFromString(GrimPlayer player, Inventory inventory, String legacyType, int slots, int horse) {
-        switch (legacyType) {
-            case "minecraft:chest":
-            case "minecraft:container":
-                return new BasicInventoryMenu(player, inventory, slots / 9);
-            case "minecraft:dispenser":
-            case "minecraft:dropper":
-                return new DispenserMenu(player, inventory);
-            case "minecraft:hopper":
-                return new HopperMenu(player, inventory);
-            case "minecraft:shulker_box":
-                return new BasicInventoryMenu(player, inventory, 3);
-            default: // Villager menu
-                return new NotImplementedMenu(player, inventory);
-        }
+        return switch (legacyType) {
+            case "minecraft:chest", "minecraft:container" -> new BasicInventoryMenu(player, inventory, slots / 9);
+            case "minecraft:dispenser", "minecraft:dropper" -> new DispenserMenu(player, inventory);
+            case "minecraft:hopper" -> new HopperMenu(player, inventory);
+            case "minecraft:shulker_box" -> new BasicInventoryMenu(player, inventory, 3);
+            default -> // Villager menu
+                    new NotImplementedMenu(player, inventory);
+        };
     }
 
 }

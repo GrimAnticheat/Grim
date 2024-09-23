@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
@@ -134,8 +133,8 @@ public class PredictionEngine {
 
             // Returns pair of primary push movement, and then outputvel
             Pair<Vector, Vector> output = doSeekingWallCollisions(player, primaryPushMovement, originalClientVel, clientVelAfterInput);
-            primaryPushMovement = output.getFirst();
-            Vector outputVel = clampMovementToHardBorder(player, output.getSecond());
+            primaryPushMovement = output.first();
+            Vector outputVel = clampMovementToHardBorder(player, output.second());
 
             double resultAccuracy = outputVel.distanceSquared(player.actualMovement);
 

@@ -22,7 +22,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -32,7 +31,6 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -260,8 +258,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // When in control of the entity, the player sets the entity position to their current position
             riding.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player, player.x, player.y, player.z, riding));
 
-            if (riding instanceof PacketEntityTrackXRot) {
-                PacketEntityTrackXRot boat = (PacketEntityTrackXRot) riding;
+            if (riding instanceof PacketEntityTrackXRot boat) {
                 boat.packetYaw = player.xRot;
                 boat.interpYaw = player.xRot;
                 boat.steps = 0;
@@ -341,7 +338,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         boolean clientClaimsRiptide = player.packetStateData.tryingToRiptide;
         if (player.packetStateData.tryingToRiptide) {
             long currentTime = System.currentTimeMillis();
-            boolean isInWater = player.compensatedWorld.isRaining || Collisions.hasMaterial(player, player.boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.getFirst()));
+            boolean isInWater = player.compensatedWorld.isRaining || Collisions.hasMaterial(player, player.boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
 
             if (currentTime - player.packetStateData.lastRiptide < 450 || !isInWater) {
                 player.packetStateData.tryingToRiptide = false;
@@ -352,7 +349,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
-            WrappedBlockState data = pair.getFirst();
+            WrappedBlockState data = pair.first();
             if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
@@ -398,8 +395,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
-                checkData -> BlockTags.ANVIL.contains(checkData.getFirst().getType())
-                        || checkData.getFirst().getType() == StateTypes.CHEST || checkData.getFirst().getType() == StateTypes.TRAPPED_CHEST);
+                checkData -> BlockTags.ANVIL.contains(checkData.first().getType())
+                        || checkData.first().getType() == StateTypes.CHEST || checkData.first().getType() == StateTypes.TRAPPED_CHEST);
 
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();

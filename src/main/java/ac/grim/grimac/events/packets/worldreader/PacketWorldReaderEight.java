@@ -15,7 +15,7 @@ import java.util.BitSet;
 public class PacketWorldReaderEight extends BasePacketWorldReader {
     @Override
     public void handleMapChunkBulk(final GrimPlayer player, final PacketSendEvent event) {
-        PacketWrapper wrapper = new PacketWrapper(event);
+        PacketWrapper<?> wrapper = new PacketWrapper<>(event);
         ByteBuf buffer = (ByteBuf) wrapper.getBuffer();
 
         boolean skylight = wrapper.readBoolean();
@@ -47,7 +47,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
 
     @Override
     public void handleMapChunk(final GrimPlayer player, final PacketSendEvent event) {
-        PacketWrapper wrapper = new PacketWrapper(event);
+        PacketWrapper<?> wrapper = new PacketWrapper<>(event);
 
         final int chunkX = wrapper.readInt();
         final int chunkZ = wrapper.readInt();

@@ -29,13 +29,12 @@ public class BlockProperties {
                 return (float) (player.speed * 0.1f);
             }
 
-            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
+            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider strider) {
                 // Unsure which version the speed changed in
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
                     return (float) player.speed * 0.1f;
                 }
 
-                PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
                 // Vanilla multiplies by 0.1 to calculate speed
                 return (float) strider.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }

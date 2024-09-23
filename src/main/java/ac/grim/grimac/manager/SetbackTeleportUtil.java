@@ -153,12 +153,12 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         VelocityData futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
-        if (futureKb.getFirst() != null) {
-            clientVel = futureKb.getSecond();
+        if (futureKb.first() != null) {
+            clientVel = futureKb.second();
         }
 
         // Explosion adds
-        if (futureExplosion != null && (futureKb.getFirst() == null || futureKb.getFirst().transaction < futureExplosion.transaction)) {
+        if (futureExplosion != null && (futureKb.first() == null || futureKb.first().transaction < futureExplosion.transaction)) {
             clientVel.add(futureExplosion.vector);
         }
 
@@ -328,16 +328,16 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
-            if (lastTransaction < teleportPos.getFirst()) {
+            if (lastTransaction < teleportPos.first()) {
                 break;
             }
 
-            Vector3d position = teleportPos.getSecond();
+            Vector3d position = teleportPos.second();
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.vehicleData.vehicleTeleports.poll();
 
                 return true;
-            } else if (lastTransaction > teleportPos.getFirst() + 1) {
+            } else if (lastTransaction > teleportPos.first() + 1) {
                 player.vehicleData.vehicleTeleports.poll();
 
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back

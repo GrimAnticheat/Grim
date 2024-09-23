@@ -303,8 +303,7 @@ public class UncertaintyHandler {
         // This is the end of that section.
 
         // I can't figure out how the client exactly tracks boost time
-        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
-            PacketEntityRideable vehicle = (PacketEntityRideable) player.compensatedEntities.getSelf().getRiding();
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable vehicle) {
             if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
                 offset -= 0.01;
         }
