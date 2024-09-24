@@ -80,7 +80,7 @@ public class ConfigManager {
         }
 
         final int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
-        maxPingTransaction = (int) GrimMath.clamp(configuredMaxTransactionTime, 0, 180);
+        maxPingTransaction = (int) GrimMath.clamp(configuredMaxTransactionTime, 1, 180);
         if (maxPingTransaction != configuredMaxTransactionTime) {
             LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 0 and 180 to prevent issues. " +
                     "Changed: " + configuredMaxTransactionTime + " -> " + maxPingTransaction);
