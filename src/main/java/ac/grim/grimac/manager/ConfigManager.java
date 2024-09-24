@@ -82,7 +82,7 @@ public class ConfigManager {
         final int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
         maxPingTransaction = (int) GrimMath.clamp(configuredMaxTransactionTime, 1, 180);
         if (maxPingTransaction != configuredMaxTransactionTime) {
-            LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 0 and 180 to prevent issues. " +
+            LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 1 and 180 to prevent issues. " +
                     "Changed: " + configuredMaxTransactionTime + " -> " + maxPingTransaction);
             LogUtil.warn("Attempting to disable or set this too high can result in memory usage issues.");
         }
