@@ -1,9 +1,8 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -83,102 +82,68 @@ public enum HitboxData {
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
 
-    FENCE((player, item, version, data, x, y, z) -> {
-        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
-            int i = 0;
-            if (data.getSouth() == South.TRUE) {
-                i |= 0b1;
-            }
-            if (data.getWest() == West.TRUE) {
-                i |= 0b10;
-            }
-            if (data.getNorth() == North.TRUE) {
-                i |= 0b100;
-            }
-            if (data.getEast() == East.TRUE) {
-                i |= 0b1000;
-            }
-
-            return DynamicFence.LEGACY_BOUNDING_BOXES[i].copy();
-        }
-
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
-        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state).downCast(boxes);
-
-        for (SimpleCollisionBox box : boxes) {
-            box.maxY = 1;
-        }
-
-        return new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
-    }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
+    FENCE(new DynamicHitboxFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
     PANE(new DynamicHitboxPane(), Materials.getPanes().toArray(new StateType[0])),
 
     LEVER(((player, item, version, data, x, y, z) -> {
-        SimpleCollisionBox NORTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
-        SimpleCollisionBox SOUTH_WALL_SHAPE = new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
-        SimpleCollisionBox WEST_WALL_SHAPE = new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
-        SimpleCollisionBox EAST_WALL_SHAPE = new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
-        SimpleCollisionBox FLOOR_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
-        SimpleCollisionBox FLOOR_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
-        SimpleCollisionBox CEILING_Z_AXIS_SHAPE = new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
-        SimpleCollisionBox CEILING_X_AXIS_SHAPE = new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
-
-        BlockFace blockFace = data.getFacing();
+        Face face = data.getFace();
         BlockFace facing = data.getFacing();
         if (version.isOlderThan(ClientVersion.V_1_13)) {
             double f = 0.1875;
 
-            switch (data.getFacing()) {
-                case WEST:
-                    return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f, false);
-                case EAST:
-                    return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f, false);
-                case NORTH:
-                    return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0, false);
-                case SOUTH:
-                    return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0, false);
-                case DOWN:
+            switch (face) {
+                case WALL:
+                    switch (facing) {
+                        case WEST:
+                            return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f, false);
+                        case EAST:
+                            return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f, false);
+                        case NORTH:
+                            return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0, false);
+                        case SOUTH:
+                            return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0, false);
+                    }
+                case CEILING:
                     return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75, false);
-                case UP:
+                case FLOOR:
                     return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75, false);
             }
         }
 
-        switch (data.getFace()) {
+        switch (face) {
             case FLOOR:
                 // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return FLOOR_X_AXIS_SHAPE;
+                    return new SimpleCollisionBox(0.25, 0.0, 0.3125, 0.75, 0.375, 0.6875, false);
                 }
                 // Z-AXIS
-                return FLOOR_Z_AXIS_SHAPE;
+                return new SimpleCollisionBox(0.3125, 0.0, 0.25, 0.6875, 0.375, 0.75, false);
             case WALL:
-                switch (blockFace) {
+                switch (facing) {
                     case EAST:
-                        return EAST_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.0, 0.25, 0.3125, 0.375, 0.75, 0.6875, false);
                     case WEST:
-                        return WEST_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.625, 0.25, 0.3125, 1.0, 0.75, 0.6875, false);
                     case SOUTH:
-                        return SOUTH_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.3125, 0.25, 0.0, 0.6875, 0.75, 0.375, false);
                     case NORTH:
                     default:
-                        return NORTH_WALL_SHAPE;
+                        return new SimpleCollisionBox(0.3125, 0.25, 0.625, 0.6875, 0.75, 1.0, false);
                 }
             case CEILING:
             default:
                 // X-AXIS
                 if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return CEILING_X_AXIS_SHAPE;
+                    return new SimpleCollisionBox(0.25, 0.625, 0.3125, 0.75, 1.0, 0.6875, false);
                 }
                 // Z-Axis
-                return CEILING_Z_AXIS_SHAPE;
+                return new SimpleCollisionBox(0.3125, 0.625, 0.25, 0.6875, 1.0, 0.75, false);
         }
     }), StateTypes.LEVER),
 
     BUTTON((player, item, version, data, x, y, z) -> {
+        final Face face = data.getFace();
         final BlockFace facing = data.getFacing();
         final boolean powered = data.isPowered();
 
@@ -186,35 +151,27 @@ public enum HitboxData {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
             double f2 = (float) (data.isPowered() ? 1 : 2) / 16.0;
 
-            switch (data.getFacing()) {
-                case WEST:
-                    return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
-                case EAST:
-                    return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
-                case NORTH:
-                    return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
-                case SOUTH:
-                    return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
-                case DOWN:
-                    return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
-                case UP:
+            switch (face) {
+                case WALL:
+                    switch (facing) {
+                        case WEST:
+                            return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
+                        case EAST:
+                            return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
+                        case NORTH:
+                            return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
+                        case SOUTH:
+                            return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
+                    }
+                case CEILING:
                     return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
+                case FLOOR:
+                    return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
             }
         }
 
 
-        switch (data.getFace()) {
-            case FLOOR:
-                // ViaVersion shows lever
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-                    return LEVER.dynamic.fetch(player, item, version, data, x, y, z);
-                }
-                // x axis
-                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
-                    return powered ? new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 1.0, 11.0) : new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 2.0, 11.0);
-                }
-
-                return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
+        switch (face) {
             case WALL:
                 CollisionBox shape;
                 switch (facing) {
@@ -248,6 +205,17 @@ public enum HitboxData {
                 } else {
                     return powered ? new HexCollisionBox(5.0, 15.0, 6.0, 11.0, 16.0, 10.0) : new HexCollisionBox(5.0, 14.0, 6.0, 11.0, 16.0, 10.0);
                 }
+            case FLOOR:
+                // ViaVersion shows lever
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+                    return LEVER.dynamic.fetch(player, item, version, data, x, y, z);
+                }
+                // x axis
+                if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+                    return powered ? new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 1.0, 11.0) : new HexCollisionBox(6.0, 0.0, 5.0, 10.0, 2.0, 11.0);
+                }
+
+                return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
             default:
                 throw new RuntimeException("Impossible Hitbox State");
         }
@@ -357,7 +325,8 @@ public enum HitboxData {
 
     CACTUS((player, item, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
-            return new SimpleCollisionBox(0.0625D, 0, 0.0625D, 0.9375D, 1, 0.9375D, false);
+            // https://bugs.mojang.com/browse/MC-59610
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
     }, StateTypes.CACTUS),

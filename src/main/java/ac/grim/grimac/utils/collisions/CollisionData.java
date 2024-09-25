@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.collisions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.*;
-import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
@@ -561,7 +561,7 @@ public enum CollisionData {
 
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
-    FENCE(new DynamicFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
+    FENCE(new DynamicCollisionFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
     PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new StateType[0])),
 
