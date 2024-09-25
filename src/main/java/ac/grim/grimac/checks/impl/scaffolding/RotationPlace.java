@@ -71,8 +71,8 @@ public class RotationPlace extends BlockPlaceCheck {
         SimpleCollisionBox box = new SimpleCollisionBox(place.getPlacedAgainstBlockLocation());
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.lastXRot, player.yRot, 0),
-                new Vector3f(player.xRot, player.yRot, 0)
+                new Vector3f(player.xRot, player.yRot, 0),
+                new Vector3f(player.lastXRot, player.yRot, 0)
         ));
 
         // Start checking if player is in the block
