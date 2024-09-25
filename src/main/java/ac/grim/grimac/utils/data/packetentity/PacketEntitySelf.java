@@ -49,7 +49,7 @@ public class PacketEntitySelf extends PacketEntity {
         getAttribute(Attributes.GENERIC_SCALE).get().withSetRewriter((oldValue, newValue) -> {
             // Required Version is 1.20.5 but getPossibleEyeHeights start referencing scale in 1.14+
             // What's actually going on? Does this work, if it does how?
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) || oldValue != newValue) {
+            if (oldValue.equals(newValue) || player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5)) {
                 return oldValue;
             }
             // Elytra, standing, sneaking (1.14)
