@@ -88,29 +88,7 @@ public class PacketEntity extends TypedPacketEntity {
 
     protected void initAttributes(GrimPlayer player) {
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_SCALE, 1.0, 0.0625, 16)
-                .withSetRewriter((oldValue, newValue) -> {
-                    // Required Version is 1.20.5 but getPossibleEyeHeights start referencing scale in 1.14+
-                    // What's actually going on? Does this work, if it does how?
-                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) || oldValue != newValue) {
-                        return oldValue;
-                    }
-                    // Elytra, standing, sneaking (1.14)
-                    player.possibleEyeHeights[2][0] = 0.4 * newValue;
-                    player.possibleEyeHeights[2][1] = 1.62 * newValue;
-                    player.possibleEyeHeights[2][2] = 1.27 * newValue;
-
-                    // sneaking (1.14), standing, Elytra
-                    player.possibleEyeHeights[1][0] = 1.27 * newValue;
-                    player.possibleEyeHeights[1][1] = 1.62 * newValue;
-                    player.possibleEyeHeights[1][2] = 0.4 * newValue;
-
-                    // standing, sneaking (1.14), Elytra
-                    player.possibleEyeHeights[0][0] = 1.62 * newValue;
-                    player.possibleEyeHeights[0][1] = 1.27 * newValue;
-                    player.possibleEyeHeights[0][2] = 0.4 * newValue;
-                    return newValue;
-                })
-        );
+                .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_STEP_HEIGHT, 0.6f, 0, 10)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GENERIC_GRAVITY, 0.08, -1, 1)
