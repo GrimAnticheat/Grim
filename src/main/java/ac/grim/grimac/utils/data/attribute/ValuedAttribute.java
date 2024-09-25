@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ public final class ValuedAttribute {
     private final double min, max;
 
     private WrapperPlayServerUpdateAttributes.Property lastProperty;
+    @Getter
     private final double defaultValue;
     private double value;
 
