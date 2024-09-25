@@ -47,11 +47,12 @@ public class PacketEntitySelf extends PacketEntity {
             setAttribute(Attributes.GENERIC_STEP_HEIGHT, 0.5f);
         }
 
-        getAttribute(Attributes.GENERIC_SCALE).get().withSetRewriter((oldValue, newValue) -> {
+        ValuedAttribute scale = getAttribute(Attributes.GENERIC_SCALE).get();
+        scale.withSetRewriter((oldValue, newValue) -> {
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_20_5)) {
                 // Handles case where player joins on new version, changes scale
                 // And then rejoins on old version
-                return getAttribute(Attributes.GENERIC_SCALE).get().getDefaultValue();
+                return scale.getDefaultValue();
             } else if ((newValue).equals(oldValue)) {
                 return oldValue;
             } else {
