@@ -199,7 +199,7 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
-    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra and only exists in 1.9+
+    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident; only exists in 1.9+
     public double[][] possibleEyeHeights = new double[3][];
 
     public void onPacketCancel() {
@@ -572,10 +572,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && this.isGliding || this.isSwimming || this.isRiptidePose) {
-                return possibleEyeHeights[2];
+        switch (pose) {
+            case SWIMMING: // Swimming (includes crawling in 1.14+)
+            case FALL_FLYING: // Elytra gliding
+            case SPIN_ATTACK: // Riptide trident
+                return this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? possibleEyeHeights[2] : this.isSneaking ? possibleEyeHeights[1] : possibleEyeHeights[0];
+            case CROUCHING:
+                return possibleEyeHeights[1];
+            default:
+                return possibleEyeHeights[0];
         }
-        return this.isSneaking ? possibleEyeHeights[1] : possibleEyeHeights[0];
     }
 
     @Override
