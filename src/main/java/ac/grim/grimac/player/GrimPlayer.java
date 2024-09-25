@@ -199,7 +199,7 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
-    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident; only exists in 1.9+
+    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public double[][] possibleEyeHeights = new double[3][];
 
     public void onPacketCancel() {
@@ -247,15 +247,15 @@ public class GrimPlayer implements GrimUser {
             final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
             possibleEyeHeights[2] = new double[]{0.4 * scale, 1.62 * scale, 1.27 * scale}; // Elytra, standing, sneaking (1.14)
             possibleEyeHeights[1] = new double[]{1.27 * scale, 1.62 * scale, 0.4 * scale}; // sneaking (1.14), standing, Elytra
-            possibleEyeHeights[0] = new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytragit status
+            possibleEyeHeights[0] = new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytra
 
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
-            possibleEyeHeights[2] = new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.14)
-            possibleEyeHeights[1] = new double[]{1.54, 1.62, 0.4}; // sneaking (1.14), standing, Elytra
-            possibleEyeHeights[0] = new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.14), Elytra
-        } else { // Only standing or sneaking
-            possibleEyeHeights[1] = new double[]{(double) (1.62f - 0.08f), (double) (1.62f)};
-            possibleEyeHeights[0] = new double[]{(double) (1.62f), (double) (1.62f - 0.08f)};
+            possibleEyeHeights[2] = new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.13)
+            possibleEyeHeights[1] = new double[]{1.54, 1.62, 0.4}; // sneaking (1.9-1.13), standing, Elytra
+            possibleEyeHeights[0] = new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.9-1.13), Elytra
+        } else {
+            possibleEyeHeights[1] = new double[]{(double) (1.62f - 0.08f), (double) (1.62f)}; // sneaking, standing
+            possibleEyeHeights[0] = new double[]{(double) (1.62f), (double) (1.62f - 0.08f)}; // standing, sneaking
         }
     }
 
@@ -581,12 +581,12 @@ public class GrimPlayer implements GrimUser {
                 case FALL_FLYING: // Elytra gliding
                 case SPIN_ATTACK: // Riptide trident
                 case SWIMMING: // Swimming (includes crawling in 1.14+)
-                    return this.possibleEyeHeights[2];
+                    return this.possibleEyeHeights[2]; // [swimming/gliding/riptide height, standing height, sneaking height]
                 case NINE_CROUCHING:
                 case CROUCHING:
-                    return this.possibleEyeHeights[1];
+                    return this.possibleEyeHeights[1]; // [sneaking height, standing height, swimming/gliding/riptide height]
                 default:
-                    return this.possibleEyeHeights[0];
+                    return this.possibleEyeHeights[0]; // [standing height, sneaking height, swimming/gliding/riptide height]
             }
         }
     }
