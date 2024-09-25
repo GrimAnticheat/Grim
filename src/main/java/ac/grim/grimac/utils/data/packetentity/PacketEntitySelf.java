@@ -46,6 +46,28 @@ public class PacketEntitySelf extends PacketEntity {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
             setAttribute(Attributes.GENERIC_STEP_HEIGHT, 0.5f);
         }
+        getAttribute(Attributes.GENERIC_SCALE).get().withSetRewriter((oldValue, newValue) -> {
+            // Required Version is 1.20.5 but getPossibleEyeHeights start referencing scale in 1.14+
+            // What's actually going on? Does this work, if it does how?
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) || oldValue != newValue) {
+                return oldValue;
+            }
+            // Elytra, standing, sneaking (1.14)
+            player.possibleEyeHeights[2][0] = 0.4 * newValue;
+            player.possibleEyeHeights[2][1] = 1.62 * newValue;
+            player.possibleEyeHeights[2][2] = 1.27 * newValue;
+
+            // sneaking (1.14), standing, Elytra
+            player.possibleEyeHeights[1][0] = 1.27 * newValue;
+            player.possibleEyeHeights[1][1] = 1.62 * newValue;
+            player.possibleEyeHeights[1][2] = 0.4 * newValue;
+
+            // standing, sneaking (1.14), Elytra
+            player.possibleEyeHeights[0][0] = 1.62 * newValue;
+            player.possibleEyeHeights[0][1] = 1.27 * newValue;
+            player.possibleEyeHeights[0][2] = 0.4 * newValue;
+            return newValue;
+        });
 
         final ValuedAttribute movementSpeed = ValuedAttribute.ranged(Attributes.GENERIC_MOVEMENT_SPEED, 0.1f, 0, 1024);
         movementSpeed.with(new WrapperPlayServerUpdateAttributes.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>()));
