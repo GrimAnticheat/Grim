@@ -572,15 +572,22 @@ public class GrimPlayer implements GrimUser {
     }
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
-        switch (pose) {
-            case SWIMMING: // Swimming (includes crawling in 1.14+)
-            case FALL_FLYING: // Elytra gliding
-            case SPIN_ATTACK: // Riptide trident
-                return this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? possibleEyeHeights[2] : this.isSneaking ? possibleEyeHeights[1] : possibleEyeHeights[0];
-            case CROUCHING:
-                return possibleEyeHeights[1];
-            default:
-                return possibleEyeHeights[0];
+        // 1.8 Players once again ruin my clean switch-case
+        if (this.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+            return this.isSneaking ? this.possibleEyeHeights[1] : this.possibleEyeHeights[0];
+        } else {
+            // 1.8 players just have their pose set to standing all the time
+            switch (pose) {
+                case FALL_FLYING: // Elytra gliding
+                case SPIN_ATTACK: // Riptide trident
+                case SWIMMING: // Swimming (includes crawling in 1.14+)
+                    return this.possibleEyeHeights[2];
+                case NINE_CROUCHING:
+                case CROUCHING:
+                    return this.possibleEyeHeights[1];
+                default:
+                    return this.possibleEyeHeights[0];
+            }
         }
     }
 
