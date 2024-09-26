@@ -24,7 +24,6 @@ public final class ValuedAttribute {
     private final double min, max;
 
     private WrapperPlayServerUpdateAttributes.Property lastProperty;
-    @Getter
     private final double defaultValue;
     private double value;
 
