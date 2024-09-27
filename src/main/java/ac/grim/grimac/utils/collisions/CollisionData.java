@@ -567,7 +567,14 @@ public enum CollisionData {
 
     }, StateTypes.GRINDSTONE),
 
+    PANE(new DynamicPane(), Materials.getPanes().toArray(new StateType[0])),
+
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_16)) {
+            // viaversion replacement - iron bars
+            return CollisionData.PANE.dynamic.fetch(player, version, data, x, y, z);
+        }
+
         if (data.getAxis() == Axis.X) {
             return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
         } else if (data.getAxis() == Axis.Y) {
@@ -598,8 +605,6 @@ public enum CollisionData {
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
     FENCE(new DynamicFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
-
-    PANE(new DynamicPane(), Materials.getPanes().toArray(new StateType[0])),
 
     SNOW((player, version, data, x, y, z) -> {
         if (data.getLayers() == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
