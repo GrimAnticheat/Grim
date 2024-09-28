@@ -28,9 +28,7 @@ public class PositionPlace extends BlockPlaceCheck {
         // Each position represents the best case scenario to have clicked
         //
         // We will now calculate the most optimal position for the player's head to be in
-        double[] possibleEyeHeights = player.getPossibleEyeHeights();
-
-        // Start checking if player is in the block
+        final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         double minEyeHeight = Double.MAX_VALUE;
         double maxEyeHeight = Double.MIN_VALUE;
         for (double height : possibleEyeHeights) {

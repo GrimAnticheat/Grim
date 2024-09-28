@@ -201,8 +201,9 @@ public class Reach extends Check implements PacketCheck {
 
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE) + 3;
+        final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (Vector lookVec : possibleLookDirs) {
-            for (double eye : player.getPossibleEyeHeights()) {
+            for (double eye : possibleEyeHeights) {
                 Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
                 Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance));
 
