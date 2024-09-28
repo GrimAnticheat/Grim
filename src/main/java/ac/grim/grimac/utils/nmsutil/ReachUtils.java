@@ -181,7 +181,7 @@ public class ReachUtils {
 
         double lowest = Double.MAX_VALUE;
 
-        double[] possibleEyeHeights = player.getPossibleEyeHeights();
+        final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (double eyes : possibleEyeHeights) {
             if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
             Vector from = new Vector(player.x, player.y + eyes, player.z);

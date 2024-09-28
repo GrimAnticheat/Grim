@@ -75,7 +75,7 @@ public class RotationPlace extends BlockPlaceCheck {
                 new Vector3f(player.xRot, player.yRot, 0)
         ));
 
-        double[] possibleEyeHeights = player.getPossibleEyeHeights();
+        final double[] possibleEyeHeights = player.getPossibleEyeHeights();
 
         // Start checking if player is in the block
         double minEyeHeight = Double.MAX_VALUE;
