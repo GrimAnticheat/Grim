@@ -29,7 +29,7 @@ public enum HitboxData {
                     StateType railType = data.getType();
                     // Activator rails always appear as flat detector rails in 1.7.10 because of ViaVersion
                     // Ascending power rails in 1.7 have flat rail hitbox https://bugs.mojang.com/browse/MC-9134
-                    if (railType == StateTypes.ACTIVATOR_RAIL || railType == StateTypes.POWERED_RAIL) {
+                    if (railType == StateTypes.ACTIVATOR_RAIL || (railType == StateTypes.POWERED_RAIL && data.isPowered())) {
                         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false);
                     }
                     return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F, false);
