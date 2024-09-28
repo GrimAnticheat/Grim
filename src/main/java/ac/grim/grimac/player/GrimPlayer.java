@@ -504,13 +504,13 @@ public class GrimPlayer implements GrimUser {
         if (bukkitPlayer == null) return;
         this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
         this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
-        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), t ->
+        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), t -> {
             for (AbstractCheck check : checkManager.allChecks.values()) {
                 if (check instanceof Check) {
                     ((Check) check).updateExempted();
                 }
             }
-        );
+        });
     }
 
     private int spamThreshold = 100;
