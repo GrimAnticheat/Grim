@@ -41,8 +41,6 @@ public enum HitboxData {
                 } else if (version.isOlderThan(ClientVersion.V_1_11)) {
                     // https://bugs.mojang.com/browse/MC-102638 All sloped rails are full blocks in 1.10
                     return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
-                } else if (version.isOlderThan(ClientVersion.V_1_12)) {
-                    return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
                 }
                 return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
             default:
