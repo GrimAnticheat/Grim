@@ -1,7 +1,6 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.player.GrimPlayer;
@@ -53,19 +52,9 @@ public class GrimChecks extends BaseCommand {
                 if (checks.isEmpty()) {
                     messageLines.add(MessageUtil.format(typeNone));
                 } else {
-                    // First enabled, then exempted, then disabled checks
-                    // Then sort alphabetically
-                    checks.sort((c1, c2) -> {
-                        if (c1.isEnabled() != c2.isEnabled()) {
-                            return Boolean.compare(c2.isEnabled(), c1.isEnabled());
-                        }
-
-                        if (c1.isExempted() != c2.isExempted()) {
-                            return Boolean.compare(c1.isExempted(), c2.isExempted());
-                        }
-
-                        return c1.getCheckName().compareToIgnoreCase(c2.getCheckName());
-                    });
+                    // Sort alphabetically
+                    checks.sort((c1, c2) ->
+                            c1.getCheckName().compareToIgnoreCase(c2.getCheckName()));
                     StringBuilder checkList = new StringBuilder();
                     for (Check check : checks) {
                         if (check.isEnabled()) {
