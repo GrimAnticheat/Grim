@@ -15,8 +15,14 @@ public class MultiActionsC extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.packetStateData.isSlowedByUsingItem() && event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-            if (flagAndAlert() && shouldModifyPackets()) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+            String verbose = player.isSprinting ? "sprinting" : "";
+
+            if (player.packetStateData.isSlowedByUsingItem()) {
+                verbose += (verbose.isEmpty() ? "" : ", ") + "using";
+            }
+
+            if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
