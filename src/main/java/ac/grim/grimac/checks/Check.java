@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import github.scarsz.configuralize.DynamicConfig;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -60,6 +61,13 @@ public class Check implements AbstractCheck {
         return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exempted;
     }
 
+    public void updateExempted() {
+        if (player.bukkitPlayer == null || checkName == null) return;
+        FoliaScheduler.getEntityScheduler().run(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(),
+                t -> exempted = player.bukkitPlayer.hasPermission("grim.exempt." + checkName.toLowerCase()),
+                () -> {});
+    }
+
     public final boolean flagAndAlert(String verbose) {
         if (flag()) {
             alert(verbose);
@@ -105,7 +113,7 @@ public class Check implements AbstractCheck {
 
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
 
-        exempted = player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.exempt." + checkName.toLowerCase());
+        updateExempted();
     }
 
     public boolean alert(String verbose) {
