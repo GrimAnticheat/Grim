@@ -263,8 +263,7 @@ public enum CollisionData {
 
     RAILS(NoCollisionBox.INSTANCE, BlockTags.RAILS.getStates().toArray(new StateType[0])),
 
-    BANNER(NoCollisionBox.INSTANCE,
-            BlockTags.BANNERS.getStates().toArray(new StateType[0])),
+    BANNER(NoCollisionBox.INSTANCE, BlockTags.BANNERS.getStates().toArray(new StateType[0])),
 
     SMALL_FLOWER(NoCollisionBox.INSTANCE,
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
