@@ -442,8 +442,7 @@ public enum HitboxData {
 
     GRASS_FERN((player, item, version, data, x ,y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
-            float var1 = 0.4F;
-            return new SimpleCollisionBox(0.5F - var1, 0.0F, 0.5F - var1, 0.5F + var1, 0.8F, 0.5F + var1);
+            return new SimpleCollisionBox(0.1F, 0.0F, 0.1F, 0.9F, 0.8F, 0.9F);
         }
         return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
     }, StateTypes.SHORT_GRASS, StateTypes.FERN),
