@@ -21,7 +21,10 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
     // https://bugs.mojang.com/browse/MC-94016
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(4.0F, 3.0F, 24.0F, 0.0F, 24.0F, false);
 
-    // Deprecated in favor of DynamicHitboxWall
+    /**
+     * @deprecated use DynamicHitboxWall
+     */
+    @Deprecated
     public CollisionBox fetchRegularBox(GrimPlayer player, WrappedBlockState state, ClientVersion version, int x, int y, int z) {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
