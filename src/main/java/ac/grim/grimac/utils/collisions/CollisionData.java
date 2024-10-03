@@ -265,8 +265,7 @@ public enum CollisionData {
 
     SMALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    TALL_FLOWER(NoCollisionBox.INSTANCE,
-            BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
+    TALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     SAPLING(NoCollisionBox.INSTANCE,
             BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
