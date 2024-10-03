@@ -271,7 +271,7 @@ public enum CollisionData {
 
     BUTTON(NoCollisionBox.INSTANCE, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
-    // All states that unconditionally have no collision and are not in a group where ever member also has no collision.
+    // All states that unconditionally have no collision and are not in a group where every member also has no collision.
     NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
             StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.SHORT_GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
