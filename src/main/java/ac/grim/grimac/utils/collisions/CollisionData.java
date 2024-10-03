@@ -193,9 +193,7 @@ public enum CollisionData {
         }
     }, StateTypes.PIGLIN_WALL_HEAD),
 
-    CORAL_FAN((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
-    }, BlockTags.CORALS.getStates().toArray(new StateType[0])),
+    CORAL_FAN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D), BlockTags.CORALS.getStates().toArray(new StateType[0])),
 
     DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new StateType[0])),
 
