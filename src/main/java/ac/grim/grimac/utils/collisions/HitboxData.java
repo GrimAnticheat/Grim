@@ -215,7 +215,7 @@ public enum HitboxData {
 
                 return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
             default:
-                throw new RuntimeException("Impossible Hitbox State");
+                throw new IllegalStateException("Impossible Hitbox State");
         }
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
@@ -280,7 +280,7 @@ public enum HitboxData {
             case SOUTH:
                 return new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 12.5, 2.0);
             default:
-                throw new RuntimeException("Impossible Banner Facing State; Something very wrong is going on");
+                throw new IllegalStateException("Impossible Banner Facing State; Something very wrong is going on");
         }
     }, StateTypes.WHITE_WALL_BANNER, StateTypes.ORANGE_WALL_BANNER, StateTypes.MAGENTA_WALL_BANNER,
             StateTypes.LIGHT_BLUE_WALL_BANNER, StateTypes.YELLOW_WALL_BANNER, StateTypes.LIME_WALL_BANNER,
@@ -589,6 +589,6 @@ public enum HitboxData {
             case 4:
                 return (4 - age) * 3;
         }
-        throw new RuntimeException("Impossible State");
+        throw new IllegalStateException("Impossible Propagule Height");
     }
 }
