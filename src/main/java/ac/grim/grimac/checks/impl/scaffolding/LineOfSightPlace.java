@@ -2,20 +2,17 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
-import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.nmsutil.BlockRayTrace;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3i;
-import jdk.internal.util.ArraysSupport;
 
 import java.util.*;
 
@@ -171,7 +168,7 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     private boolean getTargetBlock(double[] eyePosition, double[] eyeDirection, double maxDistance, int[] targetBlockVec, BlockFace expectedBlockFace) {
-        Pair<int[], BlockFace> hitData = CheckManagerListener.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
+        Pair<int[], BlockFace> hitData = BlockRayTrace.getNearestReachHitResult(player, eyePosition, eyeDirection, maxDistance, maxDistance, targetBlockVec, expectedBlockFace);
         // we check for hitdata != null because of being in expanded hitbox, or there was no result, do we still need this?
         return hitData != null && Arrays.equals(targetBlockVec, hitData.getFirst()) && hitData.getSecond() == expectedBlockFace;
     }
