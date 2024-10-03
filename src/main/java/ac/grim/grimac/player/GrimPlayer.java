@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
@@ -35,7 +36,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.Dimension;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
@@ -504,6 +504,13 @@ public class GrimPlayer implements GrimUser {
         if (bukkitPlayer == null) return;
         this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
         this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
+        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), t -> {
+            for (AbstractCheck check : checkManager.allChecks.values()) {
+                if (check instanceof Check) {
+                    ((Check) check).updateExempted();
+                }
+            }
+        });
     }
 
     private int spamThreshold = 100;

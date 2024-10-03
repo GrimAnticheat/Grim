@@ -3,6 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.math.GrimMath;
 import github.scarsz.configuralize.DynamicConfig;
 import github.scarsz.configuralize.Language;
 import lombok.Getter;
@@ -77,7 +78,15 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
-        maxPingTransaction = config.getIntElse("max-transaction-time", 60);
+
+        final int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
+        maxPingTransaction = (int) GrimMath.clamp(configuredMaxTransactionTime, 1, 180);
+        if (maxPingTransaction != configuredMaxTransactionTime) {
+            LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 1 and 180 to prevent issues. " +
+                    "Changed: " + configuredMaxTransactionTime + " -> " + maxPingTransaction);
+            LogUtil.warn("Attempting to disable or set this too high can result in memory usage issues.");
+        }
+
         ignoredClientPatterns.clear();
         for (String string : config.getStringList("client-brand.ignored-clients")) {
             try {
