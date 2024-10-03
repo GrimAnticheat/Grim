@@ -267,8 +267,7 @@ public enum CollisionData {
 
     TALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    SAPLING(NoCollisionBox.INSTANCE,
-            BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
+    SAPLING(NoCollisionBox.INSTANCE, BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
 
     BUTTON((player, version, data, x, y, z) -> {
         return NoCollisionBox.INSTANCE;
