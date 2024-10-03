@@ -526,7 +526,7 @@ public enum HitboxData {
         if (data.isHanging()) {
             return new HexOffsetCollisionBox(data.getType(), 7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
         } else {
-            return new HexOffsetCollisionBox(data.getType(),7.0, getPropaguleMinHeight(data.getAge()), 7.0, 9.0, 16.0, 9.0);
+            return new HexOffsetCollisionBox(data.getType(), 7.0, getPropaguleMinHeight(data.getAge()), 7.0, 9.0, 16.0, 9.0);
         }
     }), StateTypes.MANGROVE_PROPAGULE);
 
