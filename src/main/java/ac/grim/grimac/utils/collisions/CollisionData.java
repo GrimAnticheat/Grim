@@ -70,8 +70,6 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
     }, StateTypes.LAVA),
 
-    WATER(NoCollisionBox.INSTANCE, StateTypes.WATER),
-
     BREWING_STAND((player, version, block, x, y, z) -> {
         int base = 0;
 
@@ -162,7 +160,7 @@ public enum CollisionData {
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
             StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
             StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL, StateTypes.HEAVY_CORE),
-    
+
     PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), StateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
@@ -194,9 +192,6 @@ public enum CollisionData {
                 return new HexCollisionBox(8.0D, 4.0D, 3.0D, 16.0D, 12.0D, 13.0D);
         }
     }, StateTypes.PIGLIN_WALL_HEAD),
-
-    BANNER(NoCollisionBox.INSTANCE,
-            BlockTags.BANNERS.getStates().toArray(new StateType[0])),
 
     CORAL_FAN((player, version, data, x, y, z) -> {
         return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
@@ -266,6 +261,12 @@ public enum CollisionData {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, StateTypes.STONECUTTER),
 
+    RAILS(NoCollisionBox.INSTANCE,
+            BlockTags.RAILS.getStates().toArray(new StateType[0])),
+
+    BANNER(NoCollisionBox.INSTANCE,
+            BlockTags.BANNERS.getStates().toArray(new StateType[0])),
+
     SMALL_FLOWER(NoCollisionBox.INSTANCE,
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
@@ -275,13 +276,21 @@ public enum CollisionData {
     SAPLING(NoCollisionBox.INSTANCE,
             BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
 
+    BUTTON((player, version, data, x, y, z) -> {
+        return NoCollisionBox.INSTANCE;
+    }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
+
+    // All states that unconditionally have no collision and are not in a group where ever member also has no collision.
     NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
             StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.SHORT_GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
             StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
-            StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER),
+            StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM,
+            StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM, StateTypes.BEETROOTS, StateTypes.POTATOES,
+            StateTypes.WHEAT, StateTypes.CARROTS, StateTypes.NETHER_WART, StateTypes.MOVING_PISTON, StateTypes.AIR, StateTypes.CAVE_AIR,
+            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -791,30 +800,6 @@ public enum CollisionData {
     SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75, false),
             BlockTags.STANDING_SIGNS.getStates().toArray(new StateType[0])),
 
-    BEETROOT((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.BEETROOTS),
-
-    POTATOES((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.POTATOES),
-
-    WHEAT((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.WHEAT),
-
-    CARROT((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.CARROTS),
-
-    NETHER_WART((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.NETHER_WART),
-
-    BUTTON((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
-
     STONE_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.isPowered()) { // Pressed
             return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
@@ -845,14 +830,6 @@ public enum CollisionData {
         }
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
     }, StateTypes.TRIPWIRE),
-
-    ATTACHED_PUMPKIN_STEM((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM),
-
-    PUMPKIN_STEM((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM),
 
     TRIPWIRE_HOOK((player, version, data, x, y, z) -> {
         switch (data.getFacing()) {
@@ -887,13 +864,6 @@ public enum CollisionData {
         }
 
     }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
-
-    RAILS((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, BlockTags.RAILS.getStates().toArray(new StateType[0])),
-
-    // Known as block 36 - has no collision box
-    TECHNICAL_MOVING_PISTON(NoCollisionBox.INSTANCE, StateTypes.MOVING_PISTON),
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {
@@ -1065,8 +1035,6 @@ public enum CollisionData {
         }
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
-    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.CAVE_AIR, StateTypes.VOID_AIR, StateTypes.LIGHT),
-
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
@@ -1207,7 +1175,7 @@ public enum CollisionData {
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
