@@ -261,8 +261,7 @@ public enum CollisionData {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, StateTypes.STONECUTTER),
 
-    RAILS(NoCollisionBox.INSTANCE,
-            BlockTags.RAILS.getStates().toArray(new StateType[0])),
+    RAILS(NoCollisionBox.INSTANCE, BlockTags.RAILS.getStates().toArray(new StateType[0])),
 
     BANNER(NoCollisionBox.INSTANCE,
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
