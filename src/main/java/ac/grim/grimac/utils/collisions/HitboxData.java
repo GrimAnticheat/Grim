@@ -304,8 +304,7 @@ public enum HitboxData {
             : new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
 
-    TALL_FLOWERS((player, item, version, data, x, y, z) -> new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
-            BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
+    TALL_FLOWERS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     FIRE((player, item, version, data, x, y, z) -> {
         // Since 1.16 fire has a small hitbox
