@@ -269,9 +269,7 @@ public enum CollisionData {
 
     SAPLING(NoCollisionBox.INSTANCE, BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
 
-    BUTTON((player, version, data, x, y, z) -> {
-        return NoCollisionBox.INSTANCE;
-    }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
+    BUTTON(NoCollisionBox.INSTANCE, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
     // All states that unconditionally have no collision and are not in a group where every member also has no collision.
     NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
