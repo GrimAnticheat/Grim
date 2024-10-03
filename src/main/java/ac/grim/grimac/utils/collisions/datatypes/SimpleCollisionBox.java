@@ -20,11 +20,21 @@ public class SimpleCollisionBox implements CollisionBox {
     public double minX, minY, minZ, maxX, maxY, maxZ;
     private boolean isFullBlock = false;
 
-    // If your min/max values are > 1 you should probably check out HexCollisionBox
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0, false);
     }
 
+    /**
+     * Creates a box defined by two points in 3d space; used to represent hitboxes and collision boxes.
+     * If your min/max values are > 1 you should probably check out {@link HexCollisionBox}
+     * @param minX x position of first corner
+     * @param minY y position of first corner
+     * @param minZ z position of first corner
+     * @param maxX x position of second corner
+     * @param maxY y position of second corner
+     * @param maxZ z position of second corner
+     * @param fullBlock - whether on not the box is a perfect 1x1x1 sized block
+     */
     public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, boolean fullBlock) {
         this.minX = minX;
         this.maxX = maxX;
@@ -48,7 +58,17 @@ public class SimpleCollisionBox implements CollisionBox {
         this(minX, minY, minZ, minX + 1, minY + 1, minZ + 1, true);
     }
 
-    // Use only if you don't know the fullBlock status, which is rare
+    /**
+     * Creates a box defined by two points in 3d space; used to represent hitboxes and collision boxes.
+     * If your min/max values are > 1 you should probably check out {@link HexCollisionBox}
+     * Use only if you don't know the fullBlock status, which is rare
+     * @param minX x position of first corner
+     * @param minY y position of first corner
+     * @param minZ z position of first corner
+     * @param maxX x position of second corner
+     * @param maxY y position of second corner
+     * @param maxZ z position of second corner
+     */
     public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         this.minX = minX;
         this.maxX = maxX;
