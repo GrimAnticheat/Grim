@@ -407,11 +407,9 @@ public enum HitboxData {
     }, StateTypes.COCOA),
 
 
-    REDSTONE_WIRE((player, item, version, data, x, y, z) ->
-            // Easier to just use no collision box
-            // Redstone wire is very complex with its collision shapes and has many de-syncs
-            NoCollisionBox.INSTANCE,
-            StateTypes.REDSTONE_WIRE),
+    // Easier to just use no collision box
+    // Redstone wire is very complex with its collision shapes and has many de-syncs
+    REDSTONE_WIRE(NoCollisionBox.INSTANCE, StateTypes.REDSTONE_WIRE),
 
     SWEET_BERRY((player, item, version, data, x, y, z) -> {
         if (data.getAge() == 0) {
