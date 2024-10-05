@@ -65,7 +65,7 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
 
             invalid = 0;
         } else {
-            if (!player.skippedTickInActualMovement) {
+            if (!player.skippedTickInActualMovement && predictionComplete.isChecked()) {
                 for (; invalid > 0; invalid--) {
                     if (flagAndAlert()) {
                         setbackIfAboveSetbackVL();

@@ -62,7 +62,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
             return;
         }
 
-        if (!player.skippedTickInActualMovement) {
+        if (!player.skippedTickInActualMovement && predictionComplete.isChecked()) {
             for (; invalidSlots >= 1; invalidSlots--) {
                 flagAndAlert();
             }
