@@ -123,7 +123,7 @@ public final class ValuedAttribute {
                 d1 *= 1.0D + attributemodifier.getAmount();
         }
 
-        double newValue = GrimMath.clampFloat((float) d1, (float) min, (float) max);
+        double newValue = GrimMath.clamp(d1, min, max);
         if (setRewriter != null) {
             newValue = setRewriter.apply(this.value, newValue);
         }
