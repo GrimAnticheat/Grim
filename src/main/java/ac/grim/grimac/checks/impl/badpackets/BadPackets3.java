@@ -34,7 +34,7 @@ public class BadPackets3 extends Check implements PacketCheck, PostPredictionChe
             return;
         }
 
-        if (!player.skippedTickInActualMovement) {
+        if (!player.skippedTickInActualMovement && predictionComplete.isChecked() {
             for (; flags > 0; flags--) {
                 if (flagAndAlert()) {
                     setbackIfAboveSetbackVL();
