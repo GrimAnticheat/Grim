@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -39,10 +40,6 @@ public class BadPacketsZ extends Check implements PacketCheck {
         return player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || getBlockDamage(player, pos) < 1;
     }
 
-    private String formatted(Vector3i vec) {
-        return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
-    }
-
     public void handle(PacketReceiveEvent event, WrapperPlayClientPlayerDigging dig) {
         if (dig.getAction() == DiggingAction.START_DIGGING) {
             final Vector3i pos = dig.getBlockPosition();
@@ -57,7 +54,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
             final Vector3i pos = dig.getBlockPosition();
 
             if (shouldExempt(pos)) {
-                lastCancelledBlock = null;
+                lastCancelledBlock = pos;
                 lastLastBlock = null;
                 lastBlock = null;
                 return;
@@ -66,7 +63,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
             if (!pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
+                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
                         if (shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -87,7 +84,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
             if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
-                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
+                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
