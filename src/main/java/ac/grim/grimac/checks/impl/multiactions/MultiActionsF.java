@@ -85,7 +85,7 @@ public class MultiActionsF extends BlockPlaceCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && !player.skippedTickInActualMovement) {
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8) && !player.skippedTickInActualMovement && predictionComplete.isChecked()) {
             for (String verbose : flags) {
                 flagAndAlert(verbose);
             }
