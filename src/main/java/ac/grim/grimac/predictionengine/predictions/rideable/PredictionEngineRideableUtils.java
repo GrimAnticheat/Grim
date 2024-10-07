@@ -17,9 +17,7 @@ import java.util.Set;
 
 public class PredictionEngineRideableUtils {
     public static Set<VectorData> handleJumps(GrimPlayer player, Set<VectorData> possibleVectors) {
-        if (!(player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse)) return possibleVectors;
-
-        PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
+        if (!(player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse horse)) return possibleVectors;
 
         // Setup player inputs
         float f = player.vehicleData.vehicleHorizontal * 0.5F;

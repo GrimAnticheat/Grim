@@ -164,18 +164,13 @@ public enum HitboxData {
     }, StateTypes.LECTERN),
 
     WALL_HANGING_SIGNS((player, item, version, data, x, y, z) -> {
-        switch (data.getFacing()) {
-            case NORTH:
-            case SOUTH:
-                return new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
-                        new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
-            case WEST:
-            case EAST:
-                return new ComplexCollisionBox(new HexCollisionBox(6.0D, 14.0D, 0.0D, 10.0D, 16.0D, 16.0D),
-                        new HexCollisionBox(7.0D, 0.0D, 1.0D, 9.0D, 10.0D, 15.0D));
-            default:
-                return NoCollisionBox.INSTANCE;
-        }
+        return switch (data.getFacing()) {
+            case NORTH, SOUTH -> new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
+                    new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
+            case WEST, EAST -> new ComplexCollisionBox(new HexCollisionBox(6.0D, 14.0D, 0.0D, 10.0D, 16.0D, 16.0D),
+                    new HexCollisionBox(7.0D, 0.0D, 1.0D, 9.0D, 10.0D, 15.0D));
+            default -> NoCollisionBox.INSTANCE;
+        };
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
     PITCHER_CROP((player, item, version, data, x, y, z) -> {
@@ -201,27 +196,17 @@ public enum HitboxData {
 
                 return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
             case WALL:
-                CollisionBox shape;
-                switch (facing) {
-                    case EAST:
-                        shape = powered ? new HexCollisionBox(0.0, 6.0, 5.0, 1.0, 10.0, 11.0) : new HexCollisionBox(0.0, 6.0, 5.0, 2.0, 10.0, 11.0);
-                        break;
-                    case WEST:
-                        shape = powered ? new HexCollisionBox(15.0, 6.0, 5.0, 16.0, 10.0, 11.0) : new HexCollisionBox(14.0, 6.0, 5.0, 16.0, 10.0, 11.0);
-                        break;
-                    case SOUTH:
-                        shape = powered ? new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 1.0) : new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 2.0);
-                        break;
-                    case NORTH:
-                    case UP:
-                    case DOWN:
-                        shape = powered ? new HexCollisionBox(5.0, 6.0, 15.0, 11.0, 10.0, 16.0) : new HexCollisionBox(5.0, 6.0, 14.0, 11.0, 10.0, 16.0);
-                        break;
-                    default:
-                        shape = NoCollisionBox.INSTANCE;
-                }
-
-                return shape;
+                return switch (facing) {
+                    case EAST ->
+                            powered ? new HexCollisionBox(0.0, 6.0, 5.0, 1.0, 10.0, 11.0) : new HexCollisionBox(0.0, 6.0, 5.0, 2.0, 10.0, 11.0);
+                    case WEST ->
+                            powered ? new HexCollisionBox(15.0, 6.0, 5.0, 16.0, 10.0, 11.0) : new HexCollisionBox(14.0, 6.0, 5.0, 16.0, 10.0, 11.0);
+                    case SOUTH ->
+                            powered ? new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 1.0) : new HexCollisionBox(5.0, 6.0, 0.0, 11.0, 10.0, 2.0);
+                    case NORTH, UP, DOWN ->
+                            powered ? new HexCollisionBox(5.0, 6.0, 15.0, 11.0, 10.0, 16.0) : new HexCollisionBox(5.0, 6.0, 14.0, 11.0, 10.0, 16.0);
+                    default -> NoCollisionBox.INSTANCE;
+                };
             case CEILING:
             default:
                 // x axis
@@ -234,30 +219,22 @@ public enum HitboxData {
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
     WALL_SIGN((player, item, version, data, x, y, z) -> {
-        switch (data.getFacing()) {
-            case NORTH:
-                return new HexCollisionBox(0.0, 4.5, 14.0, 16.0, 12.5, 16.0);
-            case SOUTH:
-                return new HexCollisionBox(0.0, 4.5, 0.0, 16.0, 12.5, 2.0);
-            case EAST:
-                return new HexCollisionBox(0.0, 4.5, 0.0, 2.0, 12.5, 16.0);
-            case WEST:
-                return new HexCollisionBox(14.0, 4.5, 0.0, 16.0, 12.5, 16.0);
-            default:
-                return NoCollisionBox.INSTANCE;
-        }
+        return switch (data.getFacing()) {
+            case NORTH -> new HexCollisionBox(0.0, 4.5, 14.0, 16.0, 12.5, 16.0);
+            case SOUTH -> new HexCollisionBox(0.0, 4.5, 0.0, 16.0, 12.5, 2.0);
+            case EAST -> new HexCollisionBox(0.0, 4.5, 0.0, 2.0, 12.5, 16.0);
+            case WEST -> new HexCollisionBox(14.0, 4.5, 0.0, 16.0, 12.5, 16.0);
+            default -> NoCollisionBox.INSTANCE;
+        };
     }, BlockTags.WALL_SIGNS.getStates().toArray(new StateType[0])),
 
     WALL_HANGING_SIGN((player, item, version, data, x, y, z) -> {
-        switch (data.getFacing()) {
-            case NORTH:
-            case SOUTH:
-                return new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
-                        new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
-            default:
-                return new ComplexCollisionBox(new HexCollisionBox(6.0D, 14.0D, 0.0D, 10.0D, 16.0D, 16.0D),
-                        new HexCollisionBox(7.0D, 0.0D, 1.0D, 9.0D, 10.0D, 15.0D));
-        }
+        return switch (data.getFacing()) {
+            case NORTH, SOUTH -> new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
+                    new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
+            default -> new ComplexCollisionBox(new HexCollisionBox(6.0D, 14.0D, 0.0D, 10.0D, 16.0D, 16.0D),
+                    new HexCollisionBox(7.0D, 0.0D, 1.0D, 9.0D, 10.0D, 15.0D));
+        };
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
     STANDING_SIGN((player, item, version, data, x, y, z) ->

@@ -38,38 +38,35 @@ public class PistonHeadCollision implements CollisionFactory {
             longAmount = 0;
 
 
-        switch (block.getFacing()) {
-            case DOWN:
-            default:
-                return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 4, 16),
-                        new HexCollisionBox(6, 4, 6, 10, 16 + longAmount, 10));
-            case UP:
-                return new ComplexCollisionBox(new HexCollisionBox(0, 12, 0, 16, 16, 16),
-                        new HexCollisionBox(6, 0 - longAmount, 6, 10, 12, 10));
-            case NORTH:
-                return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 16, 4),
-                        new HexCollisionBox(6, 6, 4, 10, 10, 16 + longAmount));
-            case SOUTH:
+        return switch (block.getFacing()) {
+            case UP -> new ComplexCollisionBox(new HexCollisionBox(0, 12, 0, 16, 16, 16),
+                    new HexCollisionBox(6, 0 - longAmount, 6, 10, 12, 10));
+            case NORTH -> new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 16, 4),
+                    new HexCollisionBox(6, 6, 4, 10, 10, 16 + longAmount));
+            case SOUTH -> {
                 // SOUTH piston is glitched in 1.7 and 1.8, fixed in 1.9
                 // Don't bother with short piston boxes as 1.7/1.8 clients don't have them
                 if (version.isOlderThanOrEquals(ClientVersion.V_1_8))
-                    return new ComplexCollisionBox(new HexCollisionBox(0, 0, 12, 16, 16, 16),
+                    yield new ComplexCollisionBox(new HexCollisionBox(0, 0, 12, 16, 16, 16),
                             new HexCollisionBox(4, 6, 0, 12, 10, 12));
 
-                return new ComplexCollisionBox(new HexCollisionBox(0, 0, 12, 16, 16, 16),
+                yield new ComplexCollisionBox(new HexCollisionBox(0, 0, 12, 16, 16, 16),
                         new HexCollisionBox(6, 6, 0 - longAmount, 10, 10, 12));
-            case WEST:
+            }
+            case WEST -> {
                 // WEST piston is glitched in 1.7 and 1.8, fixed in 1.9
                 // Don't bother with short piston boxes as 1.7/1.8 clients don't have them
                 if (version.isOlderThanOrEquals(ClientVersion.V_1_8))
-                    return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 4, 16, 16),
+                    yield new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 4, 16, 16),
                             new HexCollisionBox(6, 4, 4, 10, 12, 16));
 
-                return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 4, 16, 16),
+                yield new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 4, 16, 16),
                         new HexCollisionBox(4, 6, 6, 16 + longAmount, 10, 10));
-            case EAST:
-                return new ComplexCollisionBox(new HexCollisionBox(12, 0, 0, 16, 16, 16),
-                        new HexCollisionBox(0 - longAmount, 6, 4, 12, 10, 12));
-        }
+            }
+            case EAST -> new ComplexCollisionBox(new HexCollisionBox(12, 0, 0, 16, 16, 16),
+                    new HexCollisionBox(0 - longAmount, 6, 4, 12, 10, 12));
+            default -> new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 4, 16),
+                    new HexCollisionBox(6, 4, 6, 10, 16 + longAmount, 10));
+        };
     }
 }

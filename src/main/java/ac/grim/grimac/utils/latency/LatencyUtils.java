@@ -43,17 +43,17 @@ public class LatencyUtils {
                 Pair<Integer, Runnable> pair = iterator.next();
 
                 // We are at most a tick ahead when running tasks based on transactions, meaning this is too far
-                if (transaction + 1 < pair.getFirst())
+                if (transaction + 1 < pair.first())
                     return;
 
                 // This is at most tick ahead of what we want
-                if (transaction == pair.getFirst() - 1)
+                if (transaction == pair.first() - 1)
                     continue;
 
 
                 try {
                     // Run the task
-                    pair.getSecond().run();
+                    pair.second().run();
                 } catch (Exception e) {
                     System.out.println("An error has occurred when running transactions for player: " + player.user.getName());
                     e.printStackTrace();

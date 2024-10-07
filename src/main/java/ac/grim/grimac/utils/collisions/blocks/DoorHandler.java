@@ -21,18 +21,14 @@ public class DoorHandler implements CollisionFactory {
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
-        switch (fetchDirection(player, version, block, x, y, z)) {
-            case NORTH:
-                return NORTH_AABB.copy();
-            case SOUTH:
-                return SOUTH_AABB.copy();
-            case EAST:
-                return EAST_AABB.copy();
-            case WEST:
-                return WEST_AABB.copy();
-        }
+        return switch (fetchDirection(player, version, block, x, y, z)) {
+            case NORTH -> NORTH_AABB.copy();
+            case SOUTH -> SOUTH_AABB.copy();
+            case EAST -> EAST_AABB.copy();
+            case WEST -> WEST_AABB.copy();
+            default -> NoCollisionBox.INSTANCE;
+        };
 
-        return NoCollisionBox.INSTANCE;
     }
 
     public BlockFace fetchDirection(GrimPlayer player, ClientVersion version, WrappedBlockState door, int x, int y, int z) {
@@ -80,16 +76,11 @@ public class DoorHandler implements CollisionFactory {
             isRightHinge = door.getHinge() == Hinge.RIGHT;
         }
 
-        switch (facingDirection) {
-            case EAST:
-            default:
-                return isClosed ? BlockFace.EAST : (isRightHinge ? BlockFace.NORTH : BlockFace.SOUTH);
-            case SOUTH:
-                return isClosed ? BlockFace.SOUTH : (isRightHinge ? BlockFace.EAST : BlockFace.WEST);
-            case WEST:
-                return isClosed ? BlockFace.WEST : (isRightHinge ? BlockFace.SOUTH : BlockFace.NORTH);
-            case NORTH:
-                return isClosed ? BlockFace.NORTH : (isRightHinge ? BlockFace.WEST : BlockFace.EAST);
-        }
+        return switch (facingDirection) {
+            case SOUTH -> isClosed ? BlockFace.SOUTH : (isRightHinge ? BlockFace.EAST : BlockFace.WEST);
+            case WEST -> isClosed ? BlockFace.WEST : (isRightHinge ? BlockFace.SOUTH : BlockFace.NORTH);
+            case NORTH -> isClosed ? BlockFace.NORTH : (isRightHinge ? BlockFace.WEST : BlockFace.EAST);
+            default -> isClosed ? BlockFace.EAST : (isRightHinge ? BlockFace.NORTH : BlockFace.SOUTH);
+        };
     }
 }

@@ -537,21 +537,14 @@ public class BlockPlace {
     }
 
     public Vector3i getNormalBlockFace() {
-        switch (face) {
-            default:
-            case UP:
-                return new Vector3i(0, 1, 0);
-            case DOWN:
-                return new Vector3i(0, -1, 0);
-            case SOUTH:
-                return new Vector3i(0, 0, 1);
-            case NORTH:
-                return new Vector3i(0, 0, -1);
-            case WEST:
-                return new Vector3i(-1, 0, 0);
-            case EAST:
-                return new Vector3i(1, 0, 0);
-        }
+        return switch (face) {
+            case DOWN -> new Vector3i(0, -1, 0);
+            case SOUTH -> new Vector3i(0, 0, 1);
+            case NORTH -> new Vector3i(0, 0, -1);
+            case WEST -> new Vector3i(-1, 0, 0);
+            case EAST -> new Vector3i(1, 0, 0);
+            default -> new Vector3i(0, 1, 0);
+        };
     }
 
     public void set(StateType material) {
@@ -672,7 +665,7 @@ public class BlockPlace {
         final double distance = player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_BLOCK_INTERACTION_RANGE) + 3;
         Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
-        Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();
+        Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)

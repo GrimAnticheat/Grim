@@ -129,9 +129,7 @@ public final class BoundingBoxSize {
         double y = box.minY;
         double z = (box.maxZ + box.minZ) / 2.0;
 
-        if (entity instanceof PacketEntityTrackXRot) {
-            PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
-
+        if (entity instanceof PacketEntityTrackXRot xRotEntity) {
             // Horses desync here, and we can't do anything about it without interpolating animations.
             // Mojang just has to fix it.  I'm not attempting to fix it.
             // Striders also do the same with animations, causing a desync.
