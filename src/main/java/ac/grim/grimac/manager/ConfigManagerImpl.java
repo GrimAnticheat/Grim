@@ -2,8 +2,9 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.common.BasicReloadable;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.math.GrimMath;
 import github.scarsz.configuralize.DynamicConfig;
 import github.scarsz.configuralize.Language;
 import lombok.Getter;
@@ -16,8 +17,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class ConfigManager {
-    @Getter
+public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
+
+    public ConfigManager getConfig() {
+        if (GrimAPI.INSTANCE.getInitManager().isStarted()) return GrimAPI.INSTANCE.getExternalAPI().getConfigManager();
+        return this;
+    }
+
     private final DynamicConfig config;
     @Getter
     private final File configFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config.yml");
@@ -28,8 +34,6 @@ public class ConfigManager {
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
-    private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
-    @Getter
     private boolean ignoreDuplicatePacketRotation = false;
 
     @Getter
@@ -37,9 +41,8 @@ public class ConfigManager {
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
-    public ConfigManager() {
+    public ConfigManagerImpl() {
         upgrade();
-
         // load config
         GrimAPI.INSTANCE.getPlugin().getDataFolder().mkdirs();
         config = new DynamicConfig();
@@ -51,6 +54,7 @@ public class ConfigManager {
         reload();
     }
 
+    @Override
     public void reload() {
         String languageCode = System.getProperty("user.language").toUpperCase();
 
@@ -79,12 +83,9 @@ public class ConfigManager {
             throw new RuntimeException("Failed to load config", e);
         }
 
-        final int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
-        maxPingTransaction = (int) GrimMath.clamp(configuredMaxTransactionTime, 1, 180);
-        if (maxPingTransaction != configuredMaxTransactionTime) {
-            LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 1 and 180 to prevent issues. " +
-                    "Changed: " + configuredMaxTransactionTime + " -> " + maxPingTransaction);
-            LogUtil.warn("Attempting to disable or set this too high can result in memory usage issues.");
+        int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
+        if (configuredMaxTransactionTime > 180 || configuredMaxTransactionTime < 1) {
+            LogUtil.warn("Detected invalid max-transaction-time! This setting is clamped between 1 and 180 to prevent issues. Attempting to disable or set this too high can result in memory usage issues.");
         }
 
         ignoredClientPatterns.clear();
@@ -326,4 +327,45 @@ public class ConfigManager {
         );
         Files.write(config.toPath(), configString.getBytes());
     }
+
+    @Override
+    public String getStringElse(String key, String otherwise) {
+        return config.getStringElse(key, otherwise);
+    }
+
+    @Override
+    public List<String> getStringList(String key) {
+        return config.getStringList(key);
+    }
+
+    @Override
+    public List<String> getStringListElse(String key, List<String> otherwise) {
+        return config.getStringListElse(key, otherwise);
+    }
+
+    @Override
+    public int getIntElse(String key, int other) {
+        return config.getIntElse(key, other);
+    }
+
+    @Override
+    public long getLongElse(String key, long otherwise) {
+        return config.getLongElse(key, otherwise);
+    }
+
+    @Override
+    public double getDoubleElse(String key, double otherwise) {
+        return config.getDoubleElse(key, otherwise);
+    }
+
+    @Override
+    public boolean getBooleanElse(String key, boolean otherwise) {
+        return config.getBooleanElse(key, otherwise);
+    }
+
+    @Override
+    public <T> T get(String key) {
+        return config.get(key);
+    }
+
 }

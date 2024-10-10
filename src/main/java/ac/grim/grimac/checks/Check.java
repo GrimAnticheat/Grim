@@ -2,11 +2,12 @@ package ac.grim.grimac.checks;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.events.FlagEvent;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import github.scarsz.configuralize.DynamicConfig;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import org.bukkit.Bukkit;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
-public class Check implements AbstractCheck {
+public class Check implements AbstractCheck, ConfigReloadObserver {
     protected final GrimPlayer player;
 
     public double violations;
@@ -53,8 +54,8 @@ public class Check implements AbstractCheck {
             this.experimental = checkData.experimental();
             this.description = checkData.description();
         }
-
-        reload();
+        //
+        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
     }
 
     public boolean shouldModifyPackets() {
@@ -107,21 +108,22 @@ public class Check implements AbstractCheck {
         violations = Math.max(0, violations - decay);
     }
 
-    public void reload() {
-        decay = getConfig().getDoubleElse(configName + ".decay", decay);
-        setbackVL = getConfig().getDoubleElse(configName + ".setbackvl", setbackVL);
-
+    @Override
+    public void reload(ConfigManager configuration) {
+        decay = configuration.getDoubleElse(configName + ".decay", decay);
+        setbackVL = configuration.getDoubleElse(configName + ".setbackvl", setbackVL);
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
-
         updateExempted();
+        onReload(configuration);
+    }
+
+    @Override
+    public void onReload(ConfigManager config) {
+
     }
 
     public boolean alert(String verbose) {
         return player.punishmentManager.handleAlert(player, verbose, this);
-    }
-
-    public DynamicConfig getConfig() {
-        return GrimAPI.INSTANCE.getConfigManager().getConfig();
     }
 
     public boolean setbackIfAboveSetbackVL() {
@@ -142,6 +144,11 @@ public class Check implements AbstractCheck {
     public boolean isTransaction(PacketTypeCommon packetType) {
         return packetType == PacketType.Play.Client.PONG ||
                 packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
+    }
+
+    @Override
+    public void reload() {
+        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
     }
 
 }
