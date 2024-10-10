@@ -33,6 +33,7 @@ public class InitManager {
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
                 .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
                 .put(JavaVersion.class, new JavaVersion())
+                .put(ViaVersion.class, new ViaVersion())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
