@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -178,12 +179,10 @@ public class LineOfSightPlace extends BlockPlaceCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-
-        useBlockWhitelist = getConfig().getBooleanElse("LineOfSightPlace.use-block-whitelist", false);
+    public void onReload(ConfigManager config) {
+        useBlockWhitelist = config.getBooleanElse("LineOfSightPlace.use-block-whitelist", false);
         blockWhitelist = new HashSet<>();
-        List<String> blocks = getConfig().getList("LineOfSightPlace.block-whitelist");
+        List<String> blocks = config.getStringList("LineOfSightPlace.block-whitelist");
         for (String block : blocks) {
             blockWhitelist.add(StateTypes.getByName(block));
         }
