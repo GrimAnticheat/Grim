@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -237,9 +238,8 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        this.cancelImpossibleHits = getConfig().getBooleanElse("Reach.block-impossible-hits", true);
-        this.threshold = getConfig().getDoubleElse("Reach.threshold", 0.0005);
+    public void onReload(ConfigManager config) {
+        this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
+        this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
     }
 }

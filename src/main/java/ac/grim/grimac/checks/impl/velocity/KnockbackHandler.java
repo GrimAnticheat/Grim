@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -240,15 +241,14 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        offsetToFlag = getConfig().getDoubleElse("Knockback.threshold", 0.001);
-        maxAdv = getConfig().getDoubleElse("Knockback.max-advantage", 1);
-        immediate = getConfig().getDoubleElse("Knockback.immediate-setback-threshold", 0.1);
-        multiplier = getConfig().getDoubleElse("Knockback.setback-decay-multiplier", 0.999);
-        ceiling = getConfig().getDoubleElse("Knockback.max-ceiling", 4);
-
+    public void onReload(ConfigManager config) {
+        offsetToFlag = config.getDoubleElse("Knockback.threshold", 0.001);
+        maxAdv = config.getDoubleElse("Knockback.max-advantage", 1);
+        immediate = config.getDoubleElse("Knockback.immediate-setback-threshold", 0.1);
+        multiplier = config.getDoubleElse("Knockback.setback-decay-multiplier", 0.999);
+        ceiling = config.getDoubleElse("Knockback.max-ceiling", 4);
         if (maxAdv < 0) maxAdv = Double.MAX_VALUE;
         if (immediate < 0) immediate = Double.MAX_VALUE;
     }
+
 }

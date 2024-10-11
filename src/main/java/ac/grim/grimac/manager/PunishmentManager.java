@@ -2,13 +2,14 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import github.scarsz.configuralize.DynamicConfig;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,18 +18,18 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class PunishmentManager {
+public class PunishmentManager implements ConfigReloadable {
     GrimPlayer player;
     List<PunishGroup> groups = new ArrayList<>();
     String experimentalSymbol = "*";
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;
-        reload();
+        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
     }
 
-    public void reload() {
-        DynamicConfig config = GrimAPI.INSTANCE.getConfigManager().getConfig();
+    @Override
+    public void reload(ConfigManager config) {
         List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
         experimentalSymbol = config.getStringElse("experimental-symbol", "*");
 

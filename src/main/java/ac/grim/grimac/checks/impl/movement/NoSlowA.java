@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -51,8 +52,7 @@ public class NoSlowA extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        offsetToFlag = getConfig().getDoubleElse("NoSlowA.threshold", 0.001);
+    public void onReload(ConfigManager config) {
+        offsetToFlag = config.getDoubleElse("NoSlowA.threshold", 0.001);
     }
 }

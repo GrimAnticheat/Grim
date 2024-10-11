@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.velocity;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -18,7 +19,6 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -256,12 +256,10 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-
-        offsetToFlag = getConfig().getDoubleElse("Explosion.threshold", 0.00001);
-        setbackVL = getConfig().getDoubleElse("Explosion.setbackvl", 10);
-
+    public void onReload(ConfigManager config) {
+        offsetToFlag = config.getDoubleElse("Explosion.threshold", 0.00001);
+        setbackVL = config.getDoubleElse("Explosion.setbackvl", 10);
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
+
 }

@@ -101,29 +101,29 @@ public final class ValuedAttribute {
     }
 
     public double with(WrapperPlayServerUpdateAttributes.Property property) {
-        double d0 = property.getValue();
+        double baseValue = property.getValue();
+        double additionSum = 0;
+        double multiplyBaseSum = 0;
+        double multiplyTotalProduct = 1.0;
 
         List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = property.getModifiers();
         modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID) || modifier.getName().getKey().equals("sprinting"));
 
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION)
-                d0 += attributemodifier.getAmount();
+        for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
+            switch (modifier.getOperation()) {
+                case ADDITION:
+                    additionSum += modifier.getAmount();
+                    break;
+                case MULTIPLY_BASE:
+                    multiplyBaseSum += modifier.getAmount();
+                    break;
+                case MULTIPLY_TOTAL:
+                    multiplyTotalProduct *= (1.0 + modifier.getAmount());
+                    break;
+            }
         }
 
-        double d1 = d0;
-
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE)
-                d1 += d0 * attributemodifier.getAmount();
-        }
-
-        for (WrapperPlayServerUpdateAttributes.PropertyModifier attributemodifier : modifiers) {
-            if (attributemodifier.getOperation() == WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_TOTAL)
-                d1 *= 1.0D + attributemodifier.getAmount();
-        }
-
-        double newValue = GrimMath.clampFloat((float) d1, (float) min, (float) max);
+        double newValue = GrimMath.clamp((baseValue + additionSum) * (1 + multiplyBaseSum) * multiplyTotalProduct, min, max);
         if (setRewriter != null) {
             newValue = setRewriter.apply(this.value, newValue);
         }

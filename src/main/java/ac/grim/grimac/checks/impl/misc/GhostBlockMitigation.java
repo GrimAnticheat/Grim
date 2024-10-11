@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.misc;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -63,10 +64,9 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        allow = getConfig().getBooleanElse("exploit.allow-building-on-ghostblocks", true);
-        distance = getConfig().getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
+    public void onReload(ConfigManager config) {
+        allow = config.getBooleanElse("exploit.allow-building-on-ghostblocks", true);
+        distance = config.getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
 
         if (distance < 2 || distance > 4) distance = 2;
     }

@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.type;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -33,9 +34,8 @@ public class BlockPlaceCheck extends Check implements RotationCheck, PostPredict
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        this.cancelVL = getConfig().getIntElse(getConfigName() + ".cancelVL", 5);
+    public void onReload(ConfigManager config) {
+        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
     }
 
     protected boolean shouldCancel() {
