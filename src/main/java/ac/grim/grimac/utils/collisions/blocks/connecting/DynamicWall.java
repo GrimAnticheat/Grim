@@ -132,7 +132,14 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
             south = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
             west = connectsTo(player, version, x, y, z, BlockFace.WEST);
             east = connectsTo(player, version, x, y, z, BlockFace.EAST);
-            up = true;
+
+            boolean selfNorth = connectsToSelf(player, version, x, y, z, BlockFace.NORTH);
+            boolean selfSouth = connectsToSelf(player, version, x, y, z, BlockFace.SOUTH);
+            boolean selfWest = connectsToSelf(player, version, x, y, z, BlockFace.WEST);
+            boolean selfEast = connectsToSelf(player, version, x, y, z, BlockFace.EAST);
+            up = connectsTo(player, version, x, y, z, BlockFace.UP) || (
+                            (!selfNorth || !selfSouth || selfWest || selfEast) && 
+                            (!selfWest || !selfEast || selfNorth || selfSouth));
         }
 
         // On 1.13+ clients the bounding box is much more complicated
@@ -183,5 +190,12 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
     @Override
     public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two, BlockFace direction) {
         return BlockTags.WALLS.contains(one) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isSideFullBlock(direction);
+    }
+
+    public boolean connectsToSelf(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
+        WrappedBlockState targetBlock = player.compensatedWorld.getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
+        WrappedBlockState currBlock = player.compensatedWorld.getWrappedBlockStateAt(currX, currY, currZ);
+
+        return currBlock.getType() == targetBlock.getType();
     }
 }
