@@ -26,7 +26,6 @@ repositories {
             includeGroup("com.github.grimanticheat")
         }
     }
-    maven("https://repo.codemc.io/repository/nms/") // nms
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
@@ -51,10 +50,7 @@ dependencies {
 
     implementation("org.jetbrains:annotations:24.1.0")
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
-
-    forceCompileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
-    forceCompileOnly("org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT")
-    forceCompileOnly("org.spigotmc:spigot:1.8.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
 
     compileOnly("com.viaversion:viaversion-api:4.9.4-SNAPSHOT")
     compileOnly("io.netty:netty-all:4.1.85.Final")
@@ -161,10 +157,4 @@ tasks.shadowJar {
         relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
         relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
     }
-}
-
-fun DependencyHandlerScope.forceCompileOnly(dependency: String) {
-    val configuration = configurations.register(dependency.hashCode().toString())
-    configuration(dependency)
-    compileOnly(files(configuration.get().files.map { it.path }))
 }
