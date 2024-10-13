@@ -87,7 +87,7 @@ RotationPlace:
 # Vérification de no-slow basée sur la prédiction.
 # Grim tient compte des problèmes de netcode ici... difficile à tromper même en spamant le clic droit et le bouton de la main secondaire.
 # Bien plus stable que les autres anti-triche, mais veuillez signaler toute fausse détection... J'ai corrigé de nombreux problèmes de netcode ici.
-NoSlow:
+NoSlowA:
   # Quel est le niveau d'écart considéré comme "triche"
   # Par défaut, cela est inférieur à d'autres écarts.
   # Génère des avertissements avec des valeurs comprises entre 0,03 et 0,2 lors de l'utilisation de NoSlow
