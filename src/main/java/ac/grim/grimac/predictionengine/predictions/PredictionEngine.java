@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine.predictions;
 
+import ac.grim.grimac.checks.impl.movement.NoSlowMitigation;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
@@ -174,6 +175,10 @@ public class PredictionEngine {
                 player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
+            if (!player.packetStateData.isSlowedByUsingItem() && clientVelAfterInput.isFlipItem()) {
+                player.checkManager.getPostPredictionCheck(NoSlowMitigation.class).handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
             if (player.checkManager.getKnockbackHandler().shouldIgnoreForPrediction(clientVelAfterInput) ||
                     player.checkManager.getExplosionHandler().shouldIgnoreForPrediction(clientVelAfterInput)) {
                 continue;
@@ -192,7 +197,7 @@ public class PredictionEngine {
             }
 
             // Close enough, there's no reason to continue our predictions (if either kb or explosion will flag, continue searching)
-            if (bestInput < 1e-5 * 1e-5 && !player.checkManager.getKnockbackHandler().wouldFlag() && !player.checkManager.getExplosionHandler().wouldFlag()) {
+            if (bestInput < 1e-5 * 1e-5 && !player.checkManager.getKnockbackHandler().wouldFlag() && !player.checkManager.getExplosionHandler().wouldFlag() && !player.checkManager.getPostPredictionCheck(NoSlowMitigation.class).wouldFlag()) {
                 break;
             }
         }

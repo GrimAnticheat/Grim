@@ -170,6 +170,11 @@ debug-pipeline-on-join: false
 # Aktiviert experimentelle Prüfungen
 experimental-checks: false
 
+mitigate-auto-block: true
+
+mitigate-noslow: true
+mitigate-noslow-threshold: 0.001
+
 # Grim bricht manchmal illegale Pakete ab, z.B. mit Timer, nachdem X Pakete in einer Sekunde abgebrochen wurden, wann sollte
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100

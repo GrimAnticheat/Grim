@@ -173,6 +173,11 @@ debug-pipeline-on-join: false
 # Experimentele controles inschakelen
 experimental-checks: false
 
+mitigate-auto-block: true
+
+mitigate-noslow: true
+mitigate-noslow-threshold: 0.001
+
 # Grim annuleert soms illegale pakketten zoals met timer, na X pakketten in een seconde geannuleerd, wanneer moeten
 # we de speler gewoon schoppen? Dit is nodig omdat sommige pakket-begrenzers pakketten die door grim worden geannuleerd niet tellen
 packet-spam-threshold: 100

@@ -34,10 +34,7 @@ public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
-    private boolean ignoreDuplicatePacketRotation = false;
-
-    @Getter
-    private boolean experimentalChecks = false;
+    private boolean experimentalChecks, ignoreDuplicatePacketRotation, mitigateAutoBlock, mitigateNoSlow;
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -98,6 +95,8 @@ public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
         }
         experimentalChecks = config.getBooleanElse("experimental-checks", false);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
+        mitigateAutoBlock = config.getBooleanElse("mitigate-auto-block", true);
+        mitigateNoSlow = config.getBooleanElse("mitigate-noslow", true);
     }
 
     public boolean isIgnoredClient(String brand) {

@@ -52,22 +52,30 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 // Everything in this class should be sync'd to the anticheat thread.
 // Put variables sync'd to the netty thread in PacketStateData
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
+    public static final @Nullable Consumer<@NotNull Player> resetActiveBukkitItem;
+    public static final @Nullable Predicate<@NotNull Player> isUsingBukkitItem;
+
     public UUID playerUUID;
     public final User user;
     public int entityID;
@@ -730,5 +738,45 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void reload() {
         reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
+    }
+
+    public void resetBukkitItemUsage() {
+        if (resetActiveBukkitItem != null && this.isUsingBukkitItem()) {
+            this.bukkitPlayer.updateInventory();
+            resetActiveBukkitItem.accept(this.bukkitPlayer);
+        }
+    }
+
+    public boolean isUsingBukkitItem() {
+        return isUsingBukkitItem != null && this.bukkitPlayer != null && isUsingBukkitItem.test(this.bukkitPlayer);
+    }
+
+    static {
+        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
+        Method method = null;
+        try { // paper 1.16+
+            method = LivingEntity.class.getMethod("clearActiveItem");
+        } catch (NoSuchMethodException ignored) {}
+
+        resetActiveBukkitItem = method != null
+                ? LivingEntity::clearActiveItem
+                : version == ServerVersion.V_1_8_8 // import aliases in java when??
+                    ? player -> ((org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer) player).getHandle().bV()
+                    : version == ServerVersion.V_1_12_2
+                        ? player -> ((org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer) player).getHandle().cN()
+                        : null;
+
+        method = null;
+        try { // paper 1.12+
+            method = LivingEntity.class.getMethod("getActiveItem");
+        } catch (NoSuchMethodException ignored) {}
+
+        isUsingBukkitItem = method != null
+                ? player -> player.getActiveItem() != null
+                : version == ServerVersion.V_1_8_8
+                    ? player -> ((org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer) player).getHandle().bS()
+                    : version == ServerVersion.V_1_12_2
+                        ? player -> ((org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer) player).getHandle().cJ() != null
+                        : null;
     }
 }
