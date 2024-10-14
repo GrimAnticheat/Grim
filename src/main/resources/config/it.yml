@@ -81,6 +81,9 @@ PositionPlace:
 RotationPlace:
   # Livello di violazione per il piazzamento con rotazione specifica
   cancelvl: 5
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.1
 
 NoSlowA:
   # Limite per rilevare l'uso scorretto dell'oggetto

@@ -84,6 +84,9 @@ PositionPlace:
 
 RotationPlace:
   cancelvl: 5
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.1
 
 # Comprobación de NoSlow basado en predicciones
 # Grim compensa por código de red con errores aquí... difícil de sacar un falso positivo incluso haciendo spam del
