@@ -17,6 +17,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
@@ -55,7 +56,8 @@ public class FastBreakA extends Check implements PacketCheck {
         }
 
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION && targetBlock != null) {
+        // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
+        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlock != null) {
             maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, targetBlock));
         }
 
