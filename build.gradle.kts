@@ -16,7 +16,7 @@ java.targetCompatibility = JavaVersion.VERSION_17
 
 // Set to false for debug builds
 // You cannot live reload classes if the jar relocates dependencies
-var relocate = true;
+var relocate = true
 
 repositories {
     mavenLocal()
@@ -50,9 +50,9 @@ dependencies {
 
     implementation("org.jetbrains:annotations:24.1.0")
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
-    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
+
     compileOnly("com.viaversion:viaversion-api:4.9.4-SNAPSHOT")
-    //
     compileOnly("io.netty:netty-all:4.1.85.Final")
 }
 

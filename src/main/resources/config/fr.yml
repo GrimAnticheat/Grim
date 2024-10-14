@@ -169,6 +169,11 @@ debug-pipeline-on-join: false
 # Active les vérifications expérimentales
 experimental-checks: false
 
+mitigate-auto-block: true
+
+mitigate-noslow: true
+mitigate-noslow-threshold: 0.001
+
 # Grim annule parfois des paquets illégaux, comme ceux liés au chronomètre, après avoir annulé X paquets en une seconde,
 # à partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.

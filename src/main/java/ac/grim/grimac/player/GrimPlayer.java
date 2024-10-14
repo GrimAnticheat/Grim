@@ -52,22 +52,31 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 // Everything in this class should be sync'd to the anticheat thread.
 // Put variables sync'd to the netty thread in PacketStateData
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
+    public static final @Nullable Consumer<@NotNull Player> resetActiveBukkitItem;
+    public static final @Nullable Predicate<@NotNull Player> isUsingBukkitItem;
+
     public UUID playerUUID;
     public final User user;
     public int entityID;
@@ -730,5 +739,113 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void reload() {
         reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
+    }
+
+    public void resetBukkitItemUsage() {
+        if (resetActiveBukkitItem != null && this.isUsingBukkitItem()) {
+            this.bukkitPlayer.updateInventory();
+            resetActiveBukkitItem.accept(this.bukkitPlayer);
+        }
+    }
+
+    public boolean isUsingBukkitItem() {
+        return isUsingBukkitItem != null && this.bukkitPlayer != null && isUsingBukkitItem.test(this.bukkitPlayer);
+    }
+
+    static {
+        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
+        Predicate<Player> isUsingBukkitItem0 = null;
+        Consumer<Player> resetActiveBukkitItem0 = null;
+
+        try {
+            try { // paper 1.16+
+                LivingEntity.class.getMethod("clearActiveItem");
+                resetActiveBukkitItem0 = LivingEntity::clearActiveItem;
+            } catch (NoSuchMethodException ignored) {}
+
+            if (version == ServerVersion.V_1_8_8) {
+                Class<?> EntityHuman = Class.forName("net.minecraft.server.v1_8_R3.EntityHuman");
+                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer").getMethod("getHandle");
+                Method clearActiveItem = EntityHuman.getMethod("bV");
+                Method isUsingItem = EntityHuman.getMethod("bS");
+
+                resetActiveBukkitItem0 = player -> {
+                    try {
+                        clearActiveItem.invoke(getHandle.invoke(player));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+
+                isUsingBukkitItem0 = player -> {
+                    try {
+                        return (boolean) isUsingItem.invoke(getHandle.invoke(player));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+            } else if (version == ServerVersion.V_1_12_2) {
+                Class<?> EntityLiving = Class.forName("net.minecraft.server.v1_12_R1.EntityLiving");
+                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer").getMethod("getHandle");
+                Method clearActiveItem = EntityLiving.getMethod("cN");
+                Method getItemInUse = EntityLiving.getMethod("cJ");
+                Method isEmpty = Class.forName("net.minecraft.server.v1_12_R1.ItemStack").getMethod("isEmpty");
+
+                resetActiveBukkitItem0 = player -> {
+                    try {
+                        clearActiveItem.invoke(getHandle.invoke(player));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+
+                isUsingBukkitItem0 = player -> {
+                    try {
+                        var item = getItemInUse.invoke(getHandle.invoke(player));
+                        return item != null && !((boolean) isEmpty.invoke(item));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+            } else if (version == ServerVersion.V_1_16_5) {
+                Class<?> EntityLiving = Class.forName("net.minecraft.server.v1_16_R3.EntityLiving");
+                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer").getMethod("getHandle");
+                Method clearActiveItem = EntityLiving.getMethod("clearActiveItem");
+                Method getItemInUse = EntityLiving.getMethod("getActiveItem");
+                Method isEmpty = Class.forName("net.minecraft.server.v1_16_R3.ItemStack").getMethod("isEmpty");
+
+                resetActiveBukkitItem0 = player -> {
+                    try {
+                        clearActiveItem.invoke(getHandle.invoke(player));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+
+                isUsingBukkitItem0 = player -> {
+                    try {
+                        Object item = getItemInUse.invoke(getHandle.invoke(player));
+                        return item != null && !((boolean) isEmpty.invoke(item));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+            } else if (version.isNewerThanOrEquals(ServerVersion.V_1_17_1)) {
+                isUsingBukkitItem0 = player -> player.getItemInUse() != null;
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } finally {
+            resetActiveBukkitItem = resetActiveBukkitItem0;
+            isUsingBukkitItem = isUsingBukkitItem0;
+
+            if (resetActiveBukkitItem == null) {
+                LogUtil.warn("could not find method to reset item usage (are you using spigot?)");
+            }
+
+            if (isUsingBukkitItem == null) {
+                LogUtil.warn("could not find method to get item usage status (are you using an unsupported version?)");
+            }
+        }
     }
 }

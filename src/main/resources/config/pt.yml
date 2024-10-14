@@ -178,6 +178,11 @@ debug-pipeline-on-join: false
 # Habilita verificações experimentais.
 experimental-checks: false
 
+mitigate-auto-block: true
+
+mitigate-noslow: true
+mitigate-noslow-threshold: 0.001
+
 # Grim às vezes cancela pacotes ilegais como com o timer, depois de X pacotes em um segundo que foram cancelados, quando
 # deve-se simplesmente expulsar o jogador? Isso é requirido já que alguns limitadores de pacotes não contam pacotes
 # cancelados pelo Grim.

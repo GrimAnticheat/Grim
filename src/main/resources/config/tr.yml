@@ -173,6 +173,11 @@ debug-pipeline-on-join: false
 # Deneysel kontrolleri etkinleştir
 experimental-checks: false
 
+mitigate-auto-block: true
+
+mitigate-noslow: true
+mitigate-noslow-threshold: 0.001
+
 # Grim bazen timer gibi yasa dışı paketleri iptal eder; bir saniyede X paket iptal edildikten sonra, ne zaman
 # oyuncuyu basitçe atmalıyız? Bu, bazı paket sınırlayıcılarının Grim tarafından iptal edilen paketleri saymaması gerektiğindendir.
 packet-spam-threshold: 100
