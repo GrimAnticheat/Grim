@@ -51,7 +51,11 @@ public class Reach extends Check implements PacketCheck {
 
     private boolean cancelImpossibleHits;
     private double threshold;
-    private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
+
+    private double flagBufferMax = 1;
+    private double flagBufferIncrement = 1;
+    private double flagBufferDecay = 0.25;
+    private double flagBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
 
     public Reach(GrimPlayer player) {
         super(player);
@@ -130,7 +134,7 @@ public class Reach extends Check implements PacketCheck {
         if (player.compensatedEntities.getSelf().inVehicle()) return false;
 
         // Filter out what we assume to be cheats
-        if (cancelBuffer != 0) {
+        if (flagBuffer > 0) {
             return checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true) != null; // If they flagged
         } else {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
@@ -223,13 +227,13 @@ public class Reach extends Check implements PacketCheck {
         // if the entity is not exempt and the entity is alive
         if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity()) || reachEntity.getType() == EntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
-                cancelBuffer = 1;
+                flagBuffer = Math.min(flagBuffer + flagBufferIncrement, flagBufferMax);
                 return "Missed hitbox";
             } else if (minDistance > player.compensatedEntities.getSelf().getAttributeValue(Attributes.PLAYER_ENTITY_INTERACTION_RANGE)) {
-                cancelBuffer = 1;
+                flagBuffer = Math.min(flagBuffer + flagBufferIncrement, flagBufferMax);
                 return String.format("%.5f", minDistance) + " blocks";
             } else {
-                cancelBuffer = Math.max(0, cancelBuffer - 0.25);
+                flagBuffer = Math.max(0, flagBuffer - flagBufferDecay);
             }
         }
 
@@ -238,7 +242,15 @@ public class Reach extends Check implements PacketCheck {
 
     @Override
     public void onReload(ConfigManager config) {
-        this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
-        this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
+        this.cancelImpossibleHits = config.getBooleanElse(getConfigName() + ".block-impossible-hits", true);
+        this.threshold = config.getDoubleElse(getConfigName() + ".threshold", 0.0005);
+
+        this.flagBufferMax = config.getDoubleElse(getConfigName() + ".flag-buffer-max", 1);
+        this.flagBufferIncrement = config.getDoubleElse(getConfigName() + ".flag-buffer-increment", 1);
+        this.flagBufferDecay = config.getDoubleElse(getConfigName() + ".flag-buffer-decay", 0.25);
+
+        if (this.flagBufferMax == -1) {
+            this.flagBufferMax = Double.MAX_VALUE;
+        }
     }
 }

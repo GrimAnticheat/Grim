@@ -161,6 +161,9 @@ Reach:
   # Dejar esto deshabilitado también encontrara a jugadores haciendo trampa y no causara falsos positivos.
   # Excepto que seas un servidor 1.8 enfocado en el PvP, este paquete adicional no es recomendado.
   enable-post-packet: false
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.25
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
