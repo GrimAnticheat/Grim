@@ -52,7 +52,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -767,9 +766,12 @@ public class GrimPlayer implements GrimUser {
             resetActiveBukkitItem0 = method != null ? LivingEntity::clearActiveItem : null;
 
             method = null;
-            try { // paper 1.12+
-                method = LivingEntity.class.getMethod("getActiveItem");
-            } catch (NoSuchMethodException ignored) {}
+            // this method exists on paper 1.12, but the item is empty instead of null
+            if (version != ServerVersion.V_1_12_2) {
+                try { // paper 1.16+
+                    method = LivingEntity.class.getMethod("getActiveItem");
+                } catch (NoSuchMethodException ignored) {}
+            }
 
             isUsingBukkitItem0 = method != null ? player -> player.getActiveItem() != null : null;
 
@@ -803,6 +805,7 @@ public class GrimPlayer implements GrimUser {
                 Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer").getMethod("getHandle");
                 Method resetActiveItem = EntityLiving.getMethod("cN");
                 Method getItemInUse = EntityLiving.getMethod("cJ");
+                Method isEmpty = Class.forName("net.minecraft.server.v1_12_R1.ItemStack").getMethod("isEmpty");
 
                 if (resetActiveBukkitItem0 == null) {
                     resetActiveBukkitItem0 = player -> {
@@ -814,15 +817,14 @@ public class GrimPlayer implements GrimUser {
                     };
                 }
 
-                if (isUsingBukkitItem0 == null) {
-                    isUsingBukkitItem0 = player -> {
-                        try {
-                            return getItemInUse.invoke(getHandle.invoke(player)) != null;
-                        } catch (IllegalAccessException | InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-                    };
-                }
+                isUsingBukkitItem0 = player -> {
+                    try {
+                        Object item = getItemInUse.invoke(getHandle.invoke(player));
+                        return item != null && !((boolean) isEmpty.invoke(item));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
             }
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException(e);
