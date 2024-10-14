@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -89,8 +90,7 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        exemptBreaking = getConfig().getBooleanElse(getConfigName() + ".exempt-breaking", false);
+    public void onReload(ConfigManager config) {
+        exemptBreaking = config.getBooleanElse(getConfigName() + ".exempt-breaking", false);
     }
 }
