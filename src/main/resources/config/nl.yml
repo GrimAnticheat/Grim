@@ -83,6 +83,9 @@ PositionPlace:
 
 RotationPlace:
   cancelvl: 5
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.1
 
 # Op voorspelling gebaseerde NoSlow-controle
 # Grim is verantwoordelijk voor buggy netcode hier... moeilijk om vals te spelen, zelfs als je met rechts klikt en de offhand-knop spamt

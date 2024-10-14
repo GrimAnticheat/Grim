@@ -83,6 +83,9 @@ PositionPlace:
 
 RotationPlace:
   cancelvl: 5
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.1
 
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
