@@ -99,14 +99,19 @@ public class PacketEntity extends TypedPacketEntity {
     }
 
     public void setAttribute(Attribute attribute, double value) {
-        ValuedAttribute property = getAttribute(attribute).orElse(null);
-        if (property == null) throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+        ValuedAttribute property = attributeMap.get(attribute);
+        if (property == null) {
+            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+        }
         property.override(value);
     }
 
     public double getAttributeValue(Attribute attribute) {
-        return getAttribute(attribute).map(ValuedAttribute::get)
-                .orElseThrow(() -> new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!"));
+        final ValuedAttribute property = attributeMap.get(attribute);
+        if (property == null) {
+            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+        }
+        return property.get();
     }
 
     public void resetAttributes() {
