@@ -13,7 +13,6 @@ import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 @CommandAlias("grim|grimac")
 public class GrimProfile extends BaseCommand {
@@ -21,12 +20,10 @@ public class GrimProfile extends BaseCommand {
     @CommandPermission("grim.profile")
     @CommandCompletion("@players")
     public void onConsoleDebug(CommandSender sender, OnlinePlayer target) {
-        Player player = null;
-        if (sender instanceof Player) player = (Player) sender;
-
         // Short circuit due to minimum java requirements for MultiLib
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(target.getPlayer())) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
+            alertString = MessageUtil.replacePlaceholders(sender, alertString);
             MessageUtil.sendMessage(sender, MessageUtil.miniMessage(alertString));
             return;
         }
@@ -34,12 +31,13 @@ public class GrimProfile extends BaseCommand {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getPlayer());
         if (grimPlayer == null) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!");
+            message = MessageUtil.replacePlaceholders(sender, message);
             MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
             return;
         }
 
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
-            message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(grimPlayer, message, false);
+            message = MessageUtil.replacePlaceholders(grimPlayer, message);
             MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
         }
     }
