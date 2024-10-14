@@ -19,26 +19,12 @@ public class FarBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.compensatedEntities.getSelf().inVehicle()) return; // falses
-
-        double x = player.x;
-        double y = player.y;
-        double z = player.z;
-
-        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            if (blockBreak.isWeirdCancel) {
-                return;
-            }
-
-            x = player.lastX;
-            y = player.lastY;
-            z = player.lastZ;
-        }
+        if (player.compensatedEntities.getSelf().inVehicle() || blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
 
         double min = Double.MAX_VALUE;
         for (double d : player.getPossibleEyeHeights()) {
             SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
-            Vector eyes = new Vector(x, y + d, z);
+            Vector eyes = new Vector(player.x, player.y + d, player.z);
             Vector best = VectorUtils.cutBoxToVector(eyes, box);
             min = Math.min(min, eyes.distanceSquared(best));
         }
