@@ -13,16 +13,15 @@ public class GrimReload extends BaseCommand {
     @Subcommand("reload")
     @CommandPermission("grim.reload")
     public void onReload(CommandSender sender) {
-        //reload config
-        sender.sendMessage(MessageUtil.format("%prefix% &7Reloading config..."));
+        // reload config
+        String reloading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reloading", "%prefix% &7Reloading config...");
+        MessageUtil.sendMessage(sender, MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, reloading)));
         GrimAPI.INSTANCE.getExternalAPI().reloadAsync().exceptionally(throwable -> false)
                 .thenAccept(bool -> {
-                    if (bool) {
-                        sender.sendMessage(MessageUtil.format("%prefix% &fConfig has been reloaded."));
-                    } else {
-                        sender.sendMessage(MessageUtil.format("%prefix% &cFailed to reload config."));
-                    }
+                    String message = bool
+                            ? GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reloaded", "%prefix% &fConfig has been reloaded.")
+                            : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reload-failed", "%prefix% &cFailed to reload config.");
+                    MessageUtil.sendMessage(sender, MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, message)));
                 });
     }
-
 }

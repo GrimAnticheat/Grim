@@ -96,17 +96,16 @@ public class PunishmentManager implements ConfigReloadable {
         // Streams are slow but this isn't a hot path... it's fine.
         String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
 
-        original = MessageUtil.format(original
+        original = original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
                 .replace("%check_name%", check.getCheckName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", vl)
                 .replace("%verbose%", verbose)
-                .replace("%description%", check.getDescription())
-        );
+                .replace("%description%", check.getDescription());
 
-        original = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, original, true);
+        original = MessageUtil.replacePlaceholders(player, original);
 
         return original;
     }
@@ -127,10 +126,10 @@ public class PunishmentManager implements ConfigReloadable {
                     if (GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().size() > 0 && command.command.equals("[alert]")) {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            bukkitPlayer.sendMessage(cmd);
+                            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(cmd));
                         }
                         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("verbose.print-to-console", false)) {
-                            LogUtil.console(cmd); // Print verbose to console
+                            LogUtil.console(MessageUtil.miniMessage(cmd)); // Print verbose to console
                         }
                     }
 
@@ -154,7 +153,7 @@ public class PunishmentManager implements ConfigReloadable {
                                 if (command.command.equals("[alert]")) {
                                     sentDebug = true;
                                     if (testMode) { // secret test mode
-                                        player.user.sendMessage(cmd);
+                                        player.user.sendMessage(MessageUtil.miniMessage(cmd));
                                         continue;
                                     }
                                     cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix

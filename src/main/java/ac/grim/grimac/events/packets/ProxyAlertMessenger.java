@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -59,7 +60,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         }
 
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            bukkitPlayer.sendMessage(alert);
+            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(alert));
     }
 
     public static void sendPluginMessage(String message) {
