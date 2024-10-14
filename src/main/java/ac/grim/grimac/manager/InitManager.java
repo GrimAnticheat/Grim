@@ -8,11 +8,16 @@ import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
+import lombok.Getter;
 
 public class InitManager {
-    ClassToInstanceMap<Initable> initializersOnLoad;
-    ClassToInstanceMap<Initable> initializersOnStart;
-    ClassToInstanceMap<Initable> initializersOnStop;
+    private final ClassToInstanceMap<Initable> initializersOnLoad;
+    private final ClassToInstanceMap<Initable> initializersOnStart;
+    private final ClassToInstanceMap<Initable> initializersOnStop;
+
+    @Getter private boolean loaded = false;
+    @Getter private boolean started = false;
+    @Getter private boolean stopped = false;
 
     public InitManager() {
         initializersOnLoad = new ImmutableClassToInstanceMap.Builder<Initable>()
@@ -20,6 +25,7 @@ public class InitManager {
                 .build();
 
         initializersOnStart = new ImmutableClassToInstanceMap.Builder<Initable>()
+                .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
                 .put(ExemptOnlinePlayers.class, new ExemptOnlinePlayers())
                 .put(EventManager.class, new EventManager())
                 .put(PacketManager.class, new PacketManager())
@@ -31,7 +37,6 @@ public class InitManager {
                 .put(PacketLimiter.class, new PacketLimiter())
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
-                .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
                 .put(JavaVersion.class, new JavaVersion())
                 .build();
 
@@ -44,17 +49,20 @@ public class InitManager {
         for (Initable initable : initializersOnLoad.values()) {
             initable.start();
         }
+        loaded = true;
     }
 
     public void start() {
         for (Initable initable : initializersOnStart.values()) {
             initable.start();
         }
+        started = true;
     }
 
     public void stop() {
         for (Initable initable : initializersOnStop.values()) {
             initable.start();
         }
+        stopped = true;
     }
 }

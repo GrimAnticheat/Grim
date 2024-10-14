@@ -1,32 +1,30 @@
-# %check_name% - 检查名称
-# %description% - 检查的介绍
-# %vl% - 违规
-# %verbose% - 额外信息
-# %player% - 玩家名字
-# [alert] - 警告的特殊命令
-# [webhook] - 警告discord webhook 的特殊命令
-# [proxy] - 用于使用(BungeeCord/Velocity)服务器时的警报
+# %check_name% - Kontrolün ismi
+# %description% - Kontrolün açıklaması
+# %vl% - Yapılan ihlaller
+# %verbose% - Ekstra bilgilendirme
+# %player% - Oyuncu ismi
+# [alert] - Uyarılar için bunu kullanın
+# [webhook] - Discord webhook için bunu kullanın
+# [proxy] - Proxy'nize bağlı diğer sunuculara uyarı göndermek için bunu kullanın (BungeeCord/Velocity)
 Punishments:
   Simulation:
-    # 多少秒后重置VL
+    # Kaç saniye sonra ihlaller kaldırılsın?
     remove-violations-after: 300
-    # 这个部分将会匹配检查的名字
-    # 要关闭掉一个检查就在检查前面加感叹号
-    # 例如, !BadPacketsN
+    # Bu bölüm, aşağıdaki adlara sahip tüm kontrollerle eşleşecektir,
+    # Aksi takdirde eşleşecek bir denetimi hariç tutmak için, isminin önüne ünlem işareti koyun
+    # Örnek olarak, !BadPacketsN
     checks:
       - "Simulation"
       - "GroundSpoof"
       - "Timer"
       - "NoFall"
-    # 最大vl:下一次执行需要的vl
+    # Eşik:Aralık Komutu
     #
-    # 这是个例子, 当到达100VL时为了以 "incorrect movement!" 为理由踢出玩家
-    # commands:
-    # - "100:0 kick %player% incorrect movement!"
-    # 后面的数如果使用0就代表只执行一次
-    # - "100:50 say %player% is cheating"
-    # 在100vl后执行say %player% is cheating,之后的每50vl都执行一次say %player% is cheating
-    #
+    # Örnek: 100 ihlalde "yanlış hareket!" mesajıyla oyuncuyu atmak için, aralık komutu olmadan:
+    # - "100:0 kick %player% Yanlış hareket!"
+    # 0, tam olarak bir kez çalıştırılmasını ifade eder
+    # - "100:50 say %player% Hile yapıyor!"
+    # Kullanıcı 100 işaretine ulaştığında çalışır ve bundan sonra, 100'ün üzerindeki her 50. işarette çalışır
     commands:
       - "100:40 [alert]"
       - "100:100 [webhook]"
@@ -85,7 +83,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # Grim2.0.10版本 没有连点器检查，Grim将在未来添加
+  # 2.2.10 itibarıyla, AutoClicker denetimleri yoktur ve bu bir yer tutucudur. Grim, gelecekte AutoClicker denetimlerini dahil edecektir.
   Autoclicker:
     remove-violations-after: 300
     checks:

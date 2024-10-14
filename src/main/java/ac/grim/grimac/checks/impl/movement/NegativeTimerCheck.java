@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -35,8 +36,7 @@ public class NegativeTimerCheck extends TimerCheck implements PostPredictionChec
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        clockDrift = (long) (getConfig().getDoubleElse(getConfigName() + ".drift", 1200.0) * 1e6);
+    public void onReload(ConfigManager config) {
+        clockDrift = (long) (config.getDoubleElse(getConfigName() + ".drift", 1200.0) * 1e6);
     }
 }

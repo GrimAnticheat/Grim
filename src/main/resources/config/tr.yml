@@ -1,0 +1,192 @@
+# GrimAC ana konfigrasyon dosyası
+# Kaynak kodu: https://github.com/MWHunter/Grim
+# Telif Hakkı 2024 DefineOutside ve katkıda bulunanlar, GPLv3 altında lisanslanmıştır.
+# Değiştirilmiş ikili dosyalar veya kopyalanmış grim kodlu eklentiler özel olmalıdır,
+# veya ek ücret ödemeden alıcılara sunulan tam kaynak kodu ile.
+
+alerts:
+  # Oyunculara uyarı yayınlamanın yanı sıra, uyarılar konsola da gönderilmeli mi?
+  print-to-console: true
+  # Bu, uyarıların proxy'nize bağlı sunucular arasında paylaşılıp paylaşılmayacağını/nasıl paylaşılacağını kontrol eder.
+  # Velocity kullanılıyorsa, Velocity yapılandırmanızda 'bungee-plugin-message-channel' etkinleştirilmiş olmalıdır.
+  proxy:
+    # Proxy'nize bağlı diğer sunuculara uyarılar gönderilmeli mi?
+    send: false
+    # Diğer sunuculardan alınan uyarılar bu sunucuya duyurulmalı mı?
+    receive: false
+
+verbose:
+  print-to-console: false
+
+client-brand:
+  # Bu, giriş yapılan clientin aşağıdaki regex'lerle eşleşmesi durumunda markalarını operatörlere yayınlamayacağı anlamına gelir
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+    - "^Feather Fabric$"
+
+spectators:
+  # Seyirciler aktif olarak izliyor olsalar bile, grim.spectator iznine sahip tüm seyircileri gizle
+  hide-regardless: false
+  # Sadece bu dünyalarda seyircileri gizleyecek, tüm dünyalara izin vermek için boş bırakın
+  allowed-worlds:
+    - ""
+
+# Oyuncuların zaman aşımından dolayı sunucudan atılmadan önce ne kadar süreleri olmalı? Varsayılan = 60 saniye
+max-transaction-time: 60
+
+# Kopya hareket paketinin iptal edilip edilmemesi gerektiği
+# Mojang bu sorunu 1.21'de çözdü. Bu, "kova senkronizasyonu" sorununu düzeltme girişimiydi. https://bugs.mojang.com/browse/MC-12363
+# Bu ayar yalnızca 1.17-1.20.5 istemcileri için 1.8 sunucularında geçerlidir.
+cancel-duplicate-packet: true
+
+# Eşya çoğaltma paketlerindeki rotayı göz ardı edip etmeyeceğimiz
+ignore-duplicate-packet-rotation: false
+
+Simulation:
+  # Oyuncu meşru olduğunda toplam avantajı ne kadar çarpmalıyız?
+  # Varsayılan yapılandırma bu şekilde görünür (x ekseni = saniye, y ekseni = 1/1000 blok): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # Oyuncunun hareketinden ne kadar büyük bir sapma ihlal oluşturmalıyız?
+  # Mümkün olan hareketten blok cinsinden ölçülür
+  # Optifine için trig tablolarını değiştirerek hesaba katıyoruz, ancak bunu 0.001'e düşürmek FastMath'ı azaltır
+  # Bu telafi işe yaramazsa anticheat'i işaretle...
+  threshold: 0.001
+  # Bir tik içinde ne kadar büyük bir ihlal olmalı ki oyuncu hemen geri dönsün?
+  # Devre dışı bırakmak için -1 yazın
+  immediate-setback-threshold: 0.1
+  # Tüm tikler boyunca ne kadar büyük bir avantaja sahip olmalıyız ki geri dönüş yapmaya başlayalım?
+  # Devre dışı bırakmak için -1 yazın
+  max-advantage: 1
+  # Varsayılan config ile 50 saniye sonra, oyuncu 4 bloktan -> 1 bloğa kadar avantaj kazanır
+  # Bu, oyuncunun çok fazla ihlal biriktirmesini ve bunların hepsini temizleyememesini önlemek içindir
+  # Varsayılan avantaj tavanı (x ekseni = saniye, y ekseni = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# Bir oyuncunun bir hareket sırasında bir bloğa girip girmediğini kontrol eder
+Phase:
+  setbackvl: 1 # Blokların içinde glitch yapmak duvara tırmanmaya izin verebilir, ayrıca bu kontrol nispeten stabildir
+  decay: 0.005
+
+AirLiquidPlace:
+  cancelvl: 0
+
+FabricatedPlace:
+  cancelvl: 5
+
+FarPlace:
+  cancelvl: 5
+
+PositionPlace:
+  cancelvl: 5
+
+RotationPlace:
+  cancelvl: 5
+
+# Tahmin tabanlı yavaşlama kontrolü
+# Grim burada hatalı ağ kodunu dikkate alır... sağ tıklama ve el yan tuşunu spam yapsanız bile yanlış pozitiflik oluşturması zordur
+# Diğer anti-hilelerden çok daha stabil, ancak herhangi bir yanlış pozitif rapor edin... burada birçok ağ kodu sorununu çözdüm.
+NoSlowA:
+  # Ne kadar bir sapma "hile" olarak kabul edilir?
+  # Varsayılan olarak bu, diğer sapmalardan daha düşüktür
+  # NoSlow açıkken 0.03-0.2 aralığında sürekli olarak uyarı verir
+  threshold: 0.001
+  # NoSlow'un sağladığı avantajı ortadan kaldırmak için ilk itemi hızlı bir şekilde geri alın
+  setbackvl: 5
+  # Oyuncu bir eşya kullandığında VE onun tarafından yavaşlatıldığında beklenilen zaman
+  decay: 0.05
+
+Knockback:
+  # Oyuncu legit olduğunda toplam avantajı ne kadarla çarpmalıyız
+  setback-decay-multiplier: 0.999
+  # Oyuncunun hızından ne kadar büyük bir sapma ihlal oluşturmalıyız?
+  # Mümkün olan hızdan blok cinsinden ölçülür
+  threshold: 0.001
+  # Bir tik içinde ne kadar büyük bir ihlal olmalı ki oyuncu hemen geri dönsün?
+  # Devre dışı bırakmak için -1 yazın
+  immediate-setback-threshold: 0.1
+  # Tüm tikler boyunca ne kadar büyük bir avantaja sahip olmalıyız ki geri dönüş yapmaya başlayalım?
+  # Devre dışı bırakmak için -1 yazın
+  max-advantage: 1
+  # Bu, oyuncunun çok fazla ihlal toplamasını ve asla hepsini temizleyememesini engellemek içindir
+  max-ceiling: 4
+
+Explosion:
+  threshold: 0.001
+  setbackvl: 3
+
+TimerA:
+  setbackvl: 10
+  # Oyuncunun geri kaldığında biriktirebileceği milisaniye miktarı
+  # Çok yüksek ayarlandığında 1.8 hızlı kullanma/hızlı iyileşme/hızlı yay atlama durumlarına izin verebilir, 120 ms iyi bir denge gibi görünüyor
+  drift: 120
+  # Kontrolün zamanlayıcı dengesini sınırlamaya başlayacağı ping değeri, kötüye kullanımı önlemek için.
+  # Bu, yalnızca bu ping eşiğini aşan meşru oyuncular için bazı geri dönüşlere neden olabilir.
+  # Devre dışı bırakmak için -1 yazın
+  ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+  # Uyarı vermeye başlamadan önce hareket halindeyken kaybedilen milisaniye sayısı
+  drift: 1200
+
+  # TimerA ile aynı kontrol yöntemi, ancak araçlar için
+TimerVehicle:
+  # Hedef 1.005 timer
+  setbackvl: 10
+
+EntityControl:
+  setbackvl: 25
+
+Reach:
+  # Hitbox'ları ne kadar genişletmeliyiz? 0.0005, 3.0005+ menzili tespit etmelidir
+  #
+  # 1.9-1.18.1 (1.18.2 değil) ile zorunlu olarak 0.03 genişletme vardır veya bazı istemci/sunucu kombinasyonları nedeniyle
+  # protokol değişiklikleri ve sınırlamaları nedeniyle. Bu kontrol, 1.7/1.8 istemcilerle 1.8 sunucularda en güçlüdür.
+  threshold: 0.0005
+  # İmkansız olduğunu bildiğimiz vuruşları iptal etmeli miyiz?
+  # Paket sırası sınırlamaları nedeniyle 3.00-3.03 arası vuruşlar gerçekleşebilir, ancak yine de işaretlenebilir
+  block-impossible-hits: true
+  # Bu, hileleri yakalama olasılığını artırmak için her tikin sonunda ek bir paket gönderecektir
+  # Bu, sunucunun bağlantı listesine enjekte edilerek sunucu boşaltmadan hemen önce son bir paket göndermek için yapılır
+  # Bunu etkinleştirmek, tüm oyuncular için bant genişliği kullanımını artıracaktır
+  # Bu, genel sunucu performansını düşürmez
+  # Bunu etkinleştirmek, daha fazla hilecinin yakalanmasını sağlar
+  # Bu özellik devre dışı bırakılsa bile hileciler yakalanır ve yanlış pozitifler oluşmaz
+  # 1.8 PvP odaklı bir sunucu değilseniz, bu ek paket önerilmez
+  enable-post-packet: false
+
+exploit:
+  # Elytra ile sprint zıplarken yüksek hızlar kazanabilirsiniz, bu ayar false olarak ayarlandığında bu istismarı önler
+  # Mojang, elytra'nın istemci tarafında başlamasını ve sunucu tarafında bitmesini sağlayarak netcode'u bozdu
+  # Elytra'lar 0.99 yatay sürtünme alır, bu yüzden sürekli olarak 0.2 yatay hız eklemek çok yüksek hızlara yol açar
+  allow-sprint-jumping-when-using-elytra: true
+  # Bu seçenek, oyuncunun hayalet bloklar üzerindeki yerleşimini, gerçekleştiğinde oyuncuyu yeniden senkronize ederek hafifletir
+  allow-building-on-ghostblocks: true
+  # Bu ayar, yukarıdaki boolean ile etkilenen hayalet blokları kontrol etmek için mesafeyi tanımlar
+  # Geçerli aralığı 2 ile 4 arasında sınırlıdır
+  distance-to-check-if-ghostblocks: 2
+
+# Netty'ye enjekte olan eklentileri giriş sırasında günlüklemeyi etkinleştirerek uyumluluk sorunlarını gider
+debug-pipeline-on-join: false
+
+# Deneysel kontrolleri etkinleştir
+experimental-checks: false
+
+# Grim bazen timer gibi yasa dışı paketleri iptal eder; bir saniyede X paket iptal edildikten sonra, ne zaman
+# oyuncuyu basitçe atmalıyız? Bu, bazı paket sınırlayıcılarının Grim tarafından iptal edilen paketleri saymaması gerektiğindendir.
+packet-spam-threshold: 100
+
+# Grim, uçma durumundan çıkmış bir oyuncunun X milisaniyeden fazla ping'e sahip olamayacağını uygulayabilir
+# Bu, Grim'in şu anda uçan oyuncuları kontrol etmemesindendir
+# Devre dışı bırakmak için -1 yazın
+max-ping-out-of-flying: 1000
+
+# Bir havai fişek ivmesi oyuncudan çıkarıldığında maksimum ping.
+# Bu, yüksek gecikmeli oyuncuların bir havai fişek ivmesini elytra ile sonsuza kadar kullanmalarını engeller.
+max-ping-firework-boost: 1000
+
+config-version: 9
+
+# Translated by Kayera
+# Have a nice day :)

@@ -4,7 +4,10 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -21,7 +24,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
 
     private boolean lastBlockWasInstantBreak = false;
     private Vector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
-    private final int exemptedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
+    private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
 
     // The client sometimes sends a wierd cancel packet
     private boolean shouldExempt(final Vector3i pos) {
@@ -33,16 +36,8 @@ public class BadPacketsZ extends Check implements PacketCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) && pos.y != exemptedY)
             return false;
 
-        // the client only sends this packet if the last block was an instant break
-        if (getBlockDamage(player, lastBlock) < 1)
-            return false;
-
         // and if this block is not an instant break
         return player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || getBlockDamage(player, pos) < 1;
-    }
-
-    private String formatted(Vector3i vec) {
-        return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
     public void handle(PacketReceiveEvent event, WrapperPlayClientPlayerDigging dig) {
@@ -59,7 +54,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
             final Vector3i pos = dig.getBlockPosition();
 
             if (shouldExempt(pos)) {
-                lastCancelledBlock = null;
+                lastCancelledBlock = pos;
                 lastLastBlock = null;
                 lastBlock = null;
                 return;
@@ -68,7 +63,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
             if (!pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
+                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
                         if (shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -89,7 +84,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
             if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
-                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + formatted(lastBlock) + ", pos=" + formatted(pos))) {
+                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();

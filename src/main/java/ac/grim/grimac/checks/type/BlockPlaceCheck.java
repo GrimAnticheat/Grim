@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.type;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -14,7 +15,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockPlaceCheck extends Check implements RotationCheck {
+public class BlockPlaceCheck extends Check implements RotationCheck, PostPredictionCheck {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
 
@@ -33,9 +34,8 @@ public class BlockPlaceCheck extends Check implements RotationCheck {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        this.cancelVL = getConfig().getIntElse(getConfigName() + ".cancelVL", 5);
+    public void onReload(ConfigManager config) {
+        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
     }
 
     protected boolean shouldCancel() {

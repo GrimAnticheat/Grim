@@ -23,6 +23,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import org.bukkit.Bukkit;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
@@ -103,7 +104,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         // The client and server don't agree on trident status because mojang is incompetent at netcode.
-        if (material == ItemTypes.TRIDENT && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13_2) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
+        if (material == ItemTypes.TRIDENT
+                && item.getDamageValue() < item.getMaxDamage() - 1 // Player can't use item if it's "about to break"
+                && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13_2)
+                || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
             player.packetStateData.setSlowedByUsingItem(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0);
             player.packetStateData.eatingHand = hand;
         }
@@ -171,7 +175,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player == null) return;
 
             if (!player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected) {
+                if (player.packetStateData.isSlowedByUsingItem() && player.packetStateData.eatingHand != InteractionHand.OFF_HAND && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected) {
                     player.packetStateData.setSlowedByUsingItem(false);
                     player.checkManager.getPostPredictionCheck(NoSlowA.class).didSlotChangeLastTick = true;
                 }
@@ -192,7 +196,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (player.packetStateData.lastSlotSelected != slot) {
                 // just assume they tick after this
-                if (!player.isTickingReliablyFor(3) && player.skippedTickInActualMovement) {
+                if (!player.isTickingReliablyFor(3) && player.skippedTickInActualMovement && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
                     player.packetStateData.setSlowedByUsingItem(false);
                 }
             }
