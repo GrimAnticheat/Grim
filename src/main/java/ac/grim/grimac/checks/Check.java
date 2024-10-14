@@ -110,12 +110,11 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
         violations = Math.max(0, violations - decay);
     }
 
-
     @Override
     public void reload(ConfigManager configuration) {
         decay = configuration.getDoubleElse(configName + ".decay", decay);
         setbackVL = configuration.getDoubleElse(configName + ".setbackvl", setbackVL);
-        displayName = getConfig().getStringElse(configName + ".displayname", checkName);
+        displayName = configuration.getStringElse(configName + ".displayname", checkName);
       
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
         updateExempted();
