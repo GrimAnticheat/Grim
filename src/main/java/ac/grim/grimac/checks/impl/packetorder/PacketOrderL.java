@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
@@ -33,8 +34,9 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
 
             switch (packet.getAction()) {
                 case START_DIGGING:
-                    if (BlockBreakSpeed.getBlockDamage(player, packet.getBlockPosition()) >= 1) {
-                        return; // can false on insta-break blocks
+                    double damage = BlockBreakSpeed.getBlockDamage(player, packet.getBlockPosition());
+                    if (damage >= 1 || damage <= 0 && player.gamemode == GameMode.CREATIVE) {
+                        return; // can false on insta-break blocks, and unbreakable blocks in creative mode
                     }
                 case CANCELLED_DIGGING:
                 case FINISHED_DIGGING:
