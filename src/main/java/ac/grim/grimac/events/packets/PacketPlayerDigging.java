@@ -220,13 +220,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             final ItemStack item = hand == InteractionHand.MAIN_HAND ?
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
-            final boolean wasSlow = player.packetStateData.isSlowedByUsingItem();
-
             handleUseItem(player, item, hand);
-
-            if (!wasSlow) {
-                player.checkManager.getPostPredictionCheck(NoSlowD.class).startedSprintingBeforeUse = player.packetStateData.isSlowedByUsingItem() && player.isSprinting;
-            }
         }
     }
 }
