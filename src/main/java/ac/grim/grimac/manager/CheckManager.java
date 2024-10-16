@@ -1,6 +1,5 @@
 package ac.grim.grimac.manager;
 
-
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
@@ -42,8 +41,13 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
+import org.bukkit.Bukkit;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 
 public class CheckManager {
+    private static boolean inited;
+
     ClassToInstanceMap<PacketCheck> packetChecks;
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
@@ -172,6 +176,8 @@ public class CheckManager {
                 .putAll(blockPlaceCheck)
                 .putAll(prePredictionChecks)
                 .build();
+
+        init();
     }
 
     @SuppressWarnings("unchecked")
@@ -323,5 +329,18 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends PostPredictionCheck> T getPostPredictionCheck(Class<T> check) {
         return (T) postPredictionCheck.get(check);
+    }
+
+    private void init() {
+        if (inited) return;
+
+        for (AbstractCheck check : allChecks.values()) {
+            if (check.getCheckName() != null) {
+                Permission permission = new Permission("grim.exempt." + check.getCheckName().toLowerCase(), PermissionDefault.FALSE);
+                Bukkit.getPluginManager().addPermission(permission);
+            }
+        }
+
+        inited = true;
     }
 }
