@@ -53,6 +53,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,6 +201,8 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockPlaceUseItem = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
+    // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
+    public double[][] possibleEyeHeights = new double[3][];
 
     public void onPacketCancel() {
         if (spamThreshold != -1 && cancelledPackets.incrementAndGet() > spamThreshold) {
@@ -241,6 +244,21 @@ public class GrimPlayer implements GrimUser {
         packetStateData = new PacketStateData();
 
         uncertaintyHandler.collidingEntities.add(0);
+
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+            final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
+            possibleEyeHeights[2] = new double[]{0.4 * scale, 1.62 * scale, 1.27 * scale}; // Elytra, standing, sneaking (1.14)
+            possibleEyeHeights[1] = new double[]{1.27 * scale, 1.62 * scale, 0.4 * scale}; // sneaking (1.14), standing, Elytra
+            possibleEyeHeights[0] = new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytra
+
+        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
+            possibleEyeHeights[2] = new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.13)
+            possibleEyeHeights[1] = new double[]{1.54, 1.62, 0.4}; // sneaking (1.9-1.13), standing, Elytra
+            possibleEyeHeights[0] = new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.9-1.13), Elytra
+        } else {
+            possibleEyeHeights[1] = new double[]{(double) (1.62f - 0.08f), (double) (1.62f)}; // sneaking, standing
+            possibleEyeHeights[0] = new double[]{(double) (1.62f), (double) (1.62f - 0.08f)}; // standing, sneaking
+        }
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -559,14 +577,23 @@ public class GrimPlayer implements GrimUser {
         return checkManager.getInventory();
     }
 
-    public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
-            final float scale = (float) compensatedEntities.getSelf().getAttributeValue(Attributes.GENERIC_SCALE);
-            return Arrays.asList(0.4 * scale, 1.27 * scale, 1.62 * scale);
-        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
-            return Arrays.asList(0.4, 1.54, 1.62);
-        } else { // Only sneaking or standing
-            return Arrays.asList((double) (1.62f - 0.08f), (double) (1.62f));
+    public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
+        // 1.8 Players once again ruin my clean switch-case
+        if (this.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+            return this.isSneaking ? this.possibleEyeHeights[1] : this.possibleEyeHeights[0];
+        } else {
+            // 1.8 players just have their pose set to standing all the time
+            switch (pose) {
+                case FALL_FLYING: // Elytra gliding
+                case SPIN_ATTACK: // Riptide trident
+                case SWIMMING: // Swimming (includes crawling in 1.14+)
+                    return this.possibleEyeHeights[2]; // [swimming/gliding/riptide height, standing height, sneaking height]
+                case NINE_CROUCHING:
+                case CROUCHING:
+                    return this.possibleEyeHeights[1]; // [sneaking height, standing height, swimming/gliding/riptide height]
+                default:
+                    return this.possibleEyeHeights[0]; // [standing height, sneaking height, swimming/gliding/riptide height]
+            }
         }
     }
 
