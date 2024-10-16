@@ -38,6 +38,7 @@ public class InitManager {
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
                 .put(JavaVersion.class, new JavaVersion())
+                .put(ViaVersion.class, new ViaVersion())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
