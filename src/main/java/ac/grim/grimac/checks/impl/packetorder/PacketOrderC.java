@@ -76,6 +76,7 @@ public class PacketOrderC extends Check implements PacketCheck {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
+                sentInteractAt = false;
             }
         }
     }
