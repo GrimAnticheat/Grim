@@ -84,10 +84,7 @@ public class PacketOrderC extends Check implements PacketCheck {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             if (sentInteractAt) {
                 sentInteractAt = false;
-                if (flagAndAlert("Skipped Interact (Tick)") && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+                flagAndAlert("Skipped Interact (Tick)");
             }
         }
     }
