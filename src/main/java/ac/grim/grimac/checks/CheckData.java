@@ -22,4 +22,6 @@ public @interface CheckData {
 
     boolean experimental() default false;
 
+    CheckType checkType();
+
 }

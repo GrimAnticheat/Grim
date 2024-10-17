@@ -2,12 +2,13 @@ package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "CrashA")
+@CheckData(name = "CrashA", checkType = CheckType.PACKETS)
 public class CrashA extends Check implements PacketCheck {
     private static final double HARD_CODED_BORDER = 2.9999999E7D;
 
