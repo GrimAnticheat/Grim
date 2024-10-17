@@ -1,0 +1,94 @@
+# %check_name% - チェックの名前
+# %description% - チェックの説明
+# %vl% - 違反回数
+# %verbose% - 追加情報
+# %player% - プレイヤー名
+# [alert] - アラートを通知する特別なコマンド
+# [webhook] - DiscordのWebhookに通知する特別なコマンド
+# [proxy] - プロキシに接続されている他のサーバーに通知する特別なコマンド（BungeeCord/Velocity）
+処罰:
+  Simulation:
+    # 何秒後に違反を削除しますか？
+    remove-violations-after: 300
+    # このセクションでは、すべてのチェックを名前で一致させます。
+    # それ以外の場合、チェックを除外するには、名前の前に感嘆符を付けます。
+    # 例として、!BadPacketsN
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "NoFall"
+    # しきい値:間隔 コマンド
+    #
+    # 例として、100回の違反(違反のチェック間隔無し)後に「incorrect movement!」というメッセージでプレイヤーをキックする場合
+    # commands:
+    # - "100:0 kick %player% incorrect movement!"
+    # 0は一度だけ実行されることを意味します。
+    # - "100:50 say %player% is cheating"
+    # 100回のフラグで実行し、その後は100回以降、50回ごとに実行されます。
+    #
+    commands:
+      - "100:40 [alert]"
+      - "100:100 [webhook]"
+      - "100:100 [proxy]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
+      - "20:20 [proxy]"
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"
+      - "Crash"
+    commands:
+      - "20:20 [alert]"
+      - "40:40 [webhook]"
+      - "40:40 [proxy]"
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [webhook]"
+      - "5:5 [proxy]"
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+      - "Place"
+      - "Baritone"
+      - "FastBreak"
+      - "TransactionOrder"
+    commands:
+      - "10:5 [alert]"
+      - "20:10 [webhook]"
+      - "20:10 [proxy]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+    commands:
+      - "20:40 [alert]"
+  # バージョン2.2.10時点では、AutoClickerのチェックはまだなく、これはプレースホルダーです。Grimは将来的にAutoClickerのチェックを追加予定です。
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
