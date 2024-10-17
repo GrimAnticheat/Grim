@@ -139,6 +139,10 @@ TimerVehicle:
 EntityControl:
   setbackvl: 25
 
+PacketOrderL:
+  # enable if players are getting flagged for using 1.7 animations mods
+  exempt-breaking : false
+
 Reach:
   # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
   #
