@@ -15,7 +15,7 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -28,10 +28,41 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+    - name: Get tag or commit id
+      id: get-version-id
+      uses: iawia002/get-tag-or-commit-id@v1
+
+    # Impossible to build due to fatal error, so no ChangeLogs for now.
+    # I've got no clue why this is happening tbh.
+    # TODO: fix this.
+    #- name: Generate changelog
+    #  id: generate_changelog
+    #  run: |
+    #    start_sha=${{ github.event.before }}
+    #    end_sha=${{ github.event.after }}
+
+    #    if [[ $start_sha != $end_sha ]]; then
+    #      mkdir changelogs
+    #      echo "ChangeLogs:" > CHANGELOGS.txt
+    #      git log --pretty=format:'- [ %ad ] ( #https://github.com/GrimAnticheat/Grim/commit/%h ) %s by %an' --date=format:'%d-%m-%Y | %I:%M%p' $start_sha..$end_sha >> CHANGELOGS.txt
+    #    fi
     - name: Build with Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         arguments: build
+
+    - name: Release to Github
+      id: create_release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          build/libs/**.jar
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: ${{ steps.get-version-id.outputs.id }}
+        #body_path: CHANGELOGS.txt
+        draft: false
+        prerelease: false
+
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4
       with:
