@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -11,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "NoSlowC", setback = 5, experimental = true)
+@CheckData(name = "NoSlowC", setback = 5, experimental = true, checkType = CheckType.MOVEMENT)
 public class NoSlowC extends Check implements PostPredictionCheck, PacketCheck {
     public NoSlowC(GrimPlayer player) {
         super(player);

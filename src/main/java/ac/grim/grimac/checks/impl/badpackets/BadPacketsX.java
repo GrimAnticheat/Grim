@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
@@ -13,7 +14,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "BadPacketsX", experimental = true)
+@CheckData(name = "BadPacketsX", experimental = true, checkType = CheckType.PACKETS)
 public class BadPacketsX extends Check implements PacketCheck {
     public BadPacketsX(GrimPlayer player) {
         super(player);

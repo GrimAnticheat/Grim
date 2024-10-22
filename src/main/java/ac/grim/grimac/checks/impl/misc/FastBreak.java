@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -29,7 +30,7 @@ import org.bukkit.entity.Player;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "FastBreak", experimental = false)
+@CheckData(name = "FastBreak", checkType = CheckType.WORLD)
 public class FastBreak extends Check implements PacketCheck {
     public FastBreak(GrimPlayer playerData) {
         super(playerData);

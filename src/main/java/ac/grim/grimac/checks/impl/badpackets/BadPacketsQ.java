@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -9,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Cli
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
-@CheckData(name = "BadPacketsQ")
+@CheckData(name = "BadPacketsQ", checkType = CheckType.PACKETS)
 public class BadPacketsQ extends Check implements PacketCheck {
     public BadPacketsQ(final GrimPlayer player) {
         super(player);

@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -16,7 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import static ac.grim.grimac.events.packets.patch.ResyncWorldUtil.resyncPosition;
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
-@CheckData(name = "BadPacketsZ", experimental = true)
+@CheckData(name = "BadPacketsZ", experimental = true, checkType = CheckType.PACKETS)
 public class BadPacketsZ extends Check implements PacketCheck {
     public BadPacketsZ(final GrimPlayer player) {
         super(player);

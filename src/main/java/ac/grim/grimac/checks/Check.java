@@ -32,6 +32,8 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
     private boolean isEnabled;
     private boolean exempted;
 
+    private CheckType type = CheckType.OTHER;
+
     @Override
     public boolean isExperimental() {
         return experimental;
@@ -53,6 +55,7 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+            this.type = checkData.checkType();
         }
         //
         reload();

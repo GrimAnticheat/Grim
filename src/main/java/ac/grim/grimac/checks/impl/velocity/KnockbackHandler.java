@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -22,7 +23,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-@CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
+@CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025, checkType = CheckType.COMBAT)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
