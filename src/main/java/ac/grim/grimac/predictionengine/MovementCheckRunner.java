@@ -1,6 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.movement.EntityControl;
 import ac.grim.grimac.checks.impl.prediction.Phase;
@@ -22,7 +22,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -32,7 +31,6 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -544,8 +542,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
 
         // Patch sprint jumping with elytra exploit
-        if (player.bukkitPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting
-                && !GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("exploit.allow-sprint-jumping-when-using-elytra", true)) {
+        if (player.bukkitPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
             lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(new Vector(0.6 * 0.91, 1, 0.6 * 0.91)));
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();
@@ -635,4 +632,12 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // (Patches issues with slime and other desync's)
         return riptideDiffToGround < riptideDiffToBase;
     }
+
+    private boolean allowSprintJumpingWithElytra = true;
+
+    @Override
+    public void onReload(ConfigManager config) {
+        allowSprintJumpingWithElytra = config.getBooleanElse("exploit.allow-sprint-jumping-when-using-elytra", true);
+    }
+
 }

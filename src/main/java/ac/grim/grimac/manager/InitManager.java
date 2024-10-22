@@ -1,69 +1,72 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.GrimExternalAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.ImmutableClassToInstanceMap;
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 
 public class InitManager {
-    private final ClassToInstanceMap<Initable> initializersOnLoad;
-    private final ClassToInstanceMap<Initable> initializersOnStart;
-    private final ClassToInstanceMap<Initable> initializersOnStop;
+
+    private final ImmutableList<Initable> initializersOnLoad;
+    private final ImmutableList<Initable> initializersOnStart;
+    private final ImmutableList<Initable> initializersOnStop;
 
     @Getter private boolean loaded = false;
     @Getter private boolean started = false;
     @Getter private boolean stopped = false;
 
     public InitManager() {
-        initializersOnLoad = new ImmutableClassToInstanceMap.Builder<Initable>()
-                .put(PacketEventsInit.class, new PacketEventsInit())
+        initializersOnLoad = ImmutableList.<Initable>builder()
+                .add(new PacketEventsInit())
+                .add(() -> GrimAPI.INSTANCE.getExternalAPI().load())
                 .build();
 
-        initializersOnStart = new ImmutableClassToInstanceMap.Builder<Initable>()
-                .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
-                .put(ExemptOnlinePlayers.class, new ExemptOnlinePlayers())
-                .put(EventManager.class, new EventManager())
-                .put(PacketManager.class, new PacketManager())
-                .put(ViaBackwardsManager.class, new ViaBackwardsManager())
-                .put(TickRunner.class, new TickRunner())
-                .put(TickEndEvent.class, new TickEndEvent())
-                .put(CommandRegister.class, new CommandRegister())
-                .put(BStats.class, new BStats())
-                .put(PacketLimiter.class, new PacketLimiter())
-                .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
-                .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
-                .put(JavaVersion.class, new JavaVersion())
-                .put(ViaVersion.class, new ViaVersion())
+        initializersOnStart = ImmutableList.<Initable>builder()
+                .add(GrimAPI.INSTANCE.getExternalAPI())
+                .add(new ExemptOnlinePlayers())
+                .add(new EventManager())
+                .add(new PacketManager())
+                .add(new ViaBackwardsManager())
+                .add(new TickRunner())
+                .add(new TickEndEvent())
+                .add(new CommandRegister())
+                .add(new BStats())
+                .add(new PacketLimiter())
+                .add(GrimAPI.INSTANCE.getDiscordManager())
+                .add(GrimAPI.INSTANCE.getSpectateManager())
+                .add(new JavaVersion())
+                .add(new ViaVersion())
                 .build();
 
-        initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
-                .put(TerminatePacketEvents.class, new TerminatePacketEvents())
+        initializersOnStop = ImmutableList.<Initable>builder()
+                .add(new TerminatePacketEvents())
                 .build();
     }
 
     public void load() {
-        for (Initable initable : initializersOnLoad.values()) {
-            initable.start();
-        }
+        for (Initable initable : initializersOnLoad) handle(initable);
         loaded = true;
     }
 
     public void start() {
-        for (Initable initable : initializersOnStart.values()) {
-            initable.start();
-        }
+        for (Initable initable : initializersOnStart) handle(initable);
         started = true;
     }
 
     public void stop() {
-        for (Initable initable : initializersOnStop.values()) {
-            initable.start();
-        }
+        for (Initable initable : initializersOnStop) handle(initable);
         stopped = true;
     }
+
+    private void handle(Initable initable) {
+        try {
+            initable.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

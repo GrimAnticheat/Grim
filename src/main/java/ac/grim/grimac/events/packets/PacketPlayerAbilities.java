@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -37,7 +37,6 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
 
             if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
                 int noFlying = player.lastTransactionSent.get();
-                int maxFlyingPing = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping-out-of-flying", 1000);
                 if (maxFlyingPing != -1) {
                     player.runNettyTaskInMs(() -> {
                         if (player.lastTransactionReceived.get() < noFlying) {
@@ -56,4 +55,12 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
 
         }
     }
+
+    int maxFlyingPing = 1000;
+
+    @Override
+    public void onReload(ConfigManager config) {
+        maxFlyingPing = config.getIntElse("max-ping-out-of-flying", 1000);
+    }
+
 }

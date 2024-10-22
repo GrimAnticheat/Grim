@@ -48,6 +48,7 @@ import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyCompon
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import io.netty.channel.Channel;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
@@ -721,11 +722,17 @@ public class GrimPlayer implements GrimUser {
     }
 
     private int maxTransactionTime = 60;
+    @Getter private boolean ignoreDuplicatePacketRotation = false;
+    @Getter private boolean experimentalChecks = false;
+    @Getter private boolean cancelDuplicatePacket = true;
 
     @Override
     public void reload(ConfigManager config) {
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
         maxTransactionTime = (int) GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
+        experimentalChecks = config.getBooleanElse("experimental-checks", false);
+        ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
+        cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
         // reload all checks
         for (AbstractCheck value : checkManager.allChecks.values()) value.reload(config);
         // reload punishment manager

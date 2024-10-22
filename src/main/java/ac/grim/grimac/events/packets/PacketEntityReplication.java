@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -53,7 +53,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     private final List<Integer> despawnedEntitiesThisTransaction = new ArrayList<>();
 
     // Maximum ping when a firework boost is removed from the player.
-    private final int maxFireworkBoostPing = GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping-firework-boost", 1000);
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
@@ -500,4 +499,12 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     public void tickStartTick() {
         hasSentPreWavePacket = false;
     }
+
+    private int maxFireworkBoostPing = 1000;
+
+    @Override
+    public void onReload(ConfigManager config) {
+        maxFireworkBoostPing = config.getIntElse("max-ping-firework-boost", 1000);
+    }
+
 }
