@@ -5,14 +5,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 
@@ -20,22 +17,15 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-public class PacketSetWrapperNull extends PacketListenerAbstract {
-    // It's faster (and less buggy) to simply not re-encode the wrapper unless we changed something
-    // The two packets we change are clientbound entity metadata (to fix a netcode issue)
-    // and the serverbound player flying packets (to patch NoFall)
-    public PacketSetWrapperNull() {
+public class PacketHidePlayerInfo extends PacketListenerAbstract {
+
+    public PacketHidePlayerInfo() {
         super(PacketListenerPriority.HIGHEST);
     }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
-            WrapperPlayServerEntityMetadata wrapper = new WrapperPlayServerEntityMetadata(event);
-            if (wrapper.getEntityId() != event.getUser().getEntityId()) {
-                event.setLastUsedWrapper(null);
-            }
-        } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
+        if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
             //iterate through players and fake their game mode if they are spectating via grim spectate
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2))
                 return;
@@ -62,8 +52,8 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
                 //if amount of hidden players is the amount of players updated & is an update game mode action just cancel it
                 if (hideCount == nmsPlayerInfoDataList.size() && info.getAction() == WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE) {
                     event.setCancelled(true);
-                } else if (hideCount <= 0) {
-                    event.setLastUsedWrapper(null);
+                } else if (hideCount > 0) {
+                    event.markForReEncode(true);
                 }
             }
         } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_UPDATE) {
@@ -81,12 +71,13 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
                 for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : wrapper.getEntries()) {
                     //check if the player should be hidden
                     WrapperPlayServerPlayerInfoUpdate.PlayerInfo modifiedPacket = null;
-                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, entry.getProfileId())) {
+                    final UserProfile gameProfile = entry.getGameProfile();
+                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
                         hideCount++;
                         //modify & create a new packet from pre-existing one if they are a spectator
                         if (entry.getGameMode() == GameMode.SPECTATOR) {
                             modifiedPacket = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(
-                                    entry.getGameProfile(),
+                                    gameProfile,
                                     entry.isListed(),
                                     entry.getLatency(),
                                     GameMode.SURVIVAL,
@@ -104,30 +95,20 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
                     } //if only the game mode was updated and the packet was modified, don't send anything
 
                 }
-                //if no hidden players, don't modify packet
-                if (hideCount <= 0) {
-                    event.setLastUsedWrapper(null);
-                } else if (hideCount == modified.size()) { //if the amount of hidden players & modified entries are the same
+
+                // if the amount of hidden players & modified entries are the same
+                if (hideCount == modified.size()) {
                     if (onlyGameMode) { // if only the game mode changed, cancel
                         event.setCancelled(true);
                     } else { //if more than the game mode changed, remove the action
                         wrapper.getActions().remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE);
+                        event.markForReEncode(true);
                     }
                 } else { //modify entries
                     wrapper.setEntries(modified);
+                    event.markForReEncode(true);
                 }
             }
-
-        } else if (event.getPacketType() != PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
-            event.setLastUsedWrapper(null);
-        }
-    }
-
-    @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        PacketTypeCommon packetType = event.getPacketType();
-        if (!WrapperPlayClientPlayerFlying.isFlying(packetType) && packetType != PacketType.Play.Client.CLIENT_SETTINGS && !event.isCancelled()) {
-            event.setLastUsedWrapper(null);
         }
     }
 }

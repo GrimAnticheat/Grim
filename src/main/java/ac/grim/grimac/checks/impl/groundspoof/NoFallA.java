@@ -43,7 +43,10 @@ public class NoFallA extends Check implements PacketCheck {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
                     if (!GhostBlockDetector.isGhostBlock(player) && flagWithSetback()) alert("");
-                    if (shouldModifyPackets()) wrapper.setOnGround(false);
+                    if (shouldModifyPackets()) {
+                        wrapper.setOnGround(false);
+                        event.markForReEncode(true);
+                    }
                 }
             }
         }
@@ -59,10 +62,16 @@ public class NoFallA extends Check implements PacketCheck {
             // Also flip teleports because I don't trust vanilla's handling of teleports and ground
             if (flipPlayerGroundStatus) {
                 flipPlayerGroundStatus = false;
-                if (shouldModifyPackets()) wrapper.setOnGround(!wrapper.isOnGround());
+                if (shouldModifyPackets()) {
+                    wrapper.setOnGround(!wrapper.isOnGround());
+                    event.markForReEncode(true);
+                }
             }
             if (player.packetStateData.lastPacketWasTeleport) {
-                if (shouldModifyPackets()) wrapper.setOnGround(false);
+                if (shouldModifyPackets()) {
+                    wrapper.setOnGround(false);
+                    event.markForReEncode(true);
+                }
             }
         }
     }
