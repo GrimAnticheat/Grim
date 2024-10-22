@@ -50,7 +50,7 @@ public class ConfigManagerImpl implements ConfigManager, BasicReloadable {
         config.addSource(GrimAC.class, "messages", getMessagesFile());
         config.addSource(GrimAC.class, "discord", getDiscordFile());
         config.addSource(GrimAC.class, "punishments", getPunishFile());
-
+        // reload
         reload();
     }
 

@@ -218,7 +218,6 @@ public class GrimPlayer implements GrimUser {
     public GrimPlayer(User user) {
         this.user = user;
         this.playerUUID = user.getUUID();
-        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSizeRaw(x, y, z, 0.6f, 1.8f);
 
@@ -241,6 +240,8 @@ public class GrimPlayer implements GrimUser {
         packetStateData = new PacketStateData();
 
         uncertaintyHandler.collidingEntities.add(0);
+        // reload last
+        reload();
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -725,6 +726,10 @@ public class GrimPlayer implements GrimUser {
     public void reload(ConfigManager config) {
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
         maxTransactionTime = (int) GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
+        // reload all checks
+        for (AbstractCheck value : checkManager.allChecks.values()) value.reload(config);
+        // reload punishment manager
+        punishmentManager.reload(config);
     }
 
     @Override

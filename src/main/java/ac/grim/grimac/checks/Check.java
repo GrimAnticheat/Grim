@@ -55,7 +55,7 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
             this.description = checkData.description();
         }
         //
-        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
+        reload();
     }
 
     public boolean shouldModifyPackets() {

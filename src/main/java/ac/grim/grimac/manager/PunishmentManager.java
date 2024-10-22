@@ -25,7 +25,6 @@ public class PunishmentManager implements ConfigReloadable {
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;
-        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
     }
 
     @Override
