@@ -29,13 +29,14 @@ public class MessageUtil {
     }
 
     public String formatWithNoColor(String string) {
-        return string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
+        return string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getPrefix());
     }
 
+    private static final Pattern HEX_PATTERN = Pattern.compile("#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})");
+
     private String translateHexCodes(String message) {
-        final String hexPattern = "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})";
-        Matcher matcher = Pattern.compile(hexPattern).matcher(message);
-        StringBuffer sb = new StringBuffer(message.length());
+        Matcher matcher = HEX_PATTERN.matcher(message);
+        StringBuilder sb = new StringBuilder(message.length());
         while (matcher.find()) {
             String hex = matcher.group(1);
             ChatColor color = ChatColor.of("#" + hex);
@@ -44,4 +45,5 @@ public class MessageUtil {
         matcher.appendTail(sb);
         return sb.toString();
     }
+
 }
