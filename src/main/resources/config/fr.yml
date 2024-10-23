@@ -53,10 +53,10 @@ Simulation:
   # Nous prenons en compte Optifine en changeant les tables trigonométriques, mais en réduisant cela à 0.001, cela réduira les signalements de l'anticheat
   # sur FastMath si cette compensation ne fonctionne pas...
   threshold: 0.001
-  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ? 
+  # Quelle est la distance maximale d'une violation par tick avant que le joueur ne soit immédiatement renvoyé en arrière ?
   # -1 pour désactiver
   immediate-setback-threshold: 0.1
-  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ? 
+  # Quelle est la distance maximale d'une violation sur tout les ticks avant que l'anti-cheat commence à renvoyer en arrière ?
   # -1 pour désactiver
   max-advantage: 1
   # Après 50 secondes avec la configuration par défaut, le joueur passera de 4 blocs -> 1 bloc d'avantage
@@ -83,6 +83,9 @@ PositionPlace:
 
 RotationPlace:
   cancelvl: 5
+  flag-buffer-max: 1 # set to -1 to disable
+  flag-buffer-increment: 1
+  flag-buffer-decay: 0.1
 
 # Vérification de no-slow basée sur la prédiction.
 # Grim tient compte des problèmes de netcode ici... difficile à tromper même en spamant le clic droit et le bouton de la main secondaire.
@@ -141,7 +144,7 @@ EntityControl:
 
 Reach:
   # De combien devrions-nous agrandir les hitboxes ? Une augmentation de 0,0005 devrait détecter une portée de 3,0005 ou plus.
-  # 
+  #
   # Il y a un agrandissement forcé de 0,03 avec les versions 1.9 à 1.18.1 (pas 1.18.2) ou certaines combinaisons client/serveur en raison
   # des changements et limitations du protocole. Cette vérification est particulièrement puissante avec les clients 1.7/1.8 sur les serveurs 1.8.
   threshold: 0.0005
