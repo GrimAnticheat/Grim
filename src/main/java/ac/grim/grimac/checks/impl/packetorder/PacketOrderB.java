@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.badpackets;
+package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -10,17 +10,16 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "BadPacketsH")
-public class BadPacketsH extends Check implements PacketCheck {
+@CheckData(name = "PacketOrderB")
+public class PacketOrderB extends Check implements PacketCheck {
 
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT
     // I personally think 1.8 made much more sense. You swing and THEN you hit!
     private boolean sentAnimation = player.getClientVersion().isNewerThan(ClientVersion.V_1_8);
 
-    public BadPacketsH(final GrimPlayer player) {
+    public PacketOrderB(final GrimPlayer player) {
         super(player);
     }
 
