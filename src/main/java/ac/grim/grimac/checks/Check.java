@@ -25,6 +25,7 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
     private String checkName;
     private String configName;
     private String alternativeName;
+    private String displayName;
     private String description;
 
     private boolean experimental;
@@ -53,6 +54,7 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+            this.displayName = this.checkName;
         }
         //
         reload();
@@ -112,6 +114,8 @@ public class Check implements AbstractCheck, ConfigReloadObserver {
     public void reload(ConfigManager configuration) {
         decay = configuration.getDoubleElse(configName + ".decay", decay);
         setbackVL = configuration.getDoubleElse(configName + ".setbackvl", setbackVL);
+        displayName = configuration.getStringElse(configName + ".displayname", checkName);
+      
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
         updateExempted();
         onReload(configuration);

@@ -105,7 +105,7 @@ public class PunishmentManager implements ConfigReloadable {
         original = MessageUtil.format(original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
-                .replace("%check_name%", check.getCheckName())
+                .replace("%check_name%", check.getDisplayName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", vl)
                 .replace("%verbose%", verbose)
@@ -149,7 +149,7 @@ public class PunishmentManager implements ConfigReloadable {
 
                             if (command.command.equals("[webhook]")) {
                                 String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
-                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
+                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
                             } else if (command.command.equals("[proxy]")) {
                                 ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.getCommand(), group, check, proxyAlertString, verbose));
                             } else {
