@@ -1,0 +1,53 @@
+# 16進コードも使用できます。フォーマットは #FFFFFF または #ffffff です。
+
+# \u00BB は » (二重 >>)です。ANSI と UTF-8 はこれを異なる方法で解釈します... 場合によっては ? と表示されることがあります。
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fアラートが有効になりました"
+alerts-disabled: "%prefix% &fアラートが無効になりました"
+client-brand-format: "%prefix% &f%player% が %brand% を使用して参加しました"
+console-specify-target: "%prefix% &cコンソールでターゲットを指定する必要があります！"
+player-not-found: "%prefix% &cプレイヤーは免除されているか、オフラインです！"
+player-not-this-server: "%prefix% &cプレイヤーはこのサーバーにいません！"
+spectate-return: "\n%prefix% &f以前の場所に戻るにはここをクリック\n"
+cannot-spectate-return: "%prefix% &c観戦しているプレイヤー以外ではこの操作はできません"
+cannot-run-on-self: "%prefix% &c自分に対してこのコマンドは使用できません！"
+upload-log: "%prefix% &fデバッグをアップロードしました: %url%"
+upload-log-start: "%prefix% &fログをアップロード中... しばらくお待ちください"
+upload-log-not-found: "%prefix% &cそのログが見つかりません"
+upload-log-upload-failure: "%prefix% &cログのアップロード中に問題が発生しました。詳細はコンソールを確認してください"
+
+# 使用可能なプレースホルダー:
+# %prefix%
+# %player%
+# %check_name%
+# %description%
+# %experimental%
+# %vl% - 違反回数
+# %verbose% - チェックからの追加情報（全てのチェックが情報を追加するわけではありません）
+alerts-format: "%prefix% &f%player% が &b%check_name%%experimental% &fに失敗しました (x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cプロキシ&f] &f%player% が &b%check_name%%experimental% &fに失敗しました (x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+  - "&7======================"
+  - "%prefix% &b%player% のプロファイル"
+  - "&bPing: &f%ping%"
+  - "&bバージョン: &f%version%"
+  - "&bクライアントブランド: &f%brand%"
+  - "&b水平感度: &f%h_sensitivity%%"
+  - "&b垂直感度: &f%v_sensitivity%%"
+  - "&bFastMath 有効: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7アラートを切り替えます"
+  - "/grim profile <player> &f- &7プレイヤー情報を表示します"
+  - "/grim help &f- &7このヘルプメッセージを表示します"
+  - "/grim debug <player> &f- &7開発者用の予測出力を表示します"
+  - "/grim perf &f- &7開発者用のパフォーマンス (ms/予測)"
+  - "/grim reload &f- &7設定をリロードします"
+  - "/grim spectate <player> &f- &7プレイヤーを観戦します"
+  - "/grim verbose &f- &7全てのフラグをバッファなしで表示します"
+  - "/grim log [0-255] &f- &7予測フラグのデバッグログをアップロードします"
+  - "&7======================"

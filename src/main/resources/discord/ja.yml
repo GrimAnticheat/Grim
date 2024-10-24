@@ -1,0 +1,15 @@
+# このファイルは、アラートをDiscordに送信するための設定ファイルです。
+# webhookの取得方法は、以下を参照してください
+# https://support.discord.com/hc/ja/articles/228383668-Webhooks-%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9
+enabled: false
+webhook: ""
+embed-title: "**Grim アラート**"
+embed-color: "#00FFFF"
+violation-content:
+  - "**プレイヤー**: %player%"
+  - "**違反項目**: %check%"
+  - "**違反回数**: %violations%"
+  - "**クライアントバージョン**: %version%"
+  - "**ブランド**: %brand%"
+  - "**Ping**: %ping%"
+  - "**TPS**: %tps%"
