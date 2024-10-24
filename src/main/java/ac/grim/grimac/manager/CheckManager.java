@@ -5,6 +5,8 @@ import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
+import ac.grim.grimac.checks.impl.combat.MultiInteractA;
+import ac.grim.grimac.checks.impl.combat.MultiInteractB;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
@@ -133,6 +135,8 @@ public class CheckManager {
                 .put(NoSlowC.class, new NoSlowC(player))
                 .put(NoSlowD.class, new NoSlowD(player))
                 .put(NoSlowE.class, new NoSlowE(player))
+                .put(MultiInteractA.class, new MultiInteractA(player))
+                .put(MultiInteractB.class, new MultiInteractB(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
