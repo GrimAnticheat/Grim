@@ -20,9 +20,9 @@ public class TimerCheck extends Check implements PacketCheck {
 
     // How long should the player be able to fall back behind their ping?
     // Default: 120 milliseconds
-    long clockDrift = (long) 120e6;
+    long clockDrift;
 
-    long limitAbuseOverPing = 1000;
+    long limitAbuseOverPing;
 
     boolean hasGottenMovementAfterTransaction = false;
 
