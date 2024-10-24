@@ -29,9 +29,9 @@ import org.bukkit.entity.Player;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "FastBreak", experimental = false)
-public class FastBreak extends Check implements PacketCheck {
-    public FastBreak(GrimPlayer playerData) {
+@CheckData(name = "FastBreakA")
+public class FastBreakA extends Check implements PacketCheck {
+    public FastBreakA(GrimPlayer playerData) {
         super(playerData);
     }
 
@@ -51,6 +51,10 @@ public class FastBreak extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()) {
+            return;
+        }
+
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
         if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlock != null) {
