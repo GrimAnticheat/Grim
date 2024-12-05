@@ -35,13 +35,10 @@ public class CrashD extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && isSupportedVersion()) {
-            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
-            int clickType = click.getWindowClickType().ordinal();
-            int button = click.getButton();
-            int windowId = click.getWindowId();
+            int windowId = new WrapperPlayClientClickWindow(event).getWindowId();
 
             if (type == MenuType.LECTERN && windowId > 0 && windowId == lecternId) {
-                if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
+                if (flagAndAlert()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
@@ -52,5 +49,4 @@ public class CrashD extends Check implements PacketCheck {
     private boolean isSupportedVersion() {
         return PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
     }
-
 }
