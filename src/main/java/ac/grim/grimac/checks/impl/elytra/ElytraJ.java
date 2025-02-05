@@ -32,7 +32,7 @@ public class ElytraJ extends Check implements PostPredictionCheck {
 
     private boolean isRising(Vector vector, ObjectArrayList<SimpleCollisionBox> boxes) {
         return boxes.stream().noneMatch(box -> box.isIntersected(player.boundingBox))
-                && player.isGliding && player.fireworks.getMaxFireworksAppliedPossible() > 0
+                && player.fireworks.getMaxFireworksAppliedPossible() > 0
                 && vector.getY() > 1.6 && vector.getY() > vector.clone().setY(0).length();
     }
 }
