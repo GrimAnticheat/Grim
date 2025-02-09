@@ -12,6 +12,6 @@ public class GrimBrands extends BaseCommand {
     @Subcommand("brands")
     @CommandPermission("grim.brand")
     public void onBrands(Player player) {
-        GrimAPI.INSTANCE.getAlertManager().toggleBrands(player);
+        GrimAPI.INSTANCE.getAlertManager().toggleBrands(player, false);
     }
 }

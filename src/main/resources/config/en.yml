@@ -14,12 +14,18 @@ alerts:
     send: false
     # Should the alerts received from other servers be announced to this server?
     receive: false
-  # Added by 90gQopen to toggle alerts on join, regardless of the player permission status.
+  # Added by 90gQopen to toggle alerts on join, regardless of the player permission status. False means that alerts will not be sent to the player.
   force-enable-on-join: false
+
+# Added by 90gQopen to toggle setbacks, regardless of the player permission status.
+disable-setbacks: true
+
+# Added by 90gQopen to toggle packet modifications, regardless of the player permission status.
+disable-packet-modification: true
 
 verbose:
   print-to-console: false
-  # Added by 90gQopen to toggle verbose-mode on join, regardless of the player permission status.
+  # Added by 90gQopen to toggle verbose-mode on join, regardless of the player permission status. False means that verbose-mode will not be enabled for the player.
   force-enable-on-join: false
 
 check-for-updates: true
@@ -32,7 +38,7 @@ client-brand:
     - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
     - "^Feather Fabric$"
     - "^labymod$"
-  # Added by 90gQopen to toggle client brands on join, regardless of the player permission status.
+  # Added by 90gQopen to toggle client brands on join, regardless of the player permission status. False means that client brands will not be sent to the player.
   force-enable-on-join: false
 
 spectators:

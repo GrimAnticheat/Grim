@@ -37,13 +37,13 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
         if (player.hasPermission("grim.alerts") && player.hasPermission("grim.alerts.enable-on-join") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.force-enable-on-join", true)) {
-            GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player);
+            GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player, true);
         }
         if (player.hasPermission("grim.verbose") && player.hasPermission("grim.verbose.enable-on-join") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("verbose.force-enable-on-join", true)) {
-            GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player);
+            GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player, true);
         }
         if (player.hasPermission("grim.brand") && player.hasPermission("grim.brand.enable-on-join") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("client-brand.force-enable-on-join", true)) {
-            GrimAPI.INSTANCE.getAlertManager().toggleBrands(player);
+            GrimAPI.INSTANCE.getAlertManager().toggleBrands(player, true);
         }
         if (player.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
             GrimAPI.INSTANCE.getSpectateManager().onLogin(player);

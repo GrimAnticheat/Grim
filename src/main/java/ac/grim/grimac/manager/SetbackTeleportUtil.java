@@ -110,6 +110,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         if (lastKnownGoodPosition == null) return true;
         // Setbacks aren't allowed
         if (player.disableGrim) return true;
+        // Setbacks are disabled
+        if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-setbacks", false)) return true;
         // Player has permission to cheat, permission not given to OP by default.
         if (player.bukkitPlayer != null && player.noSetbackPermission) return true;
         return false;
@@ -138,7 +140,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
     private void blockMovementsUntilResync(boolean simulateNextTickPosition, boolean isResync) {
         if (requiredSetBack == null) return; // Hasn't spawned
-        if (player.bukkitPlayer != null && player.noSetbackPermission) return; // The player has permission to cheat
+        if (player.bukkitPlayer != null && player.noSetbackPermission || GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-setbacks", false)) return; // The player has permission to cheat
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (isPendingSetback()) return; // Don't spam setbacks
 

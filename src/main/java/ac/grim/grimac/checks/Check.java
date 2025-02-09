@@ -58,7 +58,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean shouldModifyPackets() {
-        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exemptPermission;
+        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exemptPermission && !GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-packet-modification", false);
     }
 
     public void updatePermissions() {
@@ -161,7 +161,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean shouldSetback() {
-        return !noSetbackPermission && violations > setbackVL;
+        return !noSetbackPermission && !GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-setbacks", false) && violations > setbackVL;
     }
 
     public String formatOffset(double offset) {
