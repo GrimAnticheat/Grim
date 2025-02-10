@@ -1,6 +1,6 @@
 # Configuration principale de GrimAC
 # Code source : https://github.com/MWHunter/Grim
-# Copyright 2024 DefineOutside et contributeurs, sous licence GPLv3.
+# Copyright 2025 DefineOutside et contributeurs, sous licence GPLv3.
 # Les binaires modifiés, ou les plugins contenant du code grim copié, doivent être privés,
 # ou avec le code source complet disponible pour les acheteurs sans frais supplémentaires.
 
@@ -17,6 +17,8 @@ alerts:
 
 verbose:
   print-to-console: false
+
+check-for-updates: true
 
 client-brand:
   # Cela signifie qu'il n'enverra pas la nature du client aux opérateurs si il correspond aux clients suivants

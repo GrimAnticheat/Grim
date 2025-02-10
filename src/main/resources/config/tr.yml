@@ -1,6 +1,6 @@
 # GrimAC ana konfigrasyon dosyası
 # Kaynak kodu: https://github.com/MWHunter/Grim
-# Telif Hakkı 2024 DefineOutside ve katkıda bulunanlar, GPLv3 altında lisanslanmıştır.
+# Telif Hakkı 2025 DefineOutside ve katkıda bulunanlar, GPLv3 altında lisanslanmıştır.
 # Değiştirilmiş ikili dosyalar veya kopyalanmış grim kodlu eklentiler özel olmalıdır,
 # veya ek ücret ödemeden alıcılara sunulan tam kaynak kodu ile.
 
@@ -17,6 +17,8 @@ alerts:
 
 verbose:
   print-to-console: false
+
+check-for-updates: true
 
 client-brand:
   # Bu, giriş yapılan clientin aşağıdaki regex'lerle eşleşmesi durumunda markalarını operatörlere yayınlamayacağı anlamına gelir

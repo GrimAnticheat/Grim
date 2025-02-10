@@ -42,6 +42,7 @@ public class BaseConfigManager {
 
         disconnectTimeout = config.getStringElse("disconnect.timeout", "<lang:disconnect.timeout>");
         disconnectClosed = config.getStringElse("disconnect.closed", "<lang:disconnect.timeout>");
+        disconnectPacketError = config.getStringElse("disconnect.error", "<red>An error occurred whilst processing packets. Please contact the administrators.");
     }
 
     // ran on start, can be used to handle things that can't be done while loading
@@ -53,6 +54,7 @@ public class BaseConfigManager {
 
     @Getter private String disconnectTimeout;
     @Getter private String disconnectClosed;
+    @Getter private String disconnectPacketError;
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 

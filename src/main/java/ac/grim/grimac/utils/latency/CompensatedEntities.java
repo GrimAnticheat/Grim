@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
@@ -61,7 +62,7 @@ public class CompensatedEntities {
     }
 
     public void tick() {
-        this.self.setPositionRaw(player.boundingBox);
+        this.self.setPositionRaw(player, new SimpleCollisionBox(player.x, player.y, player.z, player.x, player.y, player.z));
         for (PacketEntity vehicle : entityMap.values()) {
             for (PacketEntity passenger : vehicle.passengers) {
                 tickPassenger(vehicle, passenger);
@@ -150,7 +151,7 @@ public class CompensatedEntities {
             return;
         }
 
-        passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
+        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
 
         for (PacketEntity passengerPassenger : riding.passengers) {
             tickPassenger(passenger, passengerPassenger);

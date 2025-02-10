@@ -9,6 +9,7 @@ import lombok.experimental.UtilityClass;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -40,6 +41,15 @@ public class MessageUtil {
     public @NotNull String replacePlaceholders(@Nullable Object object, @NotNull String string) {
         if (!hasPlaceholderAPI) return string;
         return PlaceholderAPI.setPlaceholders(object instanceof OfflinePlayer player ? player : null, string);
+    }
+
+    public @NotNull Component replacePlaceholders(@NotNull GrimPlayer player, @NotNull Component component) {
+        // Replacement config that forces any placeholder replacement to be pure text
+        final TextReplacementConfig safeReplacement = TextReplacementConfig.builder()
+                .match("%[a-zA-Z0-9_]+%") // Match placeholders
+                .replacement(placeholder -> Component.text(replacePlaceholders(player, placeholder.content())))
+                .build();
+        return component.replaceText(safeReplacement);
     }
 
     public @NotNull Component miniMessage(@NotNull String string) {

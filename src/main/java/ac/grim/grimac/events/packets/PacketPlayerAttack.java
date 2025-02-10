@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -43,7 +44,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.isMitigateAutoblock()) {
-                    player.resetBukkitItemUsage();
+                    BukkitNMS.resetBukkitItemUsage(player.bukkitPlayer);
                 }
 
                 ItemStack heldItem = player.getInventory().getHeldItem();
@@ -55,6 +56,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                             : 0;
 
                     boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
+                    // assume cooldown is full on 1.8 servers
+                    boolean noCooldown = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
 
                     if (!isLegacyPlayer) {
                         knockbackLevel = Math.max(knockbackLevel, 0);
@@ -63,7 +66,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     // 1.8 players who are packet sprinting WILL get slowed
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown
                     // Players with knockback enchantments always get slowed
-                    if (player.lastSprinting && knockbackLevel >= 0 && isLegacyPlayer || knockbackLevel > 0) {
+                    if (player.lastSprinting && knockbackLevel >= 0 && noCooldown || knockbackLevel > 0) {
                         player.minAttackSlow++;
                         player.maxAttackSlow++;
 

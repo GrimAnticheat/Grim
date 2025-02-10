@@ -17,17 +17,15 @@ public class SprintC extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isChecked()) return;
-
         if (player.packetStateData.isSlowedByUsingItem()) {
-            ClientVersion client = player.getClientVersion();
+            ClientVersion version = player.getClientVersion();
 
             // https://bugs.mojang.com/browse/MC-152728
-            if (client.isNewerThanOrEquals(ClientVersion.V_1_14_2) && client.isOlderThan(ClientVersion.V_1_21_4)) {
+            if (version.isNewerThanOrEquals(ClientVersion.V_1_14_2) && version != ClientVersion.V_1_21_4) {
                 return;
             }
 
-            if (player.isSprinting && (!player.isSwimming || client.isOlderThan(ClientVersion.V_1_21_4))) {
+            if (player.isSprinting && (!player.wasTouchingWater || version.isOlderThan(ClientVersion.V_1_13))) {
                 if (flaggedLastTick) flagAndAlertWithSetback();
                 flaggedLastTick = true;
             } else {

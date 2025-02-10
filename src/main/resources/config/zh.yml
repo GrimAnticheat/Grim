@@ -1,13 +1,13 @@
-# GrimAC主要配置
+# config.yml - GrimAC 主要配置
 # 源代码链接: https://github.com/MWHunter/Grim
-# 版权归 DefineOutside 和 贡献者所有，基于GPLv3开源协议。
+# 版权所有 © 2025 DefineOutside 及贡献者 / 遵循 GPLv3 开源协议
 # 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
-# 中文翻译提供 nuym/Dg32z_ ,如有错误请提交 Issues 并@我
+# 中文翻译提供 Regotly / nuym / Dg32z_ , 如有错误请提交 Issues 并@我
 
 alerts:
-  # 是否在控制台显示作弊消息？
+  # 除了向有权限的玩家发送作弊vl外，是否还在控制台中打印作弊vl消息？
   print-to-console: true
-  # 子服之间是否共享作弊消息。
+  # 是否在其他子服中发送控制台的作弊信息
   # 如果正在使用Velocity，你必须在Velocity的配置中启用` bungee-plugin-message-channel `。
   proxy:
     # 作弊消息是否应该发送到连接到代理的子服?
@@ -16,7 +16,10 @@ alerts:
     receive: false
 
 verbose:
+  # 是否在控制台中打印verbose信息
   print-to-console: false
+# 是否检查更新
+check-for-updates: true
 
 client-brand:
   # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端版本显示在聊天栏中
@@ -30,12 +33,13 @@ client-brand:
 spectators:
   # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
   hide-regardless: false
-  # 观察者这些世界不会隐藏
+  # 观察者在这些世界不会隐藏
   allowed-worlds:
     - ""
 
 # 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
 # 踢出原因为: disconnect.timeout
+# 玩家超时踢出时间（默认 = 60 秒）
 max-transaction-time: 60
 
 # 是否对重复的移动数据包进行撤销?
@@ -50,15 +54,17 @@ Simulation:
   # 当玩家合法时，我们应该将总优势乘以多少
   # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/d4ufgxrxer
   setback-decay-multiplier: 0.999
-  # 我们应该为玩家的移动创建多大的偏移量？
-  # 从可能的移动中以方块为单位测量
-  # 我们通过另一种方式来计算 Optifine，但将其降低到 0.001 会降低 FastMath
+  # 玩家移动偏移量判定阈值（单位：方块）
+  # 已针对 Optifine 优化三角函数表，若设为 0.001 可减少 FastMath 误报
   # 如果此补偿不起作用，则反作弊记录此玩家作弊
   threshold: 0.001
-  # 在玩家受到回弹之前，1 ticks 的违规行为有多大？
+  # 在玩家受到回弹之前，1 ticks 的判定阈值
+  # 假设作弊者与模拟移动的阈值（threshold）是0.0945，该项目设置的是0.07，玩家会立即被回弹到合适的位置
   # -1 关闭
   immediate-setback-threshold: 0.1
-  # 在我们开始遭遇回弹之前，我们的优势有多大?
+  # 在玩家受到回弹之前，累计回弹的阈值
+  # 假设作弊者与模拟移动的阈值（threshold）是0.0945，并且触发了10次，应为0.9450
+  # 而你设置的值为0.94 ， 作弊者会受到回弹
   # -1 关闭
   max-advantage: 1
   # 在默认配置的50秒后，玩家将从4块跑到1块
@@ -169,6 +175,7 @@ debug-pipeline-on-join: false
 # 启用实验性检查
 experimental-checks: false
 
+# 取消有问题的格挡
 mitigate-autoblock: true
 mitigate-desync-noslow: true
 
@@ -185,4 +192,5 @@ max-ping-out-of-flying: 1000
 # 填写-1则关闭
 max-ping-firework-boost: 1000
 
+# 不要调整这个
 config-version: 9

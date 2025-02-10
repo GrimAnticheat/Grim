@@ -1,6 +1,6 @@
 # GrimAC Hauptkonfiguration
 # Quellcode: https://github.com/MWHunter/Grim
-# Copyright 2024 DefineOutside und Mitwirkende, lizenziert unter GPLv3.
+# Copyright 2025 DefineOutside und Mitwirkende, lizenziert unter GPLv3.
 # Modifizierte Binärdateien, oder Plugins mit kopiertem Grim-Code, müssen privat sein,
 # oder mit vollständigem Quellcode für Käufer ohne zusätzliche Kosten verfügbar sein.
 
@@ -17,6 +17,8 @@ alerts:
 
 verbose:
   print-to-console: false
+
+check-for-updates: true
 
 client-brand:
   # Das bedeutet, dass die Marke nicht an die Betreiber weitergegeben wird, wenn die Marke mit den folgenden Regexes übereinstimmt

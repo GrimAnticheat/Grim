@@ -19,6 +19,7 @@ import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
@@ -65,31 +66,23 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 // Everything in this class should be sync'd to the anticheat thread.
 // Put variables sync'd to the netty thread in PacketStateData
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
-    private static final @Nullable Consumer<@NotNull Player> resetActiveBukkitItem;
-    private static final @Nullable Predicate<@NotNull Player> isUsingBukkitItem;
     public UUID uuid;
     public final User user;
     public int entityID;
@@ -223,21 +216,14 @@ public class GrimPlayer implements GrimUser {
     public DimensionType dimensionType;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
+    public long lastBlockBreak = 0;
     public AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
     // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public double[][] possibleEyeHeights = new double[3][];
-
-    public void onPacketCancel() {
-        if (spamThreshold != -1 && cancelledPackets.incrementAndGet() > spamThreshold) {
-            LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
-            disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectClosed())));
-            cancelledPackets.set(0);
-        }
-    }
-
     public int totalFlyingPacketsSent;
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
+    public Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
@@ -286,6 +272,14 @@ public class GrimPlayer implements GrimUser {
 
         // reload last
         reload();
+    }
+
+    public void onPacketCancel() {
+        if (spamThreshold != -1 && cancelledPackets.incrementAndGet() > spamThreshold) {
+            LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
+            disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectClosed())));
+            cancelledPackets.set(0);
+        }
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -376,8 +370,9 @@ public class GrimPlayer implements GrimUser {
                 playerClockAtLeast = data.second();
             } while (data.first() != id);
 
-            // A transaction means a new tick, so apply any block places
+            // A transaction means a new tick, so handle any block interactions
             CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
+            CheckManagerListener.handleQueuedBreaks(this, false, 0, 0, System.currentTimeMillis());
             latencyUtils.handleNettySyncTransaction(lastTransactionReceived.get());
         }
 
@@ -707,13 +702,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean canGlide() {
-        if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+        // Servers older than 1.21.2 don't have this component
+        if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
             final ItemStack chestPlate = getInventory().getChestplate();
             return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage();
         }
 
         final CompensatedInventory inventory = getInventory();
         // PacketEvents mappings are wrong
+        // TODO https://github.com/retrooper/packetevents/pull/1125
         return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
                 || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
                 || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
@@ -853,113 +851,6 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void reload() {
         reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
-    }
-
-    public void resetBukkitItemUsage() {
-        if (resetActiveBukkitItem != null && this.isUsingBukkitItem()) {
-            this.bukkitPlayer.updateInventory();
-            resetActiveBukkitItem.accept(this.bukkitPlayer);
-        }
-    }
-
-    public boolean isUsingBukkitItem() {
-        return isUsingBukkitItem != null && this.bukkitPlayer != null && isUsingBukkitItem.test(this.bukkitPlayer);
-    }
-
-    static {
-        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
-        Predicate<Player> isUsingBukkitItem0 = null;
-        Consumer<Player> resetActiveBukkitItem0 = null;
-
-        try {
-            if (version == ServerVersion.V_1_8_8) {
-                Class<?> EntityHuman = Class.forName("net.minecraft.server.v1_8_R3.EntityHuman");
-                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer").getMethod("getHandle");
-                Method clearActiveItem = EntityHuman.getMethod("bV");
-                Method isUsingItem = EntityHuman.getMethod("bS");
-
-                resetActiveBukkitItem0 = player -> {
-                    try {
-                        clearActiveItem.invoke(getHandle.invoke(player));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-
-                isUsingBukkitItem0 = player -> {
-                    try {
-                        return (boolean) isUsingItem.invoke(getHandle.invoke(player));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } else if (version == ServerVersion.V_1_12_2) {
-                Class<?> EntityLiving = Class.forName("net.minecraft.server.v1_12_R1.EntityLiving");
-                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer").getMethod("getHandle");
-                Method clearActiveItem = EntityLiving.getMethod("cN");
-                Method getItemInUse = EntityLiving.getMethod("cJ");
-                Method isEmpty = Class.forName("net.minecraft.server.v1_12_R1.ItemStack").getMethod("isEmpty");
-
-                resetActiveBukkitItem0 = player -> {
-                    try {
-                        clearActiveItem.invoke(getHandle.invoke(player));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-
-                isUsingBukkitItem0 = player -> {
-                    try {
-                        var item = getItemInUse.invoke(getHandle.invoke(player));
-                        return item != null && !((boolean) isEmpty.invoke(item));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } else if (version == ServerVersion.V_1_16_5) {
-                Class<?> EntityLiving = Class.forName("net.minecraft.server.v1_16_R3.EntityLiving");
-                Method getHandle = Class.forName("org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer").getMethod("getHandle");
-                Method clearActiveItem = EntityLiving.getMethod("clearActiveItem");
-                Method getItemInUse = EntityLiving.getMethod("getActiveItem");
-                Method isEmpty = Class.forName("net.minecraft.server.v1_16_R3.ItemStack").getMethod("isEmpty");
-
-                resetActiveBukkitItem0 = player -> {
-                    try {
-                        clearActiveItem.invoke(getHandle.invoke(player));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-
-                isUsingBukkitItem0 = player -> {
-                    try {
-                        Object item = getItemInUse.invoke(getHandle.invoke(player));
-                        return item != null && !((boolean) isEmpty.invoke(item));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } else if (version.isNewerThanOrEquals(ServerVersion.V_1_17_1)) {
-                isUsingBukkitItem0 = player -> player.getItemInUse() != null;
-                try { // paper only
-                    LivingEntity.class.getMethod("clearActiveItem");
-                    resetActiveBukkitItem0 = LivingEntity::clearActiveItem;
-                } catch (NoSuchMethodException ignored) {}
-            }
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } finally {
-            resetActiveBukkitItem = resetActiveBukkitItem0;
-            isUsingBukkitItem = isUsingBukkitItem0;
-
-            if (resetActiveBukkitItem == null) {
-                LogUtil.warn("could not find method to reset item usage (are you using spigot?)");
-            }
-
-            if (isUsingBukkitItem == null) {
-                LogUtil.warn("could not find method to get item usage status (are you using an unsupported version?)");
-            }
-        }
     }
 
     private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);

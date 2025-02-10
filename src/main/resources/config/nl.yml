@@ -1,6 +1,6 @@
 # GrimAC configuratie
 # Broncode: https://github.com/MWHunter/Grim
-# Copyright 2024 DefineOutside en bijdragers, gelicentieerd onder GPLv3.
+# Copyright 2025 DefineOutside en bijdragers, gelicentieerd onder GPLv3.
 # Gewijzigde binaire bestanden, of plugins met gekopieerde Grim code, moeten privé zijn,
 # of met volledige broncode beschikbaar voor kopers zonder extra kosten.
 
@@ -17,6 +17,8 @@ alerts:
 
 verbose:
   print-to-console: false
+
+check-for-updates: true
 
 client-brand:
   # Dit betekent dat het merk niet wordt uitgezonden naar operators als het merk overeenkomt met de volgende regexen

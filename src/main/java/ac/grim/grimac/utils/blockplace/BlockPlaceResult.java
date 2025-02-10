@@ -717,6 +717,7 @@ public enum BlockPlaceResult {
             // Do we care about this enuogh to fix? // TODO: Check flmmable
             byFlammable = true;
         }
+
         if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }

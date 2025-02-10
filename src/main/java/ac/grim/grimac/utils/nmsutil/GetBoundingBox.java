@@ -48,4 +48,25 @@ public class GetBoundingBox {
 
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
     }
+
+    public static double[] getEntityDimensions(GrimPlayer player, PacketEntity entity) {
+        final float scale = (float) entity.getAttributeValue(Attributes.SCALE);
+        final float width = BoundingBoxSize.getWidth(player, entity) * scale;
+        final float height = BoundingBoxSize.getHeight(player, entity) * scale;
+        return new double[] { width, height, width};
+    }
+
+    public static void expandBoundingBoxByEntityDimensions(SimpleCollisionBox box, GrimPlayer player, PacketEntity entity) {
+        double[] dimensions = getEntityDimensions(player, entity);
+        double halfWidth = dimensions[0] / 2.0;
+        double height = dimensions[1];
+        double halfDepth = dimensions[2] / 2.0;
+
+        box.minX -= halfWidth;
+        box.minY -= 0; // No downward expansion
+        box.minZ -= halfDepth;
+        box.maxX += halfWidth;
+        box.maxY += height;
+        box.maxZ += halfDepth;
+    }
 }

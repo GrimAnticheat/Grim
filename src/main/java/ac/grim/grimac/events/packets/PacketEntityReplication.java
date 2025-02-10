@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
+import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -71,7 +72,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (entity == playerVehicle && !player.vehicleData.lastDummy) {
                 // The player has this as their vehicle, so they aren't interpolating it.
                 // And it isn't a dummy position
-                entity.setPositionRaw(entity.getPossibleCollisionBoxes());
+                entity.setPositionRaw(player, entity.getPossibleLocationBoxes());
             } else {
                 entity.onMovement(isTickingReliably);
             }
@@ -254,21 +255,19 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             if (slot.getWindowId() == 0) {
+                if (player.isMitigateDesyncNoSlow() && player.packetStateData.lastSlotSelected + 36 == slot.getSlot()) {
+                    BukkitNMS.resetBukkitItemUsage(player.bukkitPlayer);
+                }
+
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
                         player.packetStateData.setSlowedByUsingItem(false);
-                        if (player.isMitigateDesyncNoSlow()) {
-                            player.resetBukkitItemUsage();
-                        }
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
                         player.packetStateData.setSlowedByUsingItem(false);
-                        if (player.isMitigateDesyncNoSlow()) {
-                            player.resetBukkitItemUsage();
-                        }
                     }
                 });
             }

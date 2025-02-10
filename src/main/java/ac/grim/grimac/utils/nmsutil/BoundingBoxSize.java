@@ -51,7 +51,7 @@ public final class BoundingBoxSize {
             return 0.4f;
         } else if (EntityTypes.RABBIT.equals(type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
-        } else if (EntityTypes.STRIDER.equals(type) || EntityTypes.COW.equals(type) || EntityTypes.SHEEP.equals(type) || EntityTypes.MOOSHROOM.equals(type) || EntityTypes.PIG.equals(type) || EntityTypes.LLAMA.equals(type) || EntityTypes.DOLPHIN.equals(type) || EntityTypes.WITHER.equals(type) || EntityTypes.TRADER_LLAMA.equals(type) || EntityTypes.WARDEN.equals(type) || EntityTypes.GOAT.equals(type)) {
+        } else if (EntityTypes.CREAKING.equals(type) || EntityTypes.STRIDER.equals(type) || EntityTypes.COW.equals(type) || EntityTypes.SHEEP.equals(type) || EntityTypes.MOOSHROOM.equals(type) || EntityTypes.PIG.equals(type) || EntityTypes.LLAMA.equals(type) || EntityTypes.DOLPHIN.equals(type) || EntityTypes.WITHER.equals(type) || EntityTypes.TRADER_LLAMA.equals(type) || EntityTypes.WARDEN.equals(type) || EntityTypes.GOAT.equals(type)) {
             return 0.9f;
         } else if (EntityTypes.PHANTOM.equals(type)) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
@@ -231,6 +231,7 @@ public final class BoundingBoxSize {
         }
         return getHeight(player, packetEntity) * 0.75;
     }
+
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         final EntityType type = packetEntity.getType();
         if (EntityTypes.ARMADILLO.equals(type)) {
@@ -295,6 +296,8 @@ public final class BoundingBoxSize {
             return 1.6f;
         } else if (EntityTypes.IRON_GOLEM.equals(type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 2.7f : 2.9f;
+        } else if (EntityTypes.CREAKING.equals(type)) {
+            return 2.7f;
         } else if (EntityTypes.LLAMA.equals(type) || EntityTypes.TRADER_LLAMA.equals(type)) {
             return 1.87f;
         } else if (EntityTypes.TROPICAL_FISH.equals(type)) {

@@ -35,7 +35,7 @@ public class SprintE extends Check implements PostPredictionCheck {
         // I'll probably check 1.18+ later
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18)) return;
 
-        if (wasHorizontalCollision && !startedSprintingThisTick) {
+        if (wasHorizontalCollision && !startedSprintingThisTick && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))) {
             if (player.isSprinting) {
                 flagAndAlertWithSetback();
             } else reward();

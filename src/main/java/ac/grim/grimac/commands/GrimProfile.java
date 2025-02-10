@@ -12,6 +12,7 @@ import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 
 @CommandAlias("grim|grimac")
@@ -37,8 +38,8 @@ public class GrimProfile extends BaseCommand {
         }
 
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
-            message = MessageUtil.replacePlaceholders(grimPlayer, message);
-            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
+            final Component component = MessageUtil.miniMessage(message);
+            MessageUtil.sendMessage(sender, MessageUtil.replacePlaceholders(grimPlayer, component));
         }
     }
 }

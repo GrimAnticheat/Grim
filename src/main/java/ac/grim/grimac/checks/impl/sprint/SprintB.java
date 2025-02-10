@@ -5,11 +5,12 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "SprintB", description = "Sprinting while sneaking", setback = 5, experimental = true)
+import java.util.Collections;
+
+@CheckData(name = "SprintB", description = "Sprinting while sneaking or crawling", setback = 5, experimental = true)
 public class SprintB extends Check implements PostPredictionCheck {
     public SprintB(GrimPlayer player) {
         super(player);
@@ -17,13 +18,11 @@ public class SprintB extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isChecked()) return;
-
         if (player.isSlowMovement && player.sneakingSpeedMultiplier < 0.8f) {
             ClientVersion version = player.getClientVersion();
 
             // https://bugs.mojang.com/browse/MC-152728
-            if (version.isNewerThanOrEquals(ClientVersion.V_1_14_2) && version.isOlderThan(ClientVersion.V_1_21_4)) {
+            if (version.isNewerThanOrEquals(ClientVersion.V_1_14_2) && version != ClientVersion.V_1_21_4) {
                 return;
             }
 
@@ -32,7 +31,14 @@ public class SprintB extends Check implements PostPredictionCheck {
                 return;
             }
 
-            if (player.isSprinting && !player.isSwimming && (player.fluidOnEyes != FluidTag.WATER || version.isOlderThan(ClientVersion.V_1_21_4))) {
+            // https://github.com/GrimAnticheat/Grim/issues/1948
+            if (version == ClientVersion.V_1_21_4 && (Collections.max(player.uncertaintyHandler.pistonX) != 0
+                    || Collections.max(player.uncertaintyHandler.pistonY) != 0
+                    || Collections.max(player.uncertaintyHandler.pistonZ) != 0)) {
+                return;
+            }
+
+            if (player.isSprinting && (!player.wasTouchingWater || version.isOlderThan(ClientVersion.V_1_13))) {
                 flagAndAlertWithSetback();
             } else reward();
         }

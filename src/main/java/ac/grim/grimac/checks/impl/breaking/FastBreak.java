@@ -12,15 +12,23 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+
+import java.util.Set;
 
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
 @CheckData(name = "FastBreak", description = "Breaking blocks too quickly")
 public class FastBreak extends Check implements BlockBreakCheck {
+
+    // For some reason these states flag and I don't know why.
+    // Better to just exempt to not annoy legit players.
+    private static final Set<StateType> EXEMPT_STATES = Set.of(StateTypes.TRIAL_SPAWNER);
+
     public FastBreak(GrimPlayer playerData) {
         super(playerData);
     }
@@ -45,7 +53,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
             WrappedBlockState block = blockBreak.block;
 
             // Exempt all blocks that do not exist in the player version
-            if (WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType()).getType() == StateTypes.AIR) {
+            final WrappedBlockState defaultState = WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType());
+            if (defaultState.getType() == StateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {
                 return;
             }
 
@@ -90,7 +99,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
                 }
             }
 
-            lastFinishBreak = System.currentTimeMillis();
+            // also set start time because the breaking netcode is fucked on 1.14.4+
+            lastFinishBreak = startBreak = System.currentTimeMillis();
         }
     }
 
