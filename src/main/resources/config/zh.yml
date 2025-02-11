@@ -38,7 +38,7 @@ spectators:
     - ""
 
 # 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
-# 踢出原因为: disconnect.timeout
+# 踢出原因为: disconnect.timeout (踢出原因可以在messages.yml中修改啦)
 # 玩家超时踢出时间（默认 = 60 秒）
 max-transaction-time: 60
 
@@ -94,14 +94,14 @@ RotationPlace:
 
 # 使用模拟移动进行的NoSlow(使用物品时不会减速)检查
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
-# 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
+# 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题
 NoSlow:
   # 有多少偏移量是作弊
   # 标志 0.03-0.2 与 NoSlow 一致
   threshold: 0.001
   # 到达多少VL时回弹
   setbackvl: 5
-  # 当玩家使用一个物品并被它减慢时衰减多少VL
+  # 当玩家合法使用一个物品时(正常被减速时)衰减多少VL
   decay: 0.05
 
 Knockback:
@@ -121,6 +121,7 @@ Knockback:
 
 
 Explosion:
+# 此检测用于监控玩家的爆炸后的移动状态（如爆炸后的位移、碰撞等）
   threshold: 0.001
   setbackvl: 3
 
@@ -135,6 +136,7 @@ TimerA:
   ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
+  # 用于检测小于1的timer, 以防止(利用低timer的黑客)滞空时间过长
   # 在开始检查玩家时，玩家的移动丢失了多少毫秒数
   drift: 1200
 
@@ -147,7 +149,7 @@ Reach:
   # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
   #
   # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 距离的增加，因为
-  # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大。
+  # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大
   threshold: 0.0005
   # 我们应该取消我们知道不可能的命中吗？
   # 3.00-3.03 命中可能会通过，但仍会被标记，因为数据包顺序限制
@@ -162,20 +164,21 @@ Reach:
   enable-post-packet: false
 
 exploit:
-  #是否允许玩家在使用鞘翅时候进行的疾跑跳跃
+  # 是否允许玩家在使用鞘翅时候进行的疾跑跳跃
   allow-sprint-jumping-when-using-elytra: true
-  # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
+  # 该选项可在发生幽灵方块时重新同步玩家，从而减轻玩家在幽灵方块上的位置
   # 这可以在玩家遇到幽灵方块时进行同步，这可以减少玩家所碰到幽灵方块
+  # !如果你预计把Grim应用到竞技类小游戏中(如 Bedwars)请改为 false 防止假方块飞行绕过!
   allow-building-on-ghostblocks: true
   distance-to-check-if-ghostblocks: 2
 
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
 
-# 启用实验性检查
+# 启用实验性检查 (默认 false)
 experimental-checks: false
 
-# 取消有问题的格挡
+# 取消有问题的格挡/使用
 mitigate-autoblock: true
 mitigate-desync-noslow: true
 
