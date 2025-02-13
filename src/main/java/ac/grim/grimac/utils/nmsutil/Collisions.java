@@ -465,12 +465,12 @@ public class Collisions {
             SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
                     .expand(-1.0E-5F);
 
-            LongSet set = new LongOpenHashSet(); // needs to be variable per player to reduce allocations
+            LongSet visitedBlocks = new LongOpenHashSet(); // needs to be variable per player to reduce allocations
             for (Vector3i blockPos : boxTraverseBlocks(from, to, aabb)) {
                 WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
                 StateType blockType = blockState.getType();
 
-                if (!blockState.getType().isAir() && set.add(GrimMath.asLong(blockPos))) {
+                if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
                     System.out.println("blockstate: " + blockState.getType().getName());
 
                     // commented things below needs to be implemented
@@ -482,7 +482,7 @@ public class Collisions {
                 }
             }
 
-            set.clear();
+            visitedBlocks.clear();
         }
     }
 
