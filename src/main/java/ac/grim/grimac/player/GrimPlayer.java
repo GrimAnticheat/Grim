@@ -224,6 +224,7 @@ public class GrimPlayer implements GrimUser {
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public PlayerBlockHistory blockHistory = new PlayerBlockHistory();
+    public final List<Movement> movementThisTick = new ArrayList<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -874,6 +875,9 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void setResyncHandler(ResyncHandler resyncHandler) {
         this.resyncHandler = resyncHandler;
+    }
+
+    public record Movement(Vector3d from, Vector3d to) {
     }
 
 }

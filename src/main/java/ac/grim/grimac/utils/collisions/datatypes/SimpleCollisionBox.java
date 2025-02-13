@@ -1,9 +1,13 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
+import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.google.common.collect.AbstractIterator;
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -11,6 +15,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.Optional;
 
 public class SimpleCollisionBox implements CollisionBox {
 
@@ -470,8 +475,16 @@ public class SimpleCollisionBox implements CollisionBox {
         return null;
     }
 
+    public Vector3d getMaxPosition() { // done to omit conversions bukkit -> packetevents
+        return new Vector3d(maxX, maxY, maxZ);
+    }
+
     public Vector max() {
         return new Vector(maxX, maxY, maxZ);
+    }
+
+    public Vector3d getMinPosition() { // done to omit conversions bukkit -> packetevents
+        return new Vector3d(minX, minY, minZ);
     }
 
     public Vector min() {
@@ -525,6 +538,97 @@ public class SimpleCollisionBox implements CollisionBox {
             }
         }
         return -1;
+    }
+
+    public double getXsize() {
+        return maxX - minX;
+    }
+
+    public double getYsize() {
+        return maxY - minY;
+    }
+
+    public double getZsize() {
+        return maxZ - minZ;
+    }
+
+    public static Iterable<Vector3i> betweenClosed(SimpleCollisionBox box) {
+        Vector3i blockPos = containing(box.minX, box.minY, box.minZ);
+        Vector3i blockPos1 = containing(box.maxX, box.maxY, box.maxZ);
+        return betweenClosed(blockPos, blockPos1);
+    }
+
+    public static Vector3i containing(double x, double y, double z) {
+        return new Vector3i(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
+    }
+
+    public static Iterable<Vector3i> betweenClosed(Vector3i firstPos, Vector3i secondPos) {
+        return betweenClosed(
+                Math.min(firstPos.getX(), secondPos.getX()),
+                Math.min(firstPos.getY(), secondPos.getY()),
+                Math.min(firstPos.getZ(), secondPos.getZ()),
+                Math.max(firstPos.getX(), secondPos.getX()),
+                Math.max(firstPos.getY(), secondPos.getY()),
+                Math.max(firstPos.getZ(), secondPos.getZ())
+        );
+    }
+
+    public static Iterable<Vector3i> betweenClosed(int x1, int y1, int z1, int x2, int y2, int z2) {
+        int i = x2 - x1 + 1;
+        int i1 = y2 - y1 + 1;
+        int i2 = z2 - z1 + 1;
+        int i3 = i * i1 * i2;
+        return () -> new AbstractIterator<>() {
+            private int index;
+
+            @Override
+            protected Vector3i computeNext() {
+                if (this.index == i3) {
+                    return this.endOfData();
+                } else {
+                    int i4 = this.index % i;
+                    int i5 = this.index / i;
+                    int i6 = i5 % i1;
+                    int i7 = i5 / i1;
+                    this.index++;
+                    return new Vector3i(x1 + i4, y1 + i6, z1 + i7);
+                }
+            }
+        };
+    }
+
+    public Vector3d getCenter() {
+        return new Vector3d(GrimMath.lerp(0.5, this.minX, this.maxX), GrimMath.lerp(0.5, this.minY, this.maxY), GrimMath.lerp(0.5, this.minZ, this.maxZ));
+    }
+
+    public boolean contains(Vector3d vec3) {
+        return this.contains(vec3.x, vec3.y, vec3.z);
+    }
+
+    public boolean contains(double d, double e, double f) {
+        return d >= this.minX && d < this.maxX && e >= this.minY && e < this.maxY && f >= this.minZ && f < this.maxZ;
+    }
+
+    public boolean collidedAlongVector(Vector3d vec3, List<SimpleCollisionBox> list) {
+        Vector3d vec32 = this.getCenter();
+        Vector3d vec33 = vec32.add(vec3);
+
+        for (SimpleCollisionBox aABB : list) {
+            SimpleCollisionBox aABB2 = aABB.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5);
+            if (aABB2.contains(vec33) || aABB2.contains(vec32)) {
+                return true;
+            }
+
+            if (aABB2.clip(vec32, vec33).isPresent()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Optional<Vector3d> clip(Vector3d vec3, Vector3d vec32) {
+        return Collisions.clip(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ, vec3, vec32);
     }
 
     @Override

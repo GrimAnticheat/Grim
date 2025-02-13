@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.math;
 
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
@@ -85,6 +86,23 @@ public class GrimMath {
     public static long lfloor(double p_14135_) {
         long i = (long) p_14135_;
         return p_14135_ < (double) i ? i - 1L : i;
+    }
+
+    // methods copied from minecraft src
+    public static int sign(double x) {
+        if (x == 0.0) {
+            return 0;
+        } else {
+            return x > 0.0 ? 1 : -1;
+        }
+    }
+
+    public static float square(float value) {
+        return value * value;
+    }
+
+    public static long asLong(Vector3i pos) {
+        return ((pos.x & 67108863L) << 38) | ((pos.y &  4095L)) | ((pos.z & 67108863L) << 12);
     }
 
     // Find the closest distance to (1 / 64)
