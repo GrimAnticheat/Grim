@@ -474,14 +474,11 @@ public class Collisions {
                     System.out.println("blockstate: " + blockState.getType().getName());
 
                     // commented things below needs to be implemented
-//                    VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos, this);
-//                    boolean bl = voxelShape == Shapes.block() || collidedWithShapeMovingFrom(vec3, vec32, voxelShape.move(new Vec3(blockPos)).toAabbs());
-//                    if (bl) {
-                        Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+//                    VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
+//                    if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, from, to, blockPos, voxelShape)) {
+//                        continue;
 //                    }
-
-                    boolean bl2 = collidedWithFluid(player, blockPos, from, to);
-//                    stateVisitor.visit(blockState, bl, bl2); // <- state visitor now serve as a place to determinate if a player is swimming and so on
+                    Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
                 }
             }
 
@@ -490,37 +487,16 @@ public class Collisions {
     }
 
     // copied from minecraft src reimplemented to work with grim - I pray that I haven't missed anything
-    private static boolean collidedWithFluid(GrimPlayer player, Vector3i blockPos, Vector3d vec3, Vector3d vec32) {
-        SimpleCollisionBox aABB = getAABB(player, blockPos);
-        return aABB != null && collidedWithShapeMovingFrom(player, vec3, vec32, List.of(aABB));
-    }
-
-    public static SimpleCollisionBox getAABB(GrimPlayer player, Vector3i blockPos) {
-        float f = (float) player.compensatedWorld.getFluidLevelAt(blockPos.x, blockPos.y, blockPos.z);
-        if (f == 0) {
-            return null;
-        } else {
-            return new SimpleCollisionBox(
-                    (double)blockPos.getX(),
-                    (double)blockPos.getY(),
-                    (double)blockPos.getZ(),
-                    (double)blockPos.getX() + 1.0,
-                    (double)((float)blockPos.getY() + f),
-                    (double)blockPos.getZ() + 1.0
-            );
-        }
-    }
-
-    private static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d vec3, Vector3d vec32, List<SimpleCollisionBox> list) {
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, vec3.x, vec3.y, vec3.z);
-        Vector3d vec33 = vec32.subtract(vec3);
-        return aABB.collidedAlongVector(vec33, list);
-    }
+//    public static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d vec3, Vector3d vec32, Vector3i blockPos, VoxelShape voxelShape) {
+//        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, vec3.getX(), vec3.getY(), vec3.getZ());
+//        Vector3d vec33 = vec32.subtract(vec3);
+//        return aABB.collidedAlongVector(vec33, voxelShape.move(new Vector3d(blockPos.getX(), blockPos.getY(), blockPos.getZ())).toAabbs());
+//    }
 
     public static Iterable<Vector3i> boxTraverseBlocks(Vector3d oldPosition, Vector3d position, SimpleCollisionBox boundingBox) {
         Vector3d vec3 = position.subtract(oldPosition);
         Iterable<Vector3i> iterable = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (vec3.lengthSquared() < GrimMath.square(0.99999F)) {
+        if (vec3.lengthSquared() < (double)GrimMath.square(0.99999F)) {
             return iterable;
         } else {
             Set<Vector3i> set = new ObjectLinkedOpenHashSet<>();

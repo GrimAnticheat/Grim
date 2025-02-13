@@ -614,7 +614,7 @@ public class SimpleCollisionBox implements CollisionBox {
         Vector3d vec33 = vec32.add(vec3);
 
         for (SimpleCollisionBox aABB : list) {
-            SimpleCollisionBox aABB2 = aABB.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5);
+            SimpleCollisionBox aABB2 = aABB.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5); // copy because of mutability of our AABB
             if (aABB2.contains(vec33) || aABB2.contains(vec32)) {
                 return true;
             }
