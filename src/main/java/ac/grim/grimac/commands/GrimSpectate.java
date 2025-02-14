@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.MultiLibUtil;
+import ac.grim.grimac.utils.reflection.PaperUtils;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
@@ -46,6 +47,6 @@ public class GrimSpectate extends BaseCommand {
         }
 
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(target.getPlayer());
+        PaperUtils.teleportAsync(player, target.getPlayer().getLocation());
     }
 }
