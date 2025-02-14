@@ -66,6 +66,9 @@ Simulation:
   # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
   # Standard-Vorteilsgrenze (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Schwellenwert für die Verletzungsstufe für den Rückschlag
+  # 1 für das alte Verhalten
+  setback-violation-threshold: 1
 
 # Überprüft, ob ein Spieler während einer Bewegung einen Block betreten hat.
 Phase:

@@ -19,6 +19,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double immediateSetbackThreshold;
     double maxAdvantage;
     double maxCeiling;
+    double setbackViolationThreshold;
 
     // Current advantage gained
     double advantageGained = 0;
@@ -43,7 +44,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
-            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold) && !isNoSetbackPermission();
+            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
+                                && !isNoSetbackPermission()
+                                && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
@@ -72,7 +75,6 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     predictionComplete.setIdentifier(flagId);
                 }
             }
-
 
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {
@@ -106,6 +108,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
+        setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
     }

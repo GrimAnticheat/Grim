@@ -58,6 +58,9 @@ Simulation:
   max-advantage: 1
   # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
   max-ceiling: 4
+  # Soglia del livello di violazione per il setback
+  # 1 per il comportamento precedente
+  setback-violation-threshold: 1
 
 Phase:
   # Livello di violazione per il glitch nel blocco

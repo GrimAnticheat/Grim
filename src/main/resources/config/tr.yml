@@ -66,6 +66,9 @@ Simulation:
   # Bu, oyuncunun çok fazla ihlal biriktirmesini ve bunların hepsini temizleyememesini önlemek içindir
   # Varsayılan avantaj tavanı (x ekseni = saniye, y ekseni = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Geri alma için ihlal seviyesi eşiği
+  # Eski davranış için 1
+  setback-violation-threshold: 1
 
 # Bir oyuncunun bir hareket sırasında bir bloğa girip girmediğini kontrol eder
 Phase:

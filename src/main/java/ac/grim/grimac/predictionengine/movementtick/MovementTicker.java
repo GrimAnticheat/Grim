@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.utils.team.EntityTeam;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.utils.team.EntityPredicates;
 import ac.grim.grimac.utils.team.TeamHandler;
@@ -17,6 +18,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
@@ -35,43 +37,42 @@ public class MovementTicker {
 
     public static void handleEntityCollisions(GrimPlayer player) {
         // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+        final boolean serverSupported = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+        boolean hasEntityPushing = !(player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 // Check that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
-                || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
-                    && (!ViaVersionUtil.isAvailable() || Via.getConfig().isPreventCollision()))) return;
+                || (!serverSupported
+                && (!ViaVersionUtil.isAvailable() || Via.getConfig().isPreventCollision())));
 
         int possibleCollidingEntities = 0;
         int possibleRiptideEntities = 0;
 
         // Players in vehicles do not have collisions
-        if (!player.inVehicle()) {
+        if (!player.inVehicle() && player.gamemode != GameMode.SPECTATOR) {
             // Calculate the offset of the player to colliding other stuff
             SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
             playerBox.encompass(GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f).expand(player.getMovementThreshold()));
             playerBox.expand(0.2);
 
             final TeamHandler teamHandler = player.checkManager.getPacketCheck(TeamHandler.class);
-
+            final EntityTeam playerTeam = teamHandler != null ? teamHandler.getPlayerTeam() : null;
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 // TODO actually handle entity collisions instead of this awfulness
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+                if (!playerBox.isCollided(entityBox)) continue;
 
-                boolean isCollided = playerBox.isCollided(entityBox);
-                if (isCollided) {
-                    possibleRiptideEntities++;
-                }
+                possibleRiptideEntities++;
+
+                if (!hasEntityPushing || !entity.isPushable())
+                    continue;
 
                 // Filters out entities that can't be pushed/collided because of team collision rules
                 // Also handles 1.9+ player on 1.8- server with ViaVersion prevent-collision disabled.
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)
-                        && !EntityPredicates.canBePushedBy(player, entity, teamHandler).test(player)) continue;
-
-                if (!entity.isPushable())
-                    continue;
-
-                if (isCollided) {
-                    possibleCollidingEntities++;
+                if (serverSupported) {
+                    final EntityTeam entityTeam = teamHandler != null ? teamHandler.getEntityTeam(entity) : null;
+                    if (!EntityPredicates.canBePushedBy(entityTeam, playerTeam)) continue;
                 }
+
+                possibleCollidingEntities++;
             }
         }
 

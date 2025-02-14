@@ -72,7 +72,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (entity == playerVehicle && !player.vehicleData.lastDummy) {
                 // The player has this as their vehicle, so they aren't interpolating it.
                 // And it isn't a dummy position
-                entity.setPositionRaw(entity.getPossibleCollisionBoxes());
+                entity.setPositionRaw(player, entity.getPossibleLocationBoxes());
             } else {
                 entity.onMovement(isTickingReliably);
             }
@@ -256,7 +256,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             if (slot.getWindowId() == 0) {
                 if (player.isMitigateDesyncNoSlow() && player.packetStateData.lastSlotSelected + 36 == slot.getSlot()) {
-                    BukkitNMS.resetBukkitItemUsage(player.bukkitPlayer);
+                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
                 }
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {

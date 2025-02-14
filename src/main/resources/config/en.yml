@@ -78,6 +78,9 @@ Simulation:
   # This is to stop the player from gathering too many violations and never being able to clear them all
   # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Violation level threshold for setback
+  # 1 for old behavior
+  setback-violation-threshold: 1
 
 # Checks to see if a player entered a block during a movement
 Phase:

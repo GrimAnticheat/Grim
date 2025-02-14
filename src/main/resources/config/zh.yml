@@ -71,6 +71,9 @@ Simulation:
   # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
   # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # 设置回退的违规等级阈值
+  # 1 为旧行为
+  setback-violation-threshold: 1
 
 # 检查玩家是否穿墙
 Phase:

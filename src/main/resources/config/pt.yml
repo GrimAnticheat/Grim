@@ -67,6 +67,9 @@ Simulation:
   # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
   # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Quantas violações para começar a recuar o jogador?
+  # 1 para comportamento antigo
+  setback-violation-threshold: 1
 
 # Verifica se um jogador entrou em um bloco ao se mover.
 Phase:

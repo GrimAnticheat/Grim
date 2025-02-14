@@ -68,6 +68,9 @@ Simulation:
   # これは、プレイヤーが違反を蓄積しすぎて、違反を解消できなくなるのを防ぐためです。
   # デフォルトのアドバンテージの上限 (x軸 = 秒, y軸 = 1/1000ブロック): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # セットバックの違反レベル閾値
+  # 旧仕様の挙動は 1 です
+  setback-violation-threshold: 1
 
 # プレイヤーが移動中にブロックに入ったかどうかをチェックします。
 Phase:

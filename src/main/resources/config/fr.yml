@@ -66,6 +66,9 @@ Simulation:
   # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
   # Plafond d'avantage par défaut (l"axe x = secondes, l'axe y = 1/1000 de bloc)) : https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Seuil du niveau de violation pour le setback
+  # 1 pour le comportement ancien
+  setback-violation-threshold: 1
 
 # Vérifications pour voir si un joueur est entré dans un bloc pendant un mouvement.
 Phase:
