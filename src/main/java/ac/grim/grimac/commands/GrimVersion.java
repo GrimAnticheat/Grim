@@ -83,10 +83,8 @@ public class GrimVersion extends BaseCommand {
             String latest = object.get("version_number").getAsString();
             Status status = compareVersions(current, latest);
             Component msg = switch (status) {
-                case AHEAD ->
-                        Component.text("You are using a development version of GrimAC").color(NamedTextColor.LIGHT_PURPLE);
-                case UPDATED ->
-                        Component.text("You are using the latest version of GrimAC").color(NamedTextColor.GREEN);
+                case AHEAD -> null;
+                case UPDATED -> null;
                 case OUTDATED -> Component.text()
                         .append(Component.text("New GrimAC version found!").color(NamedTextColor.AQUA))
                         .append(Component.text(" Version ").color(NamedTextColor.GRAY))
@@ -96,6 +94,9 @@ public class GrimVersion extends BaseCommand {
                                 .clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/grimac")))
                         .build();
             };
+            if (msg == null) {
+                return;
+            }
             updateMessage.set(msg);
             MessageUtil.sendMessage(sender, msg);
         } catch (Exception ignored) {
