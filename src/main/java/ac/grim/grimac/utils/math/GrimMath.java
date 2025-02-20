@@ -53,6 +53,18 @@ public class GrimMath {
         return (int) Math.ceil(d);
     }
 
+    // Should produce the same output as Math.floor() and Math.ceil() but mojang do it differently
+    // Replicating what they do jussst in case
+    public static int mojangFloor(double num) {
+        final int floor = (int) num;
+        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
+    }
+
+    public static int mojangCeil(final double num) {
+        final int floor = (int) num;
+        return floor == num ? floor : floor + (int) (~Double.doubleToRawLongBits(num) >>> 63);
+    }
+
     public static double clamp(double num, double min, double max) {
         if (num < min) {
             return min;

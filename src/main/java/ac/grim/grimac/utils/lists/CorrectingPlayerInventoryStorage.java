@@ -5,9 +5,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
-import org.bukkit.inventory.InventoryView;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,7 +88,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
     private void checkThatBukkitIsSynced(int slot) {
         // The player isn't fully logged in yet, don't bother checking
-        if (player.bukkitPlayer == null) return;
+        if (player.platformPlayer == null) return;
         // We aren't tracking the player's inventory, so don't bother
         if (!player.getInventory().isPacketInventoryActive) return;
 
@@ -99,14 +96,12 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         int bukkitSlot = player.getInventory().getBukkitSlot(slot); // 8 -> 39, should be 36
 
         if (bukkitSlot != -1) {
-            org.bukkit.inventory.ItemStack bukkitItem = player.bukkitPlayer.getInventory().getItem(bukkitSlot);
-
             ItemStack existing = getItem(slot);
-            ItemStack toPE = SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
+            ItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
 
             if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
-                FoliaScheduler.getEntityScheduler().execute(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
-                    player.bukkitPlayer.updateInventory();
+                GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                    player.platformPlayer.updateInventory();
                 }, null, 0);
                 setItem(slot, toPE);
             }
@@ -114,7 +109,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     }
 
     public void tickWithBukkit() {
-        if (player.bukkitPlayer == null) return;
+        if (player.platformPlayer == null) return;
 
         int tickID = GrimAPI.INSTANCE.getTickManager().currentTick;
         for (Iterator<Map.Entry<Integer, Integer>> it = pendingFinalizedSlot.entrySet().iterator(); it.hasNext(); ) {
@@ -126,14 +121,13 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         }
 
         if (player.getInventory().needResend) {
-            FoliaScheduler.getEntityScheduler().execute(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
                 // Potential race condition doing this multiple times
                 if (!player.getInventory().needResend) return;
 
-                InventoryView view = player.bukkitPlayer.getOpenInventory();
-                if (SUPPORTED_INVENTORIES.contains(view.getType().toString().toUpperCase(Locale.ROOT))) {
+                if (SUPPORTED_INVENTORIES.contains(player.platformPlayer.getInventory().getOpenInventoryKey().toUpperCase(Locale.ROOT))) {
                     player.getInventory().needResend = false;
-                    player.bukkitPlayer.updateInventory();
+                    player.platformPlayer.updateInventory();
                 }
             }, null, 0);
         }

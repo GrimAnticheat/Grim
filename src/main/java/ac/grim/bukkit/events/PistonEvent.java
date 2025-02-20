@@ -1,4 +1,4 @@
-package ac.grim.grimac.events.bukkit;
+package ac.grim.bukkit.events;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;

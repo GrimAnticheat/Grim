@@ -9,7 +9,6 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -53,7 +52,7 @@ public class GrimVersion extends BaseCommand {
             return;
         }
         lastCheck = now;
-        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), (dummy) -> checkForUpdates(sender));
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> checkForUpdates(sender));
     }
 
     // Using UserAgent format recommended by https://docs.modrinth.com/api/

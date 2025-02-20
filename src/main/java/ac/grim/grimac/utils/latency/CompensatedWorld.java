@@ -50,7 +50,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -202,7 +201,7 @@ public class CompensatedWorld {
             // So we must wait for the bukkit thread to start ticking so via can "confirm" it
             //
             // no need to support Folia on this one because Folia is 1.19+ only
-            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // And then we jump back to the netty thread to simulate that Via sent the confirmation
                 ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
             });

@@ -8,7 +8,6 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class GrimLog extends BaseCommand {
         String uploading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-start", "%prefix% &fUploading log... please wait");
         uploading = MessageUtil.replacePlaceholders(sender, uploading);
         MessageUtil.sendMessage(sender, MessageUtil.miniMessage(uploading));
-        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> {
             try {
                 sendLog(sender, log, success, failure, consumer, type);
             } catch (Exception e) {
@@ -66,7 +65,7 @@ public class GrimLog extends BaseCommand {
             }
             final int response = urlConn.getResponseCode();
             if (response == HttpURLConnection.HTTP_CREATED) {
-                String responseURL = urlConn.getHeaderField("Location");
+                String responseURL = urlConn.getHeaderField("ConvertLocation");
                 String message = success.replace("%url%", "https://paste.grim.ac/" + responseURL);
                 consumer.accept(message);
                 message = MessageUtil.replacePlaceholders(sender, message);

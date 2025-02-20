@@ -12,6 +12,6 @@ public class GrimAlerts extends BaseCommand {
     @Subcommand("alerts")
     @CommandPermission("grim.alerts")
     public void onAlerts(Player player) {
-        GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player);
+        GrimAPI.INSTANCE.getAlertManager().toggleAlerts(GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player));
     }
 }

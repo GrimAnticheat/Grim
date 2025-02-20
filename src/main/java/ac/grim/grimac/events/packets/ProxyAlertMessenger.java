@@ -1,6 +1,9 @@
 package ac.grim.grimac.events.packets;
 
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -15,10 +18,10 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 
 import java.io.*;
 
+// TODO add this back again, temporarily disable for cross-platform port
 public class ProxyAlertMessenger extends PacketListenerAbstract {
     private static boolean usingProxy;
 
@@ -29,7 +32,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
 
         if (usingProxy) {
             LogUtil.info("Registering an outgoing plugin channel...");
-            GrimAPI.INSTANCE.getPlugin().getServer().getMessenger().registerOutgoingPluginChannel(GrimAPI.INSTANCE.getPlugin(), "BungeeCord");
+            GrimACBukkitLoaderPlugin.PLUGIN.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.PLUGIN, "BungeeCord");
         }
     }
 
@@ -59,8 +62,8 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
             return;
         }
 
-        for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(alert));
+        for (GrimUser bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
+            MessageUtil.sendMessage((GrimPlayer) bukkitPlayer, MessageUtil.miniMessage(alert));
     }
 
     public static void sendPluginMessage(String message) {
@@ -84,7 +87,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         out.writeShort(messageBytes.toByteArray().length);
         out.write(messageBytes.toByteArray());
 
-        Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(GrimAPI.INSTANCE.getPlugin(), "BungeeCord", out.toByteArray());
+        Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(GrimACBukkitLoaderPlugin.PLUGIN, "BungeeCord", out.toByteArray());
     }
 
     public static boolean canSendAlerts() {

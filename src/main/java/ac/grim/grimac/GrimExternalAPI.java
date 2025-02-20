@@ -1,6 +1,8 @@
 package ac.grim.grimac;
 
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.api.GrimAbstractAPI;
+import ac.grim.grimac.api.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
@@ -12,12 +14,10 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.ServicePriority;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     }
 
     @Nullable
-    @Override
     public GrimUser getGrimUser(Player player) {
         return api.getPlayerDataManager().getPlayer(player);
     }
@@ -86,7 +85,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
 
     @Override
     public String getGrimVersion() {
-        PluginDescriptionFile description = GrimAPI.INSTANCE.getPlugin().getDescription();
+        GrimPluginDescription description = GrimAPI.INSTANCE.getPlugin().getDescription();
         return description.getVersion();
     }
 
@@ -133,7 +132,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     // on load, load the config & register the service
     public void load() {
         reload(configManagerFile);
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, this, GrimAPI.INSTANCE.getPlugin(), ServicePriority.Normal);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, this, GrimACBukkitLoaderPlugin.PLUGIN, ServicePriority.Normal);
     }
 
     // handles any config loading that's needed to be done after load
@@ -150,8 +149,8 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     @Override
     public void reload(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
-            FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                    o -> successfulReload(config));
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+                    () -> successfulReload(config));
         } else {
             successfulReload(config);
         }
@@ -161,8 +160,8 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     public CompletableFuture<Boolean> reloadAsync(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                    o -> future.complete(successfulReload(config)));
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+                    () -> future.complete(successfulReload(config)));
             return future;
         }
         return CompletableFuture.completedFuture(successfulReload(config));
@@ -174,14 +173,14 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
             GrimAPI.INSTANCE.getConfigManager().load(config);
             if (started) GrimAPI.INSTANCE.getConfigManager().start();
             onReload(config);
-            if (started) FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                    o -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(true)));
+            if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+                    () -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (started) FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                o -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(false)));
+        if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+                () -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(false)));
         return false;
     }
 

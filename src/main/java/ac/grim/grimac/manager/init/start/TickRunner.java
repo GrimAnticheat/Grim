@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
-import org.bukkit.Bukkit;
 
 public class TickRunner implements Initable {
     @Override
@@ -12,13 +11,13 @@ public class TickRunner implements Initable {
         LogUtil.info("Registering tick schedulers...");
 
         if (FoliaScheduler.isFolia()) {
-            FoliaScheduler.getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getPlugin(), (dummy) -> {
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getPlugin(), () -> {
                 GrimAPI.INSTANCE.getTickManager().tickSync();
                 GrimAPI.INSTANCE.getTickManager().tickAsync();
             }, 1, 1);
         } else {
-            Bukkit.getScheduler().runTaskTimer(GrimAPI.INSTANCE.getPlugin(), () -> GrimAPI.INSTANCE.getTickManager().tickSync(), 0, 1);
-            Bukkit.getScheduler().runTaskTimerAsynchronously(GrimAPI.INSTANCE.getPlugin(), () -> GrimAPI.INSTANCE.getTickManager().tickAsync(), 0, 1);
+            GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().runAtFixedRate(GrimAPI.INSTANCE.getPlugin(), () -> GrimAPI.INSTANCE.getTickManager().tickSync(), 0, 1);
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getPlugin(), () -> GrimAPI.INSTANCE.getTickManager().tickAsync(), 0, 1);
         }
     }
 }

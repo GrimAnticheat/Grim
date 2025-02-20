@@ -1,7 +1,8 @@
-package ac.grim.grimac.utils.reflection;
+package ac.grim.bukkit.utils.reflection;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
@@ -19,7 +20,7 @@ public class PaperUtils {
     static {
         PAPER = ReflectionUtils.hasClass("com.destroystokyo.paper.PaperConfig") || ReflectionUtils.hasClass("io.papermc.paper.configuration.Configuration");
         TICK_END_EVENT = ReflectionUtils.hasClass("com.destroystokyo.paper.event.server.ServerTickEndEvent");
-        ASYNC_TELEPORT = ReflectionUtils.hasMethod(Entity.class, "teleportAsync", Location.class);
+        ASYNC_TELEPORT = ReflectionUtils.hasMethod(Entity.class, "teleportAsync", org.bukkit.Location.class);
     }
 
     public static CompletableFuture<Boolean> teleportAsync(final Entity entity, final Location location) {
@@ -36,10 +37,10 @@ public class PaperUtils {
             try {
                 Class<?> clazz = ReflectionUtils.getClass("com.destroystokyo.paper.event.server.ServerTickEndEvent");
                 if (clazz == null) return false;
-                GrimAPI.INSTANCE.getPlugin().getServer().getPluginManager().registerEvent((Class<? extends Event>) clazz,
+                GrimACBukkitLoaderPlugin.PLUGIN.getServer().getPluginManager().registerEvent((Class<? extends Event>) clazz,
                         listener,
                         EventPriority.NORMAL,
-                        (l, event) -> runnable.run(), GrimAPI.INSTANCE.getPlugin());
+                        (l, event) -> runnable.run(), GrimACBukkitLoaderPlugin.PLUGIN);
                 return true;
             } catch (Exception e) {
                 LogUtil.exception("Failed to register tick end event", e);

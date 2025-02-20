@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.player.GrimPlayer;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
@@ -12,6 +13,7 @@ public class GrimVerbose extends BaseCommand {
     @Subcommand("verbose")
     @CommandPermission("grim.verbose")
     public void onVerbose(Player player) {
-        GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player);
+        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
+        GrimAPI.INSTANCE.getAlertManager().toggleVerbose(grimPlayer);
     }
 }

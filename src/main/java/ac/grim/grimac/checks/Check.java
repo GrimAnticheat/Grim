@@ -9,7 +9,6 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -62,15 +61,15 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public void updatePermissions() {
-        if (player.bukkitPlayer == null || checkName == null) return;
-        FoliaScheduler.getEntityScheduler().run(
-                player.bukkitPlayer,
+        if (player.platformPlayer == null || checkName == null) return;
+        GrimAPI.INSTANCE.getScheduler().getEntityScheduler().run(
+                player.platformPlayer,
                 GrimAPI.INSTANCE.getPlugin(),
-                t -> {
+                () -> {
                     final String id = checkName.toLowerCase();
-                    exemptPermission = player.bukkitPlayer.hasPermission("grim.exempt." + id);
-                    noSetbackPermission = player.bukkitPlayer.hasPermission("grim.nosetback." + id);
-                    noModifyPacketPermission = player.bukkitPlayer.hasPermission("grim.nomodifypacket." + id);
+                    exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
+                    noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
+                    noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
                 },
                 () -> {}
         );

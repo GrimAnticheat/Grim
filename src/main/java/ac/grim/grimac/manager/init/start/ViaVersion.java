@@ -15,7 +15,7 @@ public class ViaVersion implements Initable {
         if (!ViaVersionUtil.isAvailable()) return;
         if (Via.getConfig().getValues().containsKey("fix-1_21-placement-rotation") && Via.getConfig().fix1_21PlacementRotation()) {
             LogUtil.error("GrimAC has detected that you are using ViaVersion with the `fix-1_21-placement-rotation` option enabled.");
-            LogUtil.error("This option is known to cause issues with GrimAC and may result in false positives and bypasses.");
+            LogUtil.error("This option is known to cause issues with GrimACBukkitLoaderPlugin and may result in false positives and bypasses.");
             LogUtil.error("Please disable this option in your ViaVersion configuration to prevent these issues.");
         }
 

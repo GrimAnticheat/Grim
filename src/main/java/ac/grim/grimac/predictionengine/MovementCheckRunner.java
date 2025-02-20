@@ -543,7 +543,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
 
         // Patch sprint jumping with elytra exploit
-        if (player.bukkitPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
+        if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
             lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(new Vector(0.6 * 0.91, 1, 0.6 * 0.91)));
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();

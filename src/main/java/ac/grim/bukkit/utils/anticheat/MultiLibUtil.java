@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.anticheat;
+package ac.grim.bukkit.utils.anticheat;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 
 public class MultiLibUtil {
 
+    private static final boolean isPre1_18 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_18);
     public final static Method externalPlayerMethod = getMethod(Player.class, "isExternalPlayer");
 
     public static Method getMethod(Class<?> clazz, String methodName) {
@@ -20,7 +21,7 @@ public class MultiLibUtil {
 
     // TODO: cache external players for better performance, but this only matters for people using multi-lib
     public static boolean isExternalPlayer(Player player) {
-        if (externalPlayerMethod == null || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_18))) return false;
+        if (externalPlayerMethod == null || isPre1_18) return false;
         try {
             return (boolean) externalPlayerMethod.invoke(player);
         } catch (Exception e) {

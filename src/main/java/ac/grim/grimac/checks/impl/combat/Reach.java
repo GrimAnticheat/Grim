@@ -1,4 +1,4 @@
-// This file was designed and is an original check for GrimAC
+// This file was designed and is an original check for GrimACBukkitLoaderPlugin
 // Copyright (C) 2021 DefineOutside
 //
 // This program is free software: you can redistribute it and/or modify

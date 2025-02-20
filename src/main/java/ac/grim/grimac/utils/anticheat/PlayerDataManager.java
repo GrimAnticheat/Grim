@@ -1,10 +1,11 @@
 package ac.grim.grimac.utils.anticheat;
 
+import ac.grim.bukkit.utils.anticheat.MultiLibUtil;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
@@ -22,7 +23,7 @@ public class PlayerDataManager {
     public final Collection<User> exemptUsers = Collections.synchronizedCollection(new HashSet<>());
 
     public GrimPlayer getPlayer(final Player player) {
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(player)) return null;
+        if (MultiLibUtil.isExternalPlayer(player)) return null;
 
         // Is it safe to interact with this, or is this internal PacketEvents code?
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
@@ -42,8 +43,8 @@ public class PlayerDataManager {
             }
 
             // Has exempt permission
-            Player player = Bukkit.getPlayer(user.getUUID());
-            if (player != null && player.hasPermission("grim.exempt")) {
+            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
+            if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
                 exemptUsers.add(user);
                 return false;
             }

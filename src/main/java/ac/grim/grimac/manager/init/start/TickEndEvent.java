@@ -1,11 +1,12 @@
 package ac.grim.grimac.manager.init.start;
 
+import ac.grim.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
-import ac.grim.grimac.utils.reflection.PaperUtils;
+import ac.grim.bukkit.utils.reflection.PaperUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
@@ -57,7 +58,7 @@ public class TickEndEvent implements Initable, Listener {
     private void tickAllFoliaPlayers() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.disableGrim) continue;
-            Player p = player.bukkitPlayer;
+            Player p = ((BukkitPlatformPlayer) player.platformPlayer).getBukkitPlayer();
             if (p == null || !Bukkit.isOwnedByCurrentRegion(p)) continue;
             onEndOfTick(player);
         }

@@ -13,9 +13,7 @@ import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperCon
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 public class ClientBrand extends Check implements PacketCheck {
     public static final String channel = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) ? "minecraft:brand" : "MC|Brand";
@@ -55,7 +53,7 @@ public class ClientBrand extends Check implements PacketCheck {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                 Component component = MessageUtil.replacePlaceholders(player, MessageUtil.miniMessage(message));
 
-                for (Player player : Bukkit.getOnlinePlayers()) {
+                for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
                     if (GrimAPI.INSTANCE.getAlertManager().hasBrandsEnabled(player)) {
                         MessageUtil.sendMessage(player, component);
                     }

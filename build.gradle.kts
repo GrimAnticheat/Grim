@@ -86,7 +86,7 @@ dependencies {
 bukkit {
     name = "GrimAC"
     author = "GrimAC"
-    main = "ac.grim.grimac.GrimAC"
+    main = "ac.grim.bukkit.GrimACBukkitLoaderPlugin"
     website = "https://grim.ac/"
     apiVersion = "1.13"
     foliaSupported = true

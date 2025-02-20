@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.anticheat;
 
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class MessageUtil {
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
-    private final BukkitAudiences adventure = BukkitAudiences.create(GrimAPI.INSTANCE.getPlugin());
+    private final BukkitAudiences adventure = BukkitAudiences.create(GrimACBukkitLoaderPlugin.PLUGIN);
     public final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
 
     public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
@@ -35,7 +36,7 @@ public class MessageUtil {
     }
 
     public @NotNull String replacePlaceholders(@NotNull GrimPlayer player, @NotNull String string) {
-        return replacePlaceholders(player.bukkitPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
+        return replacePlaceholders(player.platformPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
     }
 
     public @NotNull String replacePlaceholders(@Nullable Object object, @NotNull String string) {
@@ -95,5 +96,9 @@ public class MessageUtil {
 
     public void sendMessage(@NotNull CommandSender commandSender, @NotNull Component component) {
         adventure.sender(commandSender).sendMessage(component);
+    }
+
+    public void sendMessage(GrimPlayer grimPlayer, @NotNull Component component) {
+        grimPlayer.sendMessage(component);
     }
 }

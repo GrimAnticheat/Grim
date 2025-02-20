@@ -32,7 +32,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
-        Player player = event.getPlayer();
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
@@ -58,9 +58,9 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         //Check if calling async is safe
         if (event.getUser().getProfile().getUUID() == null) return; // folia doesn't like null getPlayer()
         Player player = Bukkit.getPlayer(event.getUser().getProfile().getUUID());
-        if (player != null) {
-            GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(player);
-            GrimAPI.INSTANCE.getSpectateManager().onQuit(player);
+        if (grimPlayer != null) {
+            GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(grimPlayer);
+            GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer);
         }
     }
 }

@@ -47,7 +47,6 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -623,12 +622,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     }
 
                     // Stop inventory desync from cancelling place
-                    if (player.bukkitPlayer != null) {
+                    if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                            ItemStack mainHand = SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInHand());
+                            ItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
                             player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, mainHand));
                         } else {
-                            ItemStack offHand = SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInOffHand());
+                            ItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
                             player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, offHand));
                         }
                     }

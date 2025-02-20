@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.entity.GrimEntity;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
@@ -25,12 +26,10 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.Collections;
@@ -111,7 +110,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         // Setbacks aren't allowed
         if (player.disableGrim) return true;
         // Player has permission to cheat, permission not given to OP by default.
-        if (player.bukkitPlayer != null && player.noSetbackPermission) return true;
+        if (player.platformPlayer != null && player.noSetbackPermission) return true;
         return false;
     }
 
@@ -138,7 +137,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
     private void blockMovementsUntilResync(boolean simulateNextTickPosition, boolean isResync) {
         if (requiredSetBack == null) return; // Hasn't spawned
-        if (player.bukkitPlayer != null && player.noSetbackPermission) return; // The player has permission to cheat
+        if (player.platformPlayer != null && player.noSetbackPermission) return; // The player has permission to cheat
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (isPendingSetback()) return; // Don't spam setbacks
 
@@ -222,9 +221,9 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                     player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
 
                     // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
-                    FoliaScheduler.getEntityScheduler().execute(player.bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
-                        if (player.bukkitPlayer != null) {
-                            Entity vehicle = player.bukkitPlayer.getVehicle();
+                    GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                        if (player.platformPlayer != null) {
+                            GrimEntity vehicle = player.platformPlayer.getVehicle();
                             if (vehicle != null) {
                                 vehicle.eject();
                             }

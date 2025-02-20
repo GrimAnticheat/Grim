@@ -1,6 +1,6 @@
 package ac.grim.grimac.manager.config;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.api.config.ConfigManager;
@@ -34,10 +34,10 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         GrimAPI.INSTANCE.getPlugin().getDataFolder().mkdirs();
         if (!initialized) {
             initialized = true;
-            config.addSource(GrimAC.class, "config", getConfigFile("config.yml"));
-            config.addSource(GrimAC.class, "messages", getConfigFile("messages.yml"));
-            config.addSource(GrimAC.class, "discord", getConfigFile("discord.yml"));
-            config.addSource(GrimAC.class, "punishments", getConfigFile("punishments.yml"));
+            config.addSource(GrimACBukkitLoaderPlugin.class, "config", getConfigFile("config.yml"));
+            config.addSource(GrimACBukkitLoaderPlugin.class, "messages", getConfigFile("messages.yml"));
+            config.addSource(GrimACBukkitLoaderPlugin.class, "discord", getConfigFile("discord.yml"));
+            config.addSource(GrimACBukkitLoaderPlugin.class, "punishments", getConfigFile("punishments.yml"));
         }
         //
         String languageCode = System.getProperty("user.language").toUpperCase();

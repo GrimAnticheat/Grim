@@ -27,7 +27,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -128,40 +127,40 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public ItemStack getHeldItem() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getHeldItem() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInHand());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHeldItem() :
+                player.platformPlayer.getInventory().getItemInHand();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getOffHand() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
             return ItemStack.EMPTY;
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getOffhand() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInOffHand());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getOffhand() :
+                player.platformPlayer.getInventory().getItemInOffHand();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getHelmet() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getHelmet() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getHelmet());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHelmet() :
+                player.platformPlayer.getInventory().getHelmet();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getChestplate() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getChestplate() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getChestplate());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getChestplate() :
+                player.platformPlayer.getInventory().getChestplate();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getLeggings() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getLeggings() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getLeggings());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getLeggings() :
+                player.platformPlayer.getInventory().getLeggings();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getBoots() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getBoots() :
-                SpigotConversionUtil.fromBukkitItemStack(player.bukkitPlayer.getInventory().getBoots());
+        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getBoots() :
+                player.platformPlayer.getInventory().getBoots();
         return item == null ? ItemStack.EMPTY : item;
     }
 
@@ -177,11 +176,10 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public boolean hasItemType(ItemType type) {
-        if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
+        if (isPacketInventoryActive || player.platformPlayer == null) return inventory.hasItemType(type);
 
-        // Fall back to bukkit inventories
-        for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
-            ItemStack itemStack = SpigotConversionUtil.fromBukkitItemStack(item);
+        // Fall back to platform inventories
+        for (ItemStack itemStack : player.platformPlayer.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == type) return true;
         }
         return false;

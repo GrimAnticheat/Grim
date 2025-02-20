@@ -33,6 +33,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.world.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -57,7 +58,6 @@ import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -67,9 +67,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +88,7 @@ public class GrimPlayer implements GrimUser {
     public final User user;
     public int entityID;
     @Nullable
-    public Player bukkitPlayer;
+    public PlatformPlayer platformPlayer;
     // Start transaction handling stuff
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
@@ -486,9 +484,9 @@ public class GrimPlayer implements GrimUser {
             LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
-        if (bukkitPlayer != null) {
-            FoliaScheduler.getEntityScheduler().execute(bukkitPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
-                bukkitPlayer.kickPlayer(textReason);
+        if (platformPlayer != null) {
+            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+                platformPlayer.kickPlayer(textReason);
             }, null, 1);
         }
     }
@@ -515,8 +513,8 @@ public class GrimPlayer implements GrimUser {
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
 
-        if (uuid != null && this.bukkitPlayer == null) {
-            this.bukkitPlayer = Bukkit.getPlayer(uuid);
+        if (uuid != null && this.platformPlayer == null) {
+            this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
             updatePermissions();
         }
     }
@@ -553,10 +551,10 @@ public class GrimPlayer implements GrimUser {
     //TODO: Create a configurable timer for this
     @Override
     public void updatePermissions() {
-        if (bukkitPlayer == null) return;
-        this.noModifyPacketPermission = bukkitPlayer.hasPermission("grim.nomodifypacket");
-        this.noSetbackPermission = bukkitPlayer.hasPermission("grim.nosetback");
-        FoliaScheduler.getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), t -> {
+        if (platformPlayer == null) return;
+        this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
+        this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> {
             for (AbstractCheck check : checkManager.allChecks.values()) {
                 if (check instanceof Check) {
                     ((Check) check).updatePermissions();
@@ -633,8 +631,8 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public int getKeepAlivePing() {
-        if (bukkitPlayer == null) return -1;
-        return PacketEvents.getAPI().getPlayerManager().getPing(bukkitPlayer);
+        if (platformPlayer == null) return -1;
+        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer);
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
@@ -740,8 +738,8 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void resyncPose() {
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && bukkitPlayer != null) {
-            bukkitPlayer.setSneaking(!bukkitPlayer.isSneaking());
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && platformPlayer != null) {
+            platformPlayer.setSneaking(!platformPlayer.isSneaking());
         }
     }
 
@@ -799,12 +797,12 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public @Nullable String getWorldName() {
-        return bukkitPlayer != null ? bukkitPlayer.getWorld().getName() : null;
+        return platformPlayer != null ? platformPlayer.getWorld().getName() : null;
     }
 
     @Override
     public @Nullable UUID getWorldUID() {
-        return bukkitPlayer != null ? bukkitPlayer.getWorld().getUID() : null;
+        return platformPlayer != null ? platformPlayer.getWorld().getUID() : null;
     }
 
     @Override
@@ -877,7 +875,16 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public void sendMessage(String message) {
-        if (bukkitPlayer != null) bukkitPlayer.sendMessage(message);
+        if (platformPlayer != null) platformPlayer.sendMessage(message);
+    }
+
+    @Override
+    public boolean hasPermission(String s) {
+        return platformPlayer == null ? false : platformPlayer.hasPermission(s);
+    }
+
+    public void sendMessage(Component message) {
+        if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
     private ResyncHandler resyncHandler = new BukkitResyncHandler(this);
@@ -895,4 +902,15 @@ public class GrimPlayer implements GrimUser {
     public static record Movement(Vector3d from, Vector3d to) {
     }
 
+    public ac.grim.grimac.player.GameMode getGameMode() {
+        return platformPlayer.getGameMode();
+    }
+
+    public Location getLocation() {
+        return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
+    }
+
+    public void setGameMode(ac.grim.grimac.player.GameMode gameMode) {
+        platformPlayer.setGameMode(gameMode);
+    }
 }

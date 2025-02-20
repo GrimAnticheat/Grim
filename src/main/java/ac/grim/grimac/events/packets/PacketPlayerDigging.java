@@ -89,7 +89,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
 
             // The other items that do require it
-            if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.bukkitPlayer != null && player.food < 20) || player.gamemode == GameMode.CREATIVE)) {
+            if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.platformPlayer != null && player.food < 20) || player.gamemode == GameMode.CREATIVE)) {
                 player.packetStateData.setSlowedByUsingItem(true);
                 player.packetStateData.eatingHand = hand;
                 return;

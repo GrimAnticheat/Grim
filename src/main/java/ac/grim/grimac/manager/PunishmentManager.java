@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.events.CommandExecuteEvent;
@@ -13,7 +14,6 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -124,8 +124,8 @@ public class PunishmentManager implements ConfigReloadable {
                     if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
                         sentDebug = true;
                         Component component = MessageUtil.miniMessage(cmd);
-                        for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            MessageUtil.sendMessage(bukkitPlayer, component);
+                        for (GrimUser bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
+                            MessageUtil.sendMessage((GrimPlayer) bukkitPlayer, component);
                         }
                         if (printToConsole) {
                             LogUtil.console(component); // Print verbose to console
@@ -156,7 +156,7 @@ public class PunishmentManager implements ConfigReloadable {
                                 }
 
                                 String finalCmd = cmd;
-                                FoliaScheduler.getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), (dummy) ->
+                                GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), () ->
                                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
                             }
                         }

@@ -45,7 +45,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.isResetItemUsageOnAttack()) {
-                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
                 ItemStack heldItem = player.getInventory().getHeldItem();

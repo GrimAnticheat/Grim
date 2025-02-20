@@ -56,7 +56,7 @@ public class DebugHandler extends Check implements PostPredictionCheck {
         String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
         String o = ChatColor.GRAY + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
-        String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
+        String prefix = player.platformPlayer == null ? "null" : player.platformPlayer.getName() + " ";
 
         boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
         if (enabledFlags) {
@@ -84,9 +84,9 @@ public class DebugHandler extends Check implements PostPredictionCheck {
 
         for (Player player : listeners) {
             // Don't add prefix if the player is listening to oneself
-            player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + p);
-            player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + a);
-            player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + o);
+            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + p);
+            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + a);
+            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + o);
         }
 
         // Don't memory leak player references

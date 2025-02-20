@@ -1,9 +1,11 @@
-package ac.grim.grimac.utils.nmsutil;
+package ac.grim.bukkit.utils.nms;
 
+import ac.grim.bukkit.player.BukkitPlatformPlayer;
+import ac.grim.grimac.manager.ItemResetHandler;
+import ac.grim.grimac.player.PlatformPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -14,12 +16,14 @@ import java.lang.reflect.Method;
 
 @UtilityClass
 public class BukkitNMS {
+public class BukkitNMS implements ItemResetHandler {
+    // resets item usage, then returns whether the player was using an item
     private final @NotNull ItemUsageReset resetItemUsage = createItemUsageResetFunction();
 
     @SneakyThrows
-    public void resetItemUsage(@Nullable Player player) {
+    public void resetItemUsage(@Nullable PlatformPlayer player) {
         if (player != null) {
-            resetItemUsage.accept(player);
+            resetItemUsage.accept(((BukkitPlatformPlayer) player).getBukkitPlayer());
         }
     }
 

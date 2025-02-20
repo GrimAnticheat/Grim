@@ -6,6 +6,7 @@ import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 
@@ -19,9 +20,9 @@ public class InitManager {
     @Getter private boolean started = false;
     @Getter private boolean stopped = false;
 
-    public InitManager() {
+    public InitManager(PacketEventsAPI<?> packetEventsAPI) {
         initializersOnLoad = ImmutableList.<Initable>builder()
-                .add(new PacketEventsInit())
+                .add(new PacketEventsInit(packetEventsAPI))
                 .add(() -> GrimAPI.INSTANCE.getExternalAPI().load())
                 .build();
 

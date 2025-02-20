@@ -4,25 +4,18 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.world.PlatformChunk;
+import ac.grim.grimac.world.PlatformWorld;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
-
-import java.util.HashMap;
 
 public class ResyncWorldUtil {
-    static HashMap<BlockData, Integer> blockDataToId = new HashMap<>();
 
     public static void resyncPosition(GrimPlayer player, Vector3i pos) {
         player.getResyncHandler().resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
@@ -39,14 +32,13 @@ public class ResyncWorldUtil {
                 || !player.compensatedWorld.isChunkLoaded(maxBlockX >> 4, minBlockZ >> 4) || !player.compensatedWorld.isChunkLoaded(maxBlockX >> 4, maxBlockZ >> 4))
             return;
 
-        if (player.bukkitPlayer == null) return;
-        World world = player.bukkitPlayer.getWorld();
+        if (player.platformPlayer == null) return;
+        PlatformWorld world = player.platformPlayer.getWorld();
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
-        FoliaScheduler.getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world,
+        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world,
                 minBlockX >> 4, minBlockZ >> 4, () -> {
-            boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
             // Player hasn't spawned, don't spam packets
             if (!player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
 
@@ -81,7 +73,7 @@ public class ResyncWorldUtil {
                     int minX = currChunkX == minChunkX ? minBlockX & 15 : 0; // coordinate in chunk
                     int maxX = currChunkX == maxChunkX ? maxBlockX & 15 : 15; // coordinate in chunk
 
-                    Chunk chunk = world.getChunkAt(currChunkX, currChunkZ);
+                    PlatformChunk chunk = world.getChunkAt(currChunkX, currChunkZ);
 
                     for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
                         int minY = currChunkY == minChunkY ? minBlockY & 15 : 0; // coordinate in chunk
@@ -96,17 +88,7 @@ public class ResyncWorldUtil {
                         for (int currZ = minZ; currZ <= maxZ; ++currZ) {
                             for (int currX = minX; currX <= maxX; ++currX) {
                                 for (int currY = minY; currY <= maxY; ++currY) {
-                                    Block block = chunk.getBlock(currX, currY | (currChunkY << 4), currZ);
-
-                                    int blockId;
-
-                                    if (flat) {
-                                        // Cache this because strings are expensive
-                                        blockId = blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId());
-                                    } else {
-                                        blockId = (block.getType().getId() << 4) | block.getData();
-                                    }
-
+                                    int blockId = chunk.getBlockID(currX, currY | (currChunkY << 4), currZ);
                                     encodedBlocks[blockIndex++] = new WrapperPlayServerMultiBlockChange.EncodedBlock(blockId, currX, currY | (currChunkY << 4), currZ);
                                 }
                             }
@@ -121,28 +103,20 @@ public class ResyncWorldUtil {
     }
 
     public static void resyncPosition(GrimPlayer player, Vector3i pos, int sequence) {
-        if (player.bukkitPlayer == null) return;
+        if (player.platformPlayer == null) return;
 
         final int chunkX = pos.x >> 4;
         final int chunkZ = pos.z >> 4;
-        final World world = player.bukkitPlayer.getWorld();
+        final PlatformWorld world = player.platformPlayer.getWorld();
 
-        FoliaScheduler.getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world, chunkX, chunkZ, () -> {
-            if (!player.bukkitPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
+        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world, chunkX, chunkZ, () -> {
+            if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
 
             if (!player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) return;
-            if (player.bukkitPlayer.getLocation().distance(new Location(world, pos.x, pos.y, pos.z)) >= 64) return;
+            if (player.platformPlayer.getPosition().distance(new Vector3d(pos.x, pos.y, pos.z)) >= 64) return;
             if (!world.isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 
-            final Block block = world.getChunkAt(chunkX, chunkZ).getBlock(pos.x & 15, pos.y, pos.z & 15);
-
-            final int blockId;
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                // Cache this because strings are expensive
-                blockId = blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId());
-            } else {
-                blockId = (block.getType().getId() << 4) | block.getData();
-            }
+            final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(pos.x & 15, pos.y, pos.z & 15);
 
             player.user.sendPacket(new WrapperPlayServerBlockChange(pos, blockId));
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
