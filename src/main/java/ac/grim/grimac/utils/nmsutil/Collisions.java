@@ -534,22 +534,6 @@ public class Collisions {
                         // If honey sliding, fall distance is 0
                         player.fallDistance = 0;
                     }
-
-                    if (blockType.isBlocking()) {
-                        boolean fullyInsideBlock = player.x >= blockX && player.x < blockX + 1 && player.y >= blockY && player.y < blockY + 1 && player.z >= blockZ && player.z < blockZ + 1;
-
-                        if (!fullyInsideBlock) {
-                            // The player is partially inside one or more blocks.
-                            // This can happen if sand falls onto the player and the player.
-                            // actively tries to resist being pushed away.
-                            //
-                            // => player will be stuck on the edge of the block causing weird movement behavior
-                            // which leads to a false positive
-
-                            // Will increase the tolerance for collision checks
-                            player.uncertaintyHandler.isNearGlitchyBlock = true;
-                        }
-                    }
                 }
             }
         }

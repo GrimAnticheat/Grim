@@ -281,6 +281,8 @@ public final class PlayerBaseTick {
         double d0 = x - floorX;
         double d1 = z - floorZ;
 
+        double pushUncertainty = 0.17;
+
         boolean suffocates;
 
         if (player.isSwimming) {
@@ -313,26 +315,26 @@ public final class PlayerBaseTick {
             }
 
             if (i == 0) { // Negative X
-                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
-                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.xNegativeUncertainty -= pushUncertainty;
+                player.uncertaintyHandler.xPositiveUncertainty += pushUncertainty;
                 player.pointThreeEstimator.setPushing(true);
             }
 
             if (i == 1) { // Positive X
-                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
-                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.xNegativeUncertainty -= pushUncertainty;
+                player.uncertaintyHandler.xPositiveUncertainty += pushUncertainty;
                 player.pointThreeEstimator.setPushing(true);
             }
 
             if (i == 4) { // Negative Z
-                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
-                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.zNegativeUncertainty -= pushUncertainty;
+                player.uncertaintyHandler.zPositiveUncertainty += pushUncertainty;
                 player.pointThreeEstimator.setPushing(true);
             }
 
             if (i == 5) { // Positive Z
-                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
-                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.zNegativeUncertainty -= pushUncertainty;
+                player.uncertaintyHandler.zPositiveUncertainty += pushUncertainty;
                 player.pointThreeEstimator.setPushing(true);
             }
         }
