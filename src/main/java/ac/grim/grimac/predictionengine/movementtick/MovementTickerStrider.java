@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -11,7 +12,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 
@@ -19,7 +19,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
-        movementInput = new Vector(0, 0, 1);
+        movementInput = new Vector3dm(0, 0, 1);
     }
 
     public static void floatStrider(GrimPlayer player) {
@@ -27,7 +27,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
             if (isAbove(player) && player.compensatedWorld.getLavaFluidLevelAt((int) Math.floor(player.x), (int) Math.floor(player.y + 1), (int) Math.floor(player.z)) == 0) {
                 player.onGround = true;
             } else {
-                player.clientVelocity.multiply(0.5).add(new Vector(0, 0.05, 0));
+                player.clientVelocity.multiply(0.5).add(new Vector3dm(0, 0.05, 0));
             }
         }
     }

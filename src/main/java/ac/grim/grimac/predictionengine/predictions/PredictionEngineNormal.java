@@ -6,12 +6,12 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.OptionalInt;
@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
 
-    public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
+    public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector) {
         double adjustedY = vector.getY();
         final OptionalInt levitation = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.LEVITATION);
         if (levitation.isPresent()) {
@@ -42,7 +42,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         }
 
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            Vector jump = vector.vector.clone();
+            Vector3dm jump = vector.vector.clone();
 
             if (!player.isFlying) {
                 // Negative jump boost does not allow the player to leave the ground
@@ -56,9 +56,9 @@ public class PredictionEngineNormal extends PredictionEngine {
 
                 JumpPower.jumpFromGround(player, jump);
             } else {
-                jump.add(new Vector(0, player.flySpeed * 3, 0));
+                jump.add(new Vector3dm(0, player.flySpeed * 3, 0));
                 if (!player.wasFlying) {
-                    Vector edgeCaseJump = jump.clone();
+                    Vector3dm edgeCaseJump = jump.clone();
                     JumpPower.jumpFromGround(player, edgeCaseJump);
                     existingVelocities.add(vector.returnNewModified(edgeCaseJump, VectorData.VectorType.Jump));
                 }
@@ -86,7 +86,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
-            Vector ladderVelocity = player.clientVelocity.clone().setY(0.2);
+            Vector3dm ladderVelocity = player.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(player, ladderVelocity);
             player.lastWasClimbing = ladderVelocity.getY();
         }
@@ -97,7 +97,7 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
+    public Vector3dm handleOnClimbable(Vector3dm vector, GrimPlayer player) {
         if (player.isClimbing) {
             // Reset fall distance when climbing
             player.fallDistance = 0;

@@ -11,12 +11,12 @@ import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.jetbrains.annotations.Nullable;
@@ -219,7 +219,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
         variableReplacements.putIfAbsent("%tps%", user -> String.format("%.2f", SpigotReflectionUtil.getTPS()));
         variableReplacements.putIfAbsent("%version%", GrimUser::getVersionName);
         // static variables
-        staticReplacements.put("%prefix%", ChatColor.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getPrefix()));
+        staticReplacements.put("%prefix%", ChatUtil.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getPrefix()));
         staticReplacements.putIfAbsent("%grim_version%", getGrimVersion());
     }
 

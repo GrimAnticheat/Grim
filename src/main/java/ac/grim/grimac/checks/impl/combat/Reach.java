@@ -24,6 +24,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -35,7 +36,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -191,7 +191,7 @@ public class Reach extends Check implements PacketCheck {
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
-        List<Vector> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot)));
+        List<Vector3dm> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot)));
 
         // If we are a tick behind, we don't know their next look so don't bother doing this
         if (!isPrediction) {
@@ -212,13 +212,13 @@ public class Reach extends Check implements PacketCheck {
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        final Vector eyePos = new Vector(from.getX(), 0, from.getZ());
-        for (Vector lookVec : possibleLookDirs) {
+        final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
+        for (Vector3dm lookVec : possibleLookDirs) {
             for (double eye : possibleEyeHeights) {
                 eyePos.setY(from.getY() + eye);
-                Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance));
+                Vector3dm endReachPos = eyePos.clone().add(new Vector3dm(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance));
 
-                Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
+                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
 
                 if (ReachUtils.isVecInside(targetBox, eyePos)) {
                     minDistance = 0;

@@ -8,8 +8,8 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,9 +21,9 @@ public class PredictionEngineWater extends PredictionEngine {
     float swimmingFriction;
     double lastY;
 
-    public static void staticVectorEndOfTick(GrimPlayer player, Vector vector, float swimmingFriction, double playerGravity, boolean isFalling) {
-        vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
-        Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, vector);
+    public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector, float swimmingFriction, double playerGravity, boolean isFalling) {
+        vector.multiply(new Vector3dm(swimmingFriction, 0.8F, swimmingFriction));
+        Vector3dm fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, vector);
         vector.setX(fluidVector.getX());
         vector.setY(fluidVector.getY());
         vector.setZ(fluidVector.getZ());
@@ -47,7 +47,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 double scalar = lookYAmount < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
-                swimmingVelocities.add(vector.returnNewModified(new Vector(vector.vector.getX(), vector.vector.getY() + ((lookYAmount - vector.vector.getY()) * scalar), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
+                swimmingVelocities.add(vector.returnNewModified(new Vector3dm(vector.vector.getX(), vector.vector.getY() + ((lookYAmount - vector.vector.getY()) * scalar), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 // Theoretically we should check this BEFORE allowing no look, but there isn't a cheat that takes advantage of this yet
@@ -80,11 +80,11 @@ public class PredictionEngineWater extends PredictionEngine {
                 double extraVelFromVertTickSkipUpwards = GrimMath.clamp(player.actualMovement.getY(), vector.vector.clone().getY(), vector.vector.clone().getY() + 0.05f);
                 existingVelocities.add(new VectorData(vector.vector.clone().setY(extraVelFromVertTickSkipUpwards), vector, VectorData.VectorType.Jump));
             } else {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04f, 0)), vector, VectorData.VectorType.Jump));
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector3dm(0, 0.04f, 0)), vector, VectorData.VectorType.Jump));
             }
 
             if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
-                Vector withJump = vector.vector.clone();
+                Vector3dm withJump = vector.vector.clone();
                 super.doJump(player, withJump);
                 existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
             }

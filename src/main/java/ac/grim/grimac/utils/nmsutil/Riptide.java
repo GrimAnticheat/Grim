@@ -2,14 +2,14 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
-import org.bukkit.util.Vector;
 
 public class Riptide {
-    public static Vector getRiptideVelocity(GrimPlayer player) {
+    public static Vector3dm getRiptideVelocity(GrimPlayer player) {
         ItemStack main = player.getInventory().getHeldItem();
         ItemStack off = player.getInventory().getOffHand();
 
@@ -19,7 +19,7 @@ public class Riptide {
         } else if (off.getType() == ItemTypes.TRIDENT) {
             j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
         } else {
-            return new Vector(); // Can't riptide
+            return new Vector3dm(); // Can't riptide
         }
 
         float f7 = player.xRot;
@@ -35,8 +35,8 @@ public class Riptide {
 
         // If the player collided vertically with the 1.199999F pushing movement, then the Y additional movement was added
         // (We switched the order around as our prediction engine isn't designed for the proper implementation)
-        if (player.verticalCollision) return new Vector(f1, 0, f3);
+        if (player.verticalCollision) return new Vector3dm(f1, 0, f3);
 
-        return new Vector(f1, f2, f3);
+        return new Vector3dm(f1, f2, f3);
     }
 }

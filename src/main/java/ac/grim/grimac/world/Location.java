@@ -245,4 +245,8 @@ public class Location implements Cloneable {
             return world != null && world.isLoaded();
         }
     }
+
+    public Vector3dm toVector() {
+        return new Vector3dm(x, y, z);
+    }
 }

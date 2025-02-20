@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.world.Vector3dm;
 import lombok.Getter;
-import org.bukkit.util.Vector;
 
 import java.util.Objects;
 
@@ -9,13 +9,13 @@ public class VectorData {
     public VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
-    public Vector vector;
+    public Vector3dm vector;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
 
     // For handling replacing the type of vector it is while keeping data
-    public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
+    public VectorData(Vector3dm vector, VectorData lastVector, VectorType vectorType) {
         this.vector = vector;
         this.lastVector = lastVector;
         this.vectorType = vectorType;
@@ -38,7 +38,7 @@ public class VectorData {
         addVectorType(vectorType);
     }
 
-    public VectorData(Vector vector, VectorType vectorType) {
+    public VectorData(Vector3dm vector, VectorType vectorType) {
         this.vector = vector;
         this.vectorType = vectorType;
         addVectorType(vectorType);
@@ -48,7 +48,7 @@ public class VectorData {
         return new VectorData(vector, this, type);
     }
 
-    public VectorData returnNewModified(Vector newVec, VectorType type) {
+    public VectorData returnNewModified(Vector3dm newVec, VectorType type) {
         return new VectorData(newVec, this, type);
     }
 

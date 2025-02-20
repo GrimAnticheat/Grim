@@ -2,6 +2,8 @@ package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Ray;
+import ac.grim.grimac.world.Location;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -9,8 +11,6 @@ import com.google.common.collect.AbstractIterator;
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import org.bukkit.Location;
-import org.bukkit.util.Vector;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class SimpleCollisionBox implements CollisionBox {
         isFullBlock = fullBlock;
     }
 
-    public SimpleCollisionBox(Vector min, Vector max) {
+    public SimpleCollisionBox(Vector3dm min, Vector3dm max) {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
@@ -90,7 +90,7 @@ public class SimpleCollisionBox implements CollisionBox {
         this(loc.toVector(), width, height);
     }
 
-    public SimpleCollisionBox(Vector vec, double width, double height) {
+    public SimpleCollisionBox(Vector3dm vec, double width, double height) {
         this(vec.getX(), vec.getY(), vec.getZ(), vec.getX(), vec.getY(), vec.getZ());
 
         expand(width / 2, 0, width / 2);
@@ -153,16 +153,16 @@ public class SimpleCollisionBox implements CollisionBox {
         return this;
     }
 
-    public Vector[] corners() {
-        Vector[] vectors = new Vector[8];
-        vectors[0] = new Vector(minX, minY, minZ);
-        vectors[1] = new Vector(minX, minY, maxZ);
-        vectors[2] = new Vector(maxX, minY, minZ);
-        vectors[3] = new Vector(maxX, minY, maxZ);
-        vectors[4] = new Vector(minX, maxY, minZ);
-        vectors[5] = new Vector(minX, maxY, maxZ);
-        vectors[6] = new Vector(maxX, maxY, minZ);
-        vectors[7] = new Vector(maxX, maxY, maxZ);
+    public Vector3dm[] corners() {
+        Vector3dm[] vectors = new Vector3dm[8];
+        vectors[0] = new Vector3dm(minX, minY, minZ);
+        vectors[1] = new Vector3dm(minX, minY, maxZ);
+        vectors[2] = new Vector3dm(maxX, minY, minZ);
+        vectors[3] = new Vector3dm(maxX, minY, maxZ);
+        vectors[4] = new Vector3dm(minX, maxY, minZ);
+        vectors[5] = new Vector3dm(minX, maxY, maxZ);
+        vectors[6] = new Vector3dm(maxX, maxY, minZ);
+        vectors[7] = new Vector3dm(maxX, maxY, maxZ);
         return vectors;
     }
 
@@ -426,14 +426,14 @@ public class SimpleCollisionBox implements CollisionBox {
      */
     // Copied from hawk lol
     // I would like to point out that this is magic to me and I have not attempted to understand this code
-    public Vector intersectsRay(Ray ray, float minDist, float maxDist) {
-        Vector invDir = new Vector(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
+    public Vector3dm intersectsRay(Ray ray, float minDist, float maxDist) {
+        Vector3dm invDir = new Vector3dm(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
 
         boolean signDirX = invDir.getX() < 0;
         boolean signDirY = invDir.getY() < 0;
         boolean signDirZ = invDir.getZ() < 0;
 
-        Vector bbox = signDirX ? max() : min();
+        Vector3dm bbox = signDirX ? max() : min();
         double tmin = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
         bbox = signDirX ? min() : max();
         double tmax = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
@@ -476,16 +476,16 @@ public class SimpleCollisionBox implements CollisionBox {
         return new Vector3d(maxX, maxY, maxZ);
     }
 
-    public Vector max() {
-        return new Vector(maxX, maxY, maxZ);
+    public Vector3dm max() {
+        return new Vector3dm(maxX, maxY, maxZ);
     }
 
     public Vector3d getMinPosition() { // done to omit conversions bukkit -> packetevents
         return new Vector3d(minX, minY, minZ);
     }
 
-    public Vector min() {
-        return new Vector(minX, minY, minZ);
+    public Vector3dm min() {
+        return new Vector3dm(minX, minY, minZ);
     }
 
     public DoubleList getYPointPositions() {

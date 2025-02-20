@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -32,7 +33,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.bukkit.Location;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,12 +80,12 @@ public class Collisions {
     }
 
     // Call this when there isn't uncertainty on the Y axis
-    public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
+    public static Vector3dm collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
         return collide(player, desiredX, desiredY, desiredZ, desiredY, null);
     }
 
-    public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY, VectorData data) {
-        if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
+    public static Vector3dm collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY, VectorData data) {
+        if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector3dm();
 
         final SimpleCollisionBox grabBoxesBB = player.boundingBox.copy();
         final double stepUpHeight = player.getMaxUpStep();
@@ -114,13 +114,13 @@ public class Collisions {
         getCollisionBoxes(player, grabBoxesBB, desiredMovementCollisionBoxes, false);
 
         double bestInput = Double.MAX_VALUE;
-        Vector bestOrderResult = null;
+        Vector3dm bestOrderResult = null;
 
-        Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, desiredY), 0, desiredX, Math.max(stepUpHeight, desiredY), desiredZ).sort());
+        Vector3dm bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, desiredY), 0, desiredX, Math.max(stepUpHeight, desiredY), desiredZ).sort());
         int zeroCount = (desiredX == 0 ? 1 : 0) + (desiredY == 0 ? 1 : 0) + (desiredZ == 0 ? 1 : 0);
 
         for (List<Axis> order : (data != null && data.isZeroPointZeroThree() ? allAxisCombinations : nonStupidityCombinations)) {
-            Vector collisionResult = collideBoundingBoxLegacy(new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
+            Vector3dm collisionResult = collideBoundingBoxLegacy(new Vector3dm(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
             // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this met5hod.
@@ -144,21 +144,21 @@ public class Collisions {
                     final float[] stepHeights = collectStepHeights(box2, list2, (float) stepUpHeight, (float) collisionResult.getY());
 
                     for (float stepHeight : stepHeights) {
-                        Vector vec3d2 = collideBoundingBoxLegacy(new Vector(desiredX, stepHeight, desiredZ), box2, list2, order);
+                        Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), box2, list2, order);
                         if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
                             final double d = player.boundingBox.minY - box2.minY;
-                            collisionResult = vec3d2.add(new Vector(0.0, -d, 0.0));
+                            collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
                             break;
                         }
                     }
                 } else {
-                    Vector regularStepUp = collideBoundingBoxLegacy(new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
+                    Vector3dm regularStepUp = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepUpHeight, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
                     // 1.7 clients do not have this stepping bug fix
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                        Vector stepUpBugFix = collideBoundingBoxLegacy(new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), desiredMovementCollisionBoxes, order);
+                        Vector3dm stepUpBugFix = collideBoundingBoxLegacy(new Vector3dm(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), desiredMovementCollisionBoxes, order);
                         if (stepUpBugFix.getY() < stepUpHeight) {
-                            Vector stepUpBugFixResult = collideBoundingBoxLegacy(new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), desiredMovementCollisionBoxes, order).add(stepUpBugFix);
+                            Vector3dm stepUpBugFixResult = collideBoundingBoxLegacy(new Vector3dm(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), desiredMovementCollisionBoxes, order).add(stepUpBugFix);
                             if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
                                 regularStepUp = stepUpBugFixResult;
                             }
@@ -166,7 +166,7 @@ public class Collisions {
                     }
 
                     if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
-                        collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), desiredMovementCollisionBoxes, order));
+                        collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector3dm(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), desiredMovementCollisionBoxes, order));
                     }
                 }
             }
@@ -351,7 +351,7 @@ public class Collisions {
         return false;
     }
 
-    public static Vector collideBoundingBoxLegacy(Vector toCollide, SimpleCollisionBox
+    public static Vector3dm collideBoundingBoxLegacy(Vector3dm toCollide, SimpleCollisionBox
             box, List<SimpleCollisionBox> desiredMovementCollisionBoxes, List<Axis> order) {
         double x = toCollide.getX();
         double y = toCollide.getY();
@@ -378,18 +378,18 @@ public class Collisions {
             }
         }
 
-        return new Vector(x, y, z);
+        return new Vector3dm(x, y, z);
     }
 
     public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {
         return !getCollisionBoxes(player, playerBB, null, true);
     }
 
-    public static double getHorizontalDistanceSqr(Vector vector) {
+    public static double getHorizontalDistanceSqr(Vector3dm vector) {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
-    public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player, boolean overrideVersion) {
+    public static Vector3dm maybeBackOffFromEdge(Vector3dm vec3, GrimPlayer player, boolean overrideVersion) {
         if (!player.isFlying && player.isSneaking && isAboveGround(player)) {
             double x = vec3.getX();
             double z = vec3.getZ();
@@ -431,7 +431,7 @@ public class Collisions {
                     z += 0.05D;
                 }
             }
-            vec3 = new Vector(x, vec3.getY(), z);
+            vec3 = new Vector3dm(x, vec3.getY(), z);
         }
 
         return vec3;
@@ -477,20 +477,20 @@ public class Collisions {
     public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
         if (blockType == StateTypes.COBWEB) {
             if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.stuckSpeedMultiplier = new Vector(0.5, 0.25, 0.5);
+                player.stuckSpeedMultiplier = new Vector3dm(0.5, 0.25, 0.5);
             } else {
-                player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
+                player.stuckSpeedMultiplier = new Vector3dm(0.25, 0.05000000074505806, 0.25);
             }
         }
 
         if (blockType == StateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+            player.stuckSpeedMultiplier = new Vector3dm(0.800000011920929, 0.75, 0.800000011920929);
         }
 
         if (blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
+            player.stuckSpeedMultiplier = new Vector3dm(0.8999999761581421, 1.5, 0.8999999761581421);
         }
 
         if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
@@ -762,7 +762,7 @@ public class Collisions {
         return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) ? (value - 0.08) * 0.98F : value;
     }
 
-    private static boolean isSlidingDown(Vector vector, GrimPlayer player, int locationX, int locationY,
+    private static boolean isSlidingDown(Vector3dm vector, GrimPlayer player, int locationX, int locationY,
                                          int locationZ) {
         if (player.onGround) {
             return false;

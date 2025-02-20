@@ -201,4 +201,7 @@ public class GrimMath {
         return Math.abs(second - first) < 1.0E-5F;
     }
 
+    public static double square(double num) {
+        return num * num;
+    }
 }

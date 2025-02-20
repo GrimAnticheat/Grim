@@ -28,6 +28,7 @@ import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -40,7 +41,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends Check implements PositionCheck {
     // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
@@ -138,10 +138,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             double negX = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.05);
             double negZ = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.05);
 
-            Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, negZ), player, true);
-            Vector NW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);
-            Vector SE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, posZ), player, true);
-            Vector SW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, posZ), player, true);
+            Vector3dm NE = Collisions.maybeBackOffFromEdge(new Vector3dm(posX, 0, negZ), player, true);
+            Vector3dm NW = Collisions.maybeBackOffFromEdge(new Vector3dm(negX, 0, negZ), player, true);
+            Vector3dm SE = Collisions.maybeBackOffFromEdge(new Vector3dm(posX, 0, posZ), player, true);
+            Vector3dm SW = Collisions.maybeBackOffFromEdge(new Vector3dm(negX, 0, posZ), player, true);
 
             boolean isEast = NE.getX() != posX || SE.getX() != posX;
             boolean isWest = NW.getX() != negX || SW.getX() != negX;
@@ -184,7 +184,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.vehicleData.wasVehicleSwitch = false;
 
             if (riding != null) {
-                Vector pos = new Vector(player.x, player.y, player.z);
+                Vector3dm pos = new Vector3dm(player.x, player.y, player.z);
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
                 // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
@@ -194,7 +194,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 interTruePositions.expand(-width, 0, -width);
                 interTruePositions.expandMax(0, -height, 0);
 
-                Vector cutTo = VectorUtils.cutBoxToVector(pos, interTruePositions);
+                Vector3dm cutTo = VectorUtils.cutBoxToVector(pos, interTruePositions);
 
                 // Now we need to simulate a tick starting at the most optimal position
                 // The start position is never sent, so we assume the most optimal start position
@@ -212,14 +212,14 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             } else {
                 // Server always teleports the player when they eject anyways,
                 // so just let the player control where they eject within reason, they get set back anyways
-                if (new Vector(player.lastX, player.lastY, player.lastZ).distance(new Vector(player.x, player.y, player.z)) > 3) {
+                if (new Vector3dm(player.lastX, player.lastY, player.lastZ).distance(new Vector3dm(player.x, player.y, player.z)) > 3) {
                     player.getSetbackTeleportUtil().executeForceResync(); // Too far! (I think this value is sane)
                 }
 
                 handleTeleport(update);
 
                 if (player.isClimbing) {
-                    Vector ladder = player.clientVelocity.clone().setY(0.2);
+                    Vector3dm ladder = player.clientVelocity.clone().setY(0.2);
                     PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
                     player.lastWasClimbing = ladder.getY();
                 }
@@ -299,7 +299,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
-        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+        player.actualMovement = new Vector3dm(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         if (player.isSprinting != player.lastSprinting) {
             player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
@@ -426,8 +426,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Exempt if the player is dead or is riding a dead entity
         if (player.compensatedEntities.self.isDead || (riding != null && riding.isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
-            player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Dead);
-            player.clientVelocity = new Vector();
+            player.predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Dead);
+            player.clientVelocity = new Vector3dm();
         } else if (player.disableGrim || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR) || player.isFlying || (player.isExemptElytra() && player.isGliding)) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
@@ -450,7 +450,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // Riptiding while on the ground moves the hitbox upwards before any movement code runs
             // It's a pain to support and this is my best attempt
             if (player.lastOnGround && player.packetStateData.tryingToRiptide && !player.inVehicle()) {
-                Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
+                Vector3dm pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
 
@@ -462,7 +462,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                     player.lastY += pushingMovement.getY();
                     PlayerBaseTick.updatePlayerPose(player);
                     player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
-                    player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+                    player.actualMovement = new Vector3dm(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
                     player.couldSkipTick = true;
 
@@ -516,7 +516,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         //
         // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
         if (player.getSetbackTeleportUtil().getRequiredSetBack() != null && player.getSetbackTeleportUtil().getRequiredSetBack().getTicksComplete() == 1) {
-            Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
+            Vector3dm setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
             // A player must have velocity going INTO the ground to be able to jump
             // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
             // So if they are supposed to be going upwards, or are supposed to be off the ground, resync
@@ -545,7 +545,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
-            lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(new Vector(0.6 * 0.91, 1, 0.6 * 0.91)));
+            lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(new Vector3dm(0.6 * 0.91, 1, 0.6 * 0.91)));
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();
         }
 
@@ -625,7 +625,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
      * @param pushingMovement The collision result when trying to move the player upwards by 1.2f
      * @return Whether it is more likely that this player was on the ground the tick they riptided
      */
-    private boolean likelyGroundRiptide(Vector pushingMovement) {
+    private boolean likelyGroundRiptide(Vector3dm pushingMovement) {
         // Y velocity gets reset if the player collides vertically
         double riptideYResult = Riptide.getRiptideVelocity(player).getY();
 

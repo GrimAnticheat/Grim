@@ -6,11 +6,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
-import org.bukkit.util.Vector;
 
 @CheckData(name = "FarPlace", description = "Placing blocks from too far away")
 public class FarPlace extends BlockPlaceCheck {
@@ -30,8 +30,8 @@ public class FarPlace extends BlockPlaceCheck {
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (double d : possibleEyeHeights) {
             SimpleCollisionBox box = new SimpleCollisionBox(blockPos);
-            Vector eyes = new Vector(player.x, player.y + d, player.z);
-            Vector best = VectorUtils.cutBoxToVector(eyes, box);
+            Vector3dm eyes = new Vector3dm(player.x, player.y + d, player.z);
+            Vector3dm best = VectorUtils.cutBoxToVector(eyes, box);
             min = Math.min(min, eyes.distanceSquared(best));
         }
 

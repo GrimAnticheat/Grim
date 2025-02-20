@@ -2,13 +2,13 @@ package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import org.bukkit.util.Vector;
 
 public class MovementTickerPig extends MovementTickerRideable {
     public MovementTickerPig(GrimPlayer player) {
         super(player);
-        movementInput = new Vector(0, 0, 1);
+        movementInput = new Vector3dm(0, 0, 1);
     }
 
     @Override

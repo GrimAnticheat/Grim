@@ -9,10 +9,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public final class PredictionEngineRideableUtils {
         }
 
         final double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector jumpVelocity = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0));
+        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector3dm(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector3dm(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0));
 
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.add(jumpVelocity);
@@ -101,14 +101,14 @@ public final class PredictionEngineRideableUtils {
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.setY(jumpVelocity);
             if (forwardInput > 0.0F) {
-                vectorData.vector.add(new Vector(-0.4F * f2 * player.vehicleData.horseJump, 0.0D, 0.4F * f3 * player.vehicleData.horseJump));
+                vectorData.vector.add(new Vector3dm(-0.4F * f2 * player.vehicleData.horseJump, 0.0D, 0.4F * f3 * player.vehicleData.horseJump));
             }
         }
 
         player.vehicleData.horseJump = 0.0F;
     }
 
-    public static List<VectorData> applyInputsToVelocityPossibilities(Vector movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+    public static List<VectorData> applyInputsToVelocityPossibilities(Vector3dm movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
 
         for (VectorData possibleLastTickOutput : possibleVectors) {

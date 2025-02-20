@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;
-import org.bukkit.util.Vector;
 
 public class TrigHandler {
     GrimPlayer player;
@@ -19,24 +19,24 @@ public class TrigHandler {
         isVanillaMath = !isVanillaMath;
     }
 
-    public Vector getVanillaMathMovement(Vector wantedMovement, float f, float f2) {
+    public Vector3dm getVanillaMathMovement(Vector3dm wantedMovement, float f, float f2) {
         float f3 = VanillaMath.sin(GrimMath.radians(f2));
         float f4 = VanillaMath.cos(GrimMath.radians(f2));
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
 
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+        return new Vector3dm(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
-    public Vector getShitMathMovement(Vector wantedMovement, float f, float f2) {
+    public Vector3dm getShitMathMovement(Vector3dm wantedMovement, float f, float f2) {
         float f3 = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(GrimMath.radians(f2)) : LegacyFastMath.sin(GrimMath.radians(f2));
         float f4 = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(GrimMath.radians(f2)) : LegacyFastMath.cos(GrimMath.radians(f2));
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
 
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+        return new Vector3dm(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     public void setOffset(double offset) {
@@ -49,12 +49,12 @@ public class TrigHandler {
         }
 
         if (offset > 1e-5) {
-            Vector trueMovement = player.actualMovement.clone().subtract(player.startTickClientVel);
-            Vector correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
-            Vector fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
+            Vector3dm trueMovement = player.actualMovement.clone().subtract(player.startTickClientVel);
+            Vector3dm correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
+            Vector3dm fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
 
-            correctMath = new Vector(Math.abs(correctMath.getX()), 0, Math.abs(correctMath.getZ()));
-            fastMath = new Vector(Math.abs(fastMath.getX()), 0, Math.abs(fastMath.getZ()));
+            correctMath = new Vector3dm(Math.abs(correctMath.getX()), 0, Math.abs(correctMath.getZ()));
+            fastMath = new Vector3dm(Math.abs(fastMath.getX()), 0, Math.abs(fastMath.getZ()));
 
             double minCorrectHorizontal = Math.min(correctMath.getX(), correctMath.getZ());
             // Support diagonal inputs

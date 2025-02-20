@@ -3,15 +3,15 @@ package ac.grim.grimac.predictionengine.predictions.rideable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineWaterLegacy;
 import ac.grim.grimac.utils.data.VectorData;
-import org.bukkit.util.Vector;
+import ac.grim.grimac.world.Vector3dm;
 
 import java.util.List;
 import java.util.Set;
 
 public class PredictionEngineRideableWaterLegacy extends PredictionEngineWaterLegacy {
-    Vector movementVector;
+    Vector3dm movementVector;
 
-    public PredictionEngineRideableWaterLegacy(Vector movementVector) {
+    public PredictionEngineRideableWaterLegacy(Vector3dm movementVector) {
         this.movementVector = movementVector;
     }
 

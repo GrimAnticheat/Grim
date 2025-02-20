@@ -7,10 +7,10 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRide
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWaterLegacy;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.util.Vector;
+import ac.grim.grimac.world.Vector3dm;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
-    Vector movementInput = new Vector();
+    Vector3dm movementInput = new Vector3dm();
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);

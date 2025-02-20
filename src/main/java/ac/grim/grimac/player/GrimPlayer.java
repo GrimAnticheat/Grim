@@ -34,6 +34,7 @@ import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.world.Location;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -68,7 +69,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.ChatColor;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,7 +105,7 @@ public class GrimPlayer implements GrimUser {
     public MovementCheckRunner movementCheckRunner;
     public SyncedTags tagManager;
     // End manager like classes
-    public Vector clientVelocity = new Vector();
+    public Vector3dm clientVelocity = new Vector3dm();
     PacketTracker packetTracker;
     private long transactionPing = 0;
     public long lastTransSent = 0;
@@ -119,9 +119,9 @@ public class GrimPlayer implements GrimUser {
     public boolean hasGravity = true;
     public final long joinTime = System.currentTimeMillis();
     public boolean playerEntityHasGravity = true;
-    public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
-    public Vector actualMovement = new Vector();
-    public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
+    public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
+    public Vector3dm actualMovement = new Vector3dm();
+    public Vector3dm stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
     public UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -201,9 +201,9 @@ public class GrimPlayer implements GrimUser {
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
-    public Vector baseTickAddition = new Vector();
-    public Vector baseTickWaterPushing = new Vector();
-    public Vector startTickClientVel = new Vector();
+    public Vector3dm baseTickAddition = new Vector3dm();
+    public Vector3dm baseTickWaterPushing = new Vector3dm();
+    public Vector3dm startTickClientVel = new Vector3dm();
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     public VelocityData firstBreadKB = null;
@@ -389,15 +389,15 @@ public class GrimPlayer implements GrimUser {
         return data != null;
     }
 
-    public void baseTickAddWaterPushing(Vector vector) {
+    public void baseTickAddWaterPushing(Vector3dm vector) {
         baseTickWaterPushing.add(vector);
     }
 
-    public void baseTickAddVector(Vector vector) {
+    public void baseTickAddVector(Vector3dm vector) {
         clientVelocity.add(vector);
     }
 
-    public void trackBaseTickAddition(Vector vector) {
+    public void trackBaseTickAddition(Vector3dm vector) {
         baseTickAddition.add(vector);
     }
 

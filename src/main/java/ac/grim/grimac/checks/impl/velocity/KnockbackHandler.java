@@ -10,12 +10,12 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import lombok.Getter;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Deque;
@@ -71,12 +71,12 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
 
             // Wrap velocity between two transactions
             player.sendTransaction();
-            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
             event.getTasksAfterSend().add(player::sendTransaction);
         }
     }
 
-    @NotNull public Pair<VelocityData, Vector> getFutureKnockback() {
+    @NotNull public Pair<VelocityData, Vector3dm> getFutureKnockback() {
         // Chronologically in the future
         if (!firstBreadMap.isEmpty()) {
             VelocityData data = firstBreadMap.peek();
@@ -100,7 +100,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         return new Pair<>(null, null);
     }
 
-    private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
+    private void addPlayerKnockback(int entityID, int breadOne, Vector3dm knockback) {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 

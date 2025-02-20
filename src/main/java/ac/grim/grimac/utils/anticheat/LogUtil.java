@@ -1,10 +1,10 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.utils.chat.ChatUtil;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -34,7 +34,7 @@ public class LogUtil {
     }
 
     public void console(final String info) {
-        Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', info));
+        Bukkit.getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
     }
 
     public void console(final Component info) {

@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -18,7 +19,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.util.Vector;
 
 import java.util.OptionalInt;
 import java.util.Set;
@@ -141,7 +141,7 @@ public class PointThreeEstimator {
                 isNearBubbleColumn = true;
             }
 
-            Vector fluidVector = FluidTypeFlowing.getFlow(player, x, y, z);
+            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, x, y, z);
             if (fluidVector.getX() != 0 || fluidVector.getZ() != 0) {
                 isNearHorizontalFlowingLiquid = true;
             }
@@ -305,7 +305,7 @@ public class PointThreeEstimator {
         player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
         // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
         double searchDistance = -0.2 + Math.min(0, y);
-        Vector collisionResult = Collisions.collide(player, 0, searchDistance, 0);
+        Vector3dm collisionResult = Collisions.collide(player, 0, searchDistance, 0);
         player.boundingBox = playerBox;
         return collisionResult.getY() != searchDistance;
     }
@@ -339,9 +339,9 @@ public class PointThreeEstimator {
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
             // Try to get the vector as close to zero as possible to give the best chance at 0.03...
-            Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector());
+            Vector3dm toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector3dm());
             // Collide to handle mostly gravity, but other scenarios similar to this.
-            Vector collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ(), Integer.MIN_VALUE, null);
+            Vector3dm collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ(), Integer.MIN_VALUE, null);
 
             // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
             // A bit hacky... is there a better way?  I'm unsure...

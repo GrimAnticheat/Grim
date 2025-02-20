@@ -3,20 +3,20 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
-    public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
+    public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         ClientVersion version = player.getClientVersion();
 
-        if (fluidLevel == 0) return new Vector();
+        if (fluidLevel == 0) return new Vector3dm();
 
         double d0 = 0.0D;
         double d1 = 0.0D;
@@ -53,7 +53,7 @@ public class FluidTypeFlowing {
             }
         }
 
-        Vector vec3d = new Vector(d0, 0.0D, d1);
+        Vector3dm vec3d = new Vector3dm(d0, 0.0D, d1);
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
@@ -61,7 +61,7 @@ public class FluidTypeFlowing {
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
-                    vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
+                    vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector3dm(0.0D, -6.0D, 0.0D));
                     break;
                 }
             }
@@ -150,9 +150,9 @@ public class FluidTypeFlowing {
         }
     }
 
-    private static Vector normalizeVectorWithoutNaN(Vector vector) {
+    private static Vector3dm normalizeVectorWithoutNaN(Vector3dm vector) {
         double var0 = vector.length();
-        return var0 < 1.0E-4 ? new Vector() : vector.multiply(1 / var0);
+        return var0 < 1.0E-4 ? new Vector3dm() : vector.multiply(1 / var0);
     }
 
     public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {

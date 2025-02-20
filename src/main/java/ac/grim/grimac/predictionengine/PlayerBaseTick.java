@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
-import org.bukkit.util.Vector;
+import ac.grim.grimac.world.Vector3dm;
 
 import java.util.Optional;
 
@@ -35,11 +35,11 @@ public final class PlayerBaseTick {
 
     public static void doBaseTick(GrimPlayer player) {
         // Keep track of basetick stuff
-        player.baseTickAddition = new Vector();
-        player.baseTickWaterPushing = new Vector();
+        player.baseTickAddition = new Vector3dm();
+        player.baseTickWaterPushing = new Vector3dm();
 
         if (player.isFlying && player.isSneaking && !player.inVehicle()) {
-            Vector flyingShift = new Vector(0, player.flySpeed * -3, 0);
+            Vector3dm flyingShift = new Vector3dm(0, player.flySpeed * -3, 0);
             player.baseTickAddVector(flyingShift);
             player.trackBaseTickAddition(flyingShift);
         }
@@ -55,7 +55,7 @@ public final class PlayerBaseTick {
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         // pre-1.13 clients don't have this code
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.inVehicle()) {
-            Vector waterPushVector = new Vector(0, -0.04f, 0);
+            Vector3dm waterPushVector = new Vector3dm(0, -0.04f, 0);
             player.baseTickAddVector(waterPushVector);
             player.trackBaseTickAddition(waterPushVector);
         }
@@ -409,7 +409,7 @@ public final class PlayerBaseTick {
         }
 
         boolean hasPushed = false;
-        Vector vec3 = new Vector();
+        Vector3dm vec3 = new Vector3dm();
 
         for (int x = floorX; x < ceilX; ++x) {
             for (int y = floorY; y < ceilY; ++y) {
@@ -459,7 +459,7 @@ public final class PlayerBaseTick {
         }
         double d2 = 0.0;
         boolean hasTouched = false;
-        Vector vec3 = new Vector();
+        Vector3dm vec3 = new Vector3dm();
         int n7 = 0;
 
         for (int x = floorX; x < ceilX; ++x) {
@@ -484,7 +484,7 @@ public final class PlayerBaseTick {
                     d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
                     if (!player.isFlying) {
-                        Vector vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
+                        Vector3dm vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
                         }

@@ -10,12 +10,12 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -25,11 +25,11 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
     Object2IntMap<StringBuilder> continuedDebug = new Object2IntOpenHashMap<>();
 
     List<VectorData> predicted = new EvictingQueue<>(60);
-    List<Vector> actually = new EvictingQueue<>(60);
+    List<Vector3dm> actually = new EvictingQueue<Vector3dm>(60);
     List<Location> locations = new EvictingQueue<>(60);
-    List<Vector> startTickClientVel = new EvictingQueue<>(60);
-    List<Vector> baseTickAddition = new EvictingQueue<>(60);
-    List<Vector> baseTickWater = new EvictingQueue<>(60);
+    List<Vector3dm> startTickClientVel = new EvictingQueue<Vector3dm>(60);
+    List<Vector3dm> baseTickAddition = new EvictingQueue<>(60);
+    List<Vector3dm> baseTickWater = new EvictingQueue<>(60);
 
     public SuperDebug(GrimPlayer player) {
         super(player);
@@ -80,11 +80,11 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
 
         for (int i = 0; i < predicted.size(); i++) {
             VectorData predict = predicted.get(i);
-            Vector actual = actually.get(i);
+            Vector3dm actual = actually.get(i);
             Location loc = locations.get(i);
-            Vector startTickVel = startTickClientVel.get(i);
-            Vector addition = baseTickAddition.get(i);
-            Vector water = baseTickWater.get(i);
+            Vector3dm startTickVel = startTickClientVel.get(i);
+            Vector3dm addition = baseTickAddition.get(i);
+            Vector3dm water = baseTickWater.get(i);
             appendDebug(sb, predict, actual, loc, startTickVel, addition, water);
         }
 
@@ -189,7 +189,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         continuedDebug.put(sb, 40);
     }
 
-    private void appendDebug(StringBuilder sb, VectorData predict, Vector actual, Location location, Vector startTick, Vector addition, Vector water) {
+    private void appendDebug(StringBuilder sb, VectorData predict, Vector3dm actual, Location location, Vector3dm startTick, Vector3dm addition, Vector3dm water) {
         if (predict.isZeroPointZeroThree()) {
             sb.append("Movement threshold/tick skipping\n");
         }
@@ -225,11 +225,11 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         // Apply 0.003/0.005 to make numbers more accurate
         Set<VectorData> set = new HashSet<>(Collections.singletonList(new VectorData(startTick.clone(), VectorData.VectorType.BestVelPicked)));
         new PredictionEngine().applyMovementThreshold(player, set);
-        Vector trueStartVel = ((VectorData) set.toArray()[0]).vector;
+        Vector3dm trueStartVel = ((VectorData) set.toArray()[0]).vector;
 
-        Vector clientMovement = getPlayerMathMovement(player, actual.clone().subtract(trueStartVel), location.xRot);
-        Vector simulatedMovement = getPlayerMathMovement(player, predict.vector.clone().subtract(trueStartVel), location.xRot);
-        Vector offset = actual.clone().subtract(predict.vector);
+        Vector3dm clientMovement = getPlayerMathMovement(player, actual.clone().subtract(trueStartVel), location.xRot);
+        Vector3dm simulatedMovement = getPlayerMathMovement(player, predict.vector.clone().subtract(trueStartVel), location.xRot);
+        Vector3dm offset = actual.clone().subtract(predict.vector);
         trueStartVel.add(addition);
         trueStartVel.add(water);
 
@@ -268,14 +268,14 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         sb.append("\n\n");
     }
 
-    private Vector getPlayerMathMovement(GrimPlayer player, Vector wantedMovement, float f2) {
+    private Vector3dm getPlayerMathMovement(GrimPlayer player, Vector3dm wantedMovement, float f2) {
         float f3 = player.trigHandler.sin(f2 * 0.017453292f);
         float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4);
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4);
 
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+        return new Vector3dm(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     @AllArgsConstructor

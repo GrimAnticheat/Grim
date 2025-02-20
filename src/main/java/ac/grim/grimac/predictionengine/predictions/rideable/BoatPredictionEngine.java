@@ -10,10 +10,10 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +147,7 @@ public class BoatPredictionEngine extends PredictionEngine {
             // so if a player tries to move in both directions, a packet will
             // show that the player is staying, but the boat will move anyway
             if (player.vehicleData.vehicleForward == 0) {
-                Vector vector = data.vector.clone();
+                Vector3dm vector = data.vector.clone();
                 controlBoat(player, vector, true);
                 vector.multiply(player.stuckSpeedMultiplier);
                 vectors.add(data.returnNewModified(vector, VectorData.VectorType.InputResult));
@@ -184,7 +184,7 @@ public class BoatPredictionEngine extends PredictionEngine {
         return false;
     }
 
-    private void floatBoat(GrimPlayer player, Vector vector) {
+    private void floatBoat(GrimPlayer player, Vector3dm vector) {
         double d1 = player.hasGravity ? -0.04f : 0;
         double d2 = 0.0D;
         float invFriction = 0.05F;
@@ -194,7 +194,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
             player.lastY = getWaterLevelAbove(player) - 0.5625F + 0.101D;
             player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
-            player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+            player.actualMovement = new Vector3dm(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
             vector.setY(0);
 
             player.vehicleData.lastYd = 0.0D;
@@ -260,7 +260,7 @@ public class BoatPredictionEngine extends PredictionEngine {
         return (float) (l + 1);
     }
 
-    private void controlBoat(GrimPlayer player, Vector vector, boolean intermediate) {
+    private void controlBoat(GrimPlayer player, Vector3dm vector, boolean intermediate) {
         float f = 0.0F;
         if (player.vehicleData.vehicleHorizontal != 0 && (!intermediate && player.vehicleData.vehicleForward == 0)) {
             f += 0.005F;
@@ -275,6 +275,6 @@ public class BoatPredictionEngine extends PredictionEngine {
             f -= 0.005F;
         }
 
-        vector.add(new Vector(player.trigHandler.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
+        vector.add(new Vector3dm(player.trigHandler.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
     }
 }

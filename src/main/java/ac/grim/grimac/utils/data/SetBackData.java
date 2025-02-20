@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.world.Vector3dm;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.bukkit.util.Vector;
 
 @Getter
 @Setter
@@ -11,14 +11,14 @@ import org.bukkit.util.Vector;
 public class SetBackData {
     TeleportData teleportData;
     float xRot, yRot;
-    Vector velocity;
+    Vector3dm velocity;
     boolean vehicle;
     boolean isComplete = false;
     // TODO: Rethink when we block movements for teleports, perhaps after 10 ticks or 5 blocks?
     boolean isPlugin = false;
     int ticksComplete = 0;
 
-    public SetBackData(TeleportData teleportData, float xRot, float yRot, Vector velocity, boolean vehicle, boolean isPlugin) {
+    public SetBackData(TeleportData teleportData, float xRot, float yRot, Vector3dm velocity, boolean vehicle, boolean isPlugin) {
         this.teleportData = teleportData;
         this.xRot = xRot;
         this.yRot = yRot;
