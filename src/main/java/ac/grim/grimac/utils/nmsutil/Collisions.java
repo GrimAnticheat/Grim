@@ -449,10 +449,10 @@ public class Collisions {
         }
 
         // list is unnecessary, because there's always 1 element
-        player.movementThisTick.add(new GrimPlayer.Movement(new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z)));
+        /*player.movementThisTick.add(new GrimPlayer.Movement(new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z)));
         List<GrimPlayer.Movement> movements = List.copyOf(player.movementThisTick);
         player.movementThisTick.clear();
-        handleInsideBlocksModern(player, movements);
+        handleInsideBlocksModern(player, movements);*/
     }
 
     public static void handleInsideBlocksModern(GrimPlayer player, List<GrimPlayer.Movement> movements) {

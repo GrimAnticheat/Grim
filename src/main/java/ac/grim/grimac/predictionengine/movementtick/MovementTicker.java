@@ -28,6 +28,8 @@ import com.viaversion.viaversion.api.Via;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+
 public class MovementTicker {
     public final GrimPlayer player;
 
@@ -424,6 +426,14 @@ public class MovementTicker {
 
                 doNormalMove(blockFriction);
             }
+        }
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+            // list is unnecessary, because there's always 1 element
+            player.movementThisTick.add(new GrimPlayer.Movement(new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z)));
+            List<GrimPlayer.Movement> movements = List.copyOf(player.movementThisTick);
+            player.movementThisTick.clear();
+            Collisions.handleInsideBlocksModern(player, movements);
         }
     }
 
