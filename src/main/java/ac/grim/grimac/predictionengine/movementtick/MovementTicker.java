@@ -427,7 +427,7 @@ public class MovementTicker {
         }
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
-            Collisions.handleInsideBlocksModern(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
+            Collisions.applyEffectsFromBlocks(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
         }
     }
 
