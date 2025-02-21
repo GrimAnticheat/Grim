@@ -581,15 +581,15 @@ public class Collisions {
 //    }
 
     public static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d movementVector = end.subtract(start);
+        Vector3d direction = end.subtract(start);
         Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (movementVector.lengthSquared() < (double) GrimMath.square(0.99999F)) {
+        if (direction.lengthSquared() < (double) GrimMath.square(0.99999F)) {
             return initialBlocks;
         } else {
             Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
             Vector3d boxMinPosition = boundingBox.getMinPosition();
-            Vector3d adjustedMinPosition = boxMinPosition.subtract(movementVector);
-            addCollisionsAlongTravel(traversedBlocks, adjustedMinPosition, boxMinPosition, boundingBox);
+            Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
+            addCollisionsAlongTravel(traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
                 traversedBlocks.add(blockPos);
