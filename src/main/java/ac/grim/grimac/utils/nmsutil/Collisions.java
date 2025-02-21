@@ -464,7 +464,6 @@ public class Collisions {
         visitedBlocks.clear();
     }
 
-    // copied from minecraft src reimplemented to work with grim - I pray that I haven't missed anything
 //    public static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d startVec, Vector3d endVec, Vector3i blockPos, VoxelShape shape) {
 //        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, startVec.getX(), startVec.getY(), startVec.getZ());
 //        Vector3d directionVec = endVec.subtract(startVec);
