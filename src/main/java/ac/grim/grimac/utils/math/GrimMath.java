@@ -88,7 +88,6 @@ public class GrimMath {
         return p_14135_ < (double) i ? i - 1L : i;
     }
 
-    // methods copied from minecraft src
     public static int sign(double x) {
         if (x == 0.0) {
             return 0;
