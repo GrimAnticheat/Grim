@@ -29,10 +29,6 @@ group = "ac.grim.grimac"
 version = "2.3.71"
 description = "Libre simulation anticheat designed for 1.21 with 1.8-1.21 support, powered by PacketEvents 2.0."
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-}
-
 // Set to false for debug builds
 // You cannot live reload classes if the jar relocates dependencies
 // Checks Project properties -> environment variable -> defaults true
@@ -41,7 +37,10 @@ val relocate: Boolean = project.findProperty("relocate")?.toString()?.toBoolean(
     ?: true
 
 repositories {
-    mavenLocal()
+    maven {
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://jitpack.io/") { // Grim API
         content {
@@ -62,6 +61,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     implementation("com.github.retrooper:packetevents-spigot:2.7.1-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
@@ -71,14 +71,13 @@ dependencies {
 
     // Used for local testing:
     //implementation("ac.grim.grimac:GrimAPI:1.0")
-    implementation("com.github.grimanticheat:grimapi:ed1ec7b4a1")
+    implementation("com.github.grimanticheat:grimapi:05e31d62f2")
 
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.4")
 
     implementation("org.jetbrains:annotations:24.1.0")
     compileOnly("org.geysermc.floodgate:api:2.0-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
     compileOnly("com.viaversion:viaversion-api:5.0.4-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.netty:netty-all:4.1.85.Final")
@@ -175,6 +174,12 @@ tasks.build {
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+    options.release.set(17)
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    disableAutoTargetJvm()
 }
 
 publishing.publications.create<MavenPublication>("maven") {
