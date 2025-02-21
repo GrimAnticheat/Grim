@@ -878,4 +878,5 @@ public class GrimPlayer implements GrimUser {
     public void setResyncHandler(ResyncHandler resyncHandler) {
         this.resyncHandler = resyncHandler;
     }
+
 }
