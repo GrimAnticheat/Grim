@@ -101,7 +101,7 @@ public class GrimMath {
     }
 
     public static long asLong(Vector3i pos) {
-        return ((pos.x & 67108863L) << 38) | ((pos.y &  4095L)) | ((pos.z & 67108863L) << 12);
+        return ((pos.x & 67108863L) << 38) | ((pos.y & 4095L)) | ((pos.z & 67108863L) << 12);
     }
 
     // Find the closest distance to (1 / 64)
