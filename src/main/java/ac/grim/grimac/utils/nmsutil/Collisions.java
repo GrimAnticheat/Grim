@@ -536,14 +536,14 @@ public class Collisions {
         }
 
         if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-            if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockY)) {
-                if (player.clientVelocity.getY() < -0.13D) {
-                    double d0 = -0.05 / player.clientVelocity.getY();
+            if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockZ)) {
+                if (getOldDeltaY(player, player.clientVelocity.getY()) < -0.13D) {
+                    double d0 = -0.05 / getOldDeltaY(player, player.clientVelocity.getY());
                     player.clientVelocity.setX(player.clientVelocity.getX() * d0);
-                    player.clientVelocity.setY(-0.05D);
+                    player.clientVelocity.setY(getNewDeltaY(player, -0.05D));
                     player.clientVelocity.setZ(player.clientVelocity.getZ() * d0);
                 } else {
-                    player.clientVelocity.setY(-0.05D);
+                    player.clientVelocity.setY(getNewDeltaY(player, -0.05D));
                 }
             }
 
@@ -722,20 +722,28 @@ public class Collisions {
         }
     }
 
+    private static double getOldDeltaY(GrimPlayer player, double value) {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) ? value / 0.98F + 0.08 : value;
+    }
+
+    private static double getNewDeltaY(GrimPlayer player, double value) {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) ? (value - 0.08) * 0.98F : value;
+    }
+
     private static boolean isSlidingDown(Vector vector, GrimPlayer player, int locationX, int locationY,
                                          int locationZ) {
         if (player.onGround) {
             return false;
-        } else if (player.y > locationY + 0.9375D - 1.0E-7D) {
+        } else if (player.y > (double) locationY + 0.9375D - COLLISION_EPSILON) {
             return false;
-        } else if (vector.getY() >= -0.08D) {
+        } else if (getOldDeltaY(player, vector.getY()) >= -0.08D) {
             return false;
         } else {
             double d0 = Math.abs(locationX + 0.5D - player.lastX);
             double d1 = Math.abs(locationZ + 0.5D - player.lastZ);
             // Calculate player width using bounding box, which will change while swimming or gliding
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
-            return d0 + 1.0E-7D > d2 || d1 + 1.0E-7D > d2;
+            return d0 + COLLISION_EPSILON > d2 || d1 + COLLISION_EPSILON > d2;
         }
     }
 
