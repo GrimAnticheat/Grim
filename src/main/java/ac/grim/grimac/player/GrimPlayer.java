@@ -60,6 +60,8 @@ import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyCompon
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import io.netty.channel.Channel;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -224,7 +226,7 @@ public class GrimPlayer implements GrimUser {
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public PlayerBlockHistory blockHistory = new PlayerBlockHistory();
-    public final List<Movement> movementThisTick = new ArrayList<>();
+    public final LongSet visitedBlocks = new LongOpenHashSet();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -876,8 +878,4 @@ public class GrimPlayer implements GrimUser {
     public void setResyncHandler(ResyncHandler resyncHandler) {
         this.resyncHandler = resyncHandler;
     }
-
-    public record Movement(Vector3d from, Vector3d to) {
-    }
-
 }

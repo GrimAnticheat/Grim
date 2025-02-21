@@ -27,7 +27,6 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.bukkit.Location;
@@ -448,42 +447,29 @@ public class Collisions {
             return;
         }
 
-        // list is unnecessary, because there's always 1 element
-        /*player.movementThisTick.add(new GrimPlayer.Movement(new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z)));
-        List<GrimPlayer.Movement> movements = List.copyOf(player.movementThisTick);
-        player.movementThisTick.clear();
-        handleInsideBlocksModern(player, movements);*/
+//        Collisions.handleInsideBlocksModern(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
     }
 
-    public static void handleInsideBlocksModern(GrimPlayer player, List<GrimPlayer.Movement> movements) {
-        for (GrimPlayer.Movement movement : movements) {
-            Vector3d from = movement.from();
-            Vector3d to = movement.to();
+    public static void handleInsideBlocksModern(GrimPlayer player, Vector3d from, Vector3d to) {
+        SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
+                .expand(-1.0E-5F);
 
-//            System.out.println("from: " + from.toString() + ", to: " + to.toString());
+        LongSet visitedBlocks = player.visitedBlocks;
+        for (Vector3i blockPos : boxTraverseBlocks(from, to, aabb)) {
+            WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
+            StateType blockType = blockState.getType();
 
-            SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
-                    .expand(-1.0E-5F);
-
-            LongSet visitedBlocks = new LongOpenHashSet(); // needs to be variable per player to reduce allocations
-            for (Vector3i blockPos : boxTraverseBlocks(from, to, aabb)) {
-                WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-                StateType blockType = blockState.getType();
-
-                if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
-                    System.out.println("blockstate: " + blockState.getType().getName());
-
-                    // commented things below needs to be implemented
-//                    VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
-//                    if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, from, to, blockPos, voxelShape)) {
-//                        continue;
-//                    }
-                    Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
-                }
+            if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
+                // commented things below needs to be implemented
+//                VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
+//                if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, from, to, blockPos, voxelShape)) {
+//                    continue;
+//                }
+                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
             }
-
-            visitedBlocks.clear();
         }
+
+        visitedBlocks.clear();
     }
 
     // copied from minecraft src reimplemented to work with grim - I pray that I haven't missed anything
@@ -496,7 +482,7 @@ public class Collisions {
     public static Iterable<Vector3i> boxTraverseBlocks(Vector3d oldPosition, Vector3d position, SimpleCollisionBox boundingBox) {
         Vector3d vec3 = position.subtract(oldPosition);
         Iterable<Vector3i> iterable = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (vec3.lengthSquared() < (double)GrimMath.square(0.99999F)) {
+        if (vec3.lengthSquared() < (double) GrimMath.square(0.99999F)) {
             return iterable;
         } else {
             Set<Vector3i> set = new ObjectLinkedOpenHashSet<>();
