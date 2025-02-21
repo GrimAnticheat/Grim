@@ -28,8 +28,6 @@ import com.viaversion.viaversion.api.Via;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.util.Vector;
 
-import java.util.List;
-
 public class MovementTicker {
     public final GrimPlayer player;
 
