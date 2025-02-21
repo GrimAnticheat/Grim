@@ -441,6 +441,117 @@ public class Collisions {
                 !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
     }
 
+    public static void handleInsideBlocks(GrimPlayer player) {
+        // Mojang rewrote this whole logic in 1.21.2
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
+        handleInsideBlocksLegacy(player);
+    }
+
+    public static void handleInsideBlocksLegacy(GrimPlayer player) {
+        // Use the bounding box for after the player's movement is applied
+        double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
+        SimpleCollisionBox aABB = player.inVehicle()
+                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-expandAmount)
+                : player.boundingBox.copy().expand(-expandAmount);
+
+        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
+        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
+
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+            return;
+
+        for (int blockX = blockPos.getBlockX(); blockX <= blockPos2.getBlockX(); ++blockX) {
+            for (int blockY = blockPos.getBlockY(); blockY <= blockPos2.getBlockY(); ++blockY) {
+                for (int blockZ = blockPos.getBlockZ(); blockZ <= blockPos2.getBlockZ(); ++blockZ) {
+                    WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
+                    StateType blockType = block.getType();
+
+                    Collisions.onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
+                }
+            }
+        }
+    }
+
+    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
+        if (blockType == StateTypes.COBWEB) {
+            if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
+                player.stuckSpeedMultiplier = new Vector(0.5, 0.25, 0.5);
+            } else {
+                player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
+            }
+        }
+
+        if (blockType == StateTypes.SWEET_BERRY_BUSH
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+            player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+        }
+
+        if (blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
+            player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
+        }
+
+        if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
+            player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
+            player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
+        }
+
+        if (blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+            player.wasTouchingLava = true;
+        }
+
+        if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            WrappedBlockState blockAbove = player.compensatedWorld.getBlock(blockX, blockY + 1, blockZ);
+
+            if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat()) {
+                if (!blockAbove.getType().isAir()) {
+                    if (block.isDrag()) {
+                        player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
+                    } else {
+                        player.clientVelocity.setY(Math.min(0.7D, player.clientVelocity.getY() + 0.06D));
+                    }
+                }
+            } else {
+                if (blockAbove.getType().isAir()) {
+                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+                        if (block.isDrag()) {
+                            vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
+                        } else {
+                            vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
+                        }
+                    }
+                } else {
+                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+                        if (block.isDrag()) {
+                            vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
+                        } else {
+                            vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
+                        }
+                    }
+                }
+            }
+
+            // Reset fall distance inside bubble column
+            player.fallDistance = 0;
+        }
+
+        if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
+            if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockY)) {
+                if (player.clientVelocity.getY() < -0.13D) {
+                    double d0 = -0.05 / player.clientVelocity.getY();
+                    player.clientVelocity.setX(player.clientVelocity.getX() * d0);
+                    player.clientVelocity.setY(-0.05D);
+                    player.clientVelocity.setZ(player.clientVelocity.getZ() * d0);
+                } else {
+                    player.clientVelocity.setY(-0.05D);
+                }
+            }
+
+            // If honey sliding, fall distance is 0
+            player.fallDistance = 0;
+        }
+    }
+
     public static void handleInsideBlocksModern(GrimPlayer player, Vector3d from, Vector3d to) {
         SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
                 .expand(-1.0E-5F);
@@ -619,117 +730,6 @@ public class Collisions {
             return hitSide;
         } else {
             return prevDirection;
-        }
-    }
-
-    public static void handleInsideBlocks(GrimPlayer player) {
-        // Mojang rewrote this whole logic in 1.21.2
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
-        handleInsideBlocksLegacy(player);
-    }
-
-    public static void handleInsideBlocksLegacy(GrimPlayer player) {
-        // Use the bounding box for after the player's movement is applied
-        double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
-        SimpleCollisionBox aABB = player.inVehicle()
-                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-expandAmount)
-                : player.boundingBox.copy().expand(-expandAmount);
-
-        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
-
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
-            return;
-
-        for (int blockX = blockPos.getBlockX(); blockX <= blockPos2.getBlockX(); ++blockX) {
-            for (int blockY = blockPos.getBlockY(); blockY <= blockPos2.getBlockY(); ++blockY) {
-                for (int blockZ = blockPos.getBlockZ(); blockZ <= blockPos2.getBlockZ(); ++blockZ) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
-                    StateType blockType = block.getType();
-
-                    Collisions.onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
-                }
-            }
-        }
-    }
-
-    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
-        if (blockType == StateTypes.COBWEB) {
-            if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.stuckSpeedMultiplier = new Vector(0.5, 0.25, 0.5);
-            } else {
-                player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
-            }
-        }
-
-        if (blockType == StateTypes.SWEET_BERRY_BUSH
-                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
-        }
-
-        if (blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
-                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
-        }
-
-        if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
-            player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
-            player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
-        }
-
-        if (blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.wasTouchingLava = true;
-        }
-
-        if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
-            WrappedBlockState blockAbove = player.compensatedWorld.getBlock(blockX, blockY + 1, blockZ);
-
-            if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat()) {
-                if (!blockAbove.getType().isAir()) {
-                    if (block.isDrag()) {
-                        player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
-                    } else {
-                        player.clientVelocity.setY(Math.min(0.7D, player.clientVelocity.getY() + 0.06D));
-                    }
-                }
-            } else {
-                if (blockAbove.getType().isAir()) {
-                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                        if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
-                        } else {
-                            vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
-                        }
-                    }
-                } else {
-                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                        if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
-                        } else {
-                            vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
-                        }
-                    }
-                }
-            }
-
-            // Reset fall distance inside bubble column
-            player.fallDistance = 0;
-        }
-
-        if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-            if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockY)) {
-                if (player.clientVelocity.getY() < -0.13D) {
-                    double d0 = -0.05 / player.clientVelocity.getY();
-                    player.clientVelocity.setX(player.clientVelocity.getX() * d0);
-                    player.clientVelocity.setY(-0.05D);
-                    player.clientVelocity.setZ(player.clientVelocity.getZ() * d0);
-                } else {
-                    player.clientVelocity.setY(-0.05D);
-                }
-            }
-
-            // If honey sliding, fall distance is 0
-            player.fallDistance = 0;
         }
     }
 
