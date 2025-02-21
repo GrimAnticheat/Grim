@@ -553,11 +553,11 @@ public class Collisions {
     }
 
     public static void handleInsideBlocksModern(GrimPlayer player, Vector3d from, Vector3d to) {
-        SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
+        SimpleCollisionBox collisionBox = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
                 .expand(-1.0E-5F);
 
         LongSet visitedBlocks = player.visitedBlocks;
-        for (Vector3i blockPos : boxTraverseBlocks(from, to, aabb)) {
+        for (Vector3i blockPos : boxTraverseBlocks(from, to, collisionBox)) {
             WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
             StateType blockType = blockState.getType();
 
