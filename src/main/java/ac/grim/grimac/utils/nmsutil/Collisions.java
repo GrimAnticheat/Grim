@@ -552,19 +552,19 @@ public class Collisions {
         }
     }
 
-    public static void handleInsideBlocksModern(GrimPlayer player, Vector3d from, Vector3d to) {
-        SimpleCollisionBox collisionBox = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
+    public static void handleInsideBlocksModern(GrimPlayer player, Vector3d start, Vector3d end) {
+        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)
                 .expand(-1.0E-5F);
 
         LongSet visitedBlocks = player.visitedBlocks;
-        for (Vector3i blockPos : boxTraverseBlocks(from, to, collisionBox)) {
+        for (Vector3i blockPos : boxTraverseBlocks(start, end, boundingBox)) {
             WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
             StateType blockType = blockState.getType();
 
             if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
                 // theoretically - this doesn't need to be implemented, because blocks that use this mechanic don't affect movement (tripwire, end portal (as of 1.21.4))
 //                VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
-//                if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, from, to, blockPos, voxelShape)) {
+//                if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, start, end, blockPos, voxelShape)) {
 //                    continue;
 //                }
                 Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
@@ -580,16 +580,16 @@ public class Collisions {
 //        return boundingBox.collidedAlongVector(directionVec, shape.move(new Vector3d(blockPos.getX(), blockPos.getY(), blockPos.getZ())).toAabbs());
 //    }
 
-    public static Iterable<Vector3i> boxTraverseBlocks(Vector3d startPosition, Vector3d endPosition, SimpleCollisionBox collisionBox) {
-        Vector3d movementVector = endPosition.subtract(startPosition);
-        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(collisionBox);
+    public static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
+        Vector3d movementVector = end.subtract(start);
+        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
         if (movementVector.lengthSquared() < (double) GrimMath.square(0.99999F)) {
             return initialBlocks;
         } else {
             Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
-            Vector3d boxMinPosition = collisionBox.getMinPosition();
+            Vector3d boxMinPosition = boundingBox.getMinPosition();
             Vector3d adjustedMinPosition = boxMinPosition.subtract(movementVector);
-            addCollisionsAlongTravel(traversedBlocks, adjustedMinPosition, boxMinPosition, collisionBox);
+            addCollisionsAlongTravel(traversedBlocks, adjustedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
                 traversedBlocks.add(blockPos);
@@ -657,17 +657,17 @@ public class Collisions {
         }
     }
 
-    public static Optional<Vector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Vector3d from, Vector3d to) {
+    public static Optional<Vector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Vector3d start, Vector3d end) {
         double[] minDistance = new double[]{1.0};
-        double deltaX = to.x - from.x;
-        double deltaY = to.y - from.y;
-        double deltaZ = to.z - from.z;
-        Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, from, minDistance, null, deltaX, deltaY, deltaZ);
+        double deltaX = end.x - start.x;
+        double deltaY = end.y - start.y;
+        double deltaZ = end.z - start.z;
+        Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, start, minDistance, null, deltaX, deltaY, deltaZ);
         if (direction == null) {
             return Optional.empty();
         } else {
             double d3 = minDistance[0];
-            return Optional.of(from.add(d3 * deltaX, d3 * deltaY, d3 * deltaZ));
+            return Optional.of(start.add(d3 * deltaX, d3 * deltaY, d3 * deltaZ));
         }
     }
 

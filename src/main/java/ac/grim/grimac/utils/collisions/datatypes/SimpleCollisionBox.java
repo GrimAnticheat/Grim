@@ -609,16 +609,16 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public boolean collidedAlongVector(Vector3d direction, List<SimpleCollisionBox> collisionBoxes) {
-        Vector3d startPoint = this.getCenter();
-        Vector3d endPoint = startPoint.add(direction);
+        Vector3d start = this.getCenter();
+        Vector3d end = start.add(direction);
 
         for (SimpleCollisionBox box : collisionBoxes) {
             SimpleCollisionBox expandedBox = box.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5); // copy because of mutability of our AABB
-            if (expandedBox.contains(endPoint) || expandedBox.contains(startPoint)) {
+            if (expandedBox.contains(end) || expandedBox.contains(start)) {
                 return true;
             }
 
-            if (expandedBox.clip(startPoint, endPoint).isPresent()) {
+            if (expandedBox.clip(start, end).isPresent()) {
                 return true;
             }
         }
