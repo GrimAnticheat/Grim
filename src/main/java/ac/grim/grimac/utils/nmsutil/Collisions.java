@@ -627,6 +627,10 @@ public class Collisions {
     public static void handleInsideBlocks(GrimPlayer player) {
         // Mojang rewrote this whole logic in 1.21.2
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
+        handleInsideBlocksLegacy(player);
+    }
+
+    public static void handleInsideBlocksLegacy(GrimPlayer player) {
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
         SimpleCollisionBox aABB = player.inVehicle()
