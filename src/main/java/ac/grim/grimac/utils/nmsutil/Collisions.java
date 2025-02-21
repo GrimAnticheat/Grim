@@ -666,8 +666,8 @@ public class Collisions {
         if (direction == null) {
             return Optional.empty();
         } else {
-            double d3 = minDistance[0];
-            return Optional.of(start.add(d3 * deltaX, d3 * deltaY, d3 * deltaZ));
+            double distance = minDistance[0];
+            return Optional.of(start.add(distance * deltaX, distance * deltaY, distance * deltaZ));
         }
     }
 
