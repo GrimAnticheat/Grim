@@ -461,6 +461,7 @@ public class Collisions {
 
             if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
                 // commented things below needs to be implemented
+                // theoretically - this doesn't need to be implemented, because blocks that use this mechanic don't affect movement (tripwire, end portal (as of 1.21.4))
 //                VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
 //                if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, from, to, blockPos, voxelShape)) {
 //                    continue;
