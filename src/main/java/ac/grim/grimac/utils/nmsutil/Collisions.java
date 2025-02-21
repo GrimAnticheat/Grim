@@ -466,7 +466,7 @@ public class Collisions {
                     WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
                     StateType blockType = block.getType();
 
-                    Collisions.onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
+                    onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
                 }
             }
         }
@@ -562,23 +562,12 @@ public class Collisions {
             StateType blockType = blockState.getType();
 
             if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
-                // theoretically - this doesn't need to be implemented, because blocks that use this mechanic don't affect movement (tripwire, end portal (as of 1.21.4))
-//                VoxelShape voxelShape = blockState.getEntityInsideCollisionShape(this.level(), blockPos);
-//                if (voxelShape != Shapes.block() && !collidedWithShapeMovingFrom(player, start, end, blockPos, voxelShape)) {
-//                    continue;
-//                }
-                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+                onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
             }
         }
 
         visitedBlocks.clear();
     }
-
-//    public static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d startVec, Vector3d endVec, Vector3i blockPos, VoxelShape shape) {
-//        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, startVec.getX(), startVec.getY(), startVec.getZ());
-//        Vector3d directionVec = endVec.subtract(startVec);
-//        return boundingBox.collidedAlongVector(directionVec, shape.move(new Vector3d(blockPos.getX(), blockPos.getY(), blockPos.getZ())).toAabbs());
-//    }
 
     public static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
         Vector3d direction = end.subtract(start);
@@ -636,7 +625,7 @@ public class Collisions {
                 break;
             }
 
-            Optional<Vector3d> collisionPoint = Collisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
+            Optional<Vector3d> collisionPoint = clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
             if (collisionPoint.isPresent()) {
                 Vector3d collisionVec = collisionPoint.get();
                 double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);

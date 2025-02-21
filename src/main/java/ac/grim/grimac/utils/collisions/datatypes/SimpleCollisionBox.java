@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -14,7 +13,6 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.List;
-import java.util.Optional;
 
 public class SimpleCollisionBox implements CollisionBox {
 
@@ -594,40 +592,6 @@ public class SimpleCollisionBox implements CollisionBox {
                 }
             }
         };
-    }
-
-    public Vector3d getCenter() {
-        return new Vector3d(GrimMath.lerp(0.5, this.minX, this.maxX), GrimMath.lerp(0.5, this.minY, this.maxY), GrimMath.lerp(0.5, this.minZ, this.maxZ));
-    }
-
-    public boolean contains(Vector3d vec3) {
-        return this.contains(vec3.x, vec3.y, vec3.z);
-    }
-
-    public boolean contains(double x, double y, double z) {
-        return x >= this.minX && x < this.maxX && y >= this.minY && y < this.maxY && z >= this.minZ && z < this.maxZ;
-    }
-
-    public boolean collidedAlongVector(Vector3d direction, List<SimpleCollisionBox> collisionBoxes) {
-        Vector3d start = this.getCenter();
-        Vector3d end = start.add(direction);
-
-        for (SimpleCollisionBox box : collisionBoxes) {
-            SimpleCollisionBox expandedBox = box.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5); // copy because of mutability of our AABB
-            if (expandedBox.contains(end) || expandedBox.contains(start)) {
-                return true;
-            }
-
-            if (expandedBox.clip(start, end).isPresent()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public Optional<Vector3d> clip(Vector3d start, Vector3d end) {
-        return Collisions.clip(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ, start, end);
     }
 
     @Override
