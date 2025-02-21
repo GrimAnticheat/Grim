@@ -441,15 +441,6 @@ public class Collisions {
                 !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
     }
 
-    public static void handleInsideBlocks(GrimPlayer player) {
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
-            handleInsideBlocksLegacy(player);
-            return;
-        }
-
-//        Collisions.handleInsideBlocksModern(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
-    }
-
     public static void handleInsideBlocksModern(GrimPlayer player, Vector3d from, Vector3d to) {
         SimpleCollisionBox aabb = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)
                 .expand(-1.0E-5F);
@@ -474,82 +465,82 @@ public class Collisions {
     }
 
     // copied from minecraft src reimplemented to work with grim - I pray that I haven't missed anything
-//    public static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d vec3, Vector3d vec32, Vector3i blockPos, VoxelShape voxelShape) {
-//        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, vec3.getX(), vec3.getY(), vec3.getZ());
-//        Vector3d vec33 = vec32.subtract(vec3);
-//        return aABB.collidedAlongVector(vec33, voxelShape.move(new Vector3d(blockPos.getX(), blockPos.getY(), blockPos.getZ())).toAabbs());
+//    public static boolean collidedWithShapeMovingFrom(GrimPlayer player, Vector3d startVec, Vector3d endVec, Vector3i blockPos, VoxelShape shape) {
+//        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, startVec.getX(), startVec.getY(), startVec.getZ());
+//        Vector3d directionVec = endVec.subtract(startVec);
+//        return boundingBox.collidedAlongVector(directionVec, shape.move(new Vector3d(blockPos.getX(), blockPos.getY(), blockPos.getZ())).toAabbs());
 //    }
 
-    public static Iterable<Vector3i> boxTraverseBlocks(Vector3d oldPosition, Vector3d position, SimpleCollisionBox boundingBox) {
-        Vector3d vec3 = position.subtract(oldPosition);
-        Iterable<Vector3i> iterable = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (vec3.lengthSquared() < (double) GrimMath.square(0.99999F)) {
-            return iterable;
+    public static Iterable<Vector3i> boxTraverseBlocks(Vector3d startPosition, Vector3d endPosition, SimpleCollisionBox collisionBox) {
+        Vector3d movementVector = endPosition.subtract(startPosition);
+        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(collisionBox);
+        if (movementVector.lengthSquared() < (double) GrimMath.square(0.99999F)) {
+            return initialBlocks;
         } else {
-            Set<Vector3i> set = new ObjectLinkedOpenHashSet<>();
-            Vector3d minPosition = boundingBox.getMinPosition();
-            Vector3d vec31 = minPosition.subtract(vec3);
-            addCollisionsAlongTravel(set, vec31, minPosition, boundingBox);
+            Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
+            Vector3d boxMinPosition = collisionBox.getMinPosition();
+            Vector3d adjustedMinPosition = boxMinPosition.subtract(movementVector);
+            addCollisionsAlongTravel(traversedBlocks, adjustedMinPosition, boxMinPosition, collisionBox);
 
-            for (Vector3i blockPos : iterable) {
-                set.add(blockPos);
+            for (Vector3i blockPos : initialBlocks) {
+                traversedBlocks.add(blockPos);
             }
 
-            return set;
+            return traversedBlocks;
         }
     }
 
     public static void addCollisionsAlongTravel(Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d vec3 = end.subtract(start);
-        int floor = GrimMath.floor(start.x);
-        int floor1 = GrimMath.floor(start.y);
-        int floor2 = GrimMath.floor(start.z);
-        int i = GrimMath.sign(vec3.x);
-        int i1 = GrimMath.sign(vec3.y);
-        int i2 = GrimMath.sign(vec3.z);
-        double d = i == 0 ? Double.MAX_VALUE : i / vec3.x;
-        double d1 = i1 == 0 ? Double.MAX_VALUE : i1 / vec3.y;
-        double d2 = i2 == 0 ? Double.MAX_VALUE : i2 / vec3.z;
-        double d3 = d * (i > 0 ? 1.0 - GrimMath.frac(start.x) : GrimMath.frac(start.x));
-        double d4 = d1 * (i1 > 0 ? 1.0 - GrimMath.frac(start.y) : GrimMath.frac(start.y));
-        double d5 = d2 * (i2 > 0 ? 1.0 - GrimMath.frac(start.z) : GrimMath.frac(start.z));
-        int i3 = 0;
+        Vector3d direction = end.subtract(start);
+        int currentX = GrimMath.floor(start.x);
+        int currentY = GrimMath.floor(start.y);
+        int currentZ = GrimMath.floor(start.z);
+        int stepX = GrimMath.sign(direction.x);
+        int stepY = GrimMath.sign(direction.y);
+        int stepZ = GrimMath.sign(direction.z);
+        double tMaxX = stepX == 0 ? Double.MAX_VALUE : stepX / direction.x;
+        double tMaxY = stepY == 0 ? Double.MAX_VALUE : stepY / direction.y;
+        double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : stepZ / direction.z;
+        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(start.x) : GrimMath.frac(start.x));
+        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(start.y) : GrimMath.frac(start.y));
+        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(start.z) : GrimMath.frac(start.z));
+        int iterationCount = 0;
 
-        while (d3 <= 1.0 || d4 <= 1.0 || d5 <= 1.0) {
-            if (d3 < d4) {
-                if (d3 < d5) {
-                    floor += i;
-                    d3 += d;
+        while (tDeltaX <= 1.0 || tDeltaY <= 1.0 || tDeltaZ <= 1.0) {
+            if (tDeltaX < tDeltaY) {
+                if (tDeltaX < tDeltaZ) {
+                    currentX += stepX;
+                    tDeltaX += tMaxX;
                 } else {
-                    floor2 += i2;
-                    d5 += d2;
+                    currentZ += stepZ;
+                    tDeltaZ += tMaxZ;
                 }
-            } else if (d4 < d5) {
-                floor1 += i1;
-                d4 += d1;
+            } else if (tDeltaY < tDeltaZ) {
+                currentY += stepY;
+                tDeltaY += tMaxY;
             } else {
-                floor2 += i2;
-                d5 += d2;
+                currentZ += stepZ;
+                tDeltaZ += tMaxZ;
             }
 
-            if (i3++ > 16) {
+            if (iterationCount++ > 16) {
                 break;
             }
 
-            Optional<Vector3d> optional = Collisions.clip(floor, floor1, floor2, floor + 1, floor1 + 1, floor2 + 1, start, end);
-            if (!optional.isEmpty()) {
-                Vector3d vec31 = optional.get();
-                double d6 = GrimMath.clamp(vec31.x, floor + 1.0E-5F, floor + 1.0 - 1.0E-5F);
-                double d7 = GrimMath.clamp(vec31.y, floor1 + 1.0E-5F, floor1 + 1.0 - 1.0E-5F);
-                double d8 = GrimMath.clamp(vec31.z, floor2 + 1.0E-5F, floor2 + 1.0 - 1.0E-5F);
-                int floor3 = GrimMath.floor(d6 + boundingBox.getXsize());
-                int floor4 = GrimMath.floor(d7 + boundingBox.getYsize());
-                int floor5 = GrimMath.floor(d8 + boundingBox.getZsize());
+            Optional<Vector3d> collisionPoint = Collisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
+            if (collisionPoint.isPresent()) {
+                Vector3d collisionVec = collisionPoint.get();
+                double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
+                double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);
+                double clampedZ = GrimMath.clamp(collisionVec.z, currentZ + 1.0E-5F, currentZ + 1.0 - 1.0E-5F);
+                int endX = GrimMath.floor(clampedX + boundingBox.getXsize());
+                int endY = GrimMath.floor(clampedY + boundingBox.getYsize());
+                int endZ = GrimMath.floor(clampedZ + boundingBox.getZsize());
 
-                for (int i4 = floor; i4 <= floor3; i4++) {
-                    for (int i5 = floor1; i5 <= floor4; i5++) {
-                        for (int i6 = floor2; i6 <= floor5; i6++) {
-                            output.add(new Vector3i(i4, i5, i6));
+                for (int x = currentX; x <= endX; x++) {
+                    for (int y = currentY; y <= endY; y++) {
+                        for (int z = currentZ; z <= endZ; z++) {
+                            output.add(new Vector3i(x, y, z));
                         }
                     }
                 }
@@ -558,16 +549,16 @@ public class Collisions {
     }
 
     public static Optional<Vector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Vector3d from, Vector3d to) {
-        double[] doubles = new double[]{1.0};
-        double d = to.x - from.x;
-        double d1 = to.y - from.y;
-        double d2 = to.z - from.z;
-        Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, from, doubles, null, d, d1, d2);
+        double[] minDistance = new double[]{1.0};
+        double deltaX = to.x - from.x;
+        double deltaY = to.y - from.y;
+        double deltaZ = to.z - from.z;
+        Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, from, minDistance, null, deltaX, deltaY, deltaZ);
         if (direction == null) {
             return Optional.empty();
         } else {
-            double d3 = doubles[0];
-            return Optional.of(from.add(d3 * d, d3 * d1, d3 * d2));
+            double d3 = minDistance[0];
+            return Optional.of(from.add(d3 * deltaX, d3 * deltaY, d3 * deltaZ));
         }
     }
 
@@ -579,28 +570,28 @@ public class Collisions {
             double maxY,
             double maxZ,
             Vector3d start,
-            double[] mineDistance,
+            double[] minDistance,
             Direction facing,
             double deltaX,
             double deltaY,
             double deltaZ
     ) {
-        if (deltaX > 1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaX, deltaY, deltaZ, minX, minY, maxY, minZ, maxZ, Direction.WEST, start.x, start.y, start.z);
-        } else if (deltaX < -1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaX, deltaY, deltaZ, maxX, minY, maxY, minZ, maxZ, Direction.EAST, start.x, start.y, start.z);
+        if (deltaX > COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, minX, minY, maxY, minZ, maxZ, Direction.WEST, start.x, start.y, start.z);
+        } else if (deltaX < -COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, maxX, minY, maxY, minZ, maxZ, Direction.EAST, start.x, start.y, start.z);
         }
 
-        if (deltaY > 1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaY, deltaZ, deltaX, minY, minZ, maxZ, minX, maxX, Direction.DOWN, start.y, start.z, start.x);
-        } else if (deltaY < -1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaY, deltaZ, deltaX, maxY, minZ, maxZ, minX, maxX, Direction.UP, start.y, start.z, start.x);
+        if (deltaY > COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, minY, minZ, maxZ, minX, maxX, Direction.DOWN, start.y, start.z, start.x);
+        } else if (deltaY < -COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, maxY, minZ, maxZ, minX, maxX, Direction.UP, start.y, start.z, start.x);
         }
 
-        if (deltaZ > 1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaZ, deltaX, deltaY, minZ, minX, maxX, minY, maxY, Direction.NORTH, start.z, start.x, start.y);
-        } else if (deltaZ < -1.0E-7) {
-            facing = clipPoint(mineDistance, facing, deltaZ, deltaX, deltaY, maxZ, minX, maxX, minY, maxY, Direction.SOUTH, start.z, start.x, start.y);
+        if (deltaZ > COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, minZ, minX, maxX, minY, maxY, Direction.NORTH, start.z, start.x, start.y);
+        } else if (deltaZ < -COLLISION_EPSILON) {
+            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, maxZ, minX, maxX, minY, maxY, Direction.SOUTH, start.z, start.x, start.y);
         }
 
         return facing;
@@ -622,18 +613,20 @@ public class Collisions {
             double startOtherA,
             double startOtherB
     ) {
-        double d = (minSide - startSide) / distanceSide;
-        double d1 = startOtherA + d * distanceOtherA;
-        double d2 = startOtherB + d * distanceOtherB;
-        if (0.0 < d && d < minDistance[0] && minOtherA - 1.0E-7 < d1 && d1 < maxOtherA + 1.0E-7 && minOtherB - 1.0E-7 < d2 && d2 < maxOtherB + 1.0E-7) {
-            minDistance[0] = d;
+        double sideDistance = (minSide - startSide) / distanceSide;
+        double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
+        double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
+        if (0.0 < sideDistance && sideDistance < minDistance[0] && minOtherA - 1.0E-7 < otherDistanceA && otherDistanceA < maxOtherA + 1.0E-7 && minOtherB - 1.0E-7 < otherDistanceB && otherDistanceB < maxOtherB + 1.0E-7) {
+            minDistance[0] = sideDistance;
             return hitSide;
         } else {
             return prevDirection;
         }
     }
 
-    public static void handleInsideBlocksLegacy(GrimPlayer player) {
+    public static void handleInsideBlocks(GrimPlayer player) {
+        // Mojang rewrote this whole logic in 1.21.2
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
         SimpleCollisionBox aABB = player.inVehicle()

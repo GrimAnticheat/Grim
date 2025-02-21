@@ -4,7 +4,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.AbstractIterator;
@@ -496,26 +495,26 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     private DoubleList create(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        if (!(maxX - minX < 1.0E-7) && !(maxY - minY < 1.0E-7) && !(maxZ - minZ < 1.0E-7)) {
-            int i = findBits(minX, maxX);
-            int j = findBits(minY, maxY);
-            int k = findBits(minZ, maxZ);
-            if (i < 0 || j < 0 || k < 0) {
+        if (!(maxX - minX < COLLISION_EPSILON) && !(maxY - minY < COLLISION_EPSILON) && !(maxZ - minZ < COLLISION_EPSILON)) {
+            int xBits = findBits(minX, maxX);
+            int yBits = findBits(minY, maxY);
+            int zBits = findBits(minZ, maxZ);
+            if (xBits < 0 || yBits < 0 || zBits < 0) {
                 return DoubleArrayList.wrap(new double[]{minY, maxY});
-            } else if (i == 0 && j == 0 && k == 0) {
+            } else if (xBits == 0 && yBits == 0 && zBits == 0) {
                 return DoubleArrayList.wrap(new double[]{0, 1});
             } else {
-                int m = 1 << j;
+                int yFactor = 1 << yBits;
 
                 return new AbstractDoubleList() {
                     @Override
                     public double getDouble(int index) {
-                        return (double) index / (double) m;
+                        return (double) index / (double) yFactor;
                     }
 
                     @Override
                     public int size() {
-                        return m + 1;
+                        return yFactor + 1;
                     }
                 };
             }
@@ -526,14 +525,14 @@ public class SimpleCollisionBox implements CollisionBox {
 
     private int findBits(double min, double max) {
         if (!(min < -COLLISION_EPSILON) && !(max > 1.0000001)) {
-            for (int i = 0; i <= 3; i++) {
-                int j = 1 << i;
-                double d = min * (double)j;
-                double e = max * (double)j;
-                boolean bl = Math.abs(d - (double)Math.round(d)) < COLLISION_EPSILON * (double)j;
-                boolean bl2 = Math.abs(e - (double)Math.round(e)) < COLLISION_EPSILON * (double)j;
-                if (bl && bl2) {
-                    return i;
+            for (int bitShift = 0; bitShift <= 3; bitShift++) {
+                int factor = 1 << bitShift;
+                double scaledMin = min * (double) factor;
+                double scaledMax = max * (double) factor;
+                boolean isMinAligned = Math.abs(scaledMin - (double) Math.round(scaledMin)) < COLLISION_EPSILON * (double) factor;
+                boolean isMaxAligned = Math.abs(scaledMax - (double) Math.round(scaledMax)) < COLLISION_EPSILON * (double) factor;
+                if (isMinAligned && isMaxAligned) {
+                    return bitShift;
                 }
             }
         }
@@ -553,9 +552,9 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public static Iterable<Vector3i> betweenClosed(SimpleCollisionBox box) {
-        Vector3i blockPos = containing(box.minX, box.minY, box.minZ);
-        Vector3i blockPos1 = containing(box.maxX, box.maxY, box.maxZ);
-        return betweenClosed(blockPos, blockPos1);
+        Vector3i startBlockPos = containing(box.minX, box.minY, box.minZ);
+        Vector3i endBlockPos = containing(box.maxX, box.maxY, box.maxZ);
+        return betweenClosed(startBlockPos, endBlockPos);
     }
 
     public static Vector3i containing(double x, double y, double z) {
@@ -573,25 +572,25 @@ public class SimpleCollisionBox implements CollisionBox {
         );
     }
 
-    public static Iterable<Vector3i> betweenClosed(int x1, int y1, int z1, int x2, int y2, int z2) {
-        int i = x2 - x1 + 1;
-        int i1 = y2 - y1 + 1;
-        int i2 = z2 - z1 + 1;
-        int i3 = i * i1 * i2;
+    public static Iterable<Vector3i> betweenClosed(int xStart, int yStart, int zStart, int xEnd, int yEnd, int zEnd) {
+        int xRange = xEnd - xStart + 1;
+        int yRange = yEnd - yStart + 1;
+        int zRange = zEnd - zStart + 1;
+        int totalVectors = xRange * yRange * zRange;
         return () -> new AbstractIterator<>() {
             private int index;
 
             @Override
             protected Vector3i computeNext() {
-                if (this.index == i3) {
+                if (this.index == totalVectors) {
                     return this.endOfData();
                 } else {
-                    int i4 = this.index % i;
-                    int i5 = this.index / i;
-                    int i6 = i5 % i1;
-                    int i7 = i5 / i1;
+                    int xOffset = this.index % xRange;
+                    int yOffset = this.index / xRange;
+                    int yOffsetMod = yOffset % yRange;
+                    int zOffset = yOffset / yRange;
                     this.index++;
-                    return new Vector3i(x1 + i4, y1 + i6, z1 + i7);
+                    return new Vector3i(xStart + xOffset, yStart + yOffsetMod, zStart + zOffset);
                 }
             }
         };
@@ -605,21 +604,21 @@ public class SimpleCollisionBox implements CollisionBox {
         return this.contains(vec3.x, vec3.y, vec3.z);
     }
 
-    public boolean contains(double d, double e, double f) {
-        return d >= this.minX && d < this.maxX && e >= this.minY && e < this.maxY && f >= this.minZ && f < this.maxZ;
+    public boolean contains(double x, double y, double z) {
+        return x >= this.minX && x < this.maxX && y >= this.minY && y < this.maxY && z >= this.minZ && z < this.maxZ;
     }
 
-    public boolean collidedAlongVector(Vector3d vec3, List<SimpleCollisionBox> list) {
-        Vector3d vec32 = this.getCenter();
-        Vector3d vec33 = vec32.add(vec3);
+    public boolean collidedAlongVector(Vector3d direction, List<SimpleCollisionBox> collisionBoxes) {
+        Vector3d startPoint = this.getCenter();
+        Vector3d endPoint = startPoint.add(direction);
 
-        for (SimpleCollisionBox aABB : list) {
-            SimpleCollisionBox aABB2 = aABB.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5); // copy because of mutability of our AABB
-            if (aABB2.contains(vec33) || aABB2.contains(vec32)) {
+        for (SimpleCollisionBox box : collisionBoxes) {
+            SimpleCollisionBox expandedBox = box.copy().expand(this.getXsize() * 0.5, this.getYsize() * 0.5, this.getZsize() * 0.5); // copy because of mutability of our AABB
+            if (expandedBox.contains(endPoint) || expandedBox.contains(startPoint)) {
                 return true;
             }
 
-            if (aABB2.clip(vec32, vec33).isPresent()) {
+            if (expandedBox.clip(startPoint, endPoint).isPresent()) {
                 return true;
             }
         }
@@ -627,8 +626,8 @@ public class SimpleCollisionBox implements CollisionBox {
         return false;
     }
 
-    public Optional<Vector3d> clip(Vector3d vec3, Vector3d vec32) {
-        return Collisions.clip(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ, vec3, vec32);
+    public Optional<Vector3d> clip(Vector3d start, Vector3d end) {
+        return Collisions.clip(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ, start, end);
     }
 
     @Override
