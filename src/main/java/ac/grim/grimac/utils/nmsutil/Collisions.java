@@ -550,8 +550,8 @@ public class Collisions {
 
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player, Vector3d start, Vector3d end) {
-        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)
-                .expand(-1.0E-5F);
+        SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
+                player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)).expand(-1.0E-5F);
 
         for (Vector3i blockPos : boxTraverseBlocks(start, end, boundingBox)) {
             WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
