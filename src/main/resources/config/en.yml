@@ -182,6 +182,8 @@ mitigate-desync-noslow: true
 # Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim is able to enforce that a player set out of flying state cannot have more than X milliseconds of ping
 # This is due to Grim not currently checking flying players

@@ -11,6 +11,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -96,20 +97,16 @@ public class PunishmentManager implements ConfigReloadable {
         }
     }
 
-    private String replaceAlertPlaceholders(String original, int vl, PunishGroup group, Check check, String alertString, String verbose) {
-
-        original = original
+    private String replaceAlertPlaceholders(String original, int vl, Check check, String alertString, String verbose) {
+        return MessageUtil.replacePlaceholders(player, original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
                 .replace("%check_name%", check.getDisplayName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", Integer.toString(vl))
                 .replace("%verbose%", verbose)
-                .replace("%description%", check.getDescription());
-
-        original = MessageUtil.replacePlaceholders(player, original);
-
-        return original;
+                .replace("%description%", check.getDescription())
+        );
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
@@ -121,16 +118,17 @@ public class PunishmentManager implements ConfigReloadable {
                 final int vl = getViolations(group, check);
                 final int violationCount = group.violations.size();
                 for (ParsedCommand command : group.commands) {
-                    String cmd = replaceAlertPlaceholders(command.command, vl, group, check, alertString, verbose);
+                    String cmd = replaceAlertPlaceholders(command.command, vl, check, alertString, verbose);
 
                     // Verbose that prints all flags
                     if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
                         sentDebug = true;
+                        Component component = MessageUtil.miniMessage(cmd);
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(cmd));
+                            MessageUtil.sendMessage(bukkitPlayer, component);
                         }
                         if (printToConsole) {
-                            LogUtil.console(MessageUtil.miniMessage(cmd)); // Print verbose to console
+                            LogUtil.console(component); // Print verbose to console
                         }
                     }
 
@@ -146,7 +144,7 @@ public class PunishmentManager implements ConfigReloadable {
                             if (command.command.equals("[webhook]")) {
                                 GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
                             } else if (command.command.equals("[proxy]")) {
-                                ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
+                                ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, check, proxyAlertString, verbose));
                             } else {
                                 if (command.command.equals("[alert]")) {
                                     sentDebug = true;
@@ -168,6 +166,7 @@ public class PunishmentManager implements ConfigReloadable {
                 }
             }
         }
+
         return sentDebug;
     }
 

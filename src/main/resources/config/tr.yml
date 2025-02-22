@@ -182,6 +182,8 @@ mitigate-desync-noslow: true
 # Grim bazen timer gibi yasa dışı paketleri iptal eder; bir saniyede X paket iptal edildikten sonra, ne zaman
 # oyuncuyu basitçe atmalıyız? Bu, bazı paket sınırlayıcılarının Grim tarafından iptal edilen paketleri saymaması gerektiğindendir.
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim, uçma durumundan çıkmış bir oyuncunun X milisaniyeden fazla ping'e sahip olamayacağını uygulayabilir
 # Bu, Grim'in şu anda uçan oyuncuları kontrol etmemesindendir

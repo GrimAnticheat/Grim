@@ -184,6 +184,8 @@ mitigate-desync-noslow: true
 # cuando deberíamos simplemente expulsar al jugador? Esto es obligatorio ya que algunos limitadores de paquetes
 # no cuentan los paquetes cancelados por Grim.
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim puede hacer cumplir que un jugador que no está en estado de vuelo no pueda tener más de X milisegundos de ping.
 # Esto se debe a que Grim actualmente no revisa a los jugadores que están volando.
