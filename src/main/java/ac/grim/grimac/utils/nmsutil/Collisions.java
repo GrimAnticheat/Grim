@@ -553,17 +553,16 @@ public class Collisions {
         SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)
                 .expand(-1.0E-5F);
 
-        LongSet visitedBlocks = player.visitedBlocks;
         for (Vector3i blockPos : boxTraverseBlocks(start, end, boundingBox)) {
             WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
             StateType blockType = blockState.getType();
 
-            if (!blockState.getType().isAir() && visitedBlocks.add(GrimMath.asLong(blockPos))) {
-                onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+            if (blockType.isAir()) {
+                continue;
             }
-        }
 
-        visitedBlocks.clear();
+            onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+        }
     }
 
     public static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
