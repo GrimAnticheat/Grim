@@ -191,6 +191,8 @@ mitigate-desync-noslow: true
 # Grimは "Timer" のような違反パケットをキャンセルすることがありますが、1秒間にキャンセルされたパケット数がXを超えた場合、
 # プレイヤーを強制的にキックしますか？これは、いくつかのパケットリミッターがGrimによってキャンセルされたパケットをカウントしないためです。
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grimは、飛行状態を解除されたプレイヤーがXミリ秒以上のPingを持つことを許可しません
 # これは、現在Grimが飛行中のプレイヤーをチェックしていないためです

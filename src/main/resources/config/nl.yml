@@ -182,6 +182,8 @@ mitigate-desync-noslow: true
 # Grim annuleert soms illegale pakketten zoals met timer, na X pakketten in een seconde geannuleerd, wanneer moeten
 # we de speler gewoon schoppen? Dit is nodig omdat sommige pakket-begrenzers pakketten die door grim worden geannuleerd niet tellen
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim kan afdwingen dat een speler die uit vliegt niet meer dan X milliseconden ping kan hebben
 # Dit komt doordat Grim momenteel vliegende spelers niet controleert

@@ -135,7 +135,7 @@ public class MovementTicker {
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (!player.wasTouchingWater && (riding == null || !riding.isBoat())) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_4) && (!player.wasTouchingWater && (riding == null || !riding.isBoat()))) {
             PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
         }
 

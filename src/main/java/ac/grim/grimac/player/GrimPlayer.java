@@ -278,6 +278,14 @@ public class GrimPlayer implements GrimUser {
             LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
             disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectClosed())));
             cancelledPackets.set(0);
+
+            if (debugPacketCancel) {
+                try {
+                    throw new Exception();
+                } catch (Exception e) {
+                    LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", e);
+                }
+            }
         }
     }
 
@@ -553,6 +561,7 @@ public class GrimPlayer implements GrimUser {
         });
     }
 
+    private boolean debugPacketCancel = false;
     private int spamThreshold = 100;
 
     public boolean isPointThree() {
@@ -835,6 +844,7 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void reload(ConfigManager config) {
         featureManager.onReload(config);
+        debugPacketCancel = config.getBooleanElse("debug-packet-cancel", false);
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
