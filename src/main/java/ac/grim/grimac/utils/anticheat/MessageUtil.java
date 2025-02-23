@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.anticheat;
 
-import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chat.ChatUtil;
@@ -9,7 +8,6 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import lombok.experimental.UtilityClass;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -23,7 +21,6 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class MessageUtil {
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
-    private final BukkitAudiences adventure = BukkitAudiences.create(GrimACBukkitLoaderPlugin.PLUGIN);
     public final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
 
     public @NotNull String toUnlabledString(@Nullable Vector3i vec) {

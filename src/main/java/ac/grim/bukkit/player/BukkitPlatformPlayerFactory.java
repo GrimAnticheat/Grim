@@ -17,4 +17,13 @@ public class BukkitPlatformPlayerFactory implements PlatformPlayerFactory {
             return new BukkitPlatformPlayer(player);
         }
     }
+
+    @Override
+    public PlatformPlayer getFromNativePlayerType(Object playerObject) {
+        if (playerObject instanceof Player) {
+            return new BukkitPlatformPlayer((Player) playerObject);
+        } else {
+            throw new IllegalStateException("playerObject was not of type " + Player.class.getPackage() + "." + Player.class.getName());
+        }
+    }
 }

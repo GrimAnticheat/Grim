@@ -4,4 +4,5 @@ import java.util.UUID;
 
 public interface PlatformPlayerFactory {
     PlatformPlayer getFromUUID(UUID uuid);
+    PlatformPlayer getFromNativePlayerType(Object playerObject);
 }

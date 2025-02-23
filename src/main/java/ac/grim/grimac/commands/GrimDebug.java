@@ -32,7 +32,7 @@ public class GrimDebug implements BuildableCommand {
         Command.Builder<Sender> consoleDebugCommand = grimCommand
                 .literal("consoledebug", Description.of("Toggle console debug output for a player"))
                 .permission("grim.consoledebug")
-                .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
                 .handler(this::handleConsoleDebug);
 
         // Register commands
@@ -52,14 +52,14 @@ public class GrimDebug implements BuildableCommand {
         Sender sender = context.sender();
         PlayerSelector playerSelector = context.getOrDefault("target", null);
 
-        GrimPlayer grimPlayer = parseTarget(sender, playerSelector.getSinglePlayer());
-        if (grimPlayer == null) return;
+        GrimPlayer targetGrimPlayer = parseTarget(sender, playerSelector == null ? sender : playerSelector.getSinglePlayer());
+        if (targetGrimPlayer == null) return;
 
         if (sender.isConsole()) {
-            grimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
+            targetGrimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
         } else {
             GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
-            grimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
+            targetGrimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
         }
     }
 

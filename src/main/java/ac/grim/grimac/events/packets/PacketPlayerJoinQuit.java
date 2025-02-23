@@ -9,7 +9,9 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.Objects;
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
@@ -32,7 +34,18 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
-        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        Object nativePlayerObject = event.getPlayer();
+
+        // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order
+        // And the user will be added to the map before the getPlayer() method call
+        @NonNull GrimPlayer player = Objects.requireNonNull(GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser()));
+
+        // It is unknown whether the native player is always non-null on all platforms
+        // we don't have to check for player.platformPlayer == null because its only set in pollData() which is called after
+        if (nativePlayerObject != null) {
+            player.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(nativePlayerObject);
+        }
+
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }

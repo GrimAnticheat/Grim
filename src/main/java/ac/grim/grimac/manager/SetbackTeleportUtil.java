@@ -30,7 +30,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Location;
 
 import java.util.Collections;
 import java.util.HashSet;

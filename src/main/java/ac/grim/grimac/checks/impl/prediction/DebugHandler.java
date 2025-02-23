@@ -1,29 +1,35 @@
 package ac.grim.grimac.checks.impl.prediction;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.Vector3dm;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DebugHandler extends Check implements PostPredictionCheck {
+    private static final Component GRAY_ARROW = MiniMessage.miniMessage().deserialize("<gray>→0.03→</gray>");
+    private static final Component P_PREFIX = MiniMessage.miniMessage().deserialize("<reset>P: </reset>");
+    private static final Component A_PREFIX = MiniMessage.miniMessage().deserialize("<reset>A: </reset>");
+    private static final Component O_PREFIX = MiniMessage.miniMessage().deserialize("<reset>O: </reset>");
 
     Set<GrimPlayer> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
     boolean outputToConsole = false;
-
     boolean enabledFlags = false;
     boolean lastMovementIsFlag = false;
 
-    EvictingQueue<String> predicted = new EvictingQueue<>(5);
-    EvictingQueue<String> actually = new EvictingQueue<>(5);
-    EvictingQueue<String> offset = new EvictingQueue<>(5);
+    EvictingQueue<Component> predicted = new EvictingQueue<>(5);
+    EvictingQueue<Component> actually = new EvictingQueue<>(5);
+    EvictingQueue<Component> offset = new EvictingQueue<>(5);
 
     public DebugHandler(GrimPlayer player) {
         super(player);
@@ -35,41 +41,56 @@ public class DebugHandler extends Check implements PostPredictionCheck {
 
         double offset = predictionComplete.getOffset();
 
-        // No one is listening to this debug
         if (listeners.isEmpty() && !outputToConsole) return;
-        // This is pointless debug!
         if (player.predictedVelocity.vector.lengthSquared() == 0 && offset == 0) return;
 
-        ChatColor color = pickColor(offset, offset);
+        String color = pickColor(offset, offset);
 
         Vector3dm predicted = player.predictedVelocity.vector;
         Vector3dm actually = player.actualMovement;
 
-        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
-        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
-        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
+        String xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
+        String yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
+        String zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
 
-        String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
-        String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
+        Component p = Component.empty()
+                .append(P_PREFIX.color(NamedTextColor.NAMES.value(color)))
+                .append(Component.text(predicted.getX()).color(NamedTextColor.NAMES.value(xColor)))
+                .append(Component.space())
+                .append(Component.text(predicted.getY()).color(NamedTextColor.NAMES.value(yColor)))
+                .append(Component.space())
+                .append(Component.text(predicted.getZ()).color(NamedTextColor.NAMES.value(zColor)));
+
+        Component a = Component.empty()
+                .append(A_PREFIX.color(NamedTextColor.NAMES.value(color)))
+                .append(Component.text(actually.getX()).color(NamedTextColor.NAMES.value(xColor)))
+                .append(Component.space())
+                .append(Component.text(actually.getY()).color(NamedTextColor.NAMES.value(yColor)))
+                .append(Component.space())
+                .append(Component.text(actually.getZ()).color(NamedTextColor.NAMES.value(zColor)));
+
         String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
-        String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
-        String o = ChatColor.GRAY + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
+        String actualMovementSkip = (player.skippedTickInActualMovement + "").charAt(0) + " ";
+        Component o = Component.empty()
+                .append(Component.text(canSkipTick).color(NamedTextColor.GRAY))
+                .append(GRAY_ARROW)
+                .append(Component.text(actualMovementSkip).color(NamedTextColor.GRAY))
+                .append(O_PREFIX.color(NamedTextColor.NAMES.value(color)))
+                .append(Component.text(offset));
 
         String prefix = player.platformPlayer == null ? "null" : player.platformPlayer.getName() + " ";
+        Component prefixComponent = Component.text(prefix);
 
-        boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
+        boolean thisFlag = !color.equals("gray") && !color.equals("green");
         if (enabledFlags) {
-            // If the last movement was a flag, don't duplicate messages to the player
             if (lastMovementIsFlag) {
                 this.predicted.clear();
                 this.actually.clear();
                 this.offset.clear();
             }
-            // Even if last was a flag, we must send the new message if the player flagged
             this.predicted.add(p);
             this.actually.add(a);
             this.offset.add(o);
-
             lastMovementIsFlag = thisFlag;
         }
 
@@ -81,38 +102,37 @@ public class DebugHandler extends Check implements PostPredictionCheck {
             }
         }
 
-        for (GrimPlayer player : listeners) {
-            // Don't add prefix if the player is listening to oneself
-            player.sendMessage((player == getPlayer() ? "" : prefix) + p);
-            player.sendMessage((player == getPlayer() ? "" : prefix) + a);
-            player.sendMessage((player == getPlayer() ? "" : prefix) + o);
+        for (GrimPlayer listener : listeners) {
+            Component listenerPrefix = listener == getPlayer() ? Component.empty() : prefixComponent;
+            listener.sendMessage(listenerPrefix.append(p));
+            listener.sendMessage(listenerPrefix.append(a));
+            listener.sendMessage(listenerPrefix.append(o));
         }
 
-        // Don't memory leak player references
         listeners.removeIf(player -> player.platformPlayer != null && !player.platformPlayer.isOnline());
 
         if (outputToConsole) {
-            LogUtil.info(prefix + p);
-            LogUtil.info(prefix + a);
-            LogUtil.info(prefix + o);
+            Sender consoleSender = GrimAPI.INSTANCE.getSenderFactory().getConsoleSender();
+            consoleSender.sendMessage(p);
+            consoleSender.sendMessage(a);
+            consoleSender.sendMessage(o);
         }
     }
 
-    private ChatColor pickColor(double offset, double totalOffset) {
-        if (player.getSetbackTeleportUtil().blockOffsets) return ChatColor.GRAY;
-        if (offset <= 0 || totalOffset <= 0) { // If exempt don't bother coloring, so I stop getting false false reports
-            return ChatColor.GRAY;
+    private String pickColor(double offset, double totalOffset) {
+        if (player.getSetbackTeleportUtil().blockOffsets) return "gray";
+        if (offset <= 0 || totalOffset <= 0) {
+            return "gray";
         } else if (offset < 0.0001) {
-            return ChatColor.GREEN;
+            return "green";
         } else if (offset < 0.01) {
-            return ChatColor.YELLOW;
+            return "yellow";
         } else {
-            return ChatColor.RED;
+            return "red";
         }
     }
 
     public void toggleListener(GrimPlayer player) {
-        // Toggle, if already added, remove.  If not added, then add
         if (!listeners.remove(player)) listeners.add(player);
     }
 
