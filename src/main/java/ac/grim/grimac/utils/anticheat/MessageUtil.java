@@ -14,7 +14,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +97,7 @@ public class MessageUtil {
 //        adventure.sender(commandSender).sendMessage(component);
 //    }
 //
-    public void sendMessage(@NotNull GrimPlayer grimPlayer, @NotNull Component component) {
-        grimPlayer.sendMessage(component);
-    }
+//    public void sendMessage(@NotNull GrimPlayer grimPlayer, @NotNull Component component) {
+//        grimPlayer.sendMessage(component);
+//    }
 }

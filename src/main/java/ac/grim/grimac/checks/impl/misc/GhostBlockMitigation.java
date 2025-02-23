@@ -5,9 +5,8 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 
 public class GhostBlockMitigation extends BlockPlaceCheck {
 
@@ -50,8 +49,11 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                             continue;
                         }
 
-                        Block type = world.getBlockAt(i, j, k);
-                        if (type.getType() != Material.AIR) {
+                        WrappedBlockState type = world.getBlockAt(i, j, k);
+
+                        // Previously this code only checked for Bukkit Material.AIR
+                        // Which I'm pretty sure is wrong because it doesn't include cave air and void air
+                        if (type.getType().isAir()) {
                             return;
                         }
                     }

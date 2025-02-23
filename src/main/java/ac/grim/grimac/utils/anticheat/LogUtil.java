@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.chat.ChatUtil;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -34,11 +33,11 @@ public class LogUtil {
     }
 
     public void console(final String info) {
-        Bukkit.getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
+        GrimAPI.INSTANCE.getSenderFactory().getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
     }
 
     public void console(final Component info) {
-        MessageUtil.sendMessage(Bukkit.getConsoleSender(), info);
+        GrimAPI.INSTANCE.getSenderFactory().getConsoleSender().sendMessage(info);
     }
 
     public static void exception(String description, Throwable throwable) {

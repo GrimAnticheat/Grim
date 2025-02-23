@@ -55,7 +55,7 @@ public class ClientBrand extends Check implements PacketCheck {
 
                 for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
                     if (GrimAPI.INSTANCE.getAlertManager().hasBrandsEnabled(player)) {
-                        MessageUtil.sendMessage(player, component);
+                        player.sendMessage(component);
                     }
                 }
             }

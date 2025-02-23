@@ -5,7 +5,6 @@ import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -15,9 +14,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
-import org.incendo.cloud.parser.standard.StringParser;
 
-import java.util.UUID;
 
 public class GrimDebug implements BuildableCommand {
 
