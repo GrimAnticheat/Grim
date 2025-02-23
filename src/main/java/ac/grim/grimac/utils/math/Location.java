@@ -1,6 +1,6 @@
-package ac.grim.grimac.world;
+package ac.grim.grimac.utils.math;
 
-import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;

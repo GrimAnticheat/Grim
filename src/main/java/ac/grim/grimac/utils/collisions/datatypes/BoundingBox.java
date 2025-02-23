@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Vector3dm;
 
 public class BoundingBox {
 

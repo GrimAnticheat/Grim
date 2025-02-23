@@ -52,7 +52,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         }
 
         if (offlinePlayer instanceof Player player) {
-            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
+            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId());
             if (grimPlayer == null) return null;
 
             for (Map.Entry<String, Function<GrimUser, String>> entry : GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().entrySet()) {

@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Vector3dm;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
 

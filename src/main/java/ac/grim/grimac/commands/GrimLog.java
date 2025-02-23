@@ -2,6 +2,7 @@ package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.SuperDebug;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
@@ -9,6 +10,10 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import org.bukkit.command.CommandSender;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.IntegerParser;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -17,41 +22,50 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
-@CommandAlias("grim|grimac")
-public class GrimLog extends BaseCommand {
+public class GrimLog implements BuildableCommand {
+    @Override
+    public void register(CommandManager<Sender> commandManager) {
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac", "gl")
+                        .literal("log", "logs")
+                        .permission("grim.log")
+                        .required("flagId", IntegerParser.integerParser())
+                        .handler(this::handleLog)
+        );
+    }
 
-    @Subcommand("log|logs")
-    @CommandPermission("grim.log")
-    @CommandAlias("gl")
-    public void onLog(CommandSender sender, int flagId) {
+    private void handleLog(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        int flagId = context.get("flagId");
+
         StringBuilder builder = SuperDebug.getFlag(flagId);
         if (builder == null) {
             String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
             failure = MessageUtil.replacePlaceholders(sender, failure);
-            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(failure));
+            sender.sendMessage(MessageUtil.miniMessage(failure));
             return;
         }
         sendLogAsync(sender, builder.toString(), string -> {}, "text/yaml");
     }
 
-    public static void sendLogAsync(CommandSender sender, String log, Consumer<String> consumer, String type) {
+    public static void sendLogAsync(Sender sender, String log, Consumer<String> consumer, String type) {
         String success = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log", "%prefix% &fUploaded debug to: %url%");
         String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-upload-failure", "%prefix% &cSomething went wrong while uploading this log, see console for more information.");
         String uploading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-start", "%prefix% &fUploading log... please wait");
         uploading = MessageUtil.replacePlaceholders(sender, uploading);
-        MessageUtil.sendMessage(sender, MessageUtil.miniMessage(uploading));
+        sender.sendMessage(MessageUtil.miniMessage(uploading));
         GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> {
             try {
                 sendLog(sender, log, success, failure, consumer, type);
             } catch (Exception e) {
                 String message = MessageUtil.replacePlaceholders(sender, failure);
-                MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
+                sender.sendMessage(MessageUtil.miniMessage(message));
                 e.printStackTrace();
             }
         });
     }
 
-    private static void sendLog(CommandSender sender, String log, String success, String failure, Consumer<String> consumer, String type) throws IOException {
+    private static void sendLog(Sender sender, String log, String success, String failure, Consumer<String> consumer, String type) throws IOException {
         URL mUrl = new URL("https://paste.grim.ac/data/post");
         HttpURLConnection urlConn = (HttpURLConnection) mUrl.openConnection();
         try {
@@ -69,10 +83,10 @@ public class GrimLog extends BaseCommand {
                 String message = success.replace("%url%", "https://paste.grim.ac/" + responseURL);
                 consumer.accept(message);
                 message = MessageUtil.replacePlaceholders(sender, message);
-                MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
+                sender.sendMessage(MessageUtil.miniMessage(message));
             } else {
                 String message = MessageUtil.replacePlaceholders(sender, failure);
-                MessageUtil.sendMessage(sender, MessageUtil.miniMessage(message));
+                sender.sendMessage(MessageUtil.miniMessage(message));
                 LogUtil.error("Returned response code " + response + ": " + urlConn.getResponseMessage());
             }
         } finally {

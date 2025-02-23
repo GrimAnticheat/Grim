@@ -6,9 +6,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Vector3dm;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DebugHandler extends Check implements PostPredictionCheck {
 
-    Set<Player> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
+    Set<GrimPlayer> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
     boolean outputToConsole = false;
 
     boolean enabledFlags = false;
@@ -82,15 +81,15 @@ public class DebugHandler extends Check implements PostPredictionCheck {
             }
         }
 
-        for (Player player : listeners) {
+        for (GrimPlayer player : listeners) {
             // Don't add prefix if the player is listening to oneself
-            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + p);
-            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + a);
-            player.sendMessage((player == getPlayer().platformPlayer ? "" : prefix) + o);
+            player.sendMessage((player == getPlayer() ? "" : prefix) + p);
+            player.sendMessage((player == getPlayer() ? "" : prefix) + a);
+            player.sendMessage((player == getPlayer() ? "" : prefix) + o);
         }
 
         // Don't memory leak player references
-        listeners.removeIf(player -> !player.isOnline());
+        listeners.removeIf(player -> player.platformPlayer != null && !player.platformPlayer.isOnline());
 
         if (outputToConsole) {
             LogUtil.info(prefix + p);
@@ -112,7 +111,7 @@ public class DebugHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    public void toggleListener(Player player) {
+    public void toggleListener(GrimPlayer player) {
         // Toggle, if already added, remove.  If not added, then add
         if (!listeners.remove(player)) listeners.add(player);
     }

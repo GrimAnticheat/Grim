@@ -1,4 +1,4 @@
-package ac.grim.grimac.world;
+package ac.grim.grimac.platform.api.world;
 
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.Nullable;

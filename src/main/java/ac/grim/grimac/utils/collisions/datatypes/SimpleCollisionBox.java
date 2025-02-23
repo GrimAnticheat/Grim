@@ -2,8 +2,8 @@ package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Ray;
-import ac.grim.grimac.world.Location;
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;

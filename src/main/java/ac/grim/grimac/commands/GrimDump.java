@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -16,15 +17,28 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.description.Description;
 
-@CommandAlias("grim|grimac")
-public class GrimDump extends BaseCommand {
+public class GrimDump implements BuildableCommand {
 
-    @Subcommand("dump")
-    @CommandPermission("grim.dump")
-    public void onCommand(CommandSender sender) {
+    @Override
+    public void register(CommandManager<Sender> commandManager) {
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac")
+                        .literal("dump", Description.of("Generate a debug dump"))
+                        .permission("grim.dump")
+                        .handler(this::handleDump)
+        );
+    }
+
+    private void handleDump(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+
         if (link != null) {
-            MessageUtil.sendMessage(sender, MessageUtil.miniMessage(GrimAPI.INSTANCE.getConfigManager().getConfig()
+            sender.sendMessage(MessageUtil.miniMessage(GrimAPI.INSTANCE.getConfigManager().getConfig()
                     .getStringElse("upload-log", "%prefix% &fUploaded debug to: %url%")
                     .replace("%url%", link)));
             return;

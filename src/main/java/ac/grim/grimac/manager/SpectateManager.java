@@ -2,13 +2,14 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.world.Location;
+import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +62,7 @@ public class SpectateManager implements Initable {
     }
 
     // only call this synchronously
-    public void disable(GrimPlayer player, boolean teleportBack) {
+    public void disable(@NonNull GrimPlayer player, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
             if (teleportBack && previousState.location.isWorldLoaded()) {
@@ -69,7 +70,7 @@ public class SpectateManager implements Initable {
                     if (bool) {
                         onDisable(previousState, player);
                     } else {
-                        MessageUtil.sendMessage(player, Component.text("Teleport failed, please try again.", NamedTextColor.RED));
+                        player.sendMessage(Component.text("Teleport failed, please try again.", NamedTextColor.RED));
                     }
                 });
             } else {

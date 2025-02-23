@@ -1,6 +1,6 @@
-package ac.grim.grimac.entity;
+package ac.grim.grimac.platform.api.entity;
 
-import ac.grim.grimac.world.Location;
+import ac.grim.grimac.utils.math.Location;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

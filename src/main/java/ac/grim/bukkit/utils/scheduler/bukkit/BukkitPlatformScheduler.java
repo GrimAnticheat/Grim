@@ -1,6 +1,6 @@
 package ac.grim.bukkit.utils.scheduler.bukkit;
 
-import ac.grim.grimac.utils.scheduler.*;
+import ac.grim.grimac.platform.api.scheduler.*;
 
 public class BukkitPlatformScheduler implements PlatformScheduler {
 

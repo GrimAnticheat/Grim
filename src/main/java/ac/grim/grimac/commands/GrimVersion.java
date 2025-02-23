@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
@@ -13,7 +14,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.apache.maven.model.Build;
 import org.bukkit.command.CommandSender;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -25,22 +30,31 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 @CommandAlias("grim|grimac")
-public class GrimVersion extends BaseCommand {
-
-    @Subcommand("version")
-    @CommandPermission("grim.version")
-    public void onCommand(CommandSender sender) {
-        checkForUpdatesAsync(sender);
-    }
+public class GrimVersion implements BuildableCommand {
 
     private static long lastCheck;
     private static final AtomicReference<Component> updateMessage = new AtomicReference<>();
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-    public static void checkForUpdatesAsync(CommandSender sender) {
+    @Override
+    public void register(CommandManager<Sender> commandManager) {
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac")
+                        .literal("version")
+                        .permission("grim.version")
+                        .handler(this::handleVersion)
+        );
+    }
+
+    private void handleVersion(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        checkForUpdatesAsync(sender);
+    }
+
+    public static void checkForUpdatesAsync(Sender sender) {
         String current = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
-        MessageUtil.sendMessage(sender, Component.text()
+        sender.sendMessage(Component.text()
                 .append(Component.text("Grim Version: ").color(NamedTextColor.GRAY))
                 .append(Component.text(current).color(NamedTextColor.AQUA))
                 .build());
@@ -48,7 +62,7 @@ public class GrimVersion extends BaseCommand {
         final long now = System.currentTimeMillis();
         if (now - lastCheck < 60000) {
             Component message = updateMessage.get();
-            if (message != null) MessageUtil.sendMessage(sender, message);
+            if (message != null) sender.sendMessage(message);
             return;
         }
         lastCheck = now;
@@ -57,7 +71,7 @@ public class GrimVersion extends BaseCommand {
 
     // Using UserAgent format recommended by https://docs.modrinth.com/api/
     @SuppressWarnings("deprecation")
-    private static void checkForUpdates(CommandSender sender) {
+    private static void checkForUpdates(Sender sender) {
         String current = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -71,7 +85,7 @@ public class GrimVersion extends BaseCommand {
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 Component msg = updateMessage.get();
-                MessageUtil.sendMessage(sender, Objects.requireNonNullElseGet(msg, () -> Component.text()
+                sender.sendMessage(Objects.requireNonNullElseGet(msg, () -> Component.text()
                         .append(Component.text("Failed to check latest version.").color(NamedTextColor.RED))
                         .build()));
                 LogUtil.error("Failed to check latest GrimAC version. Response code: " + response.statusCode());
@@ -96,9 +110,9 @@ public class GrimVersion extends BaseCommand {
                         .build();
             };
             updateMessage.set(msg);
-            MessageUtil.sendMessage(sender, msg);
+            sender.sendMessage(msg);
         } catch (Exception ignored) {
-            MessageUtil.sendMessage(sender, Component.text("Failed to check latest version.").color(NamedTextColor.RED));
+            sender.sendMessage(Component.text("Failed to check latest version.").color(NamedTextColor.RED));
             LogUtil.error("Failed to check latest GrimAC version.", ignored);
         }
     }

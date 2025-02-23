@@ -1,7 +1,7 @@
 package ac.grim.bukkit.world;
 
-import ac.grim.grimac.world.PlatformChunk;
-import ac.grim.grimac.world.PlatformWorld;
+import ac.grim.grimac.platform.api.world.PlatformChunk;
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;

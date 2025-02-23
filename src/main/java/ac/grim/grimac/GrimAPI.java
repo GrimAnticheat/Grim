@@ -3,11 +3,16 @@ package ac.grim.grimac;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.config.BaseConfigManager;
-import ac.grim.grimac.player.PlatformPlayerFactory;
+import ac.grim.grimac.platform.api.manager.ItemResetHandler;
+import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
+import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
-import ac.grim.grimac.utils.scheduler.PlatformScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import lombok.Getter;
+import org.incendo.cloud.CommandManager;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +52,7 @@ public final class GrimAPI {
         private final PlatformPlayerFactory platformPlayerFactory;
         private final InitManager initManager;
         private final GrimPlugin plugin;
+        private final ParserDescriptorFactory parserDescriptorFactory;
 
         // Constructor for uninitialized state
         private PlatformDependentComponents() {
@@ -54,15 +60,19 @@ public final class GrimAPI {
             this.scheduler = null;
             this.initManager = null;
             this.plugin = null;
+            this.parserDescriptorFactory = null;
         }
 
         // Constructor for initialized state
         private PlatformDependentComponents(GrimPlugin plugin, PlatformScheduler scheduler, PlatformPlayerFactory platformPlayerFactory,
-                                            PacketEventsAPI<?> packetEventsAPI) {
+                                            PacketEventsAPI<?> packetEventsAPI,
+                                            Supplier<CommandManager<Sender>> commandManagerSupplier,
+                                            ParserDescriptorFactory parserDescriptorFactory) {
             this.plugin = plugin;
             this.scheduler = scheduler;
             this.platformPlayerFactory = platformPlayerFactory;
-            this.initManager = new InitManager(packetEventsAPI);
+            this.initManager = new InitManager(packetEventsAPI, commandManagerSupplier);
+            this.parserDescriptorFactory = parserDescriptorFactory;
         }
 
         private boolean isInitialized() {
@@ -88,11 +98,13 @@ public final class GrimAPI {
         private static PlatformDependentComponents getOrCreateComponents(GrimPlugin plugin,
                                                                          PlatformScheduler scheduler,
                                                                          PlatformPlayerFactory platformPlayerFactory,
-                                                                         PacketEventsAPI<?> packetEventsAPI) {
+                                                                         PacketEventsAPI<?> packetEventsAPI,
+                                                                         Supplier<CommandManager<Sender>> commandManagerSupplier,
+                                                                         ParserDescriptorFactory parserDescriptorFactory) {
             if (initializedComponents == null) {
                 synchronized (InitializedComponentsHolder.class) {
                     if (initializedComponents == null) {
-                        initializedComponents = new PlatformDependentComponents(plugin, scheduler, platformPlayerFactory, packetEventsAPI);
+                        initializedComponents = new PlatformDependentComponents(plugin, scheduler, platformPlayerFactory, packetEventsAPI, commandManagerSupplier, parserDescriptorFactory);
                         initializedComponents.getInitManager().load();
                     }
                 }
@@ -118,11 +130,13 @@ public final class GrimAPI {
                      PlatformScheduler platformScheduler,
                      PlatformPlayerFactory platformPlayerFactory,
                      PacketEventsAPI<?> packetEventsAPI,
+                     ParserDescriptorFactory parserDescriptorFactory,
+                     Supplier<CommandManager<Sender>> commandManager,
                      Supplier<ItemResetHandler> itemResetHandlerFactory
     ) {
         // Initialize platform-dependent components (excluding ItemResetHandler)
         PlatformDependentComponents newComponents = InitializedComponentsHolder.getOrCreateComponents(
-                grimPlugin, platformScheduler, platformPlayerFactory, packetEventsAPI
+                grimPlugin, platformScheduler, platformPlayerFactory, packetEventsAPI, commandManager, parserDescriptorFactory
         );
 
         if (newComponents == INSTANCE.components) {
@@ -154,6 +168,10 @@ public final class GrimAPI {
 
     public PlatformPlayerFactory getPlatformPlayerFactory() {
         return getComponents().getPlatformPlayerFactory();
+    }
+
+    public ParserDescriptorFactory getParserDescriptors() {
+        return getComponents().getParserDescriptorFactory();
     }
 
     public InitManager getInitManager() {
@@ -193,7 +211,7 @@ public final class GrimAPI {
     }
 
     private static Platform detectPlatform() {
-        final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<String, Platform>() {{
+        final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<>() {{
             put("io.papermc.paper.threadedregions.RegionizedServer", Platform.FOLIA);
             put("org.bukkit.Bukkit", Platform.BUKKIT);
             put("net.fabricmc.loader.api.FabricLoader", Platform.FABRIC);

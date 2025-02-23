@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.anticheat;
 
-import ac.grim.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
@@ -10,24 +9,32 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
     public final Collection<User> exemptUsers = Collections.synchronizedCollection(new HashSet<>());
 
-    public GrimPlayer getPlayer(final Player player) {
-        if (MultiLibUtil.isExternalPlayer(player)) return null;
-
+    @Nullable
+    public GrimPlayer getPlayer(@NonNull final UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
-        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-        return playerDataMap.get(user);
+        Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(uuid);
+        User user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        return getPlayer(user);
+    }
+
+    @Nullable
+    public GrimPlayer getPlayer(final User user) {
+        @Nullable GrimPlayer player = playerDataMap.get(user);
+        if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer()) return null;
+        return player;
     }
 
     public boolean shouldCheck(User user) {
@@ -58,11 +65,6 @@ public class PlayerDataManager {
         }
 
         return true;
-    }
-
-    @Nullable
-    public GrimPlayer getPlayer(final User user) {
-        return playerDataMap.get(user);
     }
 
     public void addUser(final User user) {

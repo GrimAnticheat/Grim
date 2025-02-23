@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.blockstate.helper;
 
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 public class BlockFaceHelper {
@@ -10,23 +10,6 @@ public class BlockFaceHelper {
 
     public static boolean isFaceHorizontal(BlockFace face) {
         return face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST;
-    }
-
-    /**
-     * For use with bukkit events only
-     * Grim is not meant to be restrained by bukkit!
-     */
-    @Deprecated
-    public static BlockFace fromBukkitFace(org.bukkit.block.BlockFace face) {
-        return switch (face) {
-            case NORTH -> BlockFace.NORTH;
-            case SOUTH -> BlockFace.SOUTH;
-            case WEST -> BlockFace.WEST;
-            case EAST -> BlockFace.EAST;
-            case UP -> BlockFace.UP;
-            case DOWN -> BlockFace.DOWN;
-            default -> BlockFace.OTHER;
-        };
     }
 
     public static BlockFace getClockWise(BlockFace face) {

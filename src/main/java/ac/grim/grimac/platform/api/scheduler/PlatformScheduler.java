@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.scheduler;
+package ac.grim.grimac.platform.api.scheduler;
 
 import java.util.concurrent.TimeUnit;
 

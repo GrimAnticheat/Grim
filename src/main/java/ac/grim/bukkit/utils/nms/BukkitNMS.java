@@ -1,8 +1,8 @@
 package ac.grim.bukkit.utils.nms;
 
 import ac.grim.bukkit.player.BukkitPlatformPlayer;
-import ac.grim.grimac.manager.ItemResetHandler;
-import ac.grim.grimac.player.PlatformPlayer;
+import ac.grim.grimac.platform.api.manager.ItemResetHandler;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.SneakyThrows;

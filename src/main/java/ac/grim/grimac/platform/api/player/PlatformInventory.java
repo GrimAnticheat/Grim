@@ -1,4 +1,4 @@
-package ac.grim.grimac.player;
+package ac.grim.grimac.platform.api.player;
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 

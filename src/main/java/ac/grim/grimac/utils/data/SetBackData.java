@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.world.Vector3dm;
+import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

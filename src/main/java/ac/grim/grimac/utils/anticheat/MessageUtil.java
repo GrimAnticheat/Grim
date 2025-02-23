@@ -94,11 +94,11 @@ public class MessageUtil {
         return MiniMessage.miniMessage().deserialize(string).compact();
     }
 
-    public void sendMessage(@NotNull CommandSender commandSender, @NotNull Component component) {
-        adventure.sender(commandSender).sendMessage(component);
-    }
-
-    public void sendMessage(GrimPlayer grimPlayer, @NotNull Component component) {
+//    public void sendMessage(@NotNull CommandSender commandSender, @NotNull Component component) {
+//        adventure.sender(commandSender).sendMessage(component);
+//    }
+//
+    public void sendMessage(@NotNull GrimPlayer grimPlayer, @NotNull Component component) {
         grimPlayer.sendMessage(component);
     }
 }

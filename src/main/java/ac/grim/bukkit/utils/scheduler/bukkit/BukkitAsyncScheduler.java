@@ -2,9 +2,9 @@ package ac.grim.bukkit.utils.scheduler.bukkit;
 
 import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.api.GrimPlugin;
-import ac.grim.grimac.utils.scheduler.AsyncScheduler;
-import ac.grim.grimac.utils.scheduler.PlatformScheduler;
-import ac.grim.grimac.utils.scheduler.TaskHandle;
+import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
+import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;

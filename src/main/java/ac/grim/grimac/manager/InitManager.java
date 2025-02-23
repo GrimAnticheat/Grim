@@ -5,10 +5,14 @@ import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
+import org.incendo.cloud.CommandManager;
+
+import java.util.function.Supplier;
 
 public class InitManager {
 
@@ -20,7 +24,7 @@ public class InitManager {
     @Getter private boolean started = false;
     @Getter private boolean stopped = false;
 
-    public InitManager(PacketEventsAPI<?> packetEventsAPI) {
+    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager) {
         initializersOnLoad = ImmutableList.<Initable>builder()
                 .add(new PacketEventsInit(packetEventsAPI))
                 .add(() -> GrimAPI.INSTANCE.getExternalAPI().load())
@@ -34,7 +38,7 @@ public class InitManager {
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
                 .add(new TickEndEvent())
-                .add(new CommandRegister())
+                .add(new CommandRegister(commandManager))
                 .add(new BStats())
                 .add(new PacketLimiter())
                 .add(GrimAPI.INSTANCE.getDiscordManager())

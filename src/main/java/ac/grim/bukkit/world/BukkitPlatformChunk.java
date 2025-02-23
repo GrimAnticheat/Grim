@@ -1,6 +1,6 @@
 package ac.grim.bukkit.world;
 
-import ac.grim.grimac.world.PlatformChunk;
+import ac.grim.grimac.platform.api.world.PlatformChunk;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;

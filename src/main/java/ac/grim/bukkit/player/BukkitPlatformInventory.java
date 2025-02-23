@@ -1,6 +1,6 @@
 package ac.grim.bukkit.player;
 
-import ac.grim.grimac.player.PlatformInventory;
+import ac.grim.grimac.platform.api.player.PlatformInventory;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.entity.Player;

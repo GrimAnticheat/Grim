@@ -1,7 +1,8 @@
-package ac.grim.grimac.player;
+package ac.grim.grimac.platform.api.player;
 
-import ac.grim.grimac.entity.GrimEntity;
-import ac.grim.grimac.world.PlatformWorld;
+import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.world.PlatformWorld;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import net.kyori.adventure.text.Component;
 

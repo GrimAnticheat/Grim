@@ -2,8 +2,8 @@ package ac.grim.bukkit.entity;
 
 import ac.grim.bukkit.utils.convert.ConvertLocation;
 import ac.grim.bukkit.utils.reflection.PaperUtils;
-import ac.grim.grimac.entity.GrimEntity;
-import ac.grim.grimac.world.Location;
+import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.utils.math.Location;
 import org.bukkit.entity.Entity;
 
 import java.util.UUID;

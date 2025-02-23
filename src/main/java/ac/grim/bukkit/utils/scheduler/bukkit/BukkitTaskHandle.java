@@ -1,6 +1,6 @@
 package ac.grim.bukkit.utils.scheduler.bukkit;
 
-import ac.grim.grimac.utils.scheduler.TaskHandle;
+import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import org.bukkit.scheduler.BukkitTask;
 
 public class BukkitTaskHandle implements TaskHandle {

@@ -1,22 +1,44 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandPermission;
-import co.aikar.commands.annotation.Subcommand;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
+import ac.grim.grimac.platform.api.sender.Sender;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.Command;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 
-@CommandAlias("grim|grimac")
-public class GrimPerf extends BaseCommand {
-    @Subcommand("perf|performance")
-    @CommandPermission("grim.performance")
-    public void onPerformance(CommandSender sender) {
+public class GrimPerf {
+
+    public void register(CommandManager<Sender> commandManager) {
+        Command.Builder<Sender> grimCommand = commandManager.commandBuilder("grim", "grimac");
+
+        Command.Builder<Sender> configuredBuilder = grimCommand
+                .literal("perf", "performance")
+                .permission("grim.performance")
+                .handler(this::handlePerformance);
+
+        commandManager.command(configuredBuilder);
+    }
+
+    private void handlePerformance(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+
         double millis = MovementCheckRunner.predictionNanos / 1000000;
         double longMillis = MovementCheckRunner.longPredictionNanos / 1000000;
 
-        sender.sendMessage(ChatColor.GRAY + "Milliseconds per prediction (avg. 500): " + ChatColor.WHITE + millis);
-        sender.sendMessage(ChatColor.GRAY + "Milliseconds per prediction (avg. 20k): " + ChatColor.WHITE + longMillis);
+        Component message1 = Component.text()
+                .append(Component.text("Milliseconds per prediction (avg. 500): ", NamedTextColor.GRAY))
+                .append(Component.text(millis, NamedTextColor.WHITE))
+                .build();
+
+        Component message2 = Component.text()
+                .append(Component.text("Milliseconds per prediction (avg. 20k): ", NamedTextColor.GRAY))
+                .append(Component.text(longMillis, NamedTextColor.WHITE))
+                .build();
+
+        sender.sendMessage(message1);
+        sender.sendMessage(message2);
     }
 }

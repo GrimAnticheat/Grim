@@ -37,16 +37,12 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
         this.api = api;
     }
 
-    @Nullable
-    public GrimUser getGrimUser(Player player) {
-        return api.getPlayerDataManager().getPlayer(player);
-    }
-
     @Override
     public @Nullable GrimUser getGrimUser(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) return null;
-        return getGrimUser(player);
+//        Player player = Bukkit.getPlayer(uuid);
+//        if (player == null) return null;
+//        return getGrimUser(player);
+        return api.getPlayerDataManager().getPlayer(uuid);
     }
 
     @Getter

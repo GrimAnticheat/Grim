@@ -1,38 +1,47 @@
 package ac.grim.grimac.manager.init.start;
 
-import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.commands.*;
 import ac.grim.grimac.manager.init.Initable;
-import co.aikar.commands.PaperCommandManager;
+import ac.grim.grimac.platform.api.sender.Sender;
 import org.bukkit.Bukkit;
+import org.incendo.cloud.CommandManager;
+
+import java.util.function.Supplier;
 
 public class CommandRegister implements Initable {
+
+    private final Supplier<CommandManager<Sender>> commandManagerSupplier;
+
+    public CommandRegister(Supplier<CommandManager<Sender>> commandManagerSupplier) {
+        this.commandManagerSupplier = commandManagerSupplier;
+    }
+
     @Override
     public void start() {
         // This does not make Grim require paper
         // It only enables new features such as asynchronous tab completion on paper
-        PaperCommandManager commandManager = new PaperCommandManager(GrimACBukkitLoaderPlugin.PLUGIN);
+        CommandManager<Sender> commandManager = commandManagerSupplier.get();
 
-        commandManager.registerCommand(new GrimPerf());
-        commandManager.registerCommand(new GrimDebug());
-        commandManager.registerCommand(new GrimAlerts());
-        commandManager.registerCommand(new GrimProfile());
-        commandManager.registerCommand(new GrimSendAlert());
-        commandManager.registerCommand(new GrimHelp());
-        commandManager.registerCommand(new GrimReload());
-        commandManager.registerCommand(new GrimSpectate());
-        commandManager.registerCommand(new GrimStopSpectating());
-        commandManager.registerCommand(new GrimLog());
-        commandManager.registerCommand(new GrimVerbose());
-        commandManager.registerCommand(new GrimVersion());
-        commandManager.registerCommand(new GrimDump());
-        commandManager.registerCommand(new GrimBrands());
+        new GrimPerf().register(commandManager);
+        new GrimDebug().register(commandManager);
+        new GrimAlerts().register(commandManager);
+        new GrimProfile().register(commandManager);
+        new GrimSendAlert().register(commandManager);
+        new GrimHelp().register(commandManager);
+        new GrimReload().register(commandManager);
+        new GrimSpectate().register(commandManager);
+        new GrimStopSpectating().register(commandManager);
+        new GrimLog().register(commandManager);
+        new GrimVerbose().register(commandManager);
+        new GrimVersion().register(commandManager);
+        new GrimDump().register(commandManager);
+        new GrimBrands().register(commandManager);
 
-        commandManager.getCommandCompletions().registerCompletion("stopspectating", GrimStopSpectating.completionHandler);
+//        commandManager.getCommandCompletions().registerCompletion("stopspectating", GrimStopSpectating.completionHandler);
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("check-for-updates", true)) {
-            GrimVersion.checkForUpdatesAsync(Bukkit.getConsoleSender());
+            GrimVersion.checkForUpdatesAsync(null);
         }
     }
 }

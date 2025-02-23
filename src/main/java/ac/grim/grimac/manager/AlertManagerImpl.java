@@ -27,12 +27,12 @@ public class AlertManagerImpl implements AlertManager {
         if (!enabledAlerts.remove(player)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-enabled", "%prefix% &fAlerts enabled");
             alertString = MessageUtil.replacePlaceholders(player, alertString);
-            MessageUtil.sendMessage((GrimPlayer) player, MessageUtil.miniMessage(alertString));
+            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
             enabledAlerts.add(player);
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-disabled", "%prefix% &fAlerts disabled");
             alertString = MessageUtil.replacePlaceholders(player, alertString);
-            MessageUtil.sendMessage((GrimPlayer) player, MessageUtil.miniMessage(alertString));
+            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
         }
     }
 

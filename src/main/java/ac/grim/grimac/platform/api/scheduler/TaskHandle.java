@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ac.grim.grimac.utils.scheduler;
+package ac.grim.grimac.platform.api.scheduler;
 
 public interface TaskHandle {
 

@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.world.Vector3dm;
 import com.github.retrooper.packetevents.util.Vector3d;
 
 public class VectorUtils {

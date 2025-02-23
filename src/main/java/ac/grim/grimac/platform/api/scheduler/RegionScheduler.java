@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ac.grim.grimac.utils.scheduler;
+package ac.grim.grimac.platform.api.scheduler;
 
 import ac.grim.grimac.api.GrimPlugin;
-import ac.grim.grimac.world.Location;
-import ac.grim.grimac.world.PlatformWorld;
+import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import org.jetbrains.annotations.NotNull;
 
 

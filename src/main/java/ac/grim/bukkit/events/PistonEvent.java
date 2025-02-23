@@ -1,8 +1,8 @@
 package ac.grim.bukkit.events;
 
+import ac.grim.bukkit.utils.blockstate.BukkitBlockFaceHelper;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -57,7 +57,7 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(BlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
+                PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }
@@ -79,7 +79,7 @@ public class PistonEvent implements Listener {
         boolean hasHoneyBlock = false;
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        BlockFace face = BlockFaceHelper.fromBukkitFace(event.getDirection());
+        BlockFace face = BukkitBlockFaceHelper.fromBukkitFace(event.getDirection());
 
         // The event was called without blocks and is therefore in the right direction
         if (event.getBlocks().isEmpty()) {
@@ -110,7 +110,7 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(BlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
+                PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }
