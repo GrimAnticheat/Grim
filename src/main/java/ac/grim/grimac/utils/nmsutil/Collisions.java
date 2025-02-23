@@ -461,6 +461,10 @@ public class Collisions {
                     WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
                     StateType blockType = block.getType();
 
+                    if (blockType.isAir()) {
+                        continue;
+                    }
+
                     onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
                 }
             }
