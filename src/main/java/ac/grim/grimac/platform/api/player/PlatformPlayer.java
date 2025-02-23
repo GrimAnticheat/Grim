@@ -39,4 +39,6 @@ public interface PlatformPlayer extends GrimEntity {
     void setGameMode(GameMode gameMode);
 
     boolean isExternalPlayer();
+
+    void sendPluginMessage(String channelName, byte[] byteArray);
 }

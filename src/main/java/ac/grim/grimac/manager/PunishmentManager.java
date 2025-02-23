@@ -5,7 +5,7 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
-import ac.grim.grimac.api.events.CommandExecuteEvent;
+import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
@@ -138,7 +138,7 @@ public class PunishmentManager implements ConfigReloadable {
                         boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
                         if (inInterval) {
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
-                            Bukkit.getPluginManager().callEvent(executeEvent);
+                            GrimAPI.INSTANCE.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
                             if (command.command.equals("[webhook]")) {
@@ -156,8 +156,8 @@ public class PunishmentManager implements ConfigReloadable {
                                 }
 
                                 String finalCmd = cmd;
-                                GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), () ->
-                                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                                GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->
+                                        GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(), finalCmd));
                             }
                         }
 

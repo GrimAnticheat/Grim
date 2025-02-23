@@ -112,7 +112,7 @@ public class DebugHandler extends Check implements PostPredictionCheck {
         listeners.removeIf(player -> player.platformPlayer != null && !player.platformPlayer.isOnline());
 
         if (outputToConsole) {
-            Sender consoleSender = GrimAPI.INSTANCE.getSenderFactory().getConsoleSender();
+            Sender consoleSender = GrimAPI.INSTANCE.getPlatformServer().getConsoleSender();
             consoleSender.sendMessage(p);
             consoleSender.sendMessage(a);
             consoleSender.sendMessage(o);

@@ -3,22 +3,21 @@ package ac.grim.grimac;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.config.BaseConfigManager;
+import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.PlatformLoader;
+import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
-import com.github.retrooper.packetevents.PacketEventsAPI;
 import lombok.Getter;
-import org.incendo.cloud.CommandManager;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 @Getter
 public final class GrimAPI {
@@ -32,8 +31,9 @@ public final class GrimAPI {
     private final PlayerDataManager playerDataManager;
     private final TickManager tickManager;
     private final GrimExternalAPI externalAPI;
-    private final PlatformDependentComponents components;
     private PlatformLoader loader;
+    private InitManager initManager;
+    private boolean initialized = false;
 
     private GrimAPI() {
         this.configManager = new BaseConfigManager();
@@ -43,109 +43,27 @@ public final class GrimAPI {
         this.playerDataManager = new PlayerDataManager();
         this.tickManager = new TickManager();
         this.externalAPI = new GrimExternalAPI(this);
-        this.components = new PlatformDependentComponents();
     }
 
-    @Getter
-    private static final class PlatformDependentComponents {
-        private final PlatformPlayerFactory platformPlayerFactory;
-        private final InitManager initManager;
-        private final GrimPlugin plugin;
-        private final ParserDescriptorFactory parserDescriptorFactory;
-
-        private PlatformDependentComponents() {
-            this.platformPlayerFactory = null;
-            this.initManager = null;
-            this.plugin = null;
-            this.parserDescriptorFactory = null;
-        }
-
-        private PlatformDependentComponents(GrimPlugin plugin, PlatformPlayerFactory platformPlayerFactory,
-                                            PacketEventsAPI<?> packetEventsAPI,
-                                            Supplier<CommandManager<Sender>> commandManagerSupplier,
-                                            ParserDescriptorFactory parserDescriptorFactory) {
-            this.plugin = plugin;
-            this.platformPlayerFactory = platformPlayerFactory;
-            this.initManager = new InitManager(packetEventsAPI, commandManagerSupplier);
-            this.parserDescriptorFactory = parserDescriptorFactory;
-        }
-
-        private boolean isInitialized() {
-            return plugin != null;
-        }
-    }
-
-    @Getter
-    private static final class ItemResetHandlerHolder {
-        private final ItemResetHandler itemResetHandler;
-
-        private ItemResetHandlerHolder(ItemResetHandler itemResetHandler) {
-            this.itemResetHandler = itemResetHandler;
-        }
-    }
-
-    private static final class InitializedComponentsHolder {
-        private static volatile PlatformDependentComponents initializedComponents = null;
-        private static volatile ItemResetHandlerHolder itemResetHandlerHolder = null;
-
-        private static PlatformDependentComponents getOrCreateComponents(GrimPlugin plugin,
-                                                                         PlatformPlayerFactory platformPlayerFactory,
-                                                                         PacketEventsAPI<?> packetEventsAPI,
-                                                                         Supplier<CommandManager<Sender>> commandManagerSupplier,
-                                                                         ParserDescriptorFactory parserDescriptorFactory) {
-            if (initializedComponents == null) {
-                synchronized (InitializedComponentsHolder.class) {
-                    if (initializedComponents == null) {
-                        initializedComponents = new PlatformDependentComponents(plugin, platformPlayerFactory, packetEventsAPI, commandManagerSupplier, parserDescriptorFactory);
-                        initializedComponents.getInitManager().load();
-                    }
-                }
-            }
-            return initializedComponents;
-        }
-
-        private static ItemResetHandlerHolder getOrCreateItemResetHandler(Supplier<ItemResetHandler> itemResetHandlerFactory) {
-            if (itemResetHandlerHolder == null) {
-                synchronized (InitializedComponentsHolder.class) {
-                    if (itemResetHandlerHolder == null) {
-                        ItemResetHandler itemResetHandler = itemResetHandlerFactory.get();
-                        itemResetHandlerHolder = new ItemResetHandlerHolder(itemResetHandler);
-                    }
-                }
-            }
-            return itemResetHandlerHolder;
-        }
-    }
-
-    public void load(PlatformLoader loader) {
-        this.loader = loader;
-        PlatformDependentComponents newComponents = InitializedComponentsHolder.getOrCreateComponents(
-                loader.getPlugin(),
-                loader.getPlatformPlayerFactory(),
-                loader.getPacketEvents(),
-                loader::getCommandManager,
-                loader.getParserDescriptorFactory()
-        );
-
-        if (newComponents == INSTANCE.components) {
+    public void load(PlatformLoader platformLoader, Initable... platformSpecificInitables) {
+        if (initialized) {
             throw new IllegalStateException("GrimAPI has already been initialized!");
         }
 
-        ItemResetHandlerHolder newItemResetHandlerHolder = InitializedComponentsHolder.getOrCreateItemResetHandler(loader::getItemResetHandler);
-
-        if (newItemResetHandlerHolder == null) {
-            throw new IllegalStateException("Failed to initialize ItemResetHandler!");
-        }
+        this.loader = platformLoader;
+        this.initManager = new InitManager(loader.getPacketEvents(), loader::getCommandManager, platformSpecificInitables);
+        this.initManager.load();
+        this.initialized = true;
     }
 
     public void start() {
         checkInitialized();
-        getInitManager().start();
+        initManager.start();
     }
 
     public void stop() {
         checkInitialized();
-        getInitManager().stop();
+        initManager.stop();
     }
 
     public PlatformScheduler getScheduler() {
@@ -153,19 +71,19 @@ public final class GrimAPI {
     }
 
     public PlatformPlayerFactory getPlatformPlayerFactory() {
-        return getComponents().getPlatformPlayerFactory();
+        return loader.getPlatformPlayerFactory();
     }
 
     public ParserDescriptorFactory getParserDescriptors() {
-        return getComponents().getParserDescriptorFactory();
+        return loader.getParserDescriptorFactory();
     }
 
     public InitManager getInitManager() {
-        return getComponents().getInitManager();
+        return initManager;
     }
 
-    public GrimPlugin getPlugin() {
-        return getComponents().getPlugin();
+    public GrimPlugin getGrimPlugin() {
+        return loader.getPlugin();
     }
 
     public SenderFactory<?> getSenderFactory() {
@@ -173,20 +91,19 @@ public final class GrimAPI {
     }
 
     public ItemResetHandler getItemResetHandler() {
-        ItemResetHandlerHolder holder = InitializedComponentsHolder.itemResetHandlerHolder;
-        if (holder == null) {
-            return null;
-        }
-        return holder.getItemResetHandler();
+        return loader.getItemResetHandler();
     }
 
-    private PlatformDependentComponents getComponents() {
-        PlatformDependentComponents initialized = InitializedComponentsHolder.initializedComponents;
-        return initialized != null ? initialized : INSTANCE.components;
+    public PlatformPluginManager getPluginManager() {
+        return loader.getPluginManager();
+    }
+
+    public PlatformServer getPlatformServer() {
+        return loader.getPlatformServer();
     }
 
     private void checkInitialized() {
-        if (!getComponents().isInitialized() || InitializedComponentsHolder.itemResetHandlerHolder == null) {
+        if (!initialized) {
             throw new IllegalStateException("GrimAPI has not been initialized!");
         }
     }

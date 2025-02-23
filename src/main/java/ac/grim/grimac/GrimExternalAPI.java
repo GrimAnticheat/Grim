@@ -6,7 +6,7 @@ import ac.grim.grimac.api.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.events.GrimReloadEvent;
+import ac.grim.grimac.api.event.events.GrimReloadEvent;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
@@ -80,7 +80,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
 
     @Override
     public String getGrimVersion() {
-        GrimPluginDescription description = GrimAPI.INSTANCE.getPlugin().getDescription();
+        GrimPluginDescription description = GrimAPI.INSTANCE.getGrimPlugin().getDescription();
         return description.getVersion();
     }
 
@@ -144,7 +144,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     @Override
     public void reload(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
                     () -> successfulReload(config));
         } else {
             successfulReload(config);
@@ -155,7 +155,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     public CompletableFuture<Boolean> reloadAsync(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
                     () -> future.complete(successfulReload(config)));
             return future;
         }
@@ -168,14 +168,14 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
             GrimAPI.INSTANCE.getConfigManager().load(config);
             if (started) GrimAPI.INSTANCE.getConfigManager().start();
             onReload(config);
-            if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                    () -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(true)));
+            if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+                    () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(),
-                () -> Bukkit.getPluginManager().callEvent(new GrimReloadEvent(false)));
+        if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+                () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(false)));
         return false;
     }
 
@@ -217,5 +217,4 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
         staticReplacements.put("%prefix%", ChatUtil.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getPrefix()));
         staticReplacements.putIfAbsent("%grim_version%", getGrimVersion());
     }
-
 }

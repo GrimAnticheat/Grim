@@ -1,17 +1,25 @@
 package ac.grim.bukkit;
 
-import ac.grim.bukkit.command.parsers.BukkitParserDescriptorFactory;
+import ac.grim.bukkit.initables.BukkitEventManager;
+import ac.grim.bukkit.initables.BukkitExemptOnlinePlayersOnReload;
+import ac.grim.bukkit.manager.BukkitParserDescriptorFactory;
+import ac.grim.bukkit.manager.BukkitPlatformPluginManager;
 import ac.grim.bukkit.player.BukkitPlatformPlayerFactory;
 import ac.grim.bukkit.sender.BukkitSenderFactory;
-import ac.grim.bukkit.utils.nms.BukkitNMS;
+import ac.grim.bukkit.manager.BukkitItemResetHandler;
+import ac.grim.bukkit.utils.placeholder.PlaceholderAPIExpansion;
 import ac.grim.bukkit.utils.scheduler.bukkit.BukkitPlatformScheduler;
 import ac.grim.bukkit.utils.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.LazyHolder;
+import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.lazy.LazyHolder;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
@@ -30,19 +38,44 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     public static GrimACBukkitLoaderPlugin PLUGIN;
 
-    private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.of(this::createScheduler);
-    private final LazyHolder<PlatformPlayerFactory> playerFactory = LazyHolder.of(BukkitPlatformPlayerFactory::new);
-    private final LazyHolder<ParserDescriptorFactory> parserFactory = LazyHolder.of(BukkitParserDescriptorFactory::new);
-    private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.of(() -> SpigotPacketEventsBuilder.build(this));
-    private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.of(BukkitSenderFactory::new);
-    private final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.of(this::createCommandManager);
-    private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.of(BukkitNMS::new);
-    private final LazyHolder<GrimPlugin> plugin = LazyHolder.of(this::createPlugin);
+    private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
+    private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.simple(() -> SpigotPacketEventsBuilder.build(this));
+    private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.simple(BukkitSenderFactory::new);
+    private final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
+    private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
+
+    private final PlatformPlayerFactory playerFactory = new BukkitPlatformPlayerFactory();
+    private final ParserDescriptorFactory parserFactory = new BukkitParserDescriptorFactory();
+    private final PlatformPluginManager platformPluginManager = new BukkitPlatformPluginManager();
+    private final GrimPlugin plugin;
+    private final PlatformServer platformServer = new BukkitPlatformServer();
+
+    public GrimACBukkitLoaderPlugin() {
+        this.plugin = new BasicGrimPlugin(
+                this.getLogger(),
+                this.getDataFolder(),
+                this.getDescription().getVersion(),
+                this.getDescription().getDescription(),
+                this.getDescription().getAuthors()
+        );
+    }
 
     @Override
     public void onLoad() {
         PLUGIN = this;
-        GrimAPI.INSTANCE.load(this);
+        GrimAPI.INSTANCE.load(this, this.getBukkitInitTasks());
+    }
+
+    private Initable[] getBukkitInitTasks() {
+        return new Initable[]{
+                new BukkitEventManager(),
+                new BukkitExemptOnlinePlayersOnReload(),
+                () -> {
+                    if (MessageUtil.hasPlaceholderAPI) {
+                        new PlaceholderAPIExpansion().register();
+                    }
+                }
+        };
     }
 
     @Override
@@ -62,12 +95,12 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public PlatformPlayerFactory getPlatformPlayerFactory() {
-        return playerFactory.get();
+        return playerFactory;
     }
 
     @Override
     public ParserDescriptorFactory getParserDescriptorFactory() {
-        return parserFactory.get();
+        return parserFactory;
     }
 
     @Override
@@ -92,7 +125,17 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public GrimPlugin getPlugin() {
-        return plugin.get();
+        return plugin;
+    }
+
+    @Override
+    public PlatformPluginManager getPluginManager() {
+        return platformPluginManager;
+    }
+
+    @Override
+    public PlatformServer getPlatformServer() {
+        return platformServer;
     }
 
     private PlatformScheduler createScheduler() {
@@ -113,13 +156,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
         return manager;
     }
 
-    private GrimPlugin createPlugin() {
-        return new BasicGrimPlugin(
-                this.getLogger(),
-                this.getDataFolder(),
-                this.getDescription().getVersion(),
-                this.getDescription().getDescription(),
-                this.getDescription().getAuthors()
-        );
+    public BukkitSenderFactory getBukkitSenderFactory() {
+        return PLUGIN.senderFactory.get();
     }
 }

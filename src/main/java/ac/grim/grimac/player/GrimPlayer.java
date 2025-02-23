@@ -486,7 +486,7 @@ public class GrimPlayer implements GrimUser {
         }
         user.closeConnection();
         if (platformPlayer != null) {
-            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getPlugin(), () -> {
+            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
                 platformPlayer.kickPlayer(textReason);
             }, null, 1);
         }
@@ -555,7 +555,7 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer == null) return;
         this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
         this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
-        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> {
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
             for (AbstractCheck check : checkManager.allChecks.values()) {
                 if (check instanceof Check) {
                     ((Check) check).updatePermissions();

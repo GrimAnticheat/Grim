@@ -3,7 +3,7 @@ package ac.grim.grimac.checks;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.events.FlagEvent;
+import ac.grim.grimac.api.event.events.FlagEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
@@ -64,7 +63,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
         if (player.platformPlayer == null || checkName == null) return;
         GrimAPI.INSTANCE.getScheduler().getEntityScheduler().run(
                 player.platformPlayer,
-                GrimAPI.INSTANCE.getPlugin(),
+                GrimAPI.INSTANCE.getGrimPlugin(),
                 () -> {
                     final String id = checkName.toLowerCase();
                     exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
@@ -98,7 +97,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
             return false; // Avoid calling event if disabled
 
         FlagEvent event = new FlagEvent(player, this, verbose);
-        Bukkit.getPluginManager().callEvent(event);
+        GrimAPI.INSTANCE.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
 
         player.punishmentManager.handleViolation(this);

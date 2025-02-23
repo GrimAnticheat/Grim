@@ -1,14 +1,13 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.events.GrimJoinEvent;
+import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
 import io.github.retrooper.packetevents.util.GeyserUtil;
-import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -71,7 +70,7 @@ public class PlayerDataManager {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
-            Bukkit.getPluginManager().callEvent(new GrimJoinEvent(player));
+            GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimJoinEvent(player));
         }
     }
 

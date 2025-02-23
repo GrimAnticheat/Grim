@@ -1,17 +1,17 @@
 package ac.grim.grimac.manager.init.start;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
-import org.bukkit.Bukkit;
 
 public class TAB implements Initable {
 
     @Override
     public void start() {
-        if (Bukkit.getPluginManager().getPlugin("TAB") == null) return;
+        if (GrimAPI.INSTANCE.getPluginManager().getPlugin("TAB") == null) return;
         if (!ViaVersionUtil.isAvailable()) return;
         // I don't know when team limits were changed, 1.13 is reasonable enough
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) return;

@@ -1,4 +1,4 @@
-package ac.grim.grimac.manager.init.start;
+package ac.grim.bukkit.utils.placeholder;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
@@ -20,7 +20,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
     }
 
     public @NotNull String getAuthor() {
-        return String.join(", ", GrimAPI.INSTANCE.getPlugin().getDescription().getAuthors());
+        return String.join(", ", GrimAPI.INSTANCE.getGrimPlugin().getDescription().getAuthors());
     }
 
     @Override

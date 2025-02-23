@@ -29,15 +29,15 @@ public class LogUtil {
     }
 
     public Logger getLogger() {
-        return GrimAPI.INSTANCE.getPlugin().getLogger();
+        return GrimAPI.INSTANCE.getGrimPlugin().getLogger();
     }
 
     public void console(final String info) {
-        GrimAPI.INSTANCE.getSenderFactory().getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
+        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
     }
 
     public void console(final Component info) {
-        GrimAPI.INSTANCE.getSenderFactory().getConsoleSender().sendMessage(info);
+        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(info);
     }
 
     public static void exception(String description, Throwable throwable) {

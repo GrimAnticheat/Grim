@@ -1,5 +1,6 @@
-package ac.grim.bukkit.sender;
+package ac.grim.bukkit.command;
 
+import ac.grim.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.sender.Sender;

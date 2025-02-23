@@ -1,6 +1,5 @@
-package ac.grim.bukkit.command.parsers;
+package ac.grim.bukkit.command;
 
-import ac.grim.bukkit.sender.BukkitPlayerSelectorAdapter;
 import ac.grim.grimac.platform.api.command.AbstractPlayerSelectorParser;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;

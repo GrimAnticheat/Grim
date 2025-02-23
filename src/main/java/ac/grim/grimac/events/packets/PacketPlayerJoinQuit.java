@@ -1,14 +1,13 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.events.GrimQuitEvent;
+import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Objects;
@@ -66,7 +65,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserDisconnect(UserDisconnectEvent event) {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getUser());
-        if (grimPlayer != null) Bukkit.getPluginManager().callEvent(new GrimQuitEvent(grimPlayer));
+        if (grimPlayer != null) GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimQuitEvent(grimPlayer));
         GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.remove(event.getUser());
         //Check if calling async is safe
         if (event.getUser().getProfile().getUUID() == null) return; // folia doesn't like null getPlayer()

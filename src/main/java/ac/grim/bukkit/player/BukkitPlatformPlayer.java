@@ -1,5 +1,6 @@
 package ac.grim.bukkit.player;
 
+import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.bukkit.entity.BukkitGrimEntity;
 import ac.grim.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.bukkit.utils.convert.ConvertLocation;
@@ -169,5 +170,10 @@ public class BukkitPlatformPlayer implements PlatformPlayer {
     @Override
     public boolean isExternalPlayer() {
         return MultiLibUtil.isExternalPlayer(this.bukkitPlayer);
+    }
+
+    @Override
+    public void sendPluginMessage(String channelName, byte[] byteArray) {
+        this.bukkitPlayer.sendPluginMessage(GrimACBukkitLoaderPlugin.PLUGIN, channelName, byteArray);
     }
 }

@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.bukkit.utils.placeholder.PlaceholderAPIExpansion;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
@@ -12,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import org.incendo.cloud.CommandManager;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class InitManager {
@@ -24,7 +26,7 @@ public class InitManager {
     @Getter private boolean started = false;
     @Getter private boolean stopped = false;
 
-    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager) {
+    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
         initializersOnLoad = ImmutableList.<Initable>builder()
                 .add(new PacketEventsInit(packetEventsAPI))
                 .add(() -> GrimAPI.INSTANCE.getExternalAPI().load())
@@ -32,8 +34,8 @@ public class InitManager {
 
         initializersOnStart = ImmutableList.<Initable>builder()
                 .add(GrimAPI.INSTANCE.getExternalAPI())
-                .add(new ExemptOnlinePlayers())
-                .add(new EventManager())
+//                .add(new BukkitExemptOnlinePlayersOnReload())
+//                .add(new BukkitEventManager())
                 .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
@@ -46,11 +48,12 @@ public class InitManager {
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())
-                .add(() -> {
-                    if (MessageUtil.hasPlaceholderAPI) {
-                        new PlaceholderAPIExpansion().register();
-                    }
-                })
+//                .add(() -> {
+//                    if (MessageUtil.hasPlaceholderAPI) {
+//                        new PlaceholderAPIExpansion().register();
+//                    }
+//                })
+                .addAll(Arrays.asList(platformSpecificInitables))
                 .build();
 
         initializersOnStop = ImmutableList.<Initable>builder()

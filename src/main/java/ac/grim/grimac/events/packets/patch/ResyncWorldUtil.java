@@ -37,7 +37,7 @@ public class ResyncWorldUtil {
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
-        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world,
+        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world,
                 minBlockX >> 4, minBlockZ >> 4, () -> {
             // Player hasn't spawned, don't spam packets
             if (!player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
@@ -109,7 +109,7 @@ public class ResyncWorldUtil {
         final int chunkZ = pos.z >> 4;
         final PlatformWorld world = player.platformPlayer.getWorld();
 
-        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getPlugin(), world, chunkX, chunkZ, () -> {
+        GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world, chunkX, chunkZ, () -> {
             if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
 
             if (!player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) return;

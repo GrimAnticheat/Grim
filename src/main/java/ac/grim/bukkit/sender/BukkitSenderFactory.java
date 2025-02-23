@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.RemoteConsoleCommandSender;
@@ -53,7 +52,7 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
             this.audiences.sender(sender).sendMessage(message);
         } else {
             GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(
-                    GrimAPI.INSTANCE.getPlugin(),
+                    GrimAPI.INSTANCE.getGrimPlugin(),
                     () -> this.audiences.sender(sender).sendMessage(message)
             );
         }
@@ -77,11 +76,6 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     @Override
     protected boolean isConsole(CommandSender sender) {
         return sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender;
-    }
-
-    @Override
-    public Sender getConsoleSender() {
-        return map(Bukkit.getConsoleSender());
     }
 
     @Override

@@ -49,7 +49,7 @@ public class GrimLog implements BuildableCommand {
         String uploading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-start", "%prefix% &fUploading log... please wait");
         uploading = MessageUtil.replacePlaceholders(sender, uploading);
         sender.sendMessage(MessageUtil.miniMessage(uploading));
-        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> {
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
             try {
                 sendLog(sender, log, success, failure, consumer, type);
             } catch (Exception e) {

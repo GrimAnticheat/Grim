@@ -1,11 +1,11 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -30,9 +30,9 @@ public class GrimProfile implements BuildableCommand {
 
     private void handleProfile(@NonNull CommandContext<Sender> context) {
         Sender sender = context.sender();
-        Player target = context.get("target");
+        PlayerSelector target = context.get("target");
 
-        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getUniqueId());
+        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getSinglePlayer().getUniqueId());
 
         if (grimPlayer.platformPlayer.isExternalPlayer()) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");

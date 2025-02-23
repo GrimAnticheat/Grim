@@ -42,6 +42,4 @@ public abstract class SenderFactory<T> implements AutoCloseable {
         Objects.requireNonNull(sender, "sender");
         return (T) sender.getSender();
     }
-
-    public abstract Sender getConsoleSender();
 }

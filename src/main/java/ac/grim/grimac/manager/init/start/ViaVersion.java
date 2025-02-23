@@ -1,12 +1,12 @@
 package ac.grim.grimac.manager.init.start;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.viaversion.viaversion.api.Via;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
-import org.bukkit.Bukkit;
 
 public class ViaVersion implements Initable {
 
@@ -19,7 +19,7 @@ public class ViaVersion implements Initable {
             LogUtil.error("Please disable this option in your ViaVersion configuration to prevent these issues.");
         }
 
-        if (Bukkit.getPluginManager().getPlugin("ViaBackwards") != null && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
+        if (GrimAPI.INSTANCE.getPluginManager().getPlugin("ViaBackwards") != null && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
             LogUtil.warn("GrimAC has detected that you have installed ViaBackwards on a 1.21.2+ server.");
             LogUtil.warn("This setup is currently unsupported and you will experience issues with older clients using vehicles.");
         }

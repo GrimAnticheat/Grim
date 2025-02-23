@@ -1,4 +1,4 @@
-package ac.grim.bukkit.utils.nms;
+package ac.grim.bukkit.manager;
 
 import ac.grim.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
@@ -14,9 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
-@UtilityClass
-public class BukkitNMS {
-public class BukkitNMS implements ItemResetHandler {
+public class BukkitItemResetHandler implements ItemResetHandler {
     // resets item usage, then returns whether the player was using an item
     private final @NotNull ItemUsageReset resetItemUsage = createItemUsageResetFunction();
 

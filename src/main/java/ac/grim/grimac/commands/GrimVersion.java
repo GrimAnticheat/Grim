@@ -60,7 +60,7 @@ public class GrimVersion implements BuildableCommand {
             return;
         }
         lastCheck = now;
-        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getPlugin(), () -> checkForUpdates(sender));
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> checkForUpdates(sender));
     }
 
     // Using UserAgent format recommended by https://docs.modrinth.com/api/

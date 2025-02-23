@@ -16,12 +16,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
+import github.scarsz.configuralize.DynamicConfig;
 
 import java.io.*;
 
-// TODO add this back again, temporarily disable for cross-platform port
+// TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
     private static boolean usingProxy;
 
@@ -87,20 +86,29 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         out.writeShort(messageBytes.toByteArray().length);
         out.write(messageBytes.toByteArray());
 
-        Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(GrimACBukkitLoaderPlugin.PLUGIN, "BungeeCord", out.toByteArray());
+        Iterables.getFirst(GrimAPI.INSTANCE.getPlatformServer().getOnlinePlayers(), null).sendPluginMessage("BungeeCord", out.toByteArray());
     }
 
     public static boolean canSendAlerts() {
-        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.send", false) && !Bukkit.getOnlinePlayers().isEmpty();
+        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.send", false) && !GrimAPI.INSTANCE.getPlatformServer().getOnlinePlayers().isEmpty();
     }
 
     public static boolean canReceiveAlerts() {
         return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false) && !GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts().isEmpty();
     }
 
+    // TODO (Cross-Platform) check if new getBooleanFromFile impl is correct
     private static boolean getBooleanFromFile(String pathToFile, String pathToValue) {
         File file = new File(pathToFile);
         if (!file.exists()) return false;
-        return YamlConfiguration.loadConfiguration(file).getBoolean(pathToValue);
+
+        DynamicConfig config = new DynamicConfig();
+        config.addSource(ProxyAlertMessenger.class, "temp", file);
+        try {
+            config.loadAll();
+            return config.getBoolean(pathToValue);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

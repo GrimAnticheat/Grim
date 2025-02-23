@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -10,8 +11,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -55,7 +54,7 @@ public class GrimDump implements BuildableCommand {
         versions.addProperty("grim", GrimAPI.INSTANCE.getExternalAPI().getGrimVersion());
         versions.addProperty("packetevents", PacketEvents.getAPI().getVersion().toString());
         versions.addProperty("server", PacketEvents.getAPI().getServerManager().getVersion().getReleaseName());
-        versions.addProperty("implementation", Bukkit.getVersion());
+        versions.addProperty("implementation", GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString());
         // properties
         JsonArray properties = new JsonArray();
         base.add("properties", properties);
@@ -70,11 +69,11 @@ public class GrimDump implements BuildableCommand {
         // plugins
         JsonArray plugins = new JsonArray();
         base.add("plugins", plugins);
-        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+        for (PlatformPlugin plugin : GrimAPI.INSTANCE.getPluginManager().getPlugins()) {
             JsonObject pluginJson = new JsonObject();
             pluginJson.addProperty("enabled", plugin.isEnabled());
             pluginJson.addProperty("name", plugin.getName());
-            pluginJson.addProperty("version", plugin.getDescription().getVersion());
+            pluginJson.addProperty("version", plugin.getVersion());
             plugins.add(pluginJson);
         }
         return gson.toJson(base);
