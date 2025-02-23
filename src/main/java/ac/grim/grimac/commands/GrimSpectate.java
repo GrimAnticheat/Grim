@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import co.aikar.commands.annotation.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;

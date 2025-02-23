@@ -1,6 +1,6 @@
 package ac.grim.bukkit.entity;
 
-import ac.grim.bukkit.utils.convert.ConvertLocation;
+import ac.grim.bukkit.utils.convert.ConversionUtils;
 import ac.grim.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.utils.math.Location;
@@ -33,7 +33,7 @@ public class BukkitGrimEntity implements GrimEntity {
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
-        org.bukkit.Location bLoc = ConvertLocation.toBukkit(location);
+        org.bukkit.Location bLoc = ConversionUtils.toBukkitLocation(location);
         return PaperUtils.teleportAsync(this.entity, bLoc);
     }
 }

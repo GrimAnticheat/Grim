@@ -241,7 +241,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         sb.append(offset);
         sb.append("\nOffset: ");
         sb.append(offset.length());
-        sb.append("\nConvertLocation:  ");
+        sb.append("\nConversionUtils:  ");
         sb.append(location);
         sb.append("\nInitial velocity: ");
         sb.append(startTick);

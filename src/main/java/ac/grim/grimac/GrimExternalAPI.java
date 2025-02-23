@@ -1,6 +1,5 @@
 package ac.grim.grimac;
 
-import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
@@ -16,8 +15,6 @@ import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.ServicePriority;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -127,7 +124,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     // on load, load the config & register the service
     public void load() {
         reload(configManagerFile);
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, this, GrimACBukkitLoaderPlugin.PLUGIN, ServicePriority.Normal);
+        api.getLoader().registerAPIService();
     }
 
     // handles any config loading that's needed to be done after load

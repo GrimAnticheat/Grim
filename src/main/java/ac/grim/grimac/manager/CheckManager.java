@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
@@ -44,6 +45,8 @@ import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.manager.init.start.SuperDebug;
+import ac.grim.grimac.platform.api.permission.Permission;
+import ac.grim.grimac.platform.api.permission.PermissionDefault;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
@@ -56,10 +59,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
-import org.bukkit.Bukkit;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionDefault;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckManager {
@@ -421,9 +420,9 @@ public class CheckManager {
             final String id = check.getCheckName().toLowerCase();
             for (String permissionName : permissions) {
                 permissionName += id;
-                final Permission permission = Bukkit.getPluginManager().getPermission(permissionName);
+                final Permission permission = GrimAPI.INSTANCE.getPluginManager().getPermission(permissionName);
                 if (permission == null) {
-                    Bukkit.getPluginManager().addPermission(new Permission(permissionName, PermissionDefault.FALSE));
+                    GrimAPI.INSTANCE.getPluginManager().addPermission(new Permission(permissionName, PermissionDefault.FALSE));
                 } else {
                     permission.setDefault(PermissionDefault.FALSE);
                 }

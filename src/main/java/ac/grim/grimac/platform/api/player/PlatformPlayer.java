@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.api.player;
 
 import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -41,4 +42,6 @@ public interface PlatformPlayer extends GrimEntity {
     boolean isExternalPlayer();
 
     void sendPluginMessage(String channelName, byte[] byteArray);
+
+    Sender getSender();
 }

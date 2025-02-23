@@ -2,6 +2,8 @@ package ac.grim.bukkit;
 
 import ac.grim.bukkit.initables.BukkitEventManager;
 import ac.grim.bukkit.initables.BukkitExemptOnlinePlayersOnReload;
+import ac.grim.bukkit.initables.BukkitTickEndEvent;
+import ac.grim.bukkit.manager.BukkitMessagePlaceHolderManager;
 import ac.grim.bukkit.manager.BukkitParserDescriptorFactory;
 import ac.grim.bukkit.manager.BukkitPlatformPluginManager;
 import ac.grim.bukkit.player.BukkitPlatformPlayerFactory;
@@ -12,8 +14,10 @@ import ac.grim.bukkit.utils.scheduler.bukkit.BukkitPlatformScheduler;
 import ac.grim.bukkit.utils.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.lazy.LazyHolder;
 import ac.grim.grimac.platform.api.PlatformLoader;
@@ -26,13 +30,16 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import ac.grim.grimac.api.GrimPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
 
@@ -49,6 +56,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final PlatformPluginManager platformPluginManager = new BukkitPlatformPluginManager();
     private final GrimPlugin plugin;
     private final PlatformServer platformServer = new BukkitPlatformServer();
+    private final MessagePlaceHolderManager messagePlaceHolderManager = new BukkitMessagePlaceHolderManager();
 
     public GrimACBukkitLoaderPlugin() {
         this.plugin = new BasicGrimPlugin(
@@ -68,8 +76,9 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     private Initable[] getBukkitInitTasks() {
         return new Initable[]{
-                new BukkitEventManager(),
                 new BukkitExemptOnlinePlayersOnReload(),
+                new BukkitEventManager(),
+                new BukkitTickEndEvent(),
                 () -> {
                     if (MessageUtil.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();
@@ -136,6 +145,16 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Override
     public PlatformServer getPlatformServer() {
         return platformServer;
+    }
+
+    @Override
+    public void registerAPIService() {
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPI.INSTANCE.getExternalAPI(), GrimACBukkitLoaderPlugin.PLUGIN, ServicePriority.Normal);
+    }
+
+    @Override
+    public @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager() {
+        return messagePlaceHolderManager;
     }
 
     private PlatformScheduler createScheduler() {

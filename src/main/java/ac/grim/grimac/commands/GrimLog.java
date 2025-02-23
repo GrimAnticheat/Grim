@@ -74,7 +74,7 @@ public class GrimLog implements BuildableCommand {
             }
             final int response = urlConn.getResponseCode();
             if (response == HttpURLConnection.HTTP_CREATED) {
-                String responseURL = urlConn.getHeaderField("ConvertLocation");
+                String responseURL = urlConn.getHeaderField("ConversionUtils");
                 String message = success.replace("%url%", "https://paste.grim.ac/" + responseURL);
                 consumer.accept(message);
                 message = MessageUtil.replacePlaceholders(sender, message);

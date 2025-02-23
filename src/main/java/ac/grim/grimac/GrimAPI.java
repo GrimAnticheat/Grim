@@ -7,6 +7,7 @@ import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
+import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -14,6 +15,7 @@ import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,6 +102,10 @@ public final class GrimAPI {
 
     public PlatformServer getPlatformServer() {
         return loader.getPlatformServer();
+    }
+
+    public @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager() {
+        return loader.getMessagePlaceHolderManager();
     }
 
     private void checkInitialized() {

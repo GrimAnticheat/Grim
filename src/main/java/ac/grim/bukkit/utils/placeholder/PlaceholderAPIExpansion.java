@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class PlaceholderAPIExpansion extends PlaceholderExpansion {
+
     @Override
     public @NotNull String getIdentifier() {
         return "grim";

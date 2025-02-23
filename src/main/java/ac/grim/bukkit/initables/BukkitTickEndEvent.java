@@ -1,12 +1,12 @@
-package ac.grim.grimac.manager.init.start;
+package ac.grim.bukkit.initables;
 
 import ac.grim.bukkit.player.BukkitPlatformPlayer;
+import ac.grim.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.manager.init.start.AbstractTickEndEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
-import ac.grim.bukkit.utils.reflection.PaperUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
@@ -23,11 +23,11 @@ import java.util.List;
 
 // Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
 @SuppressWarnings(value = {"unchecked", "deprecated"})
-public class TickEndEvent implements Initable, Listener {
+public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener {
 
     @Override
     public void start() {
-        if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("Reach.enable-post-packet", false)) {
+        if (!super.shouldInjectEndTick()) {
             return;
         }
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_11_2) && !Boolean.getBoolean("paper.explicit-flush")) {
@@ -94,5 +94,4 @@ public class TickEndEvent implements Initable, Listener {
         }
         return true;
     }
-
 }

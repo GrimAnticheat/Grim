@@ -3,7 +3,6 @@ package ac.grim.grimac.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import co.aikar.commands.annotation.CommandAlias;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.kyori.adventure.text.Component;
@@ -23,7 +22,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-@CommandAlias("grim|grimac")
 public class GrimVersion implements BuildableCommand {
 
     private static long lastCheck;

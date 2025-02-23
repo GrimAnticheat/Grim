@@ -11,9 +11,7 @@ import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 

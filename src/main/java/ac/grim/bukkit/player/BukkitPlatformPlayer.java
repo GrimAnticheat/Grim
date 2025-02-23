@@ -3,10 +3,11 @@ package ac.grim.bukkit.player;
 import ac.grim.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.bukkit.entity.BukkitGrimEntity;
 import ac.grim.bukkit.utils.anticheat.MultiLibUtil;
-import ac.grim.bukkit.utils.convert.ConvertLocation;
+import ac.grim.bukkit.utils.convert.ConversionUtils;
 import ac.grim.bukkit.utils.reflection.PaperUtils;
 import ac.grim.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
@@ -163,7 +164,7 @@ public class BukkitPlatformPlayer implements PlatformPlayer {
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
-        org.bukkit.Location bLoc = ConvertLocation.toBukkit(location);
+        org.bukkit.Location bLoc = ConversionUtils.toBukkitLocation(location);
         return PaperUtils.teleportAsync(this.bukkitPlayer, bLoc);
     }
 
@@ -175,5 +176,10 @@ public class BukkitPlatformPlayer implements PlatformPlayer {
     @Override
     public void sendPluginMessage(String channelName, byte[] byteArray) {
         this.bukkitPlayer.sendPluginMessage(GrimACBukkitLoaderPlugin.PLUGIN, channelName, byteArray);
+    }
+
+    @Override
+    public Sender getSender() {
+        return GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().map(this.bukkitPlayer);
     }
 }

@@ -1,13 +1,11 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.bukkit.utils.placeholder.PlaceholderAPIExpansion;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
@@ -39,7 +37,7 @@ public class InitManager {
                 .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
-                .add(new TickEndEvent())
+//                .add(new AbstractTickEndEvent())
                 .add(new CommandRegister(commandManager))
                 .add(new BStats())
                 .add(new PacketLimiter())

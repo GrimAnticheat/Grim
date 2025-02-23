@@ -181,7 +181,7 @@ public class Location implements Cloneable {
     public String toString() {
         PlatformWorld world = this.world == null ? null : this.world.get();
         String var10000 = String.valueOf(world);
-        return "ConvertLocation{world=" + var10000 + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + "}";
+        return "ConversionUtils{world=" + var10000 + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + "}";
     }
 
     public @NotNull Location clone() {

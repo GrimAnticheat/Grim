@@ -1,17 +1,16 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chat.ChatUtil;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import lombok.experimental.UtilityClass;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +19,8 @@ import java.util.regex.Pattern;
 
 @UtilityClass
 public class MessageUtil {
+    public static final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
-    public final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
 
     public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
@@ -32,12 +31,11 @@ public class MessageUtil {
     }
 
     public @NotNull String replacePlaceholders(@NotNull GrimPlayer player, @NotNull String string) {
-        return replacePlaceholders(player.platformPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
+        return replacePlaceholders(player.platformPlayer.getSender(), GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
     }
 
-    public @NotNull String replacePlaceholders(@Nullable Object object, @NotNull String string) {
-        if (!hasPlaceholderAPI) return string;
-        return PlaceholderAPI.setPlaceholders(object instanceof OfflinePlayer player ? player : null, string);
+    public @NotNull String replacePlaceholders(@Nullable Sender object, @NotNull String string) {
+        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(object, string);
     }
 
     public @NotNull Component replacePlaceholders(@NotNull GrimPlayer player, @NotNull Component component) {

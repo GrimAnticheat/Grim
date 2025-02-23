@@ -37,7 +37,6 @@ val relocate: Boolean = project.findProperty("relocate")?.toString()?.toBoolean(
     ?: true
 
 repositories {
-    mavenLocal()
     maven {
         name = "papermc"
         url = uri("https://repo.papermc.io/repository/maven-public/")
@@ -49,7 +48,6 @@ repositories {
         }
     }
     maven("https://repo.viaversion.com") // ViaVersion
-    maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
     maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
     maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
@@ -64,7 +62,6 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     implementation("com.github.retrooper:packetevents-spigot:2.8.0-SNAPSHOT")
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.incendo:cloud-paper:2.0.0-beta.10")
     implementation("club.minnced:discord-webhooks:0.8.0") // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
     implementation("it.unimi.dsi:fastutil:8.5.15")
@@ -72,8 +69,8 @@ dependencies {
 
 
     // Used for local testing:
-    implementation("ac.grim.grimac:GrimAPI:1.0")
-//    implementation("com.github.grimanticheat:grimapi:05e31d62f2")
+//    implementation("ac.grim.grimac:GrimAPI:1.0")
+    implementation("com.github.grimanticheat:grimapi:f1eff912b6")
 
     implementation("net.kyori:adventure-text-minimessage:4.20.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.4")
