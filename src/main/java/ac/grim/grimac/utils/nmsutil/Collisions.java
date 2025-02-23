@@ -27,7 +27,6 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -627,9 +626,9 @@ public class Collisions {
                 double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
                 double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);
                 double clampedZ = GrimMath.clamp(collisionVec.z, currentZ + 1.0E-5F, currentZ + 1.0 - 1.0E-5F);
-                int endX = GrimMath.floor(clampedX + boundingBox.getXsize());
-                int endY = GrimMath.floor(clampedY + boundingBox.getYsize());
-                int endZ = GrimMath.floor(clampedZ + boundingBox.getZsize());
+                int endX = GrimMath.floor(clampedX + boundingBox.getXSize());
+                int endY = GrimMath.floor(clampedY + boundingBox.getYSize());
+                int endZ = GrimMath.floor(clampedZ + boundingBox.getZSize());
 
                 for (int x = currentX; x <= endX; x++) {
                     for (int y = currentY; y <= endY; y++) {

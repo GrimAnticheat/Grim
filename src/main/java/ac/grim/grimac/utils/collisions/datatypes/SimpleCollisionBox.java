@@ -537,15 +537,15 @@ public class SimpleCollisionBox implements CollisionBox {
         return -1;
     }
 
-    public double getXsize() {
+    public double getXSize() {
         return maxX - minX;
     }
 
-    public double getYsize() {
+    public double getYSize() {
         return maxY - minY;
     }
 
-    public double getZsize() {
+    public double getZSize() {
         return maxZ - minZ;
     }
 
