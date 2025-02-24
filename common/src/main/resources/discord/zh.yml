@@ -1,0 +1,13 @@
+# 是否启用discord webhook
+enabled: false
+webhook: ""
+embed-title: "**Grim Alert**"
+embed-color: "#00FFFF"
+violation-content:
+  - "**玩家名**: %player%"
+  - "**检查**: %check%"
+  - "**违规率**: %violations%"
+  - "**游戏版本**: %version%"
+  - "**客户端品牌**: %brand%"
+  - "**延迟**: %ping%"
+  - "**服务器卡顿程度**: %tps%"

@@ -1,0 +1,62 @@
+# \u00BB 表示 » (相当于缩小版的 >>), ANSI和UTF-8的显示方式有所不同,有时你甚至可以看到乱码.
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &f警报 已开启"
+alerts-disabled: "%prefix% &f警报 已禁用"
+verbose-enabled: "%prefix% &f详细警报 已开启"
+verbose-disabled: "%prefix% &f详细警报 已禁用"
+brands-enabled: "%prefix% &f显示客户端名牌 已开启"
+brands-disabled: "%prefix% &f显示客户端名牌 已禁用"
+client-brand-format: "%prefix% &f%player% 用 %brand% 加入了游戏"
+console-specify-target: "%prefix% &c您必须指定一个目标作为控制台!"
+reloading: "%prefix% &7重载配置中..."
+reloaded: "%prefix% &f配置已经重载完毕."
+reload-failed: "%prefix% &c重载配置失败."
+player-not-found: "%prefix% &c指定玩家不存在或离线!"
+player-not-this-server: "%prefix% &c指定玩家不在此服务器上！"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &f点击这里返回之前的位置\n</hover></click>"
+cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
+cannot-run-on-self: "%prefix% &c你不能对自己使用此命令!"
+upload-log: "%prefix% &f已经将日志文件上传至: %url%"
+upload-log-start: "%prefix% &f上传中...请等待"
+upload-log-not-found: "%prefix% &c找不到该日志."
+upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信息, 请参阅控制台"
+disconnect:
+  timeout: "<lang:disconnect.timeout>"
+  closed: "<lang:disconnect.closed>"
+
+# 变量:
+# %prefix% - 前缀
+# %player% - 玩家
+# %check_name% - 检查名字
+# %description% - 检查的介绍
+# %experimental% - 检查是否是实验性
+# %vl% - VL值
+# %verbose% - 检查中的额外信息说明，例如偏移量，并非所有检查都会添加信息
+alerts-format: "%prefix% &f%player% &b触发了 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &b触发了 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &b 的信息"
+  - "&b延迟: &f%ping%"
+  - "&b版本: &f%version%"
+  - "&b客户端型号: &f%brand%"
+  - "&b水平灵敏度: &f%h_sensitivity%%"
+  - "&b垂直灵敏度: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7显示/隐藏 警报"
+  - "/grim brands &f- &7显示/隐藏 客户端名牌"
+  - "/grim profile <player> &f- &7查看玩家信息"
+  - "/grim help &f- &7查看此帮助消息"
+  - "/grim debug <player> &f- &7开发者预测输出"
+  - "/grim perf &f- &7开发者毫秒预测"
+  - "/grim reload &f- &7重新加载配置"
+  - "/grim spectate <player> &f- &7观看玩家"
+  - "/grim verbose &f- &7显示无缓冲区的每个拉回"
+  - "/grim log [1-999] &f- &7预测标志的调试日志"
+  - "&7======================"
