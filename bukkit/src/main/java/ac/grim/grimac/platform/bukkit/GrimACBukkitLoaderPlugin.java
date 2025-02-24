@@ -2,7 +2,7 @@ package ac.grim.grimac.platform.bukkit;
 
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
-import ac.grim.grimac.platform.bukkit.initables.BukkitExemptOnlinePlayersOnReload;
+import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
 import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
 import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
@@ -11,8 +11,8 @@ import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
 import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
 import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
-import ac.grim.grimac.platform.bukkit.utils.scheduler.bukkit.BukkitPlatformScheduler;
-import ac.grim.grimac.platform.bukkit.utils.scheduler.folia.FoliaPlatformScheduler;
+import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
+import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAbstractAPI;
@@ -77,7 +77,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     private Initable[] getBukkitInitTasks() {
         return new Initable[]{
-                new BukkitExemptOnlinePlayersOnReload(),
+                new ExemptOnlinePlayersOnReload(),
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),

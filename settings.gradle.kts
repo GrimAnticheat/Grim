@@ -28,3 +28,4 @@ plugins {
 rootProject.name = "grimac"
 include("common")
 include("bukkit")
+include("fabric")

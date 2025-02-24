@@ -11,17 +11,15 @@ import java.util.function.Supplier;
 public class CommandRegister implements Initable {
 
     private final Supplier<CommandManager<Sender>> commandManagerSupplier;
+    private static boolean commandsRegistered = false;
 
     public CommandRegister(Supplier<CommandManager<Sender>> commandManagerSupplier) {
         this.commandManagerSupplier = commandManagerSupplier;
     }
 
-    @Override
-    public void start() {
-        // This does not make Grim require paper
-        // It only enables new features such as asynchronous tab completion on paper
-        CommandManager<Sender> commandManager = commandManagerSupplier.get();
-
+    // Public static method that can be called on platforms where commands must be registered earlier than InitManager.load()
+    public static void registerCommands(CommandManager<Sender> commandManager) {
+        if (commandsRegistered) return;
         new GrimPerf().register(commandManager);
         new GrimDebug().register(commandManager);
         new GrimAlerts().register(commandManager);
@@ -36,8 +34,15 @@ public class CommandRegister implements Initable {
         new GrimVersion().register(commandManager);
         new GrimDump().register(commandManager);
         new GrimBrands().register(commandManager);
+        commandsRegistered = true;
+    }
 
-//        commandManager.getCommandCompletions().registerCompletion("stopspectating", GrimStopSpectating.completionHandler);
+    @Override
+    public void start() {
+        // This does not make Grim require paper
+        // It only enables new features such as asynchronous tab completion on paper
+        CommandManager<Sender> commandManager = commandManagerSupplier.get();
+        registerCommands(commandManager);
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("check-for-updates", true)) {
             GrimVersion.checkForUpdatesAsync(GrimAPI.INSTANCE.getPlatformServer().getConsoleSender());

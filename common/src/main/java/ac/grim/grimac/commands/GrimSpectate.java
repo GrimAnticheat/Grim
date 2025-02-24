@@ -65,7 +65,7 @@ public class GrimSpectate implements BuildableCommand {
             player.user.sendMessage(MessageUtil.miniMessage(message));
         }
 
-        player.setGameMode(GameMode.SPECTATOR);
+        player.platformPlayer.setGameMode(GameMode.SPECTATOR);
         player.platformPlayer.teleportAsync(target.getLocation());
     }
 }

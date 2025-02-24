@@ -21,7 +21,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
     @SneakyThrows
     public void resetItemUsage(@Nullable PlatformPlayer player) {
         if (player != null) {
-            resetItemUsage.accept(((BukkitPlatformPlayer) player).getBukkitPlayer());
+            resetItemUsage.accept(((BukkitPlatformPlayer) player).getNative());
         }
     }
 

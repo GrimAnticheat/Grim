@@ -19,6 +19,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -151,5 +152,10 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Override
     public Sender getSender() {
         return GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().map(this.bukkitPlayer);
+    }
+
+    @Override @NonNull
+    public Player getNative() {
+        return this.bukkitPlayer;
     }
 }

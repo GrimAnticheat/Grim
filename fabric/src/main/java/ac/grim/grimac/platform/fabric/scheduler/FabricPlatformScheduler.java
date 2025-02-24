@@ -1,0 +1,90 @@
+package ac.grim.grimac.platform.fabric.scheduler;
+
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.platform.api.scheduler.*;
+import net.minecraft.server.MinecraftServer;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+public class FabricPlatformScheduler implements PlatformScheduler {
+    private final FabricAsyncScheduler asyncScheduler;
+    private final FabricGlobalRegionScheduler globalRegionScheduler;
+    private final FabricEntityScheduler entityScheduler;
+    private final FabricRegionScheduler regionScheduler;
+
+    public FabricPlatformScheduler() {
+        GrimPlugin plugin = GrimAPI.INSTANCE.getGrimPlugin();
+        this.asyncScheduler = new FabricAsyncScheduler(plugin);
+        this.globalRegionScheduler = new FabricGlobalRegionScheduler(plugin);
+        this.entityScheduler = new FabricEntityScheduler(plugin);
+        this.regionScheduler = new FabricRegionScheduler(plugin);
+    }
+
+    @Override
+    public AsyncScheduler getAsyncScheduler() {
+        return asyncScheduler;
+    }
+
+    @Override
+    public GlobalRegionScheduler getGlobalRegionScheduler() {
+        return globalRegionScheduler;
+    }
+
+    @Override
+    public EntityScheduler getEntityScheduler() {
+        return entityScheduler;
+    }
+
+    @Override
+    public RegionScheduler getRegionScheduler() {
+        return regionScheduler;
+    }
+
+    protected static class ScheduledTask {
+        final Runnable task;
+        final long period;
+        final boolean isPeriodic;
+        long nextRunTick;
+
+        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic) {
+            this.task = task;
+            this.nextRunTick = nextRunTick;
+            this.period = period;
+            this.isPeriodic = isPeriodic;
+        }
+    }
+
+    // Shared method to handle synchronous tasks
+    protected static void handleSyncTasks(Map<ScheduledTask, Runnable> taskMap, MinecraftServer server, GrimPlugin plugin) {
+        Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            ScheduledTask task = iterator.next();
+            if (server.getTicks() >= task.nextRunTick) {
+                try {
+                    task.task.run();
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Error executing scheduled task: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                if (task.isPeriodic) {
+                    task.nextRunTick = server.getTicks() + task.period;
+                } else {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    // Shared method to cancel all tasks
+    protected static void cancelAllTasks(Map<?, Runnable> taskMap) {
+        List<Runnable> cancellationTasks = new ArrayList<>(taskMap.values());
+        taskMap.clear();
+        for (Runnable cancellationTask : cancellationTasks) {
+            cancellationTask.run();
+        }
+    }
+}

@@ -1,0 +1,72 @@
+package ac.grim.grimac.platform.fabric.entity;
+
+import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
+import ac.grim.grimac.utils.math.Location;
+import com.google.common.base.Preconditions;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.server.world.ServerWorld;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.EnumSet;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+public class FabricGrimEntity implements GrimEntity {
+
+    private final Entity entity;
+
+    public FabricGrimEntity(Entity entity) {
+        Preconditions.checkArgument(entity != null);
+        this.entity = entity;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return entity.getUuid();
+    }
+
+    @Override
+    public boolean eject() {
+        if (entity.hasPassengers()) {
+            entity.removeAllPassengers();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> teleportAsync(Location location) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (entity.getWorld() instanceof ServerWorld) {
+                entity.teleport(
+                        ((FabricPlatformWorld) location.getWorld()).getFabricWorld(),
+                        location.getX(),
+                        location.getY(),
+                        location.getZ(),
+                        EnumSet.noneOf(PositionFlag.class), // todo change to match paper? Do they do this?
+                        location.getYaw(),
+                        location.getPitch(),
+                        true // doesn't seem to be used?
+
+                );
+                return true;
+            }
+            return false;
+        });
+    }
+
+    @Override @NonNull
+    public Entity getNative() {
+        return this.entity;
+    }
+
+    @Override
+    public boolean isDead() {
+        if (this.entity instanceof LivingEntity)
+            return ((LivingEntity) entity).isDead();
+        return this.entity.isRemoved();
+    }
+}

@@ -14,7 +14,6 @@ import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,8 +48,6 @@ public final class GrimAPI {
     }
 
     public void load(PlatformLoader platformLoader, Initable... platformSpecificInitables) {
-        Preconditions.checkArgument(initialized);
-
         this.loader = platformLoader;
         this.initManager = new InitManager(loader.getPacketEvents(), loader::getCommandManager, platformSpecificInitables);
         this.initManager.load();

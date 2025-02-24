@@ -47,7 +47,7 @@ public class SpectateManager implements Initable {
 
     public boolean enable(GrimPlayer player) {
         if (spectatingPlayers.containsKey(player.getUniqueId())) return false;
-        spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.getGameMode(), player.getLocation()));
+        spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.platformPlayer.getGameMode(), player.getLocation()));
         return true;
     }
 
@@ -79,7 +79,7 @@ public class SpectateManager implements Initable {
     }
 
     private void onDisable(PreviousState previousState, GrimPlayer player) {
-        player.setGameMode(previousState.gameMode);
+        player.platformPlayer.setGameMode(previousState.gameMode);
         handlePlayerStopSpectating(player.getUniqueId());
     }
 
