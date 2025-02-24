@@ -22,9 +22,9 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 // Lombok configuration
-lombok {
-    version.set("1.18.30") // Use the version from your version catalog if available
-}
+//lombok {
+//    version.set("1.18.30") // Use the version from your version catalog if available
+//}
 
 // Spotless configuration
 spotless {
@@ -49,12 +49,12 @@ tasks.build {
 }
 
 // Process resources (e.g., for plugin metadata files)
-tasks.processResources {
-    inputs.property("version", project.version)
-    filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json")) {
-        expand("version" to project.version)
-    }
-}
+//tasks.processResources {
+//    inputs.property("version", project.version)
+//    filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json")) {
+//        expand("version" to project.version)
+//    }
+//}
 
 // Javadoc configuration
 tasks.javadoc {

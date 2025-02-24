@@ -21,7 +21,6 @@ package ac.grim.grimac.platform.api.scheduler;
 import ac.grim.grimac.api.GrimPlugin;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
  * Represents a scheduler for executing global region tasks.
  */
@@ -49,7 +48,7 @@ public interface GlobalRegionScheduler {
      *
      * @param plugin The plugin that owns the task
      * @param task   The task to execute
-     * @param delay  The delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
+     * @param delay  The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay);
@@ -59,11 +58,12 @@ public interface GlobalRegionScheduler {
      *
      * @param plugin            The plugin that owns the task
      * @param task              The task to execute
-     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
-     * @param periodTicks       The period, in ticks. Any value less-than 1 is treated as 1.
+     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
+     * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
+
     /**
      * Attempts to cancel all tasks scheduled by the specified plugin.
      *

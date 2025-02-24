@@ -14,6 +14,7 @@ public interface Sender {
      * The uuid used by the console sender.
      */
     UUID CONSOLE_UUID = new UUID(0, 0); // 00000000-0000-0000-0000-000000000000
+
     /**
      * The name used by the console sender.
      */
@@ -25,13 +26,6 @@ public interface Sender {
      * @return a friendly username for the sender
      */
     String getName();
-
-    /**
-     * Gets a string representing the senders username, and their current location
-     * within the network.
-     *
-     * @return a friendly identifier for the sender
-     */
 
     /**
      * Gets the sender's unique id.
@@ -64,6 +58,13 @@ public interface Sender {
      */
     boolean hasPermission(String permission);
 
+    /**
+     * Check if the Sender has a permission.
+     *
+     * @param permission the permission to check for
+     * @param defaultIfUnset the default value of the permission, if not yet set.
+     * @return true if the sender has the permission
+     */
     boolean hasPermission(String permission, boolean defaultIfUnset);
 
     /**
@@ -89,5 +90,22 @@ public interface Sender {
         return true;
     }
 
+    /**
+     * Gets the native platform-specific command sender object.
+     *
+     * @return The platform's native command sender type:
+     *         <ul>
+     *         <li>Bukkit/Spigot/Paper/Folia/Pufferfish/etc... {@code org.bukkit.command.CommandSender}</li>
+     *         <li>Fabric:
+     *             <ul>
+     *             <li>Yarn: {@code net.minecraft.server.command.ServerCommandSource}</li>
+     *             <li>Mojmap: {@code net.minecraft.commands.CommandSourceStack}</li>
+     *             </ul>
+     *         <li>Velocity: {@code com.velocitypowered.api.command.CommandSource}</li>
+     *         <li>BungeeCord: {@code net.md_5.bungee.api.CommandSender}</li>
+     *         <li>Sponge: {@code org.spongepowered.api.command.CommandCause}</li>
+     *         <li>Forge/NeoForge: {@code net.minecraft.commands.CommandSourceStack}</li>
+     *         </ul>
+     */
     @NonNull Object getSender();
 }

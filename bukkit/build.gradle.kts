@@ -1,14 +1,11 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 
 plugins {
-    `java-library`
     `maven-publish`
     grim.`base-conventions`
-    id("com.gradleup.shadow") version "9.0.0-beta6"
+    grim.`shadow-conventions`
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
 }
-
-val relocate: Boolean by rootProject.extra
 
 repositories {
     maven {
@@ -34,15 +31,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly(libs.paper.api)
+    compileOnly(libs.placeholderapi)
 
-    implementation("com.github.retrooper:packetevents-spigot:2.7.1-SNAPSHOT")
-    implementation("org.incendo:cloud-paper:2.0.0-beta.10")
-    implementation("net.kyori:adventure-platform-bukkit:4.3.4")
+    implementation(libs.packetevents.spigot)
+    implementation(libs.cloud.paper)
+    implementation(libs.adventure.platform.bukkit)
 
     implementation(project(":common"))
-
     shadow(project(":common"))
 }
 
@@ -130,20 +126,6 @@ bukkit {
     }
 }
 
-tasks.build {
-    dependsOn(tasks.shadowJar)
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-    options.release.set(17)
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-    disableAutoTargetJvm()
-}
-
 publishing.publications.create<MavenPublication>("maven") {
     artifact(tasks["shadowJar"])
 }
@@ -151,27 +133,5 @@ publishing.publications.create<MavenPublication>("maven") {
 tasks.shadowJar {
     manifest {
         attributes["paperweight-mappings-namespace"] = "mojang"
-    }
-
-    minimize()
-    archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
-    if (relocate) {
-        relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
-        relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
-        relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
-        relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
-        relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
-        relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
-        relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
-        relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
-        relocate("alexh", "ac.grim.grimac.shaded.maps")
-        relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
-        relocate("net.kyori", "ac.grim.grimac.shaded.kyori")
-        relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
-        relocate("okio", "ac.grim.grimac.shaded.okio")
-        relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")
-        relocate("org.json", "ac.grim.grimac.shaded.json")
-        relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
-        relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
     }
 }

@@ -910,8 +910,4 @@ public class GrimPlayer implements GrimUser {
     public Location getLocation() {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
     }
-
-    public void setGameMode(GameMode gameMode) {
-        platformPlayer.setGameMode(gameMode);
-    }
 }

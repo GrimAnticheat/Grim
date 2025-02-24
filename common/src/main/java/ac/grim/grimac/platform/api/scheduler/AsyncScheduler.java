@@ -54,7 +54,7 @@ public interface AsyncScheduler {
      * @param plugin   Plugin which owns the specified task.
      * @param task     Specified task.
      * @param delay    The time delay to pass before the task should be executed.
-     * @param period   The time period between each task execution. Any value less-than 1 is treated as 1.
+     * @param period   The time period between each task execution. Any value less-than 1 may throw an error.
      * @param timeUnit The time unit for the initial delay and period.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
@@ -65,7 +65,7 @@ public interface AsyncScheduler {
      * @param plugin            Plugin which owns the specified task.
      * @param task              Specified task.
      * @param initialDelayTicks The time delay in ticks to pass before the task should be executed.
-     * @param periodTicks       The time period in ticks between each task execution. Any value less-than 1 is treated as 1.
+     * @param periodTicks       The time period in ticks between each task execution. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);

@@ -5,6 +5,7 @@ import ac.grim.grimac.api.GrimPluginDescription;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -13,7 +14,7 @@ public class BasicGrimPlugin implements GrimPlugin {
     private final File dataFolder;
     private final BasicGrimPluginDescription description;
 
-    public BasicGrimPlugin(Logger logger, File dataFolder, String version, String description, List<String> authors) {
+    public BasicGrimPlugin(Logger logger, File dataFolder, String version, String description, Collection<String> authors) {
         this.logger = logger;
         this.dataFolder = dataFolder;
         this.description = new BasicGrimPluginDescription(version, description, authors);
@@ -37,9 +38,9 @@ public class BasicGrimPlugin implements GrimPlugin {
     private static class BasicGrimPluginDescription implements GrimPluginDescription {
         private final String version;
         private final String description;
-        private final List<String> authors;
+        private final Collection<String> authors;
 
-        public BasicGrimPluginDescription(String version, String description, List<String> authors) {
+        public BasicGrimPluginDescription(String version, String description, Collection<String> authors) {
             this.version = version;
             this.description = description;
             this.authors = authors;
@@ -57,7 +58,7 @@ public class BasicGrimPlugin implements GrimPlugin {
 
         @Override
         public @NotNull List<String> getAuthors() {
-            return authors;
+            return authors.stream().toList();
         }
     }
 }

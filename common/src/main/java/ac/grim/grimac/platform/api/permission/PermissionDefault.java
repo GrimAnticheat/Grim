@@ -1,7 +1,5 @@
 package ac.grim.grimac.platform.api.permission;
 
-
-
 public enum PermissionDefault {
     TRUE,
     FALSE,

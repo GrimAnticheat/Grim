@@ -23,7 +23,6 @@ import ac.grim.grimac.platform.api.entity.GrimEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
 /**
  * Represents a scheduler for executing entity tasks.
  */
@@ -71,7 +70,7 @@ public interface EntityScheduler {
      * @param plugin     The plugin that owns the task
      * @param task       The task to execute
      * @param retired    Retire callback to run if the entity is retired before the run callback can be invoked, may be null.
-     * @param delayTicks The delay in ticks before the run callback is invoked. Any value less-than 1 is treated as 1.
+     * @param delayTicks The delay in ticks before the run callback is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runDelayed(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long delayTicks);
@@ -87,8 +86,8 @@ public interface EntityScheduler {
      * @param plugin            The plugin that owns the task
      * @param task              The task to execute
      * @param retired           Retire callback to run if the entity is retired before the run callback can be invoked, may be null.
-     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
-     * @param periodTicks       The period, in ticks. Any value less-than 1 is treated as 1.
+     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
+     * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long initialDelayTicks, long periodTicks);

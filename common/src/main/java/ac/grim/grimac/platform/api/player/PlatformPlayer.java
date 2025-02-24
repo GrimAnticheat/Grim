@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import net.kyori.adventure.text.Component;
 
-
 public interface PlatformPlayer extends GrimEntity {
     void kickPlayer(String textReason);
 

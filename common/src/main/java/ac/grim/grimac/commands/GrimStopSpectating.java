@@ -38,7 +38,6 @@ public class GrimStopSpectating implements BuildableCommand {
     }
 
     public void onStopSpectate(CommandContext<Sender> commandContext) {
-//        if (!(sender instanceof Player player)) return;
         Sender sender = commandContext.sender();
         if (sender.isConsole()) {
             sender.sendMessage(Component.text("This command can only be used by players!", NamedTextColor.RED));

@@ -1,6 +1,5 @@
 package ac.grim.grimac.platform.api.permission;
 
-
 public class Permission {
 
     private String name;

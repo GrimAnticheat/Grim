@@ -33,7 +33,6 @@ public class GrimSpectate implements BuildableCommand {
     private void handleSpectate(@NonNull CommandContext<Sender> context) {
         Sender sender = context.sender();
 
-//        if (!(sender.bukkit() instanceof Player p)) return;
         if (sender.isConsole()) {
             sender.sendMessage(Component.text("This command can only be used by players!", NamedTextColor.RED));
             return;

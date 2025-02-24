@@ -23,7 +23,6 @@ import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
  * Represents a scheduler for executing region tasks
  */
@@ -79,17 +78,18 @@ public interface RegionScheduler {
      * @param chunkX     The chunk X coordinate of the region that owns the task
      * @param chunkZ     The chunk Z coordinate of the region that owns the task
      * @param task       The task to execute
-     * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
+     * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks);
+
     /**
      * Schedules a task to be executed on the region which owns the location after the specified delay in ticks.
      *
      * @param plugin     The plugin that owns the task
      * @param location   The location at which the region executing should own
      * @param task       The task to execute
-     * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
+     * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long delayTicks);
@@ -102,8 +102,8 @@ public interface RegionScheduler {
      * @param chunkX            The chunk X coordinate of the region that owns the task
      * @param chunkZ            The chunk Z coordinate of the region that owns the task
      * @param task              The task to execute
-     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
-     * @param periodTicks       The period, in ticks. Any value less-than 1 is treated as 1.
+     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
+     * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
@@ -114,8 +114,8 @@ public interface RegionScheduler {
      * @param plugin            The plugin that owns the task
      * @param location          The location at which the region executing should own
      * @param task              The task to execute
-     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 is treated as 1.
-     * @param periodTicks       The period, in ticks. Any value less-than 1 is treated as 1.
+     * @param initialDelayTicks The initial delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
+     * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks);

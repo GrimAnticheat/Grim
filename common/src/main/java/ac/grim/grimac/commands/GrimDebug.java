@@ -15,7 +15,6 @@ import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
 
-
 public class GrimDebug implements BuildableCommand {
 
     public void register(CommandManager<Sender> commandManager) {

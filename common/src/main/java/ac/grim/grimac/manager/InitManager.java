@@ -32,25 +32,16 @@ public class InitManager {
 
         initializersOnStart = ImmutableList.<Initable>builder()
                 .add(GrimAPI.INSTANCE.getExternalAPI())
-//                .add(new BukkitExemptOnlinePlayersOnReload())
-//                .add(new BukkitEventManager())
                 .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
-//                .add(new AbstractTickEndEvent())
                 .add(new CommandRegister(commandManager))
-                .add(new BStats())
                 .add(new PacketLimiter())
                 .add(GrimAPI.INSTANCE.getDiscordManager())
                 .add(GrimAPI.INSTANCE.getSpectateManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())
-//                .add(() -> {
-//                    if (MessageUtil.hasPlaceholderAPI) {
-//                        new PlaceholderAPIExpansion().register();
-//                    }
-//                })
                 .addAll(Arrays.asList(platformSpecificInitables))
                 .build();
 

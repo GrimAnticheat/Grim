@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.25.0")
-    implementation("io.freefair.gradle:lombok-plugin:8.6")
+    implementation(libs.spotless)
+    implementation(libs.lombok)
+    implementation(libs.shadow)
 }
