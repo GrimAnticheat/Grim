@@ -24,6 +24,7 @@ import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import ac.grim.grimac.utils.lazy.LazyHolder;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.fabric.FabricPacketEventsAPI;
 import net.fabricmc.api.EnvType;
@@ -49,7 +50,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     private final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
-    private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.simple(() -> new FabricPacketEventsAPI("grimac", EnvType.SERVER));
+    private final PacketEventsAPI<?> packetEvents = new FabricPacketEventsAPI("grimac", EnvType.SERVER);
     private final LazyHolder<FabricSenderFactory> senderFactory = LazyHolder.simple(FabricSenderFactory::new);
     private final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
@@ -73,6 +74,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     @Override
     public void onPreLaunch() {
         PLUGIN = this;
+        PacketEvents.setAPI(packetEvents);
     }
 
     @Override
@@ -113,7 +115,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
 
     @Override
     public PacketEventsAPI<?> getPacketEvents() {
-        return packetEvents.get();
+        return packetEvents;
     }
 
     @Override
