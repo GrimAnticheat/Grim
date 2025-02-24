@@ -9,13 +9,16 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
-    protected final GrimPlayer player;
+    protected @NonNull final GrimPlayer player;
 
     public double violations;
     private double decay;
@@ -35,7 +38,8 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
 
-    public Check(final GrimPlayer player) {
+    public Check(final @NotNull GrimPlayer player) {
+        Preconditions.checkArgument(player != null);
         this.player = player;
 
         final CheckData checkData = this.getClass().getAnnotation(CheckData.class);

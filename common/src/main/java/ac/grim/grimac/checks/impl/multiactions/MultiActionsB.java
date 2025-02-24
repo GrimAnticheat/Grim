@@ -11,8 +11,6 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-import static ac.grim.grimac.events.packets.patch.ResyncWorldUtil.resyncPosition;
-
 @CheckData(name = "MultiActionsB", description = "Breaking blocks while using an item", experimental = true)
 public class MultiActionsB extends Check implements PacketCheck {
     public MultiActionsB(GrimPlayer player) {
@@ -33,7 +31,7 @@ public class MultiActionsB extends Check implements PacketCheck {
                 if (flagAndAlert() && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
-                    resyncPosition(player, packet.getBlockPosition());
+                    player.resyncPosition(packet.getBlockPosition());
                 }
             }
         }

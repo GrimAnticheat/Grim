@@ -13,8 +13,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import java.util.ArrayList;
 import java.util.List;
 
-import static ac.grim.grimac.events.packets.patch.ResyncWorldUtil.resyncPosition;
-
 @CheckData(name = "MultiActionsF", description = "Interacting with a block and an entity in the same tick", experimental = true)
 public class MultiActionsF extends BlockPlaceCheck {
     public MultiActionsF(GrimPlayer player) {
@@ -63,7 +61,7 @@ public class MultiActionsF extends BlockPlaceCheck {
                         if (flagAndAlert("dig") && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
-                            resyncPosition(player, packet.getBlockPosition());
+                            player.resyncPosition(packet.getBlockPosition());
                         }
                     } else {
                         flags.add("dig");

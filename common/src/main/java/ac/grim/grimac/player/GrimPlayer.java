@@ -13,7 +13,7 @@ import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
-import ac.grim.grimac.manager.player.handlers.BukkitResyncHandler;
+import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
@@ -55,6 +55,7 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
@@ -227,7 +228,7 @@ public class GrimPlayer implements GrimUser {
     public Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
-    private ResyncHandler resyncHandler = new BukkitResyncHandler(this);
+    private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -897,6 +898,19 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void setResyncHandler(ResyncHandler resyncHandler) {
         this.resyncHandler = resyncHandler;
+    }
+
+    public void resyncPosition(Vector3i pos) {
+        this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public void resyncPosition(Vector3i pos, int sequenceID) {
+        DefaultResyncHandler.resyncPosition(this, pos, sequenceID);
+    }
+
+    public void resyncPositions(SimpleCollisionBox box) {
+        this.resyncHandler.resync(GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 
     public static record Movement(Vector3d from, Vector3d to) {

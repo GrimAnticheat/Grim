@@ -41,6 +41,7 @@ import org.incendo.cloud.fabric.FabricCommandManager;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     private final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() ->
         new BasicGrimPlugin(
                 this.logger,
-                FabricLoader.getInstance().getConfigDir().toFile(),
+                new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
                 FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
                 FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
                 FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
