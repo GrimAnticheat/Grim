@@ -713,7 +713,11 @@ public class Collisions {
         double sideDistance = (minSide - startSide) / distanceSide;
         double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
         double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
-        if (0.0 < sideDistance && sideDistance < minDistance[0] && minOtherA - COLLISION_EPSILON < otherDistanceA && otherDistanceA < maxOtherA + COLLISION_EPSILON && minOtherB - COLLISION_EPSILON < otherDistanceB && otherDistanceB < maxOtherB + COLLISION_EPSILON) {
+        if (sideDistance > 0.0  && sideDistance < minDistance[0] &&
+                minOtherA - COLLISION_EPSILON < otherDistanceA &&
+                otherDistanceA < maxOtherA + COLLISION_EPSILON &&
+                minOtherB - COLLISION_EPSILON < otherDistanceB &&
+                otherDistanceB < maxOtherB + COLLISION_EPSILON) {
             minDistance[0] = sideDistance;
             return hitSide;
         } else {
