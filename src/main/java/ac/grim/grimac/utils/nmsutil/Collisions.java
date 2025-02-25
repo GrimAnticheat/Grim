@@ -553,6 +553,17 @@ public class Collisions {
 
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player, Vector3d start, Vector3d end) {
+        int minX = Math.min(GrimMath.floor(start.getX()), GrimMath.floor(end.getX()));
+        int minY = Math.min(GrimMath.floor(start.getY()), GrimMath.floor(end.getY()));
+        int minZ = Math.min(GrimMath.floor(start.getZ()), GrimMath.floor(end.getZ()));
+        int maxX = Math.max(GrimMath.ceil(start.getX()), GrimMath.ceil(end.getX()));
+        int maxY = Math.max(GrimMath.ceil(start.getY()), GrimMath.ceil(end.getY()));
+        int maxZ = Math.max(GrimMath.ceil(start.getZ()), GrimMath.ceil(end.getZ()));
+
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, minX, minY, minZ, maxX, maxY, maxZ)) {
+            return;
+        }
+
         SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
                 player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)).expand(-1.0E-5F);
 
