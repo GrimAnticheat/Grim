@@ -2,6 +2,7 @@ package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.player.GrimPlayer;
@@ -38,34 +39,35 @@ public class GrimSpectate implements BuildableCommand {
             return;
         }
 
-        PlayerSelector targetPlayer = context.getOrDefault("target", null);
-        if (targetPlayer == null) return;
+        PlayerSelector targetSelectorResults = context.getOrDefault("target", null);
+        if (targetSelectorResults == null) return;
 
-        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
-        GrimPlayer target = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlayer.getSinglePlayer().getUniqueId());
+        PlatformPlayer targetPlatformPlayer = targetSelectorResults.getSinglePlayer().getPlatformPlayer();
 
-        if (target != null && target.getUniqueId().equals(player.getUniqueId())) {
+        if (targetPlatformPlayer != null && targetPlatformPlayer.getUniqueId().equals(sender.getUniqueId())) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!");
-            message = MessageUtil.replacePlaceholders(target, message);
-            player.sendMessage(MessageUtil.miniMessage(message));
+            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
+            sender.sendMessage(MessageUtil.miniMessage(message));
             return;
         }
 
-        if (target == null || (target.platformPlayer != null && target.platformPlayer.isExternalPlayer())) {
+        if (targetPlatformPlayer != null && targetPlatformPlayer.isExternalPlayer()) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
-            message = MessageUtil.replacePlaceholders(target, message);
-            player.sendMessage(MessageUtil.miniMessage(message));
+            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
+            sender.sendMessage(MessageUtil.miniMessage(message));
             return;
         }
+
+        @NonNull PlatformPlayer platformPlayer = sender.getPlatformPlayer();
 
         // hide player from tab list
-        if (GrimAPI.INSTANCE.getSpectateManager().enable(player)) {
+        if (GrimAPI.INSTANCE.getSpectateManager().enable(platformPlayer)) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick here to return to previous location\n</hover></click>");
-            message = MessageUtil.replacePlaceholders(target, message);
-            player.user.sendMessage(MessageUtil.miniMessage(message));
+            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
+            sender.sendMessage(MessageUtil.miniMessage(message));
         }
 
-        player.platformPlayer.setGameMode(GameMode.SPECTATOR);
-        player.platformPlayer.teleportAsync(target.getLocation());
+        platformPlayer.setGameMode(GameMode.SPECTATOR);
+        platformPlayer.teleportAsync(targetPlatformPlayer.getLocation());
     }
 }

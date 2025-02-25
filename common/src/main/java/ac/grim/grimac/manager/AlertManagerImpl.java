@@ -3,9 +3,12 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,68 +16,149 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
 public class AlertManagerImpl implements AlertManager {
-    private final Set<GrimUser> enabledAlerts = new CopyOnWriteArraySet<>(new HashSet<>());
-    private final Set<GrimUser> enabledVerbose = new CopyOnWriteArraySet<>(new HashSet<>());
-    private final Set<GrimUser> enabledBrands = new CopyOnWriteArraySet<>(new HashSet<>());
+    private final Set<PlatformPlayer> enabledAlerts = new CopyOnWriteArraySet<>(new HashSet<>());
+    private final Set<PlatformPlayer> enabledVerbose = new CopyOnWriteArraySet<>(new HashSet<>());
+    private final Set<PlatformPlayer> enabledBrands = new CopyOnWriteArraySet<>(new HashSet<>());
 
     @Override
-    public boolean hasAlertsEnabled(GrimUser player) {
-        return enabledAlerts.contains(player);
+    public boolean hasAlertsEnabled(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return hasAlertsEnabled(grimPlayer.platformPlayer);
+    }
+
+    public boolean hasAlertsEnabled(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+        return enabledAlerts.contains(platformPlayer);
     }
 
     @Override
-    public void toggleAlerts(GrimUser player) {
-        if (!enabledAlerts.remove(player)) {
+    public boolean toggleAlerts(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return toggleAlerts(grimPlayer.platformPlayer);
+    }
+
+    public boolean toggleAlerts(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+
+        if (!enabledAlerts.remove(platformPlayer)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-enabled", "%prefix% &fAlerts enabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
-            enabledAlerts.add(player);
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            enabledAlerts.add(platformPlayer);
+            return true;
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-disabled", "%prefix% &fAlerts disabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            return false; // Now disabled
         }
     }
 
     @Override
-    public boolean hasVerboseEnabled(GrimUser player) {
-        return enabledVerbose.contains(player);
+    public boolean hasVerboseEnabled(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return hasVerboseEnabled(grimPlayer.platformPlayer);
     }
 
-    public boolean hasBrandsEnabled(GrimUser player) {
-        return enabledBrands.contains(player) && player.hasPermission("grim.brand");
+    public boolean hasVerboseEnabled(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+        return enabledVerbose.contains(platformPlayer);
     }
 
     @Override
-    public void toggleVerbose(GrimUser player) {
-        if (!enabledVerbose.remove(player)) {
+    public boolean toggleVerbose(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return toggleVerbose(grimPlayer.platformPlayer);
+    }
+
+    public boolean toggleVerbose(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+
+        if (!enabledVerbose.remove(platformPlayer)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-enabled", "%prefix% &fVerbose enabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
-            enabledVerbose.add(player);
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            enabledVerbose.add(platformPlayer);
+            return true; // Now enabled
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-disabled", "%prefix% &fVerbose disabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            return false; // Now disabled
         }
     }
 
-    public void toggleBrands(GrimUser player) {
-        if (!enabledBrands.remove(player)) {
+    @Override
+    public boolean hasBrandsEnabled(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return hasBrandsEnabled(grimPlayer.platformPlayer);
+    }
+
+    public boolean hasBrandsEnabled(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+        return enabledBrands.contains(platformPlayer) && platformPlayer.hasPermission("grim.brand");
+    }
+
+    @Override
+    public boolean toggleBrands(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+
+        return toggleBrands(grimPlayer.platformPlayer);
+    }
+
+    public boolean toggleBrands(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+
+        if (!enabledBrands.remove(platformPlayer)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("brands-enabled", "%prefix% &fBrands enabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
-            enabledBrands.add(player);
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            enabledBrands.add(platformPlayer);
+            return true; // Now enabled
         } else {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("brands-disabled", "%prefix% &fBrands disabled");
-            alertString = MessageUtil.replacePlaceholders((GrimPlayer) player, alertString);
-            ((GrimPlayer) player).sendMessage(MessageUtil.miniMessage(alertString));
+            alertString = MessageUtil.replacePlaceholders(platformPlayer, alertString);
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alertString));
+            return false; // Now disabled
         }
     }
 
-    public void handlePlayerQuit(GrimUser player) {
-        enabledAlerts.remove(player);
-        enabledVerbose.remove(player);
-        enabledBrands.remove(player);
+    public void handlePlayerQuit(@NonNull GrimUser player) {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+
+        GrimPlayer grimPlayer = (GrimPlayer) player;
+        if (grimPlayer.platformPlayer != null) {
+            handlePlayerQuit(grimPlayer.platformPlayer);
+        }
+    }
+
+    public void handlePlayerQuit(@NonNull PlatformPlayer platformPlayer) {
+        Preconditions.checkArgument(platformPlayer != null, "PlatformPlayer cannot be null");
+        enabledAlerts.remove(platformPlayer);
+        enabledVerbose.remove(platformPlayer);
+        enabledBrands.remove(platformPlayer);
     }
 }

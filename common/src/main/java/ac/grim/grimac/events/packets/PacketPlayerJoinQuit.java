@@ -2,15 +2,16 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Objects;
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
@@ -34,31 +35,26 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserLogin(UserLoginEvent event) {
         Object nativePlayerObject = event.getPlayer();
+        Preconditions.checkArgument(nativePlayerObject != null);
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order
         // And the user will be added to the map before the getPlayer() method call
-        @NonNull GrimPlayer player = Objects.requireNonNull(GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser()));
-
-        // It is unknown whether the native player is always non-null on all platforms
-        // we don't have to check for player.platformPlayer == null because its only set in pollData() which is called after
-        if (nativePlayerObject != null) {
-            player.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(nativePlayerObject);
-        }
+        @NonNull PlatformPlayer platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(nativePlayerObject);
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
-        if (player.hasPermission("grim.alerts") && player.hasPermission("grim.alerts.enable-on-join")) {
-            GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player);
+        if (platformPlayer.hasPermission("grim.alerts") && platformPlayer.hasPermission("grim.alerts.enable-on-join")) {
+            GrimAPI.INSTANCE.getAlertManager().toggleAlerts(platformPlayer);
         }
-        if (player.hasPermission("grim.verbose") && player.hasPermission("grim.verbose.enable-on-join")) {
-            GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player);
+        if (platformPlayer.hasPermission("grim.verbose") && platformPlayer.hasPermission("grim.verbose.enable-on-join")) {
+            GrimAPI.INSTANCE.getAlertManager().toggleVerbose(platformPlayer);
         }
-        if (player.hasPermission("grim.brand") && player.hasPermission("grim.brand.enable-on-join")) {
-            GrimAPI.INSTANCE.getAlertManager().toggleBrands(player);
+        if (platformPlayer.hasPermission("grim.brand") && platformPlayer.hasPermission("grim.brand.enable-on-join")) {
+            GrimAPI.INSTANCE.getAlertManager().toggleBrands(platformPlayer);
         }
-        if (player.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
-            GrimAPI.INSTANCE.getSpectateManager().onLogin(player);
+        if (platformPlayer.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
+            GrimAPI.INSTANCE.getSpectateManager().onLogin(platformPlayer.getUniqueId());
         }
     }
 
@@ -71,7 +67,10 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         if (event.getUser().getProfile().getUUID() == null) return; // folia doesn't like null getPlayer()
         if (grimPlayer != null) {
             GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(grimPlayer);
-            GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer);
+            GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer.uuid);
         }
+
+        // TODO (Cross-platform) confirm this is 100% correct and will always remove players from cache when neccessary
+        GrimAPI.INSTANCE.getPlatformPlayerFactory().invalidatePlayer(event.getUser().getProfile().getUUID());
     }
 }

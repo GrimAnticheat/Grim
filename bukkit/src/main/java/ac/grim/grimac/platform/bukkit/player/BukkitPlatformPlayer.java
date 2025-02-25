@@ -30,7 +30,6 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Getter
     private final Player bukkitPlayer;
     private final PlatformInventory inventory;
-    private BukkitPlatformWorld bukkitPlatformWorld;
 
     public BukkitPlatformPlayer(Player bukkitPlayer) {
         super(bukkitPlayer);
@@ -71,16 +70,6 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Override
     public boolean isOnline() {
         return bukkitPlayer.isOnline();
-    }
-
-    // TODO replace with PlayerWorldChangeEvent listener instead of checking for equality for better performance
-    @Override
-    public PlatformWorld getWorld() {
-        if (bukkitPlatformWorld == null || !bukkitPlatformWorld.getBukkitWorld().equals(bukkitPlayer.getWorld())) {
-            bukkitPlatformWorld = new BukkitPlatformWorld(bukkitPlayer.getWorld());
-        }
-
-        return bukkitPlatformWorld;
     }
 
     @Override

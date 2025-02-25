@@ -920,7 +920,7 @@ public class GrimPlayer implements GrimUser {
         return platformPlayer.getGameMode();
     }
 
-    // TODO keep track of world at packet level
+    // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
     }

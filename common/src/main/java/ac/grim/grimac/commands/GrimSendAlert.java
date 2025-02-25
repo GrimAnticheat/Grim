@@ -1,9 +1,8 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
@@ -30,8 +29,8 @@ public class GrimSendAlert implements BuildableCommand {
         string = MessageUtil.replacePlaceholders((Sender) null, string);
         Component message = MessageUtil.miniMessage(string);
 
-        for (GrimUser grimUser : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
-            ((GrimPlayer) grimUser).sendMessage(message);
+        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
+            platformPlayer.sendMessage(message);
         }
 
         if (GrimAPI.INSTANCE.getConfigManager().isPrintAlertsToConsole()) {

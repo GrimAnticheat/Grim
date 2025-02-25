@@ -1,7 +1,9 @@
 package ac.grim.grimac.platform.api.sender;
 
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.UUID;
 
@@ -107,5 +109,12 @@ public interface Sender {
      *         <li>Forge/NeoForge: {@code net.minecraft.commands.CommandSourceStack}</li>
      *         </ul>
      */
-    @NonNull Object getSender();
+    @NonNull Object getNativeSender();
+
+    /**
+     * Gets the PlatformPlayer tied to a sender
+     *
+     * @return PlatformPlayer wrapping the underlying native platform-specific player type, null if Sender is not a player
+     */
+    @Nullable PlatformPlayer getPlatformPlayer();
 }

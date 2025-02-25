@@ -12,7 +12,7 @@ public class ExemptOnlinePlayersOnReload implements Initable {
     // This essentially exists to stop you from shooting yourself in the foot by being stupid and using /reload
     @Override
     public void start() {
-        for (PlatformPlayer player : GrimAPI.INSTANCE.getPlatformServer().getOnlinePlayers()) {
+        for (PlatformPlayer player : GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers()) {
             User user = PacketEvents.getAPI().getPlayerManager().getUser(player.getNative());
             GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.add(user);
         }

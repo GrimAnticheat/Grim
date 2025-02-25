@@ -91,7 +91,7 @@ public class GrimDebug implements BuildableCommand {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getUniqueId());
         if (grimPlayer == null) {
-            User user = PacketEvents.getAPI().getPlayerManager().getUser(target.getSender());
+            User user = PacketEvents.getAPI().getPlayerManager().getUser(sender.getPlatformPlayer().getNative());
             sender.sendMessage(Component.text("This player is exempt from all checks!", NamedTextColor.RED));
 
             if (user == null) {

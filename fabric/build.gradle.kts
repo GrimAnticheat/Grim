@@ -15,6 +15,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven {
         name = "FabricMC"
         url = uri("https://maven.fabricmc.net/")

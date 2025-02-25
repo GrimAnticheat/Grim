@@ -17,9 +17,6 @@ import java.util.UUID;
 
 public class FabricSenderFactory extends SenderFactory<ServerCommandSource> implements SenderMapper<ServerCommandSource, Sender> {
 
-    public FabricSenderFactory() {
-    }
-
     @Override
     protected UUID getUniqueId(ServerCommandSource commandSource) {
         if (commandSource.getEntity() != null) {

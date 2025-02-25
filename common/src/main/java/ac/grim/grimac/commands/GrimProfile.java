@@ -2,6 +2,7 @@ package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -32,15 +33,15 @@ public class GrimProfile implements BuildableCommand {
         Sender sender = context.sender();
         PlayerSelector target = context.get("target");
 
-        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getSinglePlayer().getUniqueId());
-
-        if (grimPlayer.platformPlayer.isExternalPlayer()) {
+        PlatformPlayer targetPlatformPLayer = target.getSinglePlayer().getPlatformPlayer();
+        if (targetPlatformPLayer.isExternalPlayer()) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
             alertString = MessageUtil.replacePlaceholders(sender, alertString);
             sender.sendMessage(MessageUtil.miniMessage(alertString));
             return;
         }
 
+        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlatformPLayer.getUniqueId());
         if (grimPlayer == null) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!");
             message = MessageUtil.replacePlaceholders(sender, message);

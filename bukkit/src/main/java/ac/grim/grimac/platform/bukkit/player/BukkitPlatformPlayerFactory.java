@@ -1,25 +1,46 @@
 package ac.grim.grimac.platform.bukkit.player;
 
+import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.UUID;
 
-public class BukkitPlatformPlayerFactory implements PlatformPlayerFactory {
+
+public class BukkitPlatformPlayerFactory extends AbstractPlatformPlayerFactory<Player> {
     @Override
-    public PlatformPlayer getFromUUID(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        return player == null ? null : new BukkitPlatformPlayer(player);
+    protected Player getNativePlayer(UUID uuid) {
+        return Bukkit.getPlayer(uuid);
     }
 
     @Override
-    public PlatformPlayer getFromNativePlayerType(Object playerObject) {
-        if (playerObject instanceof Player) {
-            return new BukkitPlatformPlayer((Player) playerObject);
-        } else {
-            throw new IllegalStateException("playerObject was not of type " + Player.class.getPackage() + "." + Player.class.getName());
-        }
+    protected PlatformPlayer createPlatformPlayer(Player nativePlayer) {
+        return new BukkitPlatformPlayer(nativePlayer);
+    }
+
+    @Override
+    protected boolean isNativePlayerType(Object playerObject) {
+        return playerObject instanceof Player;
+    }
+
+    @Override
+    protected UUID getPlayerUUID(Player nativePlayer) {
+        return nativePlayer.getUniqueId();
+    }
+
+    @Override
+    protected Class<Player> getNativePlayerClass() {
+        return Player.class;
+    }
+
+    // The cast is safe because Bukkit.getOnlinePlayers() is guaranteed to contain Player or its subtypes,
+    // and we're only reading from it.
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Collection<Player> getNativeOnlinePlayers() {
+        // Cast Collection<? extends Player> to Collection<Player>
+        return (Collection<Player>) Bukkit.getOnlinePlayers();
     }
 }

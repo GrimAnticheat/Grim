@@ -1,8 +1,10 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.OfflinePlayer;
@@ -16,5 +18,11 @@ public class BukkitMessagePlaceHolderManager implements MessagePlaceHolderManage
         if (!MessageUtil.hasPlaceholderAPI) return string;
         CommandSender commandSender = sender == null ? null : GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().unwrap(sender);
         return PlaceholderAPI.setPlaceholders(sender instanceof OfflinePlayer ? (OfflinePlayer) commandSender : null, string);
+    }
+
+    @Override
+    public @NonNull String replacePlaceholders(@Nullable PlatformPlayer object, @NonNull String string) {
+        if (!MessageUtil.hasPlaceholderAPI) return string;
+        return PlaceholderAPI.setPlaceholders(((BukkitPlatformPlayer) object).getBukkitPlayer(), string);
     }
 }

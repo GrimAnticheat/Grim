@@ -1,8 +1,10 @@
 package ac.grim.grimac.platform.bukkit.entity;
 
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import com.google.common.base.Preconditions;
 import org.bukkit.entity.Entity;
@@ -14,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 public class BukkitGrimEntity implements GrimEntity {
 
     private final Entity entity;
+    private BukkitPlatformWorld bukkitPlatformWorld;
 
     public BukkitGrimEntity(Entity entity) {
         Preconditions.checkArgument(entity != null);
@@ -48,5 +51,28 @@ public class BukkitGrimEntity implements GrimEntity {
     @Override
     public boolean isDead() {
         return this.entity.isDead();
+    }
+
+    // TODO replace with PlayerWorldChangeEvent listener instead of checking for equality for better performance
+    @Override
+    public PlatformWorld getWorld() {
+        if (bukkitPlatformWorld == null || !bukkitPlatformWorld.getBukkitWorld().equals(entity.getWorld())) {
+            bukkitPlatformWorld = new BukkitPlatformWorld(entity.getWorld());
+        }
+
+        return bukkitPlatformWorld;
+    }
+
+    @Override
+    public Location getLocation() {
+        org.bukkit.Location location = this.entity.getLocation();
+        return new Location(
+                this.getWorld(),
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                location.getYaw(),
+                location.getPitch()
+        );
     }
 }

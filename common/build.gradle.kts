@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven {
         name = "papermc"
         url = uri("https://repo.papermc.io/repository/maven-public/")
@@ -35,8 +36,8 @@ dependencies {
     api(libs.jetbrains.annotations)
 
     // Used for local testing:
-    // implementation("ac.grim.grimac:GrimAPI:1.0")
-    api("com.github.grimanticheat:grimapi:f1eff912b6")
+    api("ac.grim.grimac:GrimAPI:1.0")
+    // api("com.github.grimanticheat:grimapi:f1eff912b6")
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)

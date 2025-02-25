@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chat.ChatUtil;
@@ -31,10 +32,14 @@ public class MessageUtil {
     }
 
     public @NotNull String replacePlaceholders(@NotNull GrimPlayer player, @NotNull String string) {
-        return replacePlaceholders(player.platformPlayer.getSender(), GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
+        return replacePlaceholders(player.platformPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
     }
 
     public @NotNull String replacePlaceholders(@Nullable Sender object, @NotNull String string) {
+        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(object, string);
+    }
+
+    public @NotNull String replacePlaceholders(@Nullable PlatformPlayer object, @NotNull String string) {
         return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(object, string);
     }
 

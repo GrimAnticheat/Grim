@@ -2,7 +2,6 @@ package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.player.GrimPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -21,6 +20,7 @@ public class GrimAlerts implements BuildableCommand {
         );
     }
 
+    @SuppressWarnings("ConstantConditions") // Suppress warning as we've already checked sender is not console
     private void handleAlerts(@NonNull CommandContext<Sender> context) {
         Sender sender = context.sender();
 
@@ -30,10 +30,6 @@ public class GrimAlerts implements BuildableCommand {
             return;
         }
 
-        // Get the GrimPlayer for the sender
-        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
-
-        // Toggle alerts (messages are sent by toggleAlerts)
-        GrimAPI.INSTANCE.getAlertManager().toggleAlerts(grimPlayer);
+        GrimAPI.INSTANCE.getAlertManager().toggleAlerts(sender.getPlatformPlayer());
     }
 }

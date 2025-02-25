@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.FloodgateUtil;
@@ -49,7 +50,7 @@ public class PlayerDataManager {
             }
 
             // Has exempt permission
-            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
+            GrimUser grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
             if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
                 exemptUsers.add(user);
                 return false;

@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Location;
@@ -45,42 +46,42 @@ public class SpectateManager implements Initable {
                 && (!checkWorld || (receiver.platformPlayer != null && allowedWorlds.contains(receiver.platformPlayer.getWorld().getName()))); // hide if you are in a specific world
     }
 
-    public boolean enable(GrimPlayer player) {
-        if (spectatingPlayers.containsKey(player.getUniqueId())) return false;
-        spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.platformPlayer.getGameMode(), player.getLocation()));
+    public boolean enable(PlatformPlayer platformPlayer) {
+        if (spectatingPlayers.containsKey(platformPlayer.getUniqueId())) return false;
+        spectatingPlayers.put(platformPlayer.getUniqueId(), new PreviousState(platformPlayer.getGameMode(), platformPlayer.getLocation()));
         return true;
     }
 
-    public void onLogin(GrimPlayer player) {
-        hiddenPlayers.add(player.getUniqueId());
+    public void onLogin(UUID uuid) {
+        hiddenPlayers.add(uuid);
     }
 
-    public void onQuit(GrimPlayer player) {
-        hiddenPlayers.remove(player.getUniqueId());
-        handlePlayerStopSpectating(player.getUniqueId());
+    public void onQuit(UUID uuid) {
+        hiddenPlayers.remove(uuid);
+        handlePlayerStopSpectating(uuid);
     }
 
     // only call this synchronously
-    public void disable(@NonNull GrimPlayer player, boolean teleportBack) {
-        PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
+    public void disable(@NonNull PlatformPlayer platformPlayer, boolean teleportBack) {
+        PreviousState previousState = spectatingPlayers.get(platformPlayer.getUniqueId());
         if (previousState != null) {
             if (teleportBack && previousState.location.isWorldLoaded()) {
-                player.platformPlayer.teleportAsync(previousState.location).thenAccept(bool -> {
+                platformPlayer.teleportAsync(previousState.location).thenAccept(bool -> {
                     if (bool) {
-                        onDisable(previousState, player);
+                        onDisable(previousState, platformPlayer);
                     } else {
-                        player.sendMessage(Component.text("Teleport failed, please try again.", NamedTextColor.RED));
+                        platformPlayer.sendMessage(Component.text("Teleport failed, please try again.", NamedTextColor.RED));
                     }
                 });
             } else {
-                onDisable(previousState, player);
+                onDisable(previousState, platformPlayer);
             }
         }
     }
 
-    private void onDisable(PreviousState previousState, GrimPlayer player) {
-        player.platformPlayer.setGameMode(previousState.gameMode);
-        handlePlayerStopSpectating(player.getUniqueId());
+    private void onDisable(PreviousState previousState, PlatformPlayer platformPlayer) {
+        platformPlayer.setGameMode(previousState.gameMode);
+        handlePlayerStopSpectating(platformPlayer.getUniqueId());
     }
 
     public void handlePlayerStopSpectating(UUID uuid) {

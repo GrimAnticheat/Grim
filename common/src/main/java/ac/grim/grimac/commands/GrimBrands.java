@@ -2,7 +2,6 @@ package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.player.GrimPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -29,7 +28,6 @@ public class GrimBrands implements BuildableCommand {
             return;
         }
 
-        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
-        GrimAPI.INSTANCE.getAlertManager().toggleBrands(grimPlayer);
+        GrimAPI.INSTANCE.getAlertManager().toggleBrands(sender.getPlatformPlayer());
     }
 }

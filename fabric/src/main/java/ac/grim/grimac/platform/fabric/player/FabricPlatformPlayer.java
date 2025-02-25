@@ -27,7 +27,6 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     @Getter
     private final ServerPlayerEntity fabricPlayer;
     private final FabricPlatformInventory inventory;
-    private FabricPlatformWorld fabricPlatformWorld;
 
     public FabricPlatformPlayer(ServerPlayerEntity player) {
         super(player);
@@ -42,7 +41,7 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
 
     @Override
     public boolean hasPermission(String permission) {
-        return Permissions.check(fabricPlayer, permission);
+        return Permissions.check(fabricPlayer.getCommandSource(), permission, fabricPlayer.getCommandSource().getServer().getOpPermissionLevel());
     }
 
     @Override
@@ -68,15 +67,6 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     @Override
     public boolean isOnline() {
         return !fabricPlayer.isDisconnected();
-    }
-
-    @Override
-    public PlatformWorld getWorld() {
-        ServerWorld currentWorld = fabricPlayer.getServerWorld();
-        if (fabricPlatformWorld == null || fabricPlatformWorld.getFabricWorld() != currentWorld) {
-            fabricPlatformWorld = new FabricPlatformWorld(currentWorld);
-        }
-        return fabricPlatformWorld;
     }
 
     @Override
@@ -145,4 +135,5 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     public ServerPlayerEntity getNative() {
         return this.fabricPlayer;
     }
+
 }

@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.fabric.entity;
 
 import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import com.google.common.base.Preconditions;
@@ -8,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.EnumSet;
@@ -17,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 public class FabricGrimEntity implements GrimEntity {
 
     private final Entity entity;
+    private FabricPlatformWorld fabricPlatformWorld;
 
     public FabricGrimEntity(Entity entity) {
         Preconditions.checkArgument(entity != null);
@@ -68,5 +71,26 @@ public class FabricGrimEntity implements GrimEntity {
         if (this.entity instanceof LivingEntity)
             return ((LivingEntity) entity).isDead();
         return this.entity.isRemoved();
+    }
+
+    @Override
+    public PlatformWorld getWorld() {
+        ServerWorld currentWorld = (ServerWorld) entity.getWorld();
+        if (fabricPlatformWorld == null || fabricPlatformWorld.getFabricWorld() != currentWorld) {
+            fabricPlatformWorld = new FabricPlatformWorld(currentWorld);
+        }
+        return fabricPlatformWorld;
+    }
+
+    @Override
+    public Location getLocation() {
+        return new Location(
+                this.getWorld(),
+                this.entity.getX(),
+                this.entity.getY(),
+                this.entity.getZ(),
+                this.entity.getYaw(),
+                this.entity.getPitch()
+        );
     }
 }

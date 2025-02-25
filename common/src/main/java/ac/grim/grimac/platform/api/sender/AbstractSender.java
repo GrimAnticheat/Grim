@@ -1,7 +1,10 @@
 package ac.grim.grimac.platform.api.sender;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -87,7 +90,12 @@ public final class AbstractSender<T> implements Sender {
     }
 
     @Override
-    public @NotNull T getSender() {
+    public @NotNull T getNativeSender() {
         return sender;
+    }
+
+    @Override
+    public @Nullable PlatformPlayer getPlatformPlayer() {
+        return GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(this.getUniqueId());
     }
 }

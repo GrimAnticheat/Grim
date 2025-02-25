@@ -2,12 +2,12 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
-import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -122,8 +122,8 @@ public class PunishmentManager implements ConfigReloadable {
                     if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
                         sentDebug = true;
                         Component component = MessageUtil.miniMessage(cmd);
-                        for (GrimUser grimUser : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            ((GrimPlayer) grimUser).sendMessage(component);
+                        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
+                            platformPlayer.sendMessage(component);
                         }
                         if (printToConsole) {
                             LogUtil.console(component); // Print verbose to console

@@ -22,8 +22,6 @@ public interface PlatformPlayer extends GrimEntity {
 
     boolean isOnline();
 
-    PlatformWorld getWorld();
-
     String getName();
 
     void updateInventory();

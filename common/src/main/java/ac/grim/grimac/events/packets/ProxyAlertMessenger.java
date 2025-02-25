@@ -1,8 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.GrimUser;
-import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -60,8 +59,8 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
             return;
         }
 
-        for (GrimUser bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            ((GrimPlayer) bukkitPlayer).sendMessage(MessageUtil.miniMessage(alert));
+        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alert));
     }
 
     public static void sendPluginMessage(String message) {
@@ -85,11 +84,11 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         out.writeShort(messageBytes.toByteArray().length);
         out.write(messageBytes.toByteArray());
 
-        Iterables.getFirst(GrimAPI.INSTANCE.getPlatformServer().getOnlinePlayers(), null).sendPluginMessage("BungeeCord", out.toByteArray());
+        Iterables.getFirst(GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers(), null).sendPluginMessage("BungeeCord", out.toByteArray());
     }
 
     public static boolean canSendAlerts() {
-        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.send", false) && !GrimAPI.INSTANCE.getPlatformServer().getOnlinePlayers().isEmpty();
+        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.send", false) && !GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers().isEmpty();
     }
 
     public static boolean canReceiveAlerts() {

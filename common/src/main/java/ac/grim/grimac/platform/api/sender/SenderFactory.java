@@ -40,6 +40,6 @@ public abstract class SenderFactory<T> implements AutoCloseable {
     @SuppressWarnings("unchecked")
     public final @NonNull T unwrap(@NonNull Sender sender) {
         Objects.requireNonNull(sender, "sender");
-        return (T) sender.getSender();
+        return (T) sender.getNativeSender();
     }
 }

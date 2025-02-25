@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.api.entity;
 
+import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -21,4 +22,8 @@ public interface GrimEntity {
     @NonNull Object getNative();
 
     boolean isDead();
+
+    PlatformWorld getWorld();
+
+    Location getLocation();
 }
