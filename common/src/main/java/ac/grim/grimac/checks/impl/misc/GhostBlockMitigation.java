@@ -51,9 +51,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
 
                         WrappedBlockState type = world.getBlockAt(i, j, k);
 
-                        // Previously this code only checked for Bukkit Material.AIR
-                        // Which I'm pretty sure is wrong because it doesn't include cave air and void air
-                        if (type.getType().isAir()) {
+                        if (!type.getType().isAir()) {
                             return;
                         }
                     }

@@ -48,7 +48,8 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
             run,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -60,7 +61,8 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -73,7 +75,8 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -86,7 +89,8 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
             periodTicks,
-            true
+            true,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -95,13 +99,11 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        // Create a list of cancellation tasks to execute
-        List<Runnable> cancellationTasks = new ArrayList<>(taskMap.values());
-        taskMap.clear();
+        FabricPlatformScheduler.cancelPluginTasks(taskMap, plugin);
+    }
 
-        // Execute all cancellation tasks
-        for (Runnable cancellationTask : cancellationTasks) {
-            cancellationTask.run();
-        }
+    // New method to cancel all tasks
+    public void cancelAll() {
+        FabricPlatformScheduler.cancelAllTasks(taskMap);
     }
 }

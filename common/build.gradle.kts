@@ -30,7 +30,7 @@ dependencies {
     api(libs.packetevents.api)
     api(libs.cloud.core)
     api(libs.configuralize)
-    api(libs.discord.webhooks) // Newer versions include kotlin-stdlib, which leads to incompatibility with plugins that use Kotlin
+    api(libs.discord.webhooks)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)

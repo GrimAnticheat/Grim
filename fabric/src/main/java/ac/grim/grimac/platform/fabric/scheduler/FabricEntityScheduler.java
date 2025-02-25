@@ -37,7 +37,8 @@ public class FabricEntityScheduler implements EntityScheduler {
             },
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -54,7 +55,8 @@ public class FabricEntityScheduler implements EntityScheduler {
             },
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -72,7 +74,8 @@ public class FabricEntityScheduler implements EntityScheduler {
             },
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delayTicks,
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -90,10 +93,19 @@ public class FabricEntityScheduler implements EntityScheduler {
             },
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
             periodTicks,
-            true
+            true,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
         return new FabricTaskHandle(cancellationTask, true); // true for sync
+    }
+
+    public void cancel(@NotNull GrimPlugin plugin) {
+        FabricPlatformScheduler.cancelPluginTasks(taskMap, plugin);
+    }
+
+    public void cancelAll() {
+        FabricPlatformScheduler.cancelAllTasks(taskMap);
     }
 }

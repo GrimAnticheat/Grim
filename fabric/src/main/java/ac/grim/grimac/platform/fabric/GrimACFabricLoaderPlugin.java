@@ -50,7 +50,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     public static GrimACFabricLoaderPlugin PLUGIN;
     private final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
 
-    private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
+    private final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
     private final PacketEventsAPI<?> packetEvents = new FabricPacketEventsAPI("grimac", EnvType.SERVER);
     private final LazyHolder<FabricSenderFactory> senderFactory = LazyHolder.simple(FabricSenderFactory::new);
     private final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
@@ -96,6 +96,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
 
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
             GrimAPI.INSTANCE.stop();
+            this.scheduler.get().shutdown();
         });
     }
 

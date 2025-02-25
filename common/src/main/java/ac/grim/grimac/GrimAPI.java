@@ -14,6 +14,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
+import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -110,15 +111,6 @@ public final class GrimAPI {
         }
     }
 
-    private static boolean isClassPresent(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException ignored) {
-            return false;
-        }
-    }
-
     private static Platform detectPlatform() {
         final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<>() {{
             put("io.papermc.paper.threadedregions.RegionizedServer", Platform.FOLIA);
@@ -127,7 +119,7 @@ public final class GrimAPI {
         }});
 
         return platforms.entrySet().stream()
-                .filter(entry -> isClassPresent(entry.getKey()))
+                .filter(entry -> ReflectionUtils.hasClass(entry.getKey()))
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Unknown platform!"));

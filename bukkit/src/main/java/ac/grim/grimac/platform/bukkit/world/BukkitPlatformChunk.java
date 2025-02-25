@@ -23,14 +23,9 @@ public class BukkitPlatformChunk implements PlatformChunk {
     @Override
     public int getBlockID(int x, int y, int z) {
         Block block = chunk.getBlock(x, y, z);
-        final int blockId;
-        if (isFlat) {
-            // Cache this because strings are expensive
-            blockId = blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId());
-        } else {
-            blockId = (block.getType().getId() << 4) | block.getData();
-        }
 
-        return blockId;
+        return isFlat // Cache blockDataToID because Strings are expensive
+                ? blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId())
+                : (block.getType().getId() << 4) | block.getData();
     }
 }

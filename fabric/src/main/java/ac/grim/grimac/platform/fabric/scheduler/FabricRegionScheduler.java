@@ -32,7 +32,8 @@ public class FabricRegionScheduler implements RegionScheduler {
             run,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -49,7 +50,8 @@ public class FabricRegionScheduler implements RegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -67,7 +69,8 @@ public class FabricRegionScheduler implements RegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delayTicks,
             0,
-            false
+            false,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -85,7 +88,8 @@ public class FabricRegionScheduler implements RegionScheduler {
             task,
             GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
             periodTicks,
-            true
+            true,
+            plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -95,5 +99,14 @@ public class FabricRegionScheduler implements RegionScheduler {
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         return runAtFixedRate(plugin, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, task, initialDelayTicks, periodTicks);
+    }
+
+    @Override
+    public void cancel(@NotNull GrimPlugin plugin) {
+        FabricPlatformScheduler.cancelPluginTasks(taskMap, plugin);
+    }
+
+    public void cancelAll() {
+        FabricPlatformScheduler.cancelAllTasks(taskMap);
     }
 }

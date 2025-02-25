@@ -48,13 +48,15 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         final Runnable task;
         final long period;
         final boolean isPeriodic;
+        final GrimPlugin plugin; // Add plugin reference
         long nextRunTick;
 
-        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic) {
+        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic, GrimPlugin plugin) {
             this.task = task;
             this.nextRunTick = nextRunTick;
             this.period = period;
             this.isPeriodic = isPeriodic;
+            this.plugin = plugin;
         }
     }
 
@@ -79,12 +81,41 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         }
     }
 
-    // Shared method to cancel all tasks
+    // Cancel tasks for a specific plugin
+    protected static void cancelPluginTasks(Map<ScheduledTask, Runnable> taskMap, GrimPlugin plugin) {
+        Iterator<Map.Entry<ScheduledTask, Runnable>> iterator = taskMap.entrySet().iterator();
+        List<Runnable> cancellationTasks = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            Map.Entry<ScheduledTask, Runnable> entry = iterator.next();
+            if (entry.getKey().plugin.equals(plugin)) {
+                cancellationTasks.add(entry.getValue());
+                iterator.remove();
+            }
+        }
+
+        for (Runnable cancellationTask : cancellationTasks) {
+            cancellationTask.run();
+        }
+    }
+
+    // Cancel all tasks (renamed from cancelAllTasks)
     protected static void cancelAllTasks(Map<?, Runnable> taskMap) {
         List<Runnable> cancellationTasks = new ArrayList<>(taskMap.values());
         taskMap.clear();
         for (Runnable cancellationTask : cancellationTasks) {
             cancellationTask.run();
         }
+    }
+
+    /**
+     * Shuts down all schedulers and cancels all pending tasks.
+     * This method should be called when the server is shutting down.
+     */
+    public void shutdown() {
+        asyncScheduler.cancelAll();
+        globalRegionScheduler.cancelAll();
+        entityScheduler.cancelAll();
+        regionScheduler.cancelAll();
     }
 }

@@ -9,7 +9,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.EnumSet;
