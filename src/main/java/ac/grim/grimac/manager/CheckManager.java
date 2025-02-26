@@ -19,7 +19,10 @@ import ac.grim.grimac.checks.impl.groundspoof.NoFall;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.*;
+import ac.grim.grimac.checks.impl.movement.NoSlow;
+import ac.grim.grimac.checks.impl.movement.PredictionRunner;
+import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
+import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -54,13 +57,19 @@ import ac.grim.grimac.utils.latency.CompensatedInventory;
 import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class CheckManager {
     private static boolean inited;
@@ -76,6 +85,10 @@ public class CheckManager {
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
     public ClassToInstanceMap<AbstractCheck> allChecks;
+
+    private final Map<PacketTypeCommon, List<Consumer<PacketSendEvent>>> sendHandlers = new HashMap<>();
+    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> receiveHandlers = new HashMap<>();
+    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> preReceiveHandlers = new HashMap<>();
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -230,6 +243,19 @@ public class CheckManager {
                 .putAll(blockBreakChecks)
                 .build();
 
+        registerReceiveHandlers(prePredictionChecks);
+
+        registerReceiveHandlers(packetChecks);
+        registerReceiveHandlers(postPredictionCheck);
+        registerReceiveHandlers(blockPlaceCheck);
+        registerReceiveHandlers(blockBreakChecks);
+
+        registerSendHandlers(prePredictionChecks);
+        registerSendHandlers(packetChecks);
+        registerSendHandlers(postPredictionCheck);
+        registerSendHandlers(blockPlaceCheck);
+        registerSendHandlers(blockBreakChecks);
+
         init();
     }
 
@@ -249,41 +275,29 @@ public class CheckManager {
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
-        for (PacketCheck check : prePredictionChecks.values()) {
-            check.onPacketReceive(packet);
+        List<Consumer<PacketReceiveEvent>> handlers = preReceiveHandlers.get(packet.getPacketType());
+        if (handlers != null) {
+            for (Consumer<PacketReceiveEvent> handler : handlers) {
+                handler.accept(packet);
+            }
         }
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
-        for (PacketCheck check : packetChecks.values()) {
-            check.onPacketReceive(packet);
-        }
-        for (PostPredictionCheck check : postPredictionCheck.values()) {
-            check.onPacketReceive(packet);
-        }
-        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
-            check.onPacketReceive(packet);
-        }
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
-            check.onPacketReceive(packet);
+        List<Consumer<PacketReceiveEvent>> handlers = receiveHandlers.get(packet.getPacketType());
+        if (handlers != null) {
+            for (Consumer<PacketReceiveEvent> handler : handlers) {
+                handler.accept(packet);
+            }
         }
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        for (PacketCheck check : prePredictionChecks.values()) {
-            check.onPacketSend(packet);
-        }
-        for (PacketCheck check : packetChecks.values()) {
-            check.onPacketSend(packet);
-        }
-        for (PostPredictionCheck check : postPredictionCheck.values()) {
-            check.onPacketSend(packet);
-        }
-        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
-            check.onPacketSend(packet);
-        }
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
-            check.onPacketSend(packet);
+        List<Consumer<PacketSendEvent>> handlers = sendHandlers.get(packet.getPacketType());
+        if (handlers != null) {
+            for (Consumer<PacketSendEvent> handler : handlers) {
+                handler.accept(packet);
+            }
         }
     }
 
@@ -361,7 +375,8 @@ public class CheckManager {
     private PacketEntityReplication packetEntityReplication = null;
 
     public PacketEntityReplication getEntityReplication() {
-        if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
+        if (packetEntityReplication == null)
+            packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
         return packetEntityReplication;
     }
 
@@ -403,6 +418,24 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends PostPredictionCheck> T getPostPredictionCheck(Class<T> check) {
         return (T) postPredictionCheck.get(check);
+    }
+
+    private void registerReceiveHandlers(ClassToInstanceMap<? extends PacketCheck> map) {
+        for (PacketCheck check : map.values()) {
+            check.getReceiveHandlers().forEach((type, handlers) -> receiveHandlers.computeIfAbsent(type, __ -> new ArrayList<>()).addAll(handlers));
+        }
+    }
+
+    private void registerPreReceiveHandlers(ClassToInstanceMap<? extends PacketCheck> map) {
+        for (PacketCheck check : map.values()) {
+            check.getReceiveHandlers().forEach((type, handlers) -> preReceiveHandlers.computeIfAbsent(type, __ -> new ArrayList<>()).addAll(handlers));
+        }
+    }
+
+    private void registerSendHandlers(ClassToInstanceMap<? extends PacketCheck> map) {
+        for (PacketCheck check : map.values()) {
+            check.getSendHandlers().forEach((type, handlers) -> sendHandlers.computeIfAbsent(type, __ -> new ArrayList<>()).addAll(handlers));
+        }
     }
 
     private void init() {

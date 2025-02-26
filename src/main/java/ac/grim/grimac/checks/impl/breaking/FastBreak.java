@@ -1,7 +1,8 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -23,7 +24,7 @@ import java.util.Set;
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
 @CheckData(name = "FastBreak", description = "Breaking blocks too quickly")
-public class FastBreak extends Check implements BlockBreakCheck {
+public class FastBreak extends AbstractPacketCheck implements BlockBreakCheck {
 
     // For some reason these states flag and I don't know why.
     // Better to just exempt to not annoy legit players.
@@ -105,12 +106,14 @@ public class FastBreak extends Check implements BlockBreakCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
-        // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
-        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlock != null) {
-            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, targetBlock));
-        }
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
+            // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
+            if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlock != null) {
+                maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, targetBlock));
+            }
+        }, type -> type == PacketType.Play.Client.ANIMATION || isFlying(type));
     }
 
     private void clampBalance() {

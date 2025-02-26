@@ -1,7 +1,8 @@
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -13,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractA", description = "Interacted with multiple entities in the same tick", experimental = true)
-public class MultiInteractA extends Check implements PostPredictionCheck {
+public class MultiInteractA extends AbstractPacketCheck implements PostPredictionCheck {
     public MultiInteractA(final GrimPlayer player) {
         super(player);
     }
@@ -24,8 +25,8 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
     private boolean hasInteracted = false;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             int entity = packet.getEntityId();
             boolean sneaking = packet.isSneaking().orElse(false);
@@ -46,11 +47,12 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
             lastEntity = entity;
             lastSneaking = sneaking;
             hasInteracted = true;
-        }
-
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
-            hasInteracted = false;
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY);
+        registry.registerHandler(event -> {
+            if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+                hasInteracted = false;
+            }
+        });
     }
 
     @Override

@@ -16,9 +16,9 @@
 package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -38,11 +38,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 // You may not copy the check unless you are licensed under GPL
 @CheckData(name = "Reach", setback = 10)
-public class Reach extends Check implements PacketCheck {
+public class Reach extends AbstractPacketCheck {
 
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
@@ -61,8 +64,9 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            if (player.disableGrim) return;
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 
             // Don't let the player teleport to bypass reach
@@ -89,9 +93,11 @@ public class Reach extends Check implements PacketCheck {
             if (entity.isDead) return;
 
             // TODO: Remove when in front of via
-            if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
+            if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
+                return;
 
-            if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return;
+            if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
+                return;
             if (player.inVehicle()) return;
             if (entity.riding != null) return;
 
@@ -106,12 +112,8 @@ public class Reach extends Check implements PacketCheck {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
-        }
-
-        // If the player set their look, or we know they have a new tick
-        if (isUpdate(event.getPacketType())) {
-            tickBetterReachCheckWithAngle();
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY);
+        registry.registerHandler(event -> tickBetterReachCheckWithAngle(), this::isUpdate);
     }
 
     // This method finds the most optimal point at which the user should be aiming at
@@ -127,7 +129,8 @@ public class Reach extends Check implements PacketCheck {
         if ((blacklisted.contains(reachEntity.getType()) || !reachEntity.isLivingEntity()) && reachEntity.getType() != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
-        if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return false;
+        if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
+            return false;
         if (player.inVehicle()) return false;
 
         // Filter out what we assume to be cheats

@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 @CheckData(name = "BadPacketsO")
-public class BadPacketsO extends Check implements PacketCheck {
+public class BadPacketsO extends AbstractPacketCheck {
     Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
 
     public BadPacketsO(GrimPlayer player) {
@@ -23,16 +23,16 @@ public class BadPacketsO extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.KEEP_ALIVE) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerKeepAlive packet = new WrapperPlayServerKeepAlive(event);
             keepaliveMap.add(new Pair<>(packet.getId(), System.nanoTime()));
-        }
+        }, PacketType.Play.Server.KEEP_ALIVE);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientKeepAlive packet = new WrapperPlayClientKeepAlive(event);
 
             long id = packet.getId();
@@ -57,6 +57,6 @@ public class BadPacketsO extends Check implements PacketCheck {
                     if (data == null) break;
                 } while (data.first() != id);
             }
-        }
+        }, PacketType.Play.Client.KEEP_ALIVE);
     }
 }

@@ -1,8 +1,9 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -28,7 +29,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
-public class ExplosionHandler extends Check implements PostPredictionCheck {
+public class ExplosionHandler extends AbstractPacketCheck implements PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     VelocityData lastExplosionsKnownTaken = null;
@@ -45,8 +46,8 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
             // Since 1.21.2, the server will instead send these changes via block change packets
@@ -62,7 +63,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
                 event.getTasksAfterSend().add(player::sendTransaction);
             }
-        }
+        }, PacketType.Play.Server.EXPLOSION);
     }
 
     private void handleBlockExplosions(WrapperPlayServerExplosion explosion) {

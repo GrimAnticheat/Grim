@@ -1,23 +1,23 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
 @CheckData(name = "BadPacketsQ")
-public class BadPacketsQ extends Check implements PacketCheck {
+public class BadPacketsQ extends AbstractPacketCheck {
     public BadPacketsQ(final GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == Client.ENTITY_ACTION) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             // you are able to send negative jump boost, how and why!?
             if (Math.abs(wrapper.getJumpBoost()) > 100
@@ -28,6 +28,6 @@ public class BadPacketsQ extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
             }
-        }
+        }, PacketType.Play.Client.ENTITY_ACTION);
     }
 }

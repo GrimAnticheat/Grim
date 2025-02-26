@@ -1,8 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.AbstractPacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 // The client can send ability packets out of order due to Mojang's excellent netcode design.
 // We must delay the second ability packet until the tick after the first is received
 // Else the player will fly for a tick, and we won't know about it, which is bad.
-public class PacketPlayerAbilities extends Check implements PacketCheck {
+public class PacketPlayerAbilities extends AbstractPacketCheck {
 
     public PacketPlayerAbilities(GrimPlayer player) {
         super(player);
@@ -22,16 +22,16 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
     boolean lastSentPlayerCanFly = false;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ABILITIES) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientPlayerAbilities abilities = new WrapperPlayClientPlayerAbilities(event);
             player.isFlying = abilities.isFlying() && player.canFly;
-        }
+        }, PacketType.Play.Client.PLAYER_ABILITIES);
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ABILITIES) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
             player.sendTransaction();
 
@@ -52,8 +52,7 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
                 player.canFly = abilities.isFlightAllowed();
                 player.isFlying = abilities.isFlying();
             });
-
-        }
+        }, PacketType.Play.Server.PLAYER_ABILITIES);
     }
 
     int maxFlyingPing = 1000;
@@ -62,5 +61,4 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
     public void onReload(ConfigManager config) {
         maxFlyingPing = config.getIntElse("max-ping-out-of-flying", 1000);
     }
-
 }

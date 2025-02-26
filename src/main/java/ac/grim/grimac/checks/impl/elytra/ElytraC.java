@@ -1,7 +1,8 @@
 package ac.grim.grimac.checks.impl.elytra;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "ElytraC", description = "Started gliding too frequently", experimental = true)
-public class ElytraC extends Check implements PostPredictionCheck {
+public class ElytraC extends AbstractPacketCheck implements PostPredictionCheck {
     private boolean glideThisTick, glideLastTick, setback;
     private int flags;
 
@@ -21,38 +22,39 @@ public class ElytraC extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }
+        registry.registerHandler(event -> {
+            if (player.gamemode == GameMode.SPECTATOR) {
+                glideThisTick = glideLastTick = false;
+            }
 
-        if (player.gamemode == GameMode.SPECTATOR) {
-            glideThisTick = glideLastTick = false;
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
-            if (glideThisTick || glideLastTick) {
-                if (player.canSkipTicks()) {
-                    flags++;
-                } else {
-                    if (flagAndAlert()) {
-                        setback = true;
-                        if (shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                            player.resyncPose();
+            if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
+                if (glideThisTick || glideLastTick) {
+                    if (player.canSkipTicks()) {
+                        flags++;
+                    } else {
+                        if (flagAndAlert()) {
+                            setback = true;
+                            if (shouldModifyPackets()) {
+                                event.setCancelled(true);
+                                player.onPacketCancel();
+                                player.resyncPose();
+                            }
                         }
                     }
                 }
+
+                glideThisTick = true;
             }
 
-            glideThisTick = true;
-        }
-
-        if (isTickPacket(event.getPacketType())) {
-            glideLastTick = glideThisTick;
-            glideThisTick = false;
-        }
+            if (isTickPacket(event.getPacketType())) {
+                glideLastTick = glideThisTick;
+                glideThisTick = false;
+            }
+        });
     }
 
     @Override

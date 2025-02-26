@@ -1,7 +1,8 @@
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -15,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractB", experimental = true)
-public class MultiInteractB extends Check implements PostPredictionCheck {
+public class MultiInteractB extends AbstractPacketCheck implements PostPredictionCheck {
     public MultiInteractB(final GrimPlayer player) {
         super(player);
     }
@@ -25,8 +26,8 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
     private boolean hasInteracted = false;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             Vector3f pos = new WrapperPlayClientInteractEntity(event).getTarget().orElse(null);
 
             if (pos == null) {
@@ -47,11 +48,12 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
 
             lastPos = pos;
             hasInteracted = true;
-        }
-
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
-            hasInteracted = false;
-        }
+        },  PacketType.Play.Client.INTERACT_ENTITY);
+        registry.registerHandler(event -> {
+            if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+                hasInteracted = false;
+            }
+        });
     }
 
     @Override

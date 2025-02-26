@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsM")
-public class BadPacketsM extends Check implements PacketCheck {
+public class BadPacketsM extends AbstractPacketCheck {
     public BadPacketsM(final GrimPlayer player) {
         super(player);
     }
@@ -22,9 +22,9 @@ public class BadPacketsM extends Check implements PacketCheck {
     private boolean sentInteractAt = false;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && !exempt) {
-
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            if (exempt) return;
             final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
 
             final PacketEntity entity = player.compensatedEntities.entityMap.get(wrapper.getEntityId());
@@ -56,6 +56,6 @@ public class BadPacketsM extends Check implements PacketCheck {
                     sentInteractAt = true;
                     break;
             }
-        }
+        },  PacketType.Play.Client.INTERACT_ENTITY);
     }
 }

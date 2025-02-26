@@ -1,24 +1,23 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "BadPacketsD", description = "Impossible pitch")
-public class BadPacketsD extends Check implements PacketCheck {
+public class BadPacketsD extends AbstractPacketCheck {
     public BadPacketsD(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.packetStateData.lastPacketWasTeleport) return;
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            if (player.packetStateData.lastPacketWasTeleport) return;
             final float pitch = new WrapperPlayClientPlayerFlying(event).getLocation().getPitch();
             if (pitch > 90 || pitch < -90) {
                 // Ban.
@@ -33,6 +32,6 @@ public class BadPacketsD extends Check implements PacketCheck {
                     }
                 }
             }
-        }
+        }, PacketType.Play.Client.PLAYER_ROTATION, PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION);
     }
 }

@@ -1,14 +1,14 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.AbstractPacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 
-public class PacketWorldBorder extends Check implements PacketCheck {
+public class PacketWorldBorder extends AbstractPacketCheck {
     double centerX;
     double centerZ;
     double oldDiameter;
@@ -35,8 +35,8 @@ public class PacketWorldBorder extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerWorldBorder packet = new WrapperPlayServerWorldBorder(event);
 
             player.sendTransaction();
@@ -52,32 +52,29 @@ public class PacketWorldBorder extends Check implements PacketCheck {
                 setLerp(packet.getOldRadius(), packet.getNewRadius(), packet.getSpeed());
                 setAbsoluteMaxSize(packet.getPortalTeleportBoundary());
             }
-        }
-        if (event.getPacketType() == PacketType.Play.Server.INITIALIZE_WORLD_BORDER) {
+        }, PacketType.Play.Server.WORLD_BORDER);
+        registry.registerHandler(event -> {
             player.sendTransaction();
             WrapperPlayServerInitializeWorldBorder border = new WrapperPlayServerInitializeWorldBorder(event);
             setCenter(border.getX(), border.getZ());
             setLerp(border.getOldDiameter(), border.getNewDiameter(), border.getSpeed());
             setAbsoluteMaxSize(border.getPortalTeleportBoundary());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_CENTER) {
+        }, PacketType.Play.Server.INITIALIZE_WORLD_BORDER);
+        registry.registerHandler(event -> {
             player.sendTransaction();
             WrapperPlayServerWorldBorderCenter center = new WrapperPlayServerWorldBorderCenter(event);
             setCenter(center.getX(), center.getZ());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_SIZE) {
+        }, PacketType.Play.Server.WORLD_BORDER_CENTER);
+        registry.registerHandler(event -> {
             player.sendTransaction();
             WrapperPlayServerWorldBorderSize size = new WrapperPlayServerWorldBorderSize(event);
             setSize(size.getDiameter());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_LERP_SIZE) {
+        }, PacketType.Play.Server.WORLD_BORDER_SIZE);
+        registry.registerHandler(event -> {
             player.sendTransaction();
             WrapperPlayWorldBorderLerpSize size = new WrapperPlayWorldBorderLerpSize(event);
             setLerp(size.getOldDiameter(), size.getNewDiameter(), size.getSpeed());
-        }
+        }, PacketType.Play.Server.WORLD_BORDER_LERP_SIZE);
     }
 
     private void setCenter(double x, double z) {

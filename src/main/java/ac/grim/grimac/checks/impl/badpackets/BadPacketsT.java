@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT")
-public class BadPacketsT extends Check implements PacketCheck {
+public class BadPacketsT extends AbstractPacketCheck {
     public BadPacketsT(final GrimPlayer player) {
         super(player);
     }
@@ -27,8 +27,8 @@ public class BadPacketsT extends Check implements PacketCheck {
     private final double maxVerticalDisplacement = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             // Only INTERACT_AT actually has an interaction vector
             wrapper.getTarget().ifPresent(targetVector -> {
@@ -62,6 +62,6 @@ public class BadPacketsT extends Check implements PacketCheck {
                 // We could pretty much ban the player at this point
                 flagAndAlert(verbose);
             });
-        }
+        },  PacketType.Play.Client.INTERACT_ENTITY);
     }
 }

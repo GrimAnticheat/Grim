@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.AbstractPacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 
 // Updated to support modern 1.17 protocol
-public class CompensatedInventory extends Check implements PacketCheck {
+public class CompensatedInventory extends AbstractPacketCheck {
     // "Temporarily" public for debugging
     public Inventory inventory;
     // "Temporarily" public for debugging
@@ -177,7 +177,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public boolean hasItemType(ItemType type) {
-        if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
+        if (isPacketInventoryActive || player.bukkitPlayer == null)
+            return inventory.hasItemType(type);
 
         // Fall back to bukkit inventories
         for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
@@ -187,8 +188,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
         return false;
     }
 
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+    @Override
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
 
             ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
@@ -215,7 +217,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
                 ItemStack itemstack1 = getByEquipmentType(equipmentType);
                 // Only 1.19.4+ clients support swapping with non-empty items
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty()) return;
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty())
+                    return;
 
                 // 1.19.4+ clients support swapping with non-empty items
                 int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
@@ -227,9 +230,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
                 inventory.getInventoryStorage().setItem(slot, use);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        }, PacketType.Play.Client.USE_ITEM);
+        registry.registerHandler(event -> {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             // 1.8 clients don't predict dropping items
@@ -251,32 +253,30 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.setHeldItem(null);
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+        }, PacketType.Play.Client.PLAYER_DIGGING);
+        registry.registerHandler(event -> {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
 
             inventory.selected = slot;
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
+        }, PacketType.Play.Client.HELD_ITEM_CHANGE);
+        registry.registerHandler(event -> {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
 
             boolean valid = action.getSlot() >= 1 &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
-                    action.getSlot() <= 45 : action.getSlot() < 45);
+                            action.getSlot() <= 45 : action.getSlot() < 45);
 
             if (valid) {
                 player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
+        }, PacketType.Play.Client.CREATIVE_INVENTORY_ACTION);
+        registry.registerHandler(event -> {
+            if (event.isCancelled()) return;
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
             // How is this possible? Maybe transaction splitting.
@@ -305,36 +305,21 @@ public class CompensatedInventory extends Check implements PacketCheck {
             if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
                 menu.doClick(button, slot, clickType);
             }
-        }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
+        }, PacketType.Play.Client.CLICK_WINDOW);
+        registry.registerHandler(event -> {
             menu = inventory;
             openWindowID = 0;
             menu.setCarried(ItemStack.EMPTY); // Reset carried item
-        }
+        }, PacketType.Play.Client.CLOSE_WINDOW);
     }
 
-    public void markSlotAsResyncing(BlockPlace place) {
-        // Update held item tracking
-        if (place.getHand() == InteractionHand.MAIN_HAND) {
-            inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
-        } else {
-            inventory.getInventoryStorage().handleServerCorrectSlot(Inventory.SLOT_OFFHAND);
-        }
-    }
-
-    public void onBlockPlace(BlockPlace place) {
-        if (player.gamemode != GameMode.CREATIVE && place.getItemStack().getType() != ItemTypes.POWDER_SNOW_BUCKET) {
-            markSlotAsResyncing(place);
-            place.getItemStack().setAmount(place.getItemStack().getAmount() - 1);
-        }
-    }
-
-    public void onPacketSend(final PacketSendEvent event) {
+    @Override
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
         // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
         // For example, we don't need permanent storage, only storing data until the client closes the window
         // We also don't need a lot of server-sided only logic
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+        registry.registerHandler(event -> {
             WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
             MenuType menuType = MenuType.getMenuType(open.getType());
@@ -356,10 +341,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 isPacketInventoryActive = !(newMenu instanceof NotImplementedMenu);
                 needResend = newMenu instanceof NotImplementedMenu;
             });
-        }
-
+        }, PacketType.Play.Server.OPEN_WINDOW);
         // I'm not implementing this lol
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
+        registry.registerHandler(event -> {
             WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
 
             packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
@@ -368,10 +352,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 needResend = true;
                 openWindowID = open.getWindowId();
             });
-        }
-
+        }, PacketType.Play.Server.OPEN_HORSE_WINDOW);
         // 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
+        registry.registerHandler(event -> {
             packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
             // Disregard provided window ID, client doesn't care...
@@ -381,10 +364,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 menu = inventory;
                 menu.setCarried(ItemStack.EMPTY); // Reset carried item
             });
-        }
-
+        }, PacketType.Play.Server.CLOSE_WINDOW);
         // Should be 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+        registry.registerHandler(event -> {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
             stateID = items.getStateId();
 
@@ -425,10 +407,9 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     }
                 });
             }
-        }
-
+        }, PacketType.Play.Server.WINDOW_ITEMS);
         // Also 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+        registry.registerHandler(event -> {
             // Only edit hotbar (36 to 44) if window ID is 0
             // Set cursor by putting -1 as window ID and as slot
             // Window ID -2 means any slot can be used
@@ -463,6 +444,22 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     menu.getSlot(slot.getSlot()).set(slot.getItem());
                 }
             });
+        }, PacketType.Play.Server.SET_SLOT);
+    }
+
+    public void markSlotAsResyncing(BlockPlace place) {
+        // Update held item tracking
+        if (place.getHand() == InteractionHand.MAIN_HAND) {
+            inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
+        } else {
+            inventory.getInventoryStorage().handleServerCorrectSlot(Inventory.SLOT_OFFHAND);
+        }
+    }
+
+    public void onBlockPlace(BlockPlace place) {
+        if (player.gamemode != GameMode.CREATIVE && place.getItemStack().getType() != ItemTypes.POWDER_SNOW_BUCKET) {
+            markSlotAsResyncing(place);
+            place.getItemStack().setAmount(place.getItemStack().getAmount() - 1);
         }
     }
 }
