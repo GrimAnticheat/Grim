@@ -26,14 +26,14 @@ public class AbstractPacketCheck extends Check implements PacketCheck {
 
     @Override
     public Map<PacketTypeCommon, List<Consumer<PacketSendEvent>>> getSendHandlers() {
-        PacketHandlerRegistry<PacketSendEvent> registry = new PacketHandlerRegistry<>();
+        PacketHandlerRegistry<PacketSendEvent> registry = new PacketHandlerRegistry<>(false);
         registerSendHandlers(registry);
         return registry.getHandlers();
     }
 
     @Override
     public Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> getReceiveHandlers() {
-        PacketHandlerRegistry<PacketReceiveEvent> registry = new PacketHandlerRegistry<>();
+        PacketHandlerRegistry<PacketReceiveEvent> registry = new PacketHandlerRegistry<>(true);
         registerReceiveHandlers(registry);
         return registry.getHandlers();
     }
