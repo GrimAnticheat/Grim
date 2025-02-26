@@ -6,6 +6,7 @@ import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
+import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
@@ -168,7 +169,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     private PlatformScheduler createScheduler() {
-        return GrimAPI.PLATFORM == GrimAPI.Platform.FOLIA ? new FoliaPlatformScheduler() : new BukkitPlatformScheduler();
+        return GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA ? new FoliaPlatformScheduler() : new BukkitPlatformScheduler();
     }
 
     private CommandManager<Sender> createCommandManager() {

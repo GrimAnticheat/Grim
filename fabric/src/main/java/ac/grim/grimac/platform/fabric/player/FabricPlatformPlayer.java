@@ -7,7 +7,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
+import ac.grim.grimac.platform.api.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;

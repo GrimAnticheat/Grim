@@ -2,6 +2,7 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
+import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -71,8 +72,8 @@ public class GrimDump implements BuildableCommand {
         JsonArray properties = new JsonArray();
         base.add("properties", properties);
         if (PAPER) properties.add("paper");
-        if (GrimAPI.PLATFORM == GrimAPI.Platform.FOLIA) properties.add("folia");
-        else if (GrimAPI.PLATFORM == GrimAPI.Platform.FABRIC) properties.add("fabric");
+        if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) properties.add("folia");
+        else if (GrimAPI.INSTANCE.getPlatform() == Platform.FABRIC) properties.add("fabric");
         if (ViaVersionUtil.isAvailable()) properties.add("viaversion");
         // system
         JsonObject system = new JsonObject();

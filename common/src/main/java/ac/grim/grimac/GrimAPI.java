@@ -8,6 +8,7 @@ import ac.grim.grimac.manager.SpectateManager;
 import ac.grim.grimac.manager.TickManager;
 import ac.grim.grimac.manager.config.BaseConfigManager;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
@@ -30,8 +31,8 @@ import java.util.Map;
 @Getter
 public final class GrimAPI {
     public static final GrimAPI INSTANCE = new GrimAPI();
-    public static final Platform PLATFORM = detectPlatform();
 
+    private final Platform platform = detectPlatform();
     private final BaseConfigManager configManager;
     private final AlertManagerImpl alertManager;
     private final SpectateManager spectateManager;
@@ -134,9 +135,7 @@ public final class GrimAPI {
         return loader.getPermissionManager();
     }
 
-    public enum Platform {
-        FABRIC,
-        BUKKIT,
-        FOLIA
+    public Platform getPlatform() {
+        return platform;
     }
 }

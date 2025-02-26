@@ -2,13 +2,14 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.conversion.ConversionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
+import ac.grim.grimac.platform.api.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
@@ -45,8 +46,8 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                 for (WrapperPlayServerPlayerInfo.PlayerData playerData : nmsPlayerInfoDataList) {
                     if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
                         hideCount++;
-                        if (playerData.getGameMode() == GameMode.SPECTATOR)
-                            playerData.setGameMode(GameMode.SURVIVAL);
+                        if (playerData.getGameMode() == ConversionUtil.toPacketEventsGameMode(GameMode.SPECTATOR))
+                            playerData.setGameMode(ConversionUtil.toPacketEventsGameMode(GameMode.SURVIVAL));
                     }
                 }
 
@@ -76,12 +77,12 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                     if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
                         hideCount++;
                         //modify & create a new packet from pre-existing one if they are a spectator
-                        if (entry.getGameMode() == GameMode.SPECTATOR) {
+                        if (entry.getGameMode() == ConversionUtil.toPacketEventsGameMode(GameMode.SPECTATOR)) {
                             modifiedPacket = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(
                                     gameProfile,
                                     entry.isListed(),
                                     entry.getLatency(),
-                                    GameMode.SURVIVAL,
+                                    ConversionUtil.toPacketEventsGameMode(GameMode.SURVIVAL),
                                     entry.getDisplayName(),
                                     entry.getChatSession()
                             );

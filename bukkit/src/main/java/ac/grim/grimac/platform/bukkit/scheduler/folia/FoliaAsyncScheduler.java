@@ -4,7 +4,6 @@ import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
-import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,8 +32,6 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
-        Preconditions.checkArgument(period < 1);
-
         return new FoliaTaskHandle(
                 asyncScheduler.runAtFixedRate(
                         GrimACBukkitLoaderPlugin.PLUGIN,
@@ -48,8 +45,6 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        Preconditions.checkArgument(periodTicks < 1);
-
         return new FoliaTaskHandle(
                 asyncScheduler.runAtFixedRate(
                         GrimACBukkitLoaderPlugin.PLUGIN,

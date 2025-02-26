@@ -2,6 +2,7 @@ package ac.grim.grimac.platform.bukkit.initables;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.AbstractTickEndEvent;
+import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.player.GrimPlayer;
@@ -11,7 +12,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
-import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -34,7 +34,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             LogUtil.warn("Reach.enable-post-packet=true but paper.explicit-flush=false, add \"-Dpaper.explicit-flush=true\" to your server's startup flags for fully functional extra reach accuracy.");
         }
         // this is necessary for folia
-        if (FoliaScheduler.isFolia()) {
+        if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
             PaperUtils.registerTickEndEvent(this, this::tickAllFoliaPlayers);
             return;
         }

@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
+import ac.grim.grimac.platform.api.player.GameMode;
 import lombok.Getter;
 
 public class Inventory extends AbstractContainerMenu {
