@@ -243,7 +243,7 @@ public class CheckManager {
                 .putAll(blockBreakChecks)
                 .build();
 
-        registerReceiveHandlers(prePredictionChecks);
+        registerPreReceiveHandlers(prePredictionChecks);
 
         registerReceiveHandlers(packetChecks);
         registerReceiveHandlers(postPredictionCheck);
