@@ -101,7 +101,6 @@ public class FabricRegionScheduler implements RegionScheduler {
         return runAtFixedRate(plugin, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, task, initialDelayTicks, periodTicks);
     }
 
-    @Override
     public void cancel(@NotNull GrimPlugin plugin) {
         FabricPlatformScheduler.cancelPluginTasks(taskMap, plugin);
     }

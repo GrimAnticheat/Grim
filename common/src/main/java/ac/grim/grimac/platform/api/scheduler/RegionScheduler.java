@@ -119,6 +119,4 @@ public interface RegionScheduler {
      * @return {@link TaskHandle} instance representing a wrapped task
      */
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
-
-    void cancel(@NotNull GrimPlugin plugin);
 }
