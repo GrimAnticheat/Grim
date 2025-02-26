@@ -3,7 +3,14 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
-import ac.grim.grimac.manager.init.start.*;
+import ac.grim.grimac.manager.init.start.CommandRegister;
+import ac.grim.grimac.manager.init.start.JavaVersion;
+import ac.grim.grimac.manager.init.start.PacketLimiter;
+import ac.grim.grimac.manager.init.start.PacketManager;
+import ac.grim.grimac.manager.init.start.TAB;
+import ac.grim.grimac.manager.init.start.TickRunner;
+import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
+import ac.grim.grimac.manager.init.start.ViaVersion;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.PacketEventsAPI;
@@ -20,9 +27,12 @@ public class InitManager {
     private final ImmutableList<Initable> initializersOnStart;
     private final ImmutableList<Initable> initializersOnStop;
 
-    @Getter private boolean loaded = false;
-    @Getter private boolean started = false;
-    @Getter private boolean stopped = false;
+    @Getter
+    private boolean loaded = false;
+    @Getter
+    private boolean started = false;
+    @Getter
+    private boolean stopped = false;
 
     public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
         initializersOnLoad = ImmutableList.<Initable>builder()

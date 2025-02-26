@@ -6,10 +6,10 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -22,7 +22,8 @@ import java.util.Set;
 public final class PredictionEngineRideableUtils {
 
     public static Set<VectorData> handleJumps(GrimPlayer player, Set<VectorData> possibleVectors) {
-        if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse horse)) return possibleVectors;
+        if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse horse))
+            return possibleVectors;
 
         if (horse instanceof PacketEntityCamel camel) {
             handleCamelDash(player, possibleVectors, camel);

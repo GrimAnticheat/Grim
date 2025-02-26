@@ -38,7 +38,6 @@ public class CrashH extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
                 flagAndAlert("(invalid) length=" + length);
-                return;
             }
         }
     }

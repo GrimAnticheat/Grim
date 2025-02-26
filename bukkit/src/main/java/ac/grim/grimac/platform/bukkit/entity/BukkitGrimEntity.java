@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.entity;
 
+import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
-import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import com.google.common.base.Preconditions;
@@ -43,7 +43,8 @@ public class BukkitGrimEntity implements GrimEntity {
         return PaperUtils.teleportAsync(this.entity, bLoc);
     }
 
-    @Override @NonNull
+    @Override
+    @NonNull
     public Entity getNative() {
         return entity;
     }

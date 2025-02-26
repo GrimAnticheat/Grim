@@ -10,7 +10,6 @@ import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,17 +37,22 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
 
     @Override
     public boolean hasPermission(String permission) {
-        return Permissions.check(fabricPlayer.getCommandSource(), permission, fabricPlayer.getCommandSource().getServer().getOpPermissionLevel());
+        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(permission);
     }
 
     @Override
-    public void setSneaking(boolean isSneaking) {
-        fabricPlayer.setSneaking(isSneaking);
+    public boolean hasPermission(String s, boolean defaultIfUnset) {
+        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(s, defaultIfUnset);
     }
 
     @Override
     public boolean isSneaking() {
         return fabricPlayer.isSneaking();
+    }
+
+    @Override
+    public void setSneaking(boolean isSneaking) {
+        fabricPlayer.setSneaking(isSneaking);
     }
 
     @Override
@@ -128,7 +132,8 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
         return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
     }
 
-    @Override @NonNull
+    @Override
+    @NonNull
     public ServerPlayerEntity getNative() {
         return this.fabricPlayer;
     }

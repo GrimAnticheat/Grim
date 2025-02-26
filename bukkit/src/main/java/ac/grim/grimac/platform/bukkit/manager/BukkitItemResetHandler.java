@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.SneakyThrows;
@@ -81,7 +81,8 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_14_R1" -> "dp";
                     case "v1_15_R1" -> "dH";
                     case "v1_16_R1", "v1_16_R2", "v1_16_R3" -> "clearActiveItem";
-                    default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
+                    default ->
+                            throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
                 }
         );
 

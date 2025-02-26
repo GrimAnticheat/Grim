@@ -2,7 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.*;
+import ac.grim.grimac.utils.anticheat.update.BlockBreak;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
+import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.change.BlockModification;
@@ -10,13 +15,23 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.BlockPlaceSnapshot;
+import ac.grim.grimac.utils.data.HeadRotation;
+import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.*;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.Ray;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -44,7 +59,11 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientVehicleMove;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 
@@ -55,6 +74,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class CheckManagerListener extends PacketListenerAbstract {
+
+    // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
+    private static final Function<StateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -264,7 +286,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (packet instanceof WrapperPlayClientPlayerBlockPlacement place &&
                 PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
 
-            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE) return;
+            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
+                return;
 
             if (place.getFace() == BlockFace.OTHER) {
                 ItemStack placedWith = player.getInventory().getHeldItem();
@@ -278,7 +301,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (packet instanceof WrapperPlayClientUseItem place) {
-            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE) return;
+            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
+                return;
 
             ItemStack placedWith = player.getInventory().getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
@@ -327,7 +351,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (packet instanceof WrapperPlayClientPlayerBlockPlacement place) {
-            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE) return;
+            if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
+                return;
 
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
@@ -348,6 +373,172 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
             }
         }
+    }
+
+    private static void placeBucket(GrimPlayer player, InteractionHand hand) {
+        HitData data = getNearestHitResult(player, null, true, false, true);
+
+        if (data != null) {
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
+            blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
+
+            boolean placed = false;
+            ItemType type = null;
+
+            if (data.getState().getType() == StateTypes.POWDER_SNOW) {
+                blockPlace.set(StateTypes.AIR);
+                type = ItemTypes.POWDER_SNOW_BUCKET;
+                placed = true;
+            }
+
+            if (data.getState().getType() == StateTypes.LAVA) {
+                blockPlace.set(StateTypes.AIR);
+                type = ItemTypes.LAVA_BUCKET;
+                placed = true;
+            }
+
+            // We didn't hit fluid source
+            if (!placed && !player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
+                return;
+
+            // We can't replace plants with a water bucket
+            if (data.getState().getType() == StateTypes.KELP || data.getState().getType() == StateTypes.SEAGRASS || data.getState().getType() == StateTypes.TALL_SEAGRASS) {
+                return;
+            }
+
+            if (!placed) {
+                type = ItemTypes.WATER_BUCKET;
+            }
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
+                    existing.setWaterlogged(false);
+                    blockPlace.set(existing);
+                    placed = true;
+                }
+            }
+
+            // Therefore, not waterlogged and is a fluid, and is therefore a source block
+            if (!placed) {
+                blockPlace.set(StateTypes.AIR);
+            }
+
+            if (player.gamemode != GameMode.CREATIVE) {
+                player.getInventory().markSlotAsResyncing(blockPlace);
+                setPlayerItem(player, hand, type);
+            }
+        }
+    }
+
+    public static void setPlayerItem(GrimPlayer player, InteractionHand hand, ItemType type) {
+        // Give the player a water bucket
+        if (player.gamemode != GameMode.CREATIVE) {
+            if (hand == InteractionHand.MAIN_HAND) {
+                if (player.getInventory().getHeldItem().getAmount() == 1) {
+                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
+                } else { // Give the player a water bucket
+                    player.getInventory().inventory.add(ItemStack.builder().type(type).amount(1).build());
+                    // and reduce the held item
+                    player.getInventory().getHeldItem().setAmount(player.getInventory().getHeldItem().getAmount() - 1);
+                }
+            } else {
+                if (player.getInventory().getOffHand().getAmount() == 1) {
+                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                } else { // Give the player a water bucket
+                    player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                    // and reduce the held item
+                    player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                }
+            }
+        }
+    }
+
+    private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
+        HitData data = getNearestHitResult(player, null, true, false, true);
+
+        if (data != null) {
+            // A lilypad cannot replace a fluid
+            if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
+                return;
+
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
+            blockPlace.setReplaceClicked(false); // Not possible with use item
+
+            // We checked for a full fluid block below here.
+            if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
+                    || data.getState().getType() == StateTypes.ICE || data.getState().getType() == StateTypes.FROSTED_ICE) {
+                Vector3i pos = data.getPosition();
+                pos = pos.add(0, 1, 0);
+
+                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
+
+                if (player.gamemode != GameMode.CREATIVE) {
+                    player.getInventory().markSlotAsResyncing(blockPlace);
+                    if (hand == InteractionHand.MAIN_HAND) {
+                        player.getInventory().inventory.getHeldItem().setAmount(player.getInventory().inventory.getHeldItem().getAmount() - 1);
+                    } else {
+                        player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                    }
+                }
+            }
+        }
+    }
+
+    private static HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox, boolean fluidPlacement, boolean itemUsePlacement) {
+        Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
+        Vector3dm startingVec = new Vector3dm(startingPos.getX(), startingPos.getY(), startingPos.getZ());
+        Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);
+        final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+        Vector3dm endVec = trace.getPointAtDistance(distance);
+        Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
+
+        return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
+            if (fluidPlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && CollisionData.getData(block.getType())
+                    .getMovementCollisionBox(player, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isNull()) {
+                return null;
+            }
+
+            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, player.getClientVersion(), block, false, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            List<SimpleCollisionBox> boxes = new ArrayList<>();
+            data.downCast(boxes);
+
+            double bestHitResult = Double.MAX_VALUE;
+            Vector3dm bestHitLoc = null;
+            BlockFace bestFace = null;
+
+            for (SimpleCollisionBox box : boxes) {
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                if (intercept.first() == null) continue; // No intercept
+
+                Vector3dm hitLoc = intercept.first();
+
+                if (hitLoc.distanceSquared(startingVec) < bestHitResult) {
+                    bestHitResult = hitLoc.distanceSquared(startingVec);
+                    bestHitLoc = hitLoc;
+                    bestFace = intercept.second();
+                }
+            }
+            if (bestHitLoc != null) {
+                return new HitData(vector3i, bestHitLoc, bestFace, block);
+            }
+
+            if (sourcesHaveHitbox &&
+                    (player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())
+                            || player.compensatedWorld.getLavaFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ()) == (8 / 9f))) {
+                double waterHeight = player.getClientVersion().isOlderThan(ClientVersion.V_1_13) ? 1
+                        : player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+                SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
+
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+
+                if (intercept.first() != null) {
+                    return new HitData(vector3i, intercept.first(), intercept.second(), block);
+                }
+            }
+
+            return null;
+        });
     }
 
     private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
@@ -405,9 +596,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
         return false;
     }
-
-    // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
-    private static final Function<StateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -546,13 +734,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         if (damage >= 1) {
                             player.compensatedWorld.startPredicting();
                             player.blockHistory.add(
-                                new BlockModification(
-                                    player.compensatedWorld.getBlock(blockBreak.position),
-                                    WrappedBlockState.getByGlobalId(0),
-                                    blockBreak.position,
-                                    GrimAPI.INSTANCE.getTickManager().currentTick,
-                                    BlockModification.Cause.START_DIGGING
-                                )
+                                    new BlockModification(
+                                            player.compensatedWorld.getBlock(blockBreak.position),
+                                            WrappedBlockState.getByGlobalId(0),
+                                            blockBreak.position,
+                                            GrimAPI.INSTANCE.getTickManager().currentTick,
+                                            BlockModification.Cause.START_DIGGING
+                                    )
                             );
                             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), blockBreak.block)) {
                                 // Vanilla uses a method to grab water flowing, but as you can't break flowing water
@@ -666,85 +854,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.packetStateData.lastPacketWasTeleport = false;
     }
 
-    private static void placeBucket(GrimPlayer player, InteractionHand hand) {
-        HitData data = getNearestHitResult(player, null, true, false, true);
-
-        if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
-            blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
-
-            boolean placed = false;
-            ItemType type = null;
-
-            if (data.getState().getType() == StateTypes.POWDER_SNOW) {
-                blockPlace.set(StateTypes.AIR);
-                type = ItemTypes.POWDER_SNOW_BUCKET;
-                placed = true;
-            }
-
-            if (data.getState().getType() == StateTypes.LAVA) {
-                blockPlace.set(StateTypes.AIR);
-                type = ItemTypes.LAVA_BUCKET;
-                placed = true;
-            }
-
-            // We didn't hit fluid source
-            if (!placed && !player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
-                return;
-
-            // We can't replace plants with a water bucket
-            if (data.getState().getType() == StateTypes.KELP || data.getState().getType() == StateTypes.SEAGRASS || data.getState().getType() == StateTypes.TALL_SEAGRASS) {
-                return;
-            }
-
-            if (!placed) {
-                type = ItemTypes.WATER_BUCKET;
-            }
-
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
-                    existing.setWaterlogged(false);
-                    blockPlace.set(existing);
-                    placed = true;
-                }
-            }
-
-            // Therefore, not waterlogged and is a fluid, and is therefore a source block
-            if (!placed) {
-                blockPlace.set(StateTypes.AIR);
-            }
-
-            if (player.gamemode != GameMode.CREATIVE) {
-                player.getInventory().markSlotAsResyncing(blockPlace);
-                setPlayerItem(player, hand, type);
-            }
-        }
-    }
-
-    public static void setPlayerItem(GrimPlayer player, InteractionHand hand, ItemType type) {
-        // Give the player a water bucket
-        if (player.gamemode != GameMode.CREATIVE) {
-            if (hand == InteractionHand.MAIN_HAND) {
-                if (player.getInventory().getHeldItem().getAmount() == 1) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
-                } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(ItemStack.builder().type(type).amount(1).build());
-                    // and reduce the held item
-                    player.getInventory().getHeldItem().setAmount(player.getInventory().getHeldItem().getAmount() - 1);
-                }
-            } else {
-                if (player.getInventory().getOffHand().getAmount() == 1) {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
-                } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
-                    // and reduce the held item
-                    player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
-                }
-            }
-        }
-    }
-
     private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData, PacketReceiveEvent event) {
         long now = System.currentTimeMillis();
 
@@ -837,93 +946,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         player.packetStateData.horseInteractCausedForcedRotation = false;
-    }
-
-    private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
-        HitData data = getNearestHitResult(player, null, true, false, true);
-
-        if (data != null) {
-            // A lilypad cannot replace a fluid
-            if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
-                return;
-
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
-            blockPlace.setReplaceClicked(false); // Not possible with use item
-
-            // We checked for a full fluid block below here.
-            if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
-                    || data.getState().getType() == StateTypes.ICE || data.getState().getType() == StateTypes.FROSTED_ICE) {
-                Vector3i pos = data.getPosition();
-                pos = pos.add(0, 1, 0);
-
-                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
-
-                if (player.gamemode != GameMode.CREATIVE) {
-                    player.getInventory().markSlotAsResyncing(blockPlace);
-                    if (hand == InteractionHand.MAIN_HAND) {
-                        player.getInventory().inventory.getHeldItem().setAmount(player.getInventory().inventory.getHeldItem().getAmount() - 1);
-                    } else {
-                        player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
-                    }
-                }
-            }
-        }
-    }
-
-    private static HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox, boolean fluidPlacement, boolean itemUsePlacement) {
-        Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
-        Vector3dm startingVec = new Vector3dm(startingPos.getX(), startingPos.getY(), startingPos.getZ());
-        Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);
-        final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
-        Vector3dm endVec = trace.getPointAtDistance(distance);
-        Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
-
-        return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
-            if (fluidPlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && CollisionData.getData(block.getType())
-                    .getMovementCollisionBox(player, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isNull()) {
-                return null;
-            }
-
-            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, player.getClientVersion(), block, false, vector3i.getX(), vector3i.getY(), vector3i.getZ());
-            List<SimpleCollisionBox> boxes = new ArrayList<>();
-            data.downCast(boxes);
-
-            double bestHitResult = Double.MAX_VALUE;
-            Vector3dm bestHitLoc = null;
-            BlockFace bestFace = null;
-
-            for (SimpleCollisionBox box : boxes) {
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
-                if (intercept.first() == null) continue; // No intercept
-
-                Vector3dm hitLoc = intercept.first();
-
-                if (hitLoc.distanceSquared(startingVec) < bestHitResult) {
-                    bestHitResult = hitLoc.distanceSquared(startingVec);
-                    bestHitLoc = hitLoc;
-                    bestFace = intercept.second();
-                }
-            }
-            if (bestHitLoc != null) {
-                return new HitData(vector3i, bestHitLoc, bestFace, block);
-            }
-
-            if (sourcesHaveHitbox &&
-                    (player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())
-                            || player.compensatedWorld.getLavaFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ()) == (8 / 9f))) {
-                double waterHeight = player.getClientVersion().isOlderThan(ClientVersion.V_1_13) ? 1
-                        : player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
-                SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
-
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
-
-                if (intercept.first() != null) {
-                    return new HitData(vector3i, intercept.first(), intercept.second(), block);
-                }
-            }
-
-            return null;
-        });
     }
 
     @Override

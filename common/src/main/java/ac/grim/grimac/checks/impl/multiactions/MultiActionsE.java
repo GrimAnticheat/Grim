@@ -13,11 +13,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "MultiActionsE", description = "Swinging while using an item", experimental = true)
 public class MultiActionsE extends Check implements PacketCheck {
+    private boolean dropping;
+
     public MultiActionsE(GrimPlayer player) {
         super(player);
     }
-
-    private boolean dropping;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

@@ -1,6 +1,11 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.platform.api.scheduler.*;
+import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
+import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
+import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
+import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class FoliaPlatformScheduler implements PlatformScheduler {
 
@@ -10,22 +15,22 @@ public class FoliaPlatformScheduler implements PlatformScheduler {
     private final FoliaRegionScheduler foliaRegionScheduler = new FoliaRegionScheduler();
 
     @Override
-    public AsyncScheduler getAsyncScheduler() {
+    public @NonNull AsyncScheduler getAsyncScheduler() {
         return foliaAsyncScheduler;
     }
 
     @Override
-    public GlobalRegionScheduler getGlobalRegionScheduler() {
+    public @NonNull GlobalRegionScheduler getGlobalRegionScheduler() {
         return foliaGlobalRegionScheduler;
     }
 
     @Override
-    public EntityScheduler getEntityScheduler() {
+    public @NonNull EntityScheduler getEntityScheduler() {
         return foliaEntityScheduler;
     }
 
     @Override
-    public RegionScheduler getRegionScheduler() {
+    public @NonNull RegionScheduler getRegionScheduler() {
         return foliaRegionScheduler;
     }
 }

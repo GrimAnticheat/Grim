@@ -142,7 +142,7 @@ public class GrimMath {
     }
 
     public static boolean isNearlySame(double a, double b, double epoch) {
-        return Math.abs(a-b) < epoch;
+        return Math.abs(a - b) < epoch;
     }
 
     public static long hashCode(double x, int y, double z) {

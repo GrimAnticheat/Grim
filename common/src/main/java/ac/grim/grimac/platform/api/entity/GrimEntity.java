@@ -19,7 +19,8 @@ public interface GrimEntity {
 
     CompletableFuture<Boolean> teleportAsync(Location location);
 
-    @NonNull Object getNative();
+    @NonNull
+    Object getNative();
 
     boolean isDead();
 

@@ -1,7 +1,11 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.api.GrimPlugin;
-import ac.grim.grimac.manager.*;
+import ac.grim.grimac.manager.AlertManagerImpl;
+import ac.grim.grimac.manager.DiscordManager;
+import ac.grim.grimac.manager.InitManager;
+import ac.grim.grimac.manager.SpectateManager;
+import ac.grim.grimac.manager.TickManager;
 import ac.grim.grimac.manager.config.BaseConfigManager;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.PlatformLoader;
@@ -9,6 +13,7 @@ import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
@@ -46,6 +51,20 @@ public final class GrimAPI {
         this.playerDataManager = new PlayerDataManager();
         this.tickManager = new TickManager();
         this.externalAPI = new GrimExternalAPI(this);
+    }
+
+    private static Platform detectPlatform() {
+        final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<>() {{
+            put("io.papermc.paper.threadedregions.RegionizedServer", Platform.FOLIA);
+            put("org.bukkit.Bukkit", Platform.BUKKIT);
+            put("net.fabricmc.loader.api.FabricLoader", Platform.FABRIC);
+        }});
+
+        return platforms.entrySet().stream()
+                .filter(entry -> ReflectionUtils.hasClass(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Unknown platform!"));
     }
 
     public void load(PlatformLoader platformLoader, Initable... platformSpecificInitables) {
@@ -111,18 +130,8 @@ public final class GrimAPI {
         }
     }
 
-    private static Platform detectPlatform() {
-        final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<>() {{
-            put("io.papermc.paper.threadedregions.RegionizedServer", Platform.FOLIA);
-            put("org.bukkit.Bukkit", Platform.BUKKIT);
-            put("net.fabricmc.loader.api.FabricLoader", Platform.FABRIC);
-        }});
-
-        return platforms.entrySet().stream()
-                .filter(entry -> ReflectionUtils.hasClass(entry.getKey()))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Unknown platform!"));
+    public PermissionRegistrationManager getPermissionManager() {
+        return loader.getPermissionManager();
     }
 
     public enum Platform {

@@ -1,6 +1,7 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -18,31 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 public class GrimLog implements BuildableCommand {
-    @Override
-    public void register(CommandManager<Sender> commandManager) {
-        commandManager.command(
-                commandManager.commandBuilder("grim", "grimac", "gl")
-                        .literal("log", "logs")
-                        .permission("grim.log")
-                        .required("flagId", IntegerParser.integerParser())
-                        .handler(this::handleLog)
-        );
-    }
-
-    private void handleLog(@NonNull CommandContext<Sender> context) {
-        Sender sender = context.sender();
-        int flagId = context.get("flagId");
-
-        StringBuilder builder = SuperDebug.getFlag(flagId);
-        if (builder == null) {
-            String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
-            failure = MessageUtil.replacePlaceholders(sender, failure);
-            sender.sendMessage(MessageUtil.miniMessage(failure));
-            return;
-        }
-        sendLogAsync(sender, builder.toString(), string -> {}, "text/yaml");
-    }
-
     public static void sendLogAsync(Sender sender, String log, Consumer<String> consumer, String type) {
         String success = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log", "%prefix% &fUploaded debug to: %url%");
         String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-upload-failure", "%prefix% &cSomething went wrong while uploading this log, see console for more information.");
@@ -87,5 +63,31 @@ public class GrimLog implements BuildableCommand {
         } finally {
             urlConn.disconnect();
         }
+    }
+
+    @Override
+    public void register(CommandManager<Sender> commandManager) {
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac", "gl")
+                        .literal("log", "logs")
+                        .permission("grim.log")
+                        .required("flagId", IntegerParser.integerParser())
+                        .handler(this::handleLog)
+        );
+    }
+
+    private void handleLog(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        int flagId = context.get("flagId");
+
+        StringBuilder builder = SuperDebug.getFlag(flagId);
+        if (builder == null) {
+            String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
+            failure = MessageUtil.replacePlaceholders(sender, failure);
+            sender.sendMessage(MessageUtil.miniMessage(failure));
+            return;
+        }
+        sendLogAsync(sender, builder.toString(), string -> {
+        }, "text/yaml");
     }
 }

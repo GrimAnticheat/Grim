@@ -65,7 +65,7 @@ jobs:
     - name: Upload Fabric Artifact
       uses: actions/upload-artifact@v4
       with:
-          name: grimac-bukkit
+          name: grimac-fabric
           path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.VERSION }}.jar
 
 

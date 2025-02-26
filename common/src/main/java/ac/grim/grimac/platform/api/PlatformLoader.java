@@ -4,14 +4,15 @@ import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import com.github.retrooper.packetevents.PacketEventsAPI;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
-import org.jetbrains.annotations.NotNull;
 
 public interface PlatformLoader {
     PlatformScheduler getScheduler();
@@ -40,5 +41,8 @@ public interface PlatformLoader {
 
     // Used to replace text placeholders in messages
     // Currently only supports PlaceHolderAPI on Bukkit
-    @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager();
+    @NonNull
+    MessagePlaceHolderManager getMessagePlaceHolderManager();
+
+    PermissionRegistrationManager getPermissionManager();
 }

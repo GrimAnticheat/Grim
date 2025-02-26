@@ -14,7 +14,8 @@ public class TAB implements Initable {
         if (GrimAPI.INSTANCE.getPluginManager().getPlugin("TAB") == null) return;
         if (!ViaVersionUtil.isAvailable()) return;
         // I don't know when team limits were changed, 1.13 is reasonable enough
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) return;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13))
+            return;
 
         LogUtil.warn("GrimAC has detected that you have installed TAB with ViaVersion.");
         LogUtil.warn("Please note that currently, TAB is incompatible as it sends illegal packets to players using versions newer than your server version.");

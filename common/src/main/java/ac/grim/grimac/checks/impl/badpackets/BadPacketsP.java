@@ -14,12 +14,12 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 @CheckData(name = "BadPacketsP", experimental = true)
 public class BadPacketsP extends Check implements PacketCheck {
 
+    private int containerType = -1;
+    private int containerId = -1;
+
     public BadPacketsP(GrimPlayer playerData) {
         super(playerData);
     }
-
-    private int containerType = -1;
-    private int containerId = -1;
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {

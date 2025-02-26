@@ -8,14 +8,16 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingQueue;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class UncertaintyHandler {
     private final GrimPlayer player;
@@ -273,11 +275,13 @@ public class UncertaintyHandler {
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // 0.03 from last tick into 0.03 now = 0.06 (could reduce by friction in the future, only 0.91 at most though)
-            if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree) return pointThree * 2;
+            if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree)
+                return pointThree * 2;
         }
 
         // Handle the player landing on this tick or the next tick
-        if (wasZeroPointThreeVertically || player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) return pointThree;
+        if (wasZeroPointThreeVertically || player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket)
+            return pointThree;
 
         return 0;
     }

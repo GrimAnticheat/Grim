@@ -33,7 +33,9 @@ public class NoCollisionBox implements CollisionBox {
     public void downCast(List<SimpleCollisionBox> list) { /**/ }
 
     @Override
-    public int downCast(SimpleCollisionBox[] list) { return 0; }
+    public int downCast(SimpleCollisionBox[] list) {
+        return 0;
+    }
 
     @Override
     public boolean isNull() {

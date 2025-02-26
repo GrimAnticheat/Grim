@@ -9,22 +9,22 @@ import java.util.Random;
 
 public class Vector3dm implements Cloneable, Serializable {
     private static final long serialVersionUID = -2657651106777219169L;
-    private static Random random = new Random();
+    private static final Random random = new Random();
     private static final double epsilon = 1.0E-6;
     protected double x;
     protected double y;
     protected double z;
 
     public Vector3dm() {
-        this.x = (double)0.0F;
-        this.y = (double)0.0F;
-        this.z = (double)0.0F;
+        this.x = 0.0F;
+        this.y = 0.0F;
+        this.z = 0.0F;
     }
 
     public Vector3dm(int x, int y, int z) {
-        this.x = (double)x;
-        this.y = (double)y;
-        this.z = (double)z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public Vector3dm(double x, double y, double z) {
@@ -34,9 +34,25 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public Vector3dm(float x, float y, float z) {
-        this.x = (double)x;
-        this.y = (double)y;
-        this.z = (double)z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    public static double getEpsilon() {
+        return 1.0E-6;
+    }
+
+    public static @NotNull Vector3dm getMinimum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
+        return new Vector3dm(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
+    }
+
+    public static @NotNull Vector3dm getMaximum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
+        return new Vector3dm(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
+    }
+
+    public static @NotNull Vector3dm getRandom() {
+        return new Vector3dm(random.nextDouble(), random.nextDouble(), random.nextDouble());
     }
 
     public @NotNull Vector3dm add(@NotNull Vector3dm vec) {
@@ -91,23 +107,23 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3dm midpoint(@NotNull Vector3dm other) {
-        this.x = (this.x + other.x) / (double)2.0F;
-        this.y = (this.y + other.y) / (double)2.0F;
-        this.z = (this.z + other.z) / (double)2.0F;
+        this.x = (this.x + other.x) / (double) 2.0F;
+        this.y = (this.y + other.y) / (double) 2.0F;
+        this.z = (this.z + other.z) / (double) 2.0F;
         return this;
     }
 
     public @NotNull Vector3dm getMidpoint(@NotNull Vector3dm other) {
-        double x = (this.x + other.x) / (double)2.0F;
-        double y = (this.y + other.y) / (double)2.0F;
-        double z = (this.z + other.z) / (double)2.0F;
+        double x = (this.x + other.x) / (double) 2.0F;
+        double y = (this.y + other.y) / (double) 2.0F;
+        double z = (this.z + other.z) / (double) 2.0F;
         return new Vector3dm(x, y, z);
     }
 
     public @NotNull Vector3dm multiply(int m) {
-        this.x *= (double)m;
-        this.y *= (double)m;
-        this.z *= (double)m;
+        this.x *= m;
+        this.y *= m;
+        this.z *= m;
         return this;
     }
 
@@ -119,9 +135,9 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3dm multiply(float m) {
-        this.x *= (double)m;
-        this.y *= (double)m;
-        this.z *= (double)m;
+        this.x *= m;
+        this.y *= m;
+        this.z *= m;
         return this;
     }
 
@@ -155,27 +171,27 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3dm zero() {
-        this.x = (double)0.0F;
-        this.y = (double)0.0F;
-        this.z = (double)0.0F;
+        this.x = 0.0F;
+        this.y = 0.0F;
+        this.z = 0.0F;
         return this;
     }
 
     public boolean isZero() {
-        return this.x == (double)0.0F && this.y == (double)0.0F && this.z == (double)0.0F;
+        return this.x == (double) 0.0F && this.y == (double) 0.0F && this.z == (double) 0.0F;
     }
 
     @NotNull Vector3dm normalizeZeros() {
-        if (this.x == (double)-0.0F) {
-            this.x = (double)0.0F;
+        if (this.x == (double) -0.0F) {
+            this.x = 0.0F;
         }
 
-        if (this.y == (double)-0.0F) {
-            this.y = (double)0.0F;
+        if (this.y == (double) -0.0F) {
+            this.y = 0.0F;
         }
 
-        if (this.z == (double)-0.0F) {
-            this.z = (double)0.0F;
+        if (this.z == (double) -0.0F) {
+            this.z = 0.0F;
         }
 
         return this;
@@ -190,7 +206,7 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public boolean isNormalized() {
-        return Math.abs(this.lengthSquared() - (double)1.0F) < getEpsilon();
+        return Math.abs(this.lengthSquared() - (double) 1.0F) < getEpsilon();
     }
 
     public @NotNull Vector3dm rotateAroundX(double angle) {
@@ -221,12 +237,42 @@ public class Vector3dm implements Cloneable, Serializable {
         return this.x;
     }
 
+    public @NotNull Vector3dm setX(int x) {
+        this.x = x;
+        return this;
+    }
+
+    public @NotNull Vector3dm setX(double x) {
+        this.x = x;
+        return this;
+    }
+
+    public @NotNull Vector3dm setX(float x) {
+        this.x = x;
+        return this;
+    }
+
     public int getBlockX() {
         return GrimMath.mojangFloor(this.x);
     }
 
     public double getY() {
         return this.y;
+    }
+
+    public @NotNull Vector3dm setY(int y) {
+        this.y = y;
+        return this;
+    }
+
+    public @NotNull Vector3dm setY(double y) {
+        this.y = y;
+        return this;
+    }
+
+    public @NotNull Vector3dm setY(float y) {
+        this.y = y;
+        return this;
     }
 
     public int getBlockY() {
@@ -237,42 +283,8 @@ public class Vector3dm implements Cloneable, Serializable {
         return this.z;
     }
 
-    public int getBlockZ() {
-        return GrimMath.mojangFloor(this.z);
-    }
-
-    public @NotNull Vector3dm setX(int x) {
-        this.x = (double)x;
-        return this;
-    }
-
-    public @NotNull Vector3dm setX(double x) {
-        this.x = x;
-        return this;
-    }
-
-    public @NotNull Vector3dm setX(float x) {
-        this.x = (double)x;
-        return this;
-    }
-
-    public @NotNull Vector3dm setY(int y) {
-        this.y = (double)y;
-        return this;
-    }
-
-    public @NotNull Vector3dm setY(double y) {
-        this.y = y;
-        return this;
-    }
-
-    public @NotNull Vector3dm setY(float y) {
-        this.y = (double)y;
-        return this;
-    }
-
     public @NotNull Vector3dm setZ(int z) {
-        this.z = (double)z;
+        this.z = z;
         return this;
     }
 
@@ -282,8 +294,12 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3dm setZ(float z) {
-        this.z = (double)z;
+        this.z = z;
         return this;
+    }
+
+    public int getBlockZ() {
+        return GrimMath.mojangFloor(this.z);
     }
 
     public boolean equals(Object obj) {
@@ -296,15 +312,15 @@ public class Vector3dm implements Cloneable, Serializable {
 
     public int hashCode() {
         int hash = 7;
-        hash = 79 * hash + (int)(Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 79 * hash + (int)(Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 79 * hash + (int)(Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
+        hash = 79 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
+        hash = 79 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
+        hash = 79 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
         return hash;
     }
 
     public @NotNull Vector3dm clone() {
         try {
-            return (Vector3dm)super.clone();
+            return (Vector3dm) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new Error(e);
         }
@@ -315,26 +331,10 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3f toVector3f() {
-        return new Vector3f((float)this.x, (float)this.y, (float)this.z);
+        return new Vector3f((float) this.x, (float) this.y, (float) this.z);
     }
 
     public @NotNull Vector3d toVector3d() {
         return new Vector3d(this.x, this.y, this.z);
-    }
-
-    public static double getEpsilon() {
-        return 1.0E-6;
-    }
-
-    public static @NotNull Vector3dm getMinimum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
-        return new Vector3dm(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
-    }
-
-    public static @NotNull Vector3dm getMaximum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
-        return new Vector3dm(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
-    }
-
-    public static @NotNull Vector3dm getRandom() {
-        return new Vector3dm(random.nextDouble(), random.nextDouble(), random.nextDouble());
     }
 }

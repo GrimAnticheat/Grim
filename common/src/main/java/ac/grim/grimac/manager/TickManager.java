@@ -9,11 +9,10 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
 public class TickManager {
-    ClassToInstanceMap<Tickable> syncTick;
-    ClassToInstanceMap<Tickable> asyncTick;
-
     // Overflows after 4 years of uptime
     public int currentTick;
+    ClassToInstanceMap<Tickable> syncTick;
+    ClassToInstanceMap<Tickable> asyncTick;
 
     public TickManager() {
         syncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()

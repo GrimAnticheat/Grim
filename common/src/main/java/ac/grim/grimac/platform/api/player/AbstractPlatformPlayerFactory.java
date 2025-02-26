@@ -12,7 +12,8 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
 
     @Override
-    public @Nullable final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
+    public @Nullable
+    final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
         // Check cache first
         PlatformPlayer cachedPlayer = cache.getPlayer(uuid);
         if (cachedPlayer != null) {

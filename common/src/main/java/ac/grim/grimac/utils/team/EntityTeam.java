@@ -11,10 +11,11 @@ import java.util.Set;
 
 public final class EntityTeam {
 
-    private final GrimPlayer player;
     public final String name;
     public final Set<String> entries = new HashSet<>();
-    @Getter private WrapperPlayServerTeams.CollisionRule collisionRule;
+    private final GrimPlayer player;
+    @Getter
+    private WrapperPlayServerTeams.CollisionRule collisionRule;
 
     public EntityTeam(GrimPlayer player, String name) {
         this.player = player;
@@ -27,7 +28,8 @@ public final class EntityTeam {
         final TeamHandler teamHandler = player.checkManager.getPacketCheck(TeamHandler.class);
         final WrapperPlayServerTeams.TeamMode mode = teams.getTeamMode();
         if (mode == WrapperPlayServerTeams.TeamMode.ADD_ENTITIES || mode == WrapperPlayServerTeams.TeamMode.CREATE) {
-            label: for (String teamPlayer : teams.getPlayers()) {
+            label:
+            for (String teamPlayer : teams.getPlayers()) {
                 if (teamPlayer.equals(player.user.getName())) {
                     teamHandler.setPlayerTeam(this);
                     continue;
@@ -43,7 +45,8 @@ public final class EntityTeam {
                 teamHandler.addEntityToTeam(teamPlayer, this);
             }
         } else if (mode == WrapperPlayServerTeams.TeamMode.REMOVE_ENTITIES) {
-            label: for (String teamPlayer : teams.getPlayers()) {
+            label:
+            for (String teamPlayer : teams.getPlayers()) {
                 if (teamPlayer.equals(player.user.getName())) {
                     // Player was removed from their team.
                     teamHandler.setPlayerTeam(null);

@@ -9,11 +9,11 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "SprintC", description = "Sprinting while using an item", setback = 5, experimental = true)
 public class SprintC extends Check implements PostPredictionCheck {
+    private boolean flaggedLastTick = false;
+
     public SprintC(GrimPlayer player) {
         super(player);
     }
-
-    private boolean flaggedLastTick = false;
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {

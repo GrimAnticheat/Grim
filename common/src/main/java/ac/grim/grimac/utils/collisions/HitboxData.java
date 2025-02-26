@@ -4,17 +4,35 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicHitboxWall;
-import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexOffsetCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.OffsetCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.*;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Leaves;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData {
@@ -198,7 +216,7 @@ public enum HitboxData {
 
                 return powered ? new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 1.0, 10.0) : new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 2.0, 10.0);
             default:
-                throw new IllegalStateException("Impossible Hitbox State");
+                throw new IllegalStateException();
         }
     }, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
 
@@ -252,7 +270,8 @@ public enum HitboxData {
             case EAST -> new HexCollisionBox(0.0, 0.0, 0.0, 2.0, 12.5, 16.0);
             case WEST -> new HexCollisionBox(14.0, 0.0, 0.0, 16.0, 12.5, 16.0);
             case SOUTH -> new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 12.5, 2.0);
-            default -> throw new IllegalStateException("Impossible Banner Facing State; Something very wrong is going on");
+            default ->
+                    throw new IllegalStateException("Impossible Banner Facing State; Something very wrong is going on");
         };
     }, StateTypes.WHITE_WALL_BANNER, StateTypes.ORANGE_WALL_BANNER, StateTypes.MAGENTA_WALL_BANNER,
             StateTypes.LIGHT_BLUE_WALL_BANNER, StateTypes.YELLOW_WALL_BANNER, StateTypes.LIME_WALL_BANNER,
@@ -278,7 +297,7 @@ public enum HitboxData {
         }
     }, StateTypes.BREWING_STAND),
 
-    SMALL_FLOWER((player, item, version, data, isTargetBlock, x, y, z) ->  player.getClientVersion().isOlderThan(ClientVersion.V_1_13)
+    SMALL_FLOWER((player, item, version, data, isTargetBlock, x, y, z) -> player.getClientVersion().isOlderThan(ClientVersion.V_1_13)
             ? new SimpleCollisionBox(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D)
             : new OffsetCollisionBox(data.getType(), 0.3125D, 0.0D, 0.3125D, 0.6875D, 0.625D, 0.6875D),
             BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
@@ -454,7 +473,7 @@ public enum HitboxData {
 
     HANGING_ROOTS(new HexCollisionBox(2.0D, 10.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.HANGING_ROOTS),
 
-    GRASS_FERN((player, item, version, data, isTargetBlock, x ,y, z) -> {
+    GRASS_FERN((player, item, version, data, isTargetBlock, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
             return new SimpleCollisionBox(0.1F, 0.0F, 0.1F, 0.9F, 0.8F, 0.9F);
         }
@@ -552,7 +571,7 @@ public enum HitboxData {
             CollisionBox result = flowerAmount < 2 ? NoCollisionBox.INSTANCE : new ComplexCollisionBox(flowerAmount);
 
             // Pre-defined collision boxes for each quadrant
-            HexCollisionBox[] boxes = new HexCollisionBox[] {
+            HexCollisionBox[] boxes = new HexCollisionBox[]{
                     new HexCollisionBox(8, 0, 8, 16, 3, 16),  // SE
                     new HexCollisionBox(8, 0, 0, 16, 3, 8),   // NE
                     new HexCollisionBox(0, 0, 0, 8, 3, 8),    // NW

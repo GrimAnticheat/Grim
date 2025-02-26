@@ -127,7 +127,7 @@ public class BlockProperties {
             StateType blockstate = player.compensatedWorld.getBlockType(mainBlockPos.x, mainBlockPos.y, mainBlockPos.z);
 
             // I genuinely don't understand this code, or why fences are special
-            boolean shouldReturn = (!((double)searchBelowPlayer <= 0.5D) || !BlockTags.FENCES.contains(blockstate)) &&
+            boolean shouldReturn = (!((double) searchBelowPlayer <= 0.5D) || !BlockTags.FENCES.contains(blockstate)) &&
                     !BlockTags.WALLS.contains(blockstate) &&
                     !BlockTags.FENCE_GATES.contains(blockstate);
 
@@ -150,7 +150,8 @@ public class BlockProperties {
         if (material == StateTypes.FROSTED_ICE) friction = 0.98f;
         if (material == StateTypes.BLUE_ICE) {
             friction = 0.98f;
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) friction = 0.989f;
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13))
+                friction = 0.989f;
         }
 
         return friction;
@@ -181,7 +182,8 @@ public class BlockProperties {
         }
 
         float speed = getBlockSpeedFactor(player, block);
-        if (speed != 1.0f || block == StateTypes.SOUL_SAND || block == StateTypes.WATER || block == StateTypes.BUBBLE_COLUMN) return speed;
+        if (speed != 1.0f || block == StateTypes.SOUL_SAND || block == StateTypes.WATER || block == StateTypes.BUBBLE_COLUMN)
+            return speed;
 
         StateType block2 = player.compensatedWorld.getBlockType(pos.getX(), pos.getY() - 0.5000001, pos.getZ());
         return getBlockSpeedFactor(player, block2);

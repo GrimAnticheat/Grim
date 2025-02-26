@@ -9,6 +9,7 @@ import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
@@ -19,6 +20,7 @@ import ac.grim.grimac.platform.fabric.initables.FabricTickEndEvent;
 import ac.grim.grimac.platform.fabric.manager.FabricItemResetHandler;
 import ac.grim.grimac.platform.fabric.manager.FabricMessagePlaceHolderManager;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
+import ac.grim.grimac.platform.fabric.manager.FabricPermissionRegistrationManager;
 import ac.grim.grimac.platform.fabric.manager.FabricPlatformPluginManager;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
@@ -56,13 +58,13 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     private final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
     private final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() ->
-        new BasicGrimPlugin(
-                this.logger,
-                new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
-                FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
-                FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
-                FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
-        )
+            new BasicGrimPlugin(
+                    this.logger,
+                    new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
+                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
+                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
+                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
+            )
     );
 
     private final PlatformPlayerFactory playerFactory = new FabricPlatformPlayerFactory();
@@ -70,6 +72,7 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     private final PlatformPluginManager platformPluginManager = new FabricPlatformPluginManager();
     private final PlatformServer platformServer = new FabricPlatformServer();
     private final MessagePlaceHolderManager messagePlaceHolderManager = new FabricMessagePlaceHolderManager();
+    private final LazyHolder<FabricPermissionRegistrationManager> fabricPermissionRegistrationManager = LazyHolder.simple(FabricPermissionRegistrationManager::new);
 
 
     @Override
@@ -159,6 +162,11 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     @Override
     public @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager() {
         return messagePlaceHolderManager;
+    }
+
+    @Override
+    public PermissionRegistrationManager getPermissionManager() {
+        return fabricPermissionRegistrationManager.get();
     }
 
     private CommandManager<Sender> createCommandManager() {

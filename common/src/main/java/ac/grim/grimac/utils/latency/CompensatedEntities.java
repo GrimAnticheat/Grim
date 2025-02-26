@@ -5,7 +5,17 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
-import ac.grim.grimac.utils.data.packetentity.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityPainting;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragon;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
@@ -28,7 +38,12 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.UUID;
 
 public class CompensatedEntities {
 
@@ -40,11 +55,9 @@ public class CompensatedEntities {
     public final Object2ObjectOpenHashMap<UUID, UserProfile> profiles = new Object2ObjectOpenHashMap<>();
     public Integer serverPlayerVehicle = null;
     public boolean hasSprintingAttributeEnabled = false;
-
-    GrimPlayer player;
-
     public TrackerData selfTrackedEntity;
     public PacketEntitySelf self;
+    GrimPlayer player;
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
@@ -129,7 +142,8 @@ public class CompensatedEntities {
 
         for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
             Attribute attribute = snapshotWrapper.getAttribute();
-            if (attribute == null) continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
+            if (attribute == null)
+                continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
 
             // Rewrite horse.jumpStrength -> modern equivalent
             if (attribute == Attributes.HORSE_JUMP_STRENGTH) {

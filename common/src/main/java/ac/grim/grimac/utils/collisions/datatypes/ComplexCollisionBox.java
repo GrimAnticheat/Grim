@@ -65,7 +65,7 @@ public class ComplexCollisionBox implements CollisionBox {
     @Override
     public CollisionBox offset(double x, double y, double z) {
         for (int i = 0; i < currentLength; i++) {
-            boxes[i].offset(x, y ,z);
+            boxes[i].offset(x, y, z);
         }
         return this;
     }

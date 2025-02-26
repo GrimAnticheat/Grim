@@ -13,26 +13,26 @@ public class AimProcessor extends Check implements RotationCheck {
 
     private static final int SIGNIFICANT_SAMPLES_THRESHOLD = 15;
     private static final int TOTAL_SAMPLES_THRESHOLD = 80;
+    public double sensitivityX;
+    public double sensitivityY;
+    public double divisorX;
+    public double divisorY;
+    public double modeX, modeY;
+    public double deltaDotsX, deltaDotsY;
+    RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    float lastXRot;
+    float lastYRot;
 
     public AimProcessor(GrimPlayer playerData) {
         super(playerData);
     }
 
-    RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-    RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-
-    float lastXRot;
-    float lastYRot;
-
-    public double sensitivityX;
-    public double sensitivityY;
-
-    public double divisorX;
-    public double divisorY;
-
-    public double modeX, modeY;
-
-    public double deltaDotsX, deltaDotsY;
+    public static double convertToSensitivity(double var13) {
+        double var11 = var13 / 0.15F / 8.0D;
+        double var9 = Math.cbrt(var11);
+        return (var9 - 0.2f) / 0.6f;
+    }
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
@@ -74,11 +74,5 @@ public class AimProcessor extends Check implements RotationCheck {
 
         this.deltaDotsX = deltaXRot / modeX;
         this.deltaDotsY = deltaYRot / modeY;
-    }
-
-    public static double convertToSensitivity(double var13) {
-        double var11 = var13 / 0.15F / 8.0D;
-        double var9 = Math.cbrt(var11);
-        return (var9 - 0.2f) / 0.6f;
     }
 }

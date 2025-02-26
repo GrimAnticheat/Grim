@@ -1,7 +1,7 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
-import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;

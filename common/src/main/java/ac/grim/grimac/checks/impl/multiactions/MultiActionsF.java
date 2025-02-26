@@ -15,12 +15,12 @@ import java.util.List;
 
 @CheckData(name = "MultiActionsF", description = "Interacting with a block and an entity in the same tick", experimental = true)
 public class MultiActionsF extends BlockPlaceCheck {
+    private final List<String> flags = new ArrayList<>();
+    boolean entity, block;
+
     public MultiActionsF(GrimPlayer player) {
         super(player);
     }
-
-    private final List<String> flags = new ArrayList<>();
-    boolean entity, block;
 
     @Override
     public void onBlockPlace(BlockPlace place) {

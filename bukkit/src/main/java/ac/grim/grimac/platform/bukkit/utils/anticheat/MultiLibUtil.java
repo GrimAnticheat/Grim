@@ -8,8 +8,8 @@ import java.lang.reflect.Method;
 
 public class MultiLibUtil {
 
-    private static final boolean isPre1_18 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_18);
     public final static Method externalPlayerMethod = getMethod(Player.class, "isExternalPlayer");
+    private static final boolean isPre1_18 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_18);
 
     public static Method getMethod(Class<?> clazz, String methodName) {
         try {

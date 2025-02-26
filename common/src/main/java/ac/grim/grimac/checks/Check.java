@@ -18,7 +18,8 @@ import org.jetbrains.annotations.NotNull;
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
-    protected @NonNull final GrimPlayer player;
+    protected @NonNull
+    final GrimPlayer player;
 
     public double violations;
     private double decay;
@@ -37,6 +38,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private boolean exemptPermission;
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
+    private long lastViolationTime;
 
     public Check(final @NotNull GrimPlayer player) {
         Preconditions.checkArgument(player != null);
@@ -64,17 +66,18 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public void updatePermissions() {
-        if (player.platformPlayer == null || checkName == null) return;
+        if (player.platformPlayer == null || configName == null) return;
         GrimAPI.INSTANCE.getScheduler().getEntityScheduler().run(
                 player.platformPlayer,
                 GrimAPI.INSTANCE.getGrimPlugin(),
                 () -> {
-                    final String id = checkName.toLowerCase();
+                    final String id = configName.toLowerCase();
                     exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
                     noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
                     noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
                 },
-                () -> {}
+                () -> {
+                }
         );
     }
 
@@ -93,8 +96,6 @@ public class Check extends GrimProcessor implements AbstractCheck {
     public final boolean flag() {
         return flag("");
     }
-
-    private long lastViolationTime;
 
     public final boolean flag(String verbose) {
         if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)

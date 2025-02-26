@@ -19,30 +19,6 @@ import java.util.List;
 public class BlockPlaceCheck extends Check implements RotationCheck, PostPredictionCheck {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
-    private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
-
-    protected int cancelVL;
-
-    public BlockPlaceCheck(GrimPlayer player) {
-        super(player);
-    }
-
-    // Method called immediately after a block is placed, before forwarding block place to server
-    public void onBlockPlace(final BlockPlace place) {
-    }
-
-    // Method called the flying packet after the block place
-    public void onPostFlyingBlockPlace(BlockPlace place) {
-    }
-
-    @Override
-    public void onReload(ConfigManager config) {
-        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
-    }
-
-    protected boolean shouldCancel() {
-        return cancelVL >= 0 && violations >= cancelVL;
-    }
 
     static {
         // Fences and walls aren't worth checking.
@@ -64,6 +40,30 @@ public class BlockPlaceCheck extends Check implements RotationCheck, PostPredict
         buggyBoxes.add(StateTypes.WEEPING_VINES);
         buggyBoxes.add(StateTypes.WEEPING_VINES_PLANT);
         buggyBoxes.add(StateTypes.REDSTONE_WIRE);
+    }
+
+    private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
+    protected int cancelVL;
+
+    public BlockPlaceCheck(GrimPlayer player) {
+        super(player);
+    }
+
+    // Method called immediately after a block is placed, before forwarding block place to server
+    public void onBlockPlace(final BlockPlace place) {
+    }
+
+    // Method called the flying packet after the block place
+    public void onPostFlyingBlockPlace(BlockPlace place) {
+    }
+
+    @Override
+    public void onReload(ConfigManager config) {
+        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
+    }
+
+    protected boolean shouldCancel() {
+        return cancelVL >= 0 && violations >= cancelVL;
     }
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {

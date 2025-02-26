@@ -11,7 +11,11 @@ import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.events.packets.CheckManagerListener;
-import ac.grim.grimac.manager.*;
+import ac.grim.grimac.manager.ActionManager;
+import ac.grim.grimac.manager.CheckManager;
+import ac.grim.grimac.manager.LastInstanceManager;
+import ac.grim.grimac.manager.PunishmentManager;
+import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
@@ -24,19 +28,31 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
 import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.BlockPlaceSnapshot;
+import ac.grim.grimac.utils.data.MainSupportingBlockData;
+import ac.grim.grimac.utils.data.PacketStateData;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VehicleData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.latency.CompensatedEntities;
+import ac.grim.grimac.utils.latency.CompensatedFireworks;
+import ac.grim.grimac.utils.latency.CompensatedInventory;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.LatencyUtils;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -57,12 +73,15 @@ import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisconnect;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -74,7 +93,14 @@ import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -883,7 +909,11 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public boolean hasPermission(String s) {
-        return platformPlayer == null ? false : platformPlayer.hasPermission(s);
+        return platformPlayer != null && platformPlayer.hasPermission(s);
+    }
+
+    public boolean hasPermission(String s, boolean defaultIfUnset) {
+        return platformPlayer != null && platformPlayer.hasPermission(s, defaultIfUnset);
     }
 
     public void sendMessage(Component message) {

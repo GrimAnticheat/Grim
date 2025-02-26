@@ -9,7 +9,7 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,17 +17,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DiscordManager implements Initable {
+    public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
     private String embedTitle = "";
 
-    public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
-
     @Override
     public void start() {
         try {
-            if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false)) return;
+            if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false))
+                return;
             String webhook = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("webhook", "");
             if (webhook.isEmpty()) {
                 LogUtil.warn("Discord webhook is empty, disabling Discord alerts");

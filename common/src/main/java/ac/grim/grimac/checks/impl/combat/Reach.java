@@ -23,8 +23,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
-import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -38,20 +38,23 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 // You may not copy the check unless you are licensed under GPL
 @CheckData(name = "Reach", setback = 10)
 public class Reach extends Check implements PacketCheck {
 
-    // Only one flag per reach attack, per entity, per tick.
-    // We store position because lastX isn't reliable on teleports.
-    private final Int2ObjectMap<Vector3d> playerAttackQueue = new Int2ObjectOpenHashMap<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
-
+    private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
+    // Only one flag per reach attack, per entity, per tick.
+    // We store position because lastX isn't reliable on teleports.
+    private final Int2ObjectMap<Vector3d> playerAttackQueue = new Int2ObjectOpenHashMap<>();
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -89,9 +92,11 @@ public class Reach extends Check implements PacketCheck {
             if (entity.isDead) return;
 
             // TODO: Remove when in front of via
-            if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
+            if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
+                return;
 
-            if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return;
+            if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
+                return;
             if (player.inVehicle()) return;
             if (entity.riding != null) return;
 
@@ -127,7 +132,8 @@ public class Reach extends Check implements PacketCheck {
         if ((blacklisted.contains(reachEntity.getType()) || !reachEntity.isLivingEntity()) && reachEntity.getType() != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
-        if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR) return false;
+        if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
+            return false;
         if (player.inVehicle()) return false;
 
         // Filter out what we assume to be cheats
@@ -247,21 +253,19 @@ public class Reach extends Check implements PacketCheck {
         return NONE;
     }
 
-    private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
-
-    private record CheckResult(ResultType type, String verbose) {
-        public boolean isFlag() {
-            return type != ResultType.NONE;
-        }
+    @Override
+    public void onReload(ConfigManager config) {
+        this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
+        this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
     }
 
     private enum ResultType {
         REACH, HITBOX, NONE
     }
 
-    @Override
-    public void onReload(ConfigManager config) {
-        this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
-        this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
+    private record CheckResult(ResultType type, String verbose) {
+        public boolean isFlag() {
+            return type != ResultType.NONE;
+        }
     }
 }

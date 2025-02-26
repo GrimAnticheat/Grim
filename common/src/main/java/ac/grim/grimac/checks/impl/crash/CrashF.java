@@ -29,9 +29,7 @@ public class CrashF extends Check implements PacketCheck {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
-            }
-
-            else if (windowId >= 0 && clickType == 2 && slot < 0) {
+            } else if (windowId >= 0 && clickType == 2 && slot < 0) {
                 if (flagAndAlert("clickType=" + clickType + " button=" + button + " slot=" + slot)) {
                     event.setCancelled(true);
                     player.onPacketCancel();

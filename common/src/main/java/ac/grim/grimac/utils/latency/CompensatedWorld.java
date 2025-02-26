@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -34,7 +35,11 @@ import com.github.retrooper.packetevents.protocol.world.chunk.storage.LegacyFlex
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.*;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
@@ -50,9 +55,13 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.Getter;
-import ac.grim.grimac.utils.math.Vector3dm;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -123,7 +132,6 @@ public class CompensatedWorld {
             }
         });
     }
-
 
     private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
         player.sendTransaction();

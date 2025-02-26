@@ -5,7 +5,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 
 import java.util.UUID;
 
-public class PacketEntityHook extends PacketEntity{
+public class PacketEntityHook extends PacketEntity {
     public int owner;
     public int attached = -1;
 

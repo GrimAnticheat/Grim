@@ -6,8 +6,8 @@ import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -20,7 +20,8 @@ public class FarBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR || player.inVehicle() || blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
+        if (player.gamemode == GameMode.SPECTATOR || player.inVehicle() || blockBreak.action == DiggingAction.CANCELLED_DIGGING)
+            return; // falses
 
         double min = Double.MAX_VALUE;
         for (double d : player.getPossibleEyeHeights()) {

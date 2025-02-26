@@ -16,9 +16,9 @@ public class FabricPlatformChunk implements PlatformChunk {
     @Override
     public int getBlockID(int x, int y, int z) {
         return Block.getRawIdFromState(chunk.getBlockState(new BlockPos(
-            chunk.getPos().getStartX() + x,
-            y,
-            chunk.getPos().getStartZ() + z
+                chunk.getPos().getStartX() + x,
+                y,
+                chunk.getPos().getStartZ() + z
         )));
     }
 }

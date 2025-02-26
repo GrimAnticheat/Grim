@@ -6,7 +6,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerInitializeWorldBorder;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorder;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorderCenter;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorderSize;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayWorldBorderLerpSize;
 
 public class PacketWorldBorder extends Check implements PacketCheck {
     double centerX;
@@ -103,11 +107,11 @@ public class PacketWorldBorder extends Check implements PacketCheck {
         });
     }
 
-    private void setAbsoluteMaxSize(double absoluteMaxSize) {
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> this.absoluteMaxSize = absoluteMaxSize);
-    }
-
     public double getAbsoluteMaxSize() {
         return absoluteMaxSize;
+    }
+
+    private void setAbsoluteMaxSize(double absoluteMaxSize) {
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> this.absoluteMaxSize = absoluteMaxSize);
     }
 }

@@ -20,11 +20,6 @@ public class DefaultResyncHandler implements ResyncHandler {
 
     private final GrimPlayer player;
 
-    @Override
-    public void resync(int minBlockX, int minBlockY, int minBlockZ, int maxBlockX, int maxBlockY, int maxBlockZ) {
-        resyncPositions(player, minBlockX, minBlockY, minBlockZ, maxBlockX, maxBlockY, maxBlockZ);
-    }
-
     private static void resyncPositions(GrimPlayer player, int minBlockX, int mY, int minBlockZ, int maxBlockX, int mxY, int maxBlockZ) {
         // Check the 4 corners of the player world for loaded chunks before calling event
         if (!player.compensatedWorld.isChunkLoaded(minBlockX >> 4, minBlockZ >> 4) || !player.compensatedWorld.isChunkLoaded(minBlockX >> 4, maxBlockZ >> 4)
@@ -110,10 +105,12 @@ public class DefaultResyncHandler implements ResyncHandler {
         final PlatformWorld world = player.platformPlayer.getWorld();
 
         GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world, chunkX, chunkZ, () -> {
-            if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
+            if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport)
+                return;
 
             if (!player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) return;
-            if (player.platformPlayer.getPosition().distance(new Vector3d(pos.x, pos.y, pos.z)) >= 64) return;
+            if (player.platformPlayer.getPosition().distance(new Vector3d(pos.x, pos.y, pos.z)) >= 64)
+                return;
             if (!world.isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 
             final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(pos.x & 15, pos.y, pos.z & 15);
@@ -123,5 +120,10 @@ public class DefaultResyncHandler implements ResyncHandler {
                 player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
             }
         });
+    }
+
+    @Override
+    public void resync(int minBlockX, int minBlockY, int minBlockZ, int maxBlockX, int maxBlockY, int maxBlockZ) {
+        resyncPositions(player, minBlockX, minBlockY, minBlockZ, maxBlockX, maxBlockY, maxBlockZ);
     }
 }

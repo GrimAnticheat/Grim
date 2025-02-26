@@ -5,7 +5,6 @@ import ac.grim.grimac.api.event.GrimEvent;
 import ac.grim.grimac.api.event.OptimizedEventBus;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
-import ac.grim.grimac.platform.api.permission.Permission;
 import ac.grim.grimac.platform.fabric.FabricPlatformPlugin;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -44,15 +43,6 @@ public class FabricPlatformPluginManager implements PlatformPluginManager {
         Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer(pluginName);
         return mod.map(FabricPlatformPlugin::new).orElse(null);
     }
-
-    // TODO implement this
-    @Override
-    public Permission getPermission(String permissionName) {
-        return null;
-    }
-
-    @Override
-    public void addPermission(Permission permission) {}
 
     @Override
     public boolean isPluginEnabled(String pluginName) {

@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.FloodgateUtil;
@@ -19,8 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
-    private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
     public final Collection<User> exemptUsers = Collections.synchronizedCollection(new HashSet<>());
+    private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     @Nullable
     public GrimPlayer getPlayer(@NonNull final UUID uuid) {
@@ -33,7 +32,8 @@ public class PlayerDataManager {
     @Nullable
     public GrimPlayer getPlayer(final User user) {
         @Nullable GrimPlayer player = playerDataMap.get(user);
-        if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer()) return null;
+        if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer())
+            return null;
         return player;
     }
 
@@ -50,8 +50,8 @@ public class PlayerDataManager {
             }
 
             // Has exempt permission
-            GrimUser grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
-            if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
+            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
+            if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt", false)) {
                 exemptUsers.add(user);
                 return false;
             }
@@ -76,7 +76,7 @@ public class PlayerDataManager {
     }
 
     public GrimPlayer remove(final User user) {
-       return playerDataMap.remove(user);
+        return playerDataMap.remove(user);
     }
 
     public Collection<GrimPlayer> getEntries() {

@@ -46,13 +46,13 @@ import java.util.Objects;
 // TODO update for 1.20.2-
 public class PacketPlayerRespawn extends PacketListenerAbstract {
 
-    public PacketPlayerRespawn() {
-        super(PacketListenerPriority.HIGH);
-    }
-
     private static final byte KEEP_ATTRIBUTES = 1;
     private static final byte KEEP_TRACKED_DATA = 2;
     private static final byte KEEP_ALL = 3;
+
+    public PacketPlayerRespawn() {
+        super(PacketListenerPriority.HIGH);
+    }
 
     private boolean hasFlag(WrapperPlayServerRespawn respawn, byte flag) {
         // This packet was added in 1.16
@@ -83,7 +83,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (player.packetStateData.lastFood == health.getFood()
                     && player.packetStateData.lastHealth == health.getHealth()
                     && player.packetStateData.lastSaturation == health.getFoodSaturation()
-                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
+                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
+                return;
 
             player.packetStateData.lastFood = health.getFood();
             player.packetStateData.lastHealth = health.getHealth();
@@ -115,7 +116,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.entityID = joinGame.getEntityId();
             player.dimensionType = joinGame.getDimensionType();
 
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17))
+                return;
             player.compensatedWorld.setDimension(joinGame.getDimensionType(), event.getUser());
         }
 

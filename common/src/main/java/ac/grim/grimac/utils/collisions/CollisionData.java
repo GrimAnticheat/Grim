@@ -2,13 +2,27 @@ package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
-import ac.grim.grimac.utils.collisions.blocks.*;
+import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
+import ac.grim.grimac.utils.collisions.blocks.DynamicChest;
+import ac.grim.grimac.utils.collisions.blocks.DynamicChorusPlant;
+import ac.grim.grimac.utils.collisions.blocks.DynamicStair;
+import ac.grim.grimac.utils.collisions.blocks.PistonBaseCollision;
+import ac.grim.grimac.utils.collisions.blocks.PistonHeadCollision;
+import ac.grim.grimac.utils.collisions.blocks.TrapDoorHandler;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicCollisionWall;
-import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.DynamicCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexOffsetCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -17,13 +31,27 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.*;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Axis;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
+import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.viaversion.viaversion.api.Via;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 // Warning for major game updates!
@@ -533,10 +561,12 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
 
         return switch (data.getFacing()) {
-            case NORTH, SOUTH -> new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F, false);
-            case WEST, EAST -> new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F, false);
+            case NORTH, SOUTH ->
+                    new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F, false);
+            case WEST, EAST ->
+                    new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F, false);
             default -> // This code is unreachable but the compiler does not know this
-                NoCollisionBox.INSTANCE;
+                    NoCollisionBox.INSTANCE;
         };
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
@@ -1061,12 +1091,18 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
 
         return switch (facing) {
-            case DOWN -> new HexCollisionBox(param_1, 16 - param_0, param_1, 16 - param_1, 16.0, 16 - param_1);
-            case NORTH -> new HexCollisionBox(param_1, param_1, 16 - param_0, 16 - param_1, 16 - param_1, 16.0);
-            case SOUTH -> new HexCollisionBox(param_1, param_1, 0.0, 16 - param_1, 16 - param_1, param_0);
-            case EAST -> new HexCollisionBox(0.0, param_1, param_1, param_0, 16 - param_1, 16 - param_1);
-            case WEST -> new HexCollisionBox(16 - param_0, param_1, param_1, 16.0, 16 - param_1, 16 - param_1);
-            default -> new HexCollisionBox(param_1, 0.0, param_1, 16 - param_1, param_0, 16 - param_1);
+            case DOWN ->
+                    new HexCollisionBox(param_1, 16 - param_0, param_1, 16 - param_1, 16.0, 16 - param_1);
+            case NORTH ->
+                    new HexCollisionBox(param_1, param_1, 16 - param_0, 16 - param_1, 16 - param_1, 16.0);
+            case SOUTH ->
+                    new HexCollisionBox(param_1, param_1, 0.0, 16 - param_1, 16 - param_1, param_0);
+            case EAST ->
+                    new HexCollisionBox(0.0, param_1, param_1, param_0, 16 - param_1, 16 - param_1);
+            case WEST ->
+                    new HexCollisionBox(16 - param_0, param_1, param_1, 16.0, 16 - param_1, 16 - param_1);
+            default ->
+                    new HexCollisionBox(param_1, 0.0, param_1, 16 - param_1, param_0, 16 - param_1);
         };
     }
 

@@ -1,6 +1,7 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;

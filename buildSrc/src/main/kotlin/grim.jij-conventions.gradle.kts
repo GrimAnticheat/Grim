@@ -1,13 +1,6 @@
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.kotlin.dsl.dependencies
+import kotlinx.serialization.json.*
 import java.util.jar.JarFile
 import java.util.zip.ZipEntry
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonPrimitive
 
 plugins {
     `java-library`
@@ -36,7 +29,8 @@ fun parseFabricModJson(jarFile: File, project: Project): Set<DependencyIdentifie
                     val jsonObject = jsonElement.jsonObject
                     val jarsArray = jsonObject["jars"]?.jsonArray ?: return@use
                     jarsArray.forEach { jarEntry: JsonElement ->
-                        val filePath = jarEntry.jsonObject["file"]?.jsonPrimitive?.content ?: return@forEach
+                        val filePath =
+                            jarEntry.jsonObject["file"]?.jsonPrimitive?.content ?: return@forEach
                         project.logger.debug(
                             "Found nested JAR in fabric.mod.json: {} in {}",
                             filePath,
@@ -69,7 +63,10 @@ fun extractEmbeddedJars(jarFile: File, project: Project): Set<DependencyIdentifi
             while (entries.hasMoreElements()) {
                 val entry = entries.nextElement()
                 val entryName = entry.name
-                if (entryName.endsWith(".jar") && (entryName.startsWith("META-INF/jarjar/") || entryName.startsWith("libs/") || entryName.startsWith("META-INF/jars/"))) {
+                if (entryName.endsWith(".jar") && (entryName.startsWith("META-INF/jarjar/") || entryName.startsWith(
+                        "libs/"
+                    ) || entryName.startsWith("META-INF/jars/"))
+                ) {
                     project.logger.debug("Found embedded JAR: {} in {}", entryName, jarFile)
                     val tempFile = File.createTempFile("embedded-", ".jar")
                     tempFile.deleteOnExit()
@@ -81,9 +78,12 @@ fun extractEmbeddedJars(jarFile: File, project: Project): Set<DependencyIdentifi
                     JarFile(tempFile).use { embeddedJar ->
                         val manifest = embeddedJar.manifest
                         if (manifest != null) {
-                            val group = manifest.mainAttributes.getValue("Implementation-Vendor") ?: ""
-                            val name = manifest.mainAttributes.getValue("Implementation-Title") ?: embeddedJar.name
-                            val version = manifest.mainAttributes.getValue("Implementation-Version") ?: ""
+                            val group =
+                                manifest.mainAttributes.getValue("Implementation-Vendor") ?: ""
+                            val name = manifest.mainAttributes.getValue("Implementation-Title")
+                                ?: embeddedJar.name
+                            val version =
+                                manifest.mainAttributes.getValue("Implementation-Version") ?: ""
                             if (group.isNotEmpty() && name.isNotEmpty() && version.isNotEmpty()) {
                                 embeddedJars.add(DependencyIdentifier(group, name, version))
                                 project.logger.debug("Identified embedded dependency: $group:$name:$version")
@@ -93,7 +93,13 @@ fun extractEmbeddedJars(jarFile: File, project: Project): Set<DependencyIdentifi
                                 if (parts.size >= 2) {
                                     val inferredName = parts.dropLast(1).joinToString("-")
                                     val inferredVersion = parts.last()
-                                    embeddedJars.add(DependencyIdentifier("", inferredName, inferredVersion))
+                                    embeddedJars.add(
+                                        DependencyIdentifier(
+                                            "",
+                                            inferredName,
+                                            inferredVersion
+                                        )
+                                    )
                                     project.logger.debug("Inferred embedded dependency from filename: :$inferredName:$inferredVersion")
                                 }
                             }
@@ -125,7 +131,8 @@ fun shouldExcludeDependency(
         name == "fabric-loader" ||
         name == "fastutil" ||
         name.startsWith("fabric_") ||
-        name.startsWith("fabric-api")) {
+        name.startsWith("fabric-api")
+    ) {
         project.logger.debug("Excluding platform dependency: {}", depId)
         return true
     }
@@ -156,9 +163,18 @@ fun isJijTarget(
 ): Boolean {
     project.logger.debug(
         "Checking JIJ target: {}",
-        DependencyIdentifier(dependency.moduleGroup, dependency.moduleName, dependency.moduleVersion)
+        DependencyIdentifier(
+            dependency.moduleGroup,
+            dependency.moduleName,
+            dependency.moduleVersion
+        )
     )
-    return !shouldExcludeDependency(dependency, allEmbeddedDependencies, actuallyIncludedDependencies, project)
+    return !shouldExcludeDependency(
+        dependency,
+        allEmbeddedDependencies,
+        actuallyIncludedDependencies,
+        project
+    )
 }
 
 fun includeDependencyWithExclusions(
@@ -205,7 +221,13 @@ fun processDependencies(
                 }
             }
 
-            if (isJijTarget(dep, allEmbeddedDependencies.keys, actuallyIncludedDependencies, project)) {
+            if (isJijTarget(
+                    dep,
+                    allEmbeddedDependencies.keys,
+                    actuallyIncludedDependencies,
+                    project
+                )
+            ) {
                 project.logger.debug("Processing JIJ dependency: {}", depId)
                 val isProjectDependency = project.rootProject.allprojects.any { subproject ->
                     subproject.name == dep.moduleName && (subproject.group == dep.moduleGroup || dep.moduleGroup.isEmpty())
@@ -213,7 +235,8 @@ fun processDependencies(
                 if (isProjectDependency) {
                     val projectPath = project.rootProject.allprojects.find { subproject ->
                         subproject.name == dep.moduleName && (subproject.group == dep.moduleGroup || dep.moduleGroup.isEmpty())
-                    }?.path ?: throw IllegalStateException("Project dependency not found: ${dep.moduleName}")
+                    }?.path
+                        ?: throw IllegalStateException("Project dependency not found: ${dep.moduleName}")
                     project.logger.debug("Including project dependency as JIJ: $projectPath")
                     project.dependencies {
                         "include"(project.project(projectPath))
@@ -229,7 +252,13 @@ fun processDependencies(
                 }
             }
 
-            processDependencies(dep.children, processed, allEmbeddedDependencies, actuallyIncludedDependencies, project)
+            processDependencies(
+                dep.children,
+                processed,
+                allEmbeddedDependencies,
+                actuallyIncludedDependencies,
+                project
+            )
         }
     }
 }
@@ -268,13 +297,20 @@ project.afterEvaluate {
     collectAllEmbeddedDependencies(resolvedDependencies)
 
     processed.clear()
-    processDependencies(resolvedDependencies, processed, allEmbeddedDependencies, actuallyIncludedDependencies, project)
+    processDependencies(
+        resolvedDependencies,
+        processed,
+        allEmbeddedDependencies,
+        actuallyIncludedDependencies,
+        project
+    )
 }
 
 tasks.withType<Jar>().configureEach {
     doFirst {
         project.logger.debug("Resolving JIJ dependencies for JAR inclusion")
-        val resolvedDependencies = jijDependencies.resolvedConfiguration.firstLevelModuleDependencies
+        val resolvedDependencies =
+            jijDependencies.resolvedConfiguration.firstLevelModuleDependencies
         val processed = mutableSetOf<String>()
         val allEmbeddedDependencies = mutableMapOf<DependencyIdentifier, File>()
         val actuallyIncludedDependencies = mutableSetOf<DependencyIdentifier>()
@@ -322,7 +358,13 @@ tasks.withType<Jar>().configureEach {
                         }
                     }
 
-                    if (isJijTarget(dep, allEmbeddedDependencies.keys, actuallyIncludedDependencies, project)) {
+                    if (isJijTarget(
+                            dep,
+                            allEmbeddedDependencies.keys,
+                            actuallyIncludedDependencies,
+                            project
+                        )
+                    ) {
                         project.logger.debug("Including JIJ dependency in JAR: {}", depId)
                         actuallyIncludedDependencies.add(depId)
                     }

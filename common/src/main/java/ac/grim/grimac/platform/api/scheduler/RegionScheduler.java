@@ -19,8 +19,8 @@
 package ac.grim.grimac.platform.api.scheduler;
 
 import ac.grim.grimac.api.GrimPlugin;
-import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.utils.math.Location;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,7 +37,7 @@ public interface RegionScheduler {
      * @param chunkZ The chunk Z coordinate of the region that owns the task
      * @param run    The task to execute
      */
-    public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable run);
+    void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable run);
 
     /**
      * Schedules a task to be executed on the region which owns the location.
@@ -46,7 +46,7 @@ public interface RegionScheduler {
      * @param location The location at which the region executing should own
      * @param run      The task to execute
      */
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable run);
+    void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable run);
 
     /**
      * Schedules a task to be executed on the region which owns the location on the next tick.
@@ -58,7 +58,7 @@ public interface RegionScheduler {
      * @param task   The task to execute
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task);
+    TaskHandle run(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task);
 
     /**
      * Schedules a task to be executed on the region which owns the location on the next tick.
@@ -68,7 +68,7 @@ public interface RegionScheduler {
      * @param task     The task to execute
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task);
+    TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task);
 
     /**
      * Schedules a task to be executed on the region which owns the location after the specified delay in ticks.
@@ -81,7 +81,7 @@ public interface RegionScheduler {
      * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks);
+    TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks);
 
     /**
      * Schedules a task to be executed on the region which owns the location after the specified delay in ticks.
@@ -92,7 +92,7 @@ public interface RegionScheduler {
      * @param delayTicks The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long delayTicks);
+    TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long delayTicks);
 
     /**
      * Schedules a repeating task to be executed on the region which owns the location after the initial delay with the specified period.
@@ -106,7 +106,7 @@ public interface RegionScheduler {
      * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
+    TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
 
     /**
      * Schedules a repeating task to be executed on the region which owns the location after the initial delay with the specified period.
@@ -118,5 +118,5 @@ public interface RegionScheduler {
      * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
+    TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
 }

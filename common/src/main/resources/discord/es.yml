@@ -14,10 +14,10 @@ embed-color: "#00FFFF"
 
 # El contenido del embed que se mandara por este webhook.
 violation-content:
-  - "**Jugador**: %player%"
-  - "**Comprobación**: %check%"
-  - "**Violaciones**: %violations%"
-  - "**Version del cliente**: %version%"
-  - "**Marca del cliente**: %brand%"
-  - "**Latencia**: %ping%"
-  - "**TPS**: %tps%"
+    - "**Jugador**: %player%"
+    - "**Comprobación**: %check%"
+    - "**Violaciones**: %violations%"
+    - "**Version del cliente**: %version%"
+    - "**Marca del cliente**: %brand%"
+    - "**Latencia**: %ping%"
+    - "**TPS**: %tps%"

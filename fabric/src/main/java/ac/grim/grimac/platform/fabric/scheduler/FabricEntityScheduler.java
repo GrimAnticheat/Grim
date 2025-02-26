@@ -29,16 +29,16 @@ public class FabricEntityScheduler implements EntityScheduler {
     @Override
     public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable run, @Nullable Runnable retired, long delay) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            () -> {
-                run.run();
-                if (retired != null && entity.isDead()) {
-                    retired.run();
-                }
-            },
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
-            0,
-            false,
-            plugin
+                () -> {
+                    run.run();
+                    if (retired != null && entity.isDead()) {
+                        retired.run();
+                    }
+                },
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -47,16 +47,16 @@ public class FabricEntityScheduler implements EntityScheduler {
     @Override
     public TaskHandle run(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            () -> {
-                task.run();
-                if (retired != null && entity.isDead()) {
-                    retired.run();
-                }
-            },
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
-            0,
-            false,
-            plugin
+                () -> {
+                    task.run();
+                    if (retired != null && entity.isDead()) {
+                        retired.run();
+                    }
+                },
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -66,16 +66,16 @@ public class FabricEntityScheduler implements EntityScheduler {
     @Override
     public TaskHandle runDelayed(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long delayTicks) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            () -> {
-                task.run();
-                if (retired != null && entity.isDead()) {
-                    retired.run();
-                }
-            },
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delayTicks,
-            0,
-            false,
-            plugin
+                () -> {
+                    task.run();
+                    if (retired != null && entity.isDead()) {
+                        retired.run();
+                    }
+                },
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delayTicks,
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -85,16 +85,16 @@ public class FabricEntityScheduler implements EntityScheduler {
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long initialDelayTicks, long periodTicks) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            () -> {
-                task.run();
-                if (retired != null && entity.isDead()) {
-                    retired.run();
-                }
-            },
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
-            periodTicks,
-            true,
-            plugin
+                () -> {
+                    task.run();
+                    if (retired != null && entity.isDead()) {
+                        retired.run();
+                    }
+                },
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
+                periodTicks,
+                true,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);

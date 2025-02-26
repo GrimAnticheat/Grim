@@ -3,15 +3,19 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Location;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpectateManager implements Initable {
@@ -88,5 +92,6 @@ public class SpectateManager implements Initable {
         spectatingPlayers.remove(uuid);
     }
 
-    private record PreviousState(GameMode gameMode, Location location) {}
+    private record PreviousState(GameMode gameMode, Location location) {
+    }
 }

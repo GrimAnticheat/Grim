@@ -5,14 +5,60 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
-import ac.grim.grimac.checks.impl.badpackets.*;
-import ac.grim.grimac.checks.impl.breaking.*;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsA;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsC;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsD;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsH;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsK;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsL;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsM;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsO;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsP;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsQ;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsR;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsS;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsT;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsU;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsV;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsX;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsY;
+import ac.grim.grimac.checks.impl.breaking.AirLiquidBreak;
+import ac.grim.grimac.checks.impl.breaking.FarBreak;
+import ac.grim.grimac.checks.impl.breaking.FastBreak;
+import ac.grim.grimac.checks.impl.breaking.InvalidBreak;
+import ac.grim.grimac.checks.impl.breaking.MultiBreak;
+import ac.grim.grimac.checks.impl.breaking.NoSwingBreak;
+import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
+import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
+import ac.grim.grimac.checks.impl.breaking.RotationBreak;
+import ac.grim.grimac.checks.impl.breaking.WrongBreak;
 import ac.grim.grimac.checks.impl.combat.Hitboxes;
 import ac.grim.grimac.checks.impl.combat.MultiInteractA;
 import ac.grim.grimac.checks.impl.combat.MultiInteractB;
 import ac.grim.grimac.checks.impl.combat.Reach;
-import ac.grim.grimac.checks.impl.crash.*;
-import ac.grim.grimac.checks.impl.elytra.*;
+import ac.grim.grimac.checks.impl.crash.CrashA;
+import ac.grim.grimac.checks.impl.crash.CrashB;
+import ac.grim.grimac.checks.impl.crash.CrashC;
+import ac.grim.grimac.checks.impl.crash.CrashD;
+import ac.grim.grimac.checks.impl.crash.CrashE;
+import ac.grim.grimac.checks.impl.crash.CrashF;
+import ac.grim.grimac.checks.impl.crash.CrashG;
+import ac.grim.grimac.checks.impl.crash.CrashH;
+import ac.grim.grimac.checks.impl.elytra.ElytraA;
+import ac.grim.grimac.checks.impl.elytra.ElytraB;
+import ac.grim.grimac.checks.impl.elytra.ElytraC;
+import ac.grim.grimac.checks.impl.elytra.ElytraD;
+import ac.grim.grimac.checks.impl.elytra.ElytraE;
+import ac.grim.grimac.checks.impl.elytra.ElytraF;
+import ac.grim.grimac.checks.impl.elytra.ElytraG;
+import ac.grim.grimac.checks.impl.elytra.ElytraH;
+import ac.grim.grimac.checks.impl.elytra.ElytraI;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.exploit.ExploitC;
@@ -20,15 +66,36 @@ import ac.grim.grimac.checks.impl.groundspoof.NoFall;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.*;
-import ac.grim.grimac.checks.impl.multiactions.*;
+import ac.grim.grimac.checks.impl.movement.NoSlow;
+import ac.grim.grimac.checks.impl.movement.PredictionRunner;
+import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
+import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsA;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsB;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsD;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsE;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsF;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.GroundSpoof;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.Phase;
-import ac.grim.grimac.checks.impl.scaffolding.*;
-import ac.grim.grimac.checks.impl.sprint.*;
+import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
+import ac.grim.grimac.checks.impl.scaffolding.DuplicateRotPlace;
+import ac.grim.grimac.checks.impl.scaffolding.FabricatedPlace;
+import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
+import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceA;
+import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceB;
+import ac.grim.grimac.checks.impl.scaffolding.MultiPlace;
+import ac.grim.grimac.checks.impl.scaffolding.PositionPlace;
+import ac.grim.grimac.checks.impl.scaffolding.RotationPlace;
+import ac.grim.grimac.checks.impl.sprint.SprintA;
+import ac.grim.grimac.checks.impl.sprint.SprintB;
+import ac.grim.grimac.checks.impl.sprint.SprintC;
+import ac.grim.grimac.checks.impl.sprint.SprintD;
+import ac.grim.grimac.checks.impl.sprint.SprintE;
+import ac.grim.grimac.checks.impl.sprint.SprintF;
 import ac.grim.grimac.checks.impl.timer.NegativeTimer;
 import ac.grim.grimac.checks.impl.timer.TickTimer;
 import ac.grim.grimac.checks.impl.timer.Timer;
@@ -39,18 +106,28 @@ import ac.grim.grimac.checks.impl.vehicle.VehicleC;
 import ac.grim.grimac.checks.impl.vehicle.VehicleD;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
-import ac.grim.grimac.checks.type.*;
+import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PositionCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.RotationCheck;
+import ac.grim.grimac.checks.type.VehicleCheck;
 import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.manager.init.start.SuperDebug;
-import ac.grim.grimac.platform.api.permission.Permission;
-import ac.grim.grimac.platform.api.permission.PermissionDefault;
+import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
-import ac.grim.grimac.utils.anticheat.update.*;
+import ac.grim.grimac.utils.anticheat.update.BlockBreak;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
+import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
+import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
@@ -59,12 +136,13 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckManager {
-    private static boolean inited;
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
-
+    private static boolean inited;
+    public ClassToInstanceMap<AbstractCheck> allChecks;
     ClassToInstanceMap<PacketCheck> packetChecks;
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
@@ -73,8 +151,8 @@ public class CheckManager {
     ClassToInstanceMap<BlockBreakCheck> blockBreakChecks;
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
-
-    public ClassToInstanceMap<AbstractCheck> allChecks;
+    private PacketEntityReplication packetEntityReplication = null;
+    private CompensatedInventory inventory = null;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -358,18 +436,15 @@ public class CheckManager {
         return (T) prePredictionChecks.get(check);
     }
 
-    private PacketEntityReplication packetEntityReplication = null;
-
     public PacketEntityReplication getEntityReplication() {
-        if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
+        if (packetEntityReplication == null)
+            packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
         return packetEntityReplication;
     }
 
     public NoFall getNoFall() {
         return getPacketCheck(NoFall.class);
     }
-
-    private CompensatedInventory inventory = null;
 
     public CompensatedInventory getInventory() {
         if (inventory == null) inventory = getPacketCheck(CompensatedInventory.class);
@@ -416,16 +491,11 @@ public class CheckManager {
         };
 
         for (final AbstractCheck check : allChecks.values()) {
-            if (check.getCheckName() == null) continue;
-            final String id = check.getCheckName().toLowerCase();
+            if (check.getConfigName() == null) continue;
+            final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
                 permissionName += id;
-                final Permission permission = GrimAPI.INSTANCE.getPluginManager().getPermission(permissionName);
-                if (permission == null) {
-                    GrimAPI.INSTANCE.getPluginManager().addPermission(new Permission(permissionName, PermissionDefault.FALSE));
-                } else {
-                    permission.setDefault(PermissionDefault.FALSE);
-                }
+                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName, PermissionDefaultValue.FALSE);
             }
         }
     }

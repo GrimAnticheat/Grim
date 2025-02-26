@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @CheckData(name = "Simulation", decay = 0.02)
 public class OffsetHandler extends Check implements PostPredictionCheck {
+    private static final AtomicInteger flags = new AtomicInteger(0);
     // Config
     double setbackDecayMultiplier;
     double threshold;
@@ -20,11 +21,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double maxAdvantage;
     double maxCeiling;
     double setbackViolationThreshold;
-
     // Current advantage gained
     double advantageGained = 0;
-
-    private static final AtomicInteger flags = new AtomicInteger(0);
 
     public OffsetHandler(GrimPlayer player) {
         super(player);
@@ -45,8 +43,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
             advantageGained += offset;
 
             boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
-                                && !isNoSetbackPermission()
-                                && violations >= setbackViolationThreshold;
+                    && !isNoSetbackPermission()
+                    && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {

@@ -1,4 +1,4 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 import org.incendo.cloud.CommandManager;

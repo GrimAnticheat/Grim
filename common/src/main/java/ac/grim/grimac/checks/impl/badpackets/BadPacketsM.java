@@ -13,13 +13,13 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 @CheckData(name = "BadPacketsM")
 public class BadPacketsM extends Check implements PacketCheck {
-    public BadPacketsM(final GrimPlayer player) {
-        super(player);
-    }
-
     // 1.7 players do not send INTERACT_AT, so we cannot check them
     private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
     private boolean sentInteractAt = false;
+
+    public BadPacketsM(final GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

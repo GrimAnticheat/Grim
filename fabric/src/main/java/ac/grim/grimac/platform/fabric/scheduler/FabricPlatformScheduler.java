@@ -2,8 +2,13 @@ package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.*;
+import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
+import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
+import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
+import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
 import net.minecraft.server.MinecraftServer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,42 +27,6 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         this.globalRegionScheduler = new FabricGlobalRegionScheduler(plugin);
         this.entityScheduler = new FabricEntityScheduler(plugin);
         this.regionScheduler = new FabricRegionScheduler(plugin);
-    }
-
-    @Override
-    public AsyncScheduler getAsyncScheduler() {
-        return asyncScheduler;
-    }
-
-    @Override
-    public GlobalRegionScheduler getGlobalRegionScheduler() {
-        return globalRegionScheduler;
-    }
-
-    @Override
-    public EntityScheduler getEntityScheduler() {
-        return entityScheduler;
-    }
-
-    @Override
-    public RegionScheduler getRegionScheduler() {
-        return regionScheduler;
-    }
-
-    protected static class ScheduledTask {
-        final Runnable task;
-        final long period;
-        final boolean isPeriodic;
-        final GrimPlugin plugin; // Add plugin reference
-        long nextRunTick;
-
-        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic, GrimPlugin plugin) {
-            this.task = task;
-            this.nextRunTick = nextRunTick;
-            this.period = period;
-            this.isPeriodic = isPeriodic;
-            this.plugin = plugin;
-        }
     }
 
     // Shared method to handle synchronous tasks
@@ -108,6 +77,26 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         }
     }
 
+    @Override
+    public @NonNull AsyncScheduler getAsyncScheduler() {
+        return asyncScheduler;
+    }
+
+    @Override
+    public @NonNull GlobalRegionScheduler getGlobalRegionScheduler() {
+        return globalRegionScheduler;
+    }
+
+    @Override
+    public @NonNull EntityScheduler getEntityScheduler() {
+        return entityScheduler;
+    }
+
+    @Override
+    public @NonNull RegionScheduler getRegionScheduler() {
+        return regionScheduler;
+    }
+
     /**
      * Shuts down all schedulers and cancels all pending tasks.
      * This method should be called when the server is shutting down.
@@ -117,5 +106,21 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         globalRegionScheduler.cancelAll();
         entityScheduler.cancelAll();
         regionScheduler.cancelAll();
+    }
+
+    protected static class ScheduledTask {
+        final Runnable task;
+        final long period;
+        final boolean isPeriodic;
+        final GrimPlugin plugin; // Add plugin reference
+        long nextRunTick;
+
+        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic, GrimPlugin plugin) {
+            this.task = task;
+            this.nextRunTick = nextRunTick;
+            this.period = period;
+            this.isPeriodic = isPeriodic;
+            this.plugin = plugin;
+        }
     }
 }

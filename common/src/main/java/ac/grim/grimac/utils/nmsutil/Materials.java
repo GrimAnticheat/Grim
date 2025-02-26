@@ -222,7 +222,8 @@ public class Materials {
 
     public static boolean isWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
         if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13)) return false;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13))
+            return false;
 
         StateType type = state.getType();
 
@@ -285,7 +286,8 @@ public class Materials {
     }
 
     public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
-        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13)) return isWaterModern(state.getType());
+        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13))
+            return isWaterModern(state.getType());
         return isWaterLegacy(state.getType());
     }
 

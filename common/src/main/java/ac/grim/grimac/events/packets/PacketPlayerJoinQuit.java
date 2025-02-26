@@ -5,7 +5,11 @@ import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import com.github.retrooper.packetevents.event.*;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.event.UserConnectEvent;
+import com.github.retrooper.packetevents.event.UserDisconnectEvent;
+import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -44,13 +48,13 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
-        if (platformPlayer.hasPermission("grim.alerts") && platformPlayer.hasPermission("grim.alerts.enable-on-join")) {
+        if (platformPlayer.hasPermission("grim.alerts.enable-on-join") && platformPlayer.hasPermission("grim.alerts")) {
             GrimAPI.INSTANCE.getAlertManager().toggleAlerts(platformPlayer);
         }
-        if (platformPlayer.hasPermission("grim.verbose") && platformPlayer.hasPermission("grim.verbose.enable-on-join")) {
+        if (platformPlayer.hasPermission("grim.verbose.enable-on-join") && platformPlayer.hasPermission("grim.verbose")) {
             GrimAPI.INSTANCE.getAlertManager().toggleVerbose(platformPlayer);
         }
-        if (platformPlayer.hasPermission("grim.brand") && platformPlayer.hasPermission("grim.brand.enable-on-join")) {
+        if (platformPlayer.hasPermission("grim.brand.enable-on-join") && platformPlayer.hasPermission("grim.brand")) {
             GrimAPI.INSTANCE.getAlertManager().toggleBrands(platformPlayer);
         }
         if (platformPlayer.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
@@ -61,10 +65,12 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserDisconnect(UserDisconnectEvent event) {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getUser());
-        if (grimPlayer != null) GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimQuitEvent(grimPlayer));
+        if (grimPlayer != null)
+            GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimQuitEvent(grimPlayer));
         GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.remove(event.getUser());
         //Check if calling async is safe
-        if (event.getUser().getProfile().getUUID() == null) return; // folia doesn't like null getPlayer()
+        if (event.getUser().getProfile().getUUID() == null)
+            return; // folia doesn't like null getPlayer()
         if (grimPlayer != null) {
             GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(grimPlayer);
             GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer.uuid);

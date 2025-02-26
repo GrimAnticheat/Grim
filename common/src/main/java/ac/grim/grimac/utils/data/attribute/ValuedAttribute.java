@@ -21,9 +21,8 @@ public final class ValuedAttribute {
     // Attribute limits defined by https://minecraft.wiki/w/Attribute
     // These seem to be clamped on the client, but not the server
     private final double min, max;
-
-    private WrapperPlayServerUpdateAttributes.Property lastProperty;
     private final double defaultValue;
+    private WrapperPlayServerUpdateAttributes.Property lastProperty;
     private double value;
 
     // BiFunction of <Old, New, Output>
@@ -55,7 +54,8 @@ public final class ValuedAttribute {
 
     /**
      * Creates a rewriter that prevents the value from ever being modified unless the player meets the required version.
-     * @param player the player
+     *
+     * @param player          the player
      * @param requiredVersion the required version for the attribute
      * @return this instance for chaining
      */

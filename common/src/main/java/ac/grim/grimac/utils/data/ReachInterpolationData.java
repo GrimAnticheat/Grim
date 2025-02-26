@@ -30,14 +30,13 @@ import com.github.retrooper.packetevents.util.Vector3d;
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
     private final SimpleCollisionBox targetLocation;
+    private final GrimPlayer player;
+    private final PacketEntity entity;
     private SimpleCollisionBox startingLocation;
     private int interpolationStepsLowBound = 0;
     private int interpolationStepsHighBound = 0;
     private int interpolationSteps = 1;
     private boolean expandNonRelative = false;
-
-    private final GrimPlayer player;
-    private final PacketEntity entity;
 
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
         final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
@@ -75,10 +74,6 @@ public class ReachInterpolationData {
         this.targetLocation = finishedLoc;
         this.entity = entity;
         this.player = player;
-    }
-
-    private int getInterpolationSteps() {
-        return interpolationSteps;
     }
 
     public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {
@@ -119,6 +114,10 @@ public class ReachInterpolationData {
         return new SimpleCollisionBox(overlapMinX, overlapMinY, overlapMinZ, overlapMaxX, overlapMaxY, overlapMaxZ);
     }
 
+    private int getInterpolationSteps() {
+        return interpolationSteps;
+    }
+
     /**
      * Calculates a bounding box that contains all possible positions where the entity could be located
      * during interpolation. This takes into account:<p>
@@ -126,12 +125,12 @@ public class ReachInterpolationData {
      * • The target position<br>
      * • The number of interpolation steps<br>
      * • The current interpolation progress (low and high bounds)<p>
-     *
+     * <p>
      * To avoid expensive branching when bruteforcing interpolation, this method combines
      * the collision boxes for all possible steps into a single bounding box. This approach
      * was specifically designed to handle the uncertainty of minimum interpolation,
      * maximum interpolation, and target location on 1.9+ clients while still supporting 1.7-1.8.<p>
-     *
+     * <p>
      * For each possible interpolation step between the bounds, it calculates the position
      * and combines all these positions into a single bounding box that encompasses all of them.
      *
@@ -172,16 +171,16 @@ public class ReachInterpolationData {
      * Builds upon getPossibleLocationCombined() to create a larger bounding box that contains
      * not just where the entity could be located, but where any part of its hitbox could be.
      * This is done by:<p>
-     *
+     * <p>
      * 1. Getting the possible locations using getPossibleLocationCombined()<br>
      * 2. If needed expand appropriately due to a recent teleport that moved the entity by:<br>
-     *    • X: 0.03125D<br>
-     *    • Y: 0.015625D<br>
-     *    • Z: 0.03125D<br>
+     * • X: 0.03125D<br>
+     * • Y: 0.015625D<br>
+     * • Z: 0.03125D<br>
      * 3. Expanding by the entity's bounding box dimensions, but only expanding:<br>
-     *    • Minimum coordinates by negative bounding box values<br>
-     *    • Maximum coordinates by positive bounding box values<p>
-     *
+     * • Minimum coordinates by negative bounding box values<br>
+     * • Maximum coordinates by positive bounding box values<p>
+     * <p>
      * This ensures we have a box containing all possible hitbox positions during interpolation.
      *
      * @return A SimpleCollisionBox containing all possible hitbox positions during interpolation

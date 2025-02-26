@@ -1,13 +1,14 @@
 package ac.grim.grimac.utils.blockplace;
 
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Dripstone;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -17,13 +18,30 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.*;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Axis;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Hinge;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
+import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3i;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public enum BlockPlaceResult {
 
@@ -150,7 +168,8 @@ public enum BlockPlaceResult {
 
     BAMBOO((player, place) -> {
         Vector3i clicked = place.getPlacedAgainstBlockLocation();
-        if (player.compensatedWorld.getFluidLevelAt(clicked.getX(), clicked.getY(), clicked.getZ()) > 0) return;
+        if (player.compensatedWorld.getFluidLevelAt(clicked.getX(), clicked.getY(), clicked.getZ()) > 0)
+            return;
 
         WrappedBlockState below = place.getBelowState();
         if (BlockTags.BAMBOO_PLANTABLE_ON.contains(below.getType())) {
@@ -352,7 +371,7 @@ public enum BlockPlaceResult {
     }, ItemTypes.POINTED_DRIPSTONE),
 
     CACTUS((player, place) -> {
-        for (BlockFace face : place.getHorizontalFaces()) {
+        for (BlockFace face : BlockPlace.getHorizontalFaces()) {
             if (place.isSolidBlocking(face) || place.isLava(face)) {
                 return;
             }
@@ -408,7 +427,7 @@ public enum BlockPlaceResult {
             Vector3i pos = place.getPlacedBlockPos();
             pos = pos.withY(pos.getY() - 1);
 
-            for (BlockFace direction : place.getHorizontalFaces()) {
+            for (BlockFace direction : BlockPlace.getHorizontalFaces()) {
                 Vector3i toSearchPos = pos;
                 toSearchPos = toSearchPos.withX(toSearchPos.getX() + direction.getModX());
                 toSearchPos = toSearchPos.withZ(toSearchPos.getZ() + direction.getModZ());
@@ -437,7 +456,7 @@ public enum BlockPlaceResult {
             if (blockstate.getType().isAir()) {
                 boolean flag = false;
 
-                for (BlockFace direction : place.getHorizontalFaces()) {
+                for (BlockFace direction : BlockPlace.getHorizontalFaces()) {
                     WrappedBlockState blockstate1 = place.getDirectionalState(direction);
                     if (blockstate1.getType() == StateTypes.CHORUS_PLANT) {
                         if (flag) {
@@ -463,7 +482,7 @@ public enum BlockPlaceResult {
         WrappedBlockState blockstate = place.getBelowState();
         boolean flag = !place.getAboveState().getType().isAir() && !blockstate.getType().isAir();
 
-        for (BlockFace direction : place.getHorizontalFaces()) {
+        for (BlockFace direction : BlockPlace.getHorizontalFaces()) {
             WrappedBlockState blockstate1 = place.getDirectionalState(direction);
             if (blockstate1.getType() == StateTypes.CHORUS_PLANT) {
                 if (flag) {
@@ -827,7 +846,7 @@ public enum BlockPlaceResult {
             return;
         }
 
-        for (BlockFace face : place.getHorizontalFaces()) {
+        for (BlockFace face : BlockPlace.getHorizontalFaces()) {
             if (place.isSolidBlocking(face)) {
                 place.set();
                 return;
@@ -920,10 +939,12 @@ public enum BlockPlaceResult {
             int i = (ccwBox.isFullBlock() ? -1 : 0) + (aboveCCWBox.isFullBlock() ? -1 : 0) + (cwBox.isFullBlock() ? 1 : 0) + (aboveCWBox.isFullBlock() ? 1 : 0);
 
             boolean isCCWLower = false;
-            if (BlockTags.DOORS.contains(ccwState.getType())) isCCWLower = ccwState.getHalf() == Half.LOWER;
+            if (BlockTags.DOORS.contains(ccwState.getType()))
+                isCCWLower = ccwState.getHalf() == Half.LOWER;
 
             boolean isCWLower = false;
-            if (BlockTags.DOORS.contains(cwState.getType())) isCWLower = ccwState.getHalf() == Half.LOWER;
+            if (BlockTags.DOORS.contains(cwState.getType()))
+                isCWLower = ccwState.getHalf() == Half.LOWER;
 
             Hinge hinge;
             if ((!isCCWLower || isCWLower) && i <= 0) {

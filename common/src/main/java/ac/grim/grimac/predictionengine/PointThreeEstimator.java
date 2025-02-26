@@ -7,8 +7,11 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
-import ac.grim.grimac.utils.nmsutil.*;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -83,7 +86,8 @@ import java.util.Set;
  */
 public class PointThreeEstimator {
     private final GrimPlayer player;
-
+    // If the player was within 0.03 of water between now and the last movement
+    public boolean isNearFluid = false;
     // The one thing we don't need to store is if the player 0.03'd to the ground, as this sends a packet
     // seriously, why mojang.  You send the player touched the ground but not their pos.
     // Is the position not important to you?  Why do you throw this data out??? God-damn it Mojang!
@@ -91,8 +95,6 @@ public class PointThreeEstimator {
     // If a player is moving upwards and a block is within 0.03 of their head, then they can hit this block
     // This results in what appears to be too great of gravity
     private boolean headHitter = false;
-    // If the player was within 0.03 of water between now and the last movement
-    public boolean isNearFluid = false;
     // If a player places a ladder in a worldguard region etc.
     @Getter
     private boolean isNearClimbable = false;

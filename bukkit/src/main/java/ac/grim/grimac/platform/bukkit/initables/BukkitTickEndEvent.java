@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.initables;
 
-import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
-import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.AbstractTickEndEvent;
+import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
+import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;

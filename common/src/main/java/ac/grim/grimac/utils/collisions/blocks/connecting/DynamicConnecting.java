@@ -91,9 +91,12 @@ public class DynamicConnecting {
         }
     }
 
-    /** Some blocks override isFullBlock whilst actually having a full state */
+    /**
+     * Some blocks override isFullBlock whilst actually having a full state
+     */
     boolean isBlacklisted(StateType m, StateType fence, ClientVersion clientVersion) {
-        if (BlockTags.LEAVES.contains(m)) return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.isGlassPane(fence);
+        if (BlockTags.LEAVES.contains(m))
+            return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.isGlassPane(fence);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 

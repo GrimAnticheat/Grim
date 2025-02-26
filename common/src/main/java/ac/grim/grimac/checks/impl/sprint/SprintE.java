@@ -12,11 +12,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "SprintE", description = "Sprinting while colliding with a wall", setback = 5, experimental = true)
 public class SprintE extends Check implements PostPredictionCheck {
+    private boolean startedSprintingThisTick, wasHorizontalCollision;
+
     public SprintE(GrimPlayer player) {
         super(player);
     }
-
-    private boolean startedSprintingThisTick, wasHorizontalCollision;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

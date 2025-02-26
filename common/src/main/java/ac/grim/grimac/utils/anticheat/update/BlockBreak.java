@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BlockBreak {
-    private final GrimPlayer player;
     public final Vector3i position;
     public final BlockFace face;
     public final int faceId;
     public final DiggingAction action;
     public final WrappedBlockState block;
+    private final GrimPlayer player;
     @Getter
     private boolean cancelled;
 

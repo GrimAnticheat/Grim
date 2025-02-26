@@ -14,7 +14,8 @@ public class SetbackBlocker extends Check implements PacketCheck {
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (player.disableGrim) return; // Let's avoid letting people disable grim with grim.nomodifypackets
+        if (player.disableGrim)
+            return; // Let's avoid letting people disable grim with grim.nomodifypackets
 
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {

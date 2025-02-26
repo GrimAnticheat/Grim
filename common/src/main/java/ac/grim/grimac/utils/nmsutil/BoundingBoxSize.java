@@ -43,7 +43,7 @@ public final class BoundingBoxSize {
             return 0.3125f;
         } else if (EntityTypes.HOGLIN.equals(type) || EntityTypes.ZOGLIN.equals(type)) {
             return 1.3964844f;
-        } else if (EntityTypes.SKELETON_HORSE.equals(type) || EntityTypes.ZOMBIE_HORSE.equals(type) || EntityTypes.HORSE.equals(type) ||EntityTypes.DONKEY.equals(type) || EntityTypes.MULE.equals(type)) {
+        } else if (EntityTypes.SKELETON_HORSE.equals(type) || EntityTypes.ZOMBIE_HORSE.equals(type) || EntityTypes.HORSE.equals(type) || EntityTypes.DONKEY.equals(type) || EntityTypes.MULE.equals(type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.3964844f : 1.4f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.375f : 1.5f;

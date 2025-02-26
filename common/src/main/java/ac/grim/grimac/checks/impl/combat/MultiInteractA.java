@@ -14,14 +14,14 @@ import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractA", description = "Interacted with multiple entities in the same tick", experimental = true)
 public class MultiInteractA extends Check implements PostPredictionCheck {
-    public MultiInteractA(final GrimPlayer player) {
-        super(player);
-    }
-
     private final ArrayList<String> flags = new ArrayList<>();
     private int lastEntity;
     private boolean lastSneaking;
     private boolean hasInteracted = false;
+
+    public MultiInteractA(final GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

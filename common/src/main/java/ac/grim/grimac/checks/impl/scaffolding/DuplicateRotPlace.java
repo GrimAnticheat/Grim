@@ -9,15 +9,15 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 @CheckData(name = "DuplicateRotPlace", experimental = true)
 public class DuplicateRotPlace extends BlockPlaceCheck {
 
-    public DuplicateRotPlace(GrimPlayer player) {
-        super(player);
-    }
-
     private float deltaX, deltaY;
     private float lastPlacedDeltaX;
     private double lastPlacedDeltaDotsX;
     private double deltaDotsX;
     private boolean rotated = false;
+
+    public DuplicateRotPlace(GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {

@@ -35,7 +35,7 @@ public interface AsyncScheduler {
      * @param task   Specified task.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task);
+    TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task);
 
     /**
      * Schedules the specified task to be executed asynchronously after the specified delay.
@@ -46,7 +46,7 @@ public interface AsyncScheduler {
      * @param timeUnit The time unit for the time delay.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit);
+    TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit);
 
     /**
      * Schedules the specified task to be executed asynchronously after the initial delay has passed, and then periodically executed with the specified period.
@@ -58,7 +58,8 @@ public interface AsyncScheduler {
      * @param timeUnit The time unit for the initial delay and period.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit);
+    TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit);
+
     /**
      * Schedules the specified task to be executed asynchronously after the initial delay has passed, and then periodically executed.
      *
@@ -68,14 +69,14 @@ public interface AsyncScheduler {
      * @param periodTicks       The time period in ticks between each task execution. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
+    TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
 
     /**
      * Attempts to cancel all tasks scheduled by the specified plugin.
      *
      * @param plugin Specified plugin.
      */
-    public void cancel(@NotNull GrimPlugin plugin);
+    void cancel(@NotNull GrimPlugin plugin);
 
     /**
      * Converts the specified time to ticks.

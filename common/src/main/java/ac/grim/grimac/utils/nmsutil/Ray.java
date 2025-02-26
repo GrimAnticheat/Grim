@@ -2,8 +2,8 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
-import lombok.Getter;
 import ac.grim.grimac.utils.math.Vector3dm;
+import lombok.Getter;
 
 // Copied directly from Hawk
 @Getter

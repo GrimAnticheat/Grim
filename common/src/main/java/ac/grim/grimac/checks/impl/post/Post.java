@@ -21,7 +21,15 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ANIMATION;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.CLICK_WINDOW;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ENTITY_ACTION;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.HELD_ITEM_CHANGE;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.INTERACT_ENTITY;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_ABILITIES;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_DIGGING;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.USE_ITEM;
 
 @CheckData(name = "Post")
 public class Post extends Check implements PacketCheck, PostPredictionCheck {

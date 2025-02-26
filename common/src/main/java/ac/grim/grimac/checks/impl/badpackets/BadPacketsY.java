@@ -19,7 +19,7 @@ public class BadPacketsY extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
             if (slot > 8 || slot < 0) { // ban
-                if (flagAndAlert("slot="+slot) && shouldModifyPackets()) {
+                if (flagAndAlert("slot=" + slot) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

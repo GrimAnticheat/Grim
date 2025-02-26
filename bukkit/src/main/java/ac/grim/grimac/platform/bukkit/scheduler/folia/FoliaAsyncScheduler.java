@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +23,11 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
         return new FoliaTaskHandle(
                 asyncScheduler.runDelayed(
-                    GrimACBukkitLoaderPlugin.PLUGIN,
-                    (ignored) -> task.run(),
-                    delay,
-                    timeUnit
-            )
+                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        (ignored) -> task.run(),
+                        delay,
+                        timeUnit
+                )
         );
     }
 
@@ -37,12 +37,12 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
         return new FoliaTaskHandle(
                 asyncScheduler.runAtFixedRate(
-                    GrimACBukkitLoaderPlugin.PLUGIN,
-                    (ignored) -> task.run(),
-                    delay,
-                    period,
-                    timeUnit
-            )
+                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        (ignored) -> task.run(),
+                        delay,
+                        period,
+                        timeUnit
+                )
         );
     }
 
@@ -57,7 +57,7 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
                         initialDelayTicks * 50,
                         periodTicks * 50,
                         TimeUnit.MILLISECONDS
-            )
+                )
         );
     }
 

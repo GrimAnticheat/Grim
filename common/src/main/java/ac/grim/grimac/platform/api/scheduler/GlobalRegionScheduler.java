@@ -32,7 +32,7 @@ public interface GlobalRegionScheduler {
      * @param plugin The plugin that owns the task
      * @param run    The task to execute
      */
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run);
+    void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run);
 
     /**
      * Schedules a task to be executed on the global region.
@@ -41,7 +41,7 @@ public interface GlobalRegionScheduler {
      * @param task   The task to execute
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task);
+    TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task);
 
     /**
      * Schedules a task to be executed on the global region after the specified delay in ticks.
@@ -51,7 +51,7 @@ public interface GlobalRegionScheduler {
      * @param delay  The delay, in ticks before the method is invoked. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay);
+    TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay);
 
     /**
      * Schedules a repeating task to be executed on the global region after the initial delay with the specified period.
@@ -62,12 +62,12 @@ public interface GlobalRegionScheduler {
      * @param periodTicks       The period, in ticks. Any value less-than 1 may throw an error.
      * @return {@link TaskHandle} instance representing a wrapped task
      */
-    public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
+    TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks);
 
     /**
      * Attempts to cancel all tasks scheduled by the specified plugin.
      *
      * @param plugin Specified plugin.
      */
-    public void cancel(@NotNull GrimPlugin plugin);
+    void cancel(@NotNull GrimPlugin plugin);
 }

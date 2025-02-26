@@ -17,16 +17,15 @@ import java.util.Map;
 public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
 
     private final DynamicConfig config;
-
-    private File getConfigFile(String path) {
-        return new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), path);
-    }
+    private boolean initialized = false;
 
     public ConfigManagerFileImpl() {
         config = new DynamicConfig();
     }
 
-    private boolean initialized = false;
+    private File getConfigFile(String path) {
+        return new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), path);
+    }
 
     @Override
     public void reload() {
@@ -186,7 +185,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         if (punishConfig.exists()) {
             try {
                 punishConfigString = new String(Files.readAllBytes(punishConfig.toPath()));
-                punishConfigString = punishConfigString.replace("command:", "commands:");
+                punishConfigString = punishConfigString.replace("commands:", "commands:");
                 Files.write(punishConfig.toPath(), punishConfigString.getBytes());
             } catch (IOException ignored) {
             }

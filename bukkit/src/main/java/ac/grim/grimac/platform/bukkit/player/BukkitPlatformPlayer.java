@@ -1,22 +1,24 @@
 package ac.grim.grimac.platform.bukkit.player;
 
+import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.player.PlatformInventory;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.bukkit.entity.BukkitGrimEntity;
 import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.sender.Sender;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
-import ac.grim.grimac.platform.api.player.PlatformInventory;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.utils.math.Location;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
@@ -46,13 +48,18 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public void setSneaking(boolean isSneaking) {
-        bukkitPlayer.setSneaking(isSneaking);
+    public boolean hasPermission(String s, boolean defaultIfUnset) {
+        return this.bukkitPlayer.hasPermission(new Permission(s, defaultIfUnset ? PermissionDefault.TRUE : PermissionDefault.FALSE));
     }
 
     @Override
     public boolean isSneaking() {
         return bukkitPlayer.isSneaking();
+    }
+
+    @Override
+    public void setSneaking(boolean isSneaking) {
+        bukkitPlayer.setSneaking(isSneaking);
     }
 
     @Override
@@ -141,7 +148,8 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
         return GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().map(this.bukkitPlayer);
     }
 
-    @Override @NonNull
+    @Override
+    @NonNull
     public Player getNative() {
         return this.bukkitPlayer;
     }

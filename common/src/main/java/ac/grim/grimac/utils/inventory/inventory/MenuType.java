@@ -37,9 +37,8 @@ public enum MenuType {
     STONECUTTER(24),
     UNKNOWN(-1);
 
-    private final int id;
-
     private static final MenuType[] MENU_BY_ID_ARRAY;
+
     static {
         ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
         MenuType[] menuTypes = MenuType.values();
@@ -56,10 +55,10 @@ public enum MenuType {
 
         MENU_BY_ID_ARRAY = new MenuType[menuIdLimit];
 
-        for (int itr = 0; itr < menuIdLimit; itr++) {
-            MENU_BY_ID_ARRAY[itr] = menuTypes[itr];
-        }
+        System.arraycopy(menuTypes, 0, MENU_BY_ID_ARRAY, 0, menuIdLimit);
     }
+
+    private final int id;
 
     public static MenuType getMenuType(int id) {
         if (id < 0) {
@@ -93,7 +92,8 @@ public enum MenuType {
 
     public static AbstractContainerMenu getMenuFromString(GrimPlayer player, Inventory inventory, String legacyType, int slots, int horse) {
         return switch (legacyType) {
-            case "minecraft:chest", "minecraft:container" -> new BasicInventoryMenu(player, inventory, slots / 9);
+            case "minecraft:chest", "minecraft:container" ->
+                    new BasicInventoryMenu(player, inventory, slots / 9);
             case "minecraft:dispenser", "minecraft:dropper" -> new DispenserMenu(player, inventory);
             case "minecraft:hopper" -> new HopperMenu(player, inventory);
             case "minecraft:shulker_box" -> new BasicInventoryMenu(player, inventory, 3);

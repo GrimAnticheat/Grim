@@ -13,19 +13,28 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.SetBackData;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.TeleportData;
+import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAttachEntity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetPassengers;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,6 +47,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     // Sync to netty
     public final ConcurrentLinkedQueue<TeleportData> pendingTeleports = new ConcurrentLinkedQueue<>();
+    private final Random random = new Random();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
     // in an attempt to disable the anticheat.  Be careful.
@@ -45,14 +55,14 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
-    // This required setback data is the head of the teleport.
-    // It is set by both bukkit and netty due to going on the bukkit thread to setback players
-    @Getter
-    private SetBackData requiredSetBack = null;
     public SetbackPosWithVector lastKnownGoodPosition;
     // Are we currently sending setback stuff?
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
+    // This required setback data is the head of the teleport.
+    // It is set by both bukkit and netty due to going on the bukkit thread to setback players
+    @Getter
+    private SetBackData requiredSetBack = null;
     private long lastWorldResync = 0;
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -108,8 +118,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         // Setbacks aren't allowed
         if (player.disableGrim) return true;
         // Player has permission to cheat, permission not given to OP by default.
-        if (player.platformPlayer != null && player.noSetbackPermission) return true;
-        return false;
+        return player.platformPlayer != null && player.noSetbackPermission;
     }
 
     private void simulateFriction(Vector3dm vector) {
@@ -135,7 +144,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
     private void blockMovementsUntilResync(boolean simulateNextTickPosition, boolean isResync) {
         if (requiredSetBack == null) return; // Hasn't spawned
-        if (player.platformPlayer != null && player.noSetbackPermission) return; // The player has permission to cheat
+        if (player.platformPlayer != null && player.noSetbackPermission)
+            return; // The player has permission to cheat
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (isPendingSetback()) return; // Don't spam setbacks
 
@@ -184,7 +194,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         player.boundingBox = oldBB; // reset back to the new bounding box
 
-        if (!hasAcceptedSpawnTeleport || player.isFlying) clientVel = null; // if the player is flying or hasn't spawned... don't force kb
+        if (!hasAcceptedSpawnTeleport || player.isFlying)
+            clientVel = null; // if the player is flying or hasn't spawned... don't force kb
 
         // Something weird has occurred in the player's movement, block offsets until we resync
         if (isResync) {
@@ -194,8 +205,6 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
-
-    private final Random random = new Random();
 
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;

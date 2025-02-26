@@ -16,7 +16,12 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import github.scarsz.configuralize.DynamicConfig;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 
 // TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
@@ -31,36 +36,6 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
             LogUtil.info("Registering an outgoing plugin channel...");
             GrimAPI.INSTANCE.getPlatformServer().registerOutgoingPluginChannel("BungeeCord");
         }
-    }
-
-    @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !ProxyAlertMessenger.canReceiveAlerts())
-            return;
-
-        WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);
-
-        if (!wrapper.getChannelName().equals("BungeeCord") && !wrapper.getChannelName().equals("bungeecord:main"))
-            return;
-
-        ByteArrayDataInput in = ByteStreams.newDataInput(wrapper.getData());
-
-        if (!in.readUTF().equals("GRIMAC")) return;
-
-        final String alert;
-        byte[] messageBytes = new byte[in.readShort()];
-        in.readFully(messageBytes);
-
-        try {
-            alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
-        } catch (IOException exception) {
-            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!");
-            exception.printStackTrace();
-            return;
-        }
-
-        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            platformPlayer.sendMessage(MessageUtil.miniMessage(alert));
     }
 
     public static void sendPluginMessage(String message) {
@@ -108,5 +83,35 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !ProxyAlertMessenger.canReceiveAlerts())
+            return;
+
+        WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);
+
+        if (!wrapper.getChannelName().equals("BungeeCord") && !wrapper.getChannelName().equals("bungeecord:main"))
+            return;
+
+        ByteArrayDataInput in = ByteStreams.newDataInput(wrapper.getData());
+
+        if (!in.readUTF().equals("GRIMAC")) return;
+
+        final String alert;
+        byte[] messageBytes = new byte[in.readShort()];
+        in.readFully(messageBytes);
+
+        try {
+            alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
+        } catch (IOException exception) {
+            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!");
+            exception.printStackTrace();
+            return;
+        }
+
+        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
+            platformPlayer.sendMessage(MessageUtil.miniMessage(alert));
     }
 }

@@ -13,11 +13,11 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -27,7 +27,12 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.*;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
@@ -42,9 +47,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BlockPlace {
-    protected static final BlockFace[] UPDATE_SHAPE_ORDER = { BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP };
-    private static final BlockFace[] BY_2D = { BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST };
-    static final BlockFace[] BY_3D = { BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST };
+    protected static final BlockFace[] UPDATE_SHAPE_ORDER = {BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
+    static final BlockFace[] BY_3D = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
+    private static final BlockFace[] BY_2D = {BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
+    @Getter
+    private final boolean block;
+    // Allocated once instead of in functions to reduce new[] calls that need to be made. Since per-instance BlockPlace is always dealt with on the same thread we can use 1 buffer array
+    private final SimpleCollisionBox[] collisions = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
     @Setter
     Vector3i blockPosition;
     @Getter
@@ -71,11 +80,6 @@ public class BlockPlace {
     @Setter
     Vector3f cursor;
 
-    @Getter private final boolean block;
-
-    // Allocated once instead of in functions to reduce new[] calls that need to be made. Since per-instance BlockPlace is always dealt with on the same thread we can use 1 buffer array
-    private final SimpleCollisionBox[] collisions = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
-
     public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
         this.hand = hand;
@@ -94,6 +98,10 @@ public class BlockPlace {
 
         WrappedBlockState state = player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation());
         this.replaceClicked = canBeReplaced(this.material, state, face);
+    }
+
+    public static BlockFace[] getHorizontalFaces() {
+        return BY_2D;
     }
 
     public Vector3i getPlacedAgainstBlockLocation() {
@@ -185,7 +193,8 @@ public class BlockPlace {
         if (state.getType() == StateTypes.VINE) {
             if (baseReplaceable) return true;
             if (heldItem != state.getType()) return false;
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp()) return true;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp())
+                return true;
             if (state.getNorth() == North.FALSE) return true;
             if (state.getSouth() == South.FALSE) return true;
             if (state.getEast() == East.FALSE) return true;
@@ -316,7 +325,6 @@ public class BlockPlace {
         return player.compensatedWorld.getBlock(pos).getType().isReplaceable();
     }
 
-
     public boolean isFaceEmpty(BlockFace facing) {
         WrappedBlockState data = getDirectionalState(facing);
         CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data);
@@ -436,10 +444,6 @@ public class BlockPlace {
         }
 
         return false;
-    }
-
-    public static BlockFace[] getHorizontalFaces() {
-        return BY_2D;
     }
 
     public BlockFace getDirection() {

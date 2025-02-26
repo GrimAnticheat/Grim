@@ -9,16 +9,20 @@ import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PredictionEngine {
 
@@ -803,7 +807,8 @@ public class PredictionEngine {
             for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
                 for (VectorData possibleLastTickOutput : possibleVectors) {
                     // Only do this when there is tick skipping
-                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree()) continue;
+                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree())
+                        continue;
                     for (int strafe = strafeMin; strafe <= strafeMax; strafe++) {
                         for (int forward = forwardMin; forward <= forwardMax; forward++) {
                             VectorData result = new VectorData(possibleLastTickOutput.vector.clone()

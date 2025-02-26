@@ -2,8 +2,8 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.impl.vehicle.VehicleC;
 import ac.grim.grimac.checks.impl.prediction.Phase;
+import ac.grim.grimac.checks.impl.vehicle.VehicleC;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
@@ -26,9 +26,13 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.*;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -47,6 +51,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
     public static double predictionNanos = 0.3 * 1e6;
     // Averaged over 20000 predictions
     public static double longPredictionNanos = 0.3 * 1e6;
+    private boolean allowSprintJumpingWithElytra = true;
 
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
@@ -401,7 +406,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();
 
-        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange.reset();
+        if (player.isFlying != player.wasFlying)
+            player.uncertaintyHandler.lastFlyingStatusChange.reset();
 
         if (!player.inVehicle() && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D)) {
             player.uncertaintyHandler.lastThirtyMillionHardBorder.reset();
@@ -537,7 +543,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Let's hope this doesn't desync :)
         if (player.getSetbackTeleportUtil().blockOffsets) offset = 0;
 
-        if (player.skippedTickInActualMovement || !wasChecked) player.uncertaintyHandler.lastPointThree.reset();
+        if (player.skippedTickInActualMovement || !wasChecked)
+            player.uncertaintyHandler.lastPointThree.reset();
 
         // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
@@ -636,8 +643,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // (Patches issues with slime and other desync's)
         return riptideDiffToGround < riptideDiffToBase;
     }
-
-    private boolean allowSprintJumpingWithElytra = true;
 
     @Override
     public void onReload(ConfigManager config) {

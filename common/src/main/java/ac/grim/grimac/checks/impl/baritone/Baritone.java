@@ -12,11 +12,11 @@ import ac.grim.grimac.utils.math.GrimMath;
 // This check has been patched by Baritone for a long time and it also seems to false with cinematic camera now, so it is disabled.
 @CheckData(name = "Baritone")
 public class Baritone extends Check implements RotationCheck {
+    private int verbose;
+
     public Baritone(GrimPlayer playerData) {
         super(playerData);
     }
-
-    private int verbose;
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {

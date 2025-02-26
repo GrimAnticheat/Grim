@@ -15,16 +15,16 @@ public final class TrackedPosition {
         this.scale = MODERN_COORDINATE_SCALE;
     }
 
-    public double getScale() {
-        return scale;
-    }
-
     public static long pack(double value, double scale) {
         return Math.round(value * scale);
     }
 
     public static double packLegacy(double value, double scale) {
         return Math.floor(value * scale);
+    }
+
+    public double getScale() {
+        return scale;
     }
 
     private double unpack(long value) {
@@ -37,6 +37,10 @@ public final class TrackedPosition {
 
     public Vector3d getPos() {
         return pos;
+    }
+
+    public void setPos(Vector3d pos) {
+        this.pos = pos;
     }
 
     // Method since 1.16.
@@ -57,9 +61,5 @@ public final class TrackedPosition {
         double e = unpackLegacy(packLegacy(this.pos.y, scale) + y);
         double f = unpackLegacy(packLegacy(this.pos.z, scale) + z);
         return new Vector3d(d, e, f);
-    }
-
-    public void setPos(Vector3d pos) {
-        this.pos = pos;
     }
 }

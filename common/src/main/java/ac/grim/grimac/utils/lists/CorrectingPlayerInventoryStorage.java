@@ -6,7 +6,12 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,6 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
+    // TODO: How the hell does creative mode work?
+    private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
+            Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
+    );
     GrimPlayer player;
     // The key for this map is the inventory slot ID
     // The value for this map is the transaction that we care about
@@ -44,10 +53,6 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     // A list of predictions the client has made for inventory changes
     // Remove if the server rejects these changes
     Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
-    // TODO: How the hell does creative mode work?
-    private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
-            Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
-    );
 
     public CorrectingPlayerInventoryStorage(GrimPlayer player, int size) {
         super(size);

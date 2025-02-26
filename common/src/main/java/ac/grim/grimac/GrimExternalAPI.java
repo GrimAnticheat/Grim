@@ -27,6 +27,14 @@ import java.util.function.Function;
 public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, Initable {
 
     private final GrimAPI api;
+    @Getter
+    private final Map<String, Function<GrimUser, String>> variableReplacements = new ConcurrentHashMap<>();
+    @Getter
+    private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
+    private final Map<String, Function<Object, Object>> functions = new ConcurrentHashMap<>();
+    private final ConfigManagerFileImpl configManagerFile = new ConfigManagerFileImpl();
+    private ConfigManager configManager = null;
+    private boolean started = false;
 
     public GrimExternalAPI(GrimAPI api) {
         this.api = api;
@@ -36,12 +44,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     public @Nullable GrimUser getGrimUser(UUID uuid) {
         return api.getPlayerDataManager().getPlayer(uuid);
     }
-
-    @Getter
-    private final Map<String, Function<GrimUser, String>> variableReplacements = new ConcurrentHashMap<>();
-
-    @Getter
-    private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
 
     public String replaceVariables(GrimUser user, String content) {
         for (Map.Entry<String, String> entry : staticReplacements.entrySet()) {
@@ -77,8 +79,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
         return description.getVersion();
     }
 
-    private final Map<String, Function<Object, Object>> functions = new ConcurrentHashMap<>();
-
     @Override
     public void registerFunction(String key, Function<Object, Object> function) {
         if (function == null) {
@@ -112,10 +112,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
     public int getCurrentTick() {
         return GrimAPI.INSTANCE.getTickManager().currentTick;
     }
-
-    private ConfigManager configManager = null;
-    private final ConfigManagerFileImpl configManagerFile = new ConfigManagerFileImpl();
-    private boolean started = false;
 
     // on load, load the config & register the service
     public void load() {
@@ -161,14 +157,16 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
             GrimAPI.INSTANCE.getConfigManager().load(config);
             if (started) GrimAPI.INSTANCE.getConfigManager().start();
             onReload(config);
-            if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(true)));
+            if (started)
+                GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+                        () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (started) GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(false)));
+        if (started)
+            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+                    () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(false)));
         return false;
     }
 

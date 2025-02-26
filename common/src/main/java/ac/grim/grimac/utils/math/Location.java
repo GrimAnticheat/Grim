@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 public class Location implements Cloneable {
     private Reference<PlatformWorld> world;
@@ -43,8 +44,25 @@ public class Location implements Cloneable {
         this.yaw = yaw;
     }
 
-    public void setWorld(@Nullable PlatformWorld world) {
-        this.world = world == null ? null : new WeakReference<>(world);
+    public static float normalizeYaw(float yaw) {
+        yaw %= 360.0F;
+        if (yaw >= 180.0F) {
+            yaw -= 360.0F;
+        } else if (yaw < -180.0F) {
+            yaw += 360.0F;
+        }
+
+        return yaw;
+    }
+
+    public static float normalizePitch(float pitch) {
+        if (pitch > 90.0F) {
+            pitch = 90.0F;
+        } else if (pitch < -90.0F) {
+            pitch = -90.0F;
+        }
+
+        return pitch;
     }
 
     public PlatformWorld getWorld() {
@@ -55,6 +73,9 @@ public class Location implements Cloneable {
         }
     }
 
+    public void setWorld(@Nullable PlatformWorld world) {
+        this.world = world == null ? null : new WeakReference<>(world);
+    }
 
     public @NotNull Location add(@NotNull Location vec) {
         if (vec != null && vec.getWorld() == this.getWorld()) {
@@ -101,7 +122,7 @@ public class Location implements Cloneable {
             if (o.getWorld() != this.getWorld()) {
                 throw new IllegalArgumentException("Cannot measure distance between " + this.getWorld().getName() + " and " + o.getWorld().getName());
             } else {
-                return (this.x - o.x)  * (this.x - o.x) + (this.y - o.y) * (this.y - o.y) + (this.z - o.z) * (this.z - o.z);
+                return (this.x - o.x) * (this.x - o.x) + (this.y - o.y) * (this.y - o.y) + (this.z - o.z) * (this.z - o.z);
             }
         } else {
             throw new IllegalArgumentException("Cannot measure distance to a null world");
@@ -116,9 +137,9 @@ public class Location implements Cloneable {
     }
 
     public @NotNull Location zero() {
-        this.x = (double)0.0F;
-        this.y = (double)0.0F;
-        this.z = (double)0.0F;
+        this.x = 0.0F;
+        this.y = 0.0F;
+        this.z = 0.0F;
         return this;
     }
 
@@ -137,18 +158,16 @@ public class Location implements Cloneable {
         return this.set(base.x - x, base.y - y, base.z - z);
     }
 
-
-
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
         } else if (this.getClass() != obj.getClass()) {
             return false;
         } else {
-            Location other = (Location)obj;
+            Location other = (Location) obj;
             PlatformWorld world = this.world == null ? null : this.world.get();
             PlatformWorld otherWorld = other.world == null ? null : other.world.get();
-            if (world == otherWorld || world != null && world.equals(otherWorld)) {
+            if (Objects.equals(world, otherWorld)) {
                 if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(other.x)) {
                     return false;
                 } else if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(other.y)) {
@@ -170,9 +189,9 @@ public class Location implements Cloneable {
         int hash = 3;
         PlatformWorld world = this.world == null ? null : this.world.get();
         hash = 19 * hash + (world != null ? world.hashCode() : 0);
-        hash = 19 * hash + (int)(Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 19 * hash + (int)(Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 19 * hash + (int)(Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
+        hash = 19 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
+        hash = 19 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
+        hash = 19 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
         hash = 19 * hash + Float.floatToIntBits(this.pitch);
         hash = 19 * hash + Float.floatToIntBits(this.yaw);
         return hash;
@@ -186,31 +205,10 @@ public class Location implements Cloneable {
 
     public @NotNull Location clone() {
         try {
-            return (Location)super.clone();
+            return (Location) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new Error(e);
         }
-    }
-
-    public static float normalizeYaw(float yaw) {
-        yaw %= 360.0F;
-        if (yaw >= 180.0F) {
-            yaw -= 360.0F;
-        } else if (yaw < -180.0F) {
-            yaw += 360.0F;
-        }
-
-        return yaw;
-    }
-
-    public static float normalizePitch(float pitch) {
-        if (pitch > 90.0F) {
-            pitch = 90.0F;
-        } else if (pitch < -90.0F) {
-            pitch = -90.0F;
-        }
-
-        return pitch;
     }
 
     public double x() {

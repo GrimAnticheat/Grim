@@ -14,10 +14,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 @CheckData(name = "BadPacketsT")
 public class BadPacketsT extends Check implements PacketCheck {
-    public BadPacketsT(final GrimPlayer player) {
-        super(player);
-    }
-
     // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
@@ -25,6 +21,10 @@ public class BadPacketsT extends Check implements PacketCheck {
     private final double maxHorizontalDisplacement = 0.3001 + (hasLegacyExpansion ? 0.1 : 0);
     private final double minVerticalDisplacement = -0.0001 - (hasLegacyExpansion ? 0.1 : 0);
     private final double maxVerticalDisplacement = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
+
+    public BadPacketsT(final GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {

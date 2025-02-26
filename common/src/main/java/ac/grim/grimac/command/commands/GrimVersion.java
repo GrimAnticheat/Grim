@@ -1,6 +1,7 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.google.gson.JsonObject;
@@ -24,25 +25,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GrimVersion implements BuildableCommand {
 
-    private static long lastCheck;
     private static final AtomicReference<Component> updateMessage = new AtomicReference<>();
-
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
-
-    @Override
-    public void register(CommandManager<Sender> commandManager) {
-        commandManager.command(
-                commandManager.commandBuilder("grim", "grimac")
-                        .literal("version")
-                        .permission("grim.version")
-                        .handler(this::handleVersion)
-        );
-    }
-
-    private void handleVersion(@NonNull CommandContext<Sender> context) {
-        Sender sender = context.sender();
-        checkForUpdatesAsync(sender);
-    }
+    private static long lastCheck;
 
     public static void checkForUpdatesAsync(Sender sender) {
         String current = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
@@ -109,12 +94,6 @@ public class GrimVersion implements BuildableCommand {
         }
     }
 
-    private enum Status {
-        AHEAD,
-        UPDATED,
-        OUTDATED
-    }
-
     private static Status compareVersions(String local, String latest) {
         if (local.equals(latest)) return Status.UPDATED;
         String[] localParts = local.split("\\.");
@@ -130,6 +109,27 @@ public class GrimVersion implements BuildableCommand {
             }
         }
         return Status.UPDATED;
+    }
+
+    @Override
+    public void register(CommandManager<Sender> commandManager) {
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac")
+                        .literal("version")
+                        .permission("grim.version")
+                        .handler(this::handleVersion)
+        );
+    }
+
+    private void handleVersion(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        checkForUpdatesAsync(sender);
+    }
+
+    private enum Status {
+        AHEAD,
+        UPDATED,
+        OUTDATED
     }
 
 }

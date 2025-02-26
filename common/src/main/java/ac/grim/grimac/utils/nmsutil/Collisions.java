@@ -12,8 +12,8 @@ import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -47,11 +47,6 @@ public class Collisions {
     private static final double COLLISION_EPSILON = 1.0E-7;
 
     private static final boolean IS_FOURTEEN; // Optimization for chunks with empty block count
-
-    static {
-        IS_FOURTEEN = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
-    }
-
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
             Arrays.asList(Axis.Y, Axis.Z, Axis.X),
@@ -61,10 +56,13 @@ public class Collisions {
 
             Arrays.asList(Axis.Z, Axis.X, Axis.Y),
             Arrays.asList(Axis.Z, Axis.Y, Axis.X));
-
     private static final List<List<Axis>> nonStupidityCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
             Arrays.asList(Axis.Y, Axis.Z, Axis.X));
+
+    static {
+        IS_FOURTEEN = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
+    }
 
     public static boolean slowCouldPointThreeHitGround(GrimPlayer player, double x, double y, double z) {
         SimpleCollisionBox oldBB = player.boundingBox;
@@ -850,9 +848,11 @@ public class Collisions {
         if (mat == StateTypes.OBSERVER || mat == StateTypes.REDSTONE_BLOCK)
             return player.getClientVersion().isNewerThan(ClientVersion.V_1_13_2);
         // Tnt only pushes on 1.14+ clients
-        if (mat == StateTypes.TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.TNT)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // Farmland only pushes on 1.16+ clients
-        if (mat == StateTypes.FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
+        if (mat == StateTypes.FARMLAND)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
         // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
         if (mat == StateTypes.SOUL_SAND)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_14);
@@ -868,7 +868,8 @@ public class Collisions {
         if (mat == StateTypes.DIRT_PATH)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
         // Only 1.14+ players are pushed by beacons
-        if (mat == StateTypes.BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.BEACON)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
         if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
@@ -932,7 +933,8 @@ public class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z)))) return true;
+                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                                return true;
                         }
                     }
                 }

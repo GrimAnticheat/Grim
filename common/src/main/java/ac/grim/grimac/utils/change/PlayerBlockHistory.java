@@ -11,6 +11,7 @@ public class PlayerBlockHistory {
 
     /**
      * Adds a new block modification to the history.
+     *
      * @param modification The block modification to add
      */
     public void add(BlockModification modification) {
@@ -19,6 +20,7 @@ public class PlayerBlockHistory {
 
     /**
      * Retrieves recent modifications that match the given filter.
+     *
      * @param filter Predicate to filter modifications
      * @return Filtered list of block modifications
      */
@@ -28,6 +30,7 @@ public class PlayerBlockHistory {
 
     /**
      * Removes modifications older than the specified tick.
+     *
      * @param maxTick The maximum tick age to keep
      */
     public void cleanup(int maxTick) {

@@ -1,34 +1,37 @@
 package ac.grim.grimac.platform.bukkit;
 
-import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
-import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
-import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
-import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
-import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
-import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
-import ac.grim.grimac.platform.bukkit.manager.BukkitPlatformPluginManager;
-import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
-import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
-import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
-import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
-import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
-import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAbstractAPI;
+import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.utils.lazy.LazyHolder;
+import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
 import ac.grim.grimac.platform.api.PlatformLoader;
+import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
+import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
+import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
+import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
+import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
+import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
+import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
+import ac.grim.grimac.platform.bukkit.manager.BukkitPermissionRegistrationManager;
+import ac.grim.grimac.platform.bukkit.manager.BukkitPlatformPluginManager;
+import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
+import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
+import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
+import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
+import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
@@ -39,7 +42,6 @@ import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
-import ac.grim.grimac.api.GrimPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
@@ -58,6 +60,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final GrimPlugin plugin;
     private final PlatformServer platformServer = new BukkitPlatformServer();
     private final MessagePlaceHolderManager messagePlaceHolderManager = new BukkitMessagePlaceHolderManager();
+    private final BukkitPermissionRegistrationManager bukkitPermissionRegistrationManager = new BukkitPermissionRegistrationManager();
 
     public GrimACBukkitLoaderPlugin() {
         this.plugin = new BasicGrimPlugin(
@@ -157,6 +160,11 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Override
     public @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager() {
         return messagePlaceHolderManager;
+    }
+
+    @Override
+    public PermissionRegistrationManager getPermissionManager() {
+        return bukkitPermissionRegistrationManager;
     }
 
     private PlatformScheduler createScheduler() {

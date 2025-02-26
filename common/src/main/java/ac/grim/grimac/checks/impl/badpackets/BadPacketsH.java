@@ -41,7 +41,8 @@ public class BadPacketsH extends Check implements PacketCheck {
             // I will simply disable this check for 1.8- clients on 1.9+ servers as I can't be bothered to find a way around this.
             // Stop supporting such old clients on modern servers!
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
-                    && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) return;
+                    && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))
+                return;
 
             if (!sentAnimation && flagAndAlert() && shouldModifyPackets()) {
                 event.setCancelled(true);

@@ -11,9 +11,11 @@ public interface PlatformPlayer extends GrimEntity {
 
     boolean hasPermission(String s);
 
-    void setSneaking(boolean b);
+    boolean hasPermission(String s, boolean defaultIfUnset);
 
     boolean isSneaking();
+
+    void setSneaking(boolean b);
 
     void sendMessage(String message);
 

@@ -1,6 +1,5 @@
-import net.fabricmc.loom.task.RemapJarTask
 import com.google.gson.GsonBuilder
-import java.io.File
+import net.fabricmc.loom.task.RemapJarTask
 
 val minecraft_version: String by project
 val yarn_mappings: String by project
@@ -61,7 +60,7 @@ loom {
 }
 
 // Update the delegated properties
-val mod_name: String  = "GrimAC"
+val mod_name: String = "GrimAC"
 val mod_access_widener: String = "grimac.accesswidener"
 val mod_id: String = rootProject.name
 val mod_description: String = rootProject.description ?: "A server-side mod"

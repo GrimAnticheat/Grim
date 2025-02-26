@@ -1,13 +1,11 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.bukkit.BukkitPlatformPlugin;
-import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.GrimEvent;
 import ac.grim.grimac.api.event.OptimizedEventBus;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
-import ac.grim.grimac.platform.api.permission.Permission;
+import ac.grim.grimac.platform.bukkit.BukkitPlatformPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -42,21 +40,6 @@ public class BukkitPlatformPluginManager implements PlatformPluginManager {
     public @Nullable PlatformPlugin getPlugin(String pluginName) {
         Plugin bukkitPlugin = Bukkit.getPluginManager().getPlugin(pluginName);
         return bukkitPlugin == null ? null : new BukkitPlatformPlugin(bukkitPlugin);
-    }
-
-    @Override
-    public Permission getPermission(String permissionName) {
-        org.bukkit.permissions.Permission bukkitPermission = Bukkit.getPluginManager().getPermission(permissionName);
-        if (bukkitPermission == null) return null;
-        return new Permission(permissionName, BukkitConversionUtils.fromBukkitPermissionDefault(bukkitPermission.getDefault()));
-    }
-
-    @Override
-    public void addPermission(Permission permission) {
-        Bukkit.getPluginManager().addPermission(new org.bukkit.permissions.Permission(
-                permission.getName(),
-                BukkitConversionUtils.toBukkitPermissionDefault(permission.getDefault())
-        ));
     }
 
     @Override

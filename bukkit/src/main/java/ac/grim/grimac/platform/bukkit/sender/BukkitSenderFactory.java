@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.sender;
 
-import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -70,6 +70,11 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     @Override
     protected boolean isConsole(CommandSender sender) {
         return sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender;
+    }
+
+    @Override
+    protected boolean isPlayer(CommandSender sender) {
+        return sender instanceof Player;
     }
 
     @Override

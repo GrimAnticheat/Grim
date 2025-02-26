@@ -16,8 +16,19 @@ public class BaseConfigManager {
     and any global variables that are the same between players.
      */
 
+    private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
     @Getter
     private ConfigManager config = null;
+    @Getter
+    private boolean printAlertsToConsole = false;
+    @Getter
+    private String prefix = "&bGrim &8»";
+    @Getter
+    private String disconnectTimeout;
+    @Getter
+    private String disconnectClosed;
+    @Getter
+    private String disconnectPacketError;
 
     // initialize the config
     public void load(ConfigManager config) {
@@ -46,17 +57,8 @@ public class BaseConfigManager {
     }
 
     // ran on start, can be used to handle things that can't be done while loading
-    public void start() {}
-
-    @Getter private boolean printAlertsToConsole = false;
-
-    @Getter private String prefix = "&bGrim &8»";
-
-    @Getter private String disconnectTimeout;
-    @Getter private String disconnectClosed;
-    @Getter private String disconnectPacketError;
-
-    private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
+    public void start() {
+    }
 
     public boolean isIgnoredClient(String brand) {
         for (Pattern pattern : ignoredClientPatterns) {

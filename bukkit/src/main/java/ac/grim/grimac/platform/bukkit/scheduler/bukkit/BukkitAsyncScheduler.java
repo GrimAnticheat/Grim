@@ -1,10 +1,10 @@
 package ac.grim.grimac.platform.bukkit.scheduler.bukkit;
 
-import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +32,11 @@ public class BukkitAsyncScheduler implements AsyncScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
         return new BukkitTaskHandle(
                 bukkitScheduler.runTaskTimerAsynchronously(
-                    GrimACBukkitLoaderPlugin.PLUGIN,
-                    task,
-                    PlatformScheduler.convertTimeToTicks(delay, timeUnit),
-                    PlatformScheduler.convertTimeToTicks(period, timeUnit)
-            )
+                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        task,
+                        PlatformScheduler.convertTimeToTicks(delay, timeUnit),
+                        PlatformScheduler.convertTimeToTicks(period, timeUnit)
+                )
         );
     }
 

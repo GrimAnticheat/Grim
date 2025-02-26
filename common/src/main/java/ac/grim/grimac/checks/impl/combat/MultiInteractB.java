@@ -16,13 +16,13 @@ import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractB", experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
-    public MultiInteractB(final GrimPlayer player) {
-        super(player);
-    }
-
     private final ArrayList<String> flags = new ArrayList<>();
     private Vector3f lastPos;
     private boolean hasInteracted = false;
+
+    public MultiInteractB(final GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

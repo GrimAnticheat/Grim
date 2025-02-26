@@ -33,16 +33,16 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.OptionalInt;
-import java.util.UUID;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.UUID;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity extends TypedPacketEntity {
 
     public final TrackedPosition trackedServerPosition;
-
+    protected final Map<Attribute, ValuedAttribute> attributeMap = new IdentityHashMap<>();
     // TODO in what cases is UUID null in 1.9+?
     @Getter
     private final UUID uuid; // NULL ON VERSIONS BELOW 1.9 (or for some entities, apparently??)
@@ -53,9 +53,7 @@ public class PacketEntity extends TypedPacketEntity {
     public boolean hasGravity = true;
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
-
     private Object2IntMap<PotionType> potionsMap = null;
-    protected final Map<Attribute, ValuedAttribute> attributeMap = new IdentityHashMap<>();
 
     public PacketEntity(GrimPlayer player, EntityType type) {
         super(type);

@@ -63,7 +63,7 @@ public interface Sender {
     /**
      * Check if the Sender has a permission.
      *
-     * @param permission the permission to check for
+     * @param permission     the permission to check for
      * @param defaultIfUnset the default value of the permission, if not yet set.
      * @return true if the sender has the permission
      */
@@ -84,6 +84,13 @@ public interface Sender {
     boolean isConsole();
 
     /**
+     * Gets whether this sender is a player
+     *
+     * @return if the sender is a player
+     */
+    boolean isPlayer();
+
+    /**
      * Gets whether this sender is still valid & receiving messages.
      *
      * @return if this sender is valid
@@ -96,25 +103,27 @@ public interface Sender {
      * Gets the native platform-specific command sender object.
      *
      * @return The platform's native command sender type:
-     *         <ul>
-     *         <li>Bukkit/Spigot/Paper/Folia/Pufferfish/etc... {@code org.bukkit.command.CommandSender}</li>
-     *         <li>Fabric:
-     *             <ul>
-     *             <li>Yarn: {@code net.minecraft.server.command.ServerCommandSource}</li>
-     *             <li>Mojmap: {@code net.minecraft.commands.CommandSourceStack}</li>
-     *             </ul>
-     *         <li>Velocity: {@code com.velocitypowered.api.command.CommandSource}</li>
-     *         <li>BungeeCord: {@code net.md_5.bungee.api.CommandSender}</li>
-     *         <li>Sponge: {@code org.spongepowered.api.command.CommandCause}</li>
-     *         <li>Forge/NeoForge: {@code net.minecraft.commands.CommandSourceStack}</li>
-     *         </ul>
+     * <ul>
+     * <li>Bukkit/Spigot/Paper/Folia/Pufferfish/etc... {@code org.bukkit.command.CommandSender}</li>
+     * <li>Fabric:
+     *     <ul>
+     *     <li>Yarn: {@code net.minecraft.server.command.ServerCommandSource}</li>
+     *     <li>Mojmap: {@code net.minecraft.commands.CommandSourceStack}</li>
+     *     </ul>
+     * <li>Velocity: {@code com.velocitypowered.api.command.CommandSource}</li>
+     * <li>BungeeCord: {@code net.md_5.bungee.api.CommandSender}</li>
+     * <li>Sponge: {@code org.spongepowered.api.command.CommandCause}</li>
+     * <li>Forge/NeoForge: {@code net.minecraft.commands.CommandSourceStack}</li>
+     * </ul>
      */
-    @NonNull Object getNativeSender();
+    @NonNull
+    Object getNativeSender();
 
     /**
      * Gets the PlatformPlayer tied to a sender
      *
      * @return PlatformPlayer wrapping the underlying native platform-specific player type, null if Sender is not a player
      */
-    @Nullable PlatformPlayer getPlatformPlayer();
+    @Nullable
+    PlatformPlayer getPlatformPlayer();
 }

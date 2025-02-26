@@ -45,7 +45,8 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                 for (WrapperPlayServerPlayerInfo.PlayerData playerData : nmsPlayerInfoDataList) {
                     if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
                         hideCount++;
-                        if (playerData.getGameMode() == GameMode.SPECTATOR) playerData.setGameMode(GameMode.SURVIVAL);
+                        if (playerData.getGameMode() == GameMode.SPECTATOR)
+                            playerData.setGameMode(GameMode.SURVIVAL);
                     }
                 }
 

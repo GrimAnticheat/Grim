@@ -46,7 +46,8 @@ public abstract class TypedPacketEntity {
         // Players can only push living entities
         // Minecarts and boats are the only non-living that can push
         // Bats, parrots, and armor stands cannot
-        if (type == EntityTypes.ARMOR_STAND || type == EntityTypes.BAT || type == EntityTypes.PARROT) return false;
+        if (type == EntityTypes.ARMOR_STAND || type == EntityTypes.BAT || type == EntityTypes.PARROT)
+            return false;
         return isLiving || isBoat || isMinecart;
     }
 

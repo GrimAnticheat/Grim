@@ -5,8 +5,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
@@ -161,7 +161,8 @@ public class ReachUtils {
 
     public static double getMinReachToBox(GrimPlayer player, SimpleCollisionBox targetBox) {
         boolean giveMovementThresholdLenience = !player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks();
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) targetBox.expand(0.1);
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
+            targetBox.expand(0.1);
 
         double lowest = Double.MAX_VALUE;
 

@@ -5,7 +5,9 @@ import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.registry.Registries;
-import net.minecraft.screen.*;
+import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 

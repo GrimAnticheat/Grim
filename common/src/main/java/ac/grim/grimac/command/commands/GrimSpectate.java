@@ -1,11 +1,12 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -33,7 +34,7 @@ public class GrimSpectate implements BuildableCommand {
     private void handleSpectate(@NonNull CommandContext<Sender> context) {
         Sender sender = context.sender();
 
-        if (sender.isConsole()) {
+        if (!sender.isPlayer()) {
             sender.sendMessage(Component.text("This command can only be used by players!", NamedTextColor.RED));
             return;
         }

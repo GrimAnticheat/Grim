@@ -10,11 +10,11 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 @CheckData(name = "MultiActionsC", description = "Clicked in inventory while sprinting", experimental = true)
 public class MultiActionsC extends Check implements PacketCheck {
+    private boolean serverOpenedInventoryThisTick;
+
     public MultiActionsC(GrimPlayer player) {
         super(player);
     }
-
-    private boolean serverOpenedInventoryThisTick;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

@@ -60,7 +60,8 @@ public class FabricGrimEntity implements GrimEntity {
         });
     }
 
-    @Override @NonNull
+    @Override
+    @NonNull
     public Entity getNative() {
         return this.entity;
     }

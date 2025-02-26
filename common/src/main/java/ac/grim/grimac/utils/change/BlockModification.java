@@ -3,7 +3,8 @@ package ac.grim.grimac.utils.change;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 
-public record BlockModification(WrappedBlockState oldBlockContents, WrappedBlockState newBlockContents,
+public record BlockModification(WrappedBlockState oldBlockContents,
+                                WrappedBlockState newBlockContents,
                                 Vector3i location, int tick,
                                 Cause cause) {
 

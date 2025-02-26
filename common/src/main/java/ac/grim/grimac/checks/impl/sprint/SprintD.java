@@ -13,11 +13,11 @@ import static com.github.retrooper.packetevents.protocol.potion.PotionTypes.BLIN
 
 @CheckData(name = "SprintD", description = "Started sprinting while having blindness", setback = 5, experimental = true)
 public class SprintD extends Check implements PostPredictionCheck {
+    public boolean startedSprintingBeforeBlind = false;
+
     public SprintD(GrimPlayer player) {
         super(player);
     }
-
-    public boolean startedSprintingBeforeBlind = false;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

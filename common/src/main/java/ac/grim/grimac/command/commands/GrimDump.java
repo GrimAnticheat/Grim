@@ -1,21 +1,36 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
 
 public class GrimDump implements BuildableCommand {
+
+    private static final boolean PAPER = hasClass("com.destroystokyo.paper.PaperConfig")
+            || hasClass("io.papermc.paper.configuration.Configuration");
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private String link = null; // these links should not expire for a while
+
+    private static boolean hasClass(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     @Override
     public void register(CommandManager<Sender> commandManager) {
@@ -39,8 +54,6 @@ public class GrimDump implements BuildableCommand {
         // TODO: change this back to application/json once allowed
         GrimLog.sendLogAsync(sender, generateDump(), string -> link = string, "text/yaml");
     }
-
-    private String link = null; // these links should not expire for a while
 
     // this will help for debugging & replicating issues
     private String generateDump() {
@@ -77,19 +90,5 @@ public class GrimDump implements BuildableCommand {
             plugins.add(pluginJson);
         }
         return gson.toJson(base);
-    }
-
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-    private static final boolean PAPER = hasClass("com.destroystokyo.paper.PaperConfig")
-            || hasClass("io.papermc.paper.configuration.Configuration");
-
-    private static boolean hasClass(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 }

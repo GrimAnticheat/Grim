@@ -22,7 +22,11 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCreativeInventoryAction;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
@@ -34,21 +38,21 @@ import java.util.Optional;
 
 // Updated to support modern 1.17 protocol
 public class CompensatedInventory extends Check implements PacketCheck {
+    private static final int PLAYER_INVENTORY_CASE = -1;
+    private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     // "Temporarily" public for debugging
     public Inventory inventory;
     // "Temporarily" public for debugging
     public AbstractContainerMenu menu;
     // Not all inventories are supported due to complexity and version differences
     public boolean isPacketInventoryActive = true;
+    public boolean needResend = false;
+    public int stateID = 0; // Don't mess up the last sent state ID by changing it
+    int openWindowID = 0;
     // Special values:
     // Player inventory is -1
     // Unsupported inventory is -2
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
-    private static final int PLAYER_INVENTORY_CASE = -1;
-    private static final int UNSUPPORTED_INVENTORY_CASE = -2;
-    public boolean needResend = false;
-    int openWindowID = 0;
-    public int stateID = 0; // Don't mess up the last sent state ID by changing it
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
@@ -176,7 +180,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public boolean hasItemType(ItemType type) {
-        if (isPacketInventoryActive || player.platformPlayer == null) return inventory.hasItemType(type);
+        if (isPacketInventoryActive || player.platformPlayer == null)
+            return inventory.hasItemType(type);
 
         // Fall back to platform inventories
         for (ItemStack itemStack : player.platformPlayer.getInventory().getContents()) {
@@ -213,7 +218,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
                 ItemStack itemstack1 = getByEquipmentType(equipmentType);
                 // Only 1.19.4+ clients support swapping with non-empty items
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty()) return;
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty())
+                    return;
 
                 // 1.19.4+ clients support swapping with non-empty items
                 int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
@@ -266,7 +272,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
             boolean valid = action.getSlot() >= 1 &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
-                    action.getSlot() <= 45 : action.getSlot() < 45);
+                            action.getSlot() <= 45 : action.getSlot() < 45);
 
             if (valid) {
                 player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());

@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import me.clip.placeholderapi.PlaceholderAPI;

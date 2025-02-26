@@ -12,13 +12,13 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "BadPacketsX", experimental = true)
 public class BadPacketsX extends Check implements PostPredictionCheck {
-    public BadPacketsX(GrimPlayer player) {
-        super(player);
-    }
-
     private boolean sprint;
     private boolean sneak;
     private int flags;
+
+    public BadPacketsX(GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {

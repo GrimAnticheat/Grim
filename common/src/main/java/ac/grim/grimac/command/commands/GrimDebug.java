@@ -1,9 +1,10 @@
-package ac.grim.grimac.commands;
+package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import net.kyori.adventure.text.Component;
@@ -34,7 +35,7 @@ public class GrimDebug implements BuildableCommand {
                 .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
                 .handler(this::handleConsoleDebug);
 
-        // Register commands
+        // Register command
         commandManager.command(debugCommand);
         commandManager.command(consoleDebugCommand);
 

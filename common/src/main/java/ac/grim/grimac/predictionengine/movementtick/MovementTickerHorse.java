@@ -2,10 +2,10 @@ package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import ac.grim.grimac.utils.math.Vector3dm;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
@@ -33,7 +33,8 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     @Override
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) Collisions.handleInsideBlocks(player);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17))
+            Collisions.handleInsideBlocks(player);
     }
 
     public float getExtraSpeed() {

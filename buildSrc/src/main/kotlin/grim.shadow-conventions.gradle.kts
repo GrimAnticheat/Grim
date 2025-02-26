@@ -19,10 +19,14 @@ tasks.named<ShadowJar>("shadowJar") {
     from(shadowCommon) // Use from() instead of direct assignment
 
     if (relocate) {
-        relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
-        relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
-        relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
-        relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
+        relocate(
+            "io.github.retrooper.packetevents",
+            "ac.grim.grimac.shaded.io.github.retrooper.packetevents"
+        )
+        relocate(
+            "com.github.retrooper.packetevents",
+            "ac.grim.grimac.shaded.com.github.retrooper.packetevents"
+        )
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
         relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
         relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")

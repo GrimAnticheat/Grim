@@ -3,6 +3,12 @@ package ac.grim.grimac.utils.reflection;
 import ac.grim.grimac.GrimAPI;
 import com.github.retrooper.packetevents.PacketEvents;
 
+enum ViaState {
+    UNKNOWN,
+    DISABLED,
+    ENABLED
+}
+
 public class ViaVersionUtil {
     private static ViaState available = ViaState.UNKNOWN;
     private static boolean isViaLoaded = false;
@@ -41,10 +47,4 @@ public class ViaVersionUtil {
         load();
         return isViaLoaded;
     }
-}
-
-enum ViaState {
-    UNKNOWN,
-    DISABLED,
-    ENABLED
 }

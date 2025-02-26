@@ -28,6 +28,8 @@ public abstract class SenderFactory<T> implements AutoCloseable {
 
     protected abstract boolean isConsole(T sender);
 
+    protected abstract boolean isPlayer(T sender);
+
     protected boolean shouldSplitNewlines(T sender) {
         return isConsole(sender);
     }

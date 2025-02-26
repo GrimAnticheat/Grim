@@ -32,8 +32,7 @@ public class GeyserUtil {
                 try {
                     ClassLoader classLoader = PacketEvents.getAPI().getPlugin().getClass().getClassLoader();
                     GEYSER_API_CLASS = classLoader.loadClass("org.geysermc.api.GeyserApiBase");
-                }
-                catch (ClassNotFoundException e) {
+                } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }

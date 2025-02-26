@@ -19,15 +19,15 @@ import java.util.Map;
 
 public class FeatureManagerImpl implements FeatureManager, ConfigReloadObserver {
 
+    @Getter
+    private static final Map<String, GrimFeature> FEATURES;
+
     static {
         FeatureBuilder builder = new FeatureBuilder();
         builder.register(new ExperimentalChecksFeature());
         builder.register(new ExemptElytraFeature());
         FEATURES = builder.buildMap();
     }
-
-    @Getter
-    private static final Map<String, GrimFeature> FEATURES;
 
     private final Map<String, FeatureState> states = new HashMap<>();
 

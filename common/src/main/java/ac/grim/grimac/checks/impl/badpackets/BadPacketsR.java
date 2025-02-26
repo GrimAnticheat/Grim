@@ -10,14 +10,14 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "BadPacketsR", decay = 0.25, experimental = true)
 public class BadPacketsR extends Check implements PacketCheck {
-    public BadPacketsR(final GrimPlayer player) {
-        super(player);
-    }
-
     private int positions = 0;
     private long clock = 0;
     private long lastTransTime;
     private int oldTransId = 0;
+
+    public BadPacketsR(final GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {

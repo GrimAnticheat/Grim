@@ -24,7 +24,8 @@ public class BadPacketsL extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
-            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) return;
+            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING)
+                return;
 
             // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
             // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM

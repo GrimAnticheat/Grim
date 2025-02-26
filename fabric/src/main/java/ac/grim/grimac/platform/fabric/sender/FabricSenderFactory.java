@@ -1,21 +1,33 @@
 package ac.grim.grimac.platform.fabric.sender;
 
+import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.text.Component;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.rcon.RconCommandOutput;
 import net.minecraft.text.Text;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.SenderMapper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class FabricSenderFactory extends SenderFactory<ServerCommandSource> implements SenderMapper<ServerCommandSource, Sender> {
+
+    private final Map<String, PermissionDefaultValue> permissionDefaults = new HashMap<>();
+
+    public static Text toNativeText(Component component) {
+        return Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
+    }
 
     @Override
     protected UUID getUniqueId(ServerCommandSource commandSource) {
@@ -46,7 +58,29 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
 
     @Override
     protected boolean hasPermission(ServerCommandSource commandSource, String node) {
-        return Permissions.check(commandSource, node);
+        TriState permissionValue = Permissions.getPermissionValue(commandSource, node);
+        if (permissionValue != TriState.DEFAULT) {
+            return permissionValue.get();
+        }
+
+        // Check registered default value
+        PermissionDefaultValue defaultValue = permissionDefaults.get(node);
+        if (defaultValue == null) {
+            return permissionValue.get(); // Fallback to provided default if unset
+        }
+
+        switch (defaultValue) {
+            case TRUE:
+                return true;
+            case FALSE:
+                return false;
+            case OP:
+                return commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
+            case NOT_OP:
+                return !commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
@@ -68,6 +102,11 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
     }
 
     @Override
+    protected boolean isPlayer(ServerCommandSource sender) {
+        return sender.getEntity() instanceof ServerPlayerEntity;
+    }
+
+    @Override
     public @NonNull Sender map(@NonNull ServerCommandSource base) {
         return this.wrap(base);
     }
@@ -82,7 +121,7 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
         throw new UnsupportedOperationException();
     }
 
-    public static Text toNativeText(Component component) {
-        return Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
+    public void registerPermissionDefault(String permission, PermissionDefaultValue defaultValue) {
+        permissionDefaults.put(permission, defaultValue);
     }
 }

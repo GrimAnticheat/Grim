@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -15,7 +16,6 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
-import ac.grim.grimac.utils.math.Vector3dm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +34,8 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.gamemode == GameMode.SPECTATOR)
+            return; // you don't send flying packets when spectating entities
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
             ignorePost = true;
             // If the player hit and has flagged this check recently
@@ -48,7 +49,8 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.gamemode == GameMode.SPECTATOR)
+            return; // you don't send flying packets when spectating entities
 
         // Don't flag twice
         if (ignorePost) {

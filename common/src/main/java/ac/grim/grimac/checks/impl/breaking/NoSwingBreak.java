@@ -11,12 +11,12 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
 @CheckData(name = "NoSwingBreak", description = "Did not swing while breaking block", experimental = true)
 public class NoSwingBreak extends Check implements BlockBreakCheck {
+    private boolean sentAnimation;
+    private boolean sentBreak;
+
     public NoSwingBreak(GrimPlayer playerData) {
         super(playerData);
     }
-
-    private boolean sentAnimation;
-    private boolean sentBreak;
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {

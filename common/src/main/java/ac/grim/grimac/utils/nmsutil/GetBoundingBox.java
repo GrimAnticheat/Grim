@@ -53,7 +53,7 @@ public class GetBoundingBox {
         final float scale = (float) entity.getAttributeValue(Attributes.SCALE);
         final float width = BoundingBoxSize.getWidth(player, entity) * scale;
         final float height = BoundingBoxSize.getHeight(player, entity) * scale;
-        return new double[] { width, height, width};
+        return new double[]{width, height, width};
     }
 
     public static void expandBoundingBoxByEntityDimensions(SimpleCollisionBox box, GrimPlayer player, PacketEntity entity) {

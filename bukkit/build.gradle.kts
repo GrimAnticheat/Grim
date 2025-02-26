@@ -121,7 +121,8 @@ bukkit {
         }
 
         register("grim.verbose.enable-on-join") {
-            description = "Enable verbose alerts on join. Requires grim.alerts and grim.alerts.enable-on-join"
+            description =
+                "Enable verbose alerts on join. Requires grim.alerts and grim.alerts.enable-on-join"
             default = Permission.Default.FALSE
         }
     }

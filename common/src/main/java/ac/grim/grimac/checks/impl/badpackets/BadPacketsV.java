@@ -12,11 +12,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsV", description = "Did not move far enough", experimental = true)
 public class BadPacketsV extends Check implements PacketCheck {
+    private int noReminderTicks;
+
     public BadPacketsV(GrimPlayer player) {
         super(player);
     }
-
-    private int noReminderTicks;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

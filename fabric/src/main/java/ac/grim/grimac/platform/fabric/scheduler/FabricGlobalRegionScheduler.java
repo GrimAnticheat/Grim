@@ -8,7 +8,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     private final Map<FabricPlatformScheduler.ScheduledTask, Runnable> taskMap = new HashMap<>();
@@ -45,11 +47,11 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
         // Execute immediately on the main thread
         // Since this is a global region scheduler, we'll schedule it for the next tick
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            run,
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
-            0,
-            false,
-            plugin
+                run,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -58,11 +60,11 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            task,
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
-            0,
-            false,
-            plugin
+                task,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(), // Run on current tick
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -72,11 +74,11 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            task,
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
-            0,
-            false,
-            plugin
+                task,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
+                0,
+                false,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);
@@ -86,11 +88,11 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-            task,
-            GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
-            periodTicks,
-            true,
-            plugin
+                task,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
+                periodTicks,
+                true,
+                plugin
         );
         Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
         taskMap.put(scheduledTask, cancellationTask);

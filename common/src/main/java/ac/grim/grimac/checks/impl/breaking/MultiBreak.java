@@ -18,15 +18,14 @@ import java.util.List;
 
 @CheckData(name = "MultiBreak", experimental = true)
 public class MultiBreak extends Check implements BlockBreakCheck {
-    public MultiBreak(GrimPlayer player) {
-        super(player);
-    }
-
     private final List<String> flags = new ArrayList<>();
-
     private boolean hasBroken;
     private BlockFace lastFace;
     private Vector3i lastPos;
+
+    public MultiBreak(GrimPlayer player) {
+        super(player);
+    }
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {

@@ -7,9 +7,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -25,16 +25,17 @@ import java.util.List;
 
 @CheckData(name = "RotationBreak", experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
+    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    private boolean ignorePost = false;
+
     public RotationBreak(GrimPlayer player) {
         super(player);
     }
 
-    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
-    private boolean ignorePost = false;
-
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.gamemode == GameMode.SPECTATOR)
+            return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
 
@@ -49,7 +50,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onPostFlyingBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR) return; // you don't send flying packets when spectating entities
+        if (player.gamemode == GameMode.SPECTATOR)
+            return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
 

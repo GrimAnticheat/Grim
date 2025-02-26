@@ -3,8 +3,8 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -16,6 +16,9 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import java.util.ArrayList;
 
 public class MovementTickerStrider extends MovementTickerRideable {
+
+    private static final WrapperPlayServerUpdateAttributes.PropertyModifier SUFFOCATING_MODIFIER = new WrapperPlayServerUpdateAttributes.PropertyModifier(
+            ResourceLocation.minecraft("suffocating"), -0.34F, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE);
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
@@ -45,12 +48,9 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
         final PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.self.getRiding();
         strider.isShaking = !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
-                        !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
-                        !player.wasTouchingLava;
+                !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
+                !player.wasTouchingLava;
     }
-
-    private static final WrapperPlayServerUpdateAttributes.PropertyModifier SUFFOCATING_MODIFIER = new WrapperPlayServerUpdateAttributes.PropertyModifier(
-            ResourceLocation.minecraft("suffocating"), -0.34F, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE);
 
     @Override
     public float getSteeringSpeed() {

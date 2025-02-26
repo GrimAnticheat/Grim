@@ -60,7 +60,8 @@ tasks.build {
 tasks.javadoc {
     title = "${rootProject.name}-${project.name} v${rootProject.version}"
     options.encoding = "UTF-8"
-    options.overview = rootProject.file("buildSrc/src/main/resources/javadoc-overview.html").toString()
+    options.overview =
+        rootProject.file("buildSrc/src/main/resources/javadoc-overview.html").toString()
     setDestinationDir(file("${project.layout.buildDirectory.asFile.get()}/docs/javadoc"))
     options {
         (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)

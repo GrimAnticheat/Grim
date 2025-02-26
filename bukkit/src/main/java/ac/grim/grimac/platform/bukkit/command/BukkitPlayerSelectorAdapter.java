@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.command;
 
-import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 
 import java.util.Collection;
 import java.util.Collections;
