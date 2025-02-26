@@ -36,8 +36,8 @@ dependencies {
     api(libs.jetbrains.annotations)
 
     // Used for local testing:
-    api("ac.grim.grimac:GrimAPI:1.0")
-    // api("com.github.grimanticheat:grimapi:f1eff912b6")
+    // api("ac.grim.grimac:GrimAPI:1.0")
+    api("com.github.grimanticheat:grimapi:e0b2835fcf")
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)
