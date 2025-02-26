@@ -53,6 +53,7 @@ dependencies {
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
     implementation(project(":common"))
+    include("me.lucko:fabric-permissions-api:0.3.1")
 }
 
 loom {
@@ -120,24 +121,6 @@ tasks.withType<RemapJarTask>().configureEach {
 
     // Include classes from :common project directly
     from(project(":common").sourceSets.main.get().output)
-
-    // Add error handling
-    doFirst {
-        logger.info("Starting remapJar task for ${project.name}")
-    }
-    doLast {
-        logger.info("Completed remapJar task for ${project.name}")
-    }
-}
-
-// Add error handling for remapSourcesJar
-tasks.named("remapSourcesJar") {
-    doFirst {
-        logger.info("Starting remapSourcesJar task for ${project.name}")
-    }
-    doLast {
-        logger.info("Completed remapSourcesJar task for ${project.name}")
-    }
 }
 
 tasks.withType<RemapJarTask>().configureEach {
