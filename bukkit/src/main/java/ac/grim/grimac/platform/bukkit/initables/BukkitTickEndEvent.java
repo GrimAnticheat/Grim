@@ -54,8 +54,9 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
     private void tickAllFoliaPlayers() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.disableGrim) continue;
+            if (player.platformPlayer == null) continue;
             Player p = ((BukkitPlatformPlayer) player.platformPlayer).getNative();
-            if (p == null || !Bukkit.isOwnedByCurrentRegion(p)) continue;
+            if (!Bukkit.isOwnedByCurrentRegion(p)) continue;
             super.onEndOfTick(player);
         }
     }
