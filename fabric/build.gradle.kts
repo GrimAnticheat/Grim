@@ -99,7 +99,9 @@ tasks.register("generateFabricModJson") {
             "accessWidener" to mod_access_widener,
             "depends" to mapOf(
                 "fabricloader" to ">=$loader_version",
-                "minecraft" to listOf("1.16.1", "1.21.1", "1.21.4"),
+                "minecraft" to listOf(
+                    //"1.16.1",
+                    "1.20.1", "1.21.1", "1.21.4"),
                 "fabric-api" to "*",
                 "cloud" to "*"
             )

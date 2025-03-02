@@ -16,7 +16,7 @@ import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import com.github.retrooper.packetevents.PacketEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
-public class GrimACFabricLoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
+public class GrimACFabric1211LoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
 
     protected final PlatformPlayerFactory playerFactory = new FabricPlatformPlayerFactory(
             Fabric1211PlatformPlayer::new,

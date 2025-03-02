@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1211.player;
 
+import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
@@ -61,5 +62,10 @@ public class Fabric1211PlatformPlayer extends FabricPlatformPlayer {
             }
             return false;
         });
+    }
+
+    @Override
+    public Sender getSender() {
+        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
     }
 }

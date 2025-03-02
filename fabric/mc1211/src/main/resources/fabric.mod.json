@@ -11,10 +11,10 @@
   "environment": "server",
   "entrypoints": {
     "main": [
-      "ac.grim.grimac.platform.fabric.mc1211.GrimACFabricLoaderPlugin"
+        "ac.grim.grimac.platform.fabric.mc1211.GrimACFabric1211LoaderPlugin"
     ],
     "preLaunch": [
-      "ac.grim.grimac.platform.fabric.mc1211.GrimACFabricLoaderPlugin"
+        "ac.grim.grimac.platform.fabric.mc1211.GrimACFabric1211LoaderPlugin"
     ]
   },
   "accessWidener": "grimac.accesswidener",

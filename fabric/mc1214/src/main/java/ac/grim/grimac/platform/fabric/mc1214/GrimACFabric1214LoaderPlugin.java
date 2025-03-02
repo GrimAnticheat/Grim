@@ -7,7 +7,7 @@ import ac.grim.grimac.platform.fabric.initables.FabricTickEndEvent;
 import com.github.retrooper.packetevents.PacketEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
-public class GrimACFabricLoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
+public class GrimACFabric1214LoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
     @Override
     public void onPreLaunch() {
         PLUGIN = this;
