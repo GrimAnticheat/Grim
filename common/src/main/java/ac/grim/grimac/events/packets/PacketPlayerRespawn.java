@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.conversion.ConversionUtil;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.enums.Pose;
@@ -113,7 +112,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
-            player.gamemode = ConversionUtil.fromPacketEventsGameMode(joinGame.getGameMode());
+            player.gamemode = joinGame.getGameMode();
             player.entityID = joinGame.getEntityId();
             player.dimensionType = joinGame.getDimensionType();
 
@@ -204,7 +203,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector3dm();
-                player.gamemode = ConversionUtil.fromPacketEventsGameMode(respawn.getGameMode());
+                player.gamemode = respawn.getGameMode();
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
                     player.compensatedWorld.setDimension(respawn.getDimensionType(), event.getUser());
                 }

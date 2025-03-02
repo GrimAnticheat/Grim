@@ -5,7 +5,7 @@ import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

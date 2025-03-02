@@ -1,6 +1,5 @@
 package ac.grim.grimac.platform.fabric.manager;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
@@ -24,6 +23,6 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
     @Override
     public void registerPermission(String permission, PermissionDefaultValue defaultValue) {
         fabricSenderFactory.registerPermissionDefault(permission, defaultValue);
-        Permissions.check(GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().getUniqueId(), permission);
+        Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandSource(), permission);
     }
 }

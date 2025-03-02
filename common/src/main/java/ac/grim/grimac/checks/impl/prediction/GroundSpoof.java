@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "GroundSpoof", setback = 10, decay = 0.01)
 public class GroundSpoof extends Check implements PostPredictionCheck {

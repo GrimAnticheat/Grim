@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class FabricPlayerSelectorAdapter implements PlayerSelector {
-    private final org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector fabricSelector;
+    protected final org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector fabricSelector;
 
     public FabricPlayerSelectorAdapter(org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector fabricSelector) {
         this.fabricSelector = fabricSelector;

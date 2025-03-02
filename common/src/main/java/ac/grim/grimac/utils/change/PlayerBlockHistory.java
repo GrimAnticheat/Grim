@@ -35,7 +35,7 @@ public class PlayerBlockHistory {
      */
     public void cleanup(int maxTick) {
         while (!blockHistory.isEmpty() && maxTick - blockHistory.peekFirst().tick() > 0) {
-            blockHistory.removeFirst();
+            blockHistory.pollFirst();
         }
     }
 

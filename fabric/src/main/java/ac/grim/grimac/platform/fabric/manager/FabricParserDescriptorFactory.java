@@ -8,7 +8,11 @@ import org.incendo.cloud.parser.ParserDescriptor;
 
 public class FabricParserDescriptorFactory implements ParserDescriptorFactory {
 
-    FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser = new FabricPlayerSelectorParser<>();
+    private final FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser;
+
+    public FabricParserDescriptorFactory(FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser) {
+        this.fabricPlayerSelectorParser = fabricPlayerSelectorParser;
+    }
 
     @Override
     public ParserDescriptor<Sender, PlayerSelector> getSinglePlayer() {

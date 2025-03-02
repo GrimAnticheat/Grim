@@ -4,7 +4,7 @@ import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.buffer.ByteBuf;
@@ -14,9 +14,11 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.text.Text;
 
+import java.util.function.Function;
+
 public class FabricConversionUtil {
 
-    public static ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    private static Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -25,7 +27,7 @@ public class FabricConversionUtil {
         ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
         try {
             // Obtain the DynamicRegistryManager (you need to provide this from your context)
-            DynamicRegistryManager registryManager = getDynamicRegistryManager(); // Replace with actual method to get registry manager
+            DynamicRegistryManager registryManager = GrimACFabricLoaderPlugin.FABRIC_SERVER.getRegistryManager(); // Replace with actual method to get registry manager
 
             // Create a RegistryByteBuf
             RegistryByteBuf registryByteBuf = new RegistryByteBuf(buffer, registryManager);
@@ -44,18 +46,21 @@ public class FabricConversionUtil {
             // Release the ByteBuf to prevent memory leaks
             ByteBufHelper.release(buffer);
         }
+    };
+    private static Function<Component, Text> nativeTextMapperFunction = (component) -> Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
+
+    public static void setConverters(Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction,
+                                     Function<Component, Text> nativeTextMapperFunction) {
+        FabricConversionUtil.itemStackMapperFunction = itemStackMapperFunction;
+        FabricConversionUtil.nativeTextMapperFunction = nativeTextMapperFunction;
     }
 
-    // Placeholder method - replace with actual way to obtain DynamicRegistryManager
-    private static DynamicRegistryManager getDynamicRegistryManager() {
-        // Example: Obtain from server or client context
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getRegistryManager();
-        // For client: MinecraftClient.getInstance().getNetworkHandler().getRegistryManager()
-//        throw new UnsupportedOperationException("DynamicRegistryManager not provided");
+    public static ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+        return itemStackMapperFunction.apply(fabricStack);
     }
 
     public static Text toNativeText(Component component) {
-        return Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
+        return nativeTextMapperFunction.apply(component);
     }
 
     public static net.minecraft.world.GameMode toFabricGameMode(GameMode gameMode) {

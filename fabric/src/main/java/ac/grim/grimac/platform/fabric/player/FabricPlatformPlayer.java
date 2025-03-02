@@ -7,7 +7,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -17,17 +17,27 @@ import net.minecraft.text.Text;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPlayer {
+    private static Function<Entity, FabricGrimEntity> grimEntityFactory;
+    private static Function<ServerPlayerEntity, FabricPlatformInventory> platformInventoryFactory;
+
+    public static void init(Function<Entity, FabricGrimEntity> grimEntityFunction,
+                            Function<ServerPlayerEntity, FabricPlatformInventory> platformInventoryFunction
+    ) {
+        grimEntityFactory = grimEntityFunction;
+        platformInventoryFactory = platformInventoryFunction;
+    }
 
     @Getter
-    private final ServerPlayerEntity fabricPlayer;
-    private final FabricPlatformInventory inventory;
+    protected final ServerPlayerEntity fabricPlayer;
+    protected final FabricPlatformInventory inventory;
 
     public FabricPlatformPlayer(ServerPlayerEntity player) {
         super(player);
         this.fabricPlayer = player;
-        this.inventory = new FabricPlatformInventory(player);
+        this.inventory = platformInventoryFactory.apply(player);
     }
 
     @Override
@@ -93,7 +103,7 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     @Override
     public GrimEntity getVehicle() {
         Entity vehicle = fabricPlayer.getVehicle();
-        return vehicle != null ? new FabricGrimEntity(vehicle) : null;
+        return vehicle != null ? grimEntityFactory.apply(vehicle) : null;
     }
 
     @Override

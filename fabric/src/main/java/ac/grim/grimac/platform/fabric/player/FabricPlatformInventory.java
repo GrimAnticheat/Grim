@@ -14,8 +14,8 @@ import net.minecraft.util.Identifier;
 
 public class FabricPlatformInventory implements PlatformInventory {
 
-    private final ServerPlayerEntity fabricPlayer;
-    private final PlayerInventory inventory;
+    protected final ServerPlayerEntity fabricPlayer;
+    protected final PlayerInventory inventory;
 
     public FabricPlatformInventory(ServerPlayerEntity player) {
         this.fabricPlayer = player;

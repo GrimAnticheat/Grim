@@ -44,15 +44,15 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings("net.fabricmc:yarn:$yarn_mappings")
     modImplementation("net.fabricmc:fabric-loader:$loader_version")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
+    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
     modImplementation(libs.packetevents.fabric)
     modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")
-    modImplementation("net.kyori:adventure-platform-fabric:6.2.0")
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
+    api(libs.packetevents.fabric)
+
     implementation(project(":common"))
-    include("me.lucko:fabric-permissions-api:0.3.1")
 }
 
 loom {
@@ -99,8 +99,9 @@ tasks.register("generateFabricModJson") {
             "accessWidener" to mod_access_widener,
             "depends" to mapOf(
                 "fabricloader" to ">=$loader_version",
-                "minecraft" to minecraft_version,
-                "fabric-api" to "*"
+                "minecraft" to listOf("1.16.1", "1.21.1", "1.21.4"),
+                "fabric-api" to "*",
+                "cloud" to "*"
             )
         )
 
@@ -114,7 +115,6 @@ tasks.named("processResources") {
     dependsOn("generateFabricModJson")
 }
 
-// Improve remapping tasks
 tasks.withType<RemapJarTask>().configureEach {
     archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
 
@@ -122,8 +122,18 @@ tasks.withType<RemapJarTask>().configureEach {
     from(project(":common").sourceSets.main.get().output)
 }
 
-tasks.withType<RemapJarTask>().configureEach {
-    archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
+subprojects.forEach {
+    tasks.named("remapJar").configure {
+        dependsOn("${it.path}:remapJar")
+    }
+}
+
+tasks.remapJar.configure {
+    subprojects.forEach { subproject ->
+        subproject.tasks.matching { it.name == "remapJar" }.configureEach {
+            nestedJars.from(this)
+        }
+    }
 }
 
 publishing.publications.create<MavenPublication>("maven") {

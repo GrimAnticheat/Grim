@@ -10,11 +10,12 @@ import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FabricEntityScheduler implements EntityScheduler {
-    private final Map<FabricPlatformScheduler.ScheduledTask, Runnable> taskMap = new HashMap<>();
+    // TODO (Cross-platform) (Threading) try to make this not Concurrent
+    private final Map<FabricPlatformScheduler.ScheduledTask, Runnable> taskMap = new ConcurrentHashMap<>();
     private final GrimPlugin plugin;
 
     public FabricEntityScheduler(GrimPlugin plugin) {
@@ -28,39 +29,12 @@ public class FabricEntityScheduler implements EntityScheduler {
 
     @Override
     public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable run, @Nullable Runnable retired, long delay) {
-        FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-                () -> {
-                    run.run();
-                    if (retired != null && entity.isDead()) {
-                        retired.run();
-                    }
-                },
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
-                0,
-                false,
-                plugin
-        );
-        Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
-        taskMap.put(scheduledTask, cancellationTask);
+        runDelayed(entity, plugin, run, retired, delay);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired) {
-        FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
-                () -> {
-                    task.run();
-                    if (retired != null && entity.isDead()) {
-                        retired.run();
-                    }
-                },
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks(),
-                0,
-                false,
-                plugin
-        );
-        Runnable cancellationTask = () -> taskMap.remove(scheduledTask);
-        taskMap.put(scheduledTask, cancellationTask);
-        return new FabricTaskHandle(cancellationTask, true); // true for sync
+        return runDelayed(entity, plugin, task, retired, 0);
     }
 
     @Override

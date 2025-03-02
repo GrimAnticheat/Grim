@@ -1,14 +1,26 @@
 package ac.grim.grimac.platform.fabric.player;
 
 import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
+import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
+
+    private final Function<ServerPlayerEntity, FabricPlatformPlayer> getPlayerFunction;
+
+    public FabricPlatformPlayerFactory(Function<ServerPlayerEntity, FabricPlatformPlayer> playerSupplier,
+                                       Function<Entity, FabricGrimEntity> getEntityFunction,
+                                       Function<ServerPlayerEntity, FabricPlatformInventory> getInventoryFunction
+    ) {
+        this.getPlayerFunction = playerSupplier;
+        FabricPlatformPlayer.init(getEntityFunction, getInventoryFunction);
+    }
 
     @Override
     protected ServerPlayerEntity getNativePlayer(UUID uuid) {
@@ -16,8 +28,8 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    protected PlatformPlayer createPlatformPlayer(ServerPlayerEntity nativePlayer) {
-        return new FabricPlatformPlayer(nativePlayer);
+    protected FabricPlatformPlayer createPlatformPlayer(ServerPlayerEntity nativePlayer) {
+        return getPlayerFunction.apply(nativePlayer);
     }
 
     @Override

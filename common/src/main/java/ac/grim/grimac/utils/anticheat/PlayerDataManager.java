@@ -51,7 +51,7 @@ public class PlayerDataManager {
 
             // Has exempt permission
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
-            if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt", false)) {
+            if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
                 exemptUsers.add(user);
                 return false;
             }

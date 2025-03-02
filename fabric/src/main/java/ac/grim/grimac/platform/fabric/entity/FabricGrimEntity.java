@@ -17,8 +17,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class FabricGrimEntity implements GrimEntity {
 
-    private final Entity entity;
-    private FabricPlatformWorld fabricPlatformWorld;
+    protected final Entity entity;
+    protected FabricPlatformWorld fabricPlatformWorld;
 
     public FabricGrimEntity(Entity entity) {
         Preconditions.checkArgument(entity != null);

@@ -10,7 +10,7 @@ import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;

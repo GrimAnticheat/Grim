@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.platform.api.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "CrashB", description = "Sent creative mode inventory click packets while not in creative mode")
 public class CrashB extends Check implements PacketCheck {

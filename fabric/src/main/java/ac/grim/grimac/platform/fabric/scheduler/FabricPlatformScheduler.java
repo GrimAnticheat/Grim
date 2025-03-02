@@ -30,17 +30,28 @@ public class FabricPlatformScheduler implements PlatformScheduler {
     }
 
     // Shared method to handle synchronous tasks
+    // Add this to FabricPlatformScheduler.java
+    public static final ThreadLocal<Boolean> EXECUTING_TASK = new ThreadLocal<Boolean>() {
+        @Override protected Boolean initialValue() {
+            return false;
+        }
+    };
+
     protected static void handleSyncTasks(Map<ScheduledTask, Runnable> taskMap, MinecraftServer server, GrimPlugin plugin) {
         Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
         while (iterator.hasNext()) {
             ScheduledTask task = iterator.next();
             if (server.getTicks() >= task.nextRunTick) {
                 try {
+                    EXECUTING_TASK.set(true);
                     task.task.run();
                 } catch (Exception e) {
                     plugin.getLogger().warning("Error executing scheduled task: " + e.getMessage());
                     e.printStackTrace();
+                } finally {
+                    EXECUTING_TASK.set(false);
                 }
+
                 if (task.isPeriodic) {
                     task.nextRunTick = server.getTicks() + task.period;
                 } else {
@@ -75,6 +86,10 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         for (Runnable cancellationTask : cancellationTasks) {
             cancellationTask.run();
         }
+    }
+
+    protected static void scheduleTask(Map<ScheduledTask, Runnable> taskMap, GrimPlugin plugin, Runnable task, long initialDelayTicks, long periodTicks, boolean isPeriodic) {
+
     }
 
     @Override
