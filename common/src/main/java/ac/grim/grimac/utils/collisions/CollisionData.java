@@ -909,17 +909,22 @@ public enum CollisionData {
     }, StateTypes.DECORATED_POT),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
-
-        if (data.getTilt() == Tilt.NONE || data.getTilt() == Tilt.UNSTABLE) {
-            return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0);
-        } else if (data.getTilt() == Tilt.PARTIAL) {
-            return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0);
+        Tilt tilt = data.getTilt();
+        if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
+            if (tilt == Tilt.FULL) {
+                return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1, false);
+            } else {
+                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+            }
+        } else {
+            if (tilt == Tilt.NONE || tilt == Tilt.UNSTABLE) {
+                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0);
+            } else if (tilt == Tilt.PARTIAL) {
+                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0);
+            } else {
+                return NoCollisionBox.INSTANCE;
+            }
         }
-
-        return NoCollisionBox.INSTANCE;
-
     }, StateTypes.BIG_DRIPLEAF),
 
     POINTED_DRIPSTONE((player, version, data, x, y, z) -> {
