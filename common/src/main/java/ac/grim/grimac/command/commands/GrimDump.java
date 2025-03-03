@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
@@ -17,21 +18,14 @@ import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
 
+import java.util.Locale;
+
 public class GrimDump implements BuildableCommand {
 
-    private static final boolean PAPER = hasClass("com.destroystokyo.paper.PaperConfig")
-            || hasClass("io.papermc.paper.configuration.Configuration");
+    private static final boolean PAPER = ReflectionUtils.hasClass("com.destroystokyo.paper.PaperConfig")
+            || ReflectionUtils.hasClass("io.papermc.paper.configuration.Configuration");
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private String link = null; // these links should not expire for a while
-
-    private static boolean hasClass(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
 
     @Override
     public void register(CommandManager<Sender> commandManager) {
@@ -71,9 +65,7 @@ public class GrimDump implements BuildableCommand {
         // properties
         JsonArray properties = new JsonArray();
         base.add("properties", properties);
-        if (PAPER) properties.add("paper");
-        if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) properties.add("folia");
-        else if (GrimAPI.INSTANCE.getPlatform() == Platform.FABRIC) properties.add("fabric");
+        properties.add(GrimAPI.INSTANCE.getPlatform().toString().toLowerCase(Locale.ROOT));
         if (ViaVersionUtil.isAvailable()) properties.add("viaversion");
         // system
         JsonObject system = new JsonObject();

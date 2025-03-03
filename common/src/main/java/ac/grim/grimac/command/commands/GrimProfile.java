@@ -34,15 +34,15 @@ public class GrimProfile implements BuildableCommand {
         Sender sender = context.sender();
         PlayerSelector target = context.get("target");
 
-        PlatformPlayer targetPlatformPLayer = target.getSinglePlayer().getPlatformPlayer();
-        if (targetPlatformPLayer.isExternalPlayer()) {
+        PlatformPlayer targetPlatformPlayer = target.getSinglePlayer().getPlatformPlayer();
+        if (targetPlatformPlayer.isExternalPlayer()) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
             alertString = MessageUtil.replacePlaceholders(sender, alertString);
             sender.sendMessage(MessageUtil.miniMessage(alertString));
             return;
         }
 
-        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlatformPLayer.getUniqueId());
+        GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlatformPlayer.getUniqueId());
         if (grimPlayer == null) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!");
             message = MessageUtil.replacePlaceholders(sender, message);

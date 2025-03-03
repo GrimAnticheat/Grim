@@ -87,7 +87,6 @@ public class GrimLog implements BuildableCommand {
             sender.sendMessage(MessageUtil.miniMessage(failure));
             return;
         }
-        sendLogAsync(sender, builder.toString(), string -> {
-        }, "text/yaml");
+        sendLogAsync(sender, builder.toString(), string -> {}, "text/yaml");
     }
 }
