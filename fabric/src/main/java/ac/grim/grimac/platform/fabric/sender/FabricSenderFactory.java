@@ -4,11 +4,10 @@ import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
+import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.text.Component;
-import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,10 +23,6 @@ import java.util.UUID;
 public class FabricSenderFactory extends SenderFactory<ServerCommandSource> implements SenderMapper<ServerCommandSource, Sender> {
 
     private final Map<String, PermissionDefaultValue> permissionDefaults = new HashMap<>();
-
-    public static Text toNativeText(Component component) {
-        return Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
-    }
 
     @Override
     protected UUID getUniqueId(ServerCommandSource commandSource) {
@@ -53,7 +48,7 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
 
     @Override
     protected void sendMessage(ServerCommandSource sender, Component message) {
-        sender.sendFeedback(() -> toNativeText(message), false);
+        sender.sendFeedback(() -> FabricConversionUtil.toNativeText(message), false);
     }
 
     @Override
