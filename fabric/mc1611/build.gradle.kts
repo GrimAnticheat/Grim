@@ -34,14 +34,14 @@ dependencies {
     minecraft("com.mojang:minecraft:1.16.1")
     mappings("net.fabricmc:yarn:1.16.1+build.21:v2")
 
-    modImplementation("net.fabricmc:fabric-loader:0.16.10")
+    modImplementation(libs.fabric.loader)
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.42.0+1.16")
 
     implementation(project(":fabric")) {
         exclude(group = "net.fabricmc", module = "fabric-loader") // prevent duplicate fabric-loader on run
     }
     implementation(project(":common"))
-    modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")
+    modImplementation(libs.cloud.)
     modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 }
 

@@ -43,11 +43,11 @@ repositories {
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings("net.fabricmc:yarn:$yarn_mappings")
-    modImplementation("net.fabricmc:fabric-loader:$loader_version")
+    modImplementation(libs.fabric.loader)
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
     modImplementation(libs.packetevents.fabric)
-    modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")
+    modImplementation(libs.cloud.fabric)
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
     api(libs.packetevents.fabric)

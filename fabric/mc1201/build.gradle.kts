@@ -34,10 +34,10 @@ dependencies {
     minecraft("com.mojang:minecraft:1.20.1")
     mappings("net.fabricmc:yarn:1.20.1+build.10:v2")
 
-    modImplementation("net.fabricmc:fabric-loader:0.16.10")
+    modImplementation(libs.fabric.loader)
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.92.3+1.20.1")
 
-    modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")
+    modImplementation(libs.cloud.fabric)
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
     implementation(project(":fabric"))
