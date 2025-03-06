@@ -255,19 +255,23 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             if (slot.getWindowId() == 0) {
-                if (player.isMitigateDesyncNoSlow() && player.packetStateData.lastSlotSelected + 36 == slot.getSlot()) {
-                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
-                }
-
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
                         player.packetStateData.setSlowedByUsingItem(false);
+
+                        if (player.isMitigateDesyncNoSlow()) {
+                            BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                        }
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
                         player.packetStateData.setSlowedByUsingItem(false);
+
+                        if (player.isMitigateDesyncNoSlow()) {
+                            BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                        }
                     }
                 });
             }

@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.utils.reflection.PaperUtils;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
-import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.GameMode;
@@ -19,10 +18,10 @@ public class GrimSpectate extends BaseCommand {
     @Subcommand("spectate")
     @CommandPermission("grim.spectate")
     @CommandCompletion("@players")
-    public void onSpectate(CommandSender sender, @Optional OnlinePlayer target) {
+    public void onSpectate(CommandSender sender, @Optional Player target) {
         if (!(sender instanceof Player player)) return;
 
-        if (target != null && target.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+        if (target != null && target.getUniqueId().equals(player.getUniqueId())) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!");
             message = MessageUtil.replacePlaceholders(target, message);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(message));
@@ -47,6 +46,6 @@ public class GrimSpectate extends BaseCommand {
         }
 
         player.setGameMode(GameMode.SPECTATOR);
-        PaperUtils.teleportAsync(player, target.getPlayer().getLocation());
+        PaperUtils.teleportAsync(player, target.getLocation());
     }
 }

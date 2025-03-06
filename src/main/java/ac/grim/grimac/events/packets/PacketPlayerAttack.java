@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -85,6 +86,13 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                         // 1.9+ player who might have been slowed, but we can't be sure
                         player.maxAttackSlow++;
                     }
+                }
+            } else if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT) {
+                // Interacting with a horse in versions 1.13- will cause the client to
+                // set the player's rotation to the horse's rotation
+                if (player.compensatedEntities.getEntity(interact.getEntityId()) instanceof PacketEntityHorse
+                        && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13)) {
+                    player.packetStateData.horseInteractCausedForcedRotation = true;
                 }
             }
         }

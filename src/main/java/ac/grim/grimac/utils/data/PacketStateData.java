@@ -33,6 +33,9 @@ public class PacketStateData {
     public int lastFood;
     public boolean lastServerTransWasValid = false;
 
+    // If true, the player's rotation was forced to the horse's rotation only on 1.13-
+    public boolean horseInteractCausedForcedRotation = false;
+
     public void setSlowedByUsingItem(boolean slowedByUsingItem) {
         this.slowedByUsingItem = slowedByUsingItem;
         slowedByUsingItemSlot = slowedByUsingItem ? lastSlotSelected : Integer.MIN_VALUE;

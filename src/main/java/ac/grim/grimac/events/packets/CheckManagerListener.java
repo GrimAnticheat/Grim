@@ -351,7 +351,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private boolean isMojangStupid(GrimPlayer player, WrapperPlayClientPlayerFlying flying) {
+    private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
+        // Teleports are not stupidity packets.
+        if (player.packetStateData.lastPacketWasTeleport) return false;
         // Mojang has become less stupid!
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
 
@@ -383,6 +385,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             } else {
                 // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
                 flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
+                event.markForReEncode(true);
             }
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
@@ -435,8 +438,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Teleports must be POS LOOK
             teleportData = flying.hasPositionChanged() && flying.hasRotationChanged() ? player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ()) : new TeleportAcceptData();
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
-            // Teleports can't be stupidity packets
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = !player.packetStateData.lastPacketWasTeleport && isMojangStupid(player, flying);
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
         }
 
         if (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
@@ -811,6 +813,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (!player.packetStateData.lastPacketWasTeleport) {
             player.packetStateData.didSendMovementBeforeTickEnd = true;
         }
+
+        player.packetStateData.horseInteractCausedForcedRotation = false;
     }
 
     private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
