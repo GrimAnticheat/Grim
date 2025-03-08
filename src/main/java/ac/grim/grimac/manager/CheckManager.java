@@ -64,10 +64,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -86,9 +83,9 @@ public class CheckManager {
 
     public ClassToInstanceMap<AbstractCheck> allChecks;
 
-    private final Map<PacketTypeCommon, List<Consumer<PacketSendEvent>>> sendHandlers = new HashMap<>();
-    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> receiveHandlers = new HashMap<>();
-    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> preReceiveHandlers = new HashMap<>();
+    private final Map<PacketTypeCommon, List<Consumer<PacketSendEvent>>> sendHandlers = new IdentityHashMap<>();
+    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> receiveHandlers = new IdentityHashMap<>();
+    private final Map<PacketTypeCommon, List<Consumer<PacketReceiveEvent>>> preReceiveHandlers = new IdentityHashMap<>();
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
