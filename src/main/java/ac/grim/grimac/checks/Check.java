@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 
-
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
@@ -73,8 +72,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
                     noSetbackPermission = player.bukkitPlayer.hasPermission("grim.nosetback." + id);
                     noModifyPacketPermission = player.bukkitPlayer.hasPermission("grim.nomodifypacket." + id);
                 },
-                () -> {
-                }
+                () -> {}
         );
     }
 

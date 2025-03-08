@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-@Getter
 public class AbstractPacketCheck extends Check implements PacketCheck {
 
     public AbstractPacketCheck(GrimPlayer player) {
