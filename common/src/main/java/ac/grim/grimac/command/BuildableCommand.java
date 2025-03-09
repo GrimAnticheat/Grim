@@ -5,6 +5,4 @@ import org.incendo.cloud.CommandManager;
 
 public interface BuildableCommand {
     void register(CommandManager<Sender> manager);
-
-
 }

@@ -38,14 +38,6 @@ public class GrimDebug implements BuildableCommand {
         // Register command
         commandManager.command(debugCommand);
         commandManager.command(consoleDebugCommand);
-
-        // Register completions for players
-//        commandManager.parserRegistry().registerSuggestionProvider("players", (context, input) -> {
-//            // Abstract player name suggestions (cross-platform)
-//            return GrimAPI.INSTANCE.getOnlinePlayerNames().stream()
-//                    .filter(name -> name.toLowerCase().startsWith(input.toLowerCase()))
-//                    .collect(Collectors.toList());
-//        });
     }
 
     private void handleDebug(@NonNull CommandContext<Sender> context) {
@@ -57,9 +49,11 @@ public class GrimDebug implements BuildableCommand {
 
         if (sender.isConsole()) {
             targetGrimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
-        } else {
+        } else if (sender.isPlayer()) {
             GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
             targetGrimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
+        } else {
+            sender.sendMessage(Component.text("Sender must be a player or console."));
         }
     }
 
@@ -93,7 +87,9 @@ public class GrimDebug implements BuildableCommand {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getUniqueId());
         if (grimPlayer == null) {
             User user = PacketEvents.getAPI().getPlayerManager().getUser(sender.getPlatformPlayer().getNative());
-            sender.sendMessage(Component.text("This player is exempt from all checks!", NamedTextColor.RED));
+            sender.sendMessage(Component.text(
+                    GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!"),
+                    NamedTextColor.RED));
 
             if (user == null) {
                 sender.sendMessage(Component.text("Unknown PacketEvents user", NamedTextColor.RED));

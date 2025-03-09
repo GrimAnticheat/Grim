@@ -28,12 +28,6 @@ public class GrimStopSpectating implements BuildableCommand {
                             }
                             return List.of(); // No suggestions if no permission
                         }))
-//                        .suggester((context, input) -> {
-//                            return Bukkit.getOnlinePlayers().stream()
-//                                    .map(Player::getName)
-//                                    .filter(name -> input.isEmpty() || name.toLowerCase().startsWith(input.toLowerCase()))
-//                                    .collect(Collectors.toList());
-//                        })
                         .handler(this::onStopSpectate)
         );
     }

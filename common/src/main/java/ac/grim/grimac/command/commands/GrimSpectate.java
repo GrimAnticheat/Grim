@@ -21,12 +21,6 @@ public class GrimSpectate implements BuildableCommand {
                         .literal("spectate")
                         .permission("grim.spectate")
                         .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
-//                        .suggester((context, input) -> {
-//                            return Bukkit.getOnlinePlayers().stream()
-//                                    .map(Player::getName)
-//                                    .filter(name -> input.isEmpty() || name.toLowerCase().startsWith(input.toLowerCase()))
-//                                    .collect(Collectors.toList());
-//                        })
                         .handler(this::handleSpectate)
         );
     }
