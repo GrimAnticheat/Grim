@@ -8,7 +8,7 @@ val fabric_version: String by project
 
 plugins {
     `maven-publish`
-    id("fabric-loom") version "1.9.2"
+    alias(libs.plugins.fabric.loom)
     grim.`base-conventions`
     grim.`jij-conventions`
 }
