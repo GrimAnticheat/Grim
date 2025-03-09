@@ -15,7 +15,7 @@ public class BukkitPlatformInventory implements PlatformInventory {
 
     @Override
     public ItemStack getItemInHand() {
-        return SpigotConversionUtil.fromBukkitItemStack(bukkitPlayer.getInventory().getItemInMainHand());
+        return SpigotConversionUtil.fromBukkitItemStack(bukkitPlayer.getInventory().getItemInHand());
     }
 
     @Override
