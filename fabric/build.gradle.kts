@@ -1,9 +1,7 @@
-import com.google.gson.GsonBuilder
 import net.fabricmc.loom.task.RemapJarTask
 
 val minecraft_version: String by project
 val yarn_mappings: String by project
-val loader_version: String by project
 val fabric_version: String by project
 
 plugins {
@@ -13,108 +11,67 @@ plugins {
     grim.`jij-conventions`
 }
 
-repositories {
-    mavenLocal()
-    maven {
-        name = "FabricMC"
-        url = uri("https://maven.fabricmc.net/")
-    }
-    maven {
-        name = "papermc"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
-    }
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") { // Grim API
-        content {
-            includeGroup("com.github.grimanticheat")
-        }
-    }
-    maven("https://repo.viaversion.com") // ViaVersion
-    maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
-    maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-    maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-    maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
-    maven("https://repo.codemc.io/repository/maven-snapshots/")
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    mavenCentral()
-    // FastUtil, Discord-Webhooks
-}
-
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings("net.fabricmc:yarn:$yarn_mappings")
-    modImplementation(libs.fabric.loader)
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
-    modImplementation(libs.packetevents.fabric)
-    modImplementation(libs.cloud.fabric)
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
+    modImplementation(libs.cloud.fabric)
+    modImplementation(libs.fabric.loader)
+    modImplementation(libs.packetevents.fabric)
+
     modApi(libs.packetevents.fabric)
-
-    implementation(project(":common"))
 }
 
-loom {
-    accessWidenerPath = file("src/main/resources/grimac.accesswidener")
-}
+// The configurations below will only apply to :fabric and its submodules, not its siblings or the root project
+allprojects {
+    apply(plugin = "fabric-loom")
+    apply(plugin = "grim.base-conventions")
 
-// Update the delegated properties
-val mod_name: String = "GrimAC"
-val mod_access_widener: String = "grimac.accesswidener"
-val mod_id: String = rootProject.name
-val mod_description: String = rootProject.description ?: "A server-side mod"
-val mod_environment: String = "server"
-val mod_authors: String = "GrimAC"
-val mod_license: String = "GPLv3"
-val mod_entrypoints_main: String = "ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin"
+    repositories {
+        mavenLocal()
+        maven {
+            name = "FabricMC"
+            url = uri("https://maven.fabricmc.net/")
+        }
+        maven("https://jitpack.io/") { // Grim API
+            content {
+                includeGroup("com.github.grimanticheat")
+            }
+        }
+        maven("https://repo.viaversion.com") // ViaVersion
+        maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
+        maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
+        maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
+        maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
+        maven("https://repo.codemc.io/repository/maven-snapshots/")
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        mavenCentral()
+        // FastUtil, Discord-Webhooks
+    }
 
-// Add this task to generate fabric.mod.json
-tasks.register("generateFabricModJson") {
-    group = "fabric"
-    description = "Generates fabric.mod.json file"
+    loom {
+        accessWidenerPath = file("src/main/resources/grimac.accesswidener")
+    }
 
-    doLast {
-        val fabricModJsonDir = file("src/main/resources")
-        fabricModJsonDir.mkdirs()
-        val fabricModJsonFile = File(fabricModJsonDir, "fabric.mod.json")
+    dependencies {
+//         I hate this syntax, is there an alternative to make modImplementation(libs.package.name) work?
+//         Use the libs extension from the root project
+//        val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
+//        modImplementation(libsx.findLibrary("cloud-fabric").get())
+//        modImplementation(libsx.findLibrary("fabric-loader").get())
 
-        val entrypoints = mutableMapOf<String, List<String>>(
-            "main" to mod_entrypoints_main.split(",").map { it.trim() },
-            "preLaunch" to mod_entrypoints_main.split(",").map { it.trim() }
-        )
-        // Don't include client entrypoint since we're server-only
-        // If you later change mod_environment, you can add client entrypoints back
-
-        val modJson = mapOf(
-            "schemaVersion" to 1,
-            "id" to mod_id,
-            "version" to "${project.version}",
-            "name" to mod_name,
-            "description" to mod_description,
-            "authors" to mod_authors.split(",").map { it.trim() },
-            "license" to mod_license,
-            "environment" to mod_environment,
-            "entrypoints" to entrypoints,
-            "accessWidener" to mod_access_widener,
-            "depends" to mapOf(
-                "fabricloader" to ">=$loader_version",
-                "minecraft" to listOf(
-                    //"1.16.1",
-                    "1.20.1", "1.21.1", "1.21.4"),
-                "fabric-api" to "*",
-                "cloud" to "*"
-            )
-        )
-
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        fabricModJsonFile.writeText(gson.toJson(modJson))
+        implementation(project(":common"))
     }
 }
 
-// Make the processResources task depend on our generation task
-tasks.named("processResources") {
-    dependsOn("generateFabricModJson")
+subprojects {
+    dependencies {
+        // configuration = "namedElements" required when depending on another loom project
+        implementation(project(":fabric", configuration = "namedElements"))
+    }
 }
 
 tasks.withType<RemapJarTask>().configureEach {
