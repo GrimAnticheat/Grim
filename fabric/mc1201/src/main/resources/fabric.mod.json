@@ -23,6 +23,7 @@
     "minecraft": [
       "1.20.1"
     ],
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "packetevents-mc1201": "*"
   }
 }

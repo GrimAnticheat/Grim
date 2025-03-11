@@ -10,6 +10,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public class FabricPlatformInventory implements PlatformInventory {
@@ -67,6 +68,7 @@ public class FabricPlatformInventory implements PlatformInventory {
     }
 
     // TODO
+    // I don't understand why we do this on Bukkit, so I'm replicating the behaviour without high-level understanding of purpose
     // This method is only used to check if the inventory matches one of the following
     //     private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
     //            Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
@@ -75,43 +77,50 @@ public class FabricPlatformInventory implements PlatformInventory {
     @Override
     public String getOpenInventoryKey() {
         ScreenHandler handler = fabricPlayer.currentScreenHandler;
-        ScreenHandlerType<?> type = handler.getType();
+        ScreenHandlerType<?> type = getSafeType(handler);
 
         // Handle null types (player crafting and creative)
         if (type == null) {
+            // 4x4 CRAFTING -> CRAFTING
             if (handler instanceof PlayerScreenHandler) {
                 return "CRAFTING";
+                // Not sure if creative mode check here is correct
+            } else if (fabricPlayer.isInCreativeMode()) {
+                return "CREATIVE";
             }
-//            else if (fabricPlayer.isInCreativeMode() && ) {
-//                return "CREATIVE";
-//            }
         }
 
-        // 4x4 CRAFTING -> CRAFTING
+        // should we handle crafters here also??
+        // CRAFTING -> CRAFTING
+        if (type == ScreenHandlerType.CRAFTING) {
+            return "CRAFTING";
         // PLAYER -> PLAYER
-        // CHEST, ENDER_CHEST, or BARREL -> CHEST
-        // DISPENSER, DROPPER -> DISPENSER
-
-        // Registry handles:
-        // SHULKER_BOX -> SHULKER_BOX
-        // CRAFTIING -> CRAFTING
-
-        // Handle special mappings
-        if (type == ScreenHandlerType.GENERIC_9X4) {
+        } else if (type == ScreenHandlerType.GENERIC_9X4) {
             return "PLAYER";
+        // CHEST, ENDER_CHEST, or BARREL -> CHEST
         } else if (type == ScreenHandlerType.GENERIC_9X3) {
-            // Could be CHEST, ENDER_CHEST, or BARREL
-            return "CHEST"; // They all use the same handler type
+            return "CHEST";
+        // DISPENSER, DROPPER -> DISPENSER
         } else if (type == ScreenHandlerType.GENERIC_3X3) {
-            // Could be DISPENSER or DROPPER
-            return "DISPENSER"; // They use the same handler type
-        }
+            return "DISPENSER";
+        } else {
+            // Registry handles:
+            // SHULKER_BOX -> SHULKER_BOX
+            // CRAFTIING -> CRAFTING
+            Identifier registryKey = Registries.SCREEN_HANDLER.getId(type);
+            if (registryKey != null) {
+                return registryKey.getPath();
+            }
 
-        Identifier registryKey = Registries.SCREEN_HANDLER.getId(type);
-        if (registryKey != null) {
-            return registryKey.getPath();
+            return handler.getClass().getSimpleName(); // Default fallback
         }
+    }
 
-        return handler.getClass().getSimpleName(); // Default fallback
+    private static @Nullable ScreenHandlerType<?> getSafeType(ScreenHandler handler) {
+        try {
+            return handler.getType();
+        } catch (UnsupportedOperationException e) {
+            return null;
+        }
     }
 }
