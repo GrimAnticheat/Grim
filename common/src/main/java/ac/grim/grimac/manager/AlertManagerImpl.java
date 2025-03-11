@@ -109,7 +109,11 @@ public class AlertManagerImpl implements AlertManager {
         Preconditions.checkArgument(player != null, "Player cannot be null");
 
         GrimPlayer grimPlayer = (GrimPlayer) player;
-        Preconditions.checkArgument(grimPlayer.platformPlayer != null, "GrimPlayer has null platformPlayer");
+        // Some proxies break packet order in sending brand and send the data too early for performance
+        // which causes us to iterate over all players with this method
+        // before platformPlayer is intialized; while generally packet order is important to maintain
+        // for compatibles sake lets just default to not sending alerts to these players
+        if (grimPlayer.platformPlayer == null) return false;
 
         return hasBrandsEnabled(grimPlayer.platformPlayer);
     }
