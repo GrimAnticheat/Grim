@@ -40,7 +40,7 @@ dependencies {
     modImplementation(libs.cloud.fabric)
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
-    implementation(project(":fabric"))
+    implementation(project(":fabric", configuration = "namedElements"))
     implementation(project(":common"))
 }
 

@@ -50,7 +50,7 @@ dependencies {
     modImplementation(libs.cloud.fabric)
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
-    api(libs.packetevents.fabric)
+    modApi(libs.packetevents.fabric)
 
     implementation(project(":common"))
 }

@@ -37,7 +37,7 @@ dependencies {
     modImplementation(libs.fabric.loader)
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.42.0+1.16")
 
-    implementation(project(":fabric")) {
+    implementation(project(":fabric", configuration = "namedElements"))
         exclude(group = "net.fabricmc", module = "fabric-loader") // prevent duplicate fabric-loader on run
     }
     implementation(project(":common"))
