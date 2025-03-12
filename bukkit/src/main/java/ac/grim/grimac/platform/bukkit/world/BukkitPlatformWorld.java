@@ -22,13 +22,13 @@ public class BukkitPlatformWorld implements PlatformWorld {
     }
 
     @Override
-    public boolean isChunkLoaded(int i, int i1) {
-        return bukkitWorld.isChunkLoaded(i, i1);
+    public boolean isChunkLoaded(int chunkX, int chunkZ) {
+        return bukkitWorld.isChunkLoaded(chunkX, chunkZ);
     }
 
     @Override
-    public WrappedBlockState getBlockAt(int i, int j, int k) {
-        return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(i, j, k).getBlockData());
+    public WrappedBlockState getBlockAt(int x, int y, int z) {
+        return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());
     }
 
     @Override

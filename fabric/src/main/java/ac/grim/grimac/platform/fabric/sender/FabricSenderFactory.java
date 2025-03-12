@@ -111,11 +111,6 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
         return this.unwrap(mapped);
     }
 
-    @Override
-    public void close() throws Exception {
-        throw new UnsupportedOperationException();
-    }
-
     public void registerPermissionDefault(String permission, PermissionDefaultValue defaultValue) {
         permissionDefaults.put(permission, defaultValue);
     }

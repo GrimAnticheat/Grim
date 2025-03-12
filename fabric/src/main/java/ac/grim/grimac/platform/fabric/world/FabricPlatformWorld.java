@@ -23,8 +23,8 @@ public class FabricPlatformWorld implements PlatformWorld {
     }
 
     @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return fabricWorld.isChunkLoaded(x, z);
+    public boolean isChunkLoaded(int chunkX, int chunkZ) {
+        return fabricWorld.isChunkLoaded(chunkX, chunkZ);
     }
 
     @Override

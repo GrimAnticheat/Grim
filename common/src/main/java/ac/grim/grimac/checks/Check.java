@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
-    @NonNull protected final GrimPlayer player;
+    protected @NonNull final GrimPlayer player;
 
     public double violations;
     private double decay;
@@ -31,7 +31,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private String description;
 
     private boolean experimental;
-    @Setter private boolean isEnabled;
+    private @Setter boolean isEnabled;
 
     private boolean exemptPermission;
     private boolean noSetbackPermission;

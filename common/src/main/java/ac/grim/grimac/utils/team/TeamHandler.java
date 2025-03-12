@@ -21,9 +21,7 @@ public class TeamHandler extends Check implements PacketCheck {
     private final Map<String, EntityTeam> entityTeams = new Object2ObjectOpenHashMap<>();
     private final Map<String, EntityTeam> entityToTeam = new Object2ObjectOpenHashMap<>();
 
-    private @Getter
-    @Setter
-    @Nullable EntityTeam playerTeam = null;
+    private @Getter @Setter @Nullable EntityTeam playerTeam = null;
 
     public TeamHandler(GrimPlayer player) {
         super(player);

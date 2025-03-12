@@ -6,9 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public interface PlatformWorld {
-    boolean isChunkLoaded(int i, int i1);
+    boolean isChunkLoaded(int chunkX, int chunkZ);
 
-    WrappedBlockState getBlockAt(int i, int j, int k);
+    WrappedBlockState getBlockAt(int x, int y, int z);
 
     String getName();
 

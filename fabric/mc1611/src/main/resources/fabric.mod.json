@@ -19,7 +19,7 @@
   },
   "accessWidener": "grimac.accesswidener",
   "depends": {
-    "fabricloader": "\u003e\u003d0.16.10",
+    "fabricloader": "\u003e\u003d0.16",
     "minecraft": [
       "1.16.1"
     ],

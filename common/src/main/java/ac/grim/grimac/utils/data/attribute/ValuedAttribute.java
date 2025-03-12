@@ -43,7 +43,8 @@ public final class ValuedAttribute {
         this.getRewriter = DEFAULT_GET_REWRITE;
     }
 
-    public static ValuedAttribute ranged(Attribute attribute, double defaultValue, double min, double max) {
+    public static ValuedAttribute ranged(Attribute attribute, double defaultValue, double min,
+                                         double max) {
         return new ValuedAttribute(attribute, defaultValue, min, max);
     }
 
@@ -54,8 +55,7 @@ public final class ValuedAttribute {
 
     /**
      * Creates a rewriter that prevents the value from ever being modified unless the player meets the required version.
-     *
-     * @param player          the player
+     * @param player the player
      * @param requiredVersion the required version for the attribute
      * @return this instance for chaining
      */
@@ -80,7 +80,8 @@ public final class ValuedAttribute {
 
     public void reset() {
         this.value = defaultValue;
-        this.lastProperty = null; // Remove the old property with its modifiers so we don't accidentally use it again, messing up the calculation.
+        this.lastProperty =
+                null; // Remove the old property with its modifiers so we don't accidentally use it again, messing up the calculation.
     }
 
     public double get() {
@@ -106,8 +107,10 @@ public final class ValuedAttribute {
         double multiplyBaseSum = 0;
         double multiplyTotalProduct = 1.0;
 
-        List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = property.getModifiers();
-        modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID) || modifier.getName().getKey().equals("sprinting"));
+        List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers =
+                property.getModifiers();
+        modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID) ||
+                modifier.getName().getKey().equals("sprinting"));
 
         for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
             switch (modifier.getOperation()) {
@@ -123,7 +126,9 @@ public final class ValuedAttribute {
             }
         }
 
-        double newValue = GrimMath.clamp((baseValue + additionSum) * (1 + multiplyBaseSum) * multiplyTotalProduct, min, max);
+        double newValue =
+                GrimMath.clamp((baseValue + additionSum) * (1 + multiplyBaseSum) * multiplyTotalProduct,
+                        min, max);
         if (setRewriter != null) {
             newValue = setRewriter.apply(this.value, newValue);
         }

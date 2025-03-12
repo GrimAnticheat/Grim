@@ -86,9 +86,4 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     public @NonNull CommandSender reverse(@NonNull Sender mapped) {
         return this.unwrap(mapped);
     }
-
-    @Override
-    public void close() {
-        throw new UnsupportedOperationException();
-    }
 }

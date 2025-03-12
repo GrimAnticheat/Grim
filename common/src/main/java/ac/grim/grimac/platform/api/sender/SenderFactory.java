@@ -11,7 +11,7 @@ import java.util.UUID;
  *
  * @param <T> the command sender type
  */
-public abstract class SenderFactory<T> implements AutoCloseable {
+public abstract class SenderFactory<T> {
     protected abstract UUID getUniqueId(T sender);
 
     protected abstract String getName(T sender);
