@@ -28,6 +28,7 @@ tasks.named<ShadowJar>("shadowJar") {
             "ac.grim.grimac.shaded.com.github.retrooper.packetevents"
         )
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
+        relocate("org.sl4j", "ac.grim.grimac.shaded.sl4j") // Required by discord-webhooks
         relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
         relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
         relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
@@ -40,6 +41,8 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("org.json", "ac.grim.grimac.shaded.json")
         relocate("org.intellij", "ac.grim.grimac.shaded.intellij")
         relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
+        relocate("org.incendo", "ac.grim.grimac.shaded.incendo")
+        relocate("io.leangen.geantyref", "ac.grim.grimac.shaded.geantyref") // Required by cloud
     }
     mergeServiceFiles()
 }
