@@ -29,7 +29,11 @@ repositories {
 dependencies {
     api(libs.packetevents.api)
     api(libs.cloud.core)
-    api(libs.configuralize)
+    api(libs.configuralize) {
+        exclude(group = "org.yaml", module = "snakeyaml")
+    }
+    // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
+    api("org.yaml:snakeyaml:2.2")
     api(libs.discord.webhooks)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
