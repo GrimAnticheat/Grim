@@ -28,7 +28,7 @@ tasks.named<ShadowJar>("shadowJar") {
             "ac.grim.grimac.shaded.com.github.retrooper.packetevents"
         )
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
-        relocate("org.sl4j", "ac.grim.grimac.shaded.sl4j") // Required by discord-webhooks
+        relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j") // Required by discord-webhooks
         relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
         relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
         relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
