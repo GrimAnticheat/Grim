@@ -48,7 +48,14 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         if (!in.readUTF().equals("GRIMAC")) return;
 
         final String alert;
-        byte[] messageBytes = new byte[in.readShort()];
+        short length = in.readShort();
+        final int MAX_LENGTH = 1024;
+        if (length <= 0 || length > MAX_LENGTH) {
+            LogUtil.warn("Invalid alert message length: " + length);
+            return;
+        }
+        
+        byte[] messageBytes = new byte[length];
         in.readFully(messageBytes);
 
         try {
