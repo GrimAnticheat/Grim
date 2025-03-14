@@ -29,7 +29,8 @@ repositories {
 dependencies {
     api(libs.packetevents.api)
     api(libs.cloud.core)
-    api(libs.configuralize) {
+//    api(libs.configuralize)
+    api("github.scarsz:configuralize:1.4.1:slim") {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
     // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
