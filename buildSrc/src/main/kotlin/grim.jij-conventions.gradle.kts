@@ -13,10 +13,17 @@ val jijDependencies: Configuration by project.configurations.creating {
     project.configurations.findByName("modImplementation")?.let { extendsFrom(it) }
 }
 
-data class DependencyIdentifier(val group: String, val name: String, val version: String) {
-    override fun toString() = "$group:$name:$version"
+data class DependencyIdentifier(
+    val group: String,
+    val name: String,
+    val version: String,
+    val classifier: String = "" // Add classifier field, default to empty string
+) {
+    override fun toString() = "$group:$name:$version${if (classifier.isNotEmpty()) ":$classifier" else ""}"
 }
 
+// Does not support extracting classifiers but while the fabric standard is ambiguous on whether they can be included
+// It does not appear dependency classifiers are in use by any mod I am aware of or can find
 fun parseFabricModJson(jarFile: File, project: Project): Set<DependencyIdentifier> {
     val nestedJars = mutableSetOf<DependencyIdentifier>()
     try {
@@ -123,7 +130,9 @@ fun shouldExcludeDependency(
     val group = dependency.moduleGroup
     val name = dependency.moduleName
     val version = dependency.moduleVersion
-    val depId = DependencyIdentifier(group, name, version)
+    // Extract classifier from resolved dependency (if available)
+    val classifier = dependency.moduleArtifacts.firstOrNull()?.classifier ?: ""
+    val depId = DependencyIdentifier(group, name, version, classifier)
 
     if (group.startsWith("net.minecraft") ||
         group.startsWith("net.fabricmc") ||
@@ -142,12 +151,12 @@ fun shouldExcludeDependency(
         return true
     }
 
-    if (allEmbeddedDependencies.any { it.name == name && it.version == version }) {
+    if (allEmbeddedDependencies.any { it.name == name && it.version == version && it.classifier == classifier }) {
         project.logger.debug("Excluding dependency already embedded in another JAR: {}", depId)
         return true
     }
 
-    if (actuallyIncludedDependencies.any { it.name == name && it.version == version }) {
+    if (actuallyIncludedDependencies.any { it.name == name && it.version == version && it.classifier == classifier }) {
         project.logger.debug("Excluding duplicate dependency: {}", depId)
         return true
     }
@@ -161,12 +170,14 @@ fun isJijTarget(
     actuallyIncludedDependencies: Set<DependencyIdentifier>,
     project: Project
 ): Boolean {
+    val classifier = dependency.moduleArtifacts.firstOrNull()?.classifier ?: ""
     project.logger.debug(
         "Checking JIJ target: {}",
         DependencyIdentifier(
             dependency.moduleGroup,
             dependency.moduleName,
-            dependency.moduleVersion
+            dependency.moduleVersion,
+            classifier
         )
     )
     return !shouldExcludeDependency(
@@ -185,14 +196,15 @@ fun includeDependencyWithExclusions(
 ) {
     project.logger.debug("Including external dependency as JIJ with dynamic exclusions: {}", depId)
     project.dependencies {
-        "include"("$depId") {
+        // Include dependency with classifier (if present)
+        "include"("${depId.group}:${depId.name}:${depId.version}${if (depId.classifier.isNotEmpty()) ":${depId.classifier}" else ""}") {
             allEmbeddedDependencies.forEach { embeddedDep ->
                 if (embeddedDep.group.isNotEmpty()) {
                     exclude(group = embeddedDep.group, module = embeddedDep.name)
                 } else {
                     exclude(module = embeddedDep.name)
                 }
-                project.logger.debug("Excluding embedded transitive dependency: ${embeddedDep.name}:${embeddedDep.version}")
+                project.logger.debug("Excluding embedded transitive dependency: ${embeddedDep.name}:${embeddedDep.version}${if (embeddedDep.classifier.isNotEmpty()) ":${embeddedDep.classifier}" else ""}")
             }
         }
     }
@@ -207,8 +219,9 @@ fun processDependencies(
     project: Project
 ) {
     dependencies.forEach { dep: ResolvedDependency ->
-        val depKey = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
-        val depId = DependencyIdentifier(dep.moduleGroup, dep.moduleName, dep.moduleVersion)
+        val classifier = dep.moduleArtifacts.firstOrNull()?.classifier ?: ""
+        val depKey = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}${if (classifier.isNotEmpty()) ":$classifier" else ""}"
+        val depId = DependencyIdentifier(dep.moduleGroup, dep.moduleName, dep.moduleVersion, classifier)
         if (!processed.contains(depKey)) {
             processed.add(depKey)
             project.logger.debug("Resolved dependency: {}", depId)
@@ -273,7 +286,8 @@ project.afterEvaluate {
 
     fun collectAllEmbeddedDependencies(dependencies: Set<ResolvedDependency>) {
         dependencies.forEach { dep ->
-            val depKey = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
+            val classifier = dep.moduleArtifacts.firstOrNull()?.classifier ?: ""
+            val depKey = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}${if (classifier.isNotEmpty()) ":$classifier" else ""}"
             if (!processed.contains(depKey)) {
                 processed.add(depKey)
                 val jarFile = dep.moduleArtifacts.firstOrNull()?.file
