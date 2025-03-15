@@ -1,12 +1,11 @@
 package ac.grim.grimac.manager.init.start;
 
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JavaVersion implements Initable {
+public class JavaVersion implements StartableInitable {
 
     @Override
     public void start() {

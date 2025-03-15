@@ -6,6 +6,7 @@ import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.GrimPlugin;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
+import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
@@ -85,7 +86,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
-                () -> {
+                (StartableInitable) () -> {
                     if (MessageUtil.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();
                     }

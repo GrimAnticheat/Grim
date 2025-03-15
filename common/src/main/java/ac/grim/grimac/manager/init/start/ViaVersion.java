@@ -1,14 +1,13 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.viaversion.viaversion.api.Via;
 
-public class ViaVersion implements Initable {
+public class ViaVersion implements StartableInitable {
 
     @Override
     public void start() {

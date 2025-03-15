@@ -1,7 +1,8 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.manager.init.ReloadableInitable;
+import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DiscordManager implements Initable {
+public class DiscordManager implements StartableInitable, ReloadableInitable {
     public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?\\w+\\.\\w+/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
     private static WebhookClient client;
     private int embedColor;
@@ -25,6 +26,11 @@ public class DiscordManager implements Initable {
 
     @Override
     public void start() {
+        reload();
+    }
+
+    @Override
+    public void reload() {
         try {
             if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false))
                 return;

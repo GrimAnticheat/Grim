@@ -1,11 +1,10 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 
 // Intended for future events we inject all platforms at the end of a tick
-public abstract class AbstractTickEndEvent implements Initable {
+public abstract class AbstractTickEndEvent implements StartableInitable {
 
     @Override
     public void start() {

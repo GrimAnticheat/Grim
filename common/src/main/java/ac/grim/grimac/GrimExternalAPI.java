@@ -7,7 +7,7 @@ import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.GrimReloadEvent;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
-import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chat.ChatUtil;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 //This is used for grim's external API. It has its own class just for organization.
 
-public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, Initable {
+public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable {
 
     private final GrimAPI api;
     @Getter
@@ -181,8 +181,8 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, I
         // Update variables
         updateVariables();
         // Restart
-        GrimAPI.INSTANCE.getDiscordManager().start();
-        GrimAPI.INSTANCE.getSpectateManager().start();
+        GrimAPI.INSTANCE.getDiscordManager().reload();
+        GrimAPI.INSTANCE.getSpectateManager().reload();
         // Don't reload players if the plugin hasn't started yet
         if (!started) return;
         // Reload checks for all players

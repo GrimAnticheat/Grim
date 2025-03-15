@@ -1,10 +1,9 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 
-public class PacketLimiter implements Initable {
+public class PacketLimiter implements StartableInitable {
     @Override
     public void start() {
         GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getGrimPlugin(), () -> {

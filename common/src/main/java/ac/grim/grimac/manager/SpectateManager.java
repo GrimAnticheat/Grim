@@ -1,7 +1,8 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.manager.init.ReloadableInitable;
+import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Location;
@@ -18,7 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SpectateManager implements Initable {
+public class SpectateManager implements StartableInitable, ReloadableInitable {
 
     private final Map<UUID, PreviousState> spectatingPlayers = new ConcurrentHashMap<>();
     private final Set<UUID> hiddenPlayers = ConcurrentHashMap.newKeySet();
@@ -28,6 +29,11 @@ public class SpectateManager implements Initable {
 
     @Override
     public void start() {
+        reload();
+    }
+
+    @Override
+    public void reload() {
         allowedWorlds.clear();
         allowedWorlds.addAll(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("spectators.allowed-worlds", new ArrayList<>()));
         checkWorld = !(allowedWorlds.isEmpty() || new ArrayList<>(allowedWorlds).get(0).isEmpty());

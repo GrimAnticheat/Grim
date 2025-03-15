@@ -18,13 +18,12 @@ import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEight;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 
-public class PacketManager implements Initable {
+public class PacketManager implements StartableInitable {
     @Override
     public void start() {
         LogUtil.info("Registering packets...");

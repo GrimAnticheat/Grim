@@ -1,6 +1,5 @@
 package ac.grim.grimac.manager.init.load;
 
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
@@ -14,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.concurrent.Executors;
 
-public class PacketEventsInit implements Initable {
+public class PacketEventsInit implements LoadableInitable {
 
     PacketEventsAPI<?> packetEventsAPI;
 
@@ -23,7 +22,7 @@ public class PacketEventsInit implements Initable {
     }
 
     @Override
-    public void start() {
+    public void load() {
         LogUtil.info("Loading PacketEvents...");
         PacketEvents.setAPI(packetEventsAPI);
         PacketEvents.getAPI().getSettings()

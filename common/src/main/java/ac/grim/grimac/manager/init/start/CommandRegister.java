@@ -15,13 +15,12 @@ import ac.grim.grimac.command.commands.GrimSpectate;
 import ac.grim.grimac.command.commands.GrimStopSpectating;
 import ac.grim.grimac.command.commands.GrimVerbose;
 import ac.grim.grimac.command.commands.GrimVersion;
-import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.platform.api.sender.Sender;
 import org.incendo.cloud.CommandManager;
 
 import java.util.function.Supplier;
 
-public class CommandRegister implements Initable {
+public class CommandRegister implements StartableInitable {
 
     private static boolean commandsRegistered = false;
     private final Supplier<CommandManager<Sender>> commandManagerSupplier;
