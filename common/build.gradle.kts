@@ -29,8 +29,8 @@ repositories {
 dependencies {
     api(libs.packetevents.api)
     api(libs.cloud.core)
-    // api(libs.configuralize) // uncomment to build locally if you don't care about geyser-fabric support
-    api("github.scarsz:configuralize:1.4.0:slim") {
+    api("org.incendo:cloud-processors-requirements:1.0.0-rc.1")
+    api("github.scarsz:configuralize:1.4.1:slim") {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
     // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric

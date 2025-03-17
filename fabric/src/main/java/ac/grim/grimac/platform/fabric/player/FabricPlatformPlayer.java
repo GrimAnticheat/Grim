@@ -31,8 +31,9 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     }
 
     @Getter
-    protected final ServerPlayerEntity fabricPlayer;
+    protected ServerPlayerEntity fabricPlayer;
     protected final FabricPlatformInventory inventory;
+
 
     public FabricPlatformPlayer(ServerPlayerEntity player) {
         super(player);
@@ -143,7 +144,11 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
     }
 
     @Override
-    @NonNull
+    public void replaceNativePlayer(Object nativePlayerObject) {
+        this.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
+    }
+
+    @Override @NonNull
     public ServerPlayerEntity getNative() {
         return this.fabricPlayer;
     }

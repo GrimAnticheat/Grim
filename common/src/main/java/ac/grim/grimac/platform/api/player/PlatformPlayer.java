@@ -42,4 +42,10 @@ public interface PlatformPlayer extends GrimEntity {
     void sendPluginMessage(String channelName, byte[] byteArray);
 
     Sender getSender();
+
+    /*
+     * Replaces native player reference in PlatformPlayer implementation with a new object
+     * Vanilla MC replaces ServerPlayerEntity references on respawn and dimension change
+     */
+    default void replaceNativePlayer(Object nativePlayerObject) {}
 }

@@ -27,19 +27,6 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    # Temporary tasks to use fork of configuralize (Maven project) until upstream changes are merged
-    # This is done immediately after Java setup to ensure it's available for subsequent steps
-    - name: Clone Axionize's Configuralize Repository
-      run: |
-          git clone -b master https://github.com/Axionize/configuralize.git configuralize
-          cd configuralize
-          echo "Cloned Configuralize fork repository"
-
-    - name: Build and Install Configuralize to Maven Local
-      run: |
-          cd configuralize
-          mvn clean install -DskipTests
-          echo "Built and installed Configuralize to Maven Local"
 
     # Temporary tasks so built jar works because PacketEvents won't merge my fixes for their broken fabric support
     - name: Clone Axionize's PacketEvents Repository

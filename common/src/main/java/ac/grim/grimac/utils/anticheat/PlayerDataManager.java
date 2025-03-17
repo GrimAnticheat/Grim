@@ -22,7 +22,7 @@ public class PlayerDataManager {
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     @Nullable
-    public GrimPlayer getPlayer(@NonNull final UUID uuid) {
+    public GrimPlayer getPlayer(final @NonNull UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
         Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(uuid);
         User user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
@@ -30,14 +30,14 @@ public class PlayerDataManager {
     }
 
     @Nullable
-    public GrimPlayer getPlayer(final User user) {
+    public GrimPlayer getPlayer(final @NonNull User user) {
         @Nullable GrimPlayer player = playerDataMap.get(user);
         if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer())
             return null;
         return player;
     }
 
-    public boolean shouldCheck(User user) {
+    public boolean shouldCheck(@NonNull User user) {
         if (exemptUsers.contains(user)) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
@@ -67,7 +67,7 @@ public class PlayerDataManager {
         return true;
     }
 
-    public void addUser(final User user) {
+    public void addUser(final @NonNull User user) {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
@@ -75,7 +75,7 @@ public class PlayerDataManager {
         }
     }
 
-    public GrimPlayer remove(final User user) {
+    public GrimPlayer remove(final @NonNull User user) {
         return playerDataMap.remove(user);
     }
 

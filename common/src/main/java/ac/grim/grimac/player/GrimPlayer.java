@@ -90,6 +90,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -263,7 +264,7 @@ public class GrimPlayer implements GrimUser {
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
 
-    public GrimPlayer(User user) {
+    public GrimPlayer(@NonNull User user) {
         this.user = user;
         this.uuid = user.getUUID();
 

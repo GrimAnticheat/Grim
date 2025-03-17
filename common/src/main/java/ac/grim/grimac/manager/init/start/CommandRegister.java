@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.command.SenderRequirement;
 import ac.grim.grimac.command.commands.GrimAlerts;
 import ac.grim.grimac.command.commands.GrimBrands;
 import ac.grim.grimac.command.commands.GrimDebug;
@@ -15,12 +16,28 @@ import ac.grim.grimac.command.commands.GrimSpectate;
 import ac.grim.grimac.command.commands.GrimStopSpectating;
 import ac.grim.grimac.command.commands.GrimVerbose;
 import ac.grim.grimac.command.commands.GrimVersion;
+import ac.grim.grimac.command.handler.GrimCommandFailureHandler;
 import ac.grim.grimac.platform.api.sender.Sender;
+import io.leangen.geantyref.TypeToken;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.key.CloudKey;
+import org.incendo.cloud.processors.requirements.RequirementApplicable;
+import org.incendo.cloud.processors.requirements.RequirementPostprocessor;
+import org.incendo.cloud.processors.requirements.Requirements;
 
 import java.util.function.Supplier;
 
 public class CommandRegister implements StartableInitable {
+
+    public static final CloudKey<Requirements<Sender, SenderRequirement>>
+            REQUIREMENT_KEY = CloudKey.of(
+            "requirements",
+            new TypeToken<Requirements<Sender, SenderRequirement>>() {}
+    );
+
+    public static final RequirementApplicable.RequirementApplicableFactory<Sender,
+            SenderRequirement> REQUIREMENT_FACTORY = RequirementApplicable.factory(REQUIREMENT_KEY);
+
 
     private static boolean commandsRegistered = false;
     private final Supplier<CommandManager<Sender>> commandManagerSupplier;
@@ -46,13 +63,19 @@ public class CommandRegister implements StartableInitable {
         new GrimVersion().register(commandManager);
         new GrimDump().register(commandManager);
         new GrimBrands().register(commandManager);
+
+        final RequirementPostprocessor<Sender, SenderRequirement>
+                senderRequirementPostprocessor = RequirementPostprocessor.of(
+                REQUIREMENT_KEY,
+                new GrimCommandFailureHandler()
+        );
+
+        commandManager.registerCommandPostProcessor(senderRequirementPostprocessor);
         commandsRegistered = true;
     }
 
     @Override
     public void start() {
-        // This does not make Grim require paper
-        // It only enables new features such as asynchronous tab completion on paper
         CommandManager<Sender> commandManager = commandManagerSupplier.get();
         registerCommands(commandManager);
 

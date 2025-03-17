@@ -5,6 +5,8 @@ import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -23,22 +25,22 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    protected ServerPlayerEntity getNativePlayer(UUID uuid) {
+    protected ServerPlayerEntity getNativePlayer(@NotNull UUID uuid) {
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(uuid);
     }
 
     @Override
-    protected FabricPlatformPlayer createPlatformPlayer(ServerPlayerEntity nativePlayer) {
+    protected FabricPlatformPlayer createPlatformPlayer(@NotNull ServerPlayerEntity nativePlayer) {
         return getPlayerFunction.apply(nativePlayer);
     }
 
     @Override
-    protected boolean isNativePlayerType(Object playerObject) {
+    protected boolean isNativePlayerType(@NotNull Object playerObject) {
         return playerObject instanceof ServerPlayerEntity;
     }
 
     @Override
-    protected UUID getPlayerUUID(ServerPlayerEntity nativePlayer) {
+    protected UUID getPlayerUUID(@NotNull ServerPlayerEntity nativePlayer) {
         return nativePlayer.getUuid();
     }
 
@@ -51,5 +53,10 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     protected Collection<ServerPlayerEntity> getNativeOnlinePlayers() {
         // Get the list of online players from the server
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayerList();
+    }
+
+    @Override
+    public void replaceNativePlayer(@NonNull UUID uuid, @NonNull ServerPlayerEntity serverPlayerEntity) {
+        super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
     }
 }

@@ -42,7 +42,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         Preconditions.checkArgument(nativePlayerObject != null);
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order
-        // And the user will be added to the map before the getPlayer() method call
+        // And the user will be added to the map before the getPlayer() mesthod call
         @NonNull PlatformPlayer platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(nativePlayerObject);
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("debug-pipeline-on-join", false)) {
