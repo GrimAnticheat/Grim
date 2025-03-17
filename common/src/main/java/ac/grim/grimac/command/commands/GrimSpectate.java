@@ -34,16 +34,12 @@ public class GrimSpectate implements BuildableCommand {
         PlatformPlayer targetPlatformPlayer = targetSelectorResults.getSinglePlayer().getPlatformPlayer();
 
         if (targetPlatformPlayer != null && targetPlatformPlayer.getUniqueId().equals(sender.getUniqueId())) {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!");
-            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
-            sender.sendMessage(MessageUtil.miniMessage(message));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!"));
             return;
         }
 
         if (targetPlatformPlayer != null && targetPlatformPlayer.isExternalPlayer()) {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
-            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
-            sender.sendMessage(MessageUtil.miniMessage(message));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "player-not-this-server", "%prefix% &cThis player isn't on this server!"));
             return;
         }
 
@@ -51,9 +47,7 @@ public class GrimSpectate implements BuildableCommand {
 
         // hide player from tab list
         if (GrimAPI.INSTANCE.getSpectateManager().enable(platformPlayer)) {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick here to return to previous location\n</hover></click>");
-            message = MessageUtil.replacePlaceholders(targetPlatformPlayer, message);
-            sender.sendMessage(MessageUtil.miniMessage(message));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "spectate-return", "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick here to return to previous location\n</hover></click>"));
         }
 
         platformPlayer.setGameMode(GameMode.SPECTATOR);

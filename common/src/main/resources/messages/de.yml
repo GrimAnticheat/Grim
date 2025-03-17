@@ -23,6 +23,8 @@ upload-log-upload-failure: "%prefix% &cFehler beim Hochladen des Logs, siehe Kon
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cDiesen Befehl können nur Spieler verwenden!"
+run-as-player-or-console: "%prefix% &cDiesen Befehl können nur Spieler oder die Konsole verwenden!"
 
 # Gültige Platzhalter:
 # %prefix%

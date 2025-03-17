@@ -5,6 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import net.kyori.adventure.text.Component;
@@ -53,7 +54,10 @@ public class GrimDebug implements BuildableCommand {
             GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
             targetGrimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
         } else {
-            sender.sendMessage(Component.text("Sender must be a player or console."));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender,
+                    "run-as-player-or-console",
+                    "%prefix% &cThis command can only be used by players or the console!")
+            );
         }
     }
 
@@ -79,7 +83,7 @@ public class GrimDebug implements BuildableCommand {
 
     private @Nullable GrimPlayer parseTarget(@NonNull Sender sender, @Nullable Sender t) {
         if (sender.isConsole() && t == null) {
-            sender.sendMessage(Component.text("You must specify a target as the console!", NamedTextColor.RED));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "console-specify-target", "%prefix% &cYou must specify a target as the console!"));
             return null;
         }
         Sender target = t == null ? sender : t;
@@ -87,9 +91,7 @@ public class GrimDebug implements BuildableCommand {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getUniqueId());
         if (grimPlayer == null) {
             User user = PacketEvents.getAPI().getPlayerManager().getUser(sender.getPlatformPlayer().getNative());
-            sender.sendMessage(Component.text(
-                    GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!"),
-                    NamedTextColor.RED));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "player-not-found", "%prefix% &cPlayer is exempt or offline!"));
 
             if (user == null) {
                 sender.sendMessage(Component.text("Unknown PacketEvents user", NamedTextColor.RED));

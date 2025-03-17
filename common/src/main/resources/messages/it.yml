@@ -24,9 +24,12 @@ upload-log-upload-failure: "%prefix% &cQualcosa è andato storto durante il cari
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cQuesto comando può essere utilizzato solo dai giocatori!"
+run-as-player-or-console: "%prefix% &cQuesto comando può essere utilizzato solo dai giocatori o dalla console!"
 
 alerts-format: "%prefix% &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
 
 profile:
     - "&7======================"

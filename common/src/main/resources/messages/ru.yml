@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cЧто-то пошло не так при
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cЭту команду могут использовать только игроки!"
+run-as-player-or-console: "%prefix% &cЭту команду могут использовать только игроки или консоль!"
 
 # Допустимые заполнители:
 # %prefix%

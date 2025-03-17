@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cEr is iets misgegaan tijdens het uploaden
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cDit commando kan alleen door spelers worden gebruikt!"
+run-as-player-or-console: "%prefix% &cDit commando kan alleen door spelers of de console worden gebruikt!"
 
 # Geldige plaatsaanduidingen:
 # %prefix%

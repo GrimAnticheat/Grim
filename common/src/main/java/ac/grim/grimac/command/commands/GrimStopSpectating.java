@@ -40,9 +40,7 @@ public class GrimStopSpectating implements BuildableCommand {
             boolean teleportBack = string == null || !string.equalsIgnoreCase("here") || !sender.hasPermission("grim.spectate.stophere");
             GrimAPI.INSTANCE.getSpectateManager().disable(sender.getPlatformPlayer(), teleportBack);
         } else {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player.");
-            message = MessageUtil.replacePlaceholders(sender, message);
-            sender.sendMessage(MessageUtil.miniMessage(message));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player."));
         }
     }
 }

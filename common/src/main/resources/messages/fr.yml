@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cUne erreur est survenue lors du téléver
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cCette commande ne peut être utilisée que par les joueurs !"
+run-as-player-or-console: "%prefix% &cCette commande ne peut être utilisée que par les joueurs ou la console !"
 
 # Placeholders valides :
 # %prefix%

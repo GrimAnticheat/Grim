@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &c上载此日志时出错, 有关详细信
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &c此命令只能由玩家使用！"
+run-as-player-or-console: "%prefix% &c此命令只能由玩家或控制台使用！"
 
 # 变量:
 # %prefix% - 前缀

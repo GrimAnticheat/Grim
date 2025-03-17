@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cAlgo salio mal mientras subíamos ese reg
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &c¡Este comando solo puede ser utilizado por jugadores!"
+run-as-player-or-console: "%prefix% &c¡Este comando solo puede ser utilizado por jugadores o la consola!"
 
 # Placeholders validos:
 # %prefix%

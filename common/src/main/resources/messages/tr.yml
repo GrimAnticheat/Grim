@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cLog yüklenirken bir problem oluştu, lü
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cBu komut yalnızca oyuncular tarafından kullanılabilir!"
+run-as-player-or-console: "%prefix% &cBu komut yalnızca oyuncular veya konsol tarafından kullanılabilir!"
 
 # Geçerli placeholderlar:
 # %prefix%

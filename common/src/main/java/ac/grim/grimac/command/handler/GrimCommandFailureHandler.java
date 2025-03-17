@@ -9,6 +9,6 @@ import org.incendo.cloud.processors.requirements.RequirementFailureHandler;
 public class GrimCommandFailureHandler implements RequirementFailureHandler<Sender, SenderRequirement> {
     @Override
     public void handleFailure(@NonNull CommandContext<Sender> context, @NonNull SenderRequirement requirement) {
-        context.sender().sendMessage(requirement.errorMessage());
+        context.sender().sendMessage(requirement.errorMessage(context.sender()));
     }
 }

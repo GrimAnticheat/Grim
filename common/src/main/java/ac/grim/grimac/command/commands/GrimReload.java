@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -23,15 +24,14 @@ public class GrimReload implements BuildableCommand {
         Sender sender = context.sender();
 
         // reload config
-        String reloading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reloading", "%prefix% &7Reloading config...");
-        sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, reloading)));
+        sender.sendMessage(MessageUtil.getParsedComponent(sender, "reloading", "%prefix% &7Reloading config..."));
 
         GrimAPI.INSTANCE.getExternalAPI().reloadAsync().exceptionally(throwable -> false)
                 .thenAccept(bool -> {
-                    String message = bool
-                            ? GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reloaded", "%prefix% &fConfig has been reloaded.")
-                            : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("reload-failed", "%prefix% &cFailed to reload config.");
-                    sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, message)));
+                    Component message = bool
+                            ? MessageUtil.getParsedComponent(sender, "reloaded", "%prefix% &fConfig has been reloaded.")
+                            : MessageUtil.getParsedComponent(sender, "reload-failed", "%prefix% &cFailed to reload config.");
+                    sender.sendMessage(message);
                 });
     }
 }

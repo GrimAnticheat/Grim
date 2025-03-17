@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cAlgo deu errado ao enviar o registro, vej
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cEste comando só pode ser usado por jogadores!"
+run-as-player-or-console: "%prefix% &cEste comando só pode ser usado por jogadores ou pelo console!"
 
 # Placeholders válidos:
 # %prefix%

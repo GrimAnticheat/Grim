@@ -82,9 +82,7 @@ public class GrimLog implements BuildableCommand {
 
         StringBuilder builder = SuperDebug.getFlag(flagId);
         if (builder == null) {
-            String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
-            failure = MessageUtil.replacePlaceholders(sender, failure);
-            sender.sendMessage(MessageUtil.miniMessage(failure));
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "upload-log-not-found", "%prefix% &cUnable to find that log"));
             return;
         }
         sendLogAsync(sender, builder.toString(), string -> {}, "text/yaml");
