@@ -63,6 +63,9 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # How much should we multiply total advantage by when the player is legit
     # This is what the default config looks like (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/d4ufgxrxer

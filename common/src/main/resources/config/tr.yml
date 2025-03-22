@@ -63,6 +63,9 @@ cancel-duplicate-packet: true
 # Eşya çoğaltma paketlerindeki rotayı göz ardı edip etmeyeceğimiz
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # Oyuncu meşru olduğunda toplam avantajı ne kadar çarpmalıyız?
     # Varsayılan yapılandırma bu şekilde görünür (x ekseni = saniye, y ekseni = 1/1000 blok): https://www.desmos.com/calculator/d4ufgxrxer

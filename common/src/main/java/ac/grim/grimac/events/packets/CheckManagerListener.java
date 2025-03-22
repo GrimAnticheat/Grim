@@ -382,6 +382,71 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    private void handleDuplicate(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
+        final Location location = flying.getLocation();
+
+        // Mark that we want this packet to be cancelled from reaching the server
+        // Additionally, only yaw/pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
+        // 1.9+ isn't impacted by this packet as much.
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+            if (player.isCancelDuplicatePacket()) {
+                player.packetStateData.cancelDuplicatePacket = true;
+            }
+        } else {
+            // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
+            flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
+            event.markForReEncode(true);
+        }
+
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+        if (!player.isIgnoreDuplicatePacketRotation()) {
+            if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
+            }
+
+            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
+            player.xRot = location.getYaw();
+            player.yRot = location.getPitch();
+        }
+
+        player.packetStateData.lastClaimedPosition = location.getPosition();
+    }
+
+    private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
+        // Teleports are not stupidity packets.
+        if (player.packetStateData.lastPacketWasTeleport) return false;
+        // Mojang has become less stupid!
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+
+        final Location location = flying.getLocation();
+        final double threshold = player.getMovementThreshold();
+
+        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
+        // Don't check rotation since it changes between these packets, with the second being irrelevant.
+        //
+        // removed a large rant, but I'm keeping this out of context insult below
+        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
+        if (!player.packetStateData.lastPacketWasTeleport && flying.hasPositionChanged() && flying.hasRotationChanged() &&
+                // Ground status will never change in this stupidity packet
+                ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
+                        // Mojang added this stupid mechanic in 1.17
+                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        // Due to 0.03, we can't check exact position, only within 0.03
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(location.getPosition()) < threshold * threshold))
+                        // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
+                        || player.inVehicle())) {
+            if (player.isQueuePossibleDuplicates()) {
+                player.packetStateData.queuedDuplicatePacket = flying;
+                event.setCancelled(true);
+            } else {
+                handleDuplicate(player, event, flying);
+            }
+            return true;
+        }
+    }
+
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -392,6 +457,23 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (event.getConnectionState() != ConnectionState.CONFIGURATION) return;
             player.checkManager.onPacketReceive(event);
             return;
+        }
+
+        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE && player.packetStateData.queuedDuplicatePacket != null && !player.packetStateData.isReceivingQueuedDuplicate) {
+            player.packetStateData.isReceivingQueuedDuplicate = true;
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM
+                    || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
+                    && new WrapperPlayClientPlayerBlockPlacement(event).getFaceId() == 255
+                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
+
+            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                handleDuplicate(player, event, player.packetStateData.queuedDuplicatePacket);
+            }
+
+            player.user.receivePacket(player.packetStateData.queuedDuplicatePacket);
+
+            player.packetStateData.queuedDuplicatePacket = null;
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
         }
 
         // Determine if teleport BEFORE we call the pre-prediction vehicle
@@ -435,7 +517,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
+            if (!player.packetStateData.isReceivingQueuedDuplicate) {
+                player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
+
+                // if this could be a duplicate, then queue it until the next (non-async) packet
+                if (player.packetStateData.queuedDuplicatePacket == flying) {
+                    return;
+                }
+            }
         }
 
         if (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {

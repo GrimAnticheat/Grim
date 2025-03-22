@@ -63,6 +63,9 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # Met hoeveel moeten we het totale voordeel vermenigvuldigen als de speler legitiem is?
     # Zo ziet de standaardconfiguratie eruit (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/d4ufgxrxer

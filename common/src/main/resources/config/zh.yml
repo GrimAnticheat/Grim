@@ -66,6 +66,9 @@ cancel-duplicate-packet: true
 # 是否忽视重复的数据包中的玩家转头
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # 这个检查通过仿真玩家的移动，并与玩家的实际移动进行比较
     # 仿真出的位置（玩家理应到达的位置）和玩家实际位置的偏差（距离）即为移动优势。

@@ -63,6 +63,9 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo
     setback-decay-multiplier: 0.999

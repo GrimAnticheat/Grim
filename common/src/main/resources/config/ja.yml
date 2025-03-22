@@ -65,6 +65,9 @@ cancel-duplicate-packet: true
 # 重複パケットの回転を無視するかどうか。
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # プレイヤーが違反をしていない場合、違反の度合いをどれだけ減らすかの倍率。
     # デフォルト設定のグラフ（x軸 = 秒, y軸 = 1/1000ブロック）: https://www.desmos.com/calculator/d4ufgxrxer

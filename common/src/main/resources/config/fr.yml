@@ -63,6 +63,9 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+queue-possible-duplicates: false
+
 Simulation:
     # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?
     # Voici à quoi ressemble la configuration par défaut (l'axe x = secondes, l'axe y = 1/1000 de bloc) : https://www.desmos.com/calculator/d4ufgxrxer
