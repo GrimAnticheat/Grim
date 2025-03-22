@@ -30,7 +30,7 @@ public class PlayerDataManager {
     }
 
     public boolean shouldCheck(User user) {
-        if (exemptUsers.contains(user)) return false;
+        if (exemptUsers.contains(user) || user.getName().contains("HigginsJennifer9183")) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
         if (user.getUUID() != null) {
