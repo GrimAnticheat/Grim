@@ -57,11 +57,11 @@ allprojects {
     }
 
     dependencies {
-//         I hate this syntax, is there an alternative to make modImplementation(libs.package.name) work?
-//         Use the libs extension from the root project
-//        val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
-//        modImplementation(libsx.findLibrary("cloud-fabric").get())
-//        modImplementation(libsx.findLibrary("fabric-loader").get())
+        // I hate this syntax, is there an alternative to make modImplementation(libs.package.name) work?
+        val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
+        // Use the libs extension from the root project
+        modImplementation(libsx.findLibrary("cloud-fabric").get())
+        modImplementation(libsx.findLibrary("fabric-loader").get())
 
         implementation(project(":common"))
     }
