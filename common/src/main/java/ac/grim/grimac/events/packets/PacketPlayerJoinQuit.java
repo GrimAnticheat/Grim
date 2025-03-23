@@ -76,7 +76,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
             GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer.uuid);
         }
 
-        // TODO (Cross-platform) confirm this is 100% correct and will aglways remove players from cache when neccessary
+        // TODO (Cross-platform) confirm this is 100% correct and will always remove players from cache when necessary
         GrimAPI.INSTANCE.getPlatformPlayerFactory().invalidatePlayer(event.getUser().getProfile().getUUID());
     }
 }

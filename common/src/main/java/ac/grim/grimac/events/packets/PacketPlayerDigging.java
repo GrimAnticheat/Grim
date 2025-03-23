@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -212,7 +211,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (player.packetStateData.lastSlotSelected != slot && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
                 if (player.isResetItemUsageOnSlotChange()) {
-                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
                 // just assume they tick after this

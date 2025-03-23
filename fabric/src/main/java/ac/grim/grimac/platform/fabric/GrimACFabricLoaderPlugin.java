@@ -27,9 +27,8 @@ import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import ac.grim.grimac.utils.lazy.LazyHolder;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.github.retrooper.packetevents.factory.fabric.FabricPacketEventsAPI;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -51,7 +50,8 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     protected final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
 
     protected final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
-    protected final PacketEventsAPI<?> packetEvents = new FabricPacketEventsAPI("grimac", EnvType.SERVER);
+    // Since we JiJ PacketEvents and depend on it on Fabric, we can always just get the API instance since it loads firsts
+    protected final PacketEventsAPI<?> packetEvents = PacketEvents.getAPI();
     protected final LazyHolder<FabricSenderFactory> senderFactory = LazyHolder.simple(FabricSenderFactory::new);
     protected final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
     protected final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
