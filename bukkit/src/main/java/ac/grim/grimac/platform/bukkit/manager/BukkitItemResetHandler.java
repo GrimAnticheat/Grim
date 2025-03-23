@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.bukkit.manager;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
+import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.SneakyThrows;
@@ -28,12 +29,10 @@ public class BukkitItemResetHandler implements ItemResetHandler {
     @SneakyThrows
     private @NotNull ItemUsageReset createItemUsageResetFunction() {
         ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
-
-        if (version.isNewerThanOrEquals(ServerVersion.V_1_17)) {
+        if (version.isNewerThan(ServerVersion.V_1_17) && PaperUtils.PAPER) {
             if (version.isOlderThan(ServerVersion.V_1_19)) {
                 return LivingEntity::clearActiveItem;
             }
-
             Method setLivingEntityFlag = Class.forName(version.isOlderThan(ServerVersion.V_1_20_5) ? "net.minecraft.world.entity.EntityLiving" : "net.minecraft.world.entity.LivingEntity")
                     .getDeclaredMethod(version.isOlderThan(ServerVersion.V_1_20_5) ? "c" : "setLivingEntityFlag", int.class, boolean.class);
             Method getHandle = (version.isOlderThan(ServerVersion.V_1_20_5)
@@ -68,9 +67,13 @@ public class BukkitItemResetHandler implements ItemResetHandler {
             };
         }
 
+
+
         String nmsPackage = Bukkit.getServer().getClass().getPackageName().split("\\.")[3];
+        String livingEntityPackage = version.isNewerThan(ServerVersion.V_1_16_5) ? "net.minecraft.world.entity.EntityLiving" : "net.minecraft.server." + nmsPackage + ".EntityLiving";
+
         Method getHandle = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity.CraftPlayer").getMethod("getHandle");
-        Method clearActiveItem = Class.forName("net.minecraft.server." + nmsPackage + ".EntityLiving").getMethod(
+        Method clearActiveItem = Class.forName(livingEntityPackage).getMethod(
                 switch (nmsPackage) {
                     case "v1_9_R1" -> "cz";
                     case "v1_9_R2" -> "cA";
@@ -80,7 +83,9 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_13_R1", "v1_13_R2" -> "da";
                     case "v1_14_R1" -> "dp";
                     case "v1_15_R1" -> "dH";
-                    case "v1_16_R1", "v1_16_R2", "v1_16_R3" -> "clearActiveItem";
+                    case "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1" -> "clearActiveItem";
+                    case "v1_18_R1" -> "eR";
+                    case "v1_18_R2" -> "eS";
                     default ->
                             throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
                 }
