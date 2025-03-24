@@ -12,7 +12,7 @@ extra["relocate"] = project.findProperty("relocate")?.toString()?.toBoolean()
 // Build Optimization:
 // - Add parallel build support
 // - Add build caching
-//tasks.withType<JavaCompile>().configureEach {
-//    options.isFork = true
-//    options.isIncremental = true
-//}
+tasks.withType<JavaCompile>().configureEach {
+    options.isFork = true
+    options.isIncremental = true
+}
