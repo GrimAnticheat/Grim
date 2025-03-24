@@ -18,7 +18,7 @@
 
 package ac.grim.grimac.platform.api.scheduler;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

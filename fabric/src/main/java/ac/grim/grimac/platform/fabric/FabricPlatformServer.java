@@ -16,14 +16,14 @@ public class FabricPlatformServer implements PlatformServer {
 
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        ServerCommandSource commandSource = GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().reverse(sender);
+        ServerCommandSource commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().reverse(sender);
         GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandManager().executeWithPrefix(commandSource, command);
     }
 
     @Override
     public Sender getConsoleSender() {
         ServerCommandSource consoleSource = GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandSource();
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(consoleSource);
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(consoleSource);
     }
 
     @Override

@@ -10,6 +10,6 @@ public class BukkitEventManager implements StartableInitable {
     public void start() {
         LogUtil.info("Registering singular bukkit event... (PistonEvent)");
 
-        Bukkit.getPluginManager().registerEvents(new PistonEvent(), GrimACBukkitLoaderPlugin.PLUGIN);
+        Bukkit.getPluginManager().registerEvents(new PistonEvent(), GrimACBukkitLoaderPlugin.LOADER);
     }
 }

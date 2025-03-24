@@ -42,7 +42,7 @@ dependencies {
 
     // Used for local testing:
     // api("ac.grim.grimac:GrimAPI:1.0")
-    api("com.github.grimanticheat:grimapi:e0b2835fcf")
+    api("com.github.grimanticheat:grimapi:8507e14a73")
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.api;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;

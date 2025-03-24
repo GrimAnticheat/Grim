@@ -24,12 +24,12 @@ public class Fabric1211PlatformPlayer extends FabricPlatformPlayer {
     // so the compiled bytecode is not compatible with 1.21.1, where getCommandSource() is an Entity method
     @Override
     public boolean hasPermission(String permission) {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(permission);
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(permission);
     }
 
     @Override
     public boolean hasPermission(String s, boolean defaultIfUnset) {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(s, defaultIfUnset);
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(s, defaultIfUnset);
     }
 
     // In 1.21.4 these ServerPlayerEntity.sendMessage() does not override anything
@@ -66,6 +66,6 @@ public class Fabric1211PlatformPlayer extends FabricPlatformPlayer {
 
     @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
     }
 }

@@ -1,10 +1,11 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.api.GrimAbstractAPI;
-import ac.grim.grimac.api.GrimPluginDescription;
+import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.events.GrimReloadEvent;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
 import ac.grim.grimac.manager.init.start.StartableInitable;
@@ -14,6 +15,7 @@ import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -38,6 +40,11 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     public GrimExternalAPI(GrimAPI api) {
         this.api = api;
+    }
+
+    @Override
+    public @NonNull EventBus getEventBus() {
+        return api.getPluginManager().getEventBus();
     }
 
     @Override

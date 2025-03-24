@@ -29,7 +29,7 @@ public class GrimACFabric1211LoaderPlugin extends ac.grim.grimac.platform.fabric
 
     @Override
     public void onPreLaunch() {
-        PLUGIN = this;
+        LOADER = this;
         PacketEvents.setAPI(packetEvents);
     }
 

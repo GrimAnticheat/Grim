@@ -9,7 +9,7 @@ public class BukkitBStats implements StartableInitable {
     public void start() {
         int pluginId = 12820; // <-- Replace with the id of your plugin!
         try {
-            new Metrics(GrimACBukkitLoaderPlugin.PLUGIN, pluginId);
+            new Metrics(GrimACBukkitLoaderPlugin.LOADER, pluginId);
         } catch (Exception ignored) {
         }
     }

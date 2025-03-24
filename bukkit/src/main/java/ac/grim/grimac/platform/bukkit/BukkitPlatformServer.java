@@ -16,18 +16,18 @@ public class BukkitPlatformServer implements PlatformServer {
 
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        CommandSender commandSender = GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().reverse(sender);
+        CommandSender commandSender = GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().reverse(sender);
         Bukkit.dispatchCommand(commandSender, command);
     }
 
     @Override
     public Sender getConsoleSender() {
-        return GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().map(Bukkit.getConsoleSender());
+        return GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().map(Bukkit.getConsoleSender());
     }
 
     @Override
     public void registerOutgoingPluginChannel(String bungeeCord) {
-        GrimACBukkitLoaderPlugin.PLUGIN.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.PLUGIN, "BungeeCord");
+        GrimACBukkitLoaderPlugin.LOADER.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.LOADER, "BungeeCord");
     }
 
     @Override

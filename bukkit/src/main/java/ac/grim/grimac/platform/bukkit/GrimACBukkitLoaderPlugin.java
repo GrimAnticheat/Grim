@@ -1,9 +1,10 @@
 package ac.grim.grimac.platform.bukkit;
 
-import ac.grim.grimac.BasicGrimPlugin;
+import ac.grim.grimac.api.plugin.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.GrimAbstractAPI;
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
 import ac.grim.grimac.manager.init.start.StartableInitable;
@@ -48,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
 
-    public static GrimACBukkitLoaderPlugin PLUGIN;
+    public static GrimACBukkitLoaderPlugin LOADER;
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
     private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.simple(() -> SpigotPacketEventsBuilder.build(this));
@@ -76,7 +77,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public void onLoad() {
-        PLUGIN = this;
+        LOADER = this;
         GrimAPI.INSTANCE.load(this, this.getBukkitInitTasks());
     }
 
@@ -156,7 +157,8 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public void registerAPIService() {
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPI.INSTANCE.getExternalAPI(), GrimACBukkitLoaderPlugin.PLUGIN, ServicePriority.Normal);
+        GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPI.INSTANCE.getExternalAPI(), GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
     }
 
     @Override
@@ -188,6 +190,6 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     public BukkitSenderFactory getBukkitSenderFactory() {
-        return PLUGIN.senderFactory.get();
+        return LOADER.senderFactory.get();
     }
 }

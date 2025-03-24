@@ -34,7 +34,7 @@ public class GrimACFabric1201LoaderPlugin extends ac.grim.grimac.platform.fabric
 
     @Override
     public void onPreLaunch() {
-        PLUGIN = this;
+        LOADER = this;
         PacketEvents.setAPI(packetEvents);
         FabricConversionUtil.setConverters(
                 Fabric1201ConversionUtil::fromFabricItemStack,

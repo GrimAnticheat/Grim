@@ -25,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPlayer {
-    private static final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.PLUGIN);
+    private static final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
 
     @Getter
     private final Player bukkitPlayer;
@@ -140,12 +140,12 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void sendPluginMessage(String channelName, byte[] byteArray) {
-        this.bukkitPlayer.sendPluginMessage(GrimACBukkitLoaderPlugin.PLUGIN, channelName, byteArray);
+        this.bukkitPlayer.sendPluginMessage(GrimACBukkitLoaderPlugin.LOADER, channelName, byteArray);
     }
 
     @Override
     public Sender getSender() {
-        return GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().map(this.bukkitPlayer);
+        return GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().map(this.bukkitPlayer);
     }
 
     @Override

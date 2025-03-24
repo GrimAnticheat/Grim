@@ -16,7 +16,7 @@ package ac.grim.grimac.platform.fabric.utils.metrics;
  */
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.fabricmc.loader.api.FabricLoader;
 

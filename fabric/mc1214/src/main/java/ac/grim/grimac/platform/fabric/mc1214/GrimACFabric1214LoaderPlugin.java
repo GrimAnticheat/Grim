@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 public class GrimACFabric1214LoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
     @Override
     public void onPreLaunch() {
-        PLUGIN = this;
+        LOADER = this;
         PacketEvents.setAPI(packetEvents);
     }
 

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.bukkit;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
@@ -17,12 +17,12 @@ public class BukkitAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskAsynchronously(GrimACBukkitLoaderPlugin.PLUGIN, task));
+        return new BukkitTaskHandle(bukkitScheduler.runTaskAsynchronously(GrimACBukkitLoaderPlugin.LOADER, task));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskLaterAsynchronously(GrimACBukkitLoaderPlugin.PLUGIN,
+        return new BukkitTaskHandle(bukkitScheduler.runTaskLaterAsynchronously(GrimACBukkitLoaderPlugin.LOADER,
                 task,
                 PlatformScheduler.convertTimeToTicks(delay, timeUnit))
         );
@@ -32,7 +32,7 @@ public class BukkitAsyncScheduler implements AsyncScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
         return new BukkitTaskHandle(
                 bukkitScheduler.runTaskTimerAsynchronously(
-                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        GrimACBukkitLoaderPlugin.LOADER,
                         task,
                         PlatformScheduler.convertTimeToTicks(delay, timeUnit),
                         PlatformScheduler.convertTimeToTicks(period, timeUnit)
@@ -43,12 +43,12 @@ public class BukkitAsyncScheduler implements AsyncScheduler {
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         return new BukkitTaskHandle(
-                bukkitScheduler.runTaskTimerAsynchronously(GrimACBukkitLoaderPlugin.PLUGIN, task, initialDelayTicks, periodTicks)
+                bukkitScheduler.runTaskTimerAsynchronously(GrimACBukkitLoaderPlugin.LOADER, task, initialDelayTicks, periodTicks)
         );
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        bukkitScheduler.cancelTasks(GrimACBukkitLoaderPlugin.PLUGIN);
+        bukkitScheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
     }
 }

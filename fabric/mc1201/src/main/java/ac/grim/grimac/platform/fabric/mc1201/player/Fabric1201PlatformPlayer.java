@@ -24,12 +24,12 @@ public class Fabric1201PlatformPlayer extends FabricPlatformPlayer implements Pl
 
     @Override
     public boolean hasPermission(String permission) {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(permission);
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(permission);
     }
 
     @Override
     public boolean hasPermission(String s, boolean defaultIfUnset) {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(s, defaultIfUnset);
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource()).hasPermission(s, defaultIfUnset);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class Fabric1201PlatformPlayer extends FabricPlatformPlayer implements Pl
 
     @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.PLUGIN.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.getCommandSource());
     }
 
 }

@@ -16,7 +16,7 @@ public class BukkitMessagePlaceHolderManager implements MessagePlaceHolderManage
     @Override
     public @NonNull String replacePlaceholders(@Nullable Sender sender, @NonNull String string) {
         if (!MessageUtil.hasPlaceholderAPI) return string;
-        CommandSender commandSender = sender == null ? null : GrimACBukkitLoaderPlugin.PLUGIN.getBukkitSenderFactory().unwrap(sender);
+        CommandSender commandSender = sender == null ? null : GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().unwrap(sender);
         return PlaceholderAPI.setPlaceholders(sender instanceof OfflinePlayer ? (OfflinePlayer) commandSender : null, string);
     }
 

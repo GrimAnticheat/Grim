@@ -1,7 +1,9 @@
 package ac.grim.grimac.platform.fabric;
 
-import ac.grim.grimac.BasicGrimPlugin;
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.BasicGrimPlugin;
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
@@ -46,7 +48,7 @@ import java.util.stream.Collectors;
 
 public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitializer, PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
-    public static GrimACFabricLoaderPlugin PLUGIN;
+    public static GrimACFabricLoaderPlugin LOADER;
     protected final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
 
     protected final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
@@ -137,10 +139,9 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
         return platformServer;
     }
 
-    // TODO (Cross-platform) (Fabric) implement getting the API
     @Override
     public void registerAPIService() {
-
+        GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
     }
 
     @Override

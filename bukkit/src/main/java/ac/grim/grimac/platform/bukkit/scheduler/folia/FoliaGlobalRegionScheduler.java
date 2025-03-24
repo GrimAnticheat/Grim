@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
@@ -13,26 +13,26 @@ public class FoliaGlobalRegionScheduler implements GlobalRegionScheduler {
 
     @Override
     public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run) {
-        globalRegionScheduler.execute(GrimACBukkitLoaderPlugin.PLUGIN, run);
+        globalRegionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, run);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new FoliaTaskHandle(globalRegionScheduler.run(GrimACBukkitLoaderPlugin.PLUGIN, (ignored) -> task.run()));
+        return new FoliaTaskHandle(globalRegionScheduler.run(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay) {
-        return new FoliaTaskHandle(globalRegionScheduler.runDelayed(GrimACBukkitLoaderPlugin.PLUGIN, (ignored) -> task.run(), delay));
+        return new FoliaTaskHandle(globalRegionScheduler.runDelayed(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), delay));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(globalRegionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.PLUGIN, (ignored) -> task.run(), initialDelayTicks, periodTicks));
+        return new FoliaTaskHandle(globalRegionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), initialDelayTicks, periodTicks));
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        globalRegionScheduler.cancelTasks(GrimACBukkitLoaderPlugin.PLUGIN);
+        globalRegionScheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
     }
 }

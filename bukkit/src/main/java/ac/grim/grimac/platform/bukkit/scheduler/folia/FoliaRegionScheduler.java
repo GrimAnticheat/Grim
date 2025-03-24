@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
@@ -16,7 +16,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable run) {
-        regionScheduler.execute(GrimACBukkitLoaderPlugin.PLUGIN, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, run);
+        regionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, run);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
-        return new FoliaTaskHandle(regionScheduler.run(GrimACBukkitLoaderPlugin.PLUGIN, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run()));
+        return new FoliaTaskHandle(regionScheduler.run(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run()));
     }
 
     @Override
@@ -37,7 +37,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks) {
-        return new FoliaTaskHandle(regionScheduler.runDelayed(GrimACBukkitLoaderPlugin.PLUGIN,
+        return new FoliaTaskHandle(regionScheduler.runDelayed(GrimACBukkitLoaderPlugin.LOADER,
                 ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run(), delayTicks));
     }
 
@@ -48,7 +48,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(regionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.PLUGIN,
+        return new FoliaTaskHandle(regionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER,
                 ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run(), initialDelayTicks, periodTicks));
     }
 

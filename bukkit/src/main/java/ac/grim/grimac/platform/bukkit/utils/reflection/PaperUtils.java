@@ -37,10 +37,10 @@ public class PaperUtils {
             try {
                 Class<?> clazz = ReflectionUtils.getClass("com.destroystokyo.paper.event.server.ServerTickEndEvent");
                 if (clazz == null) return false;
-                GrimACBukkitLoaderPlugin.PLUGIN.getServer().getPluginManager().registerEvent((Class<? extends Event>) clazz,
+                GrimACBukkitLoaderPlugin.LOADER.getServer().getPluginManager().registerEvent((Class<? extends Event>) clazz,
                         listener,
                         EventPriority.NORMAL,
-                        (l, event) -> runnable.run(), GrimACBukkitLoaderPlugin.PLUGIN);
+                        (l, event) -> runnable.run(), GrimACBukkitLoaderPlugin.LOADER);
                 return true;
             } catch (Exception e) {
                 LogUtil.exception("Failed to register tick end event", e);

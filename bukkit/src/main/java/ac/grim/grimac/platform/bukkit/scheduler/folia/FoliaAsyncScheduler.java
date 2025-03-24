@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
@@ -15,14 +15,14 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new FoliaTaskHandle(asyncScheduler.runNow(GrimACBukkitLoaderPlugin.PLUGIN, (ignored) -> task.run()));
+        return new FoliaTaskHandle(asyncScheduler.runNow(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
         return new FoliaTaskHandle(
                 asyncScheduler.runDelayed(
-                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        GrimACBukkitLoaderPlugin.LOADER,
                         (ignored) -> task.run(),
                         delay,
                         timeUnit
@@ -34,7 +34,7 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
         return new FoliaTaskHandle(
                 asyncScheduler.runAtFixedRate(
-                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        GrimACBukkitLoaderPlugin.LOADER,
                         (ignored) -> task.run(),
                         delay,
                         period,
@@ -47,7 +47,7 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         return new FoliaTaskHandle(
                 asyncScheduler.runAtFixedRate(
-                        GrimACBukkitLoaderPlugin.PLUGIN,
+                        GrimACBukkitLoaderPlugin.LOADER,
                         (ignored) -> task.run(),
                         initialDelayTicks * 50,
                         periodTicks * 50,
@@ -58,6 +58,6 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        asyncScheduler.cancelTasks(GrimACBukkitLoaderPlugin.PLUGIN);
+        asyncScheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
     }
 }

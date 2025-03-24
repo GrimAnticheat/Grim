@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
 import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;

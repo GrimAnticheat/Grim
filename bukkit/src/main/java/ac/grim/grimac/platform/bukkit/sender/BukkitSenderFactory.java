@@ -21,7 +21,7 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     private final BukkitAudiences audiences;
 
     public BukkitSenderFactory() {
-        this.audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.PLUGIN);
+        this.audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
     }
 
     @Override

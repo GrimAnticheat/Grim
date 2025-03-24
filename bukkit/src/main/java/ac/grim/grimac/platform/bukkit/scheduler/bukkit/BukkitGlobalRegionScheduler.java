@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.bukkit;
 
-import ac.grim.grimac.api.GrimPlugin;
+import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
@@ -14,26 +14,26 @@ public class BukkitGlobalRegionScheduler implements GlobalRegionScheduler {
 
     @Override
     public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run) {
-        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.PLUGIN, run);
+        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, run);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new BukkitTaskHandle(bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.PLUGIN, task));
+        return new BukkitTaskHandle(bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskLater(GrimACBukkitLoaderPlugin.PLUGIN, task, delay));
+        return new BukkitTaskHandle(bukkitScheduler.runTaskLater(GrimACBukkitLoaderPlugin.LOADER, task, delay));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskTimer(GrimACBukkitLoaderPlugin.PLUGIN, task, initialDelayTicks, periodTicks));
+        return new BukkitTaskHandle(bukkitScheduler.runTaskTimer(GrimACBukkitLoaderPlugin.LOADER, task, initialDelayTicks, periodTicks));
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        bukkitScheduler.cancelTasks(GrimACBukkitLoaderPlugin.PLUGIN);
+        bukkitScheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
     }
 }
