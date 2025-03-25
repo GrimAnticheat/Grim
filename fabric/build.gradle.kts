@@ -36,11 +36,7 @@ allprojects {
             name = "FabricMC"
             url = uri("https://maven.fabricmc.net/")
         }
-        maven("https://jitpack.io/") { // Grim API
-            content {
-                includeGroup("com.github.grimanticheat")
-            }
-        }
+        maven("https://jitpack.io/") // Grim API & Conditional Mixin
         maven("https://repo.viaversion.com") // ViaVersion
         maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
         maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
