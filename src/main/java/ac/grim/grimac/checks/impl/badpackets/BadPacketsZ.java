@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPong;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTickingState;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 
 import java.util.Deque;
@@ -23,6 +24,8 @@ public class BadPacketsZ extends Check implements PostPredictionCheck {
     private Deque<Short> transactionsToConsider = new LinkedList<>();
     private int ticksSinceMovement = 0;
 
+    private long nanosPerTick = (long)50e6;
+
     public BadPacketsZ(GrimPlayer playerData) {
         super(playerData);
     }
@@ -32,10 +35,15 @@ public class BadPacketsZ extends Check implements PostPredictionCheck {
         long currentTime = System.nanoTime();
         short id = getTransactionID(event);
 
-        if (id <= 0 && currentTime - lastTransSent >= 50e6) {
+        if (id <= 0 && currentTime - lastTransSent >= nanosPerTick) {
             lastTransSent = currentTime;
             transactionsToConsider.add(id);
             if (transactionsToConsider.size() > 20) transactionsToConsider.removeFirst();
+        }
+
+        if (event.getPacketType() == PacketType.Play.Server.TICKING_STATE) {
+            WrapperPlayServerTickingState tickingState = new WrapperPlayServerTickingState(event);
+            nanosPerTick = (long)(1e9 / Math.min(20, tickingState.getTickRate()));
         }
     }
 
@@ -48,7 +56,7 @@ public class BadPacketsZ extends Check implements PostPredictionCheck {
             transactionsToConsider.remove(id);
             // We've added a rate limit on the server side, so it is impossible for the client to respond faster
             // unless they had a lag spike and is ticking faster to catch up with the server.
-            if (currentTime - lastTransReceived >= 50e6) {
+            if (currentTime - lastTransReceived >= nanosPerTick) {
                 ticksSinceMovement++;
                 lastTransReceived = currentTime;
             }
@@ -57,13 +65,13 @@ public class BadPacketsZ extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        // This is required to prevent falses
+        // A player will only send movement packets once every second (20 ticks) during 0.03
         if (player.skippedTickInActualMovement || player.likelyKB != null) {
             ticksSinceMovement -= 19;
         }
 
         if (ticksSinceMovement > 1) {
-            flagAndAlertWithSetback();
+            flagAndAlertWithSetback("skipped: " + (ticksSinceMovement - 1));
         } else {
             reward();
         }
