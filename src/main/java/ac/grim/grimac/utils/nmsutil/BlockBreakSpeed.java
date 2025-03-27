@@ -121,6 +121,12 @@ public class BlockBreakSpeed {
             isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
         }
 
+        // Special case for suspicious blocks - they have special breaking mechanics
+        if (block.getType() == StateTypes.SUSPICIOUS_GRAVEL || block.getType() == StateTypes.SUSPICIOUS_SAND) {
+            if (!toolType.hasAttribute(ItemTypes.ItemAttribute.SHOVEL)) {
+            }
+        }
+
         if (speedMultiplier > 1.0f) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier += (float) player.compensatedEntities.self.getAttributeValue(Attributes.MINING_EFFICIENCY);
@@ -176,7 +182,10 @@ public class BlockBreakSpeed {
 
         float damage = speedMultiplier / blockHardness;
 
-        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop || block.getType() == StateTypes.TRIAL_SPAWNER;
+        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop || block.getType() == StateTypes.TRIAL_SPAWNER
+                // Special case for suspicious blocks which are designed to be harvestable by hand in vanilla
+                || block.getType() == StateTypes.SUSPICIOUS_GRAVEL || block.getType() == StateTypes.SUSPICIOUS_SAND;
+
         if (canHarvest) {
             damage /= 30F;
         } else {
