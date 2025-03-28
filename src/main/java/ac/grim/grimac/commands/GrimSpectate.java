@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.MultiLibUtil;
+import ac.grim.grimac.utils.reflection.PaperUtils;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
@@ -23,14 +24,14 @@ public class GrimSpectate extends BaseCommand {
 
         if (target != null && target.getPlayer().getUniqueId().equals(player.getUniqueId())) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("cannot-run-on-self", "%prefix% &cYou cannot use this command on yourself!");
-            message = MessageUtil.replacePlaceholders(target, message);
+            message = MessageUtil.replacePlaceholders(target.getPlayer(), message);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(message));
             return;
         }
 
         if (target == null || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(target.getPlayer()))) {
             String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
-            message = MessageUtil.replacePlaceholders(target, message);
+            message = MessageUtil.replacePlaceholders(target != null ? target.getPlayer() : null, message);
             MessageUtil.sendMessage(player, MessageUtil.miniMessage(message));
             return;
         }
@@ -40,12 +41,12 @@ public class GrimSpectate extends BaseCommand {
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
             if (grimPlayer != null) {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("spectate-return", "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick here to return to previous location\n</hover></click>");
-                message = MessageUtil.replacePlaceholders(target, message);
+                message = MessageUtil.replacePlaceholders(target.getPlayer(), message);
                 grimPlayer.user.sendMessage(MessageUtil.miniMessage(message));
             }
         }
 
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(target.getPlayer());
+        PaperUtils.teleportAsync(player, target.getPlayer().getLocation());
     }
 }

@@ -308,7 +308,7 @@ public class CompensatedWorld {
     public void tickOpenable(int blockX, int blockY, int blockZ) {
         final WrappedBlockState data = getBlock(blockX, blockY, blockZ);
         final StateType type = data.getType();
-        if (BlockTags.WOODEN_DOORS.contains(type) || (player.getClientVersion().isOlderThan(ClientVersion.V_1_8) && type == StateTypes.IRON_DOOR)) {
+        if (Materials.isClientSideOpenableDoor(type, player.getClientVersion())) {
             WrappedBlockState otherDoor = getBlock(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
@@ -330,9 +330,7 @@ public class CompensatedWorld {
                     updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
             }
-        } else if ((player.getClientVersion().isOlderThan(ClientVersion.V_1_8) || type != StateTypes.IRON_TRAPDOOR) // 1.7 can open iron trapdoors.
-                    && BlockTags.TRAPDOORS.contains(type)
-                    || BlockTags.FENCE_GATES.contains(type)) {
+        } else if (Materials.isClientSideOpenableTrapdoor(type, player.getClientVersion()) || BlockTags.FENCE_GATES.contains(type)) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             data.setOpen(!data.isOpen());
             updateBlock(blockX, blockY, blockZ, data.getGlobalId());

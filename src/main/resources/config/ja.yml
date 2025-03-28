@@ -68,6 +68,9 @@ Simulation:
   # これは、プレイヤーが違反を蓄積しすぎて、違反を解消できなくなるのを防ぐためです。
   # デフォルトのアドバンテージの上限 (x軸 = 秒, y軸 = 1/1000ブロック): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # セットバックの違反レベル閾値
+  # 旧仕様の挙動は 1 です
+  setback-violation-threshold: 1
 
 # プレイヤーが移動中にブロックに入ったかどうかをチェックします。
 Phase:
@@ -182,12 +185,15 @@ debug-pipeline-on-join: false
 # 実験的なチェックを有効にします
 experimental-checks: false
 
-mitigate-autoblock: true
-mitigate-desync-noslow: true
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
 
 # Grimは "Timer" のような違反パケットをキャンセルすることがありますが、1秒間にキャンセルされたパケット数がXを超えた場合、
 # プレイヤーを強制的にキックしますか？これは、いくつかのパケットリミッターがGrimによってキャンセルされたパケットをカウントしないためです。
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grimは、飛行状態を解除されたプレイヤーがXミリ秒以上のPingを持つことを許可しません
 # これは、現在Grimが飛行中のプレイヤーをチェックしていないためです

@@ -67,6 +67,9 @@ Simulation:
   # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
   # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Quantas violações para começar a recuar o jogador?
+  # 1 para comportamento antigo
+  setback-violation-threshold: 1
 
 # Verifica se um jogador entrou em um bloco ao se mover.
 Phase:
@@ -178,13 +181,16 @@ debug-pipeline-on-join: false
 # Habilita verificações experimentais.
 experimental-checks: false
 
-mitigate-autoblock: true
-mitigate-desync-noslow: true
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
 
 # Grim às vezes cancela pacotes ilegais como com o timer, depois de X pacotes em um segundo que foram cancelados, quando
 # deve-se simplesmente expulsar o jogador? Isso é requirido já que alguns limitadores de pacotes não contam pacotes
 # cancelados pelo Grim.
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim pode impor que o jogador fora do estado de voo não possa ter mais de X milissegundos de ping.
 # Isso ocorre porque o Grim atualmente não verifica os jogadores que estão voando.

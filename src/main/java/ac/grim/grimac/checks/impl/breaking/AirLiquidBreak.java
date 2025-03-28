@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @CheckData(name = "AirLiquidBreak", description = "Breaking a block that cannot be broken")
 public class AirLiquidBreak extends Check implements BlockBreakCheck {
@@ -21,8 +22,9 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
 
     private int lastTick;
     private boolean didLastFlag;
-    private Vector3i lastBreakLoc;
-    private StateType lastBlockType;
+    // Initialize to non-null values to prevent NPE when checking for blockType properties and if position equals old position
+    private @NonNull Vector3i lastBreakLoc = new Vector3i();
+    private @NonNull StateType lastBlockType = StateTypes.AIR;
 
     public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
 

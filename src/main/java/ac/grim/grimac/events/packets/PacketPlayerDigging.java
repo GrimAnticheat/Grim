@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -35,12 +36,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             return;
         }
 
-        final ItemType material = item.getType();
-
-        if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
+        if (player.checkManager.getCompensatedCooldown().hasItem(item)) {
             player.packetStateData.setSlowedByUsingItem(false); // resync, not required
             return; // The player has a cooldown, and therefore cannot use this item!
         }
+
+        final ItemType material = item.getType();
 
         // Check for data component stuff on 1.20.5+
         final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
@@ -195,9 +196,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
-            if (player.packetStateData.lastSlotSelected != slot) {
+            if (player.packetStateData.lastSlotSelected != slot && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
+                if (player.isResetItemUsageOnSlotChange()) {
+                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                }
+
                 // just assume they tick after this
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !player.supportsEndTick() && !player.isTickingReliablyFor(3) && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
+                if (player.canSkipTicks() && !player.isTickingReliablyFor(3)) {
                     player.packetStateData.setSlowedByUsingItem(false);
                 }
             }

@@ -3,7 +3,11 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.reflection.PaperUtils;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -61,9 +65,22 @@ public class SpectateManager implements Initable {
     public void disable(Player player, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
-            if (teleportBack) player.teleport(previousState.location);
-            player.setGameMode(previousState.gameMode);
+            if (teleportBack && previousState.location.isWorldLoaded()) {
+                PaperUtils.teleportAsync(player, previousState.location).thenAccept(bool -> {
+                    if (bool) {
+                        onDisable(previousState, player);
+                    } else {
+                        MessageUtil.sendMessage(player, Component.text("Teleport failed, please try again.", NamedTextColor.RED));
+                    }
+                });
+            } else {
+                onDisable(previousState, player);
+            }
         }
+    }
+
+    private void onDisable(PreviousState previousState, Player player) {
+        player.setGameMode(previousState.gameMode);
         handlePlayerStopSpectating(player.getUniqueId());
     }
 

@@ -58,6 +58,9 @@ Simulation:
   max-advantage: 1
   # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
   max-ceiling: 4
+  # Soglia del livello di violazione per il setback
+  # 1 per il comportamento precedente
+  setback-violation-threshold: 1
 
 Phase:
   # Livello di violazione per il glitch nel blocco
@@ -149,12 +152,15 @@ debug-pipeline-on-join: false
 # Enables experimental checks
 experimental-checks: false
 
-mitigate-autoblock: true
-mitigate-desync-noslow: true
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
 
 # Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim is able to enforce that a player set out of flying state cannot have more than X milliseconds of ping
 # This is due to Grim not currently checking flying players

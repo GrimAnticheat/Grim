@@ -87,6 +87,18 @@ public class GrimMath {
         return p_14135_ < (double) i ? i - 1L : i;
     }
 
+    public static int sign(double x) {
+        if (x == 0.0) {
+            return 0;
+        } else {
+            return x > 0.0 ? 1 : -1;
+        }
+    }
+
+    public static float square(float value) {
+        return value * value;
+    }
+
     // Find the closest distance to (1 / 64)
     // All poses horizontal length is 0.2 or 0.6 (0.1 or 0.3)
     // and we call this from the player's position

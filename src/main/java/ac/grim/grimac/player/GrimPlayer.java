@@ -142,7 +142,6 @@ public class GrimPlayer implements GrimUser {
     public boolean wasSneaking;
     public boolean isSprinting;
     public boolean lastSprinting;
-    public String teamName;
     // The client updates sprinting attribute at end of each tick
     // Don't false if the server update's the player's sprinting status
     public boolean lastSprintingForSpeed;
@@ -279,6 +278,10 @@ public class GrimPlayer implements GrimUser {
             LogUtil.info("Disconnecting " + getName() + " for spamming invalid packets, packets cancelled within a second " + cancelledPackets);
             disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectClosed())));
             cancelledPackets.set(0);
+
+            if (debugPacketCancel) {
+                LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", new Exception());
+            }
         }
     }
 
@@ -554,6 +557,7 @@ public class GrimPlayer implements GrimUser {
         });
     }
 
+    private boolean debugPacketCancel = false;
     private int spamThreshold = 100;
 
     public boolean isPointThree() {
@@ -830,18 +834,21 @@ public class GrimPlayer implements GrimUser {
     @Getter @Setter private boolean experimentalChecks = false;
     @Getter private boolean cancelDuplicatePacket = true;
     @Getter @Setter private boolean exemptElytra = false;
-    @Getter private boolean mitigateAutoblock;
-    @Getter private boolean mitigateDesyncNoSlow;
+    @Getter private boolean resetItemUsageOnAttack;
+    @Getter private boolean resetItemUsageOnItemUpdate;
+    @Getter private boolean resetItemUsageOnSlotChange;
 
     @Override
     public void reload(ConfigManager config) {
         featureManager.onReload(config);
+        debugPacketCancel = config.getBooleanElse("debug-packet-cancel", false);
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
-        mitigateAutoblock = config.getBooleanElse("mitigate-autoblock", true);
-        mitigateDesyncNoSlow = config.getBooleanElse("mitigate-desync-noslow", true);
+        resetItemUsageOnAttack = config.getBooleanElse("reset-item-usage-on-attack", true);
+        resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
+        resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         // reload all checks
         for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
         // reload punishment manager

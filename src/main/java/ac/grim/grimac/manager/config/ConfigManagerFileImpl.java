@@ -350,6 +350,16 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
     }
 
     @Override
+    public @Nullable <T> List<T> getList(String path) {
+        return config.getList(path);
+    }
+
+    @Override
+    public @Nullable <T> List<T> getListElse(String path, List<T> otherwise) {
+        return config.getListElse(path, otherwise);
+    }
+
+    @Override
     public boolean hasLoaded() {
         return initialized;
     }

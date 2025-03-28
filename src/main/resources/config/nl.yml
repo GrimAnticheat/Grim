@@ -66,6 +66,9 @@ Simulation:
   # Dit is om te voorkomen dat de speler te veel schendingen verzamelt en ze nooit allemaal kan opruimen
   # Standaard voordelenplatform (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # Drempelwaarde voor het schendingenniveau voor de terugslag
+  # 1 voor het oude gedrag
+  setback-violation-threshold: 1
 
 # Controleert of een speler een blok is binnengegaan tijdens een beweging
 Phase:
@@ -173,12 +176,15 @@ debug-pipeline-on-join: false
 # Experimentele controles inschakelen
 experimental-checks: false
 
-mitigate-autoblock: true
-mitigate-desync-noslow: true
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
 
 # Grim annuleert soms illegale pakketten zoals met timer, na X pakketten in een seconde geannuleerd, wanneer moeten
 # we de speler gewoon schoppen? Dit is nodig omdat sommige pakket-begrenzers pakketten die door grim worden geannuleerd niet tellen
 packet-spam-threshold: 100
+# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+debug-packet-cancel: false
 
 # Grim kan afdwingen dat een speler die uit vliegt niet meer dan X milliseconden ping kan hebben
 # Dit komt doordat Grim momenteel vliegende spelers niet controleert

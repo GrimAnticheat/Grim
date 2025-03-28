@@ -27,7 +27,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
     // For some reason these states flag and I don't know why.
     // Better to just exempt to not annoy legit players.
-    private static final Set<StateType> EXEMPT_STATES = Set.of(StateTypes.TRIAL_SPAWNER);
+    private static final Set<StateType> EXEMPT_STATES = Set.of();
 
     public FastBreak(GrimPlayer playerData) {
         super(playerData);
@@ -72,7 +72,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             if (blockDelayBalance > 1000) { // If more than a second of advantage
-                if (flagAndAlert("Delay=" + breakDelay) && shouldModifyPackets()) {
+                if (flagAndAlert("delay=" + breakDelay + "ms, type=" + blockBreak.block.getType()) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             }
@@ -94,7 +94,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             if (blockBreakBalance > 1000) { // If more than a second of advantage
-                if (flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance) && shouldModifyPackets()) {
+                if (flagAndAlert("diff=" + diff + "ms, balance=" + blockBreakBalance + "ms, type=" + blockBreak.block.getType()) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             }

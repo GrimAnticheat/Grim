@@ -24,6 +24,9 @@ public class Materials {
     private static final Set<StateType> WATER_SOURCES = new HashSet<>();
     private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
 
+    private static final Set<StateType> COPPER_DOORS = new HashSet<>();
+    private static final Set<StateType> COPPER_TRAPDOORS = new HashSet<>();
+
     private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
 
     static {
@@ -53,6 +56,24 @@ public class Materials {
 
         NO_PLACE_LIQUIDS.add(StateTypes.WATER);
         NO_PLACE_LIQUIDS.add(StateTypes.LAVA);
+
+        COPPER_DOORS.add(StateTypes.COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.EXPOSED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.WEATHERED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.OXIDIZED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.WAXED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.WAXED_EXPOSED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.WAXED_WEATHERED_COPPER_DOOR);
+        COPPER_DOORS.add(StateTypes.WAXED_OXIDIZED_COPPER_DOOR);
+
+        COPPER_TRAPDOORS.add(StateTypes.COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.EXPOSED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.WEATHERED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.OXIDIZED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.WAXED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.WAXED_EXPOSED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.WAXED_WEATHERED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(StateTypes.WAXED_OXIDIZED_COPPER_TRAPDOOR);
 
         // Important blocks where we need to ignore right-clicking on for placing blocks
         // We can ignore stuff like right-clicking a pumpkin with shears...
@@ -90,7 +111,7 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
         CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
         CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates().stream().filter(type -> type != StateTypes.IRON_TRAPDOOR).collect(Collectors.toSet()));
-        CLIENT_SIDE.addAll(BlockTags.WOODEN_DOORS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.MOB_INTERACTABLE_DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
         PANES.add(StateTypes.IRON_BARS);
@@ -270,6 +291,41 @@ public class Materials {
 
     public static boolean isClientSideInteractable(StateType material) {
         return CLIENT_SIDE.contains(material);
+    }
+
+    public static boolean isClientSideOpenableDoor(StateType mat, ClientVersion ver) {
+        // Iron doors and all other blocks are not openable
+        if (!BlockTags.MOB_INTERACTABLE_DOORS.contains(mat)) {
+            return false;
+        }
+
+        // Copper doors can only be opened in 1.20.3 and above, in older versions they appear as iron doors
+        if (COPPER_DOORS.contains(mat)) {
+            return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
+        }
+
+        // If it's not a copper door players in any version can open it
+        return true;
+    }
+
+    public static boolean isClientSideOpenableTrapdoor(StateType mat, ClientVersion ver) {
+        // Everything except trapdoors
+        if (!BlockTags.TRAPDOORS.contains(mat)) {
+            return false;
+        }
+
+        // In 1.7, only oak trapdoors exist so 1.7 players can open every type of trapdoor
+        if (ver.isOlderThan(ClientVersion.V_1_8)) {
+            return true;
+        }
+
+        // Copper trapdoors can only be opened in 1.20.3 and above, in older versions they appear as iron trapdoors
+        if (COPPER_TRAPDOORS.contains(mat)) {
+            return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
+        }
+
+        // If it's not a copper trapdoor players in any version can open it
+        return true;
     }
 
     public static boolean isCompostable(ItemType material) {
