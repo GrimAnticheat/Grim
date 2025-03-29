@@ -18,7 +18,9 @@ dependencies {
 
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
-    modImplementation(libs.cloud.fabric)
+    modImplementation(libs.cloud.fabric) {
+        exclude(group = "net.fabricmc.fabric-api")
+    }
     modImplementation(libs.fabric.loader)
     modImplementation(libs.packetevents.fabric)
 
@@ -53,10 +55,12 @@ allprojects {
     }
 
     dependencies {
-        // I hate this syntax, is there an alternative to make modImplementation(libs.package.name) work?
+        // I hate this syntax, is there an alternative to make modCompileOnly(libs.package.name) work?
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
         // Use the libs extension from the root project
-        modImplementation(libsx.findLibrary("cloud-fabric").get())
+        modImplementation(libsx.findLibrary("cloud-fabric").get()) {
+            exclude(group = "net.fabricmc.fabric-api")
+        }
         modImplementation(libsx.findLibrary("fabric-loader").get())
 
         implementation(project(":common"))

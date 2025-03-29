@@ -20,7 +20,7 @@ public class GrimSpectate implements BuildableCommand {
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("spectate")
                         .permission("grim.spectate")
-                        .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                        .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
                         .handler(this::handleSpectate)
                         .apply(CommandRegister.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.PLAYER_SENDER_REQUIREMENT))
         );

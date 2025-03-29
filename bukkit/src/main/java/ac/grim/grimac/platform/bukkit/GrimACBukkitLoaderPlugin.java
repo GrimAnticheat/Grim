@@ -42,9 +42,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.brigadier.BrigadierSetting;
+import org.incendo.cloud.brigadier.CloudBrigadierManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.setting.Configurable;
 import org.jetbrains.annotations.NotNull;
 
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
@@ -183,6 +186,9 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
         );
         if (manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
             manager.registerBrigadier();
+            CloudBrigadierManager<Sender, ?> cbm = manager.brigadierManager();
+            Configurable<BrigadierSetting> settings = cbm.settings();
+            settings.set(BrigadierSetting.FORCE_EXECUTABLE, true);
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             manager.registerAsynchronousCompletions();
         }

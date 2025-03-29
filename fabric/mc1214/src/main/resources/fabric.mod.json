@@ -22,6 +22,6 @@
     "minecraft": [
       "1.21.4"
     ],
-    "fabric-api": "*"
+    "fabric-lifecycle-events-v1": "*"
   }
 }
