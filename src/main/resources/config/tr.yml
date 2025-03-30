@@ -176,8 +176,9 @@ debug-pipeline-on-join: false
 # Deneysel kontrolleri etkinleştir
 experimental-checks: false
 
-mitigate-autoblock: true
-mitigate-desync-noslow: true
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
 
 # Grim bazen timer gibi yasa dışı paketleri iptal eder; bir saniyede X paket iptal edildikten sonra, ne zaman
 # oyuncuyu basitçe atmalıyız? Bu, bazı paket sınırlayıcılarının Grim tarafından iptal edilen paketleri saymaması gerektiğindendir.

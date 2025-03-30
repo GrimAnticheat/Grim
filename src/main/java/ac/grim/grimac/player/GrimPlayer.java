@@ -834,8 +834,9 @@ public class GrimPlayer implements GrimUser {
     @Getter @Setter private boolean experimentalChecks = false;
     @Getter private boolean cancelDuplicatePacket = true;
     @Getter @Setter private boolean exemptElytra = false;
-    @Getter private boolean mitigateAutoblock;
-    @Getter private boolean mitigateDesyncNoSlow;
+    @Getter private boolean resetItemUsageOnAttack;
+    @Getter private boolean resetItemUsageOnItemUpdate;
+    @Getter private boolean resetItemUsageOnSlotChange;
 
     @Override
     public void reload(ConfigManager config) {
@@ -845,8 +846,9 @@ public class GrimPlayer implements GrimUser {
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
-        mitigateAutoblock = config.getBooleanElse("mitigate-autoblock", true);
-        mitigateDesyncNoSlow = config.getBooleanElse("mitigate-desync-noslow", true);
+        resetItemUsageOnAttack = config.getBooleanElse("reset-item-usage-on-attack", true);
+        resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
+        resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         // reload all checks
         for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
         // reload punishment manager

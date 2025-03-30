@@ -92,7 +92,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos = pos.withY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
+            player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {

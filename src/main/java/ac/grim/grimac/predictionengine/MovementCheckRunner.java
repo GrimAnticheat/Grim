@@ -87,16 +87,14 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
         if (!player.inVehicle()) {
-            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeX()) {
+            if (update.getTeleportData() == null) {
                 player.clientVelocity.setX(0);
-            }
-            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeY()) {
                 player.clientVelocity.setY(0);
+                player.clientVelocity.setZ(0);
                 player.lastWasClimbing = 0; // Vertical movement reset
                 player.canSwimHop = false; // Vertical movement reset
-            }
-            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeZ()) {
-                player.clientVelocity.setZ(0);
+            } else {
+                update.getTeleportData().modifyVector(player, player.clientVelocity);
             }
         }
 

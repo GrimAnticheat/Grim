@@ -194,7 +194,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.inVehicle(), false);
+        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
 
@@ -248,7 +248,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
@@ -282,7 +282,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
             Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
-            double threshold = teleportPos.isRelative() ? player.getMovementThreshold() : 0;
+            double threshold = teleportPos.isRelativePos() ? player.getMovementThreshold() : 0;
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
             if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
@@ -384,8 +384,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport);
     }
 
-    public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
-        TeleportData data = new TeleportData(new Vector3d(position.getX(), position.getY(), position.getZ()), flags, transaction, teleportId);
+    public void addSentTeleport(Location position, Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
+        TeleportData data = new TeleportData(new Vector3d(position.getX(), position.getY(), position.getZ()), velocity, flags, transaction, teleportId);
         pendingTeleports.add(data);
 
         Vector3d safePosition = new Vector3d(position.getX(), position.getY(), position.getZ());
@@ -403,7 +403,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             safePosition = safePosition.withZ(safePosition.getZ() + lastKnownGoodPosition.pos.getZ());
         }
 
-        data = new TeleportData(safePosition, new RelativeFlag(0b11000), transaction, teleportId);
+        data = new TeleportData(safePosition, velocity, new RelativeFlag(0b11000), transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
 
         this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, new Vector());

@@ -44,7 +44,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             }
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                if (player.isMitigateAutoblock()) {
+                if (player.isResetItemUsageOnAttack()) {
                     BukkitNMS.resetItemUsage(player.bukkitPlayer);
                 }
 
