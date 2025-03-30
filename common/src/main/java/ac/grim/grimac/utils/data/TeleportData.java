@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.util.Vector;
 
 @AllArgsConstructor
 @Getter
@@ -19,7 +19,7 @@ public class TeleportData {
     @Setter
     int teleportId;
 
-    public void modifyVector(GrimPlayer player, Vector vector) {
+    public void modifyVector(GrimPlayer player, Vector3dm vector) {
         final boolean isStupidTeleportSystem = player.supportsEndTick();
         if (!isStupidTeleportSystem) {
             if (!isRelativeX()) {
