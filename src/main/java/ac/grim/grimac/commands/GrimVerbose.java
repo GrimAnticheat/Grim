@@ -12,6 +12,6 @@ public class GrimVerbose extends BaseCommand {
     @Subcommand("verbose")
     @CommandPermission("grim.verbose")
     public void onVerbose(Player player) {
-        GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player);
+        GrimAPI.INSTANCE.getAlertManager().toggleVerbose(player, false);
     }
 }
