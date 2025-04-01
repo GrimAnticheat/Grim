@@ -99,7 +99,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
             return false; // Avoid calling event if disabled
 
         FlagEvent event = new FlagEvent(player, this, verbose);
-        GrimAPI.INSTANCE.getPluginManager().callEvent(event);
+        GrimAPI.INSTANCE.getEventBus().post(event);
         if (event.isCancelled()) return false;
 
         player.punishmentManager.handleViolation(this);

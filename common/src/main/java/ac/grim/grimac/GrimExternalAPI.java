@@ -44,7 +44,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public @NonNull EventBus getEventBus() {
-        return api.getPluginManager().getEventBus();
+        return api.getEventBus();
     }
 
     @Override
@@ -166,14 +166,14 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
             onReload(config);
             if (started)
                 GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                        () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(true)));
+                        () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (started)
             GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimReloadEvent(false)));
+                    () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(false)));
         return false;
     }
 

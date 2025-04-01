@@ -34,7 +34,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         double offset = predictionComplete.getOffset();
 
         CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(player, this, "", offset);
-        GrimAPI.INSTANCE.getPluginManager().callEvent(completePredictionEvent);
+        GrimAPI.INSTANCE.getEventBus().post(completePredictionEvent);
 
         if (completePredictionEvent.isCancelled()) return;
 

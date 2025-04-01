@@ -1,5 +1,7 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.api.event.EventBus;
+import ac.grim.grimac.api.event.OptimizedEventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
@@ -39,6 +41,7 @@ public final class GrimAPI {
     private final DiscordManager discordManager;
     private final PlayerDataManager playerDataManager;
     private final TickManager tickManager;
+    private final EventBus eventBus;
     private final GrimExternalAPI externalAPI;
     private PlatformLoader loader;
     private InitManager initManager;
@@ -51,6 +54,7 @@ public final class GrimAPI {
         this.discordManager = new DiscordManager();
         this.playerDataManager = new PlayerDataManager();
         this.tickManager = new TickManager();
+        this.eventBus = new OptimizedEventBus();
         this.externalAPI = new GrimExternalAPI(this);
     }
 

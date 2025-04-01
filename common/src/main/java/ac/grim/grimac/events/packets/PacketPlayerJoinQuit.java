@@ -66,7 +66,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     public void onUserDisconnect(UserDisconnectEvent event) {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getUser());
         if (grimPlayer != null)
-            GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimQuitEvent(grimPlayer));
+            GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
         GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.remove(event.getUser());
         //Check if calling async is safe
         if (event.getUser().getProfile().getUUID() == null)

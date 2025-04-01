@@ -1,8 +1,5 @@
 package ac.grim.grimac.platform.fabric.manager;
 
-import ac.grim.grimac.api.event.EventBus;
-import ac.grim.grimac.api.event.GrimEvent;
-import ac.grim.grimac.api.event.OptimizedEventBus;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.fabric.FabricPlatformPlugin;
@@ -13,17 +10,6 @@ import java.util.Collection;
 import java.util.Optional;
 
 public class FabricPlatformPluginManager implements PlatformPluginManager {
-    private final EventBus eventBus = new OptimizedEventBus();
-
-    @Override
-    public void callEvent(GrimEvent event) {
-        eventBus.post(event);
-    }
-
-    @Override
-    public EventBus getEventBus() {
-        return this.eventBus;
-    }
 
     @Override
     public PlatformPlugin[] getPlugins() {

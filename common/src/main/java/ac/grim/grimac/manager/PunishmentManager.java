@@ -141,7 +141,7 @@ public class PunishmentManager implements ConfigReloadable {
                         boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
                         if (inInterval) {
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
-                            GrimAPI.INSTANCE.getPluginManager().callEvent(executeEvent);
+                            GrimAPI.INSTANCE.getEventBus().post(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
                             if (command.command.equals("[webhook]")) {

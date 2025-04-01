@@ -71,7 +71,7 @@ public class PlayerDataManager {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
-            GrimAPI.INSTANCE.getPluginManager().callEvent(new GrimJoinEvent(player));
+            GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
         }
     }
 
