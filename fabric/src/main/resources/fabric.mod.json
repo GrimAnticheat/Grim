@@ -29,6 +29,7 @@
       "1.21.4"
     ],
     "fabric-lifecycle-events-v1": "*",
-    "cloud": "*"
+    "cloud": "*",
+    "packetevents": "*"
   }
 }
