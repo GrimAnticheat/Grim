@@ -4,6 +4,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
+import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import net.kyori.adventure.text.Component;
@@ -46,7 +47,7 @@ public class Fabric1211PlatformPlayer extends FabricPlatformPlayer {
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
-        return CompletableFuture.supplyAsync(() -> {
+        return FabricFutureUtil.supplySync(() -> {
             if (entity.getWorld() instanceof ServerWorld) {
                 entity.teleport(
                         ((FabricPlatformWorld) location.getWorld()).getFabricWorld(),

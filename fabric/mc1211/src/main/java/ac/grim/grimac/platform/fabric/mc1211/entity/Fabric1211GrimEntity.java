@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1211.entity;
 
 import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
+import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import net.minecraft.entity.Entity;
@@ -17,7 +18,7 @@ public class Fabric1211GrimEntity extends FabricGrimEntity {
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
-        return CompletableFuture.supplyAsync(() -> {
+        return FabricFutureUtil.supplySync(() -> {
             if (entity.getWorld() instanceof ServerWorld) {
                 entity.teleport(
                         ((FabricPlatformWorld) location.getWorld()).getFabricWorld(),
