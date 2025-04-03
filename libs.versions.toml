@@ -15,7 +15,7 @@ floodgate-api = "2.0-SNAPSHOT"
 via-version = "5.0.4-SNAPSHOT"
 netty = "4.1.85.Final"
 fabric-loader = "0.16.10"
-fabric-loom = "1.10.4"
+fabric-loom = "1.10.5"
 
 spotless = "6.25.0"
 lombok = "8.6"

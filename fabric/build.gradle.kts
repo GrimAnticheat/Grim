@@ -18,9 +18,7 @@ dependencies {
 
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 
-    modImplementation(libs.cloud.fabric) {
-        exclude(group = "net.fabricmc.fabric-api")
-    }
+    modImplementation(libs.cloud.fabric)
     modImplementation(libs.fabric.loader)
     modImplementation(libs.packetevents.fabric)
 
@@ -31,6 +29,7 @@ dependencies {
 allprojects {
     apply(plugin = "fabric-loom")
     apply(plugin = "grim.base-conventions")
+    apply(plugin = "maven-publish")
 
     repositories {
         mavenLocal()
@@ -65,6 +64,21 @@ allprojects {
 
         implementation(project(":common"))
     }
+
+    publishing.publications.create<MavenPublication>("maven") {
+        artifact(tasks["remapJar"])
+    }
+
+    tasks {
+        remapJar {
+            archiveBaseName = "${rootProject.name}-fabric${if (project.name != "fabric") "-${project.name}" else ""}"
+            archiveVersion = rootProject.version as String
+        }
+
+        remapSourcesJar {
+            archiveVersion = rootProject.version as String
+        }
+    }
 }
 
 subprojects {
@@ -72,13 +86,6 @@ subprojects {
         // configuration = "namedElements" required when depending on another loom project
         implementation(project(":fabric", configuration = "namedElements"))
     }
-}
-
-tasks.withType<RemapJarTask>().configureEach {
-    archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
-
-    // Include classes from :common project directly
-    from(project(":common").sourceSets.main.get().output)
 }
 
 subprojects.forEach {
@@ -93,8 +100,4 @@ tasks.remapJar.configure {
             nestedJars.from(this)
         }
     }
-}
-
-publishing.publications.create<MavenPublication>("maven") {
-    artifact(tasks["remapJar"])
 }

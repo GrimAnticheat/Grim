@@ -9,6 +9,8 @@ plugins {
 val jijDependencies: Configuration by project.configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
+    extendsFrom(project.configurations.getByName("api"))
+    extendsFrom(project.configurations.getByName("modApi"))
     extendsFrom(project.configurations.getByName("implementation"))
     project.configurations.findByName("modImplementation")?.let { extendsFrom(it) }
 }

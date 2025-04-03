@@ -16,11 +16,6 @@ java {
     withJavadocJar()
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.encoding = "UTF-8"
-    options.release.set(17)
-}
-
 // Lombok configuration
 //lombok {
 //    version.set("1.18.30") // Use the version from your version catalog if available
@@ -43,28 +38,37 @@ spotless {
     }
 }
 
-// Ensure spotlessApply runs before build
-tasks.build {
-    dependsOn(tasks.named("spotlessApply"))
-}
 
-// Process resources (e.g., for plugin metadata files)
-//tasks.processResources {
-//    inputs.property("version", project.version)
-//    filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json")) {
-//        expand("version" to project.version)
-//    }
-//}
+tasks {
+    withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
 
-// Javadoc configuration
-tasks.javadoc {
-    title = "${rootProject.name}-${project.name} v${rootProject.version}"
-    options.encoding = "UTF-8"
-    options.overview =
-        rootProject.file("buildSrc/src/main/resources/javadoc-overview.html").toString()
-    setDestinationDir(file("${project.layout.buildDirectory.asFile.get()}/docs/javadoc"))
-    options {
-        (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+    build {
+        // Ensure spotlessApply runs before build
+        dependsOn(tasks.named("spotlessApply"))
+    }
+
+    // Process resources (e.g., for plugin metadata files)
+    processResources {
+        inputs.property("version", project.version)
+        filesMatching(listOf( // "plugin.yml",  Bukkit variable expansion taken care of by net.minecrell.plugin-yml.bukkit
+            "bungee.yml", "velocity-plugin.json", "fabric.mod.json")
+        ) {
+            expand("version" to project.version)
+        }
+    }
+
+    javadoc {
+        title = "${rootProject.name}-${project.name} v${rootProject.version}"
+        options.encoding = "UTF-8"
+        options.overview =
+            rootProject.file("buildSrc/src/main/resources/javadoc-overview.html").toString()
+        setDestinationDir(file("${project.layout.buildDirectory.asFile.get()}/docs/javadoc"))
+        options {
+            (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+        }
     }
 }
 
