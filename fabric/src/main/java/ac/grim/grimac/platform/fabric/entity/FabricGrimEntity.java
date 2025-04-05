@@ -1,6 +1,5 @@
 package ac.grim.grimac.platform.fabric.entity;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
@@ -16,7 +15,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.EnumSet;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 public class FabricGrimEntity implements GrimEntity {
 
