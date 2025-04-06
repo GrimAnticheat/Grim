@@ -427,7 +427,7 @@ public class PredictionEngine {
         }
 
         for (VectorData vector : velocities) {
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) { // TODO: is this the right way??
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle()) { // TODO: is this the right way??
                 if (Collisions.getHorizontalDistanceSqr(vector.vector) < 9.0E-6) {
                     vector.vector.setX(0D);
                     vector.vector.setZ(0D);
