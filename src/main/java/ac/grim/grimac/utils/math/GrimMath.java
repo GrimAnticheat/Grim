@@ -99,8 +99,8 @@ public class GrimMath {
         return value * value;
     }
 
-    public static double square(double value) {
-        return value * value;
+    public static float sqrt(float value) {
+        return (float)Math.sqrt(value);
     }
 
     // Find the closest distance to (1 / 64)
