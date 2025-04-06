@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
@@ -65,7 +66,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
                     final boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
                     // assume cooldown is full on 1.8 servers
-                    final boolean noCooldown = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
+                    final boolean sufficientCooldownProgress = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
+                            || player.attackCooldown.getMinimumProgress() > 0.9F;
 
                     if (!isLegacyPlayer) {
                         knockbackLevel = Math.max(knockbackLevel, 0);
@@ -75,7 +77,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown
                     // Players with knockback enchantments always get slowed
 
-                    if ((player.lastSprinting && !hasNegativeKB && noCooldown) || knockbackLevel > 0) {
+                    if (player.lastSprinting && !hasNegativeKB && sufficientCooldownProgress || knockbackLevel > 0) {
                         player.minAttackSlow++;
                         player.maxAttackSlow++;
 
@@ -94,6 +96,10 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                         // 1.9+ player who might have been slowed, but we can't be sure
                         player.maxAttackSlow++;
                     }
+                }
+
+                if (player.gamemode != GameMode.SPECTATOR) {
+                    player.attackCooldown.reset();
                 }
             } else if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT) {
                 // Interacting with a horse in versions 1.13- will cause the client to

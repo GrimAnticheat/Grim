@@ -20,6 +20,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
+import ac.grim.grimac.utils.AttackCooldownHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -113,7 +114,7 @@ public class GrimPlayer implements GrimUser {
     // End transaction handling stuff
     // Manager like classes
     public final CheckManager checkManager;
-    public final ActionManager actionManager;
+    public final AttackCooldownHandler attackCooldown;
     public final PunishmentManager punishmentManager;
     public final MovementCheckRunner movementCheckRunner;
     public final SyncedTags tagManager;
@@ -242,7 +243,6 @@ public class GrimPlayer implements GrimUser {
     public final Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public final double[][] possibleEyeHeights = new double[3][];
-    public int totalFlyingPacketsSent;
     public final Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
@@ -291,7 +291,7 @@ public class GrimPlayer implements GrimUser {
         cameraEntity = new CompensatedCameraEntity(this);
 
         lastInstanceManager = new LastInstanceManager(this);
-        actionManager = new ActionManager(this);
+        attackCooldown = new AttackCooldownHandler(this);
         checkManager = new CheckManager(this);
         punishmentManager = new PunishmentManager(this);
         this.tagManager = new SyncedTags(this); // must be after this.user = user
