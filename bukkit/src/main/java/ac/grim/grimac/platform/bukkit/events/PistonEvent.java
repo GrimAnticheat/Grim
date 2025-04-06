@@ -55,11 +55,16 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
+        boolean finalHasSlimeBlock = hasSlimeBlock;
+        boolean finalHasHoneyBlock = hasHoneyBlock;
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addRealTimeTaskAsync(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
-            }
+            int lastTrans = player.lastTransactionSent.get();
+            player.runSafely(() -> {
+                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
+                    PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, lastTrans, true, finalHasSlimeBlock, finalHasHoneyBlock);
+                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+                }
+            });
         }
     }
 
@@ -108,11 +113,16 @@ public class PistonEvent implements Listener {
             }
         }
 
+        boolean finalHasSlimeBlock = hasSlimeBlock;
+        boolean finalHasHoneyBlock = hasHoneyBlock;
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addRealTimeTaskAsync(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
-            }
+            int lastTrans = player.lastTransactionSent.get();
+            player.runSafely(() -> {
+                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
+                    PistonData data = new PistonData(BukkitBlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, lastTrans, false, finalHasSlimeBlock, finalHasHoneyBlock);
+                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+                }
+            });
         }
     }
 }
