@@ -1,17 +1,20 @@
 package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.stream.NetStreamInput;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.HeightmapType;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.protocol.world.chunk.reader.impl.ChunkReader_v1_18;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionTypes;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
-import java.io.ByteArrayInputStream;
-
 public class PacketWorldReaderEighteen extends BasePacketWorldReader {
+
+    private static final ChunkReader_v1_18 chunkReader_v1_18 = new ChunkReader_v1_18();
+    private static final boolean pre_1_21_5 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_5);
 
     // Mojang decided to include lighting in this packet.  It's inefficient to read it, so we replace PacketEvents logic.
     @Override
@@ -22,12 +25,18 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         int z = wrapper.readInt();
 
         // Skip past heightmaps
-        wrapper.readNBT();
+        if (pre_1_21_5)
+            wrapper.readNBT();
+        else
+            wrapper.readMap(HeightmapType::read, PacketWrapper::readLongArray);
 
-        BaseChunk[] chunks = new ChunkReader_v1_18().read(DimensionTypes.OVERWORLD,null,
-                null, true, false, false,
-                event.getUser().getTotalWorldHeight() >> 4, null,
-                new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
+        // Use the new ChunkReader method that works with PacketWrapper directly
+        BaseChunk[] chunks = chunkReader_v1_18.read(
+                DimensionTypes.OVERWORLD, null, null, true, false, false,
+                event.getUser().getTotalWorldHeight() >> 4,
+                wrapper.readVarInt(), // Length of chunk data length (arrayLength) to pass to the new ChunkReader method
+                wrapper
+        );
 
         // Remove biomes to save memory
         for (int i = 0; i < chunks.length; i++) {
