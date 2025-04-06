@@ -27,7 +27,8 @@ public class DefaultResyncHandler implements ResyncHandler {
             return;
 
         if (player.platformPlayer == null) return;
-        PlatformWorld world = player.platformPlayer.getWorld();
+        // TODO this is not technically thread safe
+        final PlatformWorld world = player.platformPlayer.getWorld();
 
         // Takes 0.15ms or so to complete. Not bad IMO. Unsure how I could improve this other than sending packets async.
         // But that's on PacketEvents.
@@ -97,29 +98,41 @@ public class DefaultResyncHandler implements ResyncHandler {
     }
 
     // TODO (Cross-platform) make this use player.resyncHandler instead
-    public static void resyncPosition(GrimPlayer player, Vector3i pos, int sequence) {
+    private static void resyncPosition(GrimPlayer player, int x, int y, int z, int sequence) {
         if (player.platformPlayer == null) return;
 
-        final int chunkX = pos.x >> 4;
-        final int chunkZ = pos.z >> 4;
+        final int chunkX = x >> 4;
+        final int chunkZ = z >> 4;
+        if (!player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) return;
+
+        // TODO this is not technically thread safe, but to trigger race condition requires
+        // 0. Client to flag a Blockbreak check (to trigger calling this method)
+        // 1. Get World (netty thread accessing main/region thread resource)
+        // 2. main/region thread world changes
+        // 3. Scheduler executes on wrong region thread (old world)
+        // In other words they need to flag a blockbreak check at just the right moment while transitioning between worlds
+        // In the future we should replace with completable-future for getting player world that runs on the region thread
         final PlatformWorld world = player.platformPlayer.getWorld();
 
         GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world, chunkX, chunkZ, () -> {
             if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport)
                 return;
-
-            if (!player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) return;
-            if (player.platformPlayer.getPosition().distance(new Vector3d(pos.x, pos.y, pos.z)) >= 64)
+            if (player.platformPlayer.getPosition().distance(new Vector3d(x, y, z)) >= 64)
                 return;
             if (!world.isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 
-            final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(pos.x & 15, pos.y, pos.z & 15);
+            final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(x & 15, y, z & 15);
 
-            player.user.sendPacket(new WrapperPlayServerBlockChange(pos, blockId));
+            player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
                 player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
             }
         });
+    }
+
+    @Override
+    public void resyncPosition(int x, int y, int z, int sequence) {
+        resyncPosition(player, x, y, z, sequence);
     }
 
     @Override
