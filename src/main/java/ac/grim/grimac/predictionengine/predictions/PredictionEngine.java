@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
+import org.joml.Vector2f;
 
 import java.util.*;
 
@@ -28,20 +29,9 @@ public class PredictionEngine {
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) { // TODO: float rounding imprecision?
-            if (theoreticalInput.lengthSquared() == 0.0) {
-                return theoreticalInput;
-            }
-
-            Vector inputVector = theoreticalInput.clone().normalize().multiply(0.98F);
-            if (player.packetStateData.isSlowedByUsingItem()) {
-                inputVector = inputVector.multiply(0.2F);
-            }
-
-            if (player.isSlowMovement) {
-                inputVector = inputVector.multiply(player.sneakingSpeedMultiplier);
-            }
-
-            return modifyInputSpeedForSquareMovement(inputVector);
+            Vector2f moveVector = normalized(new Vector2f((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()));
+            Vector2f input = modifyInput(player, moveVector);
+            return new Vector(input.x, 0, input.y);
         }
 
         float bestPossibleX;
@@ -75,23 +65,45 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private static Vector modifyInputSpeedForSquareMovement(Vector input) {
-        double length = input.length();
-        if (length <= 0.0F) {
-            return input;
+    private static Vector2f normalized(Vector2f input) {
+        float value = GrimMath.sqrt(input.x * input.x + input.y * input.y);
+        return value < 1.0E-4F ? new Vector2f() : new Vector2f(input.x / value, input.y / value);
+    }
+
+    private static Vector2f modifyInput(GrimPlayer player, Vector2f moveVector) {
+        if (moveVector.lengthSquared() == 0.0F) {
+            return moveVector;
         } else {
-            Vector multiplied = input.multiply(1.0F / length);
-            double distance = distanceToUnitSquare(multiplied);
-            double min = Math.min(length * distance, 1.0F);
-            return multiplied.multiply(min);
+            Vector2f input = moveVector.mul(0.98F);
+            if (player.packetStateData.isSlowedByUsingItem() && !player.inVehicle()) {
+                input.mul(0.2F);
+            }
+
+            if (player.isSlowMovement) {
+                input.mul(player.sneakingSpeedMultiplier);
+            }
+
+            return modifyInputSpeedForSquareMovement(input);
         }
     }
 
-    private static double distanceToUnitSquare(Vector input) {
-        double x = Math.abs(input.getX());
-        double z = Math.abs(input.getZ());
-        double additional = z > x ? x / z : z / x;
-        return Math.sqrt(1.0F + GrimMath.square(additional));
+    private static Vector2f modifyInputSpeedForSquareMovement(Vector2f input) {
+        float length = input.length();
+        if (length <= 0.0F) {
+            return input;
+        } else {
+            Vector2f multiplied = input.mul(1.0F / length);
+            float distance = distanceToUnitSquare(multiplied);
+            float min = Math.min(length * distance, 1.0F);
+            return multiplied.mul(min);
+        }
+    }
+
+    private static float distanceToUnitSquare(Vector2f input) {
+        float x = Math.abs(input.x);
+        float z = Math.abs(input.y);
+        float additional = z > x ? x / z : z / x;
+        return GrimMath.sqrt(1.0F + GrimMath.square(additional));
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
