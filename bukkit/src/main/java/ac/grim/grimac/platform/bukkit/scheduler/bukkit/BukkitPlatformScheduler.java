@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.NotNull;
 
 public class BukkitPlatformScheduler implements PlatformScheduler {
 
@@ -16,22 +15,22 @@ public class BukkitPlatformScheduler implements PlatformScheduler {
     private final BukkitRegionScheduler bukkitRegionScheduler = new BukkitRegionScheduler();
 
     @Override
-    public @NonNull @NotNull AsyncScheduler getAsyncScheduler() {
+    public @NonNull AsyncScheduler getAsyncScheduler() {
         return bukkitAsyncScheduler;
     }
 
     @Override
-    public @NonNull @NotNull GlobalRegionScheduler getGlobalRegionScheduler() {
+    public @NonNull GlobalRegionScheduler getGlobalRegionScheduler() {
         return bukkitGlobalRegionScheduler;
     }
 
     @Override
-    public @NonNull @NotNull EntityScheduler getEntityScheduler() {
+    public @NonNull EntityScheduler getEntityScheduler() {
         return bukkitEntityScheduler;
     }
 
     @Override
-    public @NonNull @NotNull RegionScheduler getRegionScheduler() {
+    public @NonNull RegionScheduler getRegionScheduler() {
         return bukkitRegionScheduler;
     }
 }

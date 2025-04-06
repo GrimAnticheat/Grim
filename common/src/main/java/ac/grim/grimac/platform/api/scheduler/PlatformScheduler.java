@@ -1,7 +1,6 @@
 package ac.grim.grimac.platform.api.scheduler;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -138,7 +137,7 @@ public interface PlatformScheduler {
      *
      * @return The global region scheduler.
      */
-    @NotNull GlobalRegionScheduler getGlobalRegionScheduler();
+    @NonNull GlobalRegionScheduler getGlobalRegionScheduler();
 
     /**
      * Returns the entity task scheduler.
@@ -214,5 +213,5 @@ public interface PlatformScheduler {
      *
      * @return The region task scheduler.
      */
-    @NotNull RegionScheduler getRegionScheduler();
+    @NonNull RegionScheduler getRegionScheduler();
 }
