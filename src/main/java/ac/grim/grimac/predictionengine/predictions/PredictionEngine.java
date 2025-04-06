@@ -428,7 +428,7 @@ public class PredictionEngine {
 
         for (VectorData vector : velocities) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) { // TODO: is this the right way??
-                if (horizontalDistanceSqr(vector.vector) < 9.0E-6) {
+                if (Collisions.getHorizontalDistanceSqr(vector.vector) < 9.0E-6) {
                     vector.vector.setX(0D);
                     vector.vector.setZ(0D);
                 }
@@ -446,10 +446,6 @@ public class PredictionEngine {
                 vector.vector.setY(0D);
             }
         }
-    }
-
-    public double horizontalDistanceSqr(Vector vector) {
-        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
     public void addExplosionToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
