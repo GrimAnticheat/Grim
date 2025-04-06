@@ -188,17 +188,6 @@ public class MovementTicker {
             collide = new Vector();
         }
 
-        // New condition added in 1.21.4
-        /*if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4) && Math.abs(inputVel.getY()) > 0.0) {
-            boolean horizontalCollision = (!GrimMath.isNearlySame(collide.getX(), inputVel.getX(), 1.0E-5F))
-                    || (!GrimMath.isNearlySame(collide.getZ(), inputVel.getZ(), 1.0E-5F));
-
-            boolean verticalCollision = inputVel.getY() != collide.getY(); // same as player.verticalCollision
-            boolean verticalCollisionBelow = verticalCollision && inputVel.getY() < 0.0; // same as calculatedOnGround
-
-            player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, new Vector3d(inputVel.getX(), inputVel.getY(), inputVel.getZ()), player.boundingBox, verticalCollisionBelow*//*player.onGround*//*);
-        }*/
-
         // This is where vanilla moves the bounding box and sets it
         player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
