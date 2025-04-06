@@ -382,7 +382,7 @@ public class Collisions {
         return !getCollisionBoxes(player, playerBB, null, true);
     }
 
-    private static double getHorizontalDistanceSqr(Vector vector) {
+    public static double getHorizontalDistanceSqr(Vector vector) {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
