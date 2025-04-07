@@ -50,13 +50,13 @@ public class CompensatedCooldown extends Check implements PositionCheck {
         // 1.21.2+ uses this stupid logic of cooldown groups
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
             ItemUseCooldown cooldown = item.getComponentOr(ComponentTypes.USE_COOLDOWN, null);
-            if (cooldown == null) return false;
-
-            final Optional<ResourceLocation> cooldownGroup = cooldown.getCooldownGroup();
-            // If the cooldown group is present, it uses that.
-            // Otherwise, it uses the id of the item.
-            if (cooldownGroup.isPresent()) {
-                return itemCooldownMap.containsKey(cooldownGroup.get());
+            if (cooldown != null) {
+                final Optional<ResourceLocation> cooldownGroup = cooldown.getCooldownGroup();
+                // If the cooldown group is present, it uses that.
+                // Otherwise, it uses the id of the item.
+                if (cooldownGroup.isPresent()) {
+                    return itemCooldownMap.containsKey(cooldownGroup.get());
+                }
             }
         }
 
