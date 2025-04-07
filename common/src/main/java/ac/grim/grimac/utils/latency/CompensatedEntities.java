@@ -335,6 +335,9 @@ public class CompensatedEntities {
             }
 
             if (entity.getType() == EntityTypes.PIG) {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
+                    offset = 1;
+
                 EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (pigSaddle != null) {
                     rideable.hasSaddle = (boolean) pigSaddle.getValue();
@@ -350,6 +353,11 @@ public class CompensatedEntities {
                 if (striderBoost != null) {
                     rideable.boostTimeMax = (int) striderBoost.getValue();
                     rideable.currentBoostTime = 0;
+                }
+
+                EntityData<?> striderShaking = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset);
+                if (striderShaking != null) {
+                    ((PacketEntityStrider) rideable).isShaking = (boolean) striderShaking.getValue();
                 }
 
                 EntityData<?> striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset);
@@ -400,7 +408,7 @@ public class CompensatedEntities {
                     horse.isTame = (info & 0x02) != 0;
                     // TODO: Check this
                     horse.hasSaddle = (info & 0x04) != 0;
-                    horse.hasSaddle = (info & 0x08) != 0;
+                    // horse.hasSaddle = (info & 0x08) != 0; // 0x08 should be hasChest
                     horse.isRearing = (info & 0x40) != 0;
                 }
             }
