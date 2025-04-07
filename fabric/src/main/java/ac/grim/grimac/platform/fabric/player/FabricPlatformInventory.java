@@ -30,7 +30,7 @@ public class FabricPlatformInventory implements PlatformInventory {
 
     @Override
     public ItemStack getItemInOffHand() {
-        return FabricConversionUtil.fromFabricItemStack(inventory.offHand.get(0));
+        return FabricConversionUtil.fromFabricItemStack(inventory.getStack(40));
     }
 
     @Override
@@ -40,22 +40,22 @@ public class FabricPlatformInventory implements PlatformInventory {
 
     @Override
     public ItemStack getHelmet() {
-        return FabricConversionUtil.fromFabricItemStack(inventory.getArmorStack(3));
+        return FabricConversionUtil.fromFabricItemStack(inventory.getStack(39));
     }
 
     @Override
     public ItemStack getChestplate() {
-        return FabricConversionUtil.fromFabricItemStack(inventory.getArmorStack(2));
+        return FabricConversionUtil.fromFabricItemStack(inventory.getStack(38));
     }
 
     @Override
     public ItemStack getLeggings() {
-        return FabricConversionUtil.fromFabricItemStack(inventory.getArmorStack(1));
+        return FabricConversionUtil.fromFabricItemStack(inventory.getStack(37));
     }
 
     @Override
     public ItemStack getBoots() {
-        return FabricConversionUtil.fromFabricItemStack(inventory.getArmorStack(0));
+        return FabricConversionUtil.fromFabricItemStack(inventory.getStack(36));
     }
 
     @Override
