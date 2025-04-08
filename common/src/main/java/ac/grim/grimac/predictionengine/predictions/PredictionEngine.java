@@ -35,7 +35,7 @@ public class PredictionEngine {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
             Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
             Vec2 input = modifyInput(player, moveVector);
-            return new Vector(input.x, 0, input.y);
+            return new Vector3dm(input.x(), 0, input.y());
         }
         float bestPossibleX;
         float bestPossibleZ;
@@ -98,8 +98,8 @@ public class PredictionEngine {
     }
 
     private static float distanceToUnitSquare(Vec2 input) {
-        float x = Math.abs(input.x);
-        float z = Math.abs(input.y);
+        float x = Math.abs(input.x());
+        float z = Math.abs(input.y());
         float additional = z > x ? x / z : z / x;
         return GrimMath.sqrt(1.0F + GrimMath.square(additional));
     }

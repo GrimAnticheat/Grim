@@ -741,7 +741,7 @@ public class Collisions {
     public static final ImmutableList<Axis> YXZ_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.X, Collisions.Axis.Z);
     public static final ImmutableList<Collisions.Axis> YZX_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.Z, Collisions.Axis.X);
 
-    public static Iterable<Collisions.Axis> axisStepOrder(Vector vector) {
+    public static Iterable<Collisions.Axis> axisStepOrder(Vector3dm vector) {
         return Math.abs(vector.getX()) < Math.abs(vector.getZ()) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
     }
 

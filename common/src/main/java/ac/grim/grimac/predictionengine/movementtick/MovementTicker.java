@@ -31,9 +31,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.bukkit.util.Vector;
 
 import java.util.List;
 
@@ -476,7 +474,7 @@ public class MovementTicker {
                 player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
             }
 
-            player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
             player.finalMovementsThisTick.clear();
 
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
@@ -505,7 +503,7 @@ public class MovementTicker {
 
             // Flying players are not affected by cobwebs/sweet berry bushes
             if (player.isFlying) {
-                player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+                player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
             }
         }
     }
