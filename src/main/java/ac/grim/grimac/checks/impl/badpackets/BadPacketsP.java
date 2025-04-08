@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
 @CheckData(name = "BadPacketsP", experimental = true)
-public class BadPacketsP extends Check implements PacketCheck {
+public class BadPacketsP extends AbstractPacketCheck {
 
     public BadPacketsP(GrimPlayer playerData) {
         super(playerData);
@@ -22,17 +22,17 @@ public class BadPacketsP extends Check implements PacketCheck {
     private int containerId = -1;
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
             this.containerType = window.getType();
             this.containerId = window.getContainerId();
-        }
+        }, PacketType.Play.Server.OPEN_WINDOW);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
             WindowClickType clickType = wrapper.getWindowClickType();
             int button = wrapper.getButton();
@@ -54,6 +54,6 @@ public class BadPacketsP extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
             }
-        }
+        }, PacketType.Play.Client.CLICK_WINDOW);
     }
 }

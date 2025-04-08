@@ -1,23 +1,23 @@
 package ac.grim.grimac.checks.impl.crash;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
 @CheckData(name = "CrashH")
-public class CrashH extends Check implements PacketCheck {
+public class CrashH extends AbstractPacketCheck {
 
     public CrashH(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.TAB_COMPLETE) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientTabComplete wrapper = new WrapperPlayClientTabComplete(event);
             String text = wrapper.getText();
             final int length = text.length();
@@ -40,8 +40,6 @@ public class CrashH extends Check implements PacketCheck {
                 flagAndAlert("(invalid) length=" + length);
                 return;
             }
-        }
+        }, PacketType.Play.Client.TAB_COMPLETE);
     }
-
-
 }

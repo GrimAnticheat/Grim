@@ -1,22 +1,23 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.AbstractPacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 
-public class PacketChangeGameState extends Check implements PacketCheck {
+public class PacketChangeGameState extends AbstractPacketCheck {
     public PacketChangeGameState(GrimPlayer playerData) {
         super(playerData);
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 
             if (packet.getReason() == WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE) {
@@ -39,6 +40,11 @@ public class PacketChangeGameState extends Check implements PacketCheck {
                     }
                 });
             }
-        }
+        }, PacketType.Play.Server.CHANGE_GAME_STATE);
+    }
+
+    @Override
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+
     }
 }

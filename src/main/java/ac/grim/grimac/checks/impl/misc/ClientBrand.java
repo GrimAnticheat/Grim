@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.AbstractPacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -16,7 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class ClientBrand extends Check implements PacketCheck {
+public class ClientBrand extends AbstractPacketCheck {
     @Getter
     private String brand = "vanilla";
     private boolean hasBrand = false;
@@ -26,16 +26,16 @@ public class ClientBrand extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLUGIN_MESSAGE) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
             handle(packet.getChannelName(), packet.getData());
-        } else if (event.getPacketType() == PacketType.Configuration.Client.PLUGIN_MESSAGE) {
+        }, PacketType.Play.Client.PLUGIN_MESSAGE);
+        registry.registerHandler(event -> {
             WrapperConfigClientPluginMessage packet = new WrapperConfigClientPluginMessage(event);
             handle(packet.getChannelName(), packet.getData());
-        }
+        }, PacketType.Configuration.Client.PLUGIN_MESSAGE);
     }
-
 
     private void handle(String channel, byte[] data) {
         final String expectedChannel = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? "minecraft:brand" : "MC|Brand";

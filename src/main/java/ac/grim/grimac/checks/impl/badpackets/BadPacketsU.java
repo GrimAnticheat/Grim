@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -15,14 +15,14 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "BadPacketsU", description = "Sent impossible use item packet")
-public class BadPacketsU extends Check implements PacketCheck {
+public class BadPacketsU extends AbstractPacketCheck {
     public BadPacketsU(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             final WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
             // BlockFace.OTHER is USE_ITEM for pre 1.9
             if (packet.getFace() == BlockFace.OTHER) {
@@ -57,7 +57,7 @@ public class BadPacketsU extends Check implements PacketCheck {
                     }
                 }
             }
-        }
+        },  PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT);
     }
 
     private boolean isEmpty(ItemStack itemStack) {

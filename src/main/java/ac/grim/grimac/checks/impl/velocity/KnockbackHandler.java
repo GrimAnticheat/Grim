@@ -2,8 +2,9 @@ package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -23,7 +24,7 @@ import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
-public class KnockbackHandler extends Check implements PostPredictionCheck {
+public class KnockbackHandler extends AbstractPacketCheck implements PostPredictionCheck {
     Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
     Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
@@ -41,8 +42,8 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 
@@ -73,10 +74,11 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
             event.getTasksAfterSend().add(player::sendTransaction);
-        }
+        }, PacketType.Play.Server.ENTITY_VELOCITY);
     }
 
-    @NotNull public Pair<VelocityData, Vector> getFutureKnockback() {
+    @NotNull
+    public Pair<VelocityData, Vector> getFutureKnockback() {
         // Chronologically in the future
         if (!firstBreadMap.isEmpty()) {
             VelocityData data = firstBreadMap.peek();

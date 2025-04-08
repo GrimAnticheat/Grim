@@ -1,7 +1,8 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "MultiBreak", experimental = true)
-public class MultiBreak extends Check implements BlockBreakCheck {
+public class MultiBreak extends AbstractPacketCheck implements BlockBreakCheck {
     public MultiBreak(GrimPlayer player) {
         super(player);
     }
@@ -53,10 +54,12 @@ public class MultiBreak extends Check implements BlockBreakCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
-            hasBroken = false;
-        }
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+                hasBroken = false;
+            }
+        });
     }
 
     @Override

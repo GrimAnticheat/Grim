@@ -205,5 +205,4 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
         return isFlying(packetType);
     }
-
 }

@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsH", description = "Did not swing for attack")
-public class BadPacketsH extends Check implements PacketCheck {
+public class BadPacketsH extends AbstractPacketCheck {
 
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT
@@ -24,10 +24,11 @@ public class BadPacketsH extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             sentAnimation = true;
-        } else if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        },  PacketType.Play.Client.ANIMATION);
+        registry.registerHandler(event -> {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
 
@@ -49,6 +50,6 @@ public class BadPacketsH extends Check implements PacketCheck {
             }
 
             sentAnimation = false;
-        }
+        },  PacketType.Play.Client.INTERACT_ENTITY);
     }
 }

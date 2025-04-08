@@ -1,23 +1,23 @@
 package ac.grim.grimac.checks.impl.crash;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 
 @CheckData(name = "CrashF")
-public class CrashF extends Check implements PacketCheck {
+public class CrashF extends AbstractPacketCheck {
 
     public CrashF(GrimPlayer playerData) {
         super(playerData);
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
             int clickType = click.getWindowClickType().ordinal();
             int button = click.getButton();
@@ -37,8 +37,6 @@ public class CrashF extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
             }
-
-        }
+        }, PacketType.Play.Client.CLICK_WINDOW);
     }
-
 }

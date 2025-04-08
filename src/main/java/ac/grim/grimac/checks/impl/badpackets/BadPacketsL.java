@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -13,18 +13,19 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import java.util.Locale;
 
 @CheckData(name = "BadPacketsL", description = "Sent impossible dig packet")
-public class BadPacketsL extends Check implements PacketCheck {
+public class BadPacketsL extends AbstractPacketCheck {
 
     public BadPacketsL(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
-            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) return;
+            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING)
+                return;
 
             // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
             // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
@@ -47,6 +48,6 @@ public class BadPacketsL extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
             }
-        }
+        }, PacketType.Play.Client.PLAYER_DIGGING);
     }
 }

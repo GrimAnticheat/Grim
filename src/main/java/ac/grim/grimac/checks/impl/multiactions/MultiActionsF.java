@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -39,8 +40,8 @@ public class MultiActionsF extends BlockPlaceCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             entity = true;
             if (block) {
                 if (!player.canSkipTicks()) {
@@ -52,9 +53,8 @@ public class MultiActionsF extends BlockPlaceCheck {
                     flags.add("entity");
                 }
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        }, PacketType.Play.Client.INTERACT_ENTITY);
+        registry.registerHandler(event -> {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
             if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING) {
                 block = true;
@@ -70,11 +70,11 @@ public class MultiActionsF extends BlockPlaceCheck {
                     }
                 }
             }
-        }
-
-        if (isTickPacket(event.getPacketType())) {
+        }, PacketType.Play.Client.PLAYER_DIGGING);
+        registry.registerHandler(event -> {
+            if (!isTickPacket(event.getPacketType())) return;
             block = entity = false;
-        }
+        });
     }
 
     @Override

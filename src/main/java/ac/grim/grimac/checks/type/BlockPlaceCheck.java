@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockPlaceCheck extends Check implements RotationCheck, PostPredictionCheck {
+public class BlockPlaceCheck extends AbstractPacketCheck implements RotationCheck, PostPredictionCheck {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
     private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];

@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.groundspoof;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -18,7 +18,7 @@ import java.util.List;
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
 @CheckData(name = "NoFall", setback = 10)
-public class NoFall extends Check implements PacketCheck {
+public class NoFall extends AbstractPacketCheck {
 
     public boolean flipPlayerGroundStatus = false;
 
@@ -27,8 +27,8 @@ public class NoFall extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
             // The player has already been flagged, and
@@ -49,9 +49,8 @@ public class NoFall extends Check implements PacketCheck {
                     }
                 }
             }
-        }
-
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+        }, PacketType.Play.Client.PLAYER_FLYING, PacketType.Play.Client.PLAYER_ROTATION);
+        registry.registerHandler(event -> {
             WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
             // The prediction based NoFall check (that runs before us without the packet)
             // has asked us to flip the player's onGround status
@@ -73,7 +72,7 @@ public class NoFall extends Check implements PacketCheck {
                     event.markForReEncode(true);
                 }
             }
-        }
+        }, this::isFlying);
     }
 
     public boolean isNearGround(boolean onGround) {

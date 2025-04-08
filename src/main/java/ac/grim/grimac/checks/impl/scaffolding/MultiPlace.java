@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -54,10 +55,12 @@ public class MultiPlace extends BlockPlaceCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
-            hasPlaced = false;
-        }
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
+            if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+                hasPlaced = false;
+            }
+        });
     }
 
     @Override

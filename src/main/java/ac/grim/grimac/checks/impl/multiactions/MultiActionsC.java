@@ -1,15 +1,15 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.AbstractPacketCheck;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 @CheckData(name = "MultiActionsC", description = "Clicked in inventory while sprinting", experimental = true)
-public class MultiActionsC extends Check implements PacketCheck {
+public class MultiActionsC extends AbstractPacketCheck {
     public MultiActionsC(GrimPlayer player) {
         super(player);
     }
@@ -17,24 +17,22 @@ public class MultiActionsC extends Check implements PacketCheck {
     private boolean serverOpenedInventoryThisTick;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-
+    protected void registerReceiveHandlers(PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerHandler(event -> {
             if (player.isSprinting && !player.isSwimming && !serverOpenedInventoryThisTick && flagAndAlert() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
-        }
-
-        if (isTickPacket(event.getPacketType())) {
+        }, PacketType.Play.Client.CLICK_WINDOW);
+        registry.registerHandler(event -> {
+            if (!isTickPacket(event.getPacketType())) return;
             serverOpenedInventoryThisTick = false;
-        }
+        });
+
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> serverOpenedInventoryThisTick = true);
-        }
+    protected void registerSendHandlers(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> serverOpenedInventoryThisTick = true), PacketType.Play.Server.OPEN_WINDOW);
     }
 }
