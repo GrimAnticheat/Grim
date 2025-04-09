@@ -26,7 +26,10 @@ public class GrimSendAlert implements BuildableCommand {
 
     private void handleSendAlert(@NonNull CommandContext<Sender> context) {
         String string = context.get("message");
+        sendAlert(string);
+    }
 
+    public static void sendAlert(String string) {
         string = MessageUtil.replacePlaceholders((Sender) null, string);
         Component message = MessageUtil.miniMessage(string);
 
@@ -35,7 +38,7 @@ public class GrimSendAlert implements BuildableCommand {
         }
 
         if (GrimAPI.INSTANCE.getConfigManager().isPrintAlertsToConsole()) {
-            LogUtil.console(message); // Print alert to console
+            LogUtil.console(message);
         }
     }
 }

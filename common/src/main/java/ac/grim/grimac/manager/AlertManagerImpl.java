@@ -10,15 +10,14 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
 public class AlertManagerImpl implements AlertManager {
-    private final Set<PlatformPlayer> enabledAlerts = new CopyOnWriteArraySet<>(new HashSet<>());
-    private final Set<PlatformPlayer> enabledVerbose = new CopyOnWriteArraySet<>(new HashSet<>());
-    private final Set<PlatformPlayer> enabledBrands = new CopyOnWriteArraySet<>(new HashSet<>());
+    private final Set<PlatformPlayer> enabledAlerts = new CopyOnWriteArraySet<>();
+    private final Set<PlatformPlayer> enabledVerbose = new CopyOnWriteArraySet<>();
+    private final Set<PlatformPlayer> enabledBrands = new CopyOnWriteArraySet<>();
 
     @Override
     public boolean hasAlertsEnabled(@NonNull GrimUser player) {

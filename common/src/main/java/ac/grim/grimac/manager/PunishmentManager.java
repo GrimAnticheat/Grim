@@ -6,6 +6,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.command.commands.GrimSendAlert;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
@@ -144,23 +145,25 @@ public class PunishmentManager implements ConfigReloadable {
                             GrimAPI.INSTANCE.getEventBus().post(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
-                            if (command.command.equals("[webhook]")) {
-                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
-                            } else if (command.command.equals("[proxy]")) {
-                                ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, check, proxyAlertString, verbose));
-                            } else {
-                                if (command.command.equals("[alert]")) {
+                            switch (command.command) {
+                                case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
+                                case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, check, proxyAlertString, verbose));
+                                case "[alert]" -> {
                                     sentDebug = true;
-                                    if (testMode) { // secret test mode
+                                    if (testMode) { // secret test mode // Why does this exist? -Axionize
                                         player.user.sendMessage(MessageUtil.miniMessage(cmd));
                                         continue;
                                     }
-                                    cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
+                                    GrimSendAlert.sendAlert(cmd);
                                 }
-
-                                String finalCmd = cmd;
-                                GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->
-                                        GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(), finalCmd));
+                                default -> {
+                                    GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->
+                                            GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(
+                                                    GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(),
+                                                    cmd
+                                            )
+                                    );
+                                }
                             }
                         }
 
