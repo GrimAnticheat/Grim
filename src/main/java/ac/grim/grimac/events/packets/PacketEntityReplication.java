@@ -256,7 +256,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             if (slot.getWindowId() == 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
 
                         if (player.isResetItemUsageOnItemUpdate()) {
@@ -266,7 +266,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
 
                         if (player.isResetItemUsageOnItemUpdate()) {

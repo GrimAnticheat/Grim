@@ -73,7 +73,7 @@ dependencies {
     //implementation("ac.grim.grimac:GrimAPI:1.0")
     implementation("com.github.grimanticheat:grimapi:05e31d62f2")
 
-    implementation("net.kyori:adventure-text-minimessage:4.17.0")
+    implementation("net.kyori:adventure-text-minimessage:4.20.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.4")
 
     implementation("org.jetbrains:annotations:24.1.0")
