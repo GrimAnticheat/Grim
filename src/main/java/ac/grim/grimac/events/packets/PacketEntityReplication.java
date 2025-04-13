@@ -375,7 +375,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     private void handleMountVehicle(PacketSendEvent event, int vehicleID, int[] passengers) {
-        boolean wasInVehicle = player.getRidingVehicleId() == vehicleID;
+        boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
         boolean inThisVehicle = false;
 
         for (int passenger : passengers) {

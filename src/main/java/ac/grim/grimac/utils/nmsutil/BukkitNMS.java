@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 
 @UtilityClass
 public class BukkitNMS {
-    // resets item usage, then returns whether the player was using an item
     private final @NotNull ItemUsageReset resetItemUsage = createItemUsageResetFunction();
 
     @SneakyThrows
