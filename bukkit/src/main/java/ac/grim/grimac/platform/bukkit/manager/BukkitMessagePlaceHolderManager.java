@@ -17,12 +17,12 @@ public class BukkitMessagePlaceHolderManager implements MessagePlaceHolderManage
     public @NonNull String replacePlaceholders(@Nullable Sender sender, @NonNull String string) {
         if (!MessageUtil.hasPlaceholderAPI) return string;
         CommandSender commandSender = sender == null ? null : GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().unwrap(sender);
-        return PlaceholderAPI.setPlaceholders(sender instanceof OfflinePlayer ? (OfflinePlayer) commandSender : null, string);
+        return PlaceholderAPI.setPlaceholders(commandSender instanceof OfflinePlayer offlinePlayer ? offlinePlayer : null, string);
     }
 
     @Override
     public @NonNull String replacePlaceholders(@Nullable PlatformPlayer object, @NonNull String string) {
         if (!MessageUtil.hasPlaceholderAPI) return string;
-        return PlaceholderAPI.setPlaceholders(((BukkitPlatformPlayer) object).getBukkitPlayer(), string);
+        return PlaceholderAPI.setPlaceholders(object instanceof BukkitPlatformPlayer bukkitPlatformPlayer ? bukkitPlatformPlayer.getBukkitPlayer() : null, string);
     }
 }
