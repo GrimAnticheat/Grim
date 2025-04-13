@@ -28,9 +28,9 @@ public class PredictionEngine {
     }
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) { // TODO: float rounding imprecision?
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
             Vector2f moveVector = normalized(new Vector2f((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()));
-            Vector2f input = modifyInput(player, moveVector);
+            Vector2f input = modifyInput(player, moveVector); // TODO: this might be out of order? mojang moved some code around
             return new Vector(input.x, 0, input.y);
         }
 
