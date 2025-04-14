@@ -8,5 +8,8 @@ public interface PlatformPluginManager {
 
     PlatformPlugin getPlugin(String pluginName);
 
-    boolean isPluginEnabled(String pluginName);
+    default boolean isPluginEnabled(String pluginName) {
+        PlatformPlugin plugin = getPlugin(pluginName);
+        return plugin != null && plugin.isEnabled();
+    }
 }

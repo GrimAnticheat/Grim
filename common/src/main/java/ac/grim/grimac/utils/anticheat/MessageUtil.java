@@ -66,7 +66,7 @@ public class MessageUtil {
         string = matcher.appendTail(sb).toString();
 
         // MiniMessage doesn't like legacy formatting codes
-        string = ChatColor.translateAlternateColorCodes('&', string)
+        string = ChatUtil.translateAlternateColorCodes('&', string)
                 .replace("§0", "<!b><!i><!u><!st><!obf><black>")
                 .replace("§1", "<!b><!i><!u><!st><!obf><dark_blue>")
                 .replace("§2", "<!b><!i><!u><!st><!obf><dark_green>")

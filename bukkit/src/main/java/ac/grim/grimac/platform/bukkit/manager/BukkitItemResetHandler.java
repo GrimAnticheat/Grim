@@ -67,28 +67,24 @@ public class BukkitItemResetHandler implements ItemResetHandler {
             };
         }
 
-
-
         String nmsPackage = Bukkit.getServer().getClass().getPackageName().split("\\.")[3];
         String livingEntityPackage = version.isNewerThan(ServerVersion.V_1_16_5) ? "net.minecraft.world.entity.EntityLiving" : "net.minecraft.server." + nmsPackage + ".EntityLiving";
-
         Method getHandle = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity.CraftPlayer").getMethod("getHandle");
         Method clearActiveItem = Class.forName(livingEntityPackage).getMethod(
-                switch (nmsPackage) {
-                    case "v1_9_R1" -> "cz";
-                    case "v1_9_R2" -> "cA";
-                    case "v1_10_R1" -> "cE";
-                    case "v1_11_R1" -> "cF";
-                    case "v1_12_R1" -> "cN";
-                    case "v1_13_R1", "v1_13_R2" -> "da";
-                    case "v1_14_R1" -> "dp";
-                    case "v1_15_R1" -> "dH";
-                    case "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1" -> "clearActiveItem";
-                    case "v1_18_R1" -> "eR";
-                    case "v1_18_R2" -> "eS";
-                    default ->
-                            throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
-                }
+            switch (nmsPackage) {
+                case "v1_9_R1" -> "cz";
+                case "v1_9_R2" -> "cA";
+                case "v1_10_R1" -> "cE";
+                case "v1_11_R1" -> "cF";
+                case "v1_12_R1" -> "cN";
+                case "v1_13_R1", "v1_13_R2" -> "da";
+                case "v1_14_R1" -> "dp";
+                case "v1_15_R1" -> "dH";
+                case "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1" -> "clearActiveItem";
+                case "v1_18_R1" -> "eR";
+                case "v1_18_R2" -> "eS";
+                default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
+            }
         );
 
         return player -> clearActiveItem.invoke(getHandle.invoke(player));

@@ -29,10 +29,4 @@ public class FabricPlatformPluginManager implements PlatformPluginManager {
         Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer(pluginName);
         return mod.map(FabricPlatformPlugin::new).orElse(null);
     }
-
-    @Override
-    public boolean isPluginEnabled(String pluginName) {
-        PlatformPlugin plugin = getPlugin(pluginName);
-        return plugin != null && plugin.isEnabled();
-    }
 }

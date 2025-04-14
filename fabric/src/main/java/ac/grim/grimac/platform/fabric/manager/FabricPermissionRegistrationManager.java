@@ -21,8 +21,8 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
     }
 
     @Override
-    public void registerPermission(String permission, PermissionDefaultValue defaultValue) {
-        fabricSenderFactory.registerPermissionDefault(permission, defaultValue);
-        Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandSource(), permission);
+    public void registerPermission(String name, PermissionDefaultValue defaultValue) {
+        fabricSenderFactory.registerPermissionDefault(name, defaultValue);
+        Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandSource(), name);
     }
 }

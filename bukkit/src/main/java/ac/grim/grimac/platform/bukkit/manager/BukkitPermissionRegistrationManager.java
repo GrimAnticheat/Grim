@@ -18,16 +18,16 @@ public class BukkitPermissionRegistrationManager implements PermissionRegistrati
      * and permission checks immediately on startup. If the permission already exists, its default
      * value is updated to match the specified value.</p>
      *
-     * @param s            The permission node to register (e.g., "grim.exempt.checkname").
+     * @param name         The permission node to register (e.g., "grim.exempt.checkname").
      * @param defaultValue The default value for the permission.
      */
     @Override
-    public void registerPermission(String s, PermissionDefaultValue defaultValue) {
-        final Permission permission = Bukkit.getPluginManager().getPermission(s);
-        if (permission == null) {
-            Bukkit.getPluginManager().addPermission(new Permission(s, BukkitConversionUtils.toBukkitPermissionDefault(defaultValue)));
+    public void registerPermission(String name, PermissionDefaultValue defaultValue) {
+        final Permission bukkitPermission = Bukkit.getPluginManager().getPermission(name);
+        if (bukkitPermission == null) {
+            Bukkit.getPluginManager().addPermission(new Permission(name, BukkitConversionUtils.toBukkitPermissionDefault(defaultValue)));
         } else {
-            permission.setDefault(BukkitConversionUtils.toBukkitPermissionDefault(defaultValue));
+            bukkitPermission.setDefault(BukkitConversionUtils.toBukkitPermissionDefault(defaultValue));
         }
     }
 }

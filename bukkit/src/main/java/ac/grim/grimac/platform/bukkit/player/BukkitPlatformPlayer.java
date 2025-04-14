@@ -12,6 +12,7 @@ import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -105,12 +106,12 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public GameMode getGameMode() {
-        return BukkitConversionUtils.fromBukkitGameMode(bukkitPlayer.getGameMode());
+        return SpigotConversionUtil.fromBukkitGameMode(bukkitPlayer.getGameMode());
     }
 
     @Override
     public void setGameMode(GameMode gameMode) {
-        bukkitPlayer.setGameMode(BukkitConversionUtils.toBukkitGameMode(gameMode));
+        bukkitPlayer.setGameMode(SpigotConversionUtil.toBukkitGameMode(gameMode));
     }
 
     public World getBukkitWorld() {

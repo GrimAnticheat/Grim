@@ -26,10 +26,4 @@ public class BukkitPlatformPluginManager implements PlatformPluginManager {
         Plugin bukkitPlugin = Bukkit.getPluginManager().getPlugin(pluginName);
         return bukkitPlugin == null ? null : new BukkitPlatformPlugin(bukkitPlugin);
     }
-
-    @Override
-    public boolean isPluginEnabled(String pluginName) {
-        PlatformPlugin plugin = getPlugin(pluginName);
-        return plugin != null && plugin.isEnabled();
-    }
 }

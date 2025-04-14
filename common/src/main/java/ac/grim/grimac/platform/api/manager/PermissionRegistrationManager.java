@@ -26,9 +26,9 @@ public interface PermissionRegistrationManager {
      * autocomplete immediately, improving user experience and compatibility with
      * older or less dynamic permission systems.</p>
      *
-     * @param permission   The permission node to register (e.g., "grim.exempt").
+     * @param name         The permission node to register (e.g., "grim.exempt").
      * @param defaultValue The default value for the permission, using the cross-platform
      *                     {@link PermissionDefaultValue} enum.
      */
-    void registerPermission(String permission, PermissionDefaultValue defaultValue);
+    void registerPermission(String name, PermissionDefaultValue defaultValue);
 }
