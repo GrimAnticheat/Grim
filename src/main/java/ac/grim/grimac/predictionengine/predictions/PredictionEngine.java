@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
+import ac.grim.grimac.utils.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.Pair;
@@ -16,7 +17,6 @@ import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
-import org.joml.Vector2f;
 
 import java.util.*;
 
@@ -29,8 +29,8 @@ public class PredictionEngine {
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-            Vector2f moveVector = normalized(new Vector2f((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()));
-            Vector2f input = modifyInput(player, moveVector); // TODO: this might be out of order? mojang moved some code around
+            Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
+            Vec2 input = modifyInput(player, moveVector); // TODO: this might be out of order? mojang moved some code around
             return new Vector(input.x, 0, input.y);
         }
 
@@ -65,41 +65,36 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private static Vector2f normalized(Vector2f input) {
-        float value = GrimMath.sqrt(input.x * input.x + input.y * input.y);
-        return value < 1.0E-4F ? new Vector2f() : new Vector2f(input.x / value, input.y / value);
-    }
-
-    private static Vector2f modifyInput(GrimPlayer player, Vector2f moveVector) {
+    private static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
         if (moveVector.lengthSquared() == 0.0F) {
             return moveVector;
         } else {
-            Vector2f input = moveVector.mul(0.98F);
+            Vec2 input = moveVector.scale(0.98F);
             if (player.packetStateData.isSlowedByUsingItem() && !player.inVehicle()) {
-                input.mul(0.2F);
+                input = input.scale(0.2F);
             }
 
             if (player.isSlowMovement) {
-                input.mul(player.sneakingSpeedMultiplier);
+                input = input.scale(player.sneakingSpeedMultiplier);
             }
 
             return modifyInputSpeedForSquareMovement(input);
         }
     }
 
-    private static Vector2f modifyInputSpeedForSquareMovement(Vector2f input) {
+    private static Vec2 modifyInputSpeedForSquareMovement(Vec2 input) {
         float length = input.length();
         if (length <= 0.0F) {
             return input;
         } else {
-            Vector2f multiplied = input.mul(1.0F / length);
+            Vec2 multiplied = input.scale(1.0F / length);
             float distance = distanceToUnitSquare(multiplied);
             float min = Math.min(length * distance, 1.0F);
-            return multiplied.mul(min);
+            return multiplied.scale(min);
         }
     }
 
-    private static float distanceToUnitSquare(Vector2f input) {
+    private static float distanceToUnitSquare(Vec2 input) {
         float x = Math.abs(input.x);
         float z = Math.abs(input.y);
         float additional = z > x ? x / z : z / x;
