@@ -30,7 +30,7 @@ public class PredictionEngine {
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
             Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
-            Vec2 input = modifyInput(player, moveVector); // TODO: this might be out of order? mojang moved some code around
+            Vec2 input = modifyInput(player, moveVector);
             return new Vector(input.x, 0, input.y);
         }
 
