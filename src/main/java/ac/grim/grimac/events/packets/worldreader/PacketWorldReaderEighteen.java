@@ -13,8 +13,8 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
 public class PacketWorldReaderEighteen extends BasePacketWorldReader {
 
-    private static final ChunkReader_v1_18 chunkReader_v1_18 = new ChunkReader_v1_18();
-    private static final boolean pre_1_21_5 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_5);
+    private static final ChunkReader_v1_18 CHUNK_READER_V_1_18 = new ChunkReader_v1_18();
+    private static final boolean PRE_1_21_5 = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_5);
 
     // Mojang decided to include lighting in this packet.  It's inefficient to read it, so we replace PacketEvents logic.
     @Override
@@ -25,13 +25,13 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         int z = wrapper.readInt();
 
         // Skip past heightmaps
-        if (pre_1_21_5)
+        if (PRE_1_21_5)
             wrapper.readNBT();
         else
             wrapper.readMap(HeightmapType::read, PacketWrapper::readLongArray);
 
         // Use the new ChunkReader method that works with PacketWrapper directly
-        BaseChunk[] chunks = chunkReader_v1_18.read(
+        BaseChunk[] chunks = CHUNK_READER_V_1_18.read(
                 DimensionTypes.OVERWORLD,
                 null, null, true, false, false,
                 event.getUser().getTotalWorldHeight() >> 4,
