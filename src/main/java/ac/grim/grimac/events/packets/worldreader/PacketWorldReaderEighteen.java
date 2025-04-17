@@ -32,7 +32,8 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
 
         // Use the new ChunkReader method that works with PacketWrapper directly
         BaseChunk[] chunks = chunkReader_v1_18.read(
-                DimensionTypes.OVERWORLD, null, null, true, false, false,
+                DimensionTypes.OVERWORLD,
+                null, null, true, false, false,
                 event.getUser().getTotalWorldHeight() >> 4,
                 wrapper.readVarInt(), // Length of chunk data length (arrayLength) to pass to the new ChunkReader method
                 wrapper
