@@ -298,6 +298,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
             if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
+
+                if (player.checkManager.getCompensatedCooldown().hasMaterial(placedWith.getType())) {
+                    return;
+                }
+
                 Vector3i blockPosition = place.getBlockPosition();
                 BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace(), placedWith, getNearestHitResult(player, null, true, false, false));
 
@@ -555,6 +560,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             ItemStack placedWith = player.getInventory().getHeldItem();
             if (packet.getHand() == InteractionHand.OFF_HAND) {
                 placedWith = player.getInventory().getOffHand();
+            }
+
+            if (player.checkManager.getCompensatedCooldown().hasMaterial(placedWith.getType())) {
+                return;
             }
 
             // This is the use item packet
