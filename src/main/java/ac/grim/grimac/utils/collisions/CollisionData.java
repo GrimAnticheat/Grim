@@ -923,7 +923,10 @@ public enum CollisionData {
 
         // If fall distance greater than 2.5, 0.899999 box
         if (player.fallDistance > 2.5) {
-            return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0, false);
+            // TODO: this is technically incorrect (1.21.4)
+            return player.getClientVersion() == ClientVersion.V_1_21_4 ?
+                    new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+                    : new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.9, 1.0, false);
         }
 
         ItemStack boots = player.getInventory().getBoots();
