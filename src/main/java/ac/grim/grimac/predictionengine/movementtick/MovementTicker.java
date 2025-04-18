@@ -26,7 +26,10 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.util.Vector;
+
+import java.util.List;
 
 public class MovementTicker {
     public final GrimPlayer player;
@@ -187,6 +190,20 @@ public class MovementTicker {
                 // New condition added in 1.21.2
                 && (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) || inputVel.lengthSquared() - collide.lengthSquared() >= 1e-7)) {
             collide = new Vector();
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            Vector3d position = new Vector3d(player.lastX, player.lastY, player.lastZ);
+            List<GrimPlayer.Movement> movements = new ObjectArrayList<>();
+
+            for (Collisions.Axis axis : Collisions.axisStepOrder(collide)) {
+                double value = axis.choose(collide.getX(), collide.getY(), collide.getZ());
+                if (value != 0.0) {
+                    Vector3d vector = Collisions.relative(position, axis.getPositive(), value);
+                    movements.add(new GrimPlayer.Movement(position, vector));
+                    position = vector;
+                }
+            }
+
+            player.movementThisTick.add(movements);
         }
 
         // This is where vanilla moves the bounding box and sets it
@@ -438,8 +455,26 @@ public class MovementTicker {
             }
 
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+            player.finalMovementsThisTick.clear();
 
-            Collisions.applyEffectsFromBlocks(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
+            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+            Vector3d to = new Vector3d(player.x, player.y, player.z);
+
+            ClientVersion clientVersion = player.getClientVersion();
+            if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+            } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                player.movementThisTick.forEach(player.finalMovementsThisTick::addAll);
+                player.movementThisTick.clear();
+
+                if (player.finalMovementsThisTick.isEmpty()) {
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+                } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to));
+                }
+            }
+
+            Collisions.applyEffectsFromBlocks(player);
 
             if (player.stuckSpeedMultiplier.getX() < 0.9) {
                 // Reset fall distance if stuck in block

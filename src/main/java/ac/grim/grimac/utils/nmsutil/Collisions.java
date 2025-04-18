@@ -24,9 +24,12 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -552,43 +555,42 @@ public class Collisions {
     }
 
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
-    public static void applyEffectsFromBlocks(GrimPlayer player, Vector3d start, Vector3d end) {
-        int minX = Math.min(GrimMath.floor(start.getX()), GrimMath.floor(end.getX()));
-        int minY = Math.min(GrimMath.floor(start.getY()), GrimMath.floor(end.getY()));
-        int minZ = Math.min(GrimMath.floor(start.getZ()), GrimMath.floor(end.getZ()));
-        int maxX = Math.max(GrimMath.ceil(start.getX()), GrimMath.ceil(end.getX()));
-        int maxY = Math.max(GrimMath.ceil(start.getY()), GrimMath.ceil(end.getY()));
-        int maxZ = Math.max(GrimMath.ceil(start.getZ()), GrimMath.ceil(end.getZ()));
+    public static void applyEffectsFromBlocks(GrimPlayer player) {
+        for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
+            Vector3d from = movement.from();
+            Vector3d to = movement.to();
 
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, minX, minY, minZ, maxX, maxY, maxZ)) {
-            return;
-        }
+            SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
+                    player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
 
-        SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
-                player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, end.x, end.y, end.z)).expand(-1.0E-5F);
+            for (Vector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
+                WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
+                StateType blockType = blockState.getType();
 
-        for (Vector3i blockPos : boxTraverseBlocks(start, end, boundingBox)) {
-            WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-            StateType blockType = blockState.getType();
+                if (blockType.isAir()) {
+                    continue;
+                }
 
-            if (blockType.isAir()) {
-                continue;
+                if (player.visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+                    onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+                }
             }
-
-            onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
         }
+
+        player.visitedBlocks.clear();
     }
 
-    public static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
+    public static Iterable<Vector3i> boxTraverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
         Vector3d direction = end.subtract(start);
         Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
         if (direction.lengthSquared() < (double) GrimMath.square(0.99999F)) {
             return initialBlocks;
         } else {
+            LongSet alreadyVisited = player.getClientVersion().isOlderThan(ClientVersion.V_1_21_5) ? null : new LongOpenHashSet();
             Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
             Vector3d boxMinPosition = boundingBox.getMinPosition();
             Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
-            addCollisionsAlongTravel(traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
+            addCollisionsAlongTravel(alreadyVisited, traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
                 traversedBlocks.add(blockPos);
@@ -598,7 +600,7 @@ public class Collisions {
         }
     }
 
-    public static void addCollisionsAlongTravel(Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
+    public static void addCollisionsAlongTravel(LongSet alreadyVisited, Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
         Vector3d direction = end.subtract(start);
         int currentX = GrimMath.floor(start.x);
         int currentY = GrimMath.floor(start.y);
@@ -648,7 +650,9 @@ public class Collisions {
                 for (int x = currentX; x <= endX; x++) {
                     for (int y = currentY; y <= endY; y++) {
                         for (int z = currentZ; z <= endZ; z++) {
-                            output.add(new Vector3i(x, y, z));
+                            if (alreadyVisited == null || alreadyVisited.add(GrimMath.asLong(x, y, z))) {
+                                output.add(new Vector3i(x, y, z));
+                            }
                         }
                     }
                 }
@@ -734,6 +738,20 @@ public class Collisions {
         } else {
             return prevDirection;
         }
+    }
+
+    public static final ImmutableList<Axis> YXZ_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.X, Collisions.Axis.Z);
+    public static final ImmutableList<Collisions.Axis> YZX_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.Z, Collisions.Axis.X);
+
+    public static Iterable<Collisions.Axis> axisStepOrder(Vector vector) {
+        return Math.abs(vector.getX()) < Math.abs(vector.getZ()) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
+    }
+
+    public static Vector3d relative(Vector3d curr, Direction direction, double value) {
+        Vector3i vec = direction.getVector();
+        return new Vector3d(
+                curr.x + value * vec.getX(), curr.y + value * vec.getY(), curr.z + value * vec.getZ()
+        );
     }
 
     private static double getOldDeltaY(GrimPlayer player, double value) {
@@ -1039,8 +1057,44 @@ public class Collisions {
     }
 
     public enum Axis {
-        X,
-        Y,
-        Z
+        X {
+            @Override
+            public double choose(double x, double y, double z) {
+                return x;
+            }
+
+            @Override
+            public Direction getPositive() {
+                return Direction.EAST;
+            }
+        },
+        Y {
+            @Override
+            public double choose(double x, double y, double z) {
+                return y;
+            }
+
+            @Override
+            public Direction getPositive() {
+                return Direction.UP;
+            }
+        },
+        Z {
+            @Override
+            public double choose(double x, double y, double z) {
+                return z;
+            }
+
+            @Override
+            public Direction getPositive() {
+                return Direction.SOUTH;
+            }
+        };
+
+
+        public abstract double choose(double x, double y, double z);
+
+        public abstract Direction getPositive();
+
     }
 }

@@ -142,4 +142,47 @@ public class GrimMath {
     public static float radians(float degrees) {
         return degrees * DEGREES_TO_RADIANS;
     }
+
+    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{
+            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+    };
+
+    public static final int PACKED_HORIZONTAL_LENGTH = 1 + GrimMath.log2(GrimMath.smallestEncompassingPowerOfTwo(30000000));
+    public static final int PACKED_Y_LENGTH = 64 - 2 * PACKED_HORIZONTAL_LENGTH;
+    private static final long PACKED_X_MASK = (1L << PACKED_HORIZONTAL_LENGTH) - 1L;
+    private static final long PACKED_Y_MASK = (1L << PACKED_Y_LENGTH) - 1L;
+    private static final long PACKED_Z_MASK = (1L << PACKED_HORIZONTAL_LENGTH) - 1L;
+    private static final int Z_OFFSET = PACKED_Y_LENGTH;
+    private static final int X_OFFSET = PACKED_Y_LENGTH + PACKED_HORIZONTAL_LENGTH;
+
+    public static long asLong(int x, int y, int z) {
+        long value = 0L;
+        value |= (x & PACKED_X_MASK) << X_OFFSET;
+        value |= (y & PACKED_Y_MASK) << 0;
+        return value | (z & PACKED_Z_MASK) << Z_OFFSET;
+    }
+
+    public static int log2(int value) {
+        return ceillog2(value) - (isPowerOfTwo(value) ? 0 : 1);
+    }
+
+    public static int ceillog2(int value) {
+        value = isPowerOfTwo(value) ? value : smallestEncompassingPowerOfTwo(value);
+        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int)(value * 125613361L >> 27) & 31];
+    }
+
+    public static boolean isPowerOfTwo(int value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    public static int smallestEncompassingPowerOfTwo(int value) {
+        int output = value - 1;
+        output |= output >> 1;
+        output |= output >> 2;
+        output |= output >> 4;
+        output |= output >> 8;
+        output |= output >> 16;
+        return output + 1;
+    }
+
 }
