@@ -95,15 +95,31 @@ public class MovementTicker {
             player.clientVelocity = new Vector();
         }
 
-        if (inputVel.getX() != collide.getX()) {
-            player.clientVelocity.setX(0);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) {
+            boolean xAxis = !GrimMath.equal(inputVel.getX(), collide.getX());
+            boolean zAxis = !GrimMath.equal(inputVel.getZ(), collide.getZ());
+
+            if (xAxis) {
+                player.clientVelocity.setX(0);
+            }
+
+            if (zAxis) {
+                player.clientVelocity.setZ(0);
+            }
+
+            player.horizontalCollision = xAxis || zAxis;
+        } else {
+            if (inputVel.getX() != collide.getX()) {
+                player.clientVelocity.setX(0);
+            }
+
+            if (inputVel.getZ() != collide.getZ()) {
+                player.clientVelocity.setZ(0);
+            }
+
+            player.horizontalCollision = inputVel.getX() != collide.getX() || inputVel.getZ() != collide.getZ();
         }
 
-        if (inputVel.getZ() != collide.getZ()) {
-            player.clientVelocity.setZ(0);
-        }
-
-        player.horizontalCollision = inputVel.getX() != collide.getX() || inputVel.getZ() != collide.getZ();
         player.verticalCollision = inputVel.getY() != collide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
