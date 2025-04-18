@@ -145,6 +145,8 @@ public class FabricPlatformPlayer extends FabricGrimEntity implements PlatformPl
 
     @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
+        this.inventory.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
+        this.inventory.inventory = ((ServerPlayerEntity) nativePlayerObject).getInventory();
         this.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
     }
 

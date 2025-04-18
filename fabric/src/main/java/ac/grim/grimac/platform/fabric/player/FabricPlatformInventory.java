@@ -15,8 +15,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class FabricPlatformInventory implements PlatformInventory {
 
-    protected final ServerPlayerEntity fabricPlayer;
-    protected final PlayerInventory inventory;
+    protected ServerPlayerEntity fabricPlayer;
+    protected PlayerInventory inventory;
 
     public FabricPlatformInventory(ServerPlayerEntity player) {
         this.fabricPlayer = player;

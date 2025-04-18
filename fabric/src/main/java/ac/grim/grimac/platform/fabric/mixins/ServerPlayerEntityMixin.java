@@ -18,5 +18,4 @@ abstract class ServerPlayerEntityMixin {
     private void onCopyFrom(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
         ((FabricPlatformPlayerFactory) GrimAPI.INSTANCE.getPlatformPlayerFactory()).replaceNativePlayer(oldPlayer.getUuid(), (ServerPlayerEntity) (Object) this);
     }
-
 }
