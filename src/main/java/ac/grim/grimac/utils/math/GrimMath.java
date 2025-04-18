@@ -185,4 +185,8 @@ public class GrimMath {
         return output + 1;
     }
 
+    public static boolean equal(double first, double second) {
+        return Math.abs(second - first) < 1.0E-5F;
+    }
+
 }
