@@ -60,3 +60,14 @@ help:
   - "/grim verbose &f- &7Te muestra todo aviso, sin buffers"
   - "/grim log [0-255] &f- &7Sube un registro de depuración para avisos de predicciones"
   - "&7======================"
+checks:
+  space: "&7======================"
+  type-space: " "
+  type: " &8» &f%checkType% verificaciones:"
+  not-found-total: "&cNo se encontraron verificaciones."
+  not-found-type: "&cNinguna."
+  separator: "&7, "
+  check:
+    enabled: "&a%checkName%%experimental%"
+    disabled: "&c%checkName%%experimental%"
+    exempted: "&e%checkName%%experimental%"

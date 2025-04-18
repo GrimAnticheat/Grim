@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.breaking;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -14,7 +15,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
-@CheckData(name = "WrongBreak")
+@CheckData(name = "WrongBreak", checkType = CheckType.WORLD)
 public class WrongBreak extends Check implements BlockBreakCheck {
     public WrongBreak(final GrimPlayer player) {
         super(player);

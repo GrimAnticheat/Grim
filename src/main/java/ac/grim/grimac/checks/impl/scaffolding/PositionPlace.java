@@ -1,13 +1,15 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import java.util.Collections;
 
-@CheckData(name = "PositionPlace")
+@CheckData(name = "PositionPlace", checkType = CheckType.WORLD)
 public class PositionPlace extends BlockPlaceCheck {
 
     public PositionPlace(GrimPlayer player) {

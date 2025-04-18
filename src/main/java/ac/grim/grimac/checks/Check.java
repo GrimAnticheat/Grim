@@ -33,9 +33,17 @@ public class Check extends GrimProcessor implements AbstractCheck {
     @Setter
     private boolean isEnabled;
 
+
     private boolean exemptPermission;
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
+
+    private CheckType type;
+
+    @Override
+    public boolean isExperimental() {
+        return experimental;
+    }
 
     public Check(final GrimPlayer player) {
         this.player = player;
@@ -51,7 +59,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+
             this.displayName = this.checkName;
+
+            this.type = checkData.checkType();
         }
 
         reload();

@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import org.bukkit.util.Vector;
 
-@CheckData(name = "FarBreak", description = "Breaking blocks too far away", experimental = true)
+@CheckData(name = "FarBreak", checkType = CheckType.WORLD, description = "Breaking blocks too far away", experimental = true)
 public class FarBreak extends Check implements BlockBreakCheck {
     public FarBreak(GrimPlayer player) {
         super(player);

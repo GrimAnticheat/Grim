@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -22,7 +23,7 @@ import java.util.Set;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "FastBreak", description = "Breaking blocks too quickly")
+@CheckData(name = "FastBreak", checkType = CheckType.WORLD, description = "Breaking blocks too quickly")
 public class FastBreak extends Check implements BlockBreakCheck {
 
     // For some reason these states flag and I don't know why.

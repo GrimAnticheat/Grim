@@ -5,6 +5,7 @@ import ac.grim.grimac.commands.*;
 import ac.grim.grimac.manager.init.Initable;
 import co.aikar.commands.PaperCommandManager;
 import org.bukkit.Bukkit;
+import github.scarsz.configuralize.DynamicConfig;
 
 public class CommandRegister implements Initable {
     @Override
@@ -24,6 +25,7 @@ public class CommandRegister implements Initable {
         commandManager.registerCommand(new GrimStopSpectating());
         commandManager.registerCommand(new GrimLog());
         commandManager.registerCommand(new GrimVerbose());
+
         commandManager.registerCommand(new GrimVersion());
         commandManager.registerCommand(new GrimDump());
         commandManager.registerCommand(new GrimBrands());
@@ -33,5 +35,6 @@ public class CommandRegister implements Initable {
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("check-for-updates", true)) {
             GrimVersion.checkForUpdatesAsync(Bukkit.getConsoleSender());
         }
+        commandManager.registerCommand(new GrimChecks());
     }
 }

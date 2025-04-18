@@ -2,6 +2,8 @@ package ac.grim.grimac.checks.impl.sprint;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -10,8 +12,8 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "SprintE", description = "Sprinting while colliding with a wall", setback = 5, experimental = true)
-public class SprintE extends Check implements PostPredictionCheck {
+@CheckData(name = "SprintE", description = "Sprinting while colliding with a wall", setback = 5, experimental = true, checkType = CheckType.MOVEMENT)
+public class SprintE extends Check implements PostPredictionCheck, PacketCheck {
     public SprintE(GrimPlayer player) {
         super(player);
     }

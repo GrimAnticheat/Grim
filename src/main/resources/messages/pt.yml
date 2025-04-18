@@ -58,3 +58,14 @@ help:
   - "/grim verbose &f- &7Esconde as informações extra."
   - "/grim log [0-255] &f- &7Envia o registro da simulação."
   - "&7======================"
+checks:
+  space: "&7======================"
+  type-space: " "
+  type: " &8» &f%checkType% verificações:"
+  not-found-total: "&cNenhuma verificação encontrada."
+  not-found-type: "&cNenhuma."
+  separator: "&7, "
+  check:
+    enabled: "&a%checkName%%experimental%"
+    disabled: "&c%checkName%%experimental%"
+    exempted: "&e%checkName%%experimental%"

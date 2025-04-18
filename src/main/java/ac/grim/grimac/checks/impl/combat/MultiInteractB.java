@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -14,7 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractB", experimental = true)
+@CheckData(name = "MultiInteractB", experimental = true, checkType = CheckType.COMBAT)
 public class MultiInteractB extends Check implements PostPredictionCheck {
     public MultiInteractB(final GrimPlayer player) {
         super(player);

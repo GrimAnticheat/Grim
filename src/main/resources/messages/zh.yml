@@ -60,3 +60,14 @@ help:
   - "/grim verbose &f- &7显示无缓冲区的每个拉回"
   - "/grim log [1-999] &f- &7预测标志的调试日志"
   - "&7======================"
+checks:
+  space: "&7======================"
+  type-space: " "
+  type: " &8» &f%checkType% 检查:"
+  not-found-total: "&c未找到检查。"
+  not-found-type: "&c无。"
+  separator: "&7, "
+  check:
+    enabled: "&a%checkName%%experimental%"
+    disabled: "&c%checkName%%experimental%"
+    exempted: "&e%checkName%%experimental%"

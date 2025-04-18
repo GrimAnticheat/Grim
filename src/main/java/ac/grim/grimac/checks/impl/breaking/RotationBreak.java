@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -23,7 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak", experimental = true)
+@CheckData(name = "RotationBreak", checkType = CheckType.WORLD, experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
     public RotationBreak(GrimPlayer player) {
         super(player);

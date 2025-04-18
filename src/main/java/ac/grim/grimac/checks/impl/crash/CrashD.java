@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.inventory.MenuType;
@@ -13,7 +14,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "CrashD", description = "Clicking slots in lectern window")
+@CheckData(name = "CrashD", description = "Clicking slots in lectern window", checkType = CheckType.PACKETS)
 public class CrashD extends Check implements PacketCheck {
 
     public CrashD(GrimPlayer playerData) {

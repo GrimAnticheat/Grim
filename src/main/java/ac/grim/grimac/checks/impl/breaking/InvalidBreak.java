@@ -2,13 +2,14 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
-@CheckData(name = "InvalidBreak", description = "Sent impossible block face id")
+@CheckData(name = "InvalidBreak", checkType = CheckType.WORLD, description = "Sent impossible block face id")
 public class InvalidBreak extends Check implements BlockBreakCheck {
     public InvalidBreak(GrimPlayer player) {
         super(player);

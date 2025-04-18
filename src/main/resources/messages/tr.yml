@@ -60,6 +60,16 @@ help:
   - "/grim verbose &f- &7Arabelleğe almadan tüm uyarıları görmenizi sağlar"
   - "/grim log (0-255) &f- &7Uyarılar için bir debug logu çıktısı verir"
   - "&7======================"
-
+checks:
+  space: "&7======================"
+  type-space: " "
+  type: " &8» &f%checkType% kontrolleri:"
+  not-found-total: "&cHiçbir kontrol bulunamadı."
+  not-found-type: "&cYok."
+  separator: "&7, "
+  check:
+    enabled: "&a%checkName%%experimental%"
+    disabled: "&c%checkName%%experimental%"
+    exempted: "&e%checkName%%experimental%"
 # Translated by Kayera
 # Have a nice day ;)

@@ -18,6 +18,7 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", setback = 10)
+@CheckData(name = "Reach", setback = 10, checkType = CheckType.COMBAT)
 public class Reach extends Check implements PacketCheck {
 
     // Only one flag per reach attack, per entity, per tick.

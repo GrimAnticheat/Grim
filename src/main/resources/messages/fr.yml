@@ -60,3 +60,14 @@ help:
   - "/grim verbose &f- &7Affiche chaqu'une de vos violations, sans tampons"
   - "/grim log [0-255] &f- &7Téléverse un journal de débogage pour les indicateurs de prédiction"
   - "&7======================"
+checks:
+  space: "&7======================"
+  type-space: " "
+  type: " &8» &f%checkType% vérifications:"
+  not-found-total: "&cAucune vérification trouvée."
+  not-found-type: "&cAucune."
+  separator: "&7, "
+  check:
+    enabled: "&a%checkName%%experimental%"
+    disabled: "&c%checkName%%experimental%"
+    exempted: "&e%checkName%%experimental%"

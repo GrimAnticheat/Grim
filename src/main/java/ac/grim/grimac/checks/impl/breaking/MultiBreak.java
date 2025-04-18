@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -16,7 +17,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiBreak", experimental = true)
+@CheckData(name = "MultiBreak", checkType = CheckType.WORLD, experimental = true)
 public class MultiBreak extends Check implements BlockBreakCheck {
     public MultiBreak(GrimPlayer player) {
         super(player);

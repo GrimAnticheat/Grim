@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractA", description = "Interacted with multiple entities in the same tick", experimental = true)
+@CheckData(name = "MultiInteractA", description = "Interacted with multiple entities in the same tick", experimental = true, checkType = CheckType.COMBAT)
 public class MultiInteractA extends Check implements PostPredictionCheck {
     public MultiInteractA(final GrimPlayer player) {
         super(player);

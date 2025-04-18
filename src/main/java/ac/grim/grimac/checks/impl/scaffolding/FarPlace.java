@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.util.Vector;
 
-@CheckData(name = "FarPlace", description = "Placing blocks from too far away")
+@CheckData(name = "FarPlace", description = "Placing blocks from too far away", checkType = CheckType.WORLD)
 public class FarPlace extends BlockPlaceCheck {
     public FarPlace(GrimPlayer player) {
         super(player);

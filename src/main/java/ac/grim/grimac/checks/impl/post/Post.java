@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.post;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -23,7 +24,7 @@ import java.util.Locale;
 
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
-@CheckData(name = "Post")
+@CheckData(name = "Post", checkType = CheckType.PACKETS)
 public class Post extends Check implements PacketCheck, PostPredictionCheck {
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags

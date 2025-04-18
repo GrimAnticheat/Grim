@@ -1,13 +1,14 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-@CheckData(name = "InvalidPlaceB", description = "Sent impossible block face id")
+@CheckData(name = "InvalidPlaceB", description = "Sent impossible block face id", checkType = CheckType.WORLD)
 public class InvalidPlaceB extends BlockPlaceCheck {
     public InvalidPlaceB(GrimPlayer player) {
         super(player);

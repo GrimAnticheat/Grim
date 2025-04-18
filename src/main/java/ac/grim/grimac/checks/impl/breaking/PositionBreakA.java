@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -9,7 +10,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-@CheckData(name = "PositionBreakA")
+@CheckData(name = "PositionBreakA", checkType = CheckType.WORLD)
 public class PositionBreakA extends Check implements BlockBreakCheck {
     public PositionBreakA(GrimPlayer player) {
         super(player);

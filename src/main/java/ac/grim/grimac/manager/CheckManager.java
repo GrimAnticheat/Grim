@@ -1,6 +1,8 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckType;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -19,7 +21,10 @@ import ac.grim.grimac.checks.impl.groundspoof.NoFall;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.*;
+import ac.grim.grimac.checks.impl.movement.NoSlow;
+import ac.grim.grimac.checks.impl.movement.PredictionRunner;
+import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
+import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -60,6 +65,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckManager {
@@ -356,6 +363,17 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
         return (T) prePredictionChecks.get(check);
+    }
+
+    public List<Check> getChecksByType(CheckType type) {
+        ArrayList<Check> checks = new ArrayList<>();
+        for (AbstractCheck abstractCheck : allChecks.values()) {
+            if (abstractCheck instanceof Check check && check.getType() == type) {
+                checks.add(check);
+            }
+        }
+
+        return checks;
     }
 
     private PacketEntityReplication packetEntityReplication = null;
