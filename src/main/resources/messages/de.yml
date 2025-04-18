@@ -53,6 +53,7 @@ help:
   - "/grim profile <player> &f- &7Zeigt Informationen über einen Spieler an"
   - "/grim help &f- &7Zeigt diese Hilfsnachricht an"
   - "/grim debug <player> &f- &7Entwicklerausgabe für Vorhersagen"
+  - "/grim debugchannel <player> &f- &7Zeigt die Plugin-Kanäle des Spielers"
   - "/grim perf &f- &7Entwickler ms/Vorhersage"
   - "/grim reload &f- &7Lädt die Konfiguration neu"
   - "/grim spectate <player> &f- &7Beobachte einen Spieler"

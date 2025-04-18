@@ -54,6 +54,7 @@ help:
   - "/grim profile <player> &f- &7Bekijk speler info"
   - "/grim help &f- &7Bekijk dit helpbericht"
   - "/grim debug <player> &f- &7Voorspellingsuitvoer ontwikkelaar"
+  - "/grim debugchannel <player> &f- &7Bekijk het clientkanaal van de speler"
   - "/grim perf &f- &7Ontwikkelaar ms/voorspelling"
   - "/grim reload &f- &7Laadt de configuratie opnieuw"
   - "/grim spectate <player> &f- &7Een speler bekijken"

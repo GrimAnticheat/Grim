@@ -54,6 +54,7 @@ help:
   - "/grim profile <player> &f- &7查看玩家信息"
   - "/grim help &f- &7查看此帮助消息"
   - "/grim debug <player> &f- &7开发者预测输出"
+  - "/grim debugchannel <player> &f- &7查看玩家的客户端通道"
   - "/grim perf &f- &7开发者毫秒预测"
   - "/grim reload &f- &7重新加载配置"
   - "/grim spectate <player> &f- &7观看玩家"

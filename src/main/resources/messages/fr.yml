@@ -54,6 +54,7 @@ help:
   - "/grim profile <player> &f- &7Voir le profil du joueur"
   - "/grim help &f- &7Afficher l'aide"
   - "/grim debug <player> &f- &7Afficher les informations de débogage du joueur"
+  - "/grim debugchannel <player> &f- &7Affiche les canaux du client du joueur"
   - "/grim perf &f- &7Afficher les informations de performance"
   - "/grim reload &f- &7Recharger la configuration"
   - "/grim spectate <player> &f- &7Regarder un joueur"

@@ -51,6 +51,7 @@ help:
   - "/grim profile <player> &f- &7プレイヤー情報を表示します"
   - "/grim help &f- &7このヘルプメッセージを表示します"
   - "/grim debug <player> &f- &7開発者用の予測出力を表示します"
+  - "/grim debugchannel <player> &f- &7プレイヤーのクライアントチャンネルを表示します"
   - "/grim perf &f- &7開発者用のパフォーマンス (ms/予測)"
   - "/grim reload &f- &7設定をリロードします"
   - "/grim spectate <player> &f- &7プレイヤーを観戦します"

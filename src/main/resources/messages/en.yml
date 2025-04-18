@@ -54,6 +54,7 @@ help:
   - "/grim profile <player> &f- &7View player info"
   - "/grim help &f- &7View this help message"
   - "/grim debug <player> &f- &7Developer Prediction output"
+  - "/grim debugchannel <player> &f- &7Show player's plugin channels"
   - "/grim perf &f- &7Developer ms/prediction"
   - "/grim reload &f- &7Reloads the config"
   - "/grim spectate <player> &f- &7Spectate a player"

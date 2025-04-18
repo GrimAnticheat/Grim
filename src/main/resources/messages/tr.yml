@@ -54,6 +54,7 @@ help:
   - "/grim profile (oyuncu) &f- &7Oyuncu profilini gösterir"
   - "/grim help &f- &7Bu yardım mesajını gösterir"
   - "/grim debug <player> &f- &7Geliştirici Debug'ını verir"
+  - "/grim debugchannel <oyuncu> &f- &7Oyuncunun istemci kanalını görüntüle"
   - "/grim perf &f- &7Geliştirici Performansını verir"
   - "/grim reload &f- &7Configi yeniden yükler"
   - "/grim spectate (oyuncu) &f- &7Bir oyuncuyu izlemenizi sağlar"

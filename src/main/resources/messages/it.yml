@@ -45,6 +45,7 @@ help:
   - "/grim profile <giocatore> &f- &7Visualizza le informazioni del giocatore"
   - "/grim help &f- &7Visualizza questo messaggio di aiuto"
   - "/grim debug <giocatore> &f- &7Output di previsione dello sviluppatore"
+  - "/grim debugchannel <giocatore> &f- &7Mostra i canali del client del giocatore"
   - "/grim perf &f- &7Ms/predizione dello sviluppatore"
   - "/grim reload &f- &7Ricarica la configurazione"
   - "/grim spectate <giocatore> &f- &7Osserva un giocatore"

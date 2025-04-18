@@ -52,6 +52,7 @@ help:
   - "/grim profile <player> &f- &7Mosta as informações do jogador."
   - "/grim help &f- &7Mostra essa mensagem de ajuda."
   - "/grim debug <player> &f- &7Depura a simulação."
+  - "/grim debugchannel <player> &f- &7Mostra os canais do cliente do jogador"
   - "/grim perf &f- &7Depura a performance."
   - "/grim reload &f- &7Recarrega as configurações."
   - "/grim spectate <player> &f- &7Especta um jogador."
