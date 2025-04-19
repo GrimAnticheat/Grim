@@ -1,10 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import versioning.BuildConfig
 
 plugins {
     id("com.gradleup.shadow")
 }
-
-val relocate: Boolean by rootProject.extra
 
 // Create a configuration for shading dependencies from common
 val shadowCommon: Configuration by project.configurations.creating {
@@ -18,15 +17,12 @@ tasks.named<ShadowJar>("shadowJar") {
     archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
     from(shadowCommon) // Use from() instead of direct assignment
 
-    if (relocate) {
-        relocate(
-            "io.github.retrooper.packetevents",
-            "ac.grim.grimac.shaded.io.github.retrooper.packetevents"
-        )
-        relocate(
-            "com.github.retrooper.packetevents",
-            "ac.grim.grimac.shaded.com.github.retrooper.packetevents"
-        )
+    if (BuildConfig.relocate) {
+        if (BuildConfig.shadePE) {
+            relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
+            relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
+            relocate("net.kyori", "ac.grim.grimac.shaded.kyori") // use PE's built-in adventure instead when not shading PE
+        }
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
         relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j") // Required by discord-webhooks
         relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
@@ -34,7 +30,6 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")
         relocate("alexh", "ac.grim.grimac.shaded.maps")
         relocate("it.unimi.dsi.fastutil", "ac.grim.grimac.shaded.fastutil")
-        relocate("net.kyori", "ac.grim.grimac.shaded.kyori")
         relocate("okhttp3", "ac.grim.grimac.shaded.okhttp3")
         relocate("okio", "ac.grim.grimac.shaded.okio")
         relocate("org.yaml.snakeyaml", "ac.grim.grimac.shaded.snakeyaml")

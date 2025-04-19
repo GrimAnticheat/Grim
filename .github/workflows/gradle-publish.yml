@@ -41,14 +41,13 @@ jobs:
           build-root-directory: packetevents
           arguments: publishToMavenLocal
 
-    - name: Extract Version from build.gradle.kts
+    - name: Extract Computed Version from Gradle
       id: extract-version
       run: |
-          # Extract the version from build.gradle.kts using grep and sed
-          VERSION=$(grep "^version\s*=" build.gradle.kts | sed 's/version\s*=\s*"\(.*\)"/\1/')
-          echo "VERSION: $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        VERSION=$(./gradlew -q printVersion | grep VERSION= | cut -d '=' -f2)
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
