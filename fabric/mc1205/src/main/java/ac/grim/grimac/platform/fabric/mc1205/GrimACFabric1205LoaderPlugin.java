@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1913PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1200MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1205ConversionUtil;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
-import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformPlayer;
 import ac.grim.grimac.platform.fabric.mc1611.util.convert.Fabric1140ConversionUtil;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;

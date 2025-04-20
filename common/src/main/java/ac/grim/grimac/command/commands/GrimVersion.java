@@ -96,8 +96,8 @@ public class GrimVersion implements BuildableCommand {
 
     private static Status compareVersions(String local, String latest) {
         if (local.equals(latest)) return Status.UPDATED;
-        String[] localParts = local.split("\\.");
-        String[] latestParts = latest.split("\\.");
+        String[] localParts  = splitVersionIntoParts(local);
+        String[] latestParts = splitVersionIntoParts(latest);
         int length = Math.max(localParts.length, latestParts.length);
         for (int i = 0; i < length; i++) {
             int localPart = i < localParts.length ? Integer.parseInt(localParts[i]) : 0;
@@ -109,6 +109,29 @@ public class GrimVersion implements BuildableCommand {
             }
         }
         return Status.UPDATED;
+    }
+
+    private static String[] splitVersionIntoParts(String version) {
+        // 1. regular dot‑split
+        String[] dotParts = version.split("\\.");
+
+        // nothing to fix if we have fewer than 3 segments
+        if (dotParts.length < 3) return dotParts;
+
+        // 2. look at the 3rd element (patch) — it might contain a hyphen tail
+        String patchAndTail = dotParts[2];
+        int dash = patchAndTail.indexOf('-');
+        if (dash == -1) {
+            // plain 2.3.72 style => already correct
+            return dotParts;
+        }
+
+        // 3. separate "72" and "feat_platform-…"
+        String patch   = patchAndTail.substring(0, dash);
+        String tail    = patchAndTail.substring(dash + 1);
+
+        // 4. rebuild an array with 4 elements
+        return new String[] { dotParts[0], dotParts[1], patch, tail };
     }
 
     @Override
