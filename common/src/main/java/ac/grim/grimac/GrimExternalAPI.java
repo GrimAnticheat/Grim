@@ -181,6 +181,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         GrimAPI.INSTANCE.getAlertManager().reload(configManager);
         GrimAPI.INSTANCE.getDiscordManager().reload();
         GrimAPI.INSTANCE.getSpectateManager().reload();
+        GrimAPI.INSTANCE.getViolationDatabaseManager().reload();
         // Don't reload players if the plugin hasn't started yet
         if (!started) return;
         // Reload checks for all players

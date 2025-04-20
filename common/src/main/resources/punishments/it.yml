@@ -16,6 +16,7 @@ Punishments:
       - "NoFall"
     commands:
       - "100:40 [alert]"
+      - "100:40 [log]"
       - "100:100 [webhook]"
       - "100:100 [proxy]"
   Knockback:
@@ -25,6 +26,7 @@ Punishments:
       - "Explosion"
     commands:
       - "5:5 [alert]"
+      - "5:5 [log]"
       - "20:20 [webhook]"
       - "20:20 [proxy]"
   Post:
@@ -33,6 +35,7 @@ Punishments:
       - "Post"
     commands:
       - "20:20 [alert]"
+      - "20:20 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   BadPackets:
@@ -43,6 +46,7 @@ Punishments:
       - "Crash"
     commands:
       - "20:20 [alert]"
+      - "20:20 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   Reach:
@@ -51,6 +55,7 @@ Punishments:
       - "Reach"
     commands:
       - "1:1 [alert]"
+      - "1:1 [log]"
       - "1:1 [webhook]"
       - "1:1 [proxy]"
   Hitboxes:
@@ -59,6 +64,7 @@ Punishments:
       - "Hitboxes"
     commands:
       - "5:3 [alert]"
+      - "5:3 [log]"
       - "5:3 [webhook]"
       - "5:3 [proxy]"
   Misc:
@@ -75,6 +81,7 @@ Punishments:
       - "Elytra"
     commands:
       - "10:5 [alert]"
+      - "10:5 [log]"
       - "20:10 [webhook]"
       - "20:10 [proxy]"
   Combat:
@@ -85,9 +92,11 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
+      - "20:40 [log]"
   Autoclicker:
     remove-violations-after: 300
     checks:
       - "Autoclicker"
     commands:
       - "20:40 [alert]"
+      - "20:40 [log]"

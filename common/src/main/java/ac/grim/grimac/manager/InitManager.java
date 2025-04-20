@@ -4,15 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.LoadableInitable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
-import ac.grim.grimac.manager.init.start.CommandRegister;
-import ac.grim.grimac.manager.init.start.JavaVersion;
-import ac.grim.grimac.manager.init.start.PacketLimiter;
-import ac.grim.grimac.manager.init.start.PacketManager;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.manager.init.start.TAB;
-import ac.grim.grimac.manager.init.start.TickRunner;
-import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
-import ac.grim.grimac.manager.init.start.ViaVersion;
+import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import ac.grim.grimac.platform.api.sender.Sender;
@@ -63,6 +55,7 @@ public class InitManager {
                 .add(GrimAPI.INSTANCE.getAlertManager())
                 .add(GrimAPI.INSTANCE.getDiscordManager())
                 .add(GrimAPI.INSTANCE.getSpectateManager())
+                .add(GrimAPI.INSTANCE.getViolationDatabaseManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())
