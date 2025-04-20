@@ -5,12 +5,14 @@ import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.mc1170.GrimACFabric1170LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.convert.Fabric1190MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
+import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1913PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformPlayer;
 import ac.grim.grimac.platform.fabric.mc1611.util.convert.Fabric1140ConversionUtil;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
@@ -20,7 +22,8 @@ public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
             new FabricPlatformPlayerFactory(
                     Fabric1161PlatformPlayer::new,
                     Fabric1194GrimEntity::new,
-                    Fabric1161PlatformInventory::new
+                    PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_19_2)
+                            ? Fabric1913PlatformInventory::new : Fabric1161PlatformInventory::new
             ),
             new Fabric1190PlatformServer(),
             new Fabric1190MessageUtil(),
