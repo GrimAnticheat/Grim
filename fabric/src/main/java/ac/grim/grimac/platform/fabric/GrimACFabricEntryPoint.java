@@ -20,7 +20,6 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
     @Override
     public void onInitialize() {
         FabricLoader loader = FabricLoader.getInstance();
-
         String chainLoadEntryPointName = "grimMainLoad";
 
         // Collect grimMainLoad entrypoints and sort by version
@@ -32,7 +31,6 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
         GrimACFabricLoaderPlugin.LOADER = platformLoader;
 
 
-
         // On Fabric we have to register commands earlier, and cannot register them when server is no longer null
         GrimAPI.INSTANCE.load(
                 platformLoader,
@@ -42,7 +40,7 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
 
         CommandRegister.registerCommands(platformLoader.getCommandManager());
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             GrimACFabricLoaderPlugin.FABRIC_SERVER = server;
             GrimAPI.INSTANCE.start();
         });
