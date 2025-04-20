@@ -3,14 +3,17 @@ package ac.grim.grimac.platform.api.player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayerFactory {
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
 
-    @Override
-    public @Nullable
-    final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
+    @Override @Nullable
+    public final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
         // Check cache first
         PlatformPlayer cachedPlayer = cache.getPlayer(uuid);
         if (cachedPlayer != null) {
@@ -26,6 +29,18 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         // Create new PlatformPlayer and cache it
         PlatformPlayer platformPlayer = createPlatformPlayer(nativePlayer);
         return cache.addOrGetPlayer(uuid, platformPlayer);
+    }
+
+    @Override @Nullable
+    public PlatformPlayer getFromName(@NonNull String name) {
+        T nativePlayer = getNativePlayer(name);
+        if (nativePlayer == null) {
+            return null;
+        }
+
+        // Create new PlatformPlayer and cache it
+        PlatformPlayer platformPlayer = createPlatformPlayer(nativePlayer);
+        return cache.addOrGetPlayer(platformPlayer.getUniqueId(), platformPlayer);
     }
 
     @SuppressWarnings("unchecked")
@@ -74,6 +89,8 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      */
     protected abstract T getNativePlayer(@NonNull UUID uuid);
 
+    protected abstract T getNativePlayer(@NonNull String name);
+
     /**
      * Creates a PlatformPlayer instance from the native player object.
      *
@@ -96,4 +113,11 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @return a collection of native player objects
      */
     protected abstract Collection<T> getNativeOnlinePlayers();
+
+
+    @Override
+    public abstract OfflinePlatformPlayer getOfflineFromUUID(@NonNull UUID uuid);
+
+    @Override
+    public abstract OfflinePlatformPlayer getOfflineFromName(@NonNull String name);
 }

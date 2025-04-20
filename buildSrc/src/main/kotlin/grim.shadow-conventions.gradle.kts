@@ -38,6 +38,7 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
         relocate("org.incendo", "ac.grim.grimac.shaded.incendo")
         relocate("io.leangen.geantyref", "ac.grim.grimac.shaded.geantyref") // Required by cloud
+        relocate("com.zaxxer", "ac.grim.grimac.shaded.zaxxer") // Database history
     }
     mergeServiceFiles()
 }

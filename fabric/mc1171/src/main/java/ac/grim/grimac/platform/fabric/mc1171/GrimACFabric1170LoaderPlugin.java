@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1171;
 
-import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
@@ -15,6 +15,7 @@ import ac.grim.grimac.platform.fabric.mc1161.util.convert.Fabric1161MessageUtil;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 public class GrimACFabric1170LoaderPlugin extends GrimACFabricLoaderPlugin {
@@ -28,7 +29,8 @@ public class GrimACFabric1170LoaderPlugin extends GrimACFabricLoaderPlugin {
                         Fabric1170GrimEntity::new,
                         Fabric1161PlatformInventory::new
                 ),
-                new Fabric1140PlatformServer(),
+                PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_17)
+                        ? new Fabric1171PlatformServer() : new Fabric1140PlatformServer(),
                 new Fabric1161MessageUtil(),
                 new Fabric1140ConversionUtil()
         );
@@ -36,7 +38,7 @@ public class GrimACFabric1170LoaderPlugin extends GrimACFabricLoaderPlugin {
 
     protected GrimACFabric1170LoaderPlugin(ParserDescriptorFactory parserDescriptorFactory,
                                            FabricPlatformPlayerFactory playerFactory,
-                                           PlatformServer platformServer,
+                                           AbstractFabricPlatformServer platformServer,
                                            IFabricMessageUtil fabricMessageUtil,
                                            IFabricConversionUtil fabricConversionUtil) {
         super(

@@ -5,7 +5,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.PlatformLoader;
-import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.*;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
@@ -57,7 +56,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
 
     protected final ParserDescriptorFactory parserFactory;
     protected final FabricPlatformPlayerFactory playerFactory;
-    protected final PlatformServer platformServer;
+    protected final AbstractFabricPlatformServer platformServer;
     @Getter
     protected final IFabricConversionUtil fabricConversionUtil;
     protected final IFabricMessageUtil fabricMessageUtil;
@@ -65,7 +64,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public GrimACFabricLoaderPlugin(
             ParserDescriptorFactory parserDescriptorFactory,
             FabricPlatformPlayerFactory playerFactory,
-            PlatformServer platformServer,
+            AbstractFabricPlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil
     ) {
@@ -138,7 +137,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public PlatformServer getPlatformServer() {
+    public AbstractFabricPlatformServer getPlatformServer() {
         return platformServer;
     }
 
