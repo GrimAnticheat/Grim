@@ -4,7 +4,7 @@ import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
+import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.text.Component;
@@ -12,7 +12,6 @@ import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.rcon.RconCommandOutput;
-import net.minecraft.text.Text;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.SenderMapper;
 
@@ -23,6 +22,7 @@ import java.util.UUID;
 public class FabricSenderFactory extends SenderFactory<ServerCommandSource> implements SenderMapper<ServerCommandSource, Sender> {
 
     private final Map<String, PermissionDefaultValue> permissionDefaults = new HashMap<>();
+    private static final IFabricMessageUtil fabricMessageUtils = GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils();
 
     @Override
     protected UUID getUniqueId(ServerCommandSource commandSource) {
@@ -43,12 +43,12 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
 
     @Override
     protected void sendMessage(ServerCommandSource sender, String message) {
-        sender.sendFeedback(() -> Text.literal(message), false);
+        fabricMessageUtils.sendMessage(sender, fabricMessageUtils.textLiteral(message), false);
     }
 
     @Override
     protected void sendMessage(ServerCommandSource sender, Component message) {
-        sender.sendFeedback(() -> FabricConversionUtil.toNativeText(message), false);
+        fabricMessageUtils.sendMessage(sender, GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);
     }
 
     @Override
@@ -64,18 +64,12 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
             return permissionValue.get(); // Fallback to provided default if unset
         }
 
-        switch (defaultValue) {
-            case TRUE:
-                return true;
-            case FALSE:
-                return false;
-            case OP:
-                return commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
-            case NOT_OP:
-                return !commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
-            default:
-                throw new IllegalStateException();
-        }
+        return switch (defaultValue) {
+            case TRUE -> true;
+            case FALSE -> false;
+            case OP -> commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
+            case NOT_OP -> !commandSource.hasPermissionLevel(GrimACFabricLoaderPlugin.FABRIC_SERVER.getOpPermissionLevel());
+        };
     }
 
     @Override
@@ -91,7 +85,7 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
     @Override
     protected boolean isConsole(ServerCommandSource sender) {
         CommandOutput output = sender.output;
-        return output == sender.getServer() || // Console
+        return output == sender.getMinecraftServer() || // Console
                 output.getClass() == RconCommandOutput.class || // Rcon
                 (output == CommandOutput.DUMMY && sender.getName().equals("")); // Functions
     }

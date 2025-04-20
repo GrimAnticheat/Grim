@@ -6,34 +6,20 @@ import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.manager.ItemResetHandler;
-import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
-import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
-import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
+import ac.grim.grimac.platform.api.manager.*;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
-import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
-import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorAdapter;
-import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
-import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
-import ac.grim.grimac.platform.fabric.manager.FabricItemResetHandler;
-import ac.grim.grimac.platform.fabric.manager.FabricMessagePlaceHolderManager;
-import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
-import ac.grim.grimac.platform.fabric.manager.FabricPermissionRegistrationManager;
-import ac.grim.grimac.platform.fabric.manager.FabricPlatformPluginManager;
-import ac.grim.grimac.platform.fabric.player.FabricPlatformInventory;
-import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayer;
-import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
+import ac.grim.grimac.platform.fabric.manager.*;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
+import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
+import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import net.fabricmc.api.ModInitializer;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.api.metadata.Person;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -46,7 +32,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitializer, PlatformLoader {
+public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
     public static GrimACFabricLoaderPlugin LOADER;
     protected final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
@@ -66,42 +52,33 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
                     FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
             )
     );
-
-    protected final PlatformPlayerFactory playerFactory = new FabricPlatformPlayerFactory(
-            FabricPlatformPlayer::new,
-            FabricGrimEntity::new,
-            FabricPlatformInventory::new
-    );
-    protected final ParserDescriptorFactory parserFactory = new FabricParserDescriptorFactory(
-            new FabricPlayerSelectorParser<>(FabricPlayerSelectorAdapter::new)
-    );
     protected final PlatformPluginManager platformPluginManager = new FabricPlatformPluginManager();
-    protected final PlatformServer platformServer = new FabricPlatformServer();
     protected final MessagePlaceHolderManager messagePlaceHolderManager = new FabricMessagePlaceHolderManager();
     protected final LazyHolder<FabricPermissionRegistrationManager> fabricPermissionRegistrationManager = LazyHolder.simple(FabricPermissionRegistrationManager::new);
 
+    protected final ParserDescriptorFactory parserFactory;
+    protected final PlatformPlayerFactory playerFactory;
+    protected final PlatformServer platformServer;
+    protected final IFabricConversionUtil fabricConversionUtil;
+    protected final IFabricMessageUtil fabricMessageUtil;
 
-    @Override
-    public void onPreLaunch() {
+    public GrimACFabricLoaderPlugin(
+                                    ParserDescriptorFactory parserDescriptorFactory,
+                                    PlatformPlayerFactory playerFactory,
+                                    PlatformServer platformServer,
+                                    IFabricMessageUtil fabricMessageUtil,
+                                    IFabricConversionUtil fabricConversionUtil
+    ) {
+        this.parserFactory = parserDescriptorFactory;
+        this.playerFactory = playerFactory;
+        this.platformServer = platformServer;
+        this.fabricMessageUtil = fabricMessageUtil;
+        this.fabricConversionUtil = fabricConversionUtil;
     }
 
     @Override
-    public void onInitialize() {
-    }
-
-    @Override
-    public PlatformScheduler getScheduler() {
+    public FabricPlatformScheduler getScheduler() {
         return scheduler.get();
-    }
-
-    @Override
-    public PlatformPlayerFactory getPlatformPlayerFactory() {
-        return playerFactory;
-    }
-
-    @Override
-    public ParserDescriptorFactory getParserDescriptorFactory() {
-        return parserFactory;
     }
 
     @Override
@@ -135,17 +112,12 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     }
 
     @Override
-    public PlatformServer getPlatformServer() {
-        return platformServer;
-    }
-
-    @Override
     public void registerAPIService() {
         GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
     }
 
-    @Override
-    public @NotNull MessagePlaceHolderManager getMessagePlaceHolderManager() {
+    @Override @NotNull
+    public  MessagePlaceHolderManager getMessagePlaceHolderManager() {
         return messagePlaceHolderManager;
     }
 
@@ -164,4 +136,29 @@ public class GrimACFabricLoaderPlugin implements PreLaunchEntrypoint, ModInitial
     public FabricSenderFactory getFabricSenderFactory() {
         return senderFactory.get();
     }
+
+    @Override
+    public ParserDescriptorFactory getParserDescriptorFactory() {
+        return parserFactory;
+    }
+
+    @Override
+    public PlatformPlayerFactory getPlatformPlayerFactory() {
+        return playerFactory;
+    }
+
+    @Override
+    public PlatformServer getPlatformServer() {
+        return platformServer;
+    }
+
+    public IFabricConversionUtil getFabricConversionUtil() {
+        return fabricConversionUtil;
+    }
+
+    public IFabricMessageUtil getFabricMessageUtils() {
+        return fabricMessageUtil;
+    }
+
+    public abstract ServerVersion getNativeVersion();
 }

@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.fabric.player;
 
+import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import ac.grim.grimac.platform.fabric.entity.FabricGrimEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -14,14 +14,14 @@ import java.util.function.Function;
 
 public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
 
-    private final Function<ServerPlayerEntity, FabricPlatformPlayer> getPlayerFunction;
+    private final Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> getPlayerFunction;
 
-    public FabricPlatformPlayerFactory(Function<ServerPlayerEntity, FabricPlatformPlayer> playerSupplier,
-                                       Function<Entity, FabricGrimEntity> getEntityFunction,
-                                       Function<ServerPlayerEntity, FabricPlatformInventory> getInventoryFunction
+    public FabricPlatformPlayerFactory(Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> playerSupplier,
+                                       Function<Entity, GrimEntity> getEntityFunction,
+                                       Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getInventoryFunction
     ) {
         this.getPlayerFunction = playerSupplier;
-        FabricPlatformPlayer.init(getEntityFunction, getInventoryFunction);
+        AbstractFabricPlatformPlayer.init(getEntityFunction, getInventoryFunction);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    protected FabricPlatformPlayer createPlatformPlayer(@NotNull ServerPlayerEntity nativePlayer) {
+    protected AbstractFabricPlatformPlayer createPlatformPlayer(@NotNull ServerPlayerEntity nativePlayer) {
         return getPlayerFunction.apply(nativePlayer);
     }
 
