@@ -61,11 +61,18 @@ Punishments:
     remove-violations-after: 300
     checks:
       - "Reach"
+    commands:
+      - "1:1 [alert]"
+      - "1:1 [webhook]"
+      - "1:1 [proxy]"
+  Hitboxes:
+    remove-violations-after: 300
+    checks:
       - "Hitboxes"
     commands:
-      - "5:5 [alert]"
-      - "5:5 [webhook]"
-      - "5:5 [proxy]"
+      - "5:3 [alert]"
+      - "5:3 [webhook]"
+      - "5:3 [proxy]"
   Misc:
     remove-violations-after: 300
     checks:
