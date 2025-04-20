@@ -180,16 +180,16 @@ reset-item-usage-on-slot-change: true
 # à partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
 # Cela est nécessaire car certains limiteurs de paquets ne comptent pas les paquets annulés par Grim.
 packet-spam-threshold: 100
-# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+# Activez ceci pour afficher une trace de pile lorsqu’un joueur est expulsé à cause du packet-spam-threshold
 debug-packet-cancel: false
 
-# Grim est capable de faire respecter qu'un joueur sorti de l'état de vol ne peut pas avoir plus de X millisecondes de ping.
-# Cela est dû au fait que Grim ne vérifie pas actuellement les joueurs en vol.
-# To disable, use -1
+# Grim peut faire en sorte qu’un joueur sorti de l’état de vol n’ait pas plus de X ms de ping
+# Cela est dû au fait que Grim ne vérifie pas encore les joueurs en vol
+# Pour désactiver, utilisez -1
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# Ping maximal lorsque la propulsion de feu d’artifice est retirée du joueur.
+# Cela empêche les joueurs à forte latence d’utiliser indéfiniment un seul boost de feu d’artifice avec une élytra.
 max-ping-firework-boost: 1000
 
 config-version: 9

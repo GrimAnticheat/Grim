@@ -183,16 +183,16 @@ reset-item-usage-on-slot-change: true
 # Grim bricht manchmal illegale Pakete ab, z.B. mit Timer, nachdem X Pakete in einer Sekunde abgebrochen wurden, wann sollte
 # wir den Spieler einfach kicken? Dies ist erforderlich, da einige Paketbegrenzer die von Grim abgebrochenen Pakete nicht zählen.
 packet-spam-threshold: 100
-# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+# Aktiviere dies, um einen Stacktrace auszugeben, wenn ein Spieler wegen packet-spam-threshold gekickt wird
 debug-packet-cancel: false
 
-# Grim kann durchsetzen, dass ein Spieler, der aus dem Flugmodus genommen wird, nicht mehr als X Millisekunden Ping haben kann.
-# Dies liegt daran, dass Grim derzeit fliegende Spieler nicht überprüft.
-# To disable, use -1
+# Grim kann erzwingen, dass ein Spieler, der aus dem Flugzustand gesetzt wurde, nicht mehr als X ms Ping haben darf
+# Dies liegt daran, dass Grim derzeit fliegende Spieler nicht überprüft
+# Zum Deaktivieren -1 verwenden
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# Maximale Latenz, wenn ein Feuerwerks‑Boost vom Spieler entfernt wird.
+# Dies verhindert, dass Spieler mit hoher Latenz einen einzigen Feuerwerks‑Boost mit Elytra unbegrenzt nutzen können.
 max-ping-firework-boost: 1000
 
 config-version: 9

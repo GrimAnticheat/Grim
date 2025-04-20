@@ -179,16 +179,16 @@ reset-item-usage-on-slot-change: true
 # Грим иногда отменяет незаконные пакеты, например, с таймером, после X пакетов в секунду отмененных, когда следует
 # нам просто кикнуть игрока? Это необходимо, так как некоторые ограничители пакетов не учитывают пакеты, отмененные Гримом.
 packet-spam-threshold: 100
-# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+# Включите, чтобы вывести stacktrace, когда игрок кикается из-за packet-spam-threshold
 debug-packet-cancel: false
 
-# Грим может обеспечить, что игрок, выведенный из состояния полёта, не может иметь пинг более X миллисекунд.
-# Это связано с тем, что Грим в настоящее время не проверяет летающих игроков.
-# To disable, use -1
+# Grim может обеспечить, чтобы у игрока, выведенного из состояния полёта, пинг не превышал X мс
+# Это связано с тем, что Grim пока не проверяет игроков, находящихся в полёте
+# Для отключения используйте -1
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# Максимальный пинг при снятии ускорения фейерверком с игрока.
+# Это предотвращает возможность для игроков с большим пингом бесконечно использовать один фейерверк‑буст с элитрой.
 max-ping-firework-boost: 1000
 
 config-version: 9

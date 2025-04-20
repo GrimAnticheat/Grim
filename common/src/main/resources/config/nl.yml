@@ -183,16 +183,16 @@ reset-item-usage-on-slot-change: true
 # Grim annuleert soms illegale pakketten zoals met timer, na X pakketten in een seconde geannuleerd, wanneer moeten
 # we de speler gewoon schoppen? Dit is nodig omdat sommige pakket-begrenzers pakketten die door grim worden geannuleerd niet tellen
 packet-spam-threshold: 100
-# Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
+# Schakel dit in om een stacktrace af te drukken wanneer een speler wordt gekickt wegens packet-spam-threshold
 debug-packet-cancel: false
 
-# Grim kan afdwingen dat een speler die uit vliegt niet meer dan X milliseconden ping kan hebben
+# Grim kan afdwingen dat een speler die uit de vliegmodus is gezet niet meer dan X ms ping heeft
 # Dit komt doordat Grim momenteel vliegende spelers niet controleert
-# To disable, use -1
+# Om uit te schakelen, gebruik -1
 max-ping-out-of-flying: 1000
 
-# Maximum ping when a firework boost is removed from the player.
-# This prevents high latency players from being able to use 1 firework boost with an elytra forever.
+# Maximale ping wanneer een vuurwerkboost van de speler wordt verwijderd.
+# Dit voorkomt dat spelers met hoge latency oneindig één vuurwerkboost met een elytra kunnen gebruiken.
 max-ping-firework-boost: 1000
 
 config-version: 9
