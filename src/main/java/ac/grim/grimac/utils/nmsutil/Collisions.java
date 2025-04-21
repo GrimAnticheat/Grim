@@ -593,7 +593,9 @@ public class Collisions {
             addCollisionsAlongTravel(alreadyVisited, traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
-                traversedBlocks.add(blockPos);
+                if (alreadyVisited == null || !alreadyVisited.contains(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+                    traversedBlocks.add(blockPos);
+                }
             }
 
             return traversedBlocks;
