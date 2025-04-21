@@ -862,10 +862,10 @@ public class PredictionEngine {
         if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
 
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
+        player.boundingBox = player.boundingBox.copy().expand(-player.getMovementThreshold(), 0, -player.getMovementThreshold());
         // By flipping the distance to the ground, we can avoid players from swim hopping on the floor
         // Although it is unclear what advantage this would even give.
-        double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
+        double pointThreeToGround = Collisions.collide(player, 0, -player.getMovementThreshold(), 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
         SimpleCollisionBox newBox = player.inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :

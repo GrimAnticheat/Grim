@@ -449,13 +449,22 @@ public class MovementTicker {
                     player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
-                player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
-                // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
-                if (player.clientVelocity.getY() > -0.5)
-                    player.fallDistance = 1;
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ)) {
+                    float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
+                    player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                new PredictionEngineElytra().guessBestMovement(0, player);
+                    doNormalMove(blockFriction);
 
+                    player.isGliding = false;
+                    player.pointThreeEstimator.updatePlayerGliding(); // TODO: should this be true even if player stopped gliding?
+                } else {
+                    player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
+                    // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
+                    if (player.clientVelocity.getY() > -0.5)
+                        player.fallDistance = 1;
+
+                    new PredictionEngineElytra().guessBestMovement(0, player);
+                }
             } else {
                 float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
