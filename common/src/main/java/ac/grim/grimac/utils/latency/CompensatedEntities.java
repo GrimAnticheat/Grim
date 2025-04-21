@@ -5,17 +5,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityPainting;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
-import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
-import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
+import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragon;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
@@ -196,8 +186,16 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityHook(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), data);
         } else if (EntityTypes.ENDER_DRAGON.equals(entityType)) {
             packetEntity = new PacketEntityEnderDragon(player, uuid, entityID, position.getX(), position.getY(), position.getZ());
+        } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_ARROW) || EntityTypes.FIREWORK_ROCKET.equals(entityType)) {
+            packetEntity = new PacketEntityUnHittable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
+        } else if (EntityTypes.ARMOR_STAND.equals(entityType)) {
+            packetEntity = new PacketEntityArmorStand(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), data);
         } else if (EntityTypes.PAINTING.equals(entityType)) {
-            packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.getByHorizontalIndex(data));
+            packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.values()[data]);
+        } else if (EntityTypes.GUARDIAN.equals(entityType)) {
+            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(entityType)) {
+            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, true);
         } else {
             packetEntity = new PacketEntity(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         }
@@ -219,6 +217,7 @@ public class CompensatedEntities {
         return serverPositionsMap.get(id);
     }
 
+    // TODO optimize into if-else chain instead of individual ifs
     public void updateEntityMetadata(int entityID, List<EntityData<?>> watchableObjects) {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
@@ -470,6 +469,50 @@ public class CompensatedEntities {
 
             Integer attachedEntityID = (Integer) hookWatchableObject.getValue();
             hook.attached = attachedEntityID - 1; // the server adds 1 to the ID
+        }
+
+        if (entity instanceof PacketEntityArmorStand) {
+            int index;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
+                index = 10;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                index = 11;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                index = 13;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                index = 14;
+            } else {
+                index = 15;
+            }
+
+            EntityData<?> armorStandByte = WatchableIndexUtil.getIndex(watchableObjects, index);
+            if (armorStandByte != null) {
+                byte info = (Byte) armorStandByte.getValue();
+
+                entity.isBaby = (info & 0x01) != 0; // technically this is IsSmall which is a different tag, but it has the same effect for us
+                ((PacketEntityArmorStand) entity).isMarker = (info & 0x10) != 0;
+            }
+        }
+
+        if (entity instanceof PacketEntityGuardian && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_11)) {
+            int index;
+            int isElderlyBitMask;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+                index = 16;
+                isElderlyBitMask = 0x04; // the wiki is wrong 0x02 is not "Is Elderly"
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_10)) {
+                index = 11;
+                isElderlyBitMask = 0x04;
+            } else {
+                index = 12;
+                isElderlyBitMask = 0x04;
+            }
+
+            EntityData guardianByte = WatchableIndexUtil.getIndex(watchableObjects, index);
+            if (guardianByte != null) {
+                int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows its an integer
+                ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
+            }
         }
     }
 }
