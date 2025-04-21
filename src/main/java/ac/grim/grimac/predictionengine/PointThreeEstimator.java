@@ -133,7 +133,7 @@ public class PointThreeEstimator {
             headHitter = true;
         }
 
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.66f, 1.86f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + (player.isPointThree() ? 0.06f : 0.0004f), 1.8f + (player.isPointThree() ? 0.06f : 0.0004f));
         if ((Materials.isWater(player.getClientVersion(), state) || stateType == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
@@ -214,7 +214,7 @@ public class PointThreeEstimator {
 
     public void endOfTickTick() {
         double movementThreshold = player.getMovementThreshold();
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.66f, 1.86f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + (player.isPointThree() ? 0.06f : 0.0004f), 1.8f + (player.isPointThree() ? 0.06f : 0.0004f));
 
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
@@ -302,7 +302,7 @@ public class PointThreeEstimator {
 
     private boolean checkForGround(double y) {
         SimpleCollisionBox playerBox = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
+        player.boundingBox = player.boundingBox.copy().expand(player.getMovementThreshold(), 0, player.getMovementThreshold()).offset(0, player.getMovementThreshold(), 0);
         // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
         double searchDistance = -0.2 + Math.min(0, y);
         Vector collisionResult = Collisions.collide(player, 0, searchDistance, 0);
