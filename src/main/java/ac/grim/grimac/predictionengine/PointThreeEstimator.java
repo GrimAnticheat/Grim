@@ -133,7 +133,8 @@ public class PointThreeEstimator {
             headHitter = true;
         }
 
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + (player.isPointThree() ? 0.06f : 0.0004f), 1.8f + (player.isPointThree() ? 0.06f : 0.0004f));
+        float collisionBoxThreshold = player.isPointThree() ? 0.06f : 0.0004f;
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
         if ((Materials.isWater(player.getClientVersion(), state) || stateType == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
@@ -214,7 +215,8 @@ public class PointThreeEstimator {
 
     public void endOfTickTick() {
         double movementThreshold = player.getMovementThreshold();
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + (player.isPointThree() ? 0.06f : 0.0004f), 1.8f + (player.isPointThree() ? 0.06f : 0.0004f));
+        float collisionBoxThreshold = player.isPointThree() ? 0.06f : 0.0004f;
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
 
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
