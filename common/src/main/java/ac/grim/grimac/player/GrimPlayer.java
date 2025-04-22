@@ -80,7 +80,10 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPi
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.protocol.Protocol;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -256,6 +259,7 @@ public class GrimPlayer implements GrimUser {
     public final List<List<Movement>> movementThisTick = new ObjectArrayList<>();
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
+    private @Nullable UserConnection userConnection;
 
     public GrimPlayer(@NonNull User user) {
         this.user = user;
@@ -534,6 +538,7 @@ public class GrimPlayer implements GrimUser {
         if (packetTracker == null && ViaVersionUtil.isAvailable() && uuid != null) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
             packetTracker = connection != null ? connection.getPacketTracker() : null;
+            this.userConnection = connection;
         }
 
         if (uuid != null && this.platformPlayer == null) {
@@ -947,5 +952,20 @@ public class GrimPlayer implements GrimUser {
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
+    }
+
+    public int getViaTranslatedBlockID(int blockStateID) {
+        final ProtocolVersion clientVersion = this.userConnection.getProtocolInfo().protocolVersion();
+        final ProtocolVersion serverVersion = this.userConnection.getProtocolInfo().serverProtocolVersion();
+
+        List<ProtocolPathEntry> protocolPathEntries = Via.getManager().getProtocolManager().getProtocolPath(clientVersion, serverVersion);
+        if (protocolPathEntries == null) return blockStateID;
+        for (final ProtocolPathEntry entry : protocolPathEntries) {
+            final Protocol<?, ?, ?, ?> protocol = entry.protocol();
+            if (protocol.getMappingData() != null && protocol.getMappingData().getBlockMappings() != null) {
+                blockStateID = protocol.getMappingData().getNewBlockStateId(blockStateID);
+            }
+        }
+        return blockStateID;
     }
 }

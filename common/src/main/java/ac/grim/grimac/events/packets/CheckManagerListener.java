@@ -728,7 +728,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     }
 
                     if (action == DiggingAction.START_DIGGING) {
-                        double damage = BlockBreakSpeed.getBlockDamage(player, blockBreak.position);
+                        double damage = BlockBreakSpeed.getBlockDamage(player, blockBreak.block);
 
                         // Instant breaking, no damage means it is unbreakable by creative players (with swords)
                         if (damage >= 1) {

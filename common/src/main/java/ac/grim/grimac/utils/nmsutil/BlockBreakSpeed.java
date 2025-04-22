@@ -17,18 +17,16 @@ import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 import java.util.OptionalInt;
 
 public class BlockBreakSpeed {
-    public static double getBlockDamage(GrimPlayer player, Vector3i position) {
+    public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
         // GET destroy speed
         // Starts with itemstack get destroy speed
         ItemStack tool = player.getInventory().getHeldItem();
         ItemType toolType = tool.getType();
 
-        WrappedBlockState block = player.compensatedWorld.getBlock(position);
         float blockHardness = block.getType().getHardness();
 
         // 1.15.2 and below need this hack

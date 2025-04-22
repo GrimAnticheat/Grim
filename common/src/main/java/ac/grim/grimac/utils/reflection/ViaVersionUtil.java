@@ -2,6 +2,12 @@ package ac.grim.grimac.utils.reflection;
 
 import ac.grim.grimac.GrimAPI;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.protocol.Protocol;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+
+import java.util.List;
 
 enum ViaState {
     UNKNOWN,

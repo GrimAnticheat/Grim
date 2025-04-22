@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -28,13 +30,14 @@ public class FastBreak extends Check implements BlockBreakCheck {
     // For some reason these states flag and I don't know why.
     // Better to just exempt to not annoy legit players.
     private static final Set<StateType> EXEMPT_STATES = Set.of();
+    private final boolean clientOlderThanServer = PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion() > player.getClientVersion().getProtocolVersion();
 
     public FastBreak(GrimPlayer playerData) {
         super(playerData);
     }
 
     // The block the player is currently breaking
-    Vector3i targetBlock = null;
+    Vector3i targetBlockPosition = null;
     // The maximum amount of damage the player deals to the block
     //
     double maximumBlockDamage = 0;
@@ -50,18 +53,21 @@ public class FastBreak extends Check implements BlockBreakCheck {
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
-            WrappedBlockState block = blockBreak.block;
-
-            // Exempt all blocks that do not exist in the player version
-            final WrappedBlockState defaultState = WrappedBlockState.getDefaultState(player.getClientVersion(), block.getType());
-            if (defaultState.getType() == StateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {
-                return;
+            if (!ViaVersionUtil.isAvailable()) {
+                // Exempt all blocks that do not exist in the player version
+                final WrappedBlockState defaultState = WrappedBlockState.getDefaultState(player.getClientVersion(), blockBreak.block.getType());
+                if (defaultState.getType() == StateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {
+                    return;
+                }
             }
+            // If client is older than the server, fetch block client actually sees from via
+            // otherwise just return the server-side block (since if client is >= server version the block is guaranteed to exist in client version)
+            WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
-            startBreak = System.currentTimeMillis() - (targetBlock == null ? 50 : 0); // ???
-            targetBlock = blockBreak.position;
+            startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
+            targetBlockPosition = blockBreak.position;
 
-            maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, targetBlock);
+            maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
             double breakDelay = System.currentTimeMillis() - lastFinishBreak;
 
@@ -80,7 +86,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             clampBalance();
         }
 
-        if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlock != null) {
+        if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockPosition != null) {
             double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
             double realTime = System.currentTimeMillis() - startBreak;
             double diff = predictedTime - realTime;
@@ -108,8 +114,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
-        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlock != null) {
-            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, targetBlock));
+        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockPosition != null) {
+            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockPosition)));
         }
     }
 
