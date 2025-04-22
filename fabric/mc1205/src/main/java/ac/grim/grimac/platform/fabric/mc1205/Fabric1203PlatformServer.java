@@ -12,4 +12,11 @@ public class Fabric1203PlatformServer extends Fabric1190PlatformServer {
     public double getTPS() {
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getAverageTickTime();
     }
+
+    // Return type changed from int -> void in 1.20.3
+    @Override
+    public void dispatchCommand(Sender sender, String command) {
+        ServerCommandSource commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().reverse(sender);
+        GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommandManager().executeWithPrefix(commandSource, command);
+    }
 }
