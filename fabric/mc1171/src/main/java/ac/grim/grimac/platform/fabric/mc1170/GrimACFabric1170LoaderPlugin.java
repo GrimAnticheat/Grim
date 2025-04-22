@@ -48,6 +48,6 @@ public class GrimACFabric1170LoaderPlugin extends GrimACFabricLoaderPlugin {
 
     @Override
     public ServerVersion getNativeVersion() {
-        return ServerVersion.V_1_17;
+        return ServerVersion.V_1_17_1;
     }
 }

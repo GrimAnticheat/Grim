@@ -2,7 +2,7 @@ dependencies {
     minecraft("com.mojang:minecraft:1.21.4")
     mappings("net.fabricmc:yarn:1.21.4+build.8:v2")
     compileOnly(project(":fabric:mc1161"))
-    compileOnly(project(":fabric:mc1170"))
+    compileOnly(project(":fabric:mc1171"))
     compileOnly(project(":fabric:mc1194"))
     compileOnly(project(":fabric:mc1205"))
 

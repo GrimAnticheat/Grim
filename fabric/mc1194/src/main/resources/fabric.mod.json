@@ -11,7 +11,7 @@
   "environment": "server",
   "entrypoints": {
     "grimMainLoad": [
-        "ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1194LoaderPlugin"
+      "ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin"
     ]
   },
   "accessWidener": "grimac.accesswidener",

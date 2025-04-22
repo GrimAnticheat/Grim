@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1205;
 
 import ac.grim.grimac.platform.fabric.mc1194.Fabric1190PlatformServer;
-import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1194LoaderPlugin;
+import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1200MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1205ConversionUtil;
@@ -13,9 +13,9 @@ import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.github.retrooper.packetevents.factory.fabric.FabricPacketEventsAPI;
 
-public class GrimACFabric1205LoaderPlugin extends GrimACFabric1194LoaderPlugin {
+public class GrimACFabric1200LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
-    public GrimACFabric1205LoaderPlugin() {
+    public GrimACFabric1200LoaderPlugin() {
         super(
                 new FabricPlatformPlayerFactory(
                         FabricPacketEventsAPI.getServerAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_20_1)

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1214;
 
-import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1194LoaderPlugin;
+import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1205.Fabric1203PlatformServer;
@@ -10,7 +10,7 @@ import ac.grim.grimac.platform.fabric.mc1214.player.Fabric1212PlatformPlayer;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-public class GrimACFabric1212LoaderPlugin extends GrimACFabric1194LoaderPlugin {
+public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
     public GrimACFabric1212LoaderPlugin() {
         super(

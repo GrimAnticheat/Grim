@@ -14,9 +14,9 @@ import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
+public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
 
-    public GrimACFabric1194LoaderPlugin() {
+    public GrimACFabric1190LoaderPlugin() {
         this(
             new FabricPlatformPlayerFactory(
                     Fabric1161PlatformPlayer::new,
@@ -30,7 +30,7 @@ public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
         );
     }
 
-    protected GrimACFabric1194LoaderPlugin(
+    protected GrimACFabric1190LoaderPlugin(
             FabricPlatformPlayerFactory platformPlayerFactory,
             PlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
