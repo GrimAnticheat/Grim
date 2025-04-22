@@ -2,6 +2,7 @@ package ac.grim.grimac.platform.fabric.mc1214.player;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
+import ac.grim.grimac.platform.fabric.mc1205.player.Fabric1202PlatformPlayer;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
@@ -13,7 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import java.util.EnumSet;
 import java.util.concurrent.CompletableFuture;
 
-public class Fabric1212PlatformPlayer extends AbstractFabricPlatformPlayer {
+public class Fabric1212PlatformPlayer extends Fabric1202PlatformPlayer {
     public Fabric1212PlatformPlayer(ServerPlayerEntity player) {
         super(player);
     }
