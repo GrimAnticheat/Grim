@@ -7,10 +7,10 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.*;
-import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.fabric.manager.*;
+import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
@@ -57,14 +57,14 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final LazyHolder<FabricPermissionRegistrationManager> fabricPermissionRegistrationManager = LazyHolder.simple(FabricPermissionRegistrationManager::new);
 
     protected final ParserDescriptorFactory parserFactory;
-    protected final PlatformPlayerFactory playerFactory;
+    protected final FabricPlatformPlayerFactory playerFactory;
     protected final PlatformServer platformServer;
     protected final IFabricConversionUtil fabricConversionUtil;
     protected final IFabricMessageUtil fabricMessageUtil;
 
     public GrimACFabricLoaderPlugin(
                                     ParserDescriptorFactory parserDescriptorFactory,
-                                    PlatformPlayerFactory playerFactory,
+                                    FabricPlatformPlayerFactory playerFactory,
                                     PlatformServer platformServer,
                                     IFabricMessageUtil fabricMessageUtil,
                                     IFabricConversionUtil fabricConversionUtil
@@ -143,7 +143,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public PlatformPlayerFactory getPlatformPlayerFactory() {
+    public FabricPlatformPlayerFactory getPlatformPlayerFactory() {
         return playerFactory;
     }
 

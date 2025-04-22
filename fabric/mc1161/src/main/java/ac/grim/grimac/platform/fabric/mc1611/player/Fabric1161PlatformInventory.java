@@ -55,7 +55,7 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
             // SHULKER_BOX -> SHULKER_BOX
             // CRAFTIING -> CRAFTING
 
-            Identifier registryKey = getScreenID(type);
+            Identifier registryKey = this.getScreenID(type);
             if (registryKey != null) {
                 return registryKey.getPath();
             }

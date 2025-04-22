@@ -1,11 +1,10 @@
 package ac.grim.grimac.platform.fabric.mc1194;
 
 import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.mc1170.GrimACFabric1170LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.convert.Fabric1190MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
-import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1913PlatformInventory;
+import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformPlayer;
 import ac.grim.grimac.platform.fabric.mc1611.util.convert.Fabric1140ConversionUtil;
@@ -23,7 +22,7 @@ public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
                     Fabric1161PlatformPlayer::new,
                     Fabric1194GrimEntity::new,
                     PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_19_2)
-                            ? Fabric1913PlatformInventory::new : Fabric1161PlatformInventory::new
+                            ? Fabric1193PlatformInventory::new : Fabric1161PlatformInventory::new
             ),
             new Fabric1190PlatformServer(),
             new Fabric1190MessageUtil(),
@@ -32,7 +31,7 @@ public class GrimACFabric1194LoaderPlugin extends GrimACFabric1170LoaderPlugin {
     }
 
     protected GrimACFabric1194LoaderPlugin(
-            PlatformPlayerFactory platformPlayerFactory,
+            FabricPlatformPlayerFactory platformPlayerFactory,
             PlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil) {

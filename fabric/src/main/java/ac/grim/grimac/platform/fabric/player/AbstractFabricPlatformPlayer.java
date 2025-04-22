@@ -15,19 +15,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
-import java.util.function.Function;
 
 public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEntity implements PlatformPlayer {
-    private static Function<Entity, GrimEntity> grimEntityFactory;
-    private static Function<ServerPlayerEntity, AbstractFabricPlatformInventory> platformInventoryFactory;
-
-    public static void init(Function<Entity, GrimEntity> grimEntityFunction,
-                            Function<ServerPlayerEntity, AbstractFabricPlatformInventory> platformInventoryFunction
-    ) {
-        grimEntityFactory = grimEntityFunction;
-        platformInventoryFactory = platformInventoryFunction;
-    }
-
     @Getter
     protected ServerPlayerEntity fabricPlayer;
     protected final AbstractFabricPlatformInventory inventory;
@@ -35,7 +24,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     public AbstractFabricPlatformPlayer(ServerPlayerEntity player) {
         super(player);
         this.fabricPlayer = player;
-        this.inventory = platformInventoryFactory.apply(player);
+        this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(player);
     }
 
     @Override
@@ -91,7 +80,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     @Override
     public GrimEntity getVehicle() {
         Entity vehicle = fabricPlayer.getVehicle();
-        return vehicle != null ? grimEntityFactory.apply(vehicle) : null;
+        return vehicle != null ? GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformEntity(vehicle) : null;
     }
 
     @Override

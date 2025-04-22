@@ -15,13 +15,16 @@ import java.util.function.Function;
 public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
 
     private final Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> getPlayerFunction;
+    private final Function<Entity, GrimEntity> getEntityFunction;
+    private final Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
 
     public FabricPlatformPlayerFactory(Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> playerSupplier,
                                        Function<Entity, GrimEntity> getEntityFunction,
                                        Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getInventoryFunction
     ) {
         this.getPlayerFunction = playerSupplier;
-        AbstractFabricPlatformPlayer.init(getEntityFunction, getInventoryFunction);
+        this.getEntityFunction = getEntityFunction;
+        this.getPlayerInventoryFunction = getInventoryFunction;
     }
 
     @Override
@@ -58,5 +61,13 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     @Override
     public void replaceNativePlayer(@NonNull UUID uuid, @NonNull ServerPlayerEntity serverPlayerEntity) {
         super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
+    }
+
+    public AbstractFabricPlatformInventory getPlatformInventory(ServerPlayerEntity serverPlayerEntity) {
+        return getPlayerInventoryFunction.apply(serverPlayerEntity);
+    }
+
+    public GrimEntity getPlatformEntity(Entity entity) {
+        return getEntityFunction.apply(entity);
     }
 }

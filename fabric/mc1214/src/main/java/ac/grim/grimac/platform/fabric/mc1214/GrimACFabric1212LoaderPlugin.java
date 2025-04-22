@@ -2,7 +2,7 @@ package ac.grim.grimac.platform.fabric.mc1214;
 
 import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1194LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
-import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1913PlatformInventory;
+import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1205.Fabric1203PlatformServer;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1200MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1205ConversionUtil;
@@ -17,7 +17,7 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1194LoaderPlugin {
                 new FabricPlatformPlayerFactory(
                         Fabric1212PlatformPlayer::new,
                         Fabric1194GrimEntity::new,
-                        Fabric1913PlatformInventory::new
+                        Fabric1193PlatformInventory::new
                 ),
                 new Fabric1203PlatformServer(),
                 new Fabric1200MessageUtil(),
