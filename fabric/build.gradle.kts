@@ -46,7 +46,7 @@ allprojects {
         maven("https://repo.codemc.io/repository/maven-snapshots/")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         mavenCentral()
-        // FastUtil, Discord-Webhooks
+        // FastUtil
     }
 
     loom {

@@ -28,7 +28,7 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // placeholderapi
     mavenCentral()
-    // FastUtil, Discord-Webhooks
+    // FastUtil
 }
 
 dependencies {

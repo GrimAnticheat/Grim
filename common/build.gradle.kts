@@ -23,7 +23,7 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     mavenCentral()
-    // FastUtil, Discord-Webhooks
+    // FastUtil
 }
 
 dependencies {
@@ -35,7 +35,6 @@ dependencies {
     }
     // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
     api("org.yaml:snakeyaml:2.2")
-    api(libs.discord.webhooks)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
