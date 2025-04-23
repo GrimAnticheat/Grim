@@ -81,6 +81,33 @@ public interface PlatformScheduler {
     }
 
     /**
+     * Converts the specified number of ticks to a time value expressed in the
+     * desired {@link java.util.concurrent.TimeUnit TimeUnit}.
+     * <p>
+     * Internally the method multiplies the given tick count by <code>50&nbsp;ms</code>
+     * (duration of one tick) and then converts that millisecond value to the
+     * requested unit.
+     * </p>
+     *
+     * <p><b>Example:</b></p>
+     * <pre>
+     * long ticks = 100;                                   // 100 ticks
+     * long seconds = PlatformScheduler.convertTicksToTime(ticks, TimeUnit.SECONDS);
+     * // seconds == 5
+     * </pre>
+     *
+     * @param ticks     The number of ticks to convert.
+     * @param timeUnit  The unit in which you want the result.
+     * @return          The converted time value in the requested unit.
+     *
+     * @see #convertTimeToTicks(long, TimeUnit)
+     */
+    static long convertTicksToTime(long ticks, TimeUnit timeUnit) {
+        long millis = ticks * 50L;
+        return timeUnit.convert(millis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
      * Returns the asynchronous task scheduler.
      * <p>
      * The async task scheduler can be used to schedule tasks that execute asynchronously from the server tick process.

@@ -2,6 +2,7 @@ package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import ac.grim.grimac.utils.data.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +81,10 @@ public class FabricAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return runAtFixedRate(plugin, task, initialDelayTicks, periodTicks, TimeUnit.MILLISECONDS); // Convert ticks to milliseconds
+        return runAtFixedRate(plugin, task,
+                PlatformScheduler.convertTicksToTime(initialDelayTicks, TimeUnit.MILLISECONDS),
+                PlatformScheduler.convertTicksToTime(periodTicks, TimeUnit.MILLISECONDS),
+            TimeUnit.MILLISECONDS); // Convert ticks to milliseconds
     }
 
     @Override

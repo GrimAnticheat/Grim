@@ -77,15 +77,4 @@ public interface AsyncScheduler {
      * @param plugin Specified plugin.
      */
     void cancel(@NotNull GrimPlugin plugin);
-
-    /**
-     * Converts the specified time to ticks.
-     *
-     * @param time     The time to convert.
-     * @param timeUnit The time unit of the time.
-     * @return The time converted to ticks.
-     */
-    private long convertTimeToTicks(long time, TimeUnit timeUnit) {
-        return timeUnit.toMillis(time) / 50;
-    }
 }
