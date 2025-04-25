@@ -1,0 +1,12 @@
+enabled: false
+webhook: ""
+embed-title: "**Grim Alert**"
+embed-color: "#00FFFF"
+violation-content:
+    - "**Giocatore**: %player%"
+    - "**Cheats Rilevati**: %check%"
+    - "**Violazioni**: %violations%"
+    - "**Versione Client**: %version%"
+    - "**Client**: %brand%"
+    - "**Ping**: %ping%"
+    - "**TPS**: %tps%"

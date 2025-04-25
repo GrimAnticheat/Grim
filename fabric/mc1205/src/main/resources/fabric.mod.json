@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-mc1205",
+  "version": "${version}",
+  "name": "GrimAC for 1.20+ built against 1.20.5",
+  "description": "Libre simulation anticheat designed for 1.21 with 1.8-1.21 support, powered by PacketEvents 2.0.",
+  "authors": [
+    "GrimAC"
+  ],
+  "license": "GPLv3",
+  "environment": "server",
+  "entrypoints": {
+    "grimMainLoad": [
+      "ac.grim.grimac.platform.fabric.mc1205.GrimACFabric1200LoaderPlugin"
+    ]
+  },
+  "accessWidener": "grimac.accesswidener",
+  "depends": {
+    "minecraft": ">=1.20",
+    "fabric-lifecycle-events-v1": "*"
+  }
+}

@@ -1,0 +1,12 @@
+enabled: false
+webhook: ""
+embed-title: "**Grim Warnung**"
+embed-color: "#00FFFF"
+violation-content:
+    - "**Spieler**: %player%"
+    - "**Überprüfung**: %check%"
+    - "**Verstöße**: %violations%"
+    - "**Client-Version**: %version%"
+    - "**Marke**: %brand%"
+    - "**Ping**: %ping%"
+    - "**TPS**: %tps%"

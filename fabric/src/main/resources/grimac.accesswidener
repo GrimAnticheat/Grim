@@ -1,0 +1,5 @@
+accessWidener v2 named
+accessible field net/minecraft/server/world/ServerWorld worldProperties Lnet/minecraft/world/level/ServerWorldProperties;
+accessible field net/minecraft/server/command/ServerCommandSource output Lnet/minecraft/server/command/CommandOutput;
+accessible field net/minecraft/entity/player/PlayerEntity inventory Lnet/minecraft/entity/player/PlayerInventory;
+accessible field net/minecraft/entity/Entity world Lnet/minecraft/world/World; # Required in newer versions, even though public in older ones

@@ -1,0 +1,63 @@
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fBenachrichtigungen aktiviert"
+alerts-disabled: "%prefix% &fBenachrichtigungen deaktiviert"
+verbose-enabled: "%prefix% &fVerbose enabled"
+verbose-disabled: "%prefix% &fVerbose disabled"
+brands-enabled: "%prefix% &fBrands enabled"
+brands-disabled: "%prefix% &fBrands disabled"
+client-brand-format: "%prefix% &f%player% hat sich mit %brand% verbunden"
+console-specify-target: "%prefix% &cDu musst ein Ziel angeben, da du die Konsole benutzt!"
+reloading: "%prefix% &7Konfiguration wird neu geladen..."
+reloaded: "%prefix% &fDie Konfiguration wurde neu geladen."
+reload-failed: "%prefix% &cFehler beim Neuladen der Konfiguration."
+player-not-found: "%prefix% &cSpieler ist nicht auffindbar oder geschützt!"
+player-not-this-server: "%prefix% &cSpieler ist nicht auf diesem Server!"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fKlicke hier, um zur vorherigen Position zurückzukehren\n</hover></click>"
+cannot-spectate-return: "%prefix% &cDas kannst du nur tun, nachdem du einen Spieler beobachtet hast."
+cannot-run-on-self: "%prefix% &cDu kannst diesen Befehl nicht auf dich selbst anwenden!"
+upload-log: "%prefix% &fDebug wurde hochgeladen zu: %url%"
+upload-log-start: "%prefix% &fHochladen des Logs... Bitte warten"
+upload-log-not-found: "%prefix% &cLog konnte nicht gefunden werden"
+upload-log-upload-failure: "%prefix% &cFehler beim Hochladen des Logs, siehe Konsole für weitere Informationen"
+disconnect:
+    timeout: "<lang:disconnect.timeout>"
+    closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &cDiesen Befehl können nur Spieler verwenden!"
+run-as-player-or-console: "%prefix% &cDiesen Befehl können nur Spieler oder die Konsole verwenden!"
+
+# Gültige Platzhalter:
+# %prefix%
+# %player%
+# %check_name%
+# %description%
+# %experimental%
+# %vl% - Verstöße
+# %verbose% - zusätzliche Informationen von der Prüfung, nicht alle Prüfungen liefern zusätzliche Informationen
+alerts-format: "%prefix% &f%player% &bbestand &f%check_name%%experimental% &bnicht &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bbestand &f%check_name%%experimental% &bnicht &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+    - "&7======================"
+    - "%prefix% &bProfil für &f%player%"
+    - "&bPing: &f%ping%"
+    - "&bVersion: &f%version%"
+    - "&bClient Marke: &f%brand%"
+    - "&bHorizontale Sensitivität: &f%h_sensitivity%%"
+    - "&bVertikale Sensitivität: &f%v_sensitivity%%"
+    - "&bFastMath aktiviert: &f%fast_math%"
+    - "&7======================"
+help:
+    - "&7======================"
+    - "/grim alerts &f- &7Schaltet Benachrichtigungen um"
+    - "/grim brands &f- &7Toggle brands"
+    - "/grim profile <player> &f- &7Zeigt Informationen über einen Spieler an"
+    - "/grim help &f- &7Zeigt diese Hilfsnachricht an"
+    - "/grim debug <player> &f- &7Entwicklerausgabe für Vorhersagen"
+    - "/grim perf &f- &7Entwickler ms/Vorhersage"
+    - "/grim reload &f- &7Lädt die Konfiguration neu"
+    - "/grim spectate <player> &f- &7Beobachte einen Spieler"
+    - "/grim verbose &f- &7Zeigt dir jeden Verstoß ohne Puffer an"
+    - "/grim log [0-255] &f- &7Lädt ein Debug-Log für Vorhersagefehler hoch"
+    - "&7======================"

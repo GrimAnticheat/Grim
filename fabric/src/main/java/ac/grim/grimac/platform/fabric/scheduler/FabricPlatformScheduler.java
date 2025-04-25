@@ -1,0 +1,141 @@
+package ac.grim.grimac.platform.fabric.scheduler;
+
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
+import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
+import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
+import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
+import net.minecraft.server.MinecraftServer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+public class FabricPlatformScheduler implements PlatformScheduler {
+    private final FabricAsyncScheduler asyncScheduler;
+    private final FabricGlobalRegionScheduler globalRegionScheduler;
+    private final FabricEntityScheduler entityScheduler;
+    private final FabricRegionScheduler regionScheduler;
+
+    public FabricPlatformScheduler() {
+        GrimPlugin plugin = GrimAPI.INSTANCE.getGrimPlugin();
+        this.asyncScheduler = new FabricAsyncScheduler(plugin);
+        this.globalRegionScheduler = new FabricGlobalRegionScheduler(plugin);
+        this.entityScheduler = new FabricEntityScheduler(plugin);
+        this.regionScheduler = new FabricRegionScheduler(plugin);
+    }
+
+    // Shared method to handle synchronous tasks
+    // Add this to FabricPlatformScheduler.java
+    public static final ThreadLocal<Boolean> EXECUTING_TASK = new ThreadLocal<Boolean>() {
+        @Override protected Boolean initialValue() {
+            return false;
+        }
+    };
+
+    protected static void handleSyncTasks(Map<ScheduledTask, Runnable> taskMap, MinecraftServer server, GrimPlugin plugin) {
+        Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            ScheduledTask task = iterator.next();
+            if (server.getTicks() >= task.nextRunTick) {
+                try {
+                    EXECUTING_TASK.set(true);
+                    task.task.run();
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Error executing scheduled task: " + e.getMessage());
+                    e.printStackTrace();
+                } finally {
+                    EXECUTING_TASK.set(false);
+                }
+
+                if (task.isPeriodic) {
+                    task.nextRunTick = server.getTicks() + task.period;
+                } else {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    // Cancel tasks for a specific plugin
+    protected static void cancelPluginTasks(Map<ScheduledTask, Runnable> taskMap, GrimPlugin plugin) {
+        Iterator<Map.Entry<ScheduledTask, Runnable>> iterator = taskMap.entrySet().iterator();
+        List<Runnable> cancellationTasks = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            Map.Entry<ScheduledTask, Runnable> entry = iterator.next();
+            if (entry.getKey().plugin.equals(plugin)) {
+                cancellationTasks.add(entry.getValue());
+                iterator.remove();
+            }
+        }
+
+        for (Runnable cancellationTask : cancellationTasks) {
+            cancellationTask.run();
+        }
+    }
+
+    // Cancel all tasks (renamed from cancelAllTasks)
+    protected static void cancelAllTasks(Map<?, Runnable> taskMap) {
+        List<Runnable> cancellationTasks = new ArrayList<>(taskMap.values());
+        taskMap.clear();
+        for (Runnable cancellationTask : cancellationTasks) {
+            cancellationTask.run();
+        }
+    }
+
+    protected static void scheduleTask(Map<ScheduledTask, Runnable> taskMap, GrimPlugin plugin, Runnable task, long initialDelayTicks, long periodTicks, boolean isPeriodic) {
+
+    }
+
+    @Override
+    public @NonNull AsyncScheduler getAsyncScheduler() {
+        return asyncScheduler;
+    }
+
+    @Override
+    public @NonNull GlobalRegionScheduler getGlobalRegionScheduler() {
+        return globalRegionScheduler;
+    }
+
+    @Override
+    public @NonNull EntityScheduler getEntityScheduler() {
+        return entityScheduler;
+    }
+
+    @Override
+    public @NonNull RegionScheduler getRegionScheduler() {
+        return regionScheduler;
+    }
+
+    /**
+     * Shuts down all schedulers and cancels all pending tasks.
+     * This method should be called when the server is shutting down.
+     */
+    public void shutdown() {
+        asyncScheduler.cancelAll();
+        globalRegionScheduler.cancelAll();
+        entityScheduler.cancelAll();
+        regionScheduler.cancelAll();
+    }
+
+    protected static class ScheduledTask {
+        final Runnable task;
+        final long period;
+        final boolean isPeriodic;
+        final GrimPlugin plugin; // Add plugin reference
+        long nextRunTick;
+
+        ScheduledTask(Runnable task, long nextRunTick, long period, boolean isPeriodic, GrimPlugin plugin) {
+            this.task = task;
+            this.nextRunTick = nextRunTick;
+            this.period = period;
+            this.isPeriodic = isPeriodic;
+            this.plugin = plugin;
+        }
+    }
+}

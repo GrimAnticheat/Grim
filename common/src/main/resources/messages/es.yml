@@ -1,0 +1,64 @@
+# \u00BB es » (doble >>), ANSI y UTF-8 interpreta esto diferente... puede que incluso veas "?" debido a esto.
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlertas habilitadas"
+alerts-disabled: "%prefix% &fAlertas deshabilitadas"
+verbose-enabled: "%prefix% &fVerbose enabled"
+verbose-disabled: "%prefix% &fVerbose disabled"
+brands-enabled: "%prefix% &fBrands enabled"
+brands-disabled: "%prefix% &fBrands disabled"
+client-brand-format: "%prefix% &f%player% se ha unido usando %brand%"
+console-specify-target: "%prefix% &c¡Debes especificar a alguien siendo la consola!"
+reloading: "%prefix% &7Reloading config..."
+reloaded: "%prefix% &fConfig has been reloaded."
+reload-failed: "%prefix% &cFailed to reload config."
+player-not-found: "%prefix% &c¡El jugador esta excluido o fuera de linea!"
+player-not-this-server: "%prefix% &c¡El jugador no esta en este servidor!"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick aquí para volver a la localización previa\n</hover></click>"
+cannot-spectate-return: "%prefix% &cSolo puedes hacer esto despues de espectar a un jugador"
+cannot-run-on-self: "%prefix% &cNo puedes usar este comando en ti mismo!"
+upload-log: "%prefix% &fSubido el registro de depuración a: %url%"
+upload-log-start: "%prefix% &fSubiendo registros... por favor espera"
+upload-log-not-found: "%prefix% &cNo se pudo encontrar ese registro"
+upload-log-upload-failure: "%prefix% &cAlgo salio mal mientras subíamos ese registro, mira la consola para mas información"
+disconnect:
+    timeout: "<lang:disconnect.timeout>"
+    closed: "<lang:disconnect.closed>"
+run-as-player: "%prefix% &c¡Este comando solo puede ser utilizado por jugadores!"
+run-as-player-or-console: "%prefix% &c¡Este comando solo puede ser utilizado por jugadores o la consola!"
+
+# Placeholders validos:
+# %prefix%
+# %player%
+# %check_name%
+# %description%
+# %experimental%
+# %vl% - violaciones
+# %verbose% - información extra de la comprobación como compensaciones. No todas añadirán informacion.
+alerts-format: "%prefix% &f%player% &bfalló &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+    - "&7======================"
+    - "%prefix% &bPerfil de &f%player%"
+    - "&bPing: &f%ping%"
+    - "&bVersión: &f%version%"
+    - "&bMarca del cliente: &f%brand%"
+    - "&bSensibilidad horizontal: &f%h_sensitivity%%"
+    - "&bSensibilidad vertical: &f%v_sensitivity%%"
+    - "&bFastMath habilitado: &f%fast_math%"
+    - "&7======================"
+help:
+    - "&7======================"
+    - "/grim alerts &f- &7Alternar alertas"
+    - "/grim brands &f- &7Toggle brands"
+    - "/grim profile <player> &f- &7Mostrar informacion del jugador"
+    - "/grim help &f- &7Mostrar este mensaje de ayuda"
+    - "/grim debug <player> &f- &7Salida de predicciones para desarrolladores"
+    - "/grim perf &f- &7ms/predicción para los desarrolladores"
+    - "/grim reload &f- &7Recarga la configuración"
+    - "/grim spectate <player> &f- &7Espectar a un jugador"
+    - "/grim verbose &f- &7Te muestra todo aviso, sin buffers"
+    - "/grim log [0-255] &f- &7Sube un registro de depuración para avisos de predicciones"
+    - "&7======================"

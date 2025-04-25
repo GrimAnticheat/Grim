@@ -1,0 +1,49 @@
+[versions]
+adventure = "4.18.0"
+adventure-platform-bukkit = "4.3.4"
+paper-api = "1.20.6-R0.1-SNAPSHOT"
+placeholderapi = "2.11.6"
+configuralize = "1.4.1:slim"
+cloud = "2.0.0"
+cloud-paper = "2.0.0-beta.10"
+cloud-fabric = "2.0.0-beta.10"
+packetevents = "2.8.0-SNAPSHOT"
+fastutil = "8.5.15"
+jetbrains-annotations = "24.1.0"
+floodgate-api = "2.0-SNAPSHOT"
+via-version = "5.0.4-SNAPSHOT"
+netty = "4.1.85.Final"
+fabric-loader = "0.16.10"
+fabric-loom = "1.10.5"
+
+spotless = "6.25.0"
+lombok = "8.6"
+shadow = "9.0.0-beta6"
+
+[libraries]
+adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure"}
+adventure-platform-bukkit = { group = "net.kyori", name = "adventure-platform-bukkit", version.ref = "adventure-platform-bukkit" }
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
+netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
+via-version-api = { group = "com.viaversion", name = "viaversion-api", version.ref = "via-version" }
+floodgate-api = { group = "org.geysermc.floodgate", name = "api", version.ref = "floodgate-api"}
+paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-api" }
+placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
+cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-paper" }
+cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric" }
+packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", version.ref = "packetevents" }
+packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
+packetevents-fabric = { group  = "com.github.retrooper", name = "packetevents-fabric", version.ref = "packetevents" }
+fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+
+spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
+lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
+shadow = { "group" = "com.gradleup.shadow", name = "shadow-gradle-plugin", version.ref = "shadow"}
+
+[bundles]
+
+
+[plugins]
+fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }

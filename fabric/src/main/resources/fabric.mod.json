@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac",
+  "version": "${version}",
+  "name": "GrimAC",
+  "description": "Libre simulation anticheat designed for 1.21 with 1.8-1.21 support, powered by PacketEvents 2.0.",
+  "authors": [
+    "GrimAC"
+  ],
+  "license": "GPLv3",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+    ],
+    "preLaunch": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+    ]
+  },
+  "mixins": [
+    "grimac.mixins.json"
+  ],
+  "accessWidener": "grimac.accesswidener",
+  "depends": {
+    "fabricloader": "\u003e\u003d0.16",
+    "fabric-lifecycle-events-v1": "*",
+    "cloud": "*",
+    "packetevents": "*"
+  }
+}

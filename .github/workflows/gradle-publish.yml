@@ -27,12 +27,29 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+    - name: Extract Computed Version from Gradle
+      id: extract-version
+      run: |
+        VERSION=$(./gradlew -q printVersion | grep VERSION= | cut -d '=' -f2)
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
+
     - name: Build with Gradle
       run: ./gradlew build
 
-    - name: Upload a Build Artifact
+    - name: Upload Bukkit Artifact
       uses: actions/upload-artifact@v4
       with:
-        path: /home/runner/work/Grim/Grim/build/libs/**.jar
+          name: grimac-bukkit
+          path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.VERSION }}.jar
+
+    - name: Upload Fabric Artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: grimac-fabric
+          path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.VERSION }}.jar
+
