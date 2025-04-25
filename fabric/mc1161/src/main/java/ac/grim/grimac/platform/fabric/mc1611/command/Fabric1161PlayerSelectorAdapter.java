@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.command;
+package ac.grim.grimac.platform.fabric.mc1611.command;
 
 
 import ac.grim.grimac.GrimAPI;

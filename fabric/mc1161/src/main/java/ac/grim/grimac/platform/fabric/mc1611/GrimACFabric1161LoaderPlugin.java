@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.fabric.mc1611;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
-import ac.grim.grimac.platform.fabric.command.Fabric1161PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.mc1611.command.Fabric1161PlayerSelectorAdapter;
 import ac.grim.grimac.platform.fabric.mc1611.entity.Fabric1161GrimEntity;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformPlayer;

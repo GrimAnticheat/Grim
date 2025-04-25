@@ -1,6 +1,10 @@
 package ac.grim.grimac.platform.fabric.mc1194;
 
 import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.fabric.mc1611.command.Fabric1161PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
+import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
 import ac.grim.grimac.platform.fabric.mc1170.GrimACFabric1170LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.convert.Fabric1190MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
@@ -18,6 +22,9 @@ public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
 
     public GrimACFabric1190LoaderPlugin() {
         this(
+            new FabricParserDescriptorFactory(
+                    new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)
+            ),
             new FabricPlatformPlayerFactory(
                     Fabric1161PlatformPlayer::new,
                     Fabric1194GrimEntity::new,
@@ -31,11 +38,12 @@ public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
     }
 
     protected GrimACFabric1190LoaderPlugin(
+            ParserDescriptorFactory parserDescriptorFactory,
             FabricPlatformPlayerFactory platformPlayerFactory,
             PlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil) {
-        super(platformPlayerFactory, platformServer, fabricMessageUtil, fabricConversionUtil);
+        super(parserDescriptorFactory, platformPlayerFactory, platformServer, fabricMessageUtil, fabricConversionUtil);
     }
 
     @Override

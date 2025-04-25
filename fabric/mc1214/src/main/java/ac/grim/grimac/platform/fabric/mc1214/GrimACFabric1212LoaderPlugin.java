@@ -1,5 +1,8 @@
 package ac.grim.grimac.platform.fabric.mc1214;
 
+import ac.grim.grimac.platform.fabric.mc1214.command.Fabric1212PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
+import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
 import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
@@ -14,6 +17,9 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
     public GrimACFabric1212LoaderPlugin() {
         super(
+                new FabricParserDescriptorFactory(
+                        new FabricPlayerSelectorParser<>(Fabric1212PlayerSelectorAdapter::new)
+                ),
                 new FabricPlatformPlayerFactory(
                         Fabric1212PlatformPlayer::new,
                         Fabric1194GrimEntity::new,
