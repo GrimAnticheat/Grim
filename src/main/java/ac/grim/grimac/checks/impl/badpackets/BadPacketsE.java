@@ -25,7 +25,7 @@ public class BadPacketsE extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
                 event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
             noReminderTicks = 0;
-        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
             noReminderTicks++;
         } else if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE
                 || (isViaPleaseStopUsingProtocolHacksOnYourServer && player.inVehicle())) {

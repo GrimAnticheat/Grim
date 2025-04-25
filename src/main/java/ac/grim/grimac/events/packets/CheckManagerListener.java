@@ -51,6 +51,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -438,6 +439,29 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Teleports must be POS LOOK
             teleportData = flying.hasPositionChanged() && flying.hasRotationChanged() ? player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ()) : new TeleportAcceptData();
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+
+            if (flying.hasRotationChanged() && !flying.hasPositionChanged() && !flying.isOnGround() && !flying.isHorizontalCollision()) {
+                List<RotationData> rotations = new ArrayList<>();
+
+                for (RotationData data : player.pendingRotations) {
+                    rotations.add(data);
+                    if (!data.isAccepted()) {
+                        break;
+                    }
+                }
+
+                // reverse to handle the unaccepted possibility first
+                Collections.reverse(rotations);
+
+                for (RotationData data : rotations) {
+                    if (data.getYaw() == flying.getLocation().getYaw() && data.getPitch() == flying.getLocation().getPitch() && data.getTransaction() == player.getLastTransactionReceived()) {
+                        player.packetStateData.lastPacketWasTeleport = true;
+                        data.accept(); // we could be wrong (especially in vehicles), don't remove this
+                        break;
+                    }
+                }
+            }
+
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
         }
 

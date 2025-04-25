@@ -3,6 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.RotationData;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -12,8 +14,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Location;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
@@ -93,6 +94,27 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
+        }
+
+        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            WrapperPlayServerPlayerRotation packet = new WrapperPlayServerPlayerRotation(event);
+
+            // I don't want to deal with this, so we'll prevent it
+            if (!Float.isFinite(packet.getPitch())) {
+                packet.setPitch(0);
+                event.markForReEncode(true);
+            }
+            if (!Float.isFinite(packet.getYaw())) {
+                packet.setYaw(0);
+                event.markForReEncode(true);
+            }
+
+            player.sendTransaction();
+            player.pendingRotations.add(new RotationData(packet.getYaw(), GrimMath.clamp(packet.getPitch() % 360F, -90F, 90F), player.getLastTransactionSent()));
+            event.getTasksAfterSend().add(player::sendTransaction);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
