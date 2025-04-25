@@ -961,8 +961,4 @@ public class GrimPlayer implements GrimUser {
         }
         return blockStateID;
     }
-
-    public static record Movement(Vector3d from, Vector3d to) {
-    }
-
 }
