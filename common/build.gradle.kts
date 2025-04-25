@@ -10,9 +10,10 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven {
-        name = "grimacSnapshots"
-        url = uri("https://repo.grim.ac/snapshots")
+    maven("https://repo.grim.ac/snapshots") { // Grim API
+        content {
+            includeGroup("ac.grim.grimac")
+        }
     }
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize

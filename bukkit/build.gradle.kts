@@ -14,9 +14,9 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") { // Grim API
+    maven("https://repo.grim.ac/snapshots") { // Grim API
         content {
-            includeGroup("com.github.grimanticheat")
+            includeGroup("ac.grim.grimac")
         }
     }
     maven("https://repo.viaversion.com") // ViaVersion
