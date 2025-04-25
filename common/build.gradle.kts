@@ -10,10 +10,9 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") { // Grim API
-        content {
-            includeGroup("com.github.grimanticheat")
-        }
+    maven {
+        name = "grimacSnapshots"
+        url = uri("https://repo.grim.ac/snapshots")
     }
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
@@ -41,7 +40,7 @@ dependencies {
 
     // Used for local testing:
     // api("ac.grim.grimac:GrimAPI:1.0")
-    api("com.github.grimanticheat:grimapi:9d6a0e6b7f")
+    api("ac.grim.grimac:GrimAPI:any-9d6a0e6b7f")
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)
