@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.anticheat;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.reflection.FloodgateUtil;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -41,8 +40,7 @@ public class PlayerDataManager {
 
         if (user.getUUID() != null) {
             // Geyser players don't have Java movement
-            // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
-            if (GeyserUtil.isGeyserPlayer(user.getUUID()) || FloodgateUtil.isFloodgatePlayer(user.getUUID())) {
+            if (GeyserUtil.isBedrockPlayer(user.getUUID())) {
                 exemptUsers.add(user);
                 return false;
             }
@@ -50,13 +48,6 @@ public class PlayerDataManager {
             // Has exempt permission
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
             if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
-                exemptUsers.add(user);
-                return false;
-            }
-
-            // Geyser formatted player string
-            // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
-            if (user.getUUID().toString().startsWith("00000000-0000-0000-0009")) {
                 exemptUsers.add(user);
                 return false;
             }

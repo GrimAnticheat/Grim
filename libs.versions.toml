@@ -11,6 +11,8 @@ packetevents = "2.8.0-SNAPSHOT"
 fastutil = "8.5.15"
 jetbrains-annotations = "24.1.0"
 floodgate-api = "2.0-SNAPSHOT"
+geyser-api = "2.4.2-SNAPSHOT"
+guava = "33.4.8-jre"
 via-version = "5.0.4-SNAPSHOT"
 netty = "4.1.85.Final"
 fabric-loader = "0.16.10"
@@ -28,6 +30,8 @@ fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 via-version-api = { group = "com.viaversion", name = "viaversion-api", version.ref = "via-version" }
 floodgate-api = { group = "org.geysermc.floodgate", name = "api", version.ref = "floodgate-api"}
+geyser-api = { group = "org.geysermc.geyser", name = "api", version.ref = "geyser-api"}
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-api" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }

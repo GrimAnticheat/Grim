@@ -43,8 +43,10 @@ dependencies {
     api("ac.grim.grimac:GrimAPI:1.1.0.0")
 
     compileOnly(libs.floodgate.api)
+    compileOnly(libs.geyser.api)
     compileOnly(libs.via.version.api)
     compileOnly(libs.netty)
+    compileOnly(libs.guava)
 }
 
 publishing.publications.create<MavenPublication>("maven") {
