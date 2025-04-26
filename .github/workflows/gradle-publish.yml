@@ -70,8 +70,6 @@ jobs:
           # Define scenario specifying the 'no-daemon-cli' invoker
           # and cache arguments at the top level.
           SCENARIO_CONTENT="
-          # Use the command-line invoker, ensuring no daemon is used
-          invoker = \"no-daemon-cli\"
 
           # Arguments to pass to Gradle (caching only, daemon handled by invoker)
           # Use the CORRECT key 'gradle-args' with a HYPHEN
@@ -80,6 +78,7 @@ jobs:
           profile_build_clean { # Changed scenario name for clarity
             tasks = [\"build\"]
             gradle-args = [\"--no-build-cache\", \"--no-configuration-cache\"]
+            invoker = \"no-daemon-cli\"
           }
           "
           echo "$SCENARIO_CONTENT" > profiler.scenario
