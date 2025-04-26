@@ -40,14 +40,27 @@ jobs:
       - name: Install gradle-profiler
         run: |
           echo "Installing Gradle Profiler..."
-          PROFILER_VERSION=0.20.0 # Or latest version from https://github.com/gradle/gradle-profiler/releases
-          # Add --fail to the curl command
-          curl --fail -L -o gradle-profiler.zip "https://github.com/gradle/gradle-profiler/releases/download/v${PROFILER_VERSION}/gradle-profiler-${PROFILER_VERSION}.zip"
-          echo "Unzipping..."
-          unzip -q gradle-profiler.zip # Use -q for quieter unzip
-          echo "Adding profiler to PATH..."
-          echo "$(pwd)/gradle-profiler-${PROFILER_VERSION}/bin" >> $GITHUB_PATH
-          echo "Gradle Profiler installed."
+          # --- Updated Version ---
+          PROFILER_VERSION="0.22.0"
+          # --- Filename from the provided URL ---
+          PROFILER_FILENAME="gradle-profiler-${PROFILER_VERSION}.zip"
+          # --- Expected directory name after unzipping ---
+          PROFILER_DIR="gradle-profiler-${PROFILER_VERSION}"
+          # --- Direct Maven Central URL ---
+          PROFILER_URL="https://repo1.maven.org/maven2/org/gradle/profiler/gradle-profiler/${PROFILER_VERSION}/${PROFILER_FILENAME}"
+          
+          echo "Downloading ${PROFILER_FILENAME} from ${PROFILER_URL}..."
+          # Use --fail -L for robustness and following redirects
+          curl --fail -L -o "${PROFILER_FILENAME}" "${PROFILER_URL}"
+          
+          echo "Unzipping ${PROFILER_FILENAME}..."
+          # Use -q for quieter unzip
+          unzip -q "${PROFILER_FILENAME}"
+          
+          echo "Adding profiler (${PROFILER_DIR}/bin) to PATH..."
+          echo "$(pwd)/${PROFILER_DIR}/bin" >> $GITHUB_PATH
+          
+          echo "Gradle Profiler ${PROFILER_VERSION} installed."
 
       - name: Benchmark Build with Gradle Profiler
         run: |
