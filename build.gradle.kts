@@ -34,7 +34,9 @@ tasks.register("printVersion") {
 }
 
 // ---------- Java Compile Optimization ----------
-tasks.withType<JavaCompile>().configureEach {
-    options.isFork = true
-    options.isIncremental = true
+subprojects {
+    tasks.withType<JavaCompile>().configureEach {
+        options.isFork = true
+        options.isIncremental = true
+    }
 }
