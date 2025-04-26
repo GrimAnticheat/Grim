@@ -62,34 +62,31 @@ jobs:
           
           echo "Gradle Profiler ${PROFILER_VERSION} installed."
 
-      - name: Benchmark Build with Gradle Profiler
+      - name: Profile Build with Gradle Profiler (Build Scan)
         run: |
-          echo "Running Gradle Profiler Benchmark..."
+          echo "Running Gradle Profiler with Build Scan..."
           
           # Define ONLY the scenario structure in the file
           SCENARIO_CONTENT="
-          benchmark_full_build {
-          # Use regular quotes, escaping shouldn't be needed when echo'ing
+          profile_build { # Renamed scenario for clarity
           tasks = [\"build\"]
           }
           "
-          # Write the scenario definition to a temporary file
           echo "$SCENARIO_CONTENT" > profiler.scenario
-          echo "Scenario file created:"
-          cat profiler.scenario # Optional: print the file content for debugging
+          cat profiler.scenario
           
-          # Run profiler passing warmups/iterations as command-line args
-          # Use --scenario-file to point to the tasks definition
+          # Run profiler using --profile buildscan
+          # --warmups and --iterations are less relevant here, often set to 1
           gradle-profiler \
-          --benchmark \
-          --warmups 2 \
-          --iterations 3 \
+          --profile buildscan \
+          --warmups 1 \
+          --iterations 1 \
           --project-dir . \
           --scenario-file profiler.scenario
           
-          echo "Gradle Profiler finished."
-          # Optional: remove the temporary file
-          # rm profiler.scenario
+          echo "Gradle Profiler finished. Build scan link should be in the log output above."
+          # Note: The profiler output file (profile-out) might not be as useful in this mode
+          # The primary artifact is the build scan URL printed to the console log.
 
       - name: Upload Profiler Benchmark Reports
         uses: actions/upload-artifact@v4
