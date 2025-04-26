@@ -66,24 +66,26 @@ jobs:
         run: |
           echo "Running Gradle Profiler Benchmark..."
           
-          # Define the scenario content with warmups/iterations OUTSIDE the named block
+          # Define ONLY the scenario structure in the file
           SCENARIO_CONTENT="
-          # Benchmark settings (apply globally to scenarios in this file)
-          warmups = 2
-          iterations = 3
-          
-          # Scenario definition (what to run)
           benchmark_full_build {
-          tasks = [\"build\"] # Note escaped quotes
+          # Use regular quotes, escaping shouldn't be needed when echo'ing
+          tasks = [\"build\"]
           }
           "
-          # Write the scenario to a temporary file
+          # Write the scenario definition to a temporary file
           echo "$SCENARIO_CONTENT" > profiler.scenario
           echo "Scenario file created:"
           cat profiler.scenario # Optional: print the file content for debugging
           
-          # Run profiler using the temporary file
-          gradle-profiler --benchmark --project-dir . --scenario-file profiler.scenario
+          # Run profiler passing warmups/iterations as command-line args
+          # Use --scenario-file to point to the tasks definition
+          gradle-profiler \
+          --benchmark \
+          --warmups 2 \
+          --iterations 3 \
+          --project-dir . \
+          --scenario-file profiler.scenario
           
           echo "Gradle Profiler finished."
           # Optional: remove the temporary file
