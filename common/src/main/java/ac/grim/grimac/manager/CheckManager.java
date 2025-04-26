@@ -20,6 +20,8 @@ import ac.grim.grimac.checks.impl.elytra.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFall;
+import ac.grim.grimac.checks.impl.inventory.*;
+import ac.grim.grimac.checks.impl.inventory.InventoryD;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.Post;
@@ -116,6 +118,11 @@ public class CheckManager {
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
+                .put(InventoryA.class, new InventoryA(player))
+                .put(InventoryB.class, new InventoryB(player))
+                .put(InventoryE.class, new InventoryE(player))
+                .put(InventoryF.class, new InventoryF(player))
+                .put(InventoryG.class, new InventoryG(player))
                 .put(MultiActionsA.class, new MultiActionsA(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
@@ -194,6 +201,7 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
+                .put(InventoryD.class, new InventoryD(player))
                 .put(Phase.class, new Phase(player))
                 .put(Post.class, new Post(player))
                 .put(GroundSpoof.class, new GroundSpoof(player))
@@ -208,6 +216,7 @@ public class CheckManager {
                 .build();
 
         blockPlaceChecks = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
+                .put(InventoryC.class, new InventoryC(player))
                 .put(InvalidPlaceA.class, new InvalidPlaceA(player))
                 .put(InvalidPlaceB.class, new InvalidPlaceB(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
