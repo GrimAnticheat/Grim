@@ -66,12 +66,15 @@ jobs:
         run: |
           echo "Running Gradle Profiler Benchmark..."
           
-          # Define the scenario content
+          # Define the scenario content with warmups/iterations OUTSIDE the named block
           SCENARIO_CONTENT="
+          # Benchmark settings (apply globally to scenarios in this file)
+          warmups = 2
+          iterations = 3
+          
+          # Scenario definition (what to run)
           benchmark_full_build {
-          warmups = 2      # Number of runs before measurement starts
-          iterations = 3   # Number of measured runs
-          tasks = [\"build\"] # Tasks to benchmark (escape quotes inside string)
+          tasks = [\"build\"] # Note escaped quotes
           }
           "
           # Write the scenario to a temporary file
