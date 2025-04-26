@@ -62,32 +62,40 @@ jobs:
           
           echo "Gradle Profiler ${PROFILER_VERSION} installed."
 
-      - name: Profile Build with Gradle Profiler (Build Scan)
+      # --- MODIFIED PROFILER STEP ---
+      - name: Profile Build with Gradle Profiler (Build Scan for Slow Run using CLI) # Updated step name
         run: |
-          echo "Running Gradle Profiler with Build Scan..."
-          
-          # Define ONLY the scenario structure in the file
+          echo "Running Gradle Profiler with Build Scan, forcing clean conditions via CLI invoker..."
+
+          # Define scenario specifying the 'no-daemon-cli' invoker
+          # and cache arguments at the top level.
           SCENARIO_CONTENT="
-          profile_build { # Renamed scenario for clarity
+          # Use the command-line invoker, ensuring no daemon is used
+          invoker = \"no-daemon-cli\"
+
+          # Arguments to pass to Gradle (caching only, daemon handled by invoker)
+          # Use the CORRECT key 'gradle-args' with a HYPHEN
+
+          # Scenario definition (what to run)
+          profile_build_clean { # Changed scenario name for clarity
             tasks = [\"build\"]
-            gradle-args = [\"--no-daemon\", \"--no-build-cache\", \"--no-configuration-cache\"]
+            gradle-args = [\"--no-build-cache\", \"--no-configuration-cache\"]
           }
           "
           echo "$SCENARIO_CONTENT" > profiler.scenario
+          echo "Scenario file created:"
           cat profiler.scenario
-          
-          # Run profiler using --profile buildscan
-          # --warmups and --iterations are less relevant here, often set to 1
+
+          # Run profiler - it will now use the specified invoker and args
           gradle-profiler \
-          --profile buildscan \
-          --warmups 1 \
-          --iterations 1 \
-          --project-dir . \
-          --scenario-file profiler.scenario
-          
-          echo "Gradle Profiler finished. Build scan link should be in the log output above."
-          # Note: The profiler output file (profile-out) might not be as useful in this mode
-          # The primary artifact is the build scan URL printed to the console log.
+            --profile buildscan \
+            --warmups 1 \
+            --iterations 1 \
+            --project-dir . \
+            --scenario-file profiler.scenario
+
+          echo "Gradle Profiler finished. Build scan link for the 'clean' run should be in the log."
+      # --- END MODIFIED PROFILER STEP ---
 
       - name: Upload Profiler Benchmark Reports
         uses: actions/upload-artifact@v4
