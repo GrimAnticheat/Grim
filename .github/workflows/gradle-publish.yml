@@ -41,7 +41,9 @@ jobs:
         run: |
           echo "Installing Gradle Profiler..."
           PROFILER_VERSION=0.20.0 # Or latest version from https://github.com/gradle/gradle-profiler/releases
-          curl -L -o gradle-profiler.zip "https://github.com/gradle/gradle-profiler/releases/download/v${PROFILER_VERSION}/gradle-profiler-${PROFILER_VERSION}.zip"
+          # Add --fail to the curl command
+          curl --fail -L -o gradle-profiler.zip "https://github.com/gradle/gradle-profiler/releases/download/v${PROFILER_VERSION}/gradle-profiler-${PROFILER_VERSION}.zip"
+          echo "Unzipping..."
           unzip -q gradle-profiler.zip # Use -q for quieter unzip
           echo "Adding profiler to PATH..."
           echo "$(pwd)/gradle-profiler-${PROFILER_VERSION}/bin" >> $GITHUB_PATH
