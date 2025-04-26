@@ -64,12 +64,13 @@ jobs:
 
       - name: Profile Build with Gradle Profiler (Build Scan for Slow Run)
         run: |
-          echo "Running Gradle Profiler with Build Scan, forcing clean conditions via top-level gradle_args..."
+          echo "Running Gradle Profiler with Build Scan, forcing clean conditions via top-level gradle-args..." # Note hyphen in message now
 
-          # Define scenario with gradle_args OUTSIDE the named block
+          # Define scenario with CORRECT gradle-args key (hyphen)
           SCENARIO_CONTENT="
           # Arguments to pass to Gradle for all scenarios in this file
-          gradle_args = [\"--no-daemon\", \"--no-build-cache\", \"--no-configuration-cache\"]
+          # Use the CORRECT key 'gradle-args' with a HYPHEN
+          gradle-args = [\"--no-daemon\", \"--no-build-cache\", \"--no-configuration-cache\"]
 
           # Scenario definition (what to run)
           profile_build_clean {
@@ -80,7 +81,7 @@ jobs:
           echo "Scenario file created:"
           cat profiler.scenario
 
-          # Run profiler - it should pick up the top-level gradle_args
+          # Run profiler - it should pick up the top-level gradle-args
           gradle-profiler \
             --profile buildscan \
             --warmups 1 \
