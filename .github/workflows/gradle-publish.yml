@@ -65,17 +65,26 @@ jobs:
       - name: Benchmark Build with Gradle Profiler
         run: |
           echo "Running Gradle Profiler Benchmark..."
-          # This benchmarks the './gradlew build' command
-          gradle-profiler --benchmark --project-dir . --scenario-file - <<EOF
+          
+          # Define the scenario content
+          SCENARIO_CONTENT="
           benchmark_full_build {
-            # --- Reduce runs for quicker CI feedback ---
-            warmups = 2      # Number of runs before measurement starts
-            iterations = 3   # Number of measured runs
-            # --- Task to benchmark (matches your main build command) ---
-            tasks = ["build"]
+          warmups = 2      # Number of runs before measurement starts
+          iterations = 3   # Number of measured runs
+          tasks = [\"build\"] # Tasks to benchmark (escape quotes inside string)
           }
-          EOF
+          "
+          # Write the scenario to a temporary file
+          echo "$SCENARIO_CONTENT" > profiler.scenario
+          echo "Scenario file created:"
+          cat profiler.scenario # Optional: print the file content for debugging
+          
+          # Run profiler using the temporary file
+          gradle-profiler --benchmark --project-dir . --scenario-file profiler.scenario
+          
           echo "Gradle Profiler finished."
+          # Optional: remove the temporary file
+          # rm profiler.scenario
 
       - name: Upload Profiler Benchmark Reports
         uses: actions/upload-artifact@v4
