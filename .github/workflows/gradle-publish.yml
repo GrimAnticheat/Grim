@@ -30,6 +30,19 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
 
+    - name: Cache Gradle Loom Cache
+      uses: actions/cache@v4
+      with:
+        # Path relative to the workspace root. Assumes your project root IS the workspace root.
+        path: .gradle/loom-cache
+        # Key generation: Includes OS and hashes of files likely to affect Loom dependencies/setup
+        # Adjust hashFiles paths as needed (e.g., if your version catalog is elsewhere)
+        key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
+        # Restore key: If the exact hash doesn't match, try restoring a cache for the same OS
+        # This helps if only minor, unrelated script changes occurred.
+        restore-keys: |
+          loom-cache-${{ runner.os }}-
+
     - name: Build with Gradle
       run: ./gradlew build
 
