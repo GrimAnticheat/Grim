@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.inventory.InventoryB;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -563,6 +564,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
             final DiggingAction action = packet.getAction();
+
+            player.checkManager.getPacketCheck(InventoryB.class).handle(event, packet);
 
             if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
                 final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace(), packet.getBlockFaceId(), action, player.compensatedWorld.getBlock(packet.getBlockPosition()));

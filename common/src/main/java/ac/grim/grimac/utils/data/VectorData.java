@@ -6,13 +6,38 @@ import lombok.Getter;
 import java.util.Objects;
 
 public class VectorData {
+    public static final class MoveVectorData extends VectorData {
+        public int x;
+        public int z;
+
+        public MoveVectorData(Vector3dm vector, VectorData lastVector, VectorType vectorType, int x, int z) {
+            super(vector, lastVector, vectorType);
+            this.x = x;
+            this.z = z;
+
+            if (x != 0 || z != 0) {
+                addVectorType(VectorType.WithInput);
+            }
+        }
+
+        public MoveVectorData(Vector3dm vector, VectorType vectorType, int x, int z) {
+            super(vector, vectorType);
+            this.x = x;
+            this.z = z;
+
+            if (x != 0 || z != 0) {
+                addVectorType(VectorType.WithInput);
+            }
+        }
+    }
+
     public VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector3dm vector;
 
     @Getter
-    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
+    private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false, isWithInput = false;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector3dm vector, VectorData lastVector, VectorType vectorType) {
@@ -33,6 +58,7 @@ public class VectorData {
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
+            isWithInput = lastVector.isWithInput;
         }
 
         addVectorType(vectorType);
@@ -78,6 +104,7 @@ public class VectorData {
             case Flip_Use_Item -> isFlipItem = true;
             case Jump -> isJump = true;
             case AttackSlow -> isAttackSlow = true;
+            case WithInput -> isWithInput = true;
         }
     }
 
@@ -104,6 +131,7 @@ public class VectorData {
         Explosion,
         FirstBreadExplosion,
         InputResult,
+        WithInput,
         StuckMultiplier,
         Spectator,
         Dead,

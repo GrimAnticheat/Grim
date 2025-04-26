@@ -34,6 +34,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.inventory.InventoryDesyncStatus;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
@@ -240,6 +241,9 @@ public class GrimPlayer implements GrimUser {
     // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public final double[][] possibleEyeHeights = new double[3][];
     public int totalFlyingPacketsSent;
+    public boolean hasInventoryOpen;
+    public long lastInventoryOpen;
+    public InventoryDesyncStatus inventoryDesyncStatus;
     public final Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();

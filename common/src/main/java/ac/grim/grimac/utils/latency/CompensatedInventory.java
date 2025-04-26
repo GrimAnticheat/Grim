@@ -48,7 +48,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     public boolean isPacketInventoryActive = true;
     public boolean needResend = false;
     public int stateID = 0; // Don't mess up the last sent state ID by changing it
-    int openWindowID = 0;
+    public int openWindowID = 0;
     // Special values:
     // Player inventory is -1
     // Unsupported inventory is -2

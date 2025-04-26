@@ -479,52 +479,63 @@ public class PredictionEngine {
         // Order priority (to avoid false positives and false flagging future predictions):
         // Knockback and explosions
         // 0.03 ticks
+        // Movement without input
         // Normal movement
         // First bread knockback and explosions
         // Flagging groundspoof
         // Flagging flip items
         if (a.isExplosion())
-            aScore -= 5;
+            aScore -= 10;
 
         if (a.isKnockback())
-            aScore -= 5;
+            aScore -= 10;
 
         if (b.isExplosion())
-            bScore -= 5;
+            bScore -= 10;
 
         if (b.isKnockback())
-            bScore -= 5;
+            bScore -= 10;
 
         if (a.isFirstBreadExplosion())
-            aScore += 1;
+            aScore += 2;
 
         if (b.isFirstBreadExplosion())
-            bScore += 1;
+            bScore += 2;
 
         if (a.isFirstBreadKb())
-            aScore += 1;
+            aScore += 2;
 
         if (b.isFirstBreadKb())
-            bScore += 1;
+            bScore += 2;
 
         if (a.isFlipItem())
-            aScore += 3;
+            aScore += 6;
 
         if (b.isFlipItem())
-            bScore += 3;
+            bScore += 6;
 
         if (a.isZeroPointZeroThree())
-            aScore -= 1;
+            aScore -= 2;
 
         if (b.isZeroPointZeroThree())
+            bScore -= 2;
+
+        if (a.isWithInput() || a.isJump())
+            aScore += 1;
+        else
+            aScore -= 1;
+
+        if (b.isWithInput() || b.isJump())
+            bScore += 1;
+        else
             bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
         if ((player.inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
-            aScore += 2;
+            aScore += 4;
 
         if ((player.inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
-            bScore += 2;
+            bScore += 4;
 
         if (aScore != bScore)
             return Integer.compare(aScore, bScore);
@@ -812,9 +823,9 @@ public class PredictionEngine {
                         continue;
                     for (int strafe = strafeMin; strafe <= strafeMax; strafe++) {
                         for (int forward = forwardMin; forward <= forwardMax; forward++) {
-                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone()
+                            VectorData result = new VectorData.MoveVectorData(possibleLastTickOutput.vector.clone()
                                     .add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector3dm(strafe, 0, forward)), speed, player.xRot)),
-                                    possibleLastTickOutput, VectorData.VectorType.InputResult);
+                                    possibleLastTickOutput, VectorData.VectorType.InputResult, forward, strafe);
                             result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                             result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                             // Signal that we need to flip sneaking bounding box
