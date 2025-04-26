@@ -78,7 +78,6 @@ jobs:
           profile_build_clean { # Changed scenario name for clarity
             tasks = [\"build\"]
             gradle-args = [\"--no-build-cache\", \"--no-configuration-cache\"]
-            invoker = \"no-daemon-cli\"
           }
           "
           echo "$SCENARIO_CONTENT" > profiler.scenario
