@@ -2,8 +2,6 @@
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support
 # documentation.
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
 
 name: Gradle Package
 
@@ -17,44 +15,78 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          # server-id/settings-path are only needed for publishing to Maven repos like GH Packages
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4 # Handles Gradle wrapper validation and basic caching
 
-    - name: Cache Gradle Loom Cache
-      uses: actions/cache@v4
-      with:
-        # Path relative to the workspace root. Assumes your project root IS the workspace root.
-        path: .gradle/loom-cache
-        # Key generation: Includes OS and hashes of files likely to affect Loom dependencies/setup
-        # Adjust hashFiles paths as needed (e.g., if your version catalog is elsewhere)
-        key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
-        # Restore key: If the exact hash doesn't match, try restoring a cache for the same OS
-        # This helps if only minor, unrelated script changes occurred.
-        restore-keys: |
-          loom-cache-${{ runner.os }}-
+      - name: Cache Gradle Loom Cache
+        uses: actions/cache@v4
+        with:
+          path: .gradle/loom-cache # Path to Loom cache relative to workspace root
+          key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
+          restore-keys: |
+            loom-cache-${{ runner.os }}-
 
-    - name: Build with Gradle
-      run: ./gradlew build
+      # --- Profiling Section ---
+      - name: Install gradle-profiler
+        run: |
+          echo "Installing Gradle Profiler..."
+          PROFILER_VERSION=0.20.0 # Or latest version from https://github.com/gradle/gradle-profiler/releases
+          curl -L -o gradle-profiler.zip "https://github.com/gradle/gradle-profiler/releases/download/v${PROFILER_VERSION}/gradle-profiler-${PROFILER_VERSION}.zip"
+          unzip -q gradle-profiler.zip # Use -q for quieter unzip
+          echo "Adding profiler to PATH..."
+          echo "$(pwd)/gradle-profiler-${PROFILER_VERSION}/bin" >> $GITHUB_PATH
+          echo "Gradle Profiler installed."
 
-    - name: Upload Bukkit Artifact
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Benchmark Build with Gradle Profiler
+        run: |
+          echo "Running Gradle Profiler Benchmark..."
+          # This benchmarks the './gradlew build' command
+          gradle-profiler --benchmark --project-dir . --scenario-file - <<EOF
+          benchmark_full_build {
+            # --- Reduce runs for quicker CI feedback ---
+            warmups = 2      # Number of runs before measurement starts
+            iterations = 3   # Number of measured runs
+            # --- Task to benchmark (matches your main build command) ---
+            tasks = ["build"]
+          }
+          EOF
+          echo "Gradle Profiler finished."
+
+      - name: Upload Profiler Benchmark Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-profiler-benchmark-report # Artifact name in GitHub Actions UI
+          path: profile-out/ # Directory created by gradle-profiler
+          if-no-files-found: error # Fail if reports weren't generated
+      # --- End Profiling Section ---
+
+      - name: Build with Gradle (Actual Build for Artifacts)
+        # This step runs after profiling to ensure artifacts are generated if needed
+        # It might benefit from caches populated during profiling runs
+        run: ./gradlew build
+
+      - name: Upload Bukkit Artifact
+        uses: actions/upload-artifact@v4
+        with:
           name: grimac-bukkit
+          # Adding if-no-files-found for robustness
           path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
+          if-no-files-found: error
 
-    - name: Upload Fabric Artifact
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Upload Fabric Artifact
+        uses: actions/upload-artifact@v4
+        with:
           name: grimac-fabric
+          # Adding if-no-files-found for robustness
           path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
-
+          if-no-files-found: error
