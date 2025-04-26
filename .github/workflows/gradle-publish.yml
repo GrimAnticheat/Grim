@@ -62,32 +62,32 @@ jobs:
           
           echo "Gradle Profiler ${PROFILER_VERSION} installed."
 
-      - name: Profile Build with Gradle Profiler (Build Scan for Slow Run) # Reverted step name
+      - name: Profile Build with Gradle Profiler (Build Scan for Slow Run)
         run: |
-          echo "Running Gradle Profiler with Build Scan, forcing clean conditions via gradle_args..."
-          
-          # Define scenario including flags to pass to Gradle
+          echo "Running Gradle Profiler with Build Scan, forcing clean conditions via top-level gradle_args..."
+
+          # Define scenario with gradle_args OUTSIDE the named block
           SCENARIO_CONTENT="
-          profile_build_clean { # Scenario name
+          # Arguments to pass to Gradle for all scenarios in this file
+          gradle_args = [\"--no-daemon\", \"--no-build-cache\", \"--no-configuration-cache\"]
+
+          # Scenario definition (what to run)
+          profile_build_clean {
             tasks = [\"build\"]
-            # --- Add these arguments to pass to the Gradle command ---
-            # These ensure the profiled run ignores caches
-            gradle_args = [\"--no-daemon\", \"--no-build-cache\", \"--no-configuration-cache\"]
           }
           "
           echo "$SCENARIO_CONTENT" > profiler.scenario
           echo "Scenario file created:"
           cat profiler.scenario
-          
-          # Run profiler - REQUIRES at least 1 warmup.
-          # It will use the gradle_args from the scenario file for the iteration(s)
+
+          # Run profiler - it should pick up the top-level gradle_args
           gradle-profiler \
             --profile buildscan \
             --warmups 1 \
             --iterations 1 \
             --project-dir . \
             --scenario-file profiler.scenario
-          
+
           echo "Gradle Profiler finished. Build scan link for the 'clean' run should be in the log."
 
       - name: Upload Profiler Benchmark Reports
