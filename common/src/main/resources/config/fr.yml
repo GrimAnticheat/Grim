@@ -142,6 +142,10 @@ TimerVehicle:
     # Cibler un chronomètre de 1,005.
     setbackvl: 10
 
+PacketOrderI:
+    # Activer si les joueurs sont signalés pour l'utilisation de mods d'animation 1.7
+    exempt-placing-while-digging: false
+
 Reach:
     # De combien devrions-nous agrandir les hitboxes ? Une augmentation de 0,0005 devrait détecter une portée de 3,0005 ou plus.
     #

@@ -401,7 +401,8 @@ public class PredictionEngine {
     }
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
-        if (!player.inVehicle()) return;
+        // For some reason on 1.21.5+ this no longer applies
+        if (!player.inVehicle() || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) return;
 
         for (VectorData vectorData : data) {
             vectorData.vector = vectorData.vector.clone().multiply(0.98);

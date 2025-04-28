@@ -1,38 +1,79 @@
 package versioning
 
+import org.gradle.api.Project
+
 /**
- * BuildConfig provides access to user-defined build flags that control how a GrimAC
- * build is assembled. These flags are set via Gradle project properties or environment variables.
+ * BuildConfig provides access to user-defined build flags that control how a Grim
+ * build is assembled. These flags are resolved once at configuration time using
+ * [init], and are then exposed as fast, memoized values.
  *
- * You can use these flags to enable/disable features like shading, relocation, or release mode.
+ * Flags can be defined in three ways:
  *
- * Usage (command line):
+ *   ① JVM system properties  (-Dflag=value)
+ *   ② Gradle project properties  (-Pflag=value or in gradle.properties)
+ *   ③ Environment variables  (FLAG=value)
+ *
+ * You can use these to enable/disable features like shading, relocation, or release mode.
+ *
+ * Examples:
+ *
+ * Using Gradle -P properties:
  * ```
  * ./gradlew build -PshadePE=true -Prelocate=false -Prelease=true
  * ```
  *
- * Or using environment variables:
+ * Using environment variables:
  * ```
  * SHADE_PE=true RELOCATE_JAR=false RELEASE=true ./gradlew build
  * ```
  *
- * @property shadePE If true, shades PacketEvents into the jar. Default: true.
+ * Using JVM system properties:
+ * ```
+ * ./gradlew build -DshadePE=true -Drelease=true
+ * ```
+ *
+ * @property shadePE  If true, shades PacketEvents into the jar. Default: true.
  * @property relocate If true, relocates shaded dependencies to avoid conflicts. Default: true.
- * @property release If true, omits commit hash and modifiers from version string. Default: false.
+ * @property release  If true, omits commit hash and modifiers from version string. Default: false.
  */
 object BuildConfig {
-    val shadePE: Boolean
-        get() = System.getProperty("shadePE")?.toBoolean()
-            ?: System.getenv("SHADE_PE")?.toBoolean()
-            ?: true
 
-    val relocate: Boolean
-        get() = System.getProperty("relocate")?.toBoolean()
-            ?: System.getenv("RELOCATE_JAR")?.toBoolean()
-            ?: true
+    /**
+     * Must be called once from your root build script to initialize the flags.
+     * Example (in build.gradle.kts):
+     * ```
+     * BuildConfig.init(project)
+     * ```
+     */
+    fun init(project: Project) {
+        _shadePE = resolveBool(project, "shadePE", default = true)
+        _relocate = resolveBool(project, "relocate", default = true)
+        _release = resolveBool(project, "release", default = false)
+    }
 
-    val release: Boolean
-        get() = System.getProperty("release")?.toBoolean()
-            ?: System.getenv("RELEASE")?.toBoolean()
-            ?: false
+    // Unified resolution logic (System > Gradle > Env)
+    private fun resolveRaw(project: Project, key: String): String? =
+        System.getProperty(key)                       // ① JVM   (-Dkey=value)
+            ?: project.findProperty(key)?.toString()  // ② Gradle (-Pkey=value or gradle.properties)
+            ?: System.getenv(key.uppercase())         // ③ ENV   (KEY=value)
+
+    private fun resolveBool(project: Project, key: String, default: Boolean): Boolean =
+        resolveRaw(project, key)?.toBooleanStrictOrNull() ?: default
+
+    // Private backing vars (nullable because we can't use lateinit with primitives)
+    private var _shadePE: Boolean? = null
+    private var _relocate: Boolean? = null
+    private var _release: Boolean? = null
+
+    /** If true, shades PacketEvents into the jar. Default: true. */
+    val shadePE: Boolean get() = _shadePE
+        ?: error("BuildConfig.shadePE accessed before init() was called")
+
+    /** If true, relocates shaded dependencies to avoid conflicts. Default: true. */
+    val relocate: Boolean get() = _relocate
+        ?: error("BuildConfig.relocate accessed before init() was called")
+
+    /** If true, omits commit hash and modifiers from version string. Default: false. */
+    val release: Boolean get() = _release
+        ?: error("BuildConfig.release accessed before init() was called")
 }

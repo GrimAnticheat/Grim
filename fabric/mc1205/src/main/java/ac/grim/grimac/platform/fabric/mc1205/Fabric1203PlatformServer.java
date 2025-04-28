@@ -10,7 +10,7 @@ public class Fabric1203PlatformServer extends Fabric1190PlatformServer {
     // TODO (Cross-platform) implement proper bukkit equivalent for getting TPS over time
     @Override
     public double getTPS() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getAverageTickTime();
+        return Math.min(1000.0 / GrimACFabricLoaderPlugin.FABRIC_SERVER.getAverageTickTime(), GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickManager().getTickRate());
     }
 
     // Return type changed from int -> void in 1.20.3

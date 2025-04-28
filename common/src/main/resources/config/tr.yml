@@ -141,6 +141,10 @@ TimerVehicle:
     # Hedef 1.005 timer
     setbackvl: 10
 
+PacketOrderI:
+    # Oyuncular 1.7 animasyon modlarını kullandıkları için işaretleniyorsa etkinleştirin
+    exempt-placing-while-digging: false
+
 Reach:
     # Hitbox'ları ne kadar genişletmeliyiz? 0.0005, 3.0005+ menzili tespit etmelidir
     #

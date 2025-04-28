@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -100,8 +101,8 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public GrimEntity getVehicle() {
-        return new BukkitGrimEntity(bukkitPlayer.getVehicle());
+    public @Nullable GrimEntity getVehicle() {
+        return bukkitPlayer.getVehicle() == null ? null : new BukkitGrimEntity(bukkitPlayer.getVehicle());
     }
 
     @Override

@@ -18,6 +18,9 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
         registerPermission("grim.alerts.enable-on-join", PermissionDefaultValue.FALSE);
         registerPermission("grim.verbose.enable-on-join", PermissionDefaultValue.FALSE);
         registerPermission("grim.brand.enable-on-join", PermissionDefaultValue.FALSE);
+        registerPermission("grim.alerts.enable-on-join.silent", PermissionDefaultValue.FALSE);
+        registerPermission("grim.verbose.enable-on-join.silent", PermissionDefaultValue.FALSE);
+        registerPermission("grim.brand.enable-on-join.silent", PermissionDefaultValue.FALSE);
     }
 
     @Override

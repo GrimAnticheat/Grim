@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -15,6 +14,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import github.scarsz.configuralize.DynamicConfig;
+import net.kyori.adventure.text.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -67,7 +67,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
     }
 
     public static boolean canReceiveAlerts() {
-        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false) && !GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts().isEmpty();
+        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false) && GrimAPI.INSTANCE.getAlertManager().hasAlertListeners();
     }
 
     // TODO (Cross-Platform) check if new getBooleanFromFile impl is correct
@@ -110,8 +110,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
             exception.printStackTrace();
             return;
         }
-
-        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts())
-            platformPlayer.sendMessage(MessageUtil.miniMessage(alert));
+        Component message = MessageUtil.miniMessage(alert);
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
     }
 }

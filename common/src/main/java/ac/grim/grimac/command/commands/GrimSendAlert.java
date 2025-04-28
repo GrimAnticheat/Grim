@@ -2,9 +2,7 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -26,19 +24,8 @@ public class GrimSendAlert implements BuildableCommand {
 
     private void handleSendAlert(@NonNull CommandContext<Sender> context) {
         String string = context.get("message");
-        sendAlert(string);
-    }
-
-    public static void sendAlert(String string) {
         string = MessageUtil.replacePlaceholders((Sender) null, string);
         Component message = MessageUtil.miniMessage(string);
-
-        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
-            platformPlayer.sendMessage(message);
-        }
-
-        if (GrimAPI.INSTANCE.getConfigManager().isPrintAlertsToConsole()) {
-            LogUtil.console(message);
-        }
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
     }
 }

@@ -130,6 +130,10 @@ TimerVehicle:
     # Livello di violazione per il timer dei veicoli
     setbackvl: 10
 
+PacketOrderI:
+    # Abilitare se i giocatori vengono segnalati per l'uso di mod di animazione 1.7
+    exempt-placing-while-digging: false
+
 Reach:
     # Limite per rilevare un attacco oltre la distanza massima
     threshold: 0.0005

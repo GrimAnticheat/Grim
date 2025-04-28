@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1194.entity;
 
-import ac.grim.grimac.platform.fabric.mc1170.entity.Fabric1170GrimEntity;
+import ac.grim.grimac.platform.fabric.mc1171.entity.Fabric1170GrimEntity;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;

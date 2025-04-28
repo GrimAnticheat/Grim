@@ -6,13 +6,13 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.command.commands.GrimSendAlert;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,6 @@ public class PunishmentManager implements ConfigReloadable {
     String experimentalSymbol = "*";
     private String alertString;
     private boolean testMode;
-    private boolean printToConsole;
     private String proxyAlertString = "";
 
     public PunishmentManager(GrimPlayer player) {
@@ -40,7 +39,6 @@ public class PunishmentManager implements ConfigReloadable {
         experimentalSymbol = config.getStringElse("experimental-symbol", "*");
         alertString = config.getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         testMode = config.getBooleanElse("test-mode", false);
-        printToConsole = config.getBooleanElse("verbose.print-to-console", false);
         proxyAlertString = config.getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         try {
             groups.clear();
@@ -101,16 +99,15 @@ public class PunishmentManager implements ConfigReloadable {
         }
     }
 
-    private String replaceAlertPlaceholders(String original, int vl, Check check, String alertString, String verbose) {
+    private String replaceAlertPlaceholders(String original, int vl, Check check, String verbose) {
         return MessageUtil.replacePlaceholders(player, original
                 .replace("[alert]", alertString)
-                .replace("[proxy]", alertString)
+                .replace("[proxy]", proxyAlertString)
                 .replace("%check_name%", check.getDisplayName())
                 .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", Integer.toString(vl))
-                .replace("%verbose%", verbose)
                 .replace("%description%", check.getDescription())
-        );
+        ).replace("%verbose%", MiniMessage.miniMessage().escapeTags(verbose));
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
@@ -122,18 +119,13 @@ public class PunishmentManager implements ConfigReloadable {
                 final int vl = getViolations(group, check);
                 final int violationCount = group.violations.size();
                 for (ParsedCommand command : group.commands) {
-                    String cmd = replaceAlertPlaceholders(command.command, vl, check, alertString, verbose);
+                    String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
 
                     // Verbose that prints all flags
-                    if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
+                    if (GrimAPI.INSTANCE.getAlertManager().hasVerboseListeners() && command.command.equals("[alert]")) {
                         sentDebug = true;
                         Component component = MessageUtil.miniMessage(cmd);
-                        for (PlatformPlayer platformPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
-                            platformPlayer.sendMessage(component);
-                        }
-                        if (printToConsole) {
-                            LogUtil.console(component); // Print verbose to console
-                        }
+                        GrimAPI.INSTANCE.getAlertManager().sendVerbose(component);
                     }
 
                     if (violationCount >= command.threshold) {
@@ -147,23 +139,22 @@ public class PunishmentManager implements ConfigReloadable {
 
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
-                                case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, check, proxyAlertString, verbose));
+                                case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
                                     sentDebug = true;
-                                    if (testMode) { // secret test mode // Why does this exist? -Axionize
-                                        player.user.sendMessage(MessageUtil.miniMessage(cmd));
-                                        continue;
+                                    Component message = MessageUtil.miniMessage(cmd);
+                                    if (testMode) { // secret test mode
+                                        player.user.sendMessage(message);
+                                    } else {
+                                        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
                                     }
-                                    GrimSendAlert.sendAlert(cmd);
                                 }
-                                default -> {
-                                    GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->
-                                            GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(
-                                                    GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(),
-                                                    cmd
-                                            )
-                                    );
-                                }
+                                default -> GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->
+                                        GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(
+                                                GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(),
+                                                cmd
+                                        )
+                                );
                             }
                         }
 
@@ -197,28 +188,18 @@ public class PunishmentManager implements ConfigReloadable {
     }
 }
 
+@RequiredArgsConstructor
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
     public final Map<Long, Check> violations = new HashMap<>();
     public final int removeViolationsAfter;
-
-    public PunishGroup(List<AbstractCheck> checks, List<ParsedCommand> commands, int removeViolationsAfter) {
-        this.checks = checks;
-        this.commands = commands;
-        this.removeViolationsAfter = removeViolationsAfter * 1000;
-    }
 }
 
+@RequiredArgsConstructor
 class ParsedCommand {
     public final int threshold;
     public final int interval;
     public final String command;
     public int executeCount;
-
-    public ParsedCommand(int threshold, int interval, String command) {
-        this.threshold = threshold;
-        this.interval = interval;
-        this.command = command;
-    }
 }

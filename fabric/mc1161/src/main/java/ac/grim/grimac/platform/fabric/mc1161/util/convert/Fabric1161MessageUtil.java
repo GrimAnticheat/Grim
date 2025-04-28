@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc1611.util.convert;
+package ac.grim.grimac.platform.fabric.mc1161.util.convert;
 
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import net.minecraft.server.command.ServerCommandSource;

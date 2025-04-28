@@ -146,6 +146,10 @@ TimerVehicle:
     # 实体1.0005 检查
     setbackvl: 10
 
+PacketOrderI:
+    # 如果玩家因使用 1.7 动画模组而被标记，则启用此项
+    exempt-placing-while-digging: false
+
 Reach:
     # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
     #

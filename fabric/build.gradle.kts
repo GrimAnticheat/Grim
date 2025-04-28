@@ -1,4 +1,5 @@
 import net.fabricmc.loom.task.RemapJarTask
+import versioning.BuildConfig
 
 val minecraft_version: String by project
 val yarn_mappings: String by project
@@ -20,7 +21,11 @@ dependencies {
 
     modImplementation(libs.cloud.fabric)
     modImplementation(libs.fabric.loader)
-    modImplementation(libs.packetevents.fabric)
+    if (BuildConfig.shadePE) {
+        modImplementation(libs.packetevents.fabric)
+    } else {
+        compileOnly(libs.packetevents.fabric)
+    }
 
     modApi(libs.packetevents.fabric)
 }

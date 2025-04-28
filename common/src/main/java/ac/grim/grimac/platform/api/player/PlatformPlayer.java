@@ -5,6 +5,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public interface PlatformPlayer extends GrimEntity {
     void kickPlayer(String textReason);
@@ -31,7 +32,7 @@ public interface PlatformPlayer extends GrimEntity {
 
     PlatformInventory getInventory();
 
-    GrimEntity getVehicle();
+    @Nullable GrimEntity getVehicle();
 
     GameMode getGameMode();
 

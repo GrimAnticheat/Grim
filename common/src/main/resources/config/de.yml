@@ -144,6 +144,10 @@ TimerVehicle:
 VehicleC:
     setbackvl: 25
 
+PacketOrderI:
+    # Aktivieren, wenn Spieler markiert werden, weil sie 1.7-Animationsmods verwenden
+    exempt-placing-while-digging: false
+
 Reach:
     # Um wie viel sollen wir die Hitboxen erweitern? 0,0005 sollte 3,0005+ Reichweite erkennen
     #

@@ -1,14 +1,14 @@
-package ac.grim.grimac.platform.fabric.mc1611;
+package ac.grim.grimac.platform.fabric.mc1161;
 
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
-import ac.grim.grimac.platform.fabric.mc1611.command.Fabric1161PlayerSelectorAdapter;
-import ac.grim.grimac.platform.fabric.mc1611.entity.Fabric1161GrimEntity;
-import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformInventory;
-import ac.grim.grimac.platform.fabric.mc1611.player.Fabric1161PlatformPlayer;
-import ac.grim.grimac.platform.fabric.mc1611.util.convert.Fabric1140ConversionUtil;
-import ac.grim.grimac.platform.fabric.mc1611.util.convert.Fabric1161MessageUtil;
+import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.mc1161.entity.Fabric1161GrimEntity;
+import ac.grim.grimac.platform.fabric.mc1161.player.Fabric1161PlatformInventory;
+import ac.grim.grimac.platform.fabric.mc1161.player.Fabric1161PlatformPlayer;
+import ac.grim.grimac.platform.fabric.mc1161.util.convert.Fabric1140ConversionUtil;
+import ac.grim.grimac.platform.fabric.mc1161.util.convert.Fabric1161MessageUtil;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;

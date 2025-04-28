@@ -8,6 +8,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +37,16 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
 
     @Override
     public @NotNull List<String> getPlaceholders() {
-        Set<String> placeholders = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().keySet();
-        placeholders.addAll(GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().keySet());
-        return List.copyOf(placeholders);
+        Set<String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().keySet();
+        Set<String> variableReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().keySet();
+        ArrayList<String> placeholders = new ArrayList<>(staticReplacements.size() + variableReplacements.size());
+        for (String s : staticReplacements) {
+            placeholders.add(s.equals("%grim_version%") ? s : "%grim_" + s.replaceAll("%", "") + "%");
+        }
+        for (String s : variableReplacements) {
+            placeholders.add(s.equals("%player%") ? "%grim_player%" : "%grim_player_" + s.replaceAll("%", "") + "%");
+        }
+        return placeholders;
     }
 
     @Override

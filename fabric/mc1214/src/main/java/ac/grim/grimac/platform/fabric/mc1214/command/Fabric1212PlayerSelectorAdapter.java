@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.fabric.mc1214.command;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.fabric.mc1611.command.Fabric1161PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 
 

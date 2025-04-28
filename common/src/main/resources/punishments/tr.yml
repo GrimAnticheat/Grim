@@ -50,6 +50,7 @@ Punishments:
     remove-violations-after: 300
     checks:
       - "BadPackets"
+      - "PacketOrder"
       - "Crash"
     commands:
       - "20:20 [alert]"

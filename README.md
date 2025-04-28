@@ -8,12 +8,12 @@ This project is considered feature complete for the 2.0 (open-source) branch of 
 - [Modrinth](https://modrinth.com/plugin/grimac)
 - [Hangar](https://hangar.papermc.io/GrimAnticheat/GrimAnticheat)
 - [SpigotMC](https://www.spigotmc.org/resources/grim-anticheat.99923/)
-- *For bleeding edge builds use* [Github artifacts](https://nightly.link/GrimAnticheat/Grim/workflows/gradle-publish/2.0/artifact.zip)
+- *For bleeding edge builds use GitHub artifacts*: [Bukkit](https://nightly.link/GrimAnticheat/Grim/workflows/gradle-publish/2.0/grimac-bukkit.zip), [Fabric](https://nightly.link/GrimAnticheat/Grim/workflows/gradle-publish/2.0/grimac-fabric.zip)
 
 ## Installation notes
 > [!WARNING]
 > Java 17 is now required. More information [here](https://github.com/GrimAnticheat/Grim/wiki/Updating-to-Java-17).
-- Paper, Spigot, and Folia are currently supported.
+- Paper, Spigot, Folia, and Fabric are currently supported.
 - If you use Geyser, place Floodgate on the backend server so grim can exempt bedrock players. Grim cannot access the Floodgate API if it is on the proxy.
 - If you use ViaVersion, it should be on the backend server as movement is highly dependent on client version.
 
@@ -32,7 +32,7 @@ Grim's API allows you to integrate Grim into your own plugins.
 1. `git clone https://github.com/GrimAnticheat/Grim.git`
 2. `cd Grim`
 3. `./gradlew build`
-4. The final jar will compile into the build/libs folder
+4. The final jars will compile into the `<platform>/build/libs` folders
 
 ## Grim supremacy
 

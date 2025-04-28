@@ -1,3 +1,5 @@
+import versioning.BuildConfig
+
 plugins {
     `maven-publish`
     grim.`base-conventions`
@@ -28,7 +30,11 @@ repositories {
 }
 
 dependencies {
-    api(libs.packetevents.api)
+    if (BuildConfig.shadePE) {
+        api(libs.packetevents.api)
+    } else {
+        compileOnly(libs.packetevents.api)
+    }
     api(libs.cloud.core)
     api("org.incendo:cloud-processors-requirements:1.0.0-rc.1")
     api("github.scarsz:configuralize:1.4.1:slim") {
@@ -40,9 +46,7 @@ dependencies {
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
 
-    // Used for local testing:
-    // api("ac.grim.grimac:GrimAPI:1.0")
-    api("ac.grim.grimac:GrimAPI:any-9d6a0e6b7f")
+    api("ac.grim.grimac:GrimAPI:1.1.0.0")
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)

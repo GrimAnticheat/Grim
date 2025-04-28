@@ -141,6 +141,10 @@ TimerVehicle:
     # Doel 1.005 timer
     setbackvl: 10
 
+PacketOrderI:
+    # Inschakelen als spelers worden gemarkeerd vanwege het gebruik van 1.7-animatiemods
+    exempt-placing-while-digging: false
+
 Reach:
     # Met hoeveel moeten we hitboxes uitbreiden? 0.0005 moet 3.0005+ bereik detecteren
     #

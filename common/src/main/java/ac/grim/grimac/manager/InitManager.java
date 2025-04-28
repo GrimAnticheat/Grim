@@ -60,6 +60,7 @@ public class InitManager {
                 .add(new TickRunner())
                 .add(new CommandRegister(commandManager))
                 .add(new PacketLimiter())
+                .add(GrimAPI.INSTANCE.getAlertManager())
                 .add(GrimAPI.INSTANCE.getDiscordManager())
                 .add(GrimAPI.INSTANCE.getSpectateManager())
                 .add(new JavaVersion())

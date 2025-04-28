@@ -10,6 +10,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
+import ac.grim.grimac.checks.impl.packetorder.PacketOrderProcessor;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.ActionManager;
 import ac.grim.grimac.manager.CheckManager;
@@ -125,6 +126,7 @@ public class GrimPlayer implements GrimUser {
     // End manager like classes
     public Vector3dm clientVelocity = new Vector3dm();
     PacketTracker packetTracker;
+    public final PacketOrderProcessor packetOrderProcessor = new PacketOrderProcessor(this);
     private long transactionPing = 0;
     public long lastTransSent = 0;
     public long lastTransReceived = 0;

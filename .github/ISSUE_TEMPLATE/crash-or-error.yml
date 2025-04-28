@@ -39,11 +39,23 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: type
+    attributes:
+        label: Affected Platform(s)
+        description: Which platforms does this issue affect? If you aren't sure, select both.
+        options:
+            - "Bukkit"
+            - "Fabric"
+        multiple: true
+    validations:
+        required: true
+
   - type: textarea
     attributes:
-      label: Plugins
+      label: Plugins/mods
       description: |
-        List all plugins running on your server. To list plugins, run `/plugins`.
+        List all plugins or mods running on your server. To list plugins on bukkit, run `/plugins`.
         If your server is behind a proxy such as Bungeecord, you should list the proxy's plugins as well.
     validations:
       required: true

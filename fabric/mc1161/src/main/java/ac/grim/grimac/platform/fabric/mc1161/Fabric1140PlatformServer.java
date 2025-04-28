@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc1611;
+package ac.grim.grimac.platform.fabric.mc1161;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
@@ -17,6 +17,6 @@ public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
     // TODO (Cross-platform) implement proper bukkit equivalent for getting TPS over time
     @Override
     public double getTPS() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickTime();
+        return Math.min(1000.0 / GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickTime(), 20.0);
     }
 }

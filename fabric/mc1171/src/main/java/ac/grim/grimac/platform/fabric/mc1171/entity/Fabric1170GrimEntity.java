@@ -1,6 +1,6 @@
-package ac.grim.grimac.platform.fabric.mc1170.entity;
+package ac.grim.grimac.platform.fabric.mc1171.entity;
 
-import ac.grim.grimac.platform.fabric.mc1611.entity.Fabric1161GrimEntity;
+import ac.grim.grimac.platform.fabric.mc1161.entity.Fabric1161GrimEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 

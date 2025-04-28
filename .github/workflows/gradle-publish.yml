@@ -27,29 +27,33 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: Extract Computed Version from Gradle
-      id: extract-version
-      run: |
-        VERSION=$(./gradlew -q printVersion | grep VERSION= | cut -d '=' -f2)
-        echo "VERSION: $VERSION"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v4 # Handles Gradle wrapper validation and basic caching
 
-    - name: Build with Gradle
+    - name: Cache Gradle Loom Cache
+      uses: actions/cache@v4
+      with:
+        path: .gradle/loom-cache # Path to Loom cache relative to workspace root
+        key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
+        restore-keys: |
+          loom-cache-${{ runner.os }}
+
+    - name: Build with Gradle (Actual Build for Artifacts)
       run: ./gradlew build
 
     - name: Upload Bukkit Artifact
       uses: actions/upload-artifact@v4
       with:
-          name: grimac-bukkit
-          path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.VERSION }}.jar
+        name: grimac-bukkit
+        # Adding if-no-files-found for robustness
+        path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
+        if-no-files-found: error
 
     - name: Upload Fabric Artifact
       uses: actions/upload-artifact@v4
       with:
-          name: grimac-fabric
-          path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.VERSION }}.jar
+        name: grimac-fabric
+        # Adding if-no-files-found for robustness
+        path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
+        if-no-files-found: error
 

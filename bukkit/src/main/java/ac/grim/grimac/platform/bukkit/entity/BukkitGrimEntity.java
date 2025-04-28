@@ -6,10 +6,10 @@ import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
-import com.google.common.base.Preconditions;
 import org.bukkit.entity.Entity;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,7 +19,7 @@ public class BukkitGrimEntity implements GrimEntity {
     private BukkitPlatformWorld bukkitPlatformWorld;
 
     public BukkitGrimEntity(Entity entity) {
-        Preconditions.checkArgument(entity != null);
+        Objects.requireNonNull(entity);
         this.entity = entity;
     }
 

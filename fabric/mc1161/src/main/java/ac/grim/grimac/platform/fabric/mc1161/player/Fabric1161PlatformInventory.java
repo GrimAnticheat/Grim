@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc1611.player;
+package ac.grim.grimac.platform.fabric.mc1161.player;
 
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformInventory;
 import net.minecraft.screen.PlayerScreenHandler;
