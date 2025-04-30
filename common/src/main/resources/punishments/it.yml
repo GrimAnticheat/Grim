@@ -77,6 +77,24 @@ Punishments:
       - "5:3 [log]"
       - "5:3 [webhook]"
       - "5:3 [proxy]"
+  WallHit:
+    remove-violations-after: 300
+    checks:
+      - "WallHit"
+    commands:
+      - "10:5 [alert]"
+      - "10:5 [webhook]"
+      - "10:5 [proxy]"
+      - "10:5 [log]"
+  EntityPierce:
+    remove-violations-after: 300
+    checks:
+      - "EntityPierce"
+    commands:
+      - "15:10 [alert]"
+      - "15:10 [webhook]"
+      - "15:10 [proxy]"
+      - "15:10 [log]"
   Misc:
     remove-violations-after: 300
     checks:
