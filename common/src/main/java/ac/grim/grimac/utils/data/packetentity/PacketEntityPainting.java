@@ -16,4 +16,11 @@ public class PacketEntityPainting extends PacketEntity {
         super(player, uuid, EntityTypes.PAINTING, x, y, z);
         this.direction = direction;
     }
+
+    // This is incorrect, temporary measure to exempt paintings from HitboxEntity
+    // Will properly model later
+    @Override
+    public boolean canHit() {
+        return false;
+    }
 }

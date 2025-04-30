@@ -1,10 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
-
 name: Gradle Package
 
 on: [push, workflow_dispatch]
@@ -13,15 +6,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # build-tag-number + mc-publish need these
+      contents: write      # needed by build-tag-number and mc-publish
       packages: write
       actions:  write
 
     steps:
       #------------------------------------------------------------------
-      # 0) checkout + JDK
+      # 0) Checkout + JDK
       #------------------------------------------------------------------
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # fetch the entire history and all tags
+          fetch-depth: 50
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -35,7 +32,7 @@ jobs:
       # 1) Gradle wrapper validation + caches
       #------------------------------------------------------------------
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4     # wrapper-validation + caching
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Cache Loom
         uses: actions/cache@v4
@@ -64,7 +61,7 @@ jobs:
           VERSION=$(./gradlew -q -PshadePE=false printVersion | grep '^VERSION=' | cut -d'=' -f2)
           echo "lite_version=$VERSION" >> $GITHUB_OUTPUT
           echo "LITE_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Lite version: $VERSION"
+          echo "Lite  version: $VERSION"
 
       #------------------------------------------------------------------
       # 3) Build shaded / “main” jars (all modules)
@@ -73,40 +70,93 @@ jobs:
         run: ./gradlew build
 
       #------------------------------------------------------------------
-      # 4) Upload MAIN Bukkit + Fabric artefacts  (they exist now, lite doesn’t)
+      # 4) Build **lite** Bukkit jar
       #------------------------------------------------------------------
-      - name: Upload Bukkit ‑ MAIN
+      - name: Build Bukkit-Lite (no shaded PacketEvents)
+        run: ./gradlew :bukkit:build -PshadePE=false
+
+      #------------------------------------------------------------------
+      # 4.5) Rename jars to LightningGrim-* before we upload/publish
+      #------------------------------------------------------------------
+      - name: Rename jars to LightningGrim
+        shell: bash
+        run: |
+          set -e
+          mv "bukkit/build/libs/grimac-bukkit-${MAIN_VERSION}.jar" \
+             "bukkit/build/libs/LightningGrim-bukkit-${MAIN_VERSION}.jar"
+          
+          mv "bukkit/build/libs/grimac-bukkit-${LITE_VERSION}.jar" \
+             "bukkit/build/libs/LightningGrim-bukkit-${LITE_VERSION}.jar"
+          
+          mv "fabric/build/libs/grimac-fabric-${MAIN_VERSION}.jar" \
+             "fabric/build/libs/LightningGrim-fabric-${MAIN_VERSION}.jar"
+
+      #------------------------------------------------------------------
+      # 5) Upload MAIN Bukkit + Fabric artefacts
+      #------------------------------------------------------------------
+      - name: Upload Bukkit – MAIN
         uses: actions/upload-artifact@v4
         with:
           name: grimac-bukkit
-          path: bukkit/build/libs/grimac-bukkit-${{ env.MAIN_VERSION }}.jar
+          path: bukkit/build/libs/LightningGrim-bukkit-${{ env.MAIN_VERSION }}.jar
           if-no-files-found: error
 
       - name: Upload Fabric
         uses: actions/upload-artifact@v4
         with:
           name: grimac-fabric
-          path: fabric/build/libs/grimac-fabric-${{ env.MAIN_VERSION }}.jar
+          path: fabric/build/libs/LightningGrim-fabric-${{ env.MAIN_VERSION }}.jar
           if-no-files-found: error
-
-      #------------------------------------------------------------------
-      # 5) Build **lite** Bukkit jar
-      #------------------------------------------------------------------
-      - name: Build Bukkit-Lite  (no shaded PacketEvents)
-        run: ./gradlew :bukkit:build -PshadePE=false
 
       #------------------------------------------------------------------
       # 6) Upload LITE artefact
       #------------------------------------------------------------------
-      - name: Upload Bukkit ‑ LITE
+      - name: Upload Bukkit – LITE
         uses: actions/upload-artifact@v4
         with:
           name: grimac-bukkit-lite
-          path: bukkit/build/libs/grimac-bukkit-${{ env.LITE_VERSION }}.jar
+          path: bukkit/build/libs/LightningGrim-bukkit-${{ env.LITE_VERSION }}.jar
           if-no-files-found: error
 
       #------------------------------------------------------------------
-      # 7) Generate incremental build-number  (main / merge / release only)
+      # 7) Auto-generate CHANGELOG (since previous build tag)
+      #------------------------------------------------------------------
+      - name: Generate changelog
+        id: changelog
+        if: contains(fromJSON('["merge","release","main","lightning"]'), github.ref_name)
+        run: |
+          set -e
+          git fetch --tags --quiet
+          
+          # Most recent tag that looks like “build-*”; empty if none exist
+          LAST_TAG=$(git describe --tags --match "build-*" --abbrev=0 2>/dev/null || echo "")
+          echo "Last tag: ${LAST_TAG:-<none>}"
+          
+          if [ -z "$LAST_TAG" ]; then
+            # First build (or no previous tag) → grab latest 50 commits
+            NOTES=$(git log -n 50 --pretty=format:'* %s (%h)' --no-merges)
+          else
+            # Normal case → commits since the last build tag
+            NOTES=$(git log "$LAST_TAG"..HEAD --pretty=format:'* %s (%h)' --no-merges)
+          fi
+          
+          # Fallback if there were no code changes
+          if [ -z "$NOTES" ]; then
+            NOTES="* No code changes since last build"
+          fi
+          
+          # Export multiline output for downstream steps
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Changelog generated:"
+          echo "$NOTES"
+
+      #------------------------------------------------------------------
+      # 8) Generate incremental build number  (after changelog step!)
       #------------------------------------------------------------------
       - name: Generate build number
         if: contains(fromJSON('["merge","release","main","lightning"]'), github.ref_name)
@@ -116,7 +166,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       #------------------------------------------------------------------
-      # 8-A) Publish **Bukkit** jars to Modrinth
+      # 9-A) Publish **Bukkit** jars to Modrinth
       #------------------------------------------------------------------
       - name: Publish to Modrinth (Bukkit)
         if: contains(fromJSON('["merge","release","main","lightning"]'), github.ref_name)
@@ -128,12 +178,13 @@ jobs:
           modrinth-unfeature-mode: subset
 
           files: |
-            bukkit/build/libs/grimac-bukkit-${{ env.MAIN_VERSION }}.jar
-            bukkit/build/libs/grimac-bukkit-${{ env.LITE_VERSION }}.jar
+            bukkit/build/libs/LightningGrim-bukkit-${{ env.MAIN_VERSION }}.jar
+            bukkit/build/libs/LightningGrim-bukkit-${{ env.LITE_VERSION }}.jar
 
           name: Lightning Grim Anticheat (Bukkit) ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
           version: ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
           version-type: alpha
+          changelog: ${{ steps.changelog.outputs.notes }}
 
           loaders: |
             bukkit
@@ -150,24 +201,24 @@ jobs:
           fail-mode: fail
 
       #------------------------------------------------------------------
-      # 8-B) Publish **Fabric** jar to Modrinth
+      # 9-B) Publish **Fabric** jar to Modrinth
       #------------------------------------------------------------------
       - name: Publish to Modrinth (Fabric)
         if: contains(fromJSON('["merge","release","main","lightning"]'), github.ref_name)
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          #  use MODRINTH_ID_FABRIC if you keep Fabric in a separate project
           modrinth-id:      ${{ vars.MODRINTH_ID_FABRIC || vars.MODRINTH_ID }}
           modrinth-token:   ${{ secrets.MODRINTH_TOKEN }}
           modrinth-featured: true
           modrinth-unfeature-mode: subset
 
           files: |
-            fabric/build/libs/grimac-fabric-${{ env.MAIN_VERSION }}.jar
+            fabric/build/libs/LightningGrim-fabric-${{ env.MAIN_VERSION }}.jar
 
           name: Lightning Grim Anticheat (Fabric) ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
           version: ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
           version-type: alpha
+          changelog: ${{ steps.changelog.outputs.notes }}
 
           loaders: |
             fabric
@@ -178,4 +229,3 @@ jobs:
           retry-attempts: 2
           retry-delay:   10000
           fail-mode: fail
-

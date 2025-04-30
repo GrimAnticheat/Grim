@@ -81,6 +81,7 @@ object VersionUtil {
         val branch = stdout.toString().trim()
 
         return when (branch) {
+            "lightning" -> null
             "main", "2.0" -> null                    // ← ignore these branches
             else           -> branch.replace("/", "_")
         }
