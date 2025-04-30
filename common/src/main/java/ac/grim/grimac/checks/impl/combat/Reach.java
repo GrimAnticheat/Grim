@@ -18,8 +18,11 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.debug.HitboxDebugHandler;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BlockHitData;
 import ac.grim.grimac.utils.data.EntityHitData;
@@ -248,6 +251,9 @@ public class Reach extends Check implements PacketCheck {
             }
         }
 
+        if (hitboxDebuggingEnabled())
+            sendHitboxDebugData(reachEntity, from, lookVecsAndEyeHeights, isPrediction);
+
         HitData foundHitData = null;
         // If the entity is within range of the player (we'll flag anyway if not, so no point checking blocks in this case)
         // Ignore when could be hitting through a moving shulker, piston blocks. They are just too glitchy/uncertain to check.
@@ -314,5 +320,61 @@ public class Reach extends Check implements PacketCheck {
         // Only do this if the state really had any world impact
         if (state.equals(player.compensatedWorld.getBlock(vector3i))) return;
         blocksChangedThisTick.add(vector3i);
+    }
+
+    private boolean hitboxDebuggingEnabled() {
+        return player.checkManager.getCheck(HitboxDebugHandler.class).isEnabled();
+    }
+
+    private void sendHitboxDebugData(PacketEntity reachEntity, Vector3d from, List<Pair<Vector3dm, Double>> lookVecsAndEyeHeights, boolean isPrediction) {
+        Map<Integer, CollisionBox> hitboxes = new HashMap<>();
+        for (Int2ObjectMap.Entry<PacketEntity> entry : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+            PacketEntity entity = entry.getValue();
+            if (!entity.canHit()) continue;
+
+            CollisionBox box;
+
+            if (entity.equals(reachEntity)) {
+                // Target entity gets expanded hitbox
+                box = entity.getPossibleCollisionBoxes();
+                SimpleCollisionBox sBox = (SimpleCollisionBox) box;
+                sBox.expand(threshold);
+
+                // Add movement threshold uncertainty for 1.9+ or non-position updates
+                if (!player.packetStateData.didLastLastMovementIncludePosition
+                        || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                    sBox.expand(player.getMovementThreshold());
+                }
+            } else {
+                // Non-target entities
+                box = entity.getMinimumPossibleCollisionBoxes();
+                if (box instanceof NoCollisionBox) {
+                    hitboxes.put(entry.getIntKey(), NoCollisionBox.INSTANCE);
+                    continue;
+                } else if (box instanceof SimpleCollisionBox) {
+                    SimpleCollisionBox sBox = (SimpleCollisionBox) box;
+                    sBox.expand(-threshold);
+                    // Shrink non-target entities by movement threshold when applicable
+                    if (!player.packetStateData.didLastLastMovementIncludePosition
+                            || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                        sBox.expand(-player.getMovementThreshold());
+                    }
+                }
+            }
+
+            // Add 1.8 and below extra hitbox size
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+                    && box instanceof SimpleCollisionBox) {
+                ((SimpleCollisionBox) box).expand(0.1f);
+            }
+
+            hitboxes.put(entry.getIntKey(), box);
+        }
+
+        player.checkManager.getCheck(HitboxDebugHandler.class).sendHitboxData(hitboxes,
+                Collections.singleton(player.compensatedEntities.getPacketEntityID(reachEntity)),
+                lookVecsAndEyeHeights,
+                new Vector3dm(from.getX(), from.getY(), from.getZ()),
+                isPrediction, player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE));
     }
 }
