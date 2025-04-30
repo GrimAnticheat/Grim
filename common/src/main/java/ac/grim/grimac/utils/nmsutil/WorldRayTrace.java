@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.data.EntityHitData;
 import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.TypedPacketEntity;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
