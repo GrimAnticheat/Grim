@@ -133,8 +133,14 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
     }
 
     @Override
-    public void toggleListener(GrimPlayer player) {
-        if (!listeners.remove(player)) listeners.add(player);
+    public boolean toggleListener(GrimPlayer player) {
+        boolean wasPresent = listeners.remove(player);
+        if (wasPresent) {
+            return false;
+        } else {
+            listeners.add(player);
+            return true;
+        }
     }
 
     @Override

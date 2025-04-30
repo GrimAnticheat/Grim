@@ -1,6 +1,7 @@
 package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.debug.HitboxDebugHandler;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.sender.Sender;
@@ -36,9 +37,16 @@ public class GrimDebug implements BuildableCommand {
                 .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
                 .handler(this::handleConsoleDebug);
 
+        Command.Builder<Sender> hitboxDebugCommand = grimCommand
+                .literal("hitboxdebug", Description.of("Toggle hitbox debug visualization"))
+                .permission("grim.hitboxdebug")
+                .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer(), Description.of("Player to debug (defaults to self if sender is player)"))
+                .handler(this::handleHitboxDebug);
+
         // Register command
         commandManager.command(debugCommand);
         commandManager.command(consoleDebugCommand);
+        commandManager.command(hitboxDebugCommand);
     }
 
     private void handleDebug(@NonNull CommandContext<Sender> context) {
@@ -78,6 +86,48 @@ public class GrimDebug implements BuildableCommand {
                 .append(Component.text(isOutput ? "enabled" : "disabled", NamedTextColor.WHITE))
                 .build();
 
+        sender.sendMessage(message);
+    }
+
+    private void handleHitboxDebug(@NonNull CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        PlayerSelector playerSelector = context.getOrDefault("target", null);
+
+        // Hitbox debug requires a *player* to be the listener (the one seeing the boxes)
+        if (!sender.isPlayer()) {
+            sender.sendMessage(MessageUtil.getParsedComponent(sender,
+                    "hitboxdebug-player-only",
+                    "%prefix% &cHitbox debug can only be toggled by players.")
+            );
+            return;
+        }
+
+        // Determine the target player whose hitboxes are being debugged
+        GrimPlayer targetGrimPlayer = parseTarget(sender, playerSelector == null ? sender : playerSelector.getSinglePlayer());
+        if (targetGrimPlayer == null) return;
+
+        // Get the sender's GrimPlayer data, as they are the listener
+        GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
+        if (senderGrimPlayer == null) {
+            sender.sendMessage(Component.text("Could not find your player data to register as a listener.", NamedTextColor.RED));
+            return;
+        }
+
+        // Get the HitboxDebugHandler check instance and toggle the listener
+        HitboxDebugHandler hitboxHandler = targetGrimPlayer.checkManager.getCheck(HitboxDebugHandler.class);
+        if (hitboxHandler == null) {
+            sender.sendMessage(Component.text("HitboxDebugHandler check not found for target player.", NamedTextColor.RED));
+            return;
+        }
+
+        boolean enabled = hitboxHandler.toggleListener(senderGrimPlayer); // Pass the sender/listener
+
+        // Send feedback message
+        Component message = Component.text()
+                .append(Component.text("Hitbox debug listener for ", NamedTextColor.GRAY))
+                .append(Component.text(targetGrimPlayer.getName(), NamedTextColor.WHITE))
+                .append(Component.text(enabled ? " enabled." : " disabled.", NamedTextColor.GRAY))
+                .build();
         sender.sendMessage(message);
     }
 

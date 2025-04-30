@@ -16,7 +16,7 @@ public abstract class AbstractDebugHandler extends Check {
         return grimPlayer;
     }
 
-    public abstract void toggleListener(GrimPlayer player);
+    public abstract boolean toggleListener(GrimPlayer player);
 
     public abstract boolean toggleConsoleOutput();
 }
