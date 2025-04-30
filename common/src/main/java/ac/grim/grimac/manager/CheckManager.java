@@ -16,10 +16,7 @@ import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
 import ac.grim.grimac.checks.impl.breaking.RotationBreak;
 import ac.grim.grimac.checks.impl.breaking.WrongBreak;
-import ac.grim.grimac.checks.impl.combat.Hitboxes;
-import ac.grim.grimac.checks.impl.combat.MultiInteractA;
-import ac.grim.grimac.checks.impl.combat.MultiInteractB;
-import ac.grim.grimac.checks.impl.combat.Reach;
+import ac.grim.grimac.checks.impl.combat.*;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.crash.CrashC;
@@ -303,6 +300,8 @@ public class CheckManager {
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(VehicleC.class, new VehicleC(player))
                 .put(Hitboxes.class, new Hitboxes(player)) // Hitboxes is invoked by Reach
+                .put(WallHit.class, new WallHit(player))
+                .put(EntityPierce.class, new EntityPierce(player))
                 .build();
 
         allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()

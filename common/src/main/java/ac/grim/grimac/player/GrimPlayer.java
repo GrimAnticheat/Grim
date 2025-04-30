@@ -46,6 +46,7 @@ import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -644,6 +645,48 @@ public class GrimPlayer implements GrimUser {
                 case NINE_CROUCHING, CROUCHING -> this.possibleEyeHeights[1]; // [sneaking height, standing height, swimming/gliding/riptide height]
                 default -> this.possibleEyeHeights[0]; // [standing height, sneaking height, swimming/gliding/riptide height]
             };
+        }
+    }
+
+    // 1.8-1.10.2 specific mouse delay fix (MC-67665)
+    // https://bugs.mojang.com/browse/MC-67665
+    // 1.9-1.21.1 specific desync due to skipped ticks
+    // Players can be a tick behind on both pitch and yaw together
+    // 1.21.2+ added end tick input packet, fixing skipped tick issues
+    public Vector3dm[] getPossibleLookVectors(boolean isPrediction) {
+        // If we are a tick behind, we don't know their next look so only use current
+        if (isPrediction) {
+            return new Vector3dm[]{ReachUtils.getLook(this, this.xRot, this.yRot)};
+        }
+
+        // 1.9-1.10.2: All three vectors (normal, mouse delay, tick desync)
+        if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                this.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
+            return new Vector3dm[]{
+                    ReachUtils.getLook(this, this.xRot, this.yRot),
+                    ReachUtils.getLook(this, this.lastXRot, this.yRot),
+                    ReachUtils.getLook(this, this.lastXRot, this.lastYRot)
+            };
+        }
+        // 1.11-1.21.1: Two vectors (normal, tick desync)
+        else if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_11) &&
+                this.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+            return new Vector3dm[]{
+                    ReachUtils.getLook(this, this.xRot, this.yRot),
+                    ReachUtils.getLook(this, this.lastXRot, this.lastYRot)
+            };
+        }
+        // 1.8: Two vectors (normal, mouse delay)
+        else if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) &&
+                this.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+            return new Vector3dm[]{
+                    ReachUtils.getLook(this, this.xRot, this.yRot),
+                    ReachUtils.getLook(this, this.lastXRot, this.yRot)
+            };
+        }
+        // 1.7 and 1.21.2+: Just normal vector
+        else {
+            return new Vector3dm[]{ReachUtils.getLook(this, this.xRot, this.yRot)};
         }
     }
 

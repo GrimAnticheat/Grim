@@ -66,7 +66,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
-        HitData data = WorldRayTrace.getNearestBlockHitResult(player, StateTypes.AIR, false, true, true);
+        BlockHitData data = WorldRayTrace.getNearestBlockHitResult(player, StateTypes.AIR, false, true, true);
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), held, data);
 
@@ -288,7 +288,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static void placeBucket(GrimPlayer player, InteractionHand hand) {
-        HitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
+        BlockHitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
 
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
@@ -367,7 +367,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
-        HitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
+        BlockHitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
 
         if (data != null) {
             // A lilypad cannot replace a fluid
