@@ -166,7 +166,7 @@ jobs:
             fabric/build/libs/grimac-fabric-${{ env.MAIN_VERSION }}.jar
 
           name: Lightning Grim Anticheat (Fabric) ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
-          version: ${{ env.MAIN_VERSION }}-fabric-b${{ steps.buildnumber.outputs.build_number }}
+          version: ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
           version-type: release
 
           loaders: |
