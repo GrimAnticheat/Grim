@@ -69,6 +69,7 @@ public class Reach extends Check implements PacketCheck {
     // extra distance to raytrace beyond player reach distance so we know how far beyond the legit distance a cheater hit
     public static final double extraSearchDistance = 3;
 
+    private boolean ignoreNonPlayerTargets;
     private boolean cancelImpossibleHits;
     public double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -99,6 +100,10 @@ public class Reach extends Check implements PacketCheck {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
+                return;
+            }
+
+            if (ignoreNonPlayerTargets && !entity.getType().equals(EntityTypes.PLAYER)) {
                 return;
             }
 
@@ -299,6 +304,7 @@ public class Reach extends Check implements PacketCheck {
 
     @Override
     public void onReload(ConfigManager config) {
+        this.ignoreNonPlayerTargets = config.getBooleanElse("Reach.ignore-non-player-targets", false);
         this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
     }

@@ -176,7 +176,7 @@ public class WorldRayTrace {
         PacketEntity closestEntity = null;
         double closestDistanceSquared = blockHitData != null ? blockHitData.getBlockHitLocation().distanceSquared(startingVec) : maxAttackDistance * maxAttackDistance;
 
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values().stream().filter(TypedPacketEntity::canHit).toList()) {
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values().stream().filter(PacketEntity::canHit).toList()) {
             SimpleCollisionBox box = null;
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
             // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
