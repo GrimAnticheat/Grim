@@ -29,6 +29,7 @@ rootProject.name = "grimac"
 include("common")
 include("bukkit")
 include("fabric")
+include("jmh")
 include(":fabric:mc1161")
 include(":fabric:mc1171")
 include(":fabric:mc1194")

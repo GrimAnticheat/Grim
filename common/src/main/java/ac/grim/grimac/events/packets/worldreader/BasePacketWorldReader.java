@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.TeleportData;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -18,6 +19,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkDataBulk;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
+import io.netty.buffer.ByteBuf;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
@@ -161,7 +163,12 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
                 player.lastTransSent + 2 < System.currentTimeMillis())
             player.sendTransaction();
 
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
+        int x = blockPosition.getX();
+        int y = blockPosition.getY();
+        int z = blockPosition.getZ();
+        int blockId = blockChange.getBlockId();
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(x, y, z, blockId));
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
@@ -184,5 +191,141 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
                 player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId());
             }
         });
+    }
+
+    public void handleMultiBlockChangeFast(GrimPlayer player, PacketSendEvent event) {
+
+        final Object byteBuf = event.getByteBuf();
+        final int range     = 16;
+        final long nowMillis = System.currentTimeMillis();
+
+        /* ------------------------------------------------------------------
+         * 1. ---  Decode the "section position" header ----------------------
+         * ------------------------------------------------------------------ */
+        final int  protocol    = player.getClientVersion().getProtocolVersion(); // or however you obtain it
+        final boolean modern   = protocol >= 736;           // 1.16 and newer
+        final boolean hasTrust = protocol <= 762;           // up to 1.19.4
+
+        int sectionX, sectionY, sectionZ;
+
+        if (modern) {
+            long encodedPos = ByteBufHelper.readLong(byteBuf);
+
+            sectionX = (int) (encodedPos >>> 42);
+            sectionY = (int) (encodedPos << 44 >>> 44);
+            sectionZ = (int) (encodedPos << 22 >>> 42);
+
+            if (hasTrust) {
+                ByteBufHelper.skipBytes(byteBuf, 1);          // trustEdges  -- ignore
+            }
+        } else {
+            sectionX = ByteBufHelper.readInt(byteBuf);
+            sectionZ = ByteBufHelper.readInt(byteBuf);
+            sectionY = 0;
+        }
+
+        /* ------------------------------------------------------------------
+         * 2. ---  How many block records follow? ----------------------------
+         * ------------------------------------------------------------------ */
+        final int recordCount = ByteBufHelper.readVarInt(byteBuf);
+
+        /* ------------------------------------------------------------------
+         * 3. ---  Allocate ONE flat int[]    --------------------------------
+         *         layout per record:  x | y | z | id
+         *         so index = i << 2, index+1, index+2, index+3
+         * ------------------------------------------------------------------ */
+        final int[] records = new int[recordCount * 4];
+
+        /* ------------------------------------------------------------------
+         * 4. ---  Decode the block list, do the distance check on the fly ---
+         * ------------------------------------------------------------------ */
+        boolean shouldSendTransaction = false;
+
+        for (int i = 0; i < recordCount; i++) {
+
+            int x, y, z, id;
+
+            if (modern) {                                   // 1.16+
+                // TODO add to ByteBufHelper in PE
+                long data = readVarLong(((ByteBuf) byteBuf));
+
+                int localX = (int) ((data >>>  8) & 0xF);
+                int localZ = (int) ((data >>>  4) & 0xF);
+                int localY = (int)  (data         & 0xF);
+
+                id = (int) (data >>> 12);
+
+                x = (sectionX << 4) | localX;
+                y = (sectionY << 4) | localY;
+                z = (sectionZ << 4) | localZ;
+
+            } else {                                        // 1.15-
+                short pos = ByteBufHelper.readShort(byteBuf);
+
+                int localX =  (pos >>> 12) & 0xF;
+                int localZ =  (pos >>>  8) & 0xF;
+                int localY =   pos         & 0xFF;
+
+                id = ByteBufHelper.readVarInt(byteBuf);
+
+                x = (sectionX << 4) | localX;
+                y =  localY;
+                z = (sectionZ << 4) | localZ;
+            }
+
+            int base = i << 2;          // i * 4
+            records[base] = x;
+            records[base + 1] = y;
+            records[base + 2] = z;
+            records[base + 3] = id;
+
+            // Near-player test (only until we find one match)
+            if (!shouldSendTransaction &&
+                    Math.abs(x - player.x) < range &&
+                    Math.abs(y - player.y) < range &&
+                    Math.abs(z - player.z) < range &&
+                    player.lastTransSent + 2 < nowMillis) {
+
+                shouldSendTransaction = true;
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         * 5. ---  Fire the transaction if needed ----------------------------
+         * ------------------------------------------------------------------ */
+        if (shouldSendTransaction) {
+            player.sendTransaction();
+        }
+
+        /* ------------------------------------------------------------------
+         * 6. ---  Queue the task  -------------------------------------------
+         *         The lambda captures:  (records array, recordCount)
+         *         = **one reference + one int**
+         * ------------------------------------------------------------------ */
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+
+            int[] rec = records;    // local alias for speed
+
+            for (int i = 0; i < rec.length; i++) {
+                int base = i << 2;
+                player.compensatedWorld.updateBlock(
+                        rec[base],  // x
+                        rec[base + 1],  // y
+                        rec[base + 2],  // z
+                        rec[base + 3]   // id
+                );
+            }
+        });
+    }
+
+    public long readVarLong(ByteBuf buf) {
+        long value = 0;
+        int size = 0;
+        int b;
+        while (((b = buf.readByte()) & 0x80) == 0x80) {
+            value |= (long) (b & 0x7F) << (size++ * 7);
+        }
+        return value | ((long) (b & 0x7F) << (size * 7));
     }
 }

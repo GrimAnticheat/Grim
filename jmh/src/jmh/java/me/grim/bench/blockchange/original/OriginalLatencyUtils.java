@@ -1,17 +1,18 @@
-package ac.grim.grimac.utils.latency;
+package me.grim.bench.blockchange.original;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.latency.ILatencyUtils;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class LatencyUtils implements ILatencyUtils {
+public class OriginalLatencyUtils implements ILatencyUtils {
     private final LinkedList<Pair<Integer, Runnable>> transactionMap = new LinkedList<>();
     private final GrimPlayer player;
 
@@ -19,7 +20,7 @@ public class LatencyUtils implements ILatencyUtils {
     // The actual usage scope of this variable's use is limited to within the synchronized block of handleNettySyncTransaction
     private final ArrayList<Runnable> tasksToRun = new ArrayList<>();
 
-    public LatencyUtils(GrimPlayer player) {
+    public OriginalLatencyUtils(GrimPlayer player) {
         this.player = player;
     }
 
@@ -46,25 +47,6 @@ public class LatencyUtils implements ILatencyUtils {
     }
 
     public void handleNettySyncTransaction(int transaction) {
-        /*
-         * This code uses a two-pass approach within the synchronized block to prevent CMEs.
-         * First we collect and remove tasks using the iterator, then execute all collected tasks.
-         *
-         * The issue:
-         *     We cannot execute tasks during iteration because if a runnable modifies transactionMap
-         *     or calls addRealTimeTask, it will cause a ConcurrentModificationException.
-         *     While only seen on Folia servers, this is theoretically possible everywhere.
-         *
-         * Why this solution:
-         *     Rather than documenting "don't modify transactionMap in runnables" and risking subtle
-         *     bugs from future contributions or Check API usage, we prevent the issue entirely
-         *     at a small performance cost.
-         *
-         * Future considerations:
-         *     If this becomes a performance bottleneck, we may revisit using a single-pass approach
-         *     on non-Folia servers. We could also explore concurrent data structures or parallel
-         *     execution, but this would lose the guarantee that transactions are processed in order.
-         */
         synchronized (this) {
             tasksToRun.clear();
 
