@@ -80,4 +80,9 @@ public class OriginalLatencyUtils implements ILatencyUtils {
             }
         }
     }
+
+    @Override
+    public Object getTasksObject() {
+        return transactionMap;
+    }
 }

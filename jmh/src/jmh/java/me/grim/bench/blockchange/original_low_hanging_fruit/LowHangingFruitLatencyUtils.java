@@ -106,4 +106,9 @@ public class LowHangingFruitLatencyUtils implements ILatencyUtils {
             player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectPacketError())));
         }
     }
+
+    @Override
+    public Object getTasksObject() {
+        return transactionMap;
+    }
 }

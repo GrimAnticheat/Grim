@@ -33,4 +33,8 @@ public interface ILatencyUtils {
         // Default implementation does nothing.
         // Implementations can override this if they need specific cleanup.
     }
+
+    default Object getTasksObject() {
+        return null;
+    }
 }

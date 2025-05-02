@@ -50,6 +50,7 @@ dependencies {
     jmh("org.slf4j:slf4j-simple:2.0.16")
     jmh("org.openjdk.jmh:jmh-core:1.37")
     jmh("org.openjdk.jmh:jmh-generator-annprocess:1.37")
+    jmh("org.openjdk.jol:jol-core:0.17")
 
     jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 
@@ -63,7 +64,15 @@ dependencies {
 
 /* ─────────────────────────────── */
 jmh {
-    jmhVersion.set(jmhLibVersion)
+    jvmArgsAppend.set(
+        listOf(
+            "-Djdk.attach.allowAttachSelf=true",
+            "-Djol.magicFieldOffset=true",
+            "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "me.grim.bench.blockchange.original_low_hanging_fruit=ALL-UNNAMED"
+        )
+    )
 }
 
 /* Make `gradle check` also run micro-benchmarks (optional) */

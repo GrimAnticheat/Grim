@@ -16,6 +16,7 @@ import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitBlock
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitLatencyUtils;
 import me.grim.bench.setup.MockFactory;
 import me.grim.bench.setup.TestPacketEventsBuilder;
+import me.grim.bench.util.HeapSize;
 import org.bukkit.plugin.Plugin;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -54,6 +55,8 @@ public class ReusingWrapperBenchmarkFixed {
             if (!MockBukkit.isMocked()) MockBukkit.mock();
             Plugin plugin = MockBukkit.createMockPlugin("packetevents_global");
             PacketEvents.setAPI(TestPacketEventsBuilder.build(plugin));
+            com.github.retrooper.packetevents.protocol.packettype.PacketType.prepare(); // Prevents race condition from printing graph while running
+            new WrapperPlayServerBlockChange(new Vector3i(0,0,0), 0);
         } catch (Exception e) {
             throw new RuntimeException("Failed PacketEvents setup", e);
         }
@@ -96,6 +99,16 @@ public class ReusingWrapperBenchmarkFixed {
         List<WorkloadItem> sharedWorkloadRef;
 
         private static final Runnable OTHER_TASK_RUNNABLE = () -> Blackhole.consumeCPU(10);
+
+        @TearDown(Level.Iteration)
+        public void clean() {
+            if (((ByteBuf) singleBlockWrapper.buffer).refCnt() > 0)
+                ((ByteBuf) singleBlockWrapper.buffer).release();
+            if (((ByteBuf) multiBlockWrapper.buffer ).refCnt() > 0)
+                ((ByteBuf) multiBlockWrapper.buffer ).release();
+            for (ByteBuf b : preBufs)
+                if (b != null && b.refCnt() > 0) b.release();
+        }
 
         // ─────────────── per-iteration pre-computation ───────────────
         @Setup(Level.Iteration)
@@ -195,16 +208,37 @@ public class ReusingWrapperBenchmarkFixed {
     }
 
     // ───────────────────── Benchmark methods ─────────────────────
-    @Benchmark @Group("OriginalOriginal")
-    public void originalHandler(ThreadState s, Blackhole bh) {
+    @Benchmark
+    @Group("cpu")                    // ← keep your existing CPU test
+    public void originalCpu(ThreadState s, Blackhole bh) {
         s.useOriginal();
-        runWorkloadLoop(s,bh);
+        runWorkloadLoop(s, bh);
     }
 
-    @Benchmark @Group("LowHanging")
-    public void lowHangingFruitHandler(ThreadState s, Blackhole bh) {
+    @Benchmark
+    @Group("cpu")
+    public void lowCpu(ThreadState s, Blackhole bh) {
         s.useLowHanging();
-        runWorkloadLoop(s,bh);
+        runWorkloadLoop(s, bh);
+    }
+
+    /* ─────  MEMORY-SIZE ONLY  ───── */
+    @Benchmark
+    @Group("mem")                    // separate group → runs after “cpu”
+    public long originalMem(ThreadState s, Blackhole bh) {
+        s.useOriginal();
+        runWorkloadLoop(s, bh);
+        System.out.println(HeapSize.detail(s.latencyUtils.getTasksObject()));
+        return HeapSize.bytes(s.latencyUtils.getTasksObject());
+    }
+
+    @Benchmark
+    @Group("mem")
+    public long lowMem(ThreadState s, Blackhole bh) {
+        s.useLowHanging();
+        runWorkloadLoop(s, bh);
+        System.out.println(HeapSize.detail(s.latencyUtils.getTasksObject()));
+        return HeapSize.bytes(s.latencyUtils.getTasksObject());
     }
 
     // ─────────────────── core loop (unchanged) ───────────────────
