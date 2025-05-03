@@ -1,12 +1,17 @@
 package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.events.packets.worldreader.multiblockchange.LegacyMultiBlockChangeHandler;
+import ac.grim.grimac.events.packets.worldreader.multiblockchange.V1160MultiBlockChangeBitRepackHandler;
+import ac.grim.grimac.events.packets.worldreader.multiblockchange.VersionedMultiBlockChangeHandler;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.TeleportData;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -16,10 +21,14 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkDataBulk;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
+
+    private final static VersionedMultiBlockChangeHandler versionedMultiBlockChangeHandler
+        = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)
+            ? new V1160MultiBlockChangeBitRepackHandler()
+            : new LegacyMultiBlockChangeHandler();
 
     public BasePacketWorldReader() {
         super(PacketListenerPriority.HIGH);
@@ -161,28 +170,15 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
                 player.lastTransSent + 2 < System.currentTimeMillis())
             player.sendTransaction();
 
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
+        int x = blockPosition.getX();
+        int y = blockPosition.getY();
+        int z = blockPosition.getZ();
+        int blockId = blockChange.getBlockId();
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(x, y, z, blockId));
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
-        WrapperPlayServerMultiBlockChange multiBlockChange = new WrapperPlayServerMultiBlockChange(event);
-
-        int range = 16;
-
-        final var blocks = multiBlockChange.getBlocks();
-        for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : blocks) {
-            // Don't send a transaction unless it's within 16 blocks of the player
-            if (Math.abs(blockChange.getX() - player.x) < range && Math.abs(blockChange.getY() - player.y) < range && Math.abs(blockChange.getZ() - player.z) < range && player.lastTransSent + 2 < System.currentTimeMillis()) {
-                player.sendTransaction();
-                break;
-            }
-        }
-
-        // Add a single runnable to prevent excessive memory use when there are lots of block changes
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : blocks) {
-                player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId());
-            }
-        });
+        versionedMultiBlockChangeHandler.handleMultiBlockChange(player, event);
     }
 }
