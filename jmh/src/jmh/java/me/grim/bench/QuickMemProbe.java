@@ -14,6 +14,7 @@ import io.netty.buffer.ByteBuf;
 import me.grim.bench.blockchange.AbstractBenchmarkBlockChangeHandler;
 import me.grim.bench.blockchange.AbstractBlockChangeBenchmark;
 import me.grim.bench.blockchange.multi_block_change_as_int_array.MultiBlockChangeIntArrayBlockChangeHandler;
+import me.grim.bench.blockchange.multi_block_change_long_pack.MultiBlockChangeLongPackArrayBlockChangeHandler;
 import me.grim.bench.blockchange.original.OriginalBlockChangeHandler;
 import me.grim.bench.blockchange.original.OriginalLatencyUtils;
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitBlockChangeHandler;
@@ -28,7 +29,7 @@ public class QuickMemProbe {
     private final GrimPlayer player;
     private final AbstractBenchmarkBlockChangeHandler blockChangeBenchmark;
 
-    enum HandlerType { ORIGINAL, LOW_HANGING_FRUIT, MULTI_BLOCK_INT_ARRAY }
+    enum HandlerType { ORIGINAL, LOW_HANGING_FRUIT, MULTI_BLOCK_INT_ARRAY, MULTI_BLOCK_LONG_PACK }
 
     /* ------------------ two quick ctors ------------------ */
     public QuickMemProbe()          { this(HandlerType.ORIGINAL); }         // default = original
@@ -39,6 +40,7 @@ public class QuickMemProbe {
                     case ORIGINAL -> new OriginalLatencyUtils(player);
                     case LOW_HANGING_FRUIT -> new LowHangingFruitLatencyUtils(player);
                     case MULTI_BLOCK_INT_ARRAY -> new LowHangingFruitLatencyUtils(player);
+                    case MULTI_BLOCK_LONG_PACK ->  new LowHangingFruitLatencyUtils(player);
                 }
         );
 
@@ -46,6 +48,7 @@ public class QuickMemProbe {
             case ORIGINAL -> new OriginalBlockChangeHandler();
             case LOW_HANGING_FRUIT -> new LowHangingFruitBlockChangeHandler();
             case MULTI_BLOCK_INT_ARRAY -> new MultiBlockChangeIntArrayBlockChangeHandler();
+            case MULTI_BLOCK_LONG_PACK -> new MultiBlockChangeLongPackArrayBlockChangeHandler();
         };
         player.lastTransactionReceived.decrementAndGet(); // To runnable from being executed immediately
     }
@@ -111,6 +114,12 @@ public class QuickMemProbe {
         multiBlockIntArray.fire(N);
         multiBlockIntArray.dump();
         multiBlockIntArray.cleanup();
+
+        System.out.println("\n=== MultiBlockLongPack ===");
+        QuickMemProbe multiBlockLongPack  = new QuickMemProbe(HandlerType.MULTI_BLOCK_LONG_PACK);
+        multiBlockLongPack.fire(N);
+        multiBlockLongPack.dump();
+        multiBlockLongPack.cleanup();
     }
 
     private void cleanup() {
