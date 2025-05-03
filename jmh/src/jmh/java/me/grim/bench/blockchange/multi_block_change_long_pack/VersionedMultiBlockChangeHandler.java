@@ -5,6 +5,10 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import io.netty.buffer.ByteBuf;
 
 public interface VersionedMultiBlockChangeHandler {
+
+    static final int RANGE = 16;
+    static final long TRANSACTION_COOLDOWN_MS = 2; // In milliseconds
+
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event);
     public default long readVarLong(ByteBuf buf) {
         long value = 0;

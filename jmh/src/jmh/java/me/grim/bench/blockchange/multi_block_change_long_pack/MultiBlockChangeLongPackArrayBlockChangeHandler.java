@@ -1,16 +1,24 @@
 package me.grim.bench.blockchange.multi_block_change_long_pack;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import me.grim.bench.blockchange.AbstractBenchmarkBlockChangeHandler;
 
+import static me.grim.bench.blockchange.multi_block_change_long_pack.VersionedMultiBlockChangeHandler.RANGE;
+import static me.grim.bench.blockchange.multi_block_change_long_pack.VersionedMultiBlockChangeHandler.TRANSACTION_COOLDOWN_MS;
+
 public class MultiBlockChangeLongPackArrayBlockChangeHandler extends AbstractBenchmarkBlockChangeHandler {
 
-    private static final int RANGE = 16;
-    private static final long TRANSACTION_COOLDOWN_MS = 2; // In milliseconds
-    private final static VersionedMultiBlockChangeHandler  versionedMultiBlockChangeHandler = new V1200MultiBlockChangeHandler();
+    private final static VersionedMultiBlockChangeHandler versionedMultiBlockChangeHandler
+            = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19_4)
+                ? new V1200MultiBlockChangeHandler()
+                : PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)
+                ? new V1160MultiBlockChangeHandler()
+                : new LegacyMultiBlockChangeHandler();
 
     public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);

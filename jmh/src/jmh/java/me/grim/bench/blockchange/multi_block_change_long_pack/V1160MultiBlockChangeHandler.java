@@ -3,10 +3,9 @@ package me.grim.bench.blockchange.multi_block_change_long_pack;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import io.netty.buffer.ByteBuf;
 
-public final class V1200MultiBlockChangeHandler implements VersionedMultiBlockChangeHandler {
+public final class V1160MultiBlockChangeHandler implements VersionedMultiBlockChangeHandler {
 
     @Override
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
@@ -17,7 +16,7 @@ public final class V1200MultiBlockChangeHandler implements VersionedMultiBlockCh
         long sectionPos = ByteBufHelper.readLong(buf);
 
         // Do this for 1.16 < version <= 1.19.4
-//        ByteBufHelper.skipBytes(buf, 1);              // trustEdges (boolean)
+        ByteBufHelper.skipBytes(buf, 1);              // trustEdges (boolean)
 
         /* 2. record count + storage (one long per record) */
         int   count   = ByteBufHelper.readVarInt(buf);
