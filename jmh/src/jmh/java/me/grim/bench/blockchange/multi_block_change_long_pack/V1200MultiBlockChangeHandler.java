@@ -3,8 +3,8 @@ package me.grim.bench.blockchange.multi_block_change_long_pack;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import io.netty.buffer.ByteBuf;
+import me.grim.bench.blockchange.VersionedMultiBlockChangeHandler;
 
 public final class V1200MultiBlockChangeHandler implements VersionedMultiBlockChangeHandler {
 
@@ -67,11 +67,11 @@ public final class V1200MultiBlockChangeHandler implements VersionedMultiBlockCh
 
             for (long d : recArr) {
                 short position = (short) (d & 0xFFFL);
-                int id     = (int) (d >>> 12);
 
-                int x = (chunkSecX << 4) + ((position >>> 8) & 0xF);
-                int y = (chunkSecY << 4) +  (position        & 0xF);
+                int y = (chunkSecY << 4) + (position        & 0xF);
                 int z = (chunkSecZ << 4) + ((position >>> 4) & 0xF);
+                int x = (chunkSecX << 4) + ((position >>> 8) & 0xF);
+                int id     = (int) (d >>> 12);
 
                 player.compensatedWorld.updateBlock(x, y, z, id);
             }

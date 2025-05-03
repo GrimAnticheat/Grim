@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import io.netty.buffer.ByteBuf;
+import me.grim.bench.blockchange.VersionedMultiBlockChangeHandler;
 
 public final class V1160MultiBlockChangeHandler implements VersionedMultiBlockChangeHandler {
 

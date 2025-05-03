@@ -1,4 +1,4 @@
-package me.grim.bench.blockchange.multi_block_change_long_pack;
+package me.grim.bench.blockchange.multi_block_bit_repack;
 
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -8,18 +8,21 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import me.grim.bench.blockchange.AbstractBenchmarkBlockChangeHandler;
 import me.grim.bench.blockchange.VersionedMultiBlockChangeHandler;
+import me.grim.bench.blockchange.multi_block_change_long_pack.LegacyMultiBlockChangeHandler;
+import me.grim.bench.blockchange.multi_block_change_long_pack.V1160MultiBlockChangeHandler;
 
 import static me.grim.bench.blockchange.VersionedMultiBlockChangeHandler.RANGE;
 import static me.grim.bench.blockchange.VersionedMultiBlockChangeHandler.TRANSACTION_COOLDOWN_MS;
 
-public class MultiBlockChangeLongPackArrayBlockChangeHandler extends AbstractBenchmarkBlockChangeHandler {
+public class MultiBLockChangeBitRepack extends AbstractBenchmarkBlockChangeHandler {
 
-    private final static VersionedMultiBlockChangeHandler versionedMultiBlockChangeHandler
-            = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19_4)
-                ? new V1200MultiBlockChangeHandler()
-                : PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)
-                ? new V1160MultiBlockChangeHandler()
-                : new LegacyMultiBlockChangeHandler();
+//    private final static VersionedMultiBlockChangeHandler versionedMultiBlockChangeHandler
+//            = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19_4)
+//                ? new V1200MultiBlockChangeBitRepackHandler()
+//                : PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)
+//                ? new V1160MultiBlockChangeHandler()
+//                : new LegacyMultiBlockChangeHandler();
+    private final static VersionedMultiBlockChangeHandler versionedMultiBlockChangeHandler = new V1200MultiBlockChangeBitRepackHandler();
 
     public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);

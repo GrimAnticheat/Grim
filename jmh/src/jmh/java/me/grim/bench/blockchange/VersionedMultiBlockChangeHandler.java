@@ -1,4 +1,4 @@
-package me.grim.bench.blockchange.multi_block_change_long_pack;
+package me.grim.bench.blockchange;
 
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
