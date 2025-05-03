@@ -1,11 +1,12 @@
 package me.grim.bench.setup;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.latency.ILatencyUtils;
 import ac.grim.grimac.utils.latency.LatencyUtils;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import io.netty.channel.Channel;
@@ -15,6 +16,7 @@ import org.objenesis.ObjenesisStd;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,6 +30,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class MockFactory {
 
     private static final ObjenesisStd OBJ = new ObjenesisStd(true);
+
+    private static ConcurrentHashMap<User, GrimPlayer> playerMap() {
+        try {
+            Object pdm = GrimAPI.INSTANCE.getPlayerDataManager();
+            Field f = pdm.getClass().getDeclaredField("playerDataMap");
+            f.setAccessible(true);
+            return (ConcurrentHashMap<User, GrimPlayer>) f.get(pdm);
+        } catch (Exception e) {
+            throw new IllegalStateException();
+        }
+    }
 
     /* ----------------------------------------------------------- */
     public static GrimPlayer newMockPlayer() {
@@ -59,6 +72,15 @@ public final class MockFactory {
         return p;
     }
 
+    public static void addMockPlayer(User user, GrimPlayer p) {
+        playerMap().put(user, p);
+    }
+
+    /** Call once you are done with the player to keep tests isolated. */
+    public static void releaseMockPlayer(GrimPlayer p) {
+        playerMap().remove(p.user);
+    }
+
     /* ===========================================================
        Dummy collaborators
        =========================================================== */
@@ -69,7 +91,7 @@ public final class MockFactory {
 
         DummyUser() {
             super(CHANNEL, ConnectionState.PLAY,                         // pick any state you like
-                    ClientVersion.V_1_20,                         // likewise
+                    PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(),                         // likewise
                     new UserProfile(UUID.randomUUID(), "MockUser"));
         }
 
