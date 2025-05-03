@@ -1,7 +1,6 @@
 package me.grim.bench;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.latency.ILatencyUtils;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -13,30 +12,34 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import io.netty.buffer.ByteBuf;
 import me.grim.bench.blockchange.AbstractBenchmarkBlockChangeHandler;
-import me.grim.bench.blockchange.AbstractBlockChangeBenchmark;
 import me.grim.bench.blockchange.multi_block_bit_repack.MultiBLockChangeBitRepack;
 import me.grim.bench.blockchange.multi_block_change_as_int_array.MultiBlockChangeIntArrayBlockChangeHandler;
 import me.grim.bench.blockchange.multi_block_change_long_pack.MultiBlockChangeLongPackArrayBlockChangeHandler;
+import me.grim.bench.blockchange.no_waste_bit_packing.MultiBlockChangeNoWasteBitPack;
 import me.grim.bench.blockchange.original.OriginalBlockChangeHandler;
 import me.grim.bench.blockchange.original.OriginalLatencyUtils;
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitBlockChangeHandler;
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitLatencyUtils;
+import me.grim.bench.blockchange.unsafe_no_waste_bit_packing.V1200MultiBlockChangeUnsafeHandler;
+import me.grim.bench.blockchange.unsafe_no_waste_bit_packing.V1200MultiBlockChangeUnsafeNoWasteBitPackingHandler;
 import me.grim.bench.setup.MockFactory;
 import me.grim.bench.setup.TestPacketEventsBuilder;
+import me.grim.bench.util.HeapSize;
 import org.bukkit.plugin.Plugin;
-import org.openjdk.jol.info.GraphLayout;
+
+import java.util.Random;
 
 public class QuickMemProbe {
 
     private final GrimPlayer player;
     private final AbstractBenchmarkBlockChangeHandler blockChangeBenchmark;
 
-    private static final int NUM_BLOCKS_IN_MULTI_BLOCK_UPDATE = 1;
+    private static final int NUM_BLOCKS_IN_MULTI_BLOCK_UPDATE = 2;
 
-    private static final java.util.Random RNG = new java.util.Random(1234L);
+    private static final Random RNG = new Random(1234L);
     private static final int MAX_STATE_ID = 26_000;   // vanilla 1.21.4 = 26884
 
-    enum HandlerType { ORIGINAL, LOW_HANGING_FRUIT, MULTI_BLOCK_INT_ARRAY, MULTI_BLOCK_LONG_PACK, MULTI_BLOCK_BIT_REPACK }
+    enum HandlerType { ORIGINAL, LOW_HANGING_FRUIT, MULTI_BLOCK_INT_ARRAY, MULTI_BLOCK_LONG_PACK, MULTI_BLOCK_BIT_REPACK, MULTI_BLOCK_NO_WASTE_BIT_REPACK, MULTI_BLOCK_UNSAFE_NO_WASTE_BIT_REPACK }
 
     /* ------------------ two quick ctors ------------------ */
     public QuickMemProbe()          { this(HandlerType.ORIGINAL); }         // default = original
@@ -49,6 +52,8 @@ public class QuickMemProbe {
                     case MULTI_BLOCK_INT_ARRAY -> new LowHangingFruitLatencyUtils(player);
                     case MULTI_BLOCK_LONG_PACK ->  new LowHangingFruitLatencyUtils(player);
                     case MULTI_BLOCK_BIT_REPACK -> new LowHangingFruitLatencyUtils(player);
+                    case MULTI_BLOCK_NO_WASTE_BIT_REPACK -> new LowHangingFruitLatencyUtils(player);
+            case MULTI_BLOCK_UNSAFE_NO_WASTE_BIT_REPACK -> new LowHangingFruitLatencyUtils(player);
                 }
         );
 
@@ -58,6 +63,8 @@ public class QuickMemProbe {
             case MULTI_BLOCK_INT_ARRAY -> new MultiBlockChangeIntArrayBlockChangeHandler();
             case MULTI_BLOCK_LONG_PACK -> new MultiBlockChangeLongPackArrayBlockChangeHandler();
             case MULTI_BLOCK_BIT_REPACK -> new MultiBLockChangeBitRepack();
+            case MULTI_BLOCK_NO_WASTE_BIT_REPACK -> new MultiBlockChangeNoWasteBitPack();
+            case MULTI_BLOCK_UNSAFE_NO_WASTE_BIT_REPACK -> new V1200MultiBlockChangeUnsafeNoWasteBitPackingHandler();
         };
         player.lastTransactionReceived.decrementAndGet(); // To runnable from being executed immediately
     }
@@ -127,8 +134,8 @@ public class QuickMemProbe {
 
     /* ------------------ dump footprint ------------------- */
     public void dump() {
-//        System.out.println(GraphLayout.parseInstance(util).toFootprint());
-        System.out.println(GraphLayout.parseInstance(player.latencyUtils.getTasksObject()).toFootprint());
+        System.out.println(HeapSize.bytes(player.latencyUtils.getTasksObject()));
+//        System.out.println(GraphLayout.parseInstance(player.latencyUtils.getTasksObject()).toFootprint());
     }
 
     /* ------------------ quick & dirty main --------------- */
@@ -142,35 +149,58 @@ public class QuickMemProbe {
 
         int N = 100_000;                                     // tasks to add
 
-//        System.out.println("=== OriginalLatencyUtils ===");
-//        QuickMemProbe orig = new QuickMemProbe();
-//        orig.fire(N);
-//        orig.dump();
-//        orig.cleanup();
-//
-//        System.out.println("\n=== LowHangingFruitLatencyUtils ===");
-//        QuickMemProbe low  = new QuickMemProbe(HandlerType.LOW_HANGING_FRUIT);
-//        low.fire(N);
-//        low.dump();
-//        low.cleanup();
-//
-//        System.out.println("\n=== MultiBlockChangeIntArray ===");
-//        QuickMemProbe multiBlockIntArray  = new QuickMemProbe(HandlerType.MULTI_BLOCK_INT_ARRAY);
-//        multiBlockIntArray.fire(N);
-//        multiBlockIntArray.dump();
-//        multiBlockIntArray.cleanup();
-//
-//        System.out.println("\n=== MultiBlockLongPack ===");
-//        QuickMemProbe multiBlockLongPack  = new QuickMemProbe(HandlerType.MULTI_BLOCK_LONG_PACK);
-//        multiBlockLongPack.fire(N);
-//        multiBlockLongPack.dump();
-//        multiBlockLongPack.cleanup();
+        System.out.println("=== OriginalLatencyUtils ===");
+        QuickMemProbe orig = new QuickMemProbe();
+        orig.fire(N);
+        orig.dump();
+        orig.cleanup();
+
+        System.out.println("\n=== LowHangingFruitLatencyUtils ===");
+        QuickMemProbe low  = new QuickMemProbe(HandlerType.LOW_HANGING_FRUIT);
+        low.fire(N);
+        low.dump();
+        low.cleanup();
+
+        System.out.println("\n=== MultiBlockChangeIntArray ===");
+        QuickMemProbe multiBlockIntArray  = new QuickMemProbe(HandlerType.MULTI_BLOCK_INT_ARRAY);
+        multiBlockIntArray.fire(N);
+        multiBlockIntArray.dump();
+        multiBlockIntArray.cleanup();
+
+        System.out.println("\n=== MultiBlockLongPack ===");
+        QuickMemProbe multiBlockLongPack  = new QuickMemProbe(HandlerType.MULTI_BLOCK_LONG_PACK);
+        multiBlockLongPack.fire(N);
+        multiBlockLongPack.dump();
+        multiBlockLongPack.cleanup();
 
         System.out.println("\n=== MultiBlockLBitRepack ===");
         QuickMemProbe multiBlockBitRepack  = new QuickMemProbe(HandlerType.MULTI_BLOCK_BIT_REPACK);
         multiBlockBitRepack.fire(N);
         multiBlockBitRepack.dump();
         multiBlockBitRepack.cleanup();
+
+        System.out.println("\n=== MultiBlockNoWasteBitRepack ===");
+        QuickMemProbe multiBlockNoWasteBitRepack = new QuickMemProbe(HandlerType.MULTI_BLOCK_NO_WASTE_BIT_REPACK);
+        multiBlockNoWasteBitRepack.fire(N);
+        multiBlockNoWasteBitRepack.dump();
+        multiBlockNoWasteBitRepack.cleanup();
+
+        System.out.println("\n=== MultiBlockUnsafeNoWasteBitRepack ===");
+        QuickMemProbe probe = new QuickMemProbe(
+                HandlerType.MULTI_BLOCK_UNSAFE_NO_WASTE_BIT_REPACK /* or UNSAFE */);
+
+        probe.fire(N);
+
+        /* heap bytes */
+        long heap = HeapSize.bytes(probe.player.latencyUtils.getTasksObject());
+
+        /* native bytes (only for the Unsafe handler) */
+        long off  = V1200MultiBlockChangeUnsafeHandler.getNativeBytes();
+
+        System.out.println("heap  = " + heap + " B");
+        System.out.println("native= " + off  + " B");
+        System.out.println("total = " + (heap + off) + " B");
+
     }
 
     private void cleanup() {
