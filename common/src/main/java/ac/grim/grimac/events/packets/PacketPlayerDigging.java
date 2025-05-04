@@ -65,8 +65,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.eatingHand = hand;
         }
 
-        // Check for data component stuff on 1.20.5+
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
+        // Check for data component stuff on 1.20.5+ (minecraft:blocks_attacks can override the food component)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null && blocksAttacks == null) {
             if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
                 player.packetStateData.setSlowedByUsingItem(true);
                 player.packetStateData.eatingHand = hand;
@@ -248,6 +248,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
             handleUseItem(player, item, hand);
+            player.sendMessage("blocking: " + player.packetStateData.isSlowedByUsingItem());
         }
     }
 }
