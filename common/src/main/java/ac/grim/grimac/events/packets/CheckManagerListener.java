@@ -64,10 +64,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
+    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand, int sequence) {
         HitData data = WorldRayTrace.getNearestBlockHitResult(player, StateTypes.AIR, false, true, true);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), held, data);
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), held, data, sequence);
 
             boolean didPlace = false;
 
@@ -175,20 +175,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void handleUseItem(GrimPlayer player, ItemStack placedWith, InteractionHand hand) {
+    private static void handleUseItem(GrimPlayer player, ItemStack placedWith, InteractionHand hand, int sequence) {
         // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
         if (placedWith.getType() == ItemTypes.LILY_PAD) {
-            placeLilypad(player, hand); // Pass a block place because lily pads have a hitbox
+            placeLilypad(player, hand, sequence); // Pass a block place because lily pads have a hitbox
             return;
         }
 
         StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
         if (toBucketMat != null) {
-            placeWaterLavaSnowBucket(player, placedWith, toBucketMat, hand);
+            placeWaterLavaSnowBucket(player, placedWith, toBucketMat, hand, sequence);
         }
 
         if (placedWith.getType() == ItemTypes.BUCKET) {
-            placeBucket(player, hand);
+            placeBucket(player, hand, sequence);
         }
     }
 
@@ -206,7 +206,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     placedWith = player.getInventory().getOffHand();
                 }
 
-                handleUseItem(player, placedWith, place.getHand());
+                handleUseItem(player, placedWith, place.getHand(), place.getSequence());
                 return;
             }
         }
@@ -220,7 +220,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 placedWith = player.getInventory().getOffHand();
             }
 
-            handleUseItem(player, placedWith, place.getHand());
+            handleUseItem(player, placedWith, place.getHand(), place.getSequence());
         }
 
         // Check for interactable first (door, etc)
@@ -233,7 +233,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
             if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
                 Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false));
+                BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
 
                 // Right-clicking a trapdoor/door/etc.
                 StateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
@@ -272,7 +272,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 placedWith = player.getInventory().getOffHand();
             }
 
-            BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), face, placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false));
+            BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), face, placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
             // At this point, it is too late to cancel, so we can only flag, and cancel subsequent block places more aggressively
             if (!player.inVehicle()) {
                 player.checkManager.onPostFlyingBlockPlace(blockPlace);
@@ -286,11 +286,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void placeBucket(GrimPlayer player, InteractionHand hand) {
+    private static void placeBucket(GrimPlayer player, InteractionHand hand, int sequence) {
         HitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
 
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data, sequence);
             blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
 
             boolean placed = false;
@@ -365,7 +365,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
+    private static void placeLilypad(GrimPlayer player, InteractionHand hand, int sequence) {
         HitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
 
         if (data != null) {
@@ -373,7 +373,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data);
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data, sequence);
             blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
@@ -565,7 +565,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             final DiggingAction action = packet.getAction();
 
             if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
-                final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace(), packet.getBlockFaceId(), action, player.compensatedWorld.getBlock(packet.getBlockPosition()));
+                final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace(), packet.getBlockFaceId(), action, packet.getSequence(), player.compensatedWorld.getBlock(packet.getBlockPosition()));
 
                 player.checkManager.onBlockBreak(blockBreak);
 
@@ -627,7 +627,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             } else {
                 // Anti-air place
-                BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFaceId(), packet.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false));
+                BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFaceId(), packet.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), packet.getSequence());
                 blockPlace.setCursor(packet.getCursorPosition());
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {

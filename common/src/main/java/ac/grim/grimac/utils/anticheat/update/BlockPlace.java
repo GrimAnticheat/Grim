@@ -79,8 +79,9 @@ public class BlockPlace {
     @Getter
     @Setter
     Vector3f cursor;
+    public final int sequence;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData, int sequence) {
         this.player = player;
         this.hand = hand;
         this.blockPosition = blockPosition;
@@ -98,6 +99,7 @@ public class BlockPlace {
 
         WrappedBlockState state = player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation());
         this.replaceClicked = canBeReplaced(this.material, state, face);
+        this.sequence = sequence;
     }
 
     public static BlockFace[] getHorizontalFaces() {

@@ -3,12 +3,12 @@ package ac.grim.grimac.checks.impl.multiactions;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,26 +52,24 @@ public class MultiActionsF extends BlockPlaceCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING) {
-                block = true;
-                if (entity) {
-                    if (!player.canSkipTicks()) {
-                        if (flagAndAlert("dig") && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                            player.resyncPosition(packet.getBlockPosition());
-                        }
-                    } else {
-                        flags.add("dig");
-                    }
-                }
-            }
-        }
-
         if (isTickPacket(event.getPacketType())) {
             block = entity = false;
+        }
+    }
+
+    @Override
+    public void onBlockBreak(BlockBreak blockBreak) {
+        if (blockBreak.action == DiggingAction.START_DIGGING || blockBreak.action == DiggingAction.FINISHED_DIGGING) {
+            block = true;
+            if (entity) {
+                if (!player.canSkipTicks()) {
+                    if (flagAndAlert("dig") && shouldModifyPackets()) {
+                        blockBreak.cancel();
+                    }
+                } else {
+                    flags.add("dig");
+                }
+            }
         }
     }
 

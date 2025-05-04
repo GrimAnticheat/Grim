@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
-public enum HitboxData {
+public enum HitboxData implements HitBoxFactory {
 
     RAILS((player, item, version, data, isTargetBlock, x, y, z) -> {
         return switch (data.getShape()) {
@@ -473,6 +473,13 @@ public enum HitboxData {
 
     HANGING_ROOTS(new HexCollisionBox(2.0D, 10.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.HANGING_ROOTS),
 
+    HANGING_MOSS((player, item, version, data, isTargetBlock, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_21_2)) {
+            return HANGING_ROOTS.fetch(player, item, version, data, isTargetBlock, x, y, z);
+        }
+        return new HexCollisionBox(1, data.isTip() ? 2 : 0, 1, 15, 16, 15);
+    }, StateTypes.PALE_HANGING_MOSS),
+
     GRASS_FERN((player, item, version, data, isTargetBlock, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_13)) {
             return new SimpleCollisionBox(0.1F, 0.0F, 0.1F, 0.9F, 0.8F, 0.9F);
@@ -640,6 +647,11 @@ public enum HitboxData {
         this.materials = mList.toArray(new StateType[0]);
     }
 
+    @Override
+    public CollisionBox fetch(GrimPlayer player, StateType heldItem, ClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
+        return box != null ? box.copy() : dynamic.fetch(player, heldItem, version, block, isTargetBlock, x, y, z);
+    }
+
     public static HitboxData getData(StateType material) {
         return lookup.get(material);
     }
@@ -652,15 +664,7 @@ public enum HitboxData {
             return CollisionData.getRawData(block.getType()).getMovementCollisionBox(player, version, block, x, y, z);
         }
 
-        // Simple collision box to override
-        if (data.box != null)
-            return data.box.copy().offset(x, y, z);
-
-        // Allow this class to override collision boxes when they aren't the same as regular boxes
-        HitBoxFactory hitBoxFactory = data.dynamic;
-        CollisionBox collisionBox = hitBoxFactory.fetch(player, heldItem, version, block, isTargetBlock, x, y, z);
-        collisionBox.offset(x, y, z);
-        return collisionBox;
+        return data.fetch(player, heldItem, version, block, isTargetBlock, x, y, z).offset(x, y, z);
     }
 
     private static int getPropaguleMinHeight(int age) {

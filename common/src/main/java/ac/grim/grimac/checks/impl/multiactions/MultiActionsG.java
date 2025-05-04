@@ -1,9 +1,9 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "MultiActionsG", description = "Attacking or using items while rowing a boat", experimental = true)
-public class MultiActionsG extends Check implements PacketCheck {
+public class MultiActionsG extends BlockPlaceCheck {
     public MultiActionsG(GrimPlayer player) {
         super(player);
     }
@@ -30,11 +30,12 @@ public class MultiActionsG extends Check implements PacketCheck {
             event.setCancelled(true);
             player.onPacketCancel();
         }
+    }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && isCheckActive()
-                && flagAndAlert(new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets()) {
-            event.setCancelled(true);
-            player.onPacketCancel();
+    @Override
+    public void onBlockPlace(BlockPlace place) {
+        if (isCheckActive() && flagAndAlert(place.getDirection() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets() && shouldCancel()) {
+            place.resync();
         }
     }
 

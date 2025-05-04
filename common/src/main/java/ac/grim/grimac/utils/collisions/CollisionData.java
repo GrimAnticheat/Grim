@@ -62,7 +62,7 @@ import java.util.stream.Stream;
 // An if statement for new data types is perfectly safe and should be used instead
 //
 // This is actually mean to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
-public enum CollisionData {
+public enum CollisionData implements CollisionFactory {
     VINE((player, version, block, x, y, z) -> {
         ComplexCollisionBox boxes = new ComplexCollisionBox(5);
 
@@ -542,7 +542,7 @@ public enum CollisionData {
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_16)) {
             // viaversion replacement - iron bars
-            return CollisionData.PANE.dynamic.fetch(player, version, data, x, y, z);
+            return PANE.fetch(player, version, data, x, y, z);
         }
 
         if (data.getAxis() == Axis.X) {
@@ -619,7 +619,7 @@ public enum CollisionData {
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
     }, BlockTags.WOOL_CARPETS.getStates().toArray(new StateType[0])),
 
-    MOSS_CARPET(CARPET.dynamic, StateTypes.MOSS_CARPET),
+    MOSS_CARPET(CARPET, StateTypes.MOSS_CARPET),
 
     PALE_MOSS_CARPET((player, version, data, x, y, z) -> {
         if (!data.isBottom()) {
@@ -627,7 +627,7 @@ public enum CollisionData {
         }
 
         if (version.isOlderThan(ClientVersion.V_1_21_2)) {
-            return MOSS_CARPET.dynamic.fetch(player, version, data, x, y, z);
+            return MOSS_CARPET.fetch(player, version, data, x, y, z);
         }
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
@@ -1052,12 +1052,10 @@ public enum CollisionData {
         }
     }, StateTypes.PITCHER_CROP),
 
-    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case NORTH, SOUTH -> new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
-            case WEST, EAST -> new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
-            default -> NoCollisionBox.INSTANCE;
-        };
+    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case NORTH, SOUTH -> new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
+        case WEST, EAST -> new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
+        default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
@@ -1197,10 +1195,7 @@ public enum CollisionData {
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
-        if (this.box != null)
-            return this.box.copy().offset(x, y, z);
-
-        return new DynamicCollisionBox(player, version, dynamic, block).offset(x, y, z);
+        return fetch(player, version, block, x, y, z).offset(x, y, z);
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, WrappedBlockState block) {
@@ -1208,5 +1203,10 @@ public enum CollisionData {
             return this.box.copy();
 
         return new DynamicCollisionBox(player, version, dynamic, block);
+    }
+
+    @Override
+    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+        return box != null ? box.copy() : new DynamicCollisionBox(player, version, dynamic, block);
     }
 }

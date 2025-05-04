@@ -18,17 +18,19 @@ public final class BlockBreak {
     public final BlockFace face;
     public final int faceId;
     public final DiggingAction action;
+    public final int sequence;
     public final WrappedBlockState block;
     private final GrimPlayer player;
     @Getter
     private boolean cancelled;
 
-    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, WrappedBlockState block) {
+    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, WrappedBlockState block) {
         this.player = player;
         this.position = position;
         this.face = face;
         this.faceId = faceId;
         this.action = action;
+        this.sequence = sequence;
         this.block = block;
     }
 

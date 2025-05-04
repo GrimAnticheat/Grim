@@ -145,7 +145,6 @@ public class CheckManager {
                 .put(BadPacketsE.class, new BadPacketsE(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
-                .put(BadPacketsH.class, new BadPacketsH(player))
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
@@ -207,6 +206,7 @@ public class CheckManager {
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
+                .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(NoSlow.class, new NoSlow(player))
                 .put(SprintB.class, new SprintB(player))
@@ -237,6 +237,8 @@ public class CheckManager {
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(MultiPlace.class, new MultiPlace(player))
                 .put(MultiActionsF.class, new MultiActionsF(player))
+                .put(BadPacketsH.class, new BadPacketsH(player))
+                .put(CrashG.class, new CrashG(player))
                 .put(FarPlace.class, new FarPlace(player))
                 .put(FabricatedPlace.class, new FabricatedPlace(player))
                 .put(PositionPlace.class, new PositionPlace(player))
@@ -255,7 +257,6 @@ public class CheckManager {
                 .put(CrashD.class, new CrashD(player))
                 .put(CrashE.class, new CrashE(player))
                 .put(CrashF.class, new CrashF(player))
-                .put(CrashG.class, new CrashG(player))
                 .put(CrashH.class, new CrashH(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
@@ -406,10 +407,16 @@ public class CheckManager {
         for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onBlockBreak(blockBreak);
         }
+        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
+            check.onBlockBreak(blockBreak);
+        }
     }
 
     public void onPostFlyingBlockBreak(final BlockBreak blockBreak) {
         for (BlockBreakCheck check : blockBreakChecks.values()) {
+            check.onPostFlyingBlockBreak(blockBreak);
+        }
+        for (BlockPlaceCheck check : blockPlaceCheck.values()) {
             check.onPostFlyingBlockBreak(blockBreak);
         }
     }
