@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsH;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
@@ -174,6 +175,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
                 player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
                 player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
+                player.checkManager.getPacketCheck(BadPacketsH.class).onWorldChange();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {

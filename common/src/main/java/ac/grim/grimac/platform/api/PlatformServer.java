@@ -11,7 +11,7 @@ public interface PlatformServer {
 
     Sender getConsoleSender();
 
-    void registerOutgoingPluginChannel(String bungeeCord);
+    void registerOutgoingPluginChannel(String name);
 
     double getTPS();
 }

@@ -52,16 +52,6 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         return api.getPlayerDataManager().getPlayer(uuid);
     }
 
-    public String replaceVariables(GrimUser user, String content) {
-        for (Map.Entry<String, String> entry : staticReplacements.entrySet()) {
-            content = content.replace(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<String, Function<GrimUser, String>> entry : variableReplacements.entrySet()) {
-            content = content.replace(entry.getKey(), entry.getValue().apply(user));
-        }
-        return content;
-    }
-
     @Override
     public void registerVariable(String string, Function<GrimUser, String> replacement) {
         if (replacement == null) {

@@ -238,4 +238,21 @@ public class PacketEntity extends TypedPacketEntity {
         if (potionsMap == null) return;
         potionsMap.removeInt(effect);
     }
+
+    // Mojang makes this default to true and overrides it for everything where it isn't
+    // That's too much work for us to replicate...
+    // This is temporary hack and technically wrong
+    /* By Default every entity in the game cannot be hit by player crosshair. This is overwritten as follows as of 1.21.1:
+      Most Boats, Minecart's, TNT, Falling Blocks, and LivingEntities can only be hit if they're not removed
+      Every single BlockAttachedEntity can be hit (Leashes and other decorations)
+      End Crystals and IntersecetionEntities can be hit
+      Ender Dragon entity itself cannot be hit but its parts can be
+      ArmorStands can only be hit if they're not removed AND they're not markers.
+      Of all Projectiles, only redirectable ones (Fireballs - not blaze fireballs, Wind Charge, and Breeze Wind charges) can be hit
+      Persistent Projectiles can only be hit if they're not on the ground and redirectable
+    */
+    // TLDR If we want to get 90% of the way there everything can be hit except for fishing rod bobbers, arrows, and marker armor stands
+    public boolean canHit() {
+        return !this.isDead;
+    }
 }

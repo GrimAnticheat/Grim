@@ -17,7 +17,7 @@ public class BukkitTaskHandle implements TaskHandle {
     }
 
     @Override
-    public boolean getCancelled() {
+    public boolean isCancelled() {
         return bukkitTask.isCancelled();
     }
 

@@ -57,6 +57,10 @@ bukkit {
     apiVersion = "1.13"
     foliaSupported = true
 
+    if (!BuildConfig.shadePE) {
+        depend = listOf("packetevents")
+    }
+
     softDepend = listOf(
         "ProtocolLib",
         "ProtocolSupport",

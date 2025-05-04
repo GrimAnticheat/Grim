@@ -10,7 +10,9 @@ import ac.grim.grimac.platform.fabric.mc1205.Fabric1203PlatformServer;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1200MessageUtil;
 import ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1205ConversionUtil;
 import ac.grim.grimac.platform.fabric.mc1214.player.Fabric1212PlatformPlayer;
+import ac.grim.grimac.platform.fabric.mc1214.player.Fabric1215PlatformInventory;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
@@ -23,7 +25,8 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
                 new FabricPlatformPlayerFactory(
                         Fabric1212PlatformPlayer::new,
                         Fabric1194GrimEntity::new,
-                        Fabric1193PlatformInventory::new
+                        PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_21_4)
+                            ? Fabric1215PlatformInventory::new : Fabric1193PlatformInventory::new
                 ),
                 new Fabric1203PlatformServer(),
                 new Fabric1200MessageUtil(),

@@ -174,7 +174,9 @@ public class BlockBreakSpeed {
 
         float damage = speedMultiplier / blockHardness;
 
-        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop;
+        boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop
+                // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
+                || block.getType() == StateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4);
         if (canHarvest) {
             damage /= 30F;
         } else {

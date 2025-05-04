@@ -109,6 +109,9 @@ public class UncertaintyHandler {
         this.lastStuckEast = new LastInstance(player);
         this.lastVehicleSwitch = new LastInstance(player);
         tick();
+
+        this.riptideEntities.add(0);
+        this.collidingEntities.add(0);
     }
 
     public void tick() {

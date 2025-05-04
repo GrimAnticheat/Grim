@@ -26,8 +26,8 @@ public class BukkitPlatformServer implements PlatformServer {
     }
 
     @Override
-    public void registerOutgoingPluginChannel(String bungeeCord) {
-        GrimACBukkitLoaderPlugin.LOADER.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.LOADER, "BungeeCord");
+    public void registerOutgoingPluginChannel(String name) {
+        GrimACBukkitLoaderPlugin.LOADER.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.LOADER, name);
     }
 
     @Override

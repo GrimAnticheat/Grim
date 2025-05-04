@@ -18,7 +18,7 @@ public class SprintB extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (player.isSlowMovement && player.sneakingSpeedMultiplier < 0.8f) {
+        if (player.isSlowMovement && player.sneakingSpeedMultiplier < 0.8f && predictionComplete.isChecked()) {
             ClientVersion version = player.getClientVersion();
 
             // https://bugs.mojang.com/browse/MC-152728

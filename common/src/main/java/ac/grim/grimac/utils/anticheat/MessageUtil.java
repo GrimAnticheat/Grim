@@ -1,13 +1,13 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chat.ChatUtil;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.util.reflection.Reflection;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -15,13 +15,15 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @UtilityClass
 public class MessageUtil {
-    public static final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
+    private final char PLACEHOLDER_ESCAPE_CHAR = '\uFFFF'; // this specific character holds no significance
 
     public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
@@ -31,16 +33,30 @@ public class MessageUtil {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
-    public @NotNull String replacePlaceholders(@NotNull GrimPlayer player, @NotNull String string) {
-        return replacePlaceholders(player.platformPlayer, GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, string));
+    public @NotNull String replacePlaceholders(@Nullable GrimPlayer player, @NotNull String string) {
+        return replacePlaceholders(player, player == null ? null : player.platformPlayer, string);
     }
 
-    public @NotNull String replacePlaceholders(@Nullable Sender object, @NotNull String string) {
-        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(object, string);
+    public @NotNull String replacePlaceholders(@Nullable Sender sender, @NotNull String string) {
+        return replacePlaceholders(sender != null ? sender.getPlatformPlayer() : null, string);
     }
 
-    public @NotNull String replacePlaceholders(@Nullable PlatformPlayer object, @NotNull String string) {
-        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(object, string);
+    public @NotNull String replacePlaceholders(@Nullable PlatformPlayer player, @NotNull String string) {
+        return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string);
+    }
+
+    private @NotNull String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @NotNull String string) {
+        for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
+            string = string.replace(entry.getKey(), entry.getValue());
+        }
+
+        if (grimPlayer != null) {
+            for (Map.Entry<String, Function<GrimUser, String>> entry : GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().entrySet()) {
+                string = string.replace(entry.getKey(), entry.getValue().apply(grimPlayer).replace('%', PLACEHOLDER_ESCAPE_CHAR));
+            }
+        }
+
+        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
     }
 
     public @NotNull Component replacePlaceholders(@NotNull GrimPlayer player, @NotNull Component component) {

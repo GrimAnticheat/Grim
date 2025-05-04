@@ -33,7 +33,6 @@ import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
@@ -85,13 +84,13 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     private Initable[] getBukkitInitTasks() {
-        return new Initable[]{
+        return new Initable[] {
                 new ExemptOnlinePlayersOnReload(),
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
                 (StartableInitable) () -> {
-                    if (MessageUtil.hasPlaceholderAPI) {
+                    if (BukkitMessagePlaceHolderManager.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();
                     }
                 }

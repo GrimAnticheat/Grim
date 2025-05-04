@@ -13,31 +13,23 @@ public class FoliaEntityScheduler implements EntityScheduler {
 
     @Override
     public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable run, @Nullable Runnable retired, long delay) {
-        ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().execute(GrimACBukkitLoaderPlugin.LOADER, run, () -> {
-        }, delay);
+        ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().execute(GrimACBukkitLoaderPlugin.LOADER, run, retired, delay);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired) {
-        return new FoliaTaskHandle(
-                ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().run(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), () -> {
-                })
-        );
+        return new FoliaTaskHandle(((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().run(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), retired));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long delayTicks) {
         return new FoliaTaskHandle(
-                ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().runDelayed(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), () -> {
-                }, delayTicks)
+                ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().runDelayed(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), retired, delayTicks)
         );
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(
-                ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), () -> {
-                }, initialDelayTicks, periodTicks)
-        );
+        return new FoliaTaskHandle(((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), retired, initialDelayTicks, periodTicks));
     }
 }

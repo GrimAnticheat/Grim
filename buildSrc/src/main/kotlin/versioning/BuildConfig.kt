@@ -1,6 +1,7 @@
 package versioning
 
 import org.gradle.api.Project
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 
 /**
  * BuildConfig provides access to user-defined build flags that control how a Grim
@@ -46,8 +47,8 @@ object BuildConfig {
      * ```
      */
     fun init(project: Project) {
-        _shadePE = resolveBool(project, "shadePE", default = true)
-        _relocate = resolveBool(project, "relocate", default = true)
+        _shadePE = resolveBool(project, "shadePE", altKey = "SHADE_PE", default = true)
+        _relocate = resolveBool(project, "relocate", altKey = "RELOCATE_JAR", default = true)
         _release = resolveBool(project, "release", default = false)
     }
 
@@ -57,8 +58,21 @@ object BuildConfig {
             ?: project.findProperty(key)?.toString()  // ② Gradle (-Pkey=value or gradle.properties)
             ?: System.getenv(key.uppercase())         // ③ ENV   (KEY=value)
 
-    private fun resolveBool(project: Project, key: String, default: Boolean): Boolean =
-        resolveRaw(project, key)?.toBooleanStrictOrNull() ?: default
+    private fun resolveBool(project: Project, key: String, altKey: String? = null, default: Boolean): Boolean {
+        val primaryValue = resolveRaw(project, key)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
+        if (primaryValue != null) {
+            return primaryValue
+        }
+
+        if (altKey != null) {
+            val altValue = resolveRaw(project, altKey)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
+            if (altValue != null) {
+                return altValue
+            }
+        }
+
+        return default
+    }
 
     // Private backing vars (nullable because we can't use lateinit with primitives)
     private var _shadePE: Boolean? = null

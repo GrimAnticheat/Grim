@@ -91,7 +91,7 @@ public class PunishmentManager implements ConfigReloadable {
                     parsed.add(new ParsedCommand(threshold, interval, commandString));
                 }
 
-                groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter));
+                groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter * 1000));
             }
         } catch (Exception e) {
             LogUtil.error("Error while loading punishments.yml! This is likely your fault!");
@@ -193,7 +193,7 @@ class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
     public final Map<Long, Check> violations = new HashMap<>();
-    public final int removeViolationsAfter;
+    public final int removeViolationsAfter; // time to remove violations after in milliseconds
 }
 
 @RequiredArgsConstructor

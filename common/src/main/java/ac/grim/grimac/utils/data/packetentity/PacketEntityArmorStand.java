@@ -15,6 +15,6 @@ public class PacketEntityArmorStand extends PacketEntity {
 
     @Override
     public boolean canHit() {
-        return !isMarker;
+        return !isMarker && super.canHit();
     }
 }

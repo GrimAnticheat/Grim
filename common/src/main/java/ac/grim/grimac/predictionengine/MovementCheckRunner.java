@@ -276,7 +276,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             if (riding instanceof PacketEntityRideable) {
-                VehicleC vehicleC = player.checkManager.getPacketCheck(VehicleC.class);
+                VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
 
                 ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.getInventory().getHeldItem();

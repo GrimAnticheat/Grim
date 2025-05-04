@@ -35,7 +35,7 @@ public class BukkitPlatformInventory implements PlatformInventory {
 
     @Override
     public ItemStack getChestplate() {
-        return SpigotConversionUtil.fromBukkitItemStack(bukkitPlayer.getInventory().getHelmet());
+        return SpigotConversionUtil.fromBukkitItemStack(bukkitPlayer.getInventory().getChestplate());
     }
 
     @Override

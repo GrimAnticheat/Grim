@@ -20,14 +20,7 @@ import ac.grim.grimac.checks.impl.combat.Hitboxes;
 import ac.grim.grimac.checks.impl.combat.MultiInteractA;
 import ac.grim.grimac.checks.impl.combat.MultiInteractB;
 import ac.grim.grimac.checks.impl.combat.Reach;
-import ac.grim.grimac.checks.impl.crash.CrashA;
-import ac.grim.grimac.checks.impl.crash.CrashB;
-import ac.grim.grimac.checks.impl.crash.CrashC;
-import ac.grim.grimac.checks.impl.crash.CrashD;
-import ac.grim.grimac.checks.impl.crash.CrashE;
-import ac.grim.grimac.checks.impl.crash.CrashF;
-import ac.grim.grimac.checks.impl.crash.CrashG;
-import ac.grim.grimac.checks.impl.crash.CrashH;
+import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.elytra.ElytraA;
 import ac.grim.grimac.checks.impl.elytra.ElytraB;
 import ac.grim.grimac.checks.impl.elytra.ElytraC;
@@ -48,12 +41,7 @@ import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
 import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsA;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsB;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsD;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsE;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsF;
+import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderB;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderC;
 import ac.grim.grimac.checks.impl.packetorder.*;
@@ -138,7 +126,6 @@ public class CheckManager {
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
-                .put(Hitboxes.class, new Hitboxes(player))
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
@@ -158,33 +145,31 @@ public class CheckManager {
                 .put(BadPacketsE.class, new BadPacketsE(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
+                .put(BadPacketsH.class, new BadPacketsH(player))
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
-                .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))
-                .put(BadPacketsS.class, new BadPacketsS(player))
                 .put(BadPacketsT.class, new BadPacketsT(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
-                .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
                 .put(MultiActionsA.class, new MultiActionsA(player))
                 .put(MultiActionsB.class, new MultiActionsB(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(MultiActionsE.class, new MultiActionsE(player))
-                .put(TransactionOrder.class, new TransactionOrder(player))
+                .put(MultiActionsG.class, new MultiActionsG(player))
                 .put(PacketOrderB.class, new PacketOrderB(player))
                 .put(PacketOrderC.class, new PacketOrderC(player))
                 .put(PacketOrderD.class, new PacketOrderD(player))
                 .put(SprintA.class, new SprintA(player))
                 .put(VehicleA.class, new VehicleA(player))
                 .put(VehicleB.class, new VehicleB(player))
-                .put(VehicleC.class, new VehicleC(player))
                 .put(VehicleD.class, new VehicleD(player))
+                .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -291,6 +276,18 @@ public class CheckManager {
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .build();
 
+        // All checks that have no listeners, generally invoked by other code to flag
+        // TODO migratemore  checks to here
+        ClassToInstanceMap<AbstractCheck> noneModules = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
+                // BadPacketsN/S/W + VehicleC + TransactionOrder are packet checks with no listener
+                .put(BadPacketsN.class, new BadPacketsN(player))
+                .put(BadPacketsS.class, new BadPacketsS(player))
+                .put(BadPacketsW.class, new BadPacketsW(player))
+                .put(TransactionOrder.class, new TransactionOrder(player))
+                .put(VehicleC.class, new VehicleC(player))
+                .put(Hitboxes.class, new Hitboxes(player)) // Hitboxes is invoked by Reach
+                .build();
+
         allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
                 .putAll(packetChecks)
                 .putAll(positionCheck)
@@ -300,9 +297,15 @@ public class CheckManager {
                 .putAll(blockPlaceCheck)
                 .putAll(prePredictionChecks)
                 .putAll(blockBreakChecks)
+                .putAll(noneModules)
                 .build();
 
         init();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends AbstractCheck> T getCheck(Class<T> check) {
+        return (T) allChecks.get(check);
     }
 
     @SuppressWarnings("unchecked")
@@ -313,11 +316,6 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends RotationCheck> T getRotationCheck(Class<T> check) {
         return (T) rotationCheck.get(check);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends VehicleCheck> T getVehicleCheck(Class<T> check) {
-        return (T) vehicleCheck.get(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {

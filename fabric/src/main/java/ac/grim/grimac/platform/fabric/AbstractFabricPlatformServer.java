@@ -21,7 +21,7 @@ public abstract class AbstractFabricPlatformServer implements PlatformServer {
     }
 
     @Override
-    public void registerOutgoingPluginChannel(String bungeeCord) {
+    public void registerOutgoingPluginChannel(String name) {
         throw new UnsupportedOperationException();
     }
 }

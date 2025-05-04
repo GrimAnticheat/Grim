@@ -32,7 +32,7 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
             if (handler instanceof PlayerScreenHandler) {
                 return "CRAFTING";
                 // Not sure if creative mode check here is correct
-            } else if (fabricPlayer.isCreative()) {
+            } else if (this.isPlayerCreative()) {
                 return "CREATIVE";
             }
         }
@@ -66,6 +66,10 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
 
     protected Identifier getScreenID(ScreenHandlerType<?> type) {
         return Registry.SCREEN_HANDLER.getId(type);
+    }
+
+    protected boolean isPlayerCreative() {
+        return fabricPlayer.isCreative();
     }
 
     protected @Nullable ScreenHandlerType<?> getSafeType(ScreenHandler handler) {

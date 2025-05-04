@@ -98,7 +98,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # По состоянию на 2.2.10 нет проверок AutoClicker, и это место для размещения. Grim будет включать проверки AutoClicker в будущем.
+  # Начиная с версии 2.2.10, проверки на AutoClicker отсутствуют, на их месте пока используется placeholder. Grim будет включать проверки AutoClicker в будущем.
   Autoclicker:
     remove-violations-after: 300
     checks:

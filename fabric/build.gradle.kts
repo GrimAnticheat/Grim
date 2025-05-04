@@ -26,6 +26,8 @@ dependencies {
     } else {
         compileOnly(libs.packetevents.fabric)
     }
+    compileOnly("org.slf4j:slf4j-api:2.0.17")
+    compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 
     modApi(libs.packetevents.fabric)
 }

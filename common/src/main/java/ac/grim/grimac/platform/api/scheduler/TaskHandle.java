@@ -22,7 +22,7 @@ public interface TaskHandle {
 
     boolean isSync();
 
-    boolean getCancelled();
+    boolean isCancelled();
 
     void cancel();
 }

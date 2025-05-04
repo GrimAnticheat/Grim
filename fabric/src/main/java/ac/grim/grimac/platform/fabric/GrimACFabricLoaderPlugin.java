@@ -15,6 +15,7 @@ import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
+import ac.grim.grimac.platform.fabric.utils.message.JULoggerFactory;
 import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
@@ -29,13 +30,11 @@ import org.incendo.cloud.fabric.FabricServerCommandManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
     public static GrimACFabricLoaderPlugin LOADER;
-    protected final Logger logger = Logger.getLogger(GrimACFabricLoaderPlugin.class.getName());
 
     protected final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
     // Since we JiJ PacketEvents and depend on it on Fabric, we can always just get the API instance since it loads firsts
@@ -45,7 +44,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
     protected final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() ->
             new BasicGrimPlugin(
-                    this.logger,
+                    JULoggerFactory.createLogger("GrimAC"),
                     new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
                     FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
                     FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
