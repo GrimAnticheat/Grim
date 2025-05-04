@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.Vector3dm;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPluginMessage;
 import io.netty.buffer.ByteBuf;
@@ -180,7 +179,7 @@ public class HitboxDebugHandler extends AbstractDebugHandler {
             // Send to all listeners
             for (GrimPlayer listener : listeners) {
                 if (listener != null) {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(listener.user, packet);
+                    listener.user.sendPacket(packet);
                 }
             }
         } finally {
