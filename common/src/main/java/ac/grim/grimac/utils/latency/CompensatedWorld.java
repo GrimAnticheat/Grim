@@ -6,10 +6,7 @@ import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.BlockPrediction;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.PistonData;
-import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -70,7 +67,7 @@ public class CompensatedWorld {
     public final GrimPlayer player;
     public final Long2ObjectMap<Column> chunks;
     // Packet locations for blocks
-    public final Set<PistonData> activePistons = new HashSet<>();
+    public final Set<PlayerPistonData> activePistons = new HashSet<>();
     public final Set<ShulkerData> openShulkerBoxes = new HashSet<>();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     @Getter
@@ -239,8 +236,8 @@ public class CompensatedWorld {
         }
 
         // Pistons are a block entity.
-        for (PistonData data : activePistons) {
-            for (SimpleCollisionBox box : data.boxes) {
+        for (PlayerPistonData data : activePistons) {
+            for (SimpleCollisionBox box : data.pistonTemplate.boxes()) {
                 if (playerBox.isCollided(box)) {
                     return true;
                 }
@@ -359,18 +356,18 @@ public class CompensatedWorld {
         double modY = 0;
         double modZ = 0;
 
-        for (PistonData data : activePistons) {
-            for (SimpleCollisionBox box : data.boxes) {
+        for (PlayerPistonData data : activePistons) {
+            for (SimpleCollisionBox box : data.pistonTemplate.boxes()) {
                 if (playerBox.isCollided(box)) {
-                    modX = Math.max(modX, Math.abs(data.direction.getModX() * 0.51D));
-                    modY = Math.max(modY, Math.abs(data.direction.getModY() * 0.51D));
-                    modZ = Math.max(modZ, Math.abs(data.direction.getModZ() * 0.51D));
+                    modX = Math.max(modX, Math.abs(data.pistonTemplate.dir().getModX() * 0.51D));
+                    modY = Math.max(modY, Math.abs(data.pistonTemplate.dir().getModY() * 0.51D));
+                    modZ = Math.max(modZ, Math.abs(data.pistonTemplate.dir().getModZ() * 0.51D));
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
 
-                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(ClientVersion.V_1_15_2))) {
-                        player.uncertaintyHandler.slimePistonBounces.add(data.direction);
+                    if (data.pistonTemplate.slime() || (data.pistonTemplate.honey() && player.getClientVersion().isOlderThan(ClientVersion.V_1_15_2))) {
+                        player.uncertaintyHandler.slimePistonBounces.add(data.pistonTemplate.dir());
                     }
 
                     break;
@@ -425,7 +422,7 @@ public class CompensatedWorld {
             activePistons.removeIf(data -> data.lastTransactionSent < transactionId);
             openShulkerBoxes.removeIf(data -> data.isClosing && data.lastTransactionSent < transactionId);
         } else {
-            activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
+            activePistons.removeIf(PlayerPistonData::tickIfGuaranteedFinished);
             openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
         }
         // Remove if a shulker is not in this block position anymore
@@ -697,5 +694,9 @@ public class CompensatedWorld {
 
     public WrappedBlockState getBlock(Vector3dm aboveCCWPos) {
         return getBlock(aboveCCWPos.getX(), aboveCCWPos.getY(), aboveCCWPos.getZ());
+    }
+
+    public void addPiston(PistonTemplate pistonTemplate, int transactionID) {
+        activePistons.add(new PlayerPistonData(pistonTemplate, transactionID));
     }
 }

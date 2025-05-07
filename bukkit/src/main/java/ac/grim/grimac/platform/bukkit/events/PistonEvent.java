@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.PistonTemplate;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -28,10 +28,10 @@ public class PistonEvent implements Listener {
     private static final double MAX_VERTICAL_DISTANCE = 64.0;
 
     // accuracy isn't that important, it's close enough and performant
-    private static boolean isCloseEnough(Vector3i vectorA, Vector3d vectorB) {
-        return Math.abs(vectorA.getX() - vectorB.getX()) <= MAX_HORIZONTAL_DISTANCE
-                && Math.abs(vectorA.getY() - vectorB.getY()) <= MAX_VERTICAL_DISTANCE
-                && Math.abs(vectorA.getZ() - vectorB.getZ()) <= MAX_HORIZONTAL_DISTANCE;
+    private static boolean isCloseEnough(int x, int y, int z, double posX, double posY, double posZ) {
+        return Math.abs(x - posX) <= MAX_HORIZONTAL_DISTANCE
+                && Math.abs(y - posY) <= MAX_VERTICAL_DISTANCE
+                && Math.abs(z - posZ) <= MAX_HORIZONTAL_DISTANCE;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -68,18 +68,8 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
-        final int chunkX = event.getBlock().getX() >> 4;
-        final int chunkZ = event.getBlock().getZ() >> 4;
-        final BlockFace blockFace = BukkitConversionUtils.fromBukkitFace(event.getDirection());
-        final Vector3i sourcePos = new Vector3i(piston.getX(), piston.getY(), piston.getZ());
-
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
-                final int lastTrans = player.lastTransactionSent.get();
-                PistonData data = new PistonData(blockFace, boxes, lastTrans, true, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-            }
-        }
+        PistonTemplate data = new PistonTemplate(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, true, hasSlimeBlock, hasHoneyBlock);
+        addPistonData(data, piston.getX(), piston.getY(), piston.getZ());
     }
 
     // For some unknown reason, bukkit handles this stupidly
@@ -101,9 +91,8 @@ public class PistonEvent implements Listener {
         BlockFace face = BukkitConversionUtils.fromBukkitFace(event.getDirection());
 
         // The event was called without blocks and is therefore in the right direction
+        Block piston = event.getBlock();
         if (event.getBlocks().isEmpty()) {
-            Block piston = event.getBlock();
-
             // Add bounding box of the actual piston head pushing
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(piston.getX() + face.getModX(),
@@ -127,16 +116,19 @@ public class PistonEvent implements Listener {
             }
         }
 
-        final int chunkX = event.getBlock().getX() >> 4;
-        final int chunkZ = event.getBlock().getZ() >> 4;
-        Vector3i sourcePos = new Vector3i(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+        PistonTemplate data = new PistonTemplate(face, boxes, false, hasSlimeBlock, hasHoneyBlock);
+        addPistonData(data, piston.getX(), piston.getY(), piston.getZ());
+    }
 
+    private void addPistonData(PistonTemplate pistonTemplate, int blockX, int blockY, int blockZ) {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
-                int lastTrans = player.lastTransactionSent.get();
-                PistonData data = new PistonData(face, boxes, lastTrans, false, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-            }
+            if (player.compensatedWorld.isChunkLoaded(blockX >> 4, blockZ >> 4) || !isCloseEnough(blockX, blockY, blockZ, player.x, player.y, player.z)) continue;
+
+            int lastTrans = player.lastTransactionSent.get();
+
+            player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> {
+                player.compensatedWorld.addPiston(pistonTemplate, lastTrans);
+            });
         }
     }
 }
