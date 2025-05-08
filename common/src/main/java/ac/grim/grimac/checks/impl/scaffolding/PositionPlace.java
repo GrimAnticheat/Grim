@@ -56,7 +56,7 @@ public class PositionPlace extends BlockPlaceCheck {
             default -> false;
         };
 
-        if (flag && flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+        if (flag && flagAndAlert("material=" + place.getMaterial().getName()) && shouldModifyPackets() && shouldCancel()) {
             place.resync();
         }
     }
