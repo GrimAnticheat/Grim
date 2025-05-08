@@ -57,7 +57,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
                 }
 
-                String verbose = humanFormattedOffset + " /gl " + flagId;
+                String verbose = "o=" + humanFormattedOffset + " a=" + player.actualMovement + " /gl " + flagId;
                 if (flag(verbose)) {
                     if (alert(verbose)) {
                         flags.incrementAndGet(); // This debug was sent somewhere
