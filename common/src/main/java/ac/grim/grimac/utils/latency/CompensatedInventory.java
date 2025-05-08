@@ -31,6 +31,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     // Special values:
     // Player inventory is -1
     // Unsupported inventory is -2
+    @Getter
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
     public CompensatedInventory(GrimPlayer playerData) {

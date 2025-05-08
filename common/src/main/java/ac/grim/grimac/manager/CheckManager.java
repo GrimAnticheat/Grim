@@ -130,6 +130,7 @@ public class CheckManager {
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
+                .put(BadPacketsZ.class, new BadPacketsZ(player)) // Must be called before CompensatedInventory.
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
                 .put(PacketWorldBorder.class, new PacketWorldBorder(player))
