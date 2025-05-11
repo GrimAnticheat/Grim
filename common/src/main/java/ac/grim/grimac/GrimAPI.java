@@ -29,7 +29,6 @@ import lombok.Getter;
 import org.incendo.cloud.CommandManager;
 import org.jetbrains.annotations.NotNull;
 
-
 @Getter
 public final class GrimAPI {
     public static final GrimAPI INSTANCE = new GrimAPI();

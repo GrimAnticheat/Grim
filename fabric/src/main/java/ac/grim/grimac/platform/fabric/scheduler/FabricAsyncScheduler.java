@@ -4,7 +4,6 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
-import ac.grim.grimac.utils.data.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,8 +14,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
-    private final Map<Thread, Pair<GrimPlugin, Runnable>> asyncTasks = new HashMap<>();
+    private final Map<Thread, InternalAsyncTask> asyncTasks = new HashMap<>();
     private final GrimPlugin plugin;
+
+    record InternalAsyncTask(GrimPlugin plugin, Runnable runnable) {}
 
     public FabricAsyncScheduler(GrimPlugin plugin) {
         this.plugin = plugin;
@@ -29,7 +30,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
             thread.interrupt();
             asyncTasks.remove(thread);
         };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
+        asyncTasks.put(thread, new InternalAsyncTask(plugin, cancellationTask));
         thread.start();
         return new FabricTaskHandle(cancellationTask, false);
     }
@@ -49,7 +50,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
             thread.interrupt();
             asyncTasks.remove(thread);
         };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
+        asyncTasks.put(thread, new InternalAsyncTask(plugin, cancellationTask));
         thread.start();
         return new FabricTaskHandle(cancellationTask, false); // false for async
     }
@@ -73,7 +74,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
             thread.interrupt();
             asyncTasks.remove(thread);
         };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
+        asyncTasks.put(thread, new InternalAsyncTask(plugin, cancellationTask));
         thread.start();
         return new FabricTaskHandle(cancellationTask, false); // false for async
     }
@@ -89,13 +90,13 @@ public class FabricAsyncScheduler implements AsyncScheduler {
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
         // Cancel tasks only for the specified plugin
-        Iterator<Map.Entry<Thread, Pair<GrimPlugin, Runnable>>> iterator = asyncTasks.entrySet().iterator();
+        Iterator<Map.Entry<Thread, InternalAsyncTask>> iterator = asyncTasks.entrySet().iterator();
         List<Runnable> cancellationTasks = new ArrayList<>();
 
         while (iterator.hasNext()) {
-            Map.Entry<Thread, Pair<GrimPlugin, Runnable>> entry = iterator.next();
-            if (entry.getValue().first().equals(plugin)) {
-                cancellationTasks.add(entry.getValue().second());
+            Map.Entry<Thread, InternalAsyncTask> entry = iterator.next();
+            if (entry.getValue().plugin().equals(plugin)) {
+                cancellationTasks.add(entry.getValue().runnable());
                 iterator.remove();
             }
         }
@@ -107,7 +108,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
 
     public void cancelAll() {
         List<Runnable> cancellationTasks = asyncTasks.values().stream()
-                .map(Pair::second)
+                .map(InternalAsyncTask::runnable)
                 .toList();
         asyncTasks.clear();
 
