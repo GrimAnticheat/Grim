@@ -30,9 +30,9 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
     Object2IntMap<StringBuilder> continuedDebug = new Object2IntOpenHashMap<>();
 
     List<VectorData> predicted = new EvictingQueue<>(60);
-    List<Vector3dm> actually = new EvictingQueue<Vector3dm>(60);
+    List<Vector3dm> actually = new EvictingQueue<>(60);
     List<Location> locations = new EvictingQueue<>(60);
-    List<Vector3dm> startTickClientVel = new EvictingQueue<Vector3dm>(60);
+    List<Vector3dm> startTickClientVel = new EvictingQueue<>(60);
     List<Vector3dm> baseTickAddition = new EvictingQueue<>(60);
     List<Vector3dm> baseTickWater = new EvictingQueue<>(60);
 

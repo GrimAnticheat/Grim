@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.lists;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -127,7 +129,7 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
     }
 
     @Override
-    public Object[] toArray(Object[] a) {
+    public Object @NotNull [] toArray(Object[] a) {
         return this.base.toArray(a);
     }
 }

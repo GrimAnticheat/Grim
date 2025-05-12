@@ -24,8 +24,12 @@ public class LogUtil {
     }
 
     public void error(final String description, final Throwable throwable) {
-        getLogger().severe(description);
-        throwable.printStackTrace();
+        Logger logger = getLogger();
+        if (logger != null) {
+            logger.severe(description + ": " + getStackTrace(throwable));
+        } else {
+            throwable.printStackTrace();
+        }
     }
 
     public Logger getLogger() {
@@ -40,10 +44,6 @@ public class LogUtil {
         GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(info);
     }
 
-    public static void exception(String description, Throwable throwable) {
-        getLogger().severe(description + ": " + getStackTrace(throwable));
-    }
-
     private static String getStackTrace(Throwable throwable) {
         String message = throwable.getMessage();
         try (StringWriter sw = new StringWriter()) {
@@ -52,7 +52,6 @@ public class LogUtil {
                 message = sw.toString();
             }
         } catch (Exception ignored) {
-            ignored.printStackTrace();
         }
         return message;
     }

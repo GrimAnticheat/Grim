@@ -33,8 +33,12 @@ public class MessageUtil {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
+    public @NotNull String replacePlaceholders(@Nullable GrimPlayer player, @NotNull String string, boolean removeFormatting) {
+        return replacePlaceholders(player, player == null ? null : player.platformPlayer, string, removeFormatting);
+    }
+
     public @NotNull String replacePlaceholders(@Nullable GrimPlayer player, @NotNull String string) {
-        return replacePlaceholders(player, player == null ? null : player.platformPlayer, string);
+        return replacePlaceholders(player, player == null ? null : player.platformPlayer, string, false);
     }
 
     public @NotNull String replacePlaceholders(@Nullable Sender sender, @NotNull String string) {
@@ -42,21 +46,52 @@ public class MessageUtil {
     }
 
     public @NotNull String replacePlaceholders(@Nullable PlatformPlayer player, @NotNull String string) {
-        return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string);
+        return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string, false);
     }
 
-    private @NotNull String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @NotNull String string) {
+    private @NotNull String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @NotNull String string, boolean removeFormatting) {
         for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
             string = string.replace(entry.getKey(), entry.getValue());
         }
 
         if (grimPlayer != null) {
             for (Map.Entry<String, Function<GrimUser, String>> entry : GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().entrySet()) {
-                string = string.replace(entry.getKey(), entry.getValue().apply(grimPlayer).replace('%', PLACEHOLDER_ESCAPE_CHAR));
+                String value = entry.getValue().apply(grimPlayer).replace('%', PLACEHOLDER_ESCAPE_CHAR);
+                if (removeFormatting) value = filterDiscordText(value);
+                string = string.replace(entry.getKey(), value);
             }
         }
 
         return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
+    }
+
+    public static String filterDiscordText(String message) {
+        if (message == null || message.isBlank()) return message;
+        final StringBuilder sb = new StringBuilder(message.length());
+        for (int i = 0; i < message.length(); ++i) {
+            final char c = message.charAt(i);
+            // Escape a newline
+            if (c == '\n') {
+                sb.append("\\n");
+            }  // Escape Markdown special characters
+            else if (c == '`' || c == '*' || c == '_' || c == '~' || c == '|') {
+                sb.append('\\').append(c);
+            } else {
+                // Escape "# ", "> ", etc
+                if (c == '#' || c == '>' || c == '-') {
+                    // check if there's a space next
+                    if (((i + 1 < message.length()) && (message.charAt(i + 1) == ' '))
+                            && ((i == 0) || (message.charAt(i - 1) == '\n'))) {
+                        sb.append("\\").append(c);
+                    } else {
+                        sb.append(c);
+                    }
+                } else {
+                    sb.append(c);
+                }
+            }
+        }
+        return sb.toString();
     }
 
     public @NotNull Component replacePlaceholders(@NotNull GrimPlayer player, @NotNull Component component) {

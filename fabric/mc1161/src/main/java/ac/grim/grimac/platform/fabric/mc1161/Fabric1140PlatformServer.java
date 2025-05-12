@@ -5,7 +5,6 @@ import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.minecraft.server.command.ServerCommandSource;
 
-
 public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
 
     @Override

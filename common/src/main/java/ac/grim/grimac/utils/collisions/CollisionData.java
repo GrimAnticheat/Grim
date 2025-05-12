@@ -201,23 +201,19 @@ public enum CollisionData implements CollisionFactory {
     PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), StateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
-    WALL_SKULL((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case SOUTH -> new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F, false);
-            case WEST -> new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F, false);
-            case EAST -> new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
-            default -> new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F, false);
-        };
+    WALL_SKULL((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case SOUTH -> new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F, false);
+        case WEST -> new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F, false);
+        case EAST -> new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
+        default -> new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F, false);
     }, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_WALL_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
             StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL),
 
-    PIGLIN_WALL_HEAD((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case SOUTH -> new HexCollisionBox(3.0D, 4.0D, 0.0D, 13.0D, 12.0D, 8.0D);
-            case EAST -> new HexCollisionBox(0.0D, 4.0D, 3.0D, 8.0D, 12.0D, 13.0D);
-            case WEST -> new HexCollisionBox(8.0D, 4.0D, 3.0D, 16.0D, 12.0D, 13.0D);
-            default -> new HexCollisionBox(3.0D, 4.0D, 8.0D, 13.0D, 12.0D, 16.0D);
-        };
+    PIGLIN_WALL_HEAD((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case SOUTH -> new HexCollisionBox(3.0D, 4.0D, 0.0D, 13.0D, 12.0D, 8.0D);
+        case EAST -> new HexCollisionBox(0.0D, 4.0D, 3.0D, 8.0D, 12.0D, 13.0D);
+        case WEST -> new HexCollisionBox(8.0D, 4.0D, 3.0D, 16.0D, 12.0D, 13.0D);
+        default -> new HexCollisionBox(3.0D, 4.0D, 8.0D, 13.0D, 12.0D, 16.0D);
     }, StateTypes.PIGLIN_WALL_HEAD),
 
     DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new StateType[0])),
@@ -273,9 +269,7 @@ public enum CollisionData implements CollisionFactory {
         return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
     }, StateTypes.CAKE),
 
-    COCOA_BEANS((player, version, data, x, y, z) -> {
-        return getCocoa(version, data.getAge(), data.getFacing());
-    }, StateTypes.COCOA),
+    COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.getFacing()), StateTypes.COCOA),
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
@@ -710,9 +704,7 @@ public enum CollisionData implements CollisionFactory {
             0.625, 0.625, 0.625, false),
             StateTypes.STRUCTURE_VOID),
 
-    END_ROD((player, version, data, x, y, z) -> {
-        return getEndRod(version, data.getFacing());
-    }, StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
+    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
 
     CAULDRON((player, version, data, x, y, z) -> {
         if (version.isNewerThan(ClientVersion.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
@@ -758,9 +750,7 @@ public enum CollisionData implements CollisionFactory {
     SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1, false),
             StateTypes.SOUL_SAND),
 
-    PICKLE((player, version, data, x, y, z) -> {
-        return getPicklesBox(version, data.getPickles());
-    }, StateTypes.SEA_PICKLE),
+    PICKLE((player, version, data, x, y, z) -> getPicklesBox(version, data.getPickles()), StateTypes.SEA_PICKLE),
 
     TURTLEEGG((player, version, data, x, y, z) -> {
         // ViaVersion replacement block (West facing cocoa beans)
@@ -786,28 +776,22 @@ public enum CollisionData implements CollisionFactory {
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
             BlockTags.FLOWER_POTS.getStates().toArray(new StateType[0])),
 
-    WALL_SIGN((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case NORTH -> new HexCollisionBox(0.0D, 4.5D, 14.0D, 16.0D, 12.5D, 16.0D);
-            case SOUTH -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 16.0D, 12.5D, 2.0D);
-            case WEST -> new HexCollisionBox(14.0D, 4.5D, 0.0D, 16.0D, 12.5D, 16.0D);
-            case EAST -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 2.0D, 12.5D, 16.0D);
-            default -> NoCollisionBox.INSTANCE;
-        };
+    WALL_SIGN((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case NORTH -> new HexCollisionBox(0.0D, 4.5D, 14.0D, 16.0D, 12.5D, 16.0D);
+        case SOUTH -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 16.0D, 12.5D, 2.0D);
+        case WEST -> new HexCollisionBox(14.0D, 4.5D, 0.0D, 16.0D, 12.5D, 16.0D);
+        case EAST -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 2.0D, 12.5D, 16.0D);
+        default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_SIGNS.getStates().toArray(new StateType[0])),
 
-    WALL_FAN((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case NORTH -> new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
-            case SOUTH -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
-            case WEST -> new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
-            default -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D);
-        };
+    WALL_FAN((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case NORTH -> new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
+        case SOUTH -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
+        case WEST -> new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+        default -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D);
     }, BlockTags.WALL_CORALS.getStates().toArray(new StateType[0])),
 
-    CORAL_PLANT((player, version, data, x, y, z) -> {
-        return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D);
-    }, Stream.concat(
+    CORAL_PLANT((player, version, data, x, y, z) -> new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D), Stream.concat(
                     Arrays.stream(BlockTags.CORAL_PLANTS.getStates().toArray(new StateType[0])),
                     Stream.of(StateTypes.DEAD_HORN_CORAL, StateTypes.DEAD_TUBE_CORAL, StateTypes.DEAD_BRAIN_CORAL,
                             StateTypes.DEAD_BUBBLE_CORAL, StateTypes.DEAD_FIRE_CORAL)
@@ -850,27 +834,23 @@ public enum CollisionData implements CollisionFactory {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
     }, StateTypes.TRIPWIRE),
 
-    TRIPWIRE_HOOK((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case NORTH -> new HexCollisionBox(5.0D, 0.0D, 10.0D, 11.0D, 10.0D, 16.0D);
-            case SOUTH -> new HexCollisionBox(5.0D, 0.0D, 0.0D, 11.0D, 10.0D, 6.0D);
-            case WEST -> new HexCollisionBox(10.0D, 0.0D, 5.0D, 16.0D, 10.0D, 11.0D);
-            default -> new HexCollisionBox(0.0D, 0.0D, 5.0D, 6.0D, 10.0D, 11.0D);
-        };
+    TRIPWIRE_HOOK((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case NORTH -> new HexCollisionBox(5.0D, 0.0D, 10.0D, 11.0D, 10.0D, 16.0D);
+        case SOUTH -> new HexCollisionBox(5.0D, 0.0D, 0.0D, 11.0D, 10.0D, 6.0D);
+        case WEST -> new HexCollisionBox(10.0D, 0.0D, 5.0D, 16.0D, 10.0D, 11.0D);
+        default -> new HexCollisionBox(0.0D, 0.0D, 5.0D, 6.0D, 10.0D, 11.0D);
     }, StateTypes.TRIPWIRE_HOOK),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
             StateTypes.TORCH, StateTypes.REDSTONE_TORCH),
 
-    WALL_TORCH((player, version, data, x, y, z) -> {
-        return switch (data.getFacing()) {
-            case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
-            case SOUTH -> new HexCollisionBox(5.5D, 3.0D, 0.0D, 10.5D, 13.0D, 5.0D);
-            case WEST -> new HexCollisionBox(11.0D, 3.0D, 5.5D, 16.0D, 13.0D, 10.5D);
-            case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
-            // 1.13 separates wall and normal torches, 1.12 does not
-            default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-        };
+    WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
+        case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
+        case SOUTH -> new HexCollisionBox(5.5D, 3.0D, 0.0D, 10.5D, 13.0D, 5.0D);
+        case WEST -> new HexCollisionBox(11.0D, 3.0D, 5.5D, 16.0D, 13.0D, 10.5D);
+        case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
+        // 1.13 separates wall and normal torches, 1.12 does not
+        default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
     }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
 
     // 1.17 blocks
@@ -979,27 +959,17 @@ public enum CollisionData implements CollisionFactory {
         return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
     }, StateTypes.NETHER_PORTAL),
 
-    AZALEA((player, version, data, x, y, z) -> {
-        return new ComplexCollisionBox(2,
-                new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
-                new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0));
-    }, StateTypes.AZALEA, StateTypes.FLOWERING_AZALEA),
+    AZALEA((player, version, data, x, y, z) -> new ComplexCollisionBox(2,
+            new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
+            new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0)), StateTypes.AZALEA, StateTypes.FLOWERING_AZALEA),
 
-    AMETHYST_CLUSTER((player, version, data, x, y, z) -> {
-        return getAmethystBox(version, data.getFacing(), 7, 3);
-    }, StateTypes.AMETHYST_CLUSTER),
+    AMETHYST_CLUSTER((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 7, 3), StateTypes.AMETHYST_CLUSTER),
 
-    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> {
-        return getAmethystBox(version, data.getFacing(), 3, 4);
-    }, StateTypes.SMALL_AMETHYST_BUD),
+    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 3, 4), StateTypes.SMALL_AMETHYST_BUD),
 
-    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> {
-        return getAmethystBox(version, data.getFacing(), 4, 3);
-    }, StateTypes.MEDIUM_AMETHYST_BUD),
+    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 4, 3), StateTypes.MEDIUM_AMETHYST_BUD),
 
-    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> {
-        return getAmethystBox(version, data.getFacing(), 5, 3);
-    }, StateTypes.LARGE_AMETHYST_BUD),
+    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 5, 3), StateTypes.LARGE_AMETHYST_BUD),
 
     MUD_BLOCK((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(ClientVersion.V_1_19)) {

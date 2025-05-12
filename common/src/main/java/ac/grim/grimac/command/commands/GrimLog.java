@@ -7,6 +7,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
@@ -31,7 +32,7 @@ public class GrimLog implements BuildableCommand {
             } catch (Exception e) {
                 String message = MessageUtil.replacePlaceholders(sender, failure);
                 sender.sendMessage(MessageUtil.miniMessage(message));
-                e.printStackTrace();
+                LogUtil.error("Failed to send log", e);
             }
         });
     }
@@ -67,13 +68,16 @@ public class GrimLog implements BuildableCommand {
 
     @Override
     public void register(CommandManager<Sender> commandManager) {
-        commandManager.command(
-                commandManager.commandBuilder("grim", "grimac", "gl")
-                        .literal("log", "logs")
-                        .permission("grim.log")
-                        .required("flagId", IntegerParser.integerParser())
-                        .handler(this::handleLog)
-        );
+        Command<Sender> command = commandManager.commandBuilder("grim", "grimac")
+                .literal("log", "logs")
+                .permission("grim.log")
+                .required("flagId", IntegerParser.integerParser())
+                .handler(this::handleLog)
+                .manager(commandManager)
+                .build();
+        commandManager
+                .command(command)
+                .command(commandManager.commandBuilder("gl").proxies(command));
     }
 
     private void handleLog(@NonNull CommandContext<Sender> context) {

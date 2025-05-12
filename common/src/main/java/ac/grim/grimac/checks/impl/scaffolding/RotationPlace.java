@@ -36,6 +36,7 @@ public class RotationPlace extends BlockPlaceCheck {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR)
             return; // you don't send flying packets when spectating entities
+        if (player.inVehicle()) return;
         if (flagBuffer > 0 && !didRayTraceHit(place)) {
             ignorePost = true;
             // If the player hit and has flagged this check recently
@@ -51,6 +52,7 @@ public class RotationPlace extends BlockPlaceCheck {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR)
             return; // you don't send flying packets when spectating entities
+        if (player.inVehicle()) return;
 
         // Don't flag twice
         if (ignorePost) {

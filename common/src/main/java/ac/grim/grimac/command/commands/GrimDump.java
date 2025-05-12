@@ -17,8 +17,6 @@ import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
 
-import java.util.Locale;
-
 public class GrimDump implements BuildableCommand {
 
     private static final boolean PAPER = ReflectionUtils.hasClass("com.destroystokyo.paper.PaperConfig")
@@ -49,7 +47,12 @@ public class GrimDump implements BuildableCommand {
         GrimLog.sendLogAsync(sender, generateDump(), string -> link = string, "text/yaml");
     }
 
-    // this will help for debugging & replicating issues
+    /**
+     * Generates a diagnostic dump in JSON format that contains various metadata
+     * about the system, platform, and plugins. This dump is primarily used for
+     * debugging and finding potential issues with the environment.
+     * @return A JSON-formatted string containing the diagnostic dump.
+     */
     private String generateDump() {
         JsonObject base = new JsonObject();
         base.addProperty("type", "dump");
@@ -61,16 +64,18 @@ public class GrimDump implements BuildableCommand {
         versions.addProperty("packetevents", PacketEvents.getAPI().getVersion().toString());
         versions.addProperty("server", PacketEvents.getAPI().getServerManager().getVersion().getReleaseName());
         versions.addProperty("implementation", GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString());
-        // properties
-        JsonArray properties = new JsonArray();
-        base.add("properties", properties);
-        properties.add(GrimAPI.INSTANCE.getPlatform().toString().toLowerCase(Locale.ROOT));
-        if (ViaVersionUtil.isAvailable()) properties.add("viaversion");
+        // state of different properties
+        JsonObject states = new JsonObject();
+        base.add("states", states);
+        if (GrimAPI.INSTANCE.isInitialized()) states.addProperty("platform", GrimAPI.INSTANCE.getPlatform().toString());
+        if (ViaVersionUtil.isAvailable()) states.addProperty("has_viaversion", true);
+        if (PAPER) states.addProperty("has_paper", true);
         // system
         JsonObject system = new JsonObject();
         base.add("system", system);
-        system.addProperty("os", System.getProperty("os.name"));
-        system.addProperty("java", System.getProperty("java.version"));
+        system.addProperty("os_name", System.getProperty("os.name"));
+        system.addProperty("java_version", System.getProperty("java.version"));
+        system.addProperty("user_language", System.getProperty("user.language"));
         // plugins
         JsonArray plugins = new JsonArray();
         base.add("plugins", plugins);

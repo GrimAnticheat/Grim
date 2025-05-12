@@ -37,7 +37,7 @@ public class CommandRegister implements StartableInitable {
     public static final CloudKey<Requirements<Sender, SenderRequirement>>
             REQUIREMENT_KEY = CloudKey.of(
             "requirements",
-            new TypeToken<Requirements<Sender, SenderRequirement>>() {}
+            new TypeToken<>() {}
     );
 
     public static final RequirementApplicable.RequirementApplicableFactory<Sender,
@@ -81,9 +81,7 @@ public class CommandRegister implements StartableInitable {
 
     protected static <E extends Exception> void registerExceptionHandler(CommandManager<Sender> commandManager, Class<E> ex, Function<E, ComponentLike> toComponent) {
         commandManager.exceptionController().registerHandler(ex,
-                (c) -> {
-                    c.context().sender().sendMessage(toComponent.apply(c.exception()).asComponent().colorIfAbsent(NamedTextColor.RED));
-                }
+                (c) -> c.context().sender().sendMessage(toComponent.apply(c.exception()).asComponent().colorIfAbsent(NamedTextColor.RED))
         );
     }
 

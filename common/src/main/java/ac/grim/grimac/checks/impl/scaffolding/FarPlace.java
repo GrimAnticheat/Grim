@@ -20,7 +20,7 @@ public class FarPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (player.gamemode == GameMode.SPECTATOR) return;
+        if (player.gamemode == GameMode.SPECTATOR || player.inVehicle()) return;
 
         Vector3i blockPos = place.getPlacedAgainstBlockLocation();
 

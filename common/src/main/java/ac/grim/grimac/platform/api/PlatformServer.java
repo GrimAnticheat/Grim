@@ -2,7 +2,6 @@ package ac.grim.grimac.platform.api;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 
-
 public interface PlatformServer {
 
     String getPlatformImplementationString();

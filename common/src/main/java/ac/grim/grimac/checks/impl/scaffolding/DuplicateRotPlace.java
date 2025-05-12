@@ -29,7 +29,7 @@ public class DuplicateRotPlace extends BlockPlaceCheck {
 
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
-        if (rotated) {
+        if (rotated && !player.inVehicle()) {
             if (deltaX > 2) {
                 float xDiff = Math.abs(deltaX - lastPlacedDeltaX);
                 double xDiffDots = Math.abs(deltaDotsX - lastPlacedDeltaDotsX);

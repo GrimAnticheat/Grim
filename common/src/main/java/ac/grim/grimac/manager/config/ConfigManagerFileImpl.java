@@ -90,7 +90,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to upgrade config file", e);
             }
         }
     }

@@ -16,12 +16,7 @@ import com.google.common.io.ByteStreams;
 import github.scarsz.configuralize.DynamicConfig;
 import net.kyori.adventure.text.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 // TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
@@ -51,8 +46,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             new DataOutputStream(messageBytes).writeUTF(message);
         } catch (IOException exception) {
-            LogUtil.error("Something went wrong whilst forwarding an alert to other servers!");
-            exception.printStackTrace();
+            LogUtil.error("Something went wrong whilst forwarding an alert to other servers!", exception);
             return;
         }
 
@@ -106,11 +100,10 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
         } catch (IOException exception) {
-            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!");
-            exception.printStackTrace();
+            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!", exception);
             return;
         }
         Component message = MessageUtil.miniMessage(alert);
-        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(message, null);
     }
 }

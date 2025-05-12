@@ -86,7 +86,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             Unsafe unsafe = (Unsafe) unsafeField.get(null);
             unsafe.putObject(connection, unsafe.objectFieldOffset(connectionsList), wrapper);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            LogUtil.exception("Failed to inject into the end of tick event via reflection", e);
+            LogUtil.error("Failed to inject into the end of tick event via reflection", e);
             return false;
         }
         return true;

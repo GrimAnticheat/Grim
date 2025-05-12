@@ -648,7 +648,6 @@ public enum BlockPlaceResult {
                         multiFace.setWest(West.TRUE);
                         break;
                     }
-                    continue;
             }
         }
 
@@ -1101,9 +1100,7 @@ public enum BlockPlaceResult {
     }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
             ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
 
-    NO_DATA((player, place) -> {
-        place.set(place.getMaterial());
-    }, ItemTypes.AIR);
+    NO_DATA((player, place) -> place.set(place.getMaterial()), ItemTypes.AIR);
 
     // This should be an array... but a hashmap will do for now...
     private static final Map<ItemType, BlockPlaceResult> lookupMap = new HashMap<>();

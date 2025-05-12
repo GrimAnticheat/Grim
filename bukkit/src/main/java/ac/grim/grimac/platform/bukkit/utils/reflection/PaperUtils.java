@@ -43,7 +43,7 @@ public class PaperUtils {
                         (l, event) -> runnable.run(), GrimACBukkitLoaderPlugin.LOADER);
                 return true;
             } catch (Exception e) {
-                LogUtil.exception("Failed to register tick end event", e);
+                LogUtil.error("Failed to register tick end event", e);
             }
         }
         return false;

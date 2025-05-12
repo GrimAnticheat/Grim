@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -11,8 +10,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "BadPacketsH", description = "Sent unexpected sequence id", experimental = true)
@@ -59,6 +56,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     public boolean shouldCancel(int sequence) {
         if (isSupportedVersion && sequence != lastSequence + 1) {
             if (flagAndAlert("expected=" + (lastSequence + 1) + ", id=" + sequence) && shouldModifyPackets()) {
+                lastSequence = sequence;
                 return true;
             }
         }

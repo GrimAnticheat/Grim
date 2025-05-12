@@ -8,12 +8,14 @@ import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -23,30 +25,60 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Caches toggle messages for performance.
  */
 public final class AlertManagerImpl implements AlertManager, ConfigReloadable, StartableInitable {
-    private boolean consoleAlertsEnabled;
-    private boolean consoleVerboseEnabled;
-    private boolean consoleBrandsEnabled;
-
-    private @NonNull PlatformServer platformServer;
+    private static @NonNull PlatformServer platformServer;
 
     private enum AlertType {
         NORMAL, VERBOSE, BRAND;
+
         public String enableMessage;
         public String disableMessage;
         public final Set<PlatformPlayer> players = new CopyOnWriteArraySet<>();
+        public boolean console;
+
+        @Contract(pure = true)
+        public boolean hasListeners() {
+            return !players.isEmpty() || console;
+        }
+
+        @Contract(pure = true)
+        public String getToggleMessage(boolean enabled) {
+            return enabled ? enableMessage : disableMessage;
+        }
+
+        /**
+         * @param component the message to send to listeners
+         * @param excluding the listeners to exclude, null means console
+         * @return listeners this message was sent to, null means console
+         */
+        public Set<@Nullable PlatformPlayer> send(Component component, @Nullable Set<@Nullable PlatformPlayer> excluding) {
+            HashSet<PlatformPlayer> listeners = new HashSet<>(players);
+            if (excluding != null) {
+                listeners.removeAll(excluding);
+            }
+
+            for (PlatformPlayer platformPlayer : listeners) {
+                platformPlayer.sendMessage(component);
+            }
+
+            if (console && (excluding == null || !excluding.contains(null))) {
+                platformServer.getConsoleSender().sendMessage(component);
+                listeners.add(null);
+            }
+
+            return listeners;
+        }
     }
 
     @Override
     public void start() {
-        this.platformServer = GrimAPI.INSTANCE.getPlatformServer();
+        platformServer = GrimAPI.INSTANCE.getPlatformServer();
         reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
     }
 
     @Override
     public void reload(ConfigManager config) {
-        this.consoleAlertsEnabled = config.getBooleanElse("alerts.print-to-console", true);
-        this.consoleVerboseEnabled = config.getBooleanElse("verbose.print-to-console", false);
-        this.consoleBrandsEnabled = false;
+        setConsoleAlertsEnabled(config.getBooleanElse("alerts.print-to-console", true), true);
+        setConsoleVerboseEnabled(config.getBooleanElse("verbose.print-to-console", false), true);
 
         AlertType.NORMAL.enableMessage = config.getStringElse("alerts-enabled", "%prefix% &fAlerts enabled");
         AlertType.NORMAL.disableMessage = config.getStringElse("alerts-disabled", "%prefix% &fAlerts disabled");
@@ -58,8 +90,8 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
 
     /**
      * Gets the non-null PlatformPlayer from a GrimUser.
-     * Throws IllegalArgumentException if the user is not a GrimPlayer.
-     * Throws NullPointerException if the GrimPlayer's platformPlayer is null.
+     * @throws IllegalArgumentException if the user is not a GrimPlayer.
+     * @throws NullPointerException if the GrimPlayer's platformPlayer is null.
      */
     @NonNull
     private PlatformPlayer requirePlatformPlayerFromUser(@NonNull GrimUser user) {
@@ -78,64 +110,33 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         return platformPlayer;
     }
 
-    /** Central logic for setting player state and conditionally sending messages. */
-    private void setPlayerStateAndNotify(@NonNull GrimUser player, boolean enabled, boolean silent, @NonNull AlertType type) {
-        // requirePlatformPlayerFromUser handles null checks for player and platformPlayer
-        // It will throw an exception if platformPlayer is null, stopping execution here.
-        PlatformPlayer platformPlayer = requirePlatformPlayerFromUser(player);
-
-        boolean changed = enabled ? type.players.add(platformPlayer) : type.players.remove(platformPlayer);
-
-        if (changed && !silent) {
-            sendToggleMessage(platformPlayer, enabled, type);
-        }
-    }
-
-    /** Retrieves the appropriate cached message string based on type and state. */
-    @NonNull
-    private String getCachedToggleMessage(boolean enabled, @NonNull AlertType type) {
-        return enabled ? type.enableMessage : type.disableMessage;
-    }
-
     /** Gets the cached message, applies placeholders, and sends it to a PlatformPlayer. */
-    private void sendToggleMessage(@NonNull PlatformPlayer player, boolean enabled, @NonNull AlertType type) {
-        String rawMessage = getCachedToggleMessage(enabled, type);
+    private static void sendToggleMessage(@NonNull PlatformPlayer player, boolean enabled, @NonNull AlertType type) {
+        String rawMessage = type.getToggleMessage(enabled);
         if (rawMessage.isEmpty()) return;
 
         String messageWithPlaceholders = MessageUtil.replacePlaceholders(player, rawMessage);
         player.sendMessage(MessageUtil.miniMessage(messageWithPlaceholders));
     }
 
-    /** Gets the cached message, applies generic placeholders, and sends it to the Console Sender. */
-    private void sendToggleMessage(@NonNull Sender consoleSender, boolean enabled, @NonNull AlertType type) {
-        String rawMessage = getCachedToggleMessage(enabled, type);
-        if (rawMessage.isEmpty()) return;
-
-        String messageWithPlaceholders = MessageUtil.replacePlaceholders((PlatformPlayer) null, rawMessage);
-        consoleSender.sendMessage(MessageUtil.miniMessage(messageWithPlaceholders));
-    }
-
     @Override
     public boolean hasAlertsEnabled(@NonNull GrimUser player) {
-        return AlertType.NORMAL.players.contains(requirePlatformPlayerFromUser(player));
+        return hasAlertsEnabled(requirePlatformPlayerFromUser(player));
     }
 
     @Override
     public void setAlertsEnabled(@NonNull GrimUser player, boolean enabled, boolean silent) {
-        // Let exceptions from requirePlatformPlayerFromUser propagate if called during set
-        setPlayerStateAndNotify(player, enabled, silent, AlertType.NORMAL);
-        if (!enabled) setVerboseEnabled(player, false, silent);
+        setAlertsEnabled(requirePlatformPlayerFromUser(player), enabled, silent);
     }
 
     @Override
     public boolean hasVerboseEnabled(@NonNull GrimUser player) {
-        return AlertType.VERBOSE.players.contains(requirePlatformPlayerFromUser(player));
+        return hasVerboseEnabled(requirePlatformPlayerFromUser(player));
     }
 
     @Override
     public void setVerboseEnabled(@NonNull GrimUser player, boolean enabled, boolean silent) {
-        if (enabled) setAlertsEnabled(player, true, silent);
-        setPlayerStateAndNotify(player, enabled, silent, AlertType.VERBOSE);
+        setVerboseEnabled(requirePlatformPlayerFromUser(player), enabled, silent);
     }
 
     @Override
@@ -147,48 +148,105 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         // for compatibles sake lets just default to not sending alerts to these players
         if (grimPlayer.platformPlayer == null) return false;
 
-        return AlertType.BRAND.players.contains(grimPlayer.platformPlayer);
+        return hasBrandsEnabled(grimPlayer.platformPlayer);
     }
 
     @Override
     public void setBrandsEnabled(@NonNull GrimUser player, boolean enabled, boolean silent) {
-        setPlayerStateAndNotify(player, enabled, silent, AlertType.BRAND);
+        setPlayerStateAndNotify(requirePlatformPlayerFromUser(player), enabled, silent, AlertType.BRAND);
     }
 
-    public void handlePlayerQuit(@NonNull GrimUser user) {
-        Objects.requireNonNull(user, "user cannot be null");
-        // We need to get PlatformPlayer *without* throwing an error on quit
-        if (user instanceof GrimPlayer grimPlayer && grimPlayer.platformPlayer != null) {
-            handlePlayerQuit(grimPlayer.platformPlayer);
-        }
-    }
+    public void handlePlayerQuit(@Nullable PlatformPlayer platformPlayer) {
+        if (platformPlayer == null) return;
 
-    public void handlePlayerQuit(@NonNull PlatformPlayer platformPlayer) {
-        // Null check for platformPlayer should be done by the caller if necessary
         AlertType.NORMAL.players.remove(platformPlayer);
         AlertType.VERBOSE.players.remove(platformPlayer);
         AlertType.BRAND.players.remove(platformPlayer);
     }
 
     public boolean toggleConsoleAlerts() {
-        boolean newState = !this.consoleAlertsEnabled;
-        this.consoleAlertsEnabled = newState;
-        sendToggleMessage(platformServer.getConsoleSender(), newState, AlertType.NORMAL);
-        return newState;
+        return toggleConsoleAlerts(false);
+    }
+
+    public boolean toggleConsoleAlerts(boolean silent) {
+        return setConsoleAlertsEnabled(!hasConsoleAlertsEnabled(), silent);
+    }
+
+    @Contract("_ -> param1")
+    public boolean setConsoleAlertsEnabled(boolean enabled) {
+        return setConsoleAlertsEnabled(enabled, false);
+    }
+
+    @Contract("_, _ -> param1")
+    public boolean setConsoleAlertsEnabled(boolean enabled, boolean silent) {
+        setConsoleStateAndNotify(AlertType.NORMAL, enabled, silent);
+        if (!enabled) setConsoleVerboseEnabled(false, silent);
+        return enabled;
+    }
+
+    @Contract(pure = true)
+    public boolean hasConsoleAlertsEnabled() {
+        return AlertType.NORMAL.console;
     }
 
     public boolean toggleConsoleVerbose() {
-        boolean newState = !this.consoleVerboseEnabled;
-        this.consoleVerboseEnabled = newState;
-        sendToggleMessage(platformServer.getConsoleSender(), newState, AlertType.VERBOSE);
-        return newState;
+        return toggleConsoleVerbose(false);
+    }
+
+    public boolean toggleConsoleVerbose(boolean silent) {
+        return setConsoleVerboseEnabled(!hasConsoleVerboseEnabled(), silent);
+    }
+
+    @Contract("_ -> param1")
+    public boolean setConsoleVerboseEnabled(boolean enabled) {
+        return setConsoleVerboseEnabled(enabled, false);
+    }
+
+    @Contract("_, _ -> param1")
+    public boolean setConsoleVerboseEnabled(boolean enabled, boolean silent) {
+        if (enabled) setConsoleAlertsEnabled(true, silent);
+        return setConsoleStateAndNotify(AlertType.VERBOSE, enabled, silent);
+    }
+
+    @Contract(pure = true)
+    public boolean hasConsoleVerboseEnabled() {
+        return AlertType.VERBOSE.console;
     }
 
     public boolean toggleConsoleBrands() {
-        boolean newState = !this.consoleBrandsEnabled;
-        this.consoleBrandsEnabled = newState;
-        sendToggleMessage(platformServer.getConsoleSender(), newState, AlertType.BRAND);
-        return newState;
+        return toggleConsoleBrands(false);
+    }
+
+    public boolean toggleConsoleBrands(boolean silent) {
+        return setConsoleBrandsEnabled(!hasConsoleBrandsEnabled(), silent);
+    }
+
+    @Contract("_ -> param1")
+    public boolean setConsoleBrandsEnabled(boolean enabled) {
+        return setConsoleStateAndNotify(AlertType.BRAND, enabled, false);
+    }
+
+    @Contract("_, _ -> param1")
+    public boolean setConsoleBrandsEnabled(boolean enabled, boolean silent) {
+        return setConsoleStateAndNotify(AlertType.BRAND, enabled, silent);
+    }
+
+    @Contract(pure = true)
+    public boolean hasConsoleBrandsEnabled() {
+        return AlertType.BRAND.console;
+    }
+
+    @Contract("_, _, _ -> param2")
+    private boolean setConsoleStateAndNotify(@NonNull AlertType type, boolean enabled, boolean silent) {
+        if (type.console != enabled && !silent) {
+            String rawMessage = type.getToggleMessage(enabled);
+            if (!rawMessage.isEmpty()) {
+                platformServer.getConsoleSender().sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders((PlatformPlayer) null, rawMessage)));
+            }
+        }
+
+        type.console = enabled;
+        return enabled;
     }
 
     // All internal code, will replace later
@@ -201,63 +259,114 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         }
     }
 
-    private boolean togglePlayerStateAndNotify(@NonNull PlatformPlayer platformPlayer, boolean silent, @NonNull AlertType type) {
-        Objects.requireNonNull(platformPlayer, "platformPlayer cannot be null");
-        boolean newState = !type.players.contains(platformPlayer); // The desired state after toggle
-
-        // Use the set method to handle actual state change and notification
-        setPlayerStateAndNotify(platformPlayer, newState, silent, type);
-
-        return newState; // Return the state *after* the toggle attempt
+    public boolean toggleBrands(@NonNull PlatformPlayer player) {
+        return toggleBrands(player, false);
     }
 
-    public boolean toggleBrands(@NonNull PlatformPlayer platformPlayer, boolean silent) {
-        return togglePlayerStateAndNotify(platformPlayer, silent, AlertType.BRAND);
+    public boolean toggleBrands(@NonNull PlatformPlayer player, boolean silent) {
+        return setBrandsEnabled(player, !hasBrandsEnabled(player), silent);
     }
 
-    public boolean toggleVerbose(@NonNull PlatformPlayer platformPlayer, boolean silent) {
-        return togglePlayerStateAndNotify(platformPlayer, silent, AlertType.VERBOSE);
+    @Contract("_, _ -> param2")
+    public boolean setBrandsEnabled(@NonNull PlatformPlayer player, boolean enabled) {
+        return setBrandsEnabled(player, enabled, false);
     }
 
-    public boolean toggleAlerts(@NonNull PlatformPlayer platformPlayer, boolean silent) {
-        return togglePlayerStateAndNotify(platformPlayer, silent, AlertType.NORMAL);
+    @Contract("_, _, _ -> param2")
+    public boolean setBrandsEnabled(@NonNull PlatformPlayer player, boolean enabled, boolean silent) {
+        setPlayerStateAndNotify(player, enabled, silent, AlertType.BRAND);
+        return enabled;
     }
 
-    public void sendBrand(Component component) {
-        for (PlatformPlayer platformPlayer : AlertType.BRAND.players) {
-            platformPlayer.sendMessage(component);
-        }
-
-        if (consoleBrandsEnabled) {
-            platformServer.getConsoleSender().sendMessage(component);
-        }
+    @Contract(pure = true)
+    public boolean hasBrandsEnabled(@NonNull PlatformPlayer player) {
+        return AlertType.BRAND.players.contains(player);
     }
 
-    public void sendVerbose(Component component) {
-        for (PlatformPlayer platformPlayer : AlertType.VERBOSE.players) {
-            platformPlayer.sendMessage(component);
-        }
-
-        if (consoleVerboseEnabled) {
-            platformServer.getConsoleSender().sendMessage(component);
-        }
+    public boolean toggleVerbose(@NonNull PlatformPlayer player) {
+        return toggleVerbose(player, false);
     }
 
-    public void sendAlert(Component component) {
-        for (PlatformPlayer platformPlayer : AlertType.NORMAL.players) {
-            platformPlayer.sendMessage(component);
-        }
-
-        if (consoleAlertsEnabled) {
-            platformServer.getConsoleSender().sendMessage(component);
-        }
+    public boolean toggleVerbose(@NonNull PlatformPlayer player, boolean silent) {
+        return setVerboseEnabled(player, !hasVerboseEnabled(player), silent);
     }
 
+    @Contract("_, _ -> param2")
+    public boolean setVerboseEnabled(@NonNull PlatformPlayer player, boolean enabled) {
+        return setVerboseEnabled(player, enabled, false);
+    }
+
+    @Contract("_, _, _ -> param2")
+    public boolean setVerboseEnabled(@NonNull PlatformPlayer player, boolean enabled, boolean silent) {
+        if (enabled) setAlertsEnabled(player, true, silent);
+        setPlayerStateAndNotify(player, enabled, silent, AlertType.VERBOSE);
+        return enabled;
+    }
+
+    @Contract(pure = true)
+    public boolean hasVerboseEnabled(@NonNull PlatformPlayer player) {
+        return AlertType.VERBOSE.players.contains(player);
+    }
+
+    public boolean toggleAlerts(@NonNull PlatformPlayer player) {
+        return toggleAlerts(player, false);
+    }
+
+    public boolean toggleAlerts(@NonNull PlatformPlayer player, boolean silent) {
+        return setAlertsEnabled(player, !hasAlertsEnabled(player), silent);
+    }
+
+    @Contract("_, _ -> param2")
+    public boolean setAlertsEnabled(@NonNull PlatformPlayer player, boolean enabled) {
+        return setAlertsEnabled(player, enabled, false);
+    }
+
+    @Contract("_, _, _ -> param2")
+    public boolean setAlertsEnabled(@NonNull PlatformPlayer player, boolean enabled, boolean silent) {
+        setPlayerStateAndNotify(player, enabled, silent, AlertType.NORMAL);
+        if (!enabled) setVerboseEnabled(player, false, silent);
+        return enabled;
+    }
+
+    @Contract(pure = true)
+    public boolean hasAlertsEnabled(@NonNull PlatformPlayer player) {
+        return AlertType.NORMAL.players.contains(player);
+    }
+
+    /**
+     * @param component the message to send to listeners
+     * @param excluding the listeners to exclude, null means console
+     * @return listeners this message was sent to, null means console
+     */
+    public Set<PlatformPlayer> sendBrand(Component component, @Nullable Set<@Nullable PlatformPlayer> excluding) {
+        return AlertType.BRAND.send(component, excluding);
+    }
+
+    /**
+     * @param component the message to send to listeners
+     * @param excluding the listeners to exclude, null means console
+     * @return listeners this message was sent to, null means console
+     */
+    public Set<PlatformPlayer> sendVerbose(Component component, @Nullable Set<@Nullable PlatformPlayer> excluding) {
+        return AlertType.VERBOSE.send(component, excluding);
+    }
+
+    /**
+     * @param component the message to send to listeners
+     * @param excluding the listeners to exclude, null means console
+     * @return listeners this message was sent to, null means console
+     */
+    public Set<PlatformPlayer> sendAlert(Component component, @Nullable Set<@Nullable PlatformPlayer> excluding) {
+        return AlertType.NORMAL.send(component, excluding);
+    }
+
+    @Contract(pure = true)
     public boolean hasVerboseListeners() {
-        return !AlertType.VERBOSE.players.isEmpty() || consoleVerboseEnabled;
+        return AlertType.VERBOSE.hasListeners();
     }
 
+    @Contract(pure = true)
     public boolean hasAlertListeners() {
-        return !AlertType.NORMAL.players.isEmpty() || consoleAlertsEnabled;
+        return AlertType.NORMAL.hasListeners();
     }
 }

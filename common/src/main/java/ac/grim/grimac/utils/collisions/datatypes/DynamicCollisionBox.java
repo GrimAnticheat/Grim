@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.collisions.datatypes;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -10,7 +11,9 @@ public class DynamicCollisionBox implements CollisionBox {
 
     private final GrimPlayer player;
     private final CollisionFactory box;
+    @Setter
     private ClientVersion version;
+    @Setter
     private WrappedBlockState block;
     private int x, y, z;
 
@@ -70,13 +73,5 @@ public class DynamicCollisionBox implements CollisionBox {
     @Override
     public boolean isFullBlock() {
         return box.fetch(player, version, block, x, y, z).offset(x, y, z).isFullBlock();
-    }
-
-    public void setBlock(WrappedBlockState block) {
-        this.block = block;
-    }
-
-    public void setVersion(ClientVersion version) {
-        this.version = version;
     }
 }

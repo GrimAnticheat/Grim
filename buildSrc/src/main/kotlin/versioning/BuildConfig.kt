@@ -36,6 +36,7 @@ import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
  * @property shadePE  If true, shades PacketEvents into the jar. Default: true.
  * @property relocate If true, relocates shaded dependencies to avoid conflicts. Default: true.
  * @property release  If true, omits commit hash and modifiers from version string. Default: false.
+ * @property mavenLocalOverride If true, will make artifacts in mavenLocal() will be used instead of their remote counterparts for this build. Default: false
  */
 object BuildConfig {
 
@@ -50,6 +51,7 @@ object BuildConfig {
         _shadePE = resolveBool(project, "shadePE", altKey = "SHADE_PE", default = true)
         _relocate = resolveBool(project, "relocate", altKey = "RELOCATE_JAR", default = true)
         _release = resolveBool(project, "release", default = false)
+        _mavenLocalOverride = resolveBool(project, "mavenLocalOverride", default = false)
     }
 
     // Unified resolution logic (System > Gradle > Env)
@@ -78,6 +80,7 @@ object BuildConfig {
     private var _shadePE: Boolean? = null
     private var _relocate: Boolean? = null
     private var _release: Boolean? = null
+    private var _mavenLocalOverride: Boolean? = null
 
     /** If true, shades PacketEvents into the jar. Default: true. */
     val shadePE: Boolean get() = _shadePE
@@ -89,5 +92,8 @@ object BuildConfig {
 
     /** If true, omits commit hash and modifiers from version string. Default: false. */
     val release: Boolean get() = _release
+        ?: error("BuildConfig.release accessed before init() was called")
+
+    val mavenLocalOverride: Boolean get() = _mavenLocalOverride
         ?: error("BuildConfig.release accessed before init() was called")
 }

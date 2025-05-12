@@ -109,7 +109,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
     public void cancelAll() {
         List<Runnable> cancellationTasks = asyncTasks.values().stream()
                 .map(Pair::second)
-                .collect(Collectors.toList());
+                .toList();
         asyncTasks.clear();
 
         for (Runnable cancellationTask : cancellationTasks) {

@@ -175,7 +175,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
                 player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
                 player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
-                player.checkManager.getPacketCheck(BadPacketsH.class).onWorldChange();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
@@ -189,6 +188,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.openShulkerBoxes.clear();
                     player.compensatedWorld.chunks.clear();
                     player.compensatedWorld.isRaining = false;
+                    player.checkManager.getBlockPlaceCheck(BadPacketsH.class).onWorldChange();
                 }
                 player.dimensionType = respawn.getDimensionType();
 

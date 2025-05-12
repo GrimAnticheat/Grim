@@ -157,11 +157,11 @@ public class Reach extends Check implements PacketCheck {
             CheckResult result = checkReach(reachEntity, attack.getValue(), false);
             switch (result.type()) {
                 case REACH -> {
-                    String added = reachEntity.getType() == EntityTypes.PLAYER ? "" : ", type=" + reachEntity.getType().getName().getKey();
+                    String added = ", type=" + reachEntity.getType().getName().getKey();
                     flagAndAlert(result.verbose() + added);
                 }
                 case HITBOX -> {
-                    String added = reachEntity.getType() == EntityTypes.PLAYER ? "" : "type=" + reachEntity.getType().getName().getKey();
+                    String added = "type=" + reachEntity.getType().getName().getKey();
                     player.checkManager.getCheck(Hitboxes.class).flagAndAlert(result.verbose() + added);
                 }
             }

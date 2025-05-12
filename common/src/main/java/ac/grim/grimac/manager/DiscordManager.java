@@ -11,7 +11,7 @@ import ac.grim.grimac.utils.webhook.EmbedField;
 import ac.grim.grimac.utils.webhook.EmbedFooter;
 import ac.grim.grimac.utils.webhook.WebhookMessage;
 
-import java.awt.Color;
+import java.awt.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -74,7 +74,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             }
             staticContent = sb.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to load Discord webhook configuration", e);
         }
     }
 
@@ -96,10 +96,9 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
         }
 
         String content = staticContent;
-        content = content.replace("%check%", checkName);
+        content = content.replace("%check%", checkName.replace("_", "\\_")); // just in case any checks are added with an underscore
         content = content.replace("%violations%", Integer.toString(violations));
-        content = MessageUtil.replacePlaceholders(player, content);
-        content = content.replace("_", "\\_");
+        content = MessageUtil.replacePlaceholders(player, content, true);
 
         Embed embed = new Embed(content)
                 .imageURL("https://i.stack.imgur.com/Fzh0w.png")
@@ -110,7 +109,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 .footer(new EmbedFooter("", "https://grim.ac/images/grim.png"));
 
         if (!verbose.isEmpty()) {
-            embed.addFields(new EmbedField("Verbose", verbose, true));
+            embed.addFields(new EmbedField("Verbose", MessageUtil.filterDiscordText(verbose), true));
         }
 
         sendWebhookMessage(new WebhookMessage().addEmbeds(embed));

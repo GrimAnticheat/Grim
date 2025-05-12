@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.UUID;
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
@@ -65,18 +66,22 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserDisconnect(UserDisconnectEvent event) {
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getUser());
-        if (grimPlayer != null)
-            GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
+        if (grimPlayer != null) GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
         GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.remove(event.getUser());
+
+        UUID uuid = event.getUser().getProfile().getUUID();
+
         //Check if calling async is safe
-        if (event.getUser().getProfile().getUUID() == null)
+        if (uuid == null)
             return; // folia doesn't like null getPlayer()
-        if (grimPlayer != null) {
-            GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(grimPlayer);
-            GrimAPI.INSTANCE.getSpectateManager().onQuit(grimPlayer.uuid);
-        }
+
+        GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(
+                GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid)
+        );
+
+        GrimAPI.INSTANCE.getSpectateManager().onQuit(uuid);
 
         // TODO (Cross-platform) confirm this is 100% correct and will always remove players from cache when necessary
-        GrimAPI.INSTANCE.getPlatformPlayerFactory().invalidatePlayer(event.getUser().getProfile().getUUID());
+        GrimAPI.INSTANCE.getPlatformPlayerFactory().invalidatePlayer(uuid);
     }
 }

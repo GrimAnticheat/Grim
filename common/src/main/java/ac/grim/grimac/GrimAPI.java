@@ -36,6 +36,7 @@ import java.util.Map;
 public final class GrimAPI {
     public static final GrimAPI INSTANCE = new GrimAPI();
 
+    @Getter
     private final Platform platform = detectPlatform();
     private final BaseConfigManager configManager;
     private final AlertManagerImpl alertManager;
@@ -46,6 +47,7 @@ public final class GrimAPI {
     private final EventBus eventBus;
     private final GrimExternalAPI externalAPI;
     private PlatformLoader loader;
+    @Getter
     private InitManager initManager;
     private boolean initialized = false;
 
@@ -60,18 +62,12 @@ public final class GrimAPI {
         this.externalAPI = new GrimExternalAPI(this);
     }
 
+    // the order matters
     private static Platform detectPlatform() {
-        final Map<String, Platform> platforms = Collections.unmodifiableMap(new HashMap<>() {{
-            put("io.papermc.paper.threadedregions.RegionizedServer", Platform.FOLIA);
-            put("org.bukkit.Bukkit", Platform.BUKKIT);
-            put("net.fabricmc.loader.api.FabricLoader", Platform.FABRIC);
-        }});
-
-        return platforms.entrySet().stream()
-                .filter(entry -> ReflectionUtils.hasClass(entry.getKey()))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Unknown platform!"));
+        if (ReflectionUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) return Platform.FOLIA;
+        if (ReflectionUtils.hasClass("org.bukkit.Bukkit")) return Platform.BUKKIT;
+        if (ReflectionUtils.hasClass("net.fabricmc.loader.api.FabricLoader")) return Platform.FABRIC;
+        throw new IllegalStateException("Unknown platform!");
     }
 
     public void load(PlatformLoader platformLoader, Initable... platformSpecificInitables) {
@@ -101,10 +97,6 @@ public final class GrimAPI {
 
     public ParserDescriptorFactory getParserDescriptors() {
         return loader.getParserDescriptorFactory();
-    }
-
-    public InitManager getInitManager() {
-        return initManager;
     }
 
     public GrimPlugin getGrimPlugin() {
@@ -143,9 +135,5 @@ public final class GrimAPI {
 
     public PermissionRegistrationManager getPermissionManager() {
         return loader.getPermissionManager();
-    }
-
-    public Platform getPlatform() {
-        return platform;
     }
 }

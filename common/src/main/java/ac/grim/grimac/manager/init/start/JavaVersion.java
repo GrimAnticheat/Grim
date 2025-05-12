@@ -22,8 +22,7 @@ public class JavaVersion implements StartableInitable {
         try {
             version = Integer.parseInt(versionString);
         } catch (NumberFormatException e) {
-            LogUtil.error("Failed to determine Java version; could not parse: " + versionString);
-            e.printStackTrace();
+            LogUtil.error("Failed to determine Java version; could not parse: " + versionString, e);
             return;
         }
 

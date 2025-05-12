@@ -38,20 +38,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (completePredictionEvent.isCancelled()) return;
 
-        // Short circuit out flag call
-        if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
+        if ((offset >= threshold || offset >= immediateSetbackThreshold)) {
             advantageGained += offset;
-
-            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
-                    && !isNoSetbackPermission()
-                    && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
-
-            if (isSetback) {
-                player.getSetbackTeleportUtil().executeViolationSetback();
-            }
-
-            violations++;
 
             synchronized (flags) {
                 int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
@@ -68,9 +57,18 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
                 }
 
-                if (alert(humanFormattedOffset + " /gl " + flagId)) {
-                    flags.incrementAndGet(); // This debug was sent somewhere
-                    predictionComplete.setIdentifier(flagId);
+                String verbose = humanFormattedOffset + " /gl " + flagId;
+                if (flag(verbose)) {
+                    if (alert(verbose)) {
+                        flags.incrementAndGet(); // This debug was sent somewhere
+                        predictionComplete.setIdentifier(flagId);
+                    }
+
+                    if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
+                            && !isNoSetbackPermission()
+                            && violations >= setbackViolationThreshold) {
+                        player.getSetbackTeleportUtil().executeViolationSetback();
+                    }
                 }
             }
 

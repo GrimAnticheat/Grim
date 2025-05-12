@@ -4,11 +4,13 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 public final class PacketEntityEnderDragon extends PacketEntity {
 
     private final List<PacketEntityEnderDragonPart> parts = new ArrayList<>();
@@ -29,7 +31,4 @@ public final class PacketEntityEnderDragon extends PacketEntity {
         }
     }
 
-    public List<PacketEntityEnderDragonPart> getParts() {
-        return parts;
-    }
 }

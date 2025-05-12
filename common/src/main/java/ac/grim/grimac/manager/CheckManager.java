@@ -42,8 +42,6 @@ import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
 import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
-import ac.grim.grimac.checks.impl.packetorder.PacketOrderB;
-import ac.grim.grimac.checks.impl.packetorder.PacketOrderC;
 import ac.grim.grimac.checks.impl.packetorder.*;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -317,6 +315,11 @@ public class CheckManager {
     @SuppressWarnings("unchecked")
     public <T extends RotationCheck> T getRotationCheck(Class<T> check) {
         return (T) rotationCheck.get(check);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends BlockPlaceCheck> T getBlockPlaceCheck(Class<T> check) {
+        return (T) blockPlaceCheck.get(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {

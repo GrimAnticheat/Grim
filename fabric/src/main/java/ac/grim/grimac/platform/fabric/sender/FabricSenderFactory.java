@@ -87,7 +87,7 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
         CommandOutput output = sender.output;
         return output == sender.getMinecraftServer() || // Console
                 output.getClass() == RconCommandOutput.class || // Rcon
-                (output == CommandOutput.DUMMY && sender.getName().equals("")); // Functions
+                (output == CommandOutput.DUMMY && sender.getName().isEmpty()); // Functions
     }
 
     @Override

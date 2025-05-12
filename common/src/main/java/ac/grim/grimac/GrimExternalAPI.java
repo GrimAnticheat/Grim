@@ -1,12 +1,12 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.api.GrimAbstractAPI;
-import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.events.GrimReloadEvent;
+import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
@@ -123,7 +123,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         try {
             GrimAPI.INSTANCE.getConfigManager().start();
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to start config manager.", e);
         }
     }
 
@@ -159,7 +159,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
                         () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to reload config", e);
         }
         if (started)
             GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),

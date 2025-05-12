@@ -53,7 +53,7 @@ public class ClientBrand extends Check implements PacketCheck {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                 Component component = MessageUtil.replacePlaceholders(player, MessageUtil.miniMessage(message));
 
-                GrimAPI.INSTANCE.getAlertManager().sendBrand(component);
+                GrimAPI.INSTANCE.getAlertManager().sendBrand(component, null);
             }
         }
 

@@ -39,7 +39,9 @@ allprojects {
     apply(plugin = "maven-publish")
 
     repositories {
-        mavenLocal()
+        if (BuildConfig.mavenLocalOverride) {
+            mavenLocal()
+        }
         maven {
             name = "FabricMC"
             url = uri("https://maven.fabricmc.net/")
@@ -55,11 +57,8 @@ allprojects {
         maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
         maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
         maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-        maven("https://repo.codemc.io/repository/maven-releases/") // PacketEvents
-        maven("https://repo.codemc.io/repository/maven-snapshots/")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        mavenCentral()
-        // FastUtil
+        mavenCentral() // FastUtil
     }
 
     loom {

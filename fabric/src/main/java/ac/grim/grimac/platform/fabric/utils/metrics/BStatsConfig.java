@@ -1,15 +1,11 @@
 package ac.grim.grimac.platform.fabric.utils.metrics;
 
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -69,7 +65,7 @@ public class BStatsConfig {
             config.logResponseStatusText = getBoolean(data, "logResponseStatusText", false);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to load bStats config. Using default values.", e);
             // Fallback to default values
             config.enabled = true;
             config.serverUuid = UUID.randomUUID().toString();

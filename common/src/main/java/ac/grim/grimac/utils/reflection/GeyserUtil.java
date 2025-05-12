@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.reflection;
 
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 
@@ -33,7 +34,7 @@ public class GeyserUtil {
                     ClassLoader classLoader = PacketEvents.getAPI().getPlugin().getClass().getClassLoader();
                     GEYSER_API_CLASS = classLoader.loadClass("org.geysermc.api.GeyserApiBase");
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+                    LogUtil.error("Failed to load GeyserApiBase class", e);
                 }
             }
             if (GEYSER_API_METHOD == null) {
@@ -46,7 +47,7 @@ public class GeyserUtil {
             try {
                 apiInstance = GEYSER_API_METHOD.invoke(null);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to invoke GeyserApiBase.api()", e);
             }
             Object connection = null;
             try {
@@ -54,7 +55,7 @@ public class GeyserUtil {
                     connection = CONNECTION_BY_UUID_METHOD.invoke(apiInstance, uuid);
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to invoke GeyserApiBase.connectionByUuid()", e);
             }
             return connection != null;
         }

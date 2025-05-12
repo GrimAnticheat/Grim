@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.bukkit.utils.anticheat;
 
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public class MultiLibUtil {
         try {
             return (boolean) externalPlayerMethod.invoke(player);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to invoke external player method", e);
             return false;
         }
     }

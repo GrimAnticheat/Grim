@@ -2,11 +2,8 @@ package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
-import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
-import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
+import ac.grim.grimac.platform.api.scheduler.*;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -31,11 +28,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
 
     // Shared method to handle synchronous tasks
     // Add this to FabricPlatformScheduler.java
-    public static final ThreadLocal<Boolean> EXECUTING_TASK = new ThreadLocal<Boolean>() {
-        @Override protected Boolean initialValue() {
-            return false;
-        }
-    };
+    public static final ThreadLocal<Boolean> EXECUTING_TASK = ThreadLocal.withInitial(() -> false);
 
     protected static void handleSyncTasks(Map<ScheduledTask, Runnable> taskMap, MinecraftServer server, GrimPlugin plugin) {
         Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
@@ -46,8 +39,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
                     EXECUTING_TASK.set(true);
                     task.task.run();
                 } catch (Exception e) {
-                    plugin.getLogger().warning("Error executing scheduled task: " + e.getMessage());
-                    e.printStackTrace();
+                    LogUtil.error("Error executing scheduled task ", e);
                 } finally {
                     EXECUTING_TASK.set(false);
                 }

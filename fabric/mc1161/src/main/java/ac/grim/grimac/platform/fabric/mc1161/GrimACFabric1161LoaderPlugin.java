@@ -16,8 +16,6 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 public class GrimACFabric1161LoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
 
-
-
     public GrimACFabric1161LoaderPlugin() {
         this(
             new FabricPlatformPlayerFactory(
@@ -31,14 +29,14 @@ public class GrimACFabric1161LoaderPlugin extends ac.grim.grimac.platform.fabric
         );
     }
 
-    protected GrimACFabric1161LoaderPlugin(FabricPlatformPlayerFactory playerFactory,
-                                           PlatformServer platformServer,
-                                           IFabricMessageUtil fabricMessageUtil,
-                                           IFabricConversionUtil fabricConversionUtil) {
+    protected GrimACFabric1161LoaderPlugin(
+            FabricPlatformPlayerFactory playerFactory,
+            PlatformServer platformServer,
+            IFabricMessageUtil fabricMessageUtil,
+            IFabricConversionUtil fabricConversionUtil
+    ) {
         super(
-            new FabricParserDescriptorFactory(
-                new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)
-            ),
+            new FabricParserDescriptorFactory(new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)),
             playerFactory,
             platformServer,
             fabricMessageUtil,

@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
@@ -43,7 +44,7 @@ public class Ray implements Cloneable {
             clone.direction = this.direction.clone();
             return clone;
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            LogUtil.error("Failed to clone ray", e);
         }
         return null;
     }

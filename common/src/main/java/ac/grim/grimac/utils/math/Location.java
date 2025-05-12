@@ -159,29 +159,16 @@ public class Location implements Cloneable {
     }
 
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
+        if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         } else {
             Location other = (Location) obj;
-            PlatformWorld world = this.world == null ? null : this.world.get();
-            PlatformWorld otherWorld = other.world == null ? null : other.world.get();
-            if (Objects.equals(world, otherWorld)) {
-                if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(other.x)) {
-                    return false;
-                } else if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(other.y)) {
-                    return false;
-                } else if (Double.doubleToLongBits(this.z) != Double.doubleToLongBits(other.z)) {
-                    return false;
-                } else if (Float.floatToIntBits(this.pitch) != Float.floatToIntBits(other.pitch)) {
-                    return false;
-                } else {
-                    return Float.floatToIntBits(this.yaw) == Float.floatToIntBits(other.yaw);
-                }
-            } else {
-                return false;
-            }
+            return Objects.equals(this.world == null ? null : this.world.get(), other.world == null ? null : other.world.get())
+                    && Double.doubleToLongBits(this.x) == Double.doubleToLongBits(other.x)
+                    && Double.doubleToLongBits(this.y) == Double.doubleToLongBits(other.y)
+                    && Double.doubleToLongBits(this.z) == Double.doubleToLongBits(other.z)
+                    && Float.floatToIntBits(this.pitch) == Float.floatToIntBits(other.pitch)
+                    && Float.floatToIntBits(this.yaw) == Float.floatToIntBits(other.yaw);
         }
     }
 
@@ -198,9 +185,7 @@ public class Location implements Cloneable {
     }
 
     public String toString() {
-        PlatformWorld world = this.world == null ? null : this.world.get();
-        String var10000 = String.valueOf(world);
-        return "Location{world=" + var10000 + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + "}";
+        return "Location{world=" + (this.world == null ? null : this.world.get()) + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + "}";
     }
 
     public @NotNull Location clone() {

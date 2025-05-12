@@ -26,6 +26,6 @@ public class GrimSendAlert implements BuildableCommand {
         String string = context.get("message");
         string = MessageUtil.replacePlaceholders((Sender) null, string);
         Component message = MessageUtil.miniMessage(string);
-        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(message, null);
     }
 }

@@ -105,9 +105,8 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             ItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
 
             if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
-                GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-                    player.platformPlayer.updateInventory();
-                }, null, 0);
+                GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
+                        () -> player.platformPlayer.updateInventory(), null, 0);
                 setItem(slot, toPE);
             }
         }

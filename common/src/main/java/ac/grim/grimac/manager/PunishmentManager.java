@@ -7,19 +7,16 @@ import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class PunishmentManager implements ConfigReloadable {
     GrimPlayer player;
@@ -94,8 +91,7 @@ public class PunishmentManager implements ConfigReloadable {
                 groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter * 1000));
             }
         } catch (Exception e) {
-            LogUtil.error("Error while loading punishments.yml! This is likely your fault!");
-            e.printStackTrace();
+            LogUtil.error("Error while loading punishments.yml! This is likely your fault!", e);
         }
     }
 
@@ -121,11 +117,13 @@ public class PunishmentManager implements ConfigReloadable {
                 for (ParsedCommand command : group.commands) {
                     String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
 
+                    @Nullable Set<@Nullable PlatformPlayer> verboseListeners = null;
+
                     // Verbose that prints all flags
                     if (GrimAPI.INSTANCE.getAlertManager().hasVerboseListeners() && command.command.equals("[alert]")) {
                         sentDebug = true;
                         Component component = MessageUtil.miniMessage(cmd);
-                        GrimAPI.INSTANCE.getAlertManager().sendVerbose(component);
+                        verboseListeners = GrimAPI.INSTANCE.getAlertManager().sendVerbose(component, null);
                     }
 
                     if (violationCount >= command.threshold) {
@@ -144,9 +142,11 @@ public class PunishmentManager implements ConfigReloadable {
                                     sentDebug = true;
                                     Component message = MessageUtil.miniMessage(cmd);
                                     if (testMode) { // secret test mode
-                                        player.user.sendMessage(message);
+                                        if (verboseListeners == null || verboseListeners.contains(player.platformPlayer)) {
+                                            player.sendMessage(message);
+                                        }
                                     } else {
-                                        GrimAPI.INSTANCE.getAlertManager().sendAlert(message);
+                                        GrimAPI.INSTANCE.getAlertManager().sendAlert(message, verboseListeners);
                                     }
                                 }
                                 default -> GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () ->

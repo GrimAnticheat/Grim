@@ -1,9 +1,11 @@
 package ac.grim.grimac.utils.inventory;
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import lombok.Getter;
 
 public class InventoryStorage {
     protected ItemStack[] items;
+    @Getter
     int size;
 
     public InventoryStorage(int size) {
@@ -13,10 +15,6 @@ public class InventoryStorage {
         for (int i = 0; i < size; i++) {
             items[i] = ItemStack.EMPTY;
         }
-    }
-
-    public int getSize() {
-        return size;
     }
 
     public void setItem(int item, ItemStack stack) {

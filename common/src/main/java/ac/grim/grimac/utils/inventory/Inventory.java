@@ -142,22 +142,17 @@ public class Inventory extends AbstractContainerMenu {
             inventoryStorage.setItem(slot, itemstack);
         }
 
-        int j = i;
-        if (i > itemstack.getMaxStackSize() - itemstack.getAmount()) {
-            j = itemstack.getMaxStackSize() - itemstack.getAmount();
-        }
+        int j = Math.min(i, itemstack.getMaxStackSize() - itemstack.getAmount());
 
         if (j > this.getMaxStackSize() - itemstack.getAmount()) {
             j = this.getMaxStackSize() - itemstack.getAmount();
         }
 
-        if (j == 0) {
-            return i;
-        } else {
-            i = i - j;
+        if (j != 0) {
+            i -= j;
             itemstack.grow(j);
-            return i;
         }
+        return i;
     }
 
     public boolean add(int p_36041_, ItemStack p_36042_) {
