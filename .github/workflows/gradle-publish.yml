@@ -7,53 +7,168 @@
 
 name: Gradle Package
 
-on: [push, workflow_dispatch]
+on: [ push, workflow_dispatch ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            packages: write
+            actions: write
 
-    steps:
-    - uses: actions/checkout@v4
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 50 # Fetch all history for all branches and tags
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+            -   name: Set up JDK 21
+                uses: actions/setup-java@v4
+                with:
+                    java-version: '21'
+                    distribution: 'temurin'
+                    server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+                    settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4 # Handles Gradle wrapper validation and basic caching
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v4 # Handles Gradle wrapper validation and basic caching
 
-    - name: Cache Gradle Loom Cache
-      uses: actions/cache@v4
-      with:
-        path: .gradle/loom-cache # Path to Loom cache relative to workspace root
-        key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
-        restore-keys: |
-          loom-cache-${{ runner.os }}
+            -   name: Cache Gradle Loom Cache
+                uses: actions/cache@v4
+                with:
+                    path: .gradle/loom-cache # Path to Loom cache relative to workspace root
+                    key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
+                    restore-keys: |
+                        loom-cache-${{ runner.os }}
 
-    - name: Build with Gradle (Actual Build for Artifacts)
-      run: ./gradlew build
+            -   name: Compute main version
+                id: ver_main
+                run: |
+                    VERSION=$(./gradlew -q printVersion | grep '^VERSION=' | cut -d'=' -f2)
+                    echo "main_version=$VERSION" >> $GITHUB_OUTPUT
+                    echo "MAIN_VERSION=$VERSION"  >> $GITHUB_ENV
+                    echo "Main version: $VERSION"
 
-    - name: Upload Bukkit Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: grimac-bukkit
-        # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
-        if-no-files-found: error
+            -   name: Build with Gradle (Actual Build for Artifacts)
+                run: ./gradlew build
 
-    - name: Upload Fabric Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: grimac-fabric
-        # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
-        if-no-files-found: error
+            -   name: Upload Bukkit Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: grimac-bukkit
+                    # Adding if-no-files-found for robustness
+                    path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
+                    if-no-files-found: error
 
+            -   name: Upload Fabric Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: grimac-fabric
+                    # Adding if-no-files-found for robustness
+                    path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
+                    if-no-files-found: error
+
+
+            -   name: Generate changelog
+                id: changelog
+                if: contains(fromJSON('["release","2.0"]'), github.ref_name)
+                run: |
+                    set -e
+                    git fetch --tags --quiet
+                    
+                    # Most recent tag that looks like “build-*”; empty if none exist
+                    LAST_TAG=$(git describe --tags --match "build-*" --abbrev=0 2>/dev/null || echo "")
+                    echo "Last tag: ${LAST_TAG:-<none>}"
+                    
+                    if [ -z "$LAST_TAG" ]; then
+                      # First build (or no previous tag) → grab latest 50 commits
+                      NOTES=$(git log -n 50 --pretty=format:'* %s (%h)' --no-merges)
+                    else
+                      # Normal case → commits since the last build tag
+                      NOTES=$(git log "$LAST_TAG"..HEAD --pretty=format:'* %s (%h)' --no-merges)
+                    fi
+                    
+                    # Fallback if there were no code changes
+                    if [ -z "$NOTES" ]; then
+                      NOTES="* No code changes since last build"
+                    fi
+                    
+                    # Export multiline output for downstream steps
+                    {
+                      echo "notes<<EOF"
+                      echo "$NOTES"
+                      echo "EOF"
+                    } >> "$GITHUB_OUTPUT"
+                    
+                    echo "Changelog generated:"
+                    echo "$NOTES"
+
+
+            -   name: Generate build number
+                if: contains(fromJSON('["release","2.0"]'), github.ref_name)
+                id: buildnumber
+                uses: onyxmueller/build-tag-number@v1
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+
+
+            -   name: Publish to Modrinth (Bukkit)
+                if: contains(fromJSON('["release","2.0"]'), github.ref_name)
+                uses: Kir-Antipov/mc-publish@v3.3
+                with:
+                    modrinth-id: ${{ vars.MODRINTH_ID }}      # Bukkit & Fabric can share or differ
+                    modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+                    modrinth-featured: true
+                    modrinth-unfeature-mode: subset
+
+                    files: |
+                        bukkit/build/libs/Grim-bukkit-${{ env.MAIN_VERSION }}.jar
+                        bukkit/build/libs/Grim-bukkit-${{ env.LITE_VERSION }}.jar
+
+                    name: Grim Anticheat (Bukkit) ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
+                    version: ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
+                    version-type: alpha
+                    changelog: ${{ steps.changelog.outputs.notes }}
+
+                    loaders: |
+                        bukkit
+                        spigot
+                        paper
+                        folia
+                        purpur
+
+                    game-versions: |
+                        >=1.8
+
+                    retry-attempts: 2
+                    retry-delay: 10000
+                    fail-mode: fail
+
+
+            -   name: Publish to Modrinth (Fabric)
+                if: contains(fromJSON('["release","2.0"]'), github.ref_name)
+                uses: Kir-Antipov/mc-publish@v3.3
+                with:
+                    modrinth-id: ${{ vars.MODRINTH_ID_FABRIC || vars.MODRINTH_ID }}
+                    modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+                    modrinth-featured: true
+                    modrinth-unfeature-mode: subset
+
+                    files: |
+                        fabric/build/libs/Grim-fabric-${{ env.MAIN_VERSION }}.jar
+
+                    name: Grim Anticheat (Fabric) ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
+                    version: ${{ env.MAIN_VERSION }}-b${{ steps.buildnumber.outputs.build_number }}
+                    version-type: alpha
+                    changelog: ${{ steps.changelog.outputs.notes }}
+
+                    loaders: |
+                        fabric
+
+                    game-versions: |
+                        >=1.16.1
+
+                    retry-attempts: 2
+                    retry-delay: 10000
+                    fail-mode: fail
