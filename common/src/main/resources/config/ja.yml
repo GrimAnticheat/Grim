@@ -131,6 +131,9 @@ TimerA:
     # この値を高く設定しすぎると、1.8版の高速使用、高速回復、高速弓などの不正な動作をバイパスできる可能性があるため、
     # 120ミリ秒がバランスの良い設定とされています。
     drift: 120
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
     # タイマーバランスの制限を開始し、不正利用を防止するためのPingのしきい値
     # 正当なプレイヤーであっても、このPingのしきい値を超えるとセットバックが発生する場合があります
     # -1で無効化
@@ -142,7 +145,7 @@ NegativeTimer:
     drift: 1200
 
 # TimerAと同じチェック方法ですが、乗り物操作に適用されます
-TimerVehicle:
+VehicleTimer:
     # 目標タイマー値は1.005です
     setbackvl: 10
 

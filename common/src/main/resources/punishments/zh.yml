@@ -17,6 +17,7 @@ Punishments:
       - "Simulation"
       - "GroundSpoof"
       - "Timer"
+      - "TimerLimit"
       - "NoFall"
     # 最大vl:下一次执行需要的vl
     #

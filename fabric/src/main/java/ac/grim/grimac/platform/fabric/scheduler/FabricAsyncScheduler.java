@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
     private final Map<Thread, Pair<GrimPlugin, Runnable>> asyncTasks = new HashMap<>();

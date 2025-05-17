@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.post;
+package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;

@@ -3,9 +3,11 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
@@ -109,7 +111,9 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
             closingInventory = true;
         }
 
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(packetType)) {
+        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(packetType)
+                || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
+                && !player.compensatedWorld.isChunkLoaded(GrimMath.floor(player.x) >> 4, GrimMath.floor(player.z) >> 4)) {
             openingInventory = false;
             swapping = false;
             dropping = false;

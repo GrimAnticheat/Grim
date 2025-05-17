@@ -132,6 +132,9 @@ TimerA:
     # Podría llegar a permitir pasos por alto de fast use/fast heal/fast bow en 1.8 si esta muy alto, 120 ms
     # parece ser un balance bastante decente.
     drift: 120
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
     # Ping at which the check will start to limit timer balance, to prevent abuse.
     # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
     # -1 to disable
@@ -142,7 +145,7 @@ NegativeTimer:
     drift: 1200
 
 # La misma comprobación que TimerA, pero para vehiculos
-TimerVehicle:
+VehicleTimer:
     # Target 1.005 timer
     setbackvl: 10
 

@@ -127,6 +127,9 @@ TimerA:
     # Milliseconden die de speler kan verzamelen om later te gebruiken als hij achterop raakt
     # Kan mogelijk 1.8 snel gebruik/snelle genezing/snelle bron omleidingen toestaan als het te hoog is ingesteld, 120 ms lijkt een goede balans
     drift: 120
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
     # Ping waarop de controle zal beginnen om de timer-balans te beperken, om misbruik te voorkomen
     # Kan wat tegenslag veroorzaken voor legitieme spelers, maar alleen als ze boven deze ping drempel zitten.
     # -1 om uit te schakelen
@@ -137,7 +140,7 @@ NegativeTimer:
     drift: 1200
 
 # Dezelfde controlemethode als TimerA, maar dan voor voertuigen
-TimerVehicle:
+VehicleTimer:
     # Doel 1.005 timer
     setbackvl: 10
 

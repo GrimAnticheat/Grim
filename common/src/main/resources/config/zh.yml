@@ -132,6 +132,9 @@ TimerA:
     # 玩家卡顿时可以累积以供以后使用的毫秒数
     # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
     drift: 120
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
     # 在检查玩家的延迟时对timer balance进行限制, 防止滥用
     # 在合法玩家的延迟超过这个延迟阈值时可能会造成误拉回
     # 填写-1则关闭
@@ -142,7 +145,7 @@ NegativeTimer:
     drift: 1200
 
 # 与 TimerA 相同的检查方法，但适用于坐骑
-TimerVehicle:
+VehicleTimer:
     # 实体1.0005 检查
     setbackvl: 10
 

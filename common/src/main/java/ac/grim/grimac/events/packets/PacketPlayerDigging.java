@@ -217,13 +217,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
-            if (player.packetStateData.lastSlotSelected != slot && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
-                if (player.isResetItemUsageOnSlotChange()) {
+            if (player.packetStateData.lastSlotSelected != slot) {
+                if (player.isResetItemUsageOnSlotChange() && GrimAPI.INSTANCE.getItemResetHandler().getItemUsageHand(player.platformPlayer) == InteractionHand.MAIN_HAND) {
                     GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
                 // just assume they tick after this
-                if (player.canSkipTicks() && !player.isTickingReliablyFor(3)) {
+                if (player.canSkipTicks() && !player.isTickingReliablyFor(3) && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
                     player.packetStateData.setSlowedByUsingItem(false);
                 }
             }

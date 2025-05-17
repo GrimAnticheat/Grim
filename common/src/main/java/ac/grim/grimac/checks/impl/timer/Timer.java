@@ -20,8 +20,6 @@ public class Timer extends Check implements PacketCheck {
     // How long should the player be able to fall back behind their ping? (nanos)
     // Default: 120 milliseconds
     long clockDrift;
-    // At what ping should we start to limit the balance advantage? (nanos)
-    long limitAbuseOverPing;
 
     boolean hasGottenMovementAfterTransaction = false;
 
@@ -76,7 +74,6 @@ public class Timer extends Check implements PacketCheck {
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flagAndAlert()) {
                 // Cancel the packet
-                // Only cancel if not an adjustment setback
                 if (shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
@@ -91,12 +88,11 @@ public class Timer extends Check implements PacketCheck {
             timerBalanceRealTime -= 50e6;
         }
 
-        // Limit using transaction ping if over 1000ms (default)
-        long playerClock = lastMovementPlayerClock;
-        if (System.nanoTime() - playerClock > limitAbuseOverPing) {
-            playerClock = System.nanoTime() - limitAbuseOverPing;
-        }
-        timerBalanceRealTime = Math.max(timerBalanceRealTime, playerClock - clockDrift);
+        limitFallBehind();
+    }
+
+    protected void limitFallBehind() {
+        timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);
     }
 
     public boolean checkForTransaction(PacketTypeCommon packetType) {
@@ -112,6 +108,5 @@ public class Timer extends Check implements PacketCheck {
     @Override
     public void onReload(ConfigManager config) {
         clockDrift = (long) (config.getDoubleElse(getConfigName() + ".drift", 120.0) * 1e6);
-        limitAbuseOverPing = (long) (config.getDoubleElse(getConfigName() + ".ping-abuse-limit-threshold", 1000) * 1e6);
     }
 }

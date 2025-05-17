@@ -13,6 +13,7 @@ Punishments:
       - "Simulation"
       - "GroundSpoof"
       - "Timer"
+      - "TimerLimit"
       - "NoFall"
     commands:
       - "100:40 [alert]"

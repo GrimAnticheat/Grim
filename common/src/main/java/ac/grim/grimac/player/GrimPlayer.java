@@ -312,7 +312,11 @@ public class GrimPlayer implements GrimUser {
             cancelledPackets.set(0);
 
             if (debugPacketCancel) {
-                LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", new Exception());
+                try {
+                    throw new Exception();
+                } catch (Exception e) {
+                    LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", e);
+                }
             }
         }
     }

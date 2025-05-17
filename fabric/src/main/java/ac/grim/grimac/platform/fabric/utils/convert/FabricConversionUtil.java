@@ -2,6 +2,7 @@ package ac.grim.grimac.platform.fabric.utils.convert;
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import net.kyori.adventure.text.Component;
 //import net.minecraft.network.RegistryByteBuf;
 //import net.minecraft.registry.DynamicRegistryManager;
@@ -13,7 +14,6 @@ import java.util.function.Function;
 public abstract class FabricConversionUtil implements IFabricConversionUtil {
 
     private IFabricConversionUtil fabricConversionUtilSupplier;
-
 
     private Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
 //        if (fabricStack.isEmpty()) {
@@ -77,6 +77,13 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
             case ADVENTURE -> GameMode.ADVENTURE;
             case SPECTATOR -> GameMode.SPECTATOR;
             default -> throw new IllegalArgumentException("Unknown Fabric GameMode: " + fabricGameMode);
+        };
+    }
+
+    public static InteractionHand fromFabricHand(net.minecraft.util.Hand hand) {
+        return hand == null ? null : switch (hand) {
+            case OFF_HAND -> InteractionHand.OFF_HAND;
+            case MAIN_HAND -> InteractionHand.MAIN_HAND;
         };
     }
 }

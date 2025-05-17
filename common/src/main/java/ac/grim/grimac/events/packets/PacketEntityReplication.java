@@ -19,8 +19,10 @@ import com.github.retrooper.packetevents.protocol.entity.EntityPositionData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -257,25 +259,23 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             if (slot.getWindowId() == 0) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() != slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
-                        player.packetStateData.setSlowedByUsingItem(false);
+                Runnable task = () -> {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (
+                            !player.getInventory().getHeldItem().is(slot.getItem().getType()) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)
+                    ) || slot.getSlot() == 45 && !player.getInventory().getOffHand().is(slot.getItem().getType())) {
+                        InteractionHand hand = slot.getSlot() == 45 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+                        if (hand == player.packetStateData.eatingHand) {
+                            player.packetStateData.setSlowedByUsingItem(false);
+                        }
 
-                        if (player.isResetItemUsageOnItemUpdate()) {
+                        if (player.isResetItemUsageOnItemUpdate() && hand == GrimAPI.INSTANCE.getItemResetHandler().getItemUsageHand(player.platformPlayer)) {
                             GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                         }
                     }
-                });
+                };
 
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() != slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
-                        player.packetStateData.setSlowedByUsingItem(false);
-
-                        if (player.isResetItemUsageOnItemUpdate()) {
-                            GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
-                        }
-                    }
-                });
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), task);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, task);
             }
         } else if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);

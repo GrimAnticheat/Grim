@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 @CheckData(name = "BadPacketsE")
 public class BadPacketsE extends Check implements PacketCheck {
     private int noReminderTicks;
+    private final int maxNoReminderTicks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) ? 20 : 19;
 
     public BadPacketsE(GrimPlayer player) {
         super(player);
@@ -26,14 +27,12 @@ public class BadPacketsE extends Check implements PacketCheck {
                 event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
             noReminderTicks = 0;
         } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
-            noReminderTicks++;
+            if (++noReminderTicks > maxNoReminderTicks) {
+                flagAndAlert("ticks=" + noReminderTicks);
+            }
         } else if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE
                 || (isViaPleaseStopUsingProtocolHacksOnYourServer && player.inVehicle())) {
             noReminderTicks = 0; // Exempt vehicles
-        }
-
-        if (noReminderTicks > 20) {
-            flagAndAlert("ticks=" + noReminderTicks); // ban?  I don't know how this would false
         }
     }
 

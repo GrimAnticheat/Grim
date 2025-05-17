@@ -127,6 +127,9 @@ TimerA:
     # Oyuncunun geri kaldığında biriktirebileceği milisaniye miktarı
     # Çok yüksek ayarlandığında 1.8 hızlı kullanma/hızlı iyileşme/hızlı yay atlama durumlarına izin verebilir, 120 ms iyi bir denge gibi görünüyor
     drift: 120
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
     # Kontrolün zamanlayıcı dengesini sınırlamaya başlayacağı ping değeri, kötüye kullanımı önlemek için.
     # Bu, yalnızca bu ping eşiğini aşan meşru oyuncular için bazı geri dönüşlere neden olabilir.
     # Devre dışı bırakmak için -1 yazın
@@ -137,7 +140,7 @@ NegativeTimer:
     drift: 1200
 
     # TimerA ile aynı kontrol yöntemi, ancak araçlar için
-TimerVehicle:
+VehicleTimer:
     # Hedef 1.005 timer
     setbackvl: 10
 

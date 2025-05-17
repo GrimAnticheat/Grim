@@ -119,14 +119,19 @@ TimerA:
     setbackvl: 10
     # Millisecondi accumulabili per il timer
     drift: 120
-    # Soglia per l'uso scorretto del timer in base al ping
+
+# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+TimerLimit:
+    # Ping at which the check will start to limit timer balance, to prevent abuse.
+    # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+    # -1 to disable
     ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
     # Millisecondi persi prima di rilevare il timer negativo
     drift: 1200
 
-TimerVehicle:
+VehicleTimer:
     # Livello di violazione per il timer dei veicoli
     setbackvl: 10
 
