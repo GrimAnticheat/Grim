@@ -24,6 +24,8 @@ upload-log-upload-failure: "%prefix% &cЧто-то пошло не так при
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
+    error: "<red>An error occurred whilst processing packets. Please contact the administrators."
+    blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &cЭту команду могут использовать только игроки!"
 run-as-player-or-console: "%prefix% &cЭту команду могут использовать только игроки или консоль!"
 

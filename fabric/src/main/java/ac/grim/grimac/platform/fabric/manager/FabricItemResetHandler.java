@@ -5,7 +5,6 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 

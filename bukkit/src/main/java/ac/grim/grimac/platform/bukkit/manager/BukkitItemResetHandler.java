@@ -1,7 +1,5 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
@@ -42,7 +40,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
     private @NotNull ItemUsageReset createItemUsageResetFunction() {
         ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
         if (version.isNewerThan(ServerVersion.V_1_17) && PaperUtils.PAPER) {
-            if (version.isOlderThan(ServerVersion.V_1_19) || GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
+            if (version.isOlderThan(ServerVersion.V_1_19)) {
                 return LivingEntity::clearActiveItem;
             }
             Method setLivingEntityFlag = Class.forName(version.isOlderThan(ServerVersion.V_1_20_5) ? "net.minecraft.world.entity.EntityLiving" : "net.minecraft.world.entity.LivingEntity")

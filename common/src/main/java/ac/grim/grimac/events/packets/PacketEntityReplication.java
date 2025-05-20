@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.protocol.entity.EntityPositionData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -281,8 +280,37 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
 
             if (items.getWindowId() == 0) { // Player inventory
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
+                Runnable task = () -> {
+                    if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+                        player.packetStateData.setSlowedByUsingItem(false);
+                        if (player.isResetItemUsageOnItemUpdate()) {
+                            GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                        }
+                    } else {
+                        if (!player.getInventory().getOffHand().is(items.getItems().get(45).getType())) {
+                            if (player.packetStateData.eatingHand == InteractionHand.OFF_HAND) {
+                                player.packetStateData.setSlowedByUsingItem(false);
+                            }
+
+                            if (player.isResetItemUsageOnItemUpdate() && GrimAPI.INSTANCE.getItemResetHandler().getItemUsageHand(player.platformPlayer) == InteractionHand.OFF_HAND) {
+                                GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                            }
+                        }
+
+                        if (!player.getInventory().getHeldItem().is(items.getItems().get(player.packetStateData.lastSlotSelected + 36).getType())) {
+                            if (player.packetStateData.eatingHand == InteractionHand.MAIN_HAND) {
+                                player.packetStateData.setSlowedByUsingItem(false);
+                            }
+
+                            if (player.isResetItemUsageOnItemUpdate() && GrimAPI.INSTANCE.getItemResetHandler().getItemUsageHand(player.platformPlayer) == InteractionHand.MAIN_HAND) {
+                                GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                            }
+                        }
+                    }
+                };
+
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), task);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, task);
             }
         }
 

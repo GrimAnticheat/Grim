@@ -10,13 +10,15 @@ import ac.grim.grimac.utils.chat.ChatUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 
 public class ClientBrand extends Check implements PacketCheck {
-    public static final String channel = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) ? "minecraft:brand" : "MC|Brand";
+
+    private static final String CHANNEL = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) ? "minecraft:brand" : "MC|Brand";
 
     @Getter
     private String brand = "vanilla";
@@ -37,9 +39,8 @@ public class ClientBrand extends Check implements PacketCheck {
         }
     }
 
-
     private void handle(String channel, byte[] data) {
-        if (!channel.equals(ClientBrand.channel)) return;
+        if (!channel.equals(ClientBrand.CHANNEL)) return;
 
         if (data.length > 64 || data.length == 0) {
             brand = "sent " + data.length + " bytes as brand";
@@ -55,6 +56,18 @@ public class ClientBrand extends Check implements PacketCheck {
 
                 GrimAPI.INSTANCE.getAlertManager().sendBrand(component, null);
             }
+        }
+
+        // https://github.com/MinecraftForge/MinecraftForge/issues/9309
+        // "Forge 40.1.22 1.18.2+ has extended player reach"
+        // quality development from forge devs
+        // inbuilt reach hacks for over a year across 2 (3 if you include 1.19.3/1.20) major versions
+        // Fixed in 1.19.4 possibly? Definitely fixed in 1.20+.
+        final boolean hasReachHacks = brand.contains("forge")
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)
+                && player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4);
+        if (hasReachHacks) {
+            player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectBlacklistedForge())));
         }
 
         hasBrand = true;
