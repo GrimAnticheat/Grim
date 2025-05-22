@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.HeadRotation;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "BadPacketsJ", description = "Rotation in use item packet did not match tick rotation", experimental = true)
-public class BadPacketsJ extends Check implements PostPredictionCheck {
+public class BadPacketsJ extends Check implements PacketCheck {
     private final List<HeadRotation> rotations = new ArrayList<>();
 
     public BadPacketsJ(GrimPlayer player) {

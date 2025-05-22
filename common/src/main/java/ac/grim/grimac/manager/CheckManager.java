@@ -136,7 +136,9 @@ public class CheckManager {
                 .put(TeamHandler.class, new TeamHandler(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFall.class, new NoFall(player))
-                .put(BadPacketsO.class, new BadPacketsO(player))
+                .put(ExploitA.class, new ExploitA(player))
+                .put(ExploitB.class, new ExploitB(player))
+                .put(ExploitC.class, new ExploitC(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
@@ -145,12 +147,15 @@ public class CheckManager {
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
                 .put(BadPacketsI.class, new BadPacketsI(player))
+                .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
                 .put(BadPacketsM.class, new BadPacketsM(player))
+                .put(BadPacketsO.class, new BadPacketsO(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))
+                .put(BadPacketsS.class, new BadPacketsS(player))
                 .put(BadPacketsT.class, new BadPacketsT(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
@@ -168,6 +173,11 @@ public class CheckManager {
                 .put(VehicleA.class, new VehicleA(player))
                 .put(VehicleB.class, new VehicleB(player))
                 .put(VehicleD.class, new VehicleD(player))
+                .put(CrashB.class, new CrashB(player))
+                .put(CrashD.class, new CrashD(player))
+                .put(CrashE.class, new CrashE(player))
+                .put(CrashF.class, new CrashF(player))
+                .put(CrashH.class, new CrashH(player))
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
@@ -206,7 +216,6 @@ public class CheckManager {
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
-                .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(NoSlow.class, new NoSlow(player))
                 .put(SprintB.class, new SprintB(player))
@@ -253,15 +262,7 @@ public class CheckManager {
                 .put(TickTimer.class, new TickTimer(player))
                 .put(TimerLimit.class, new TimerLimit(player))
                 .put(CrashA.class, new CrashA(player))
-                .put(CrashB.class, new CrashB(player))
                 .put(CrashC.class, new CrashC(player))
-                .put(CrashD.class, new CrashD(player))
-                .put(CrashE.class, new CrashE(player))
-                .put(CrashF.class, new CrashF(player))
-                .put(CrashH.class, new CrashH(player))
-                .put(ExploitA.class, new ExploitA(player))
-                .put(ExploitB.class, new ExploitB(player))
-                .put(ExploitC.class, new ExploitC(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
@@ -279,11 +280,10 @@ public class CheckManager {
                 .build();
 
         // All checks that have no listeners, generally invoked by other code to flag
-        // TODO migratemore  checks to here
+        // TODO migrate more checks to here
         ClassToInstanceMap<AbstractCheck> noneModules = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                // BadPacketsN/S/W + VehicleC + TransactionOrder are packet checks with no listener
+                // BadPacketsN/W + VehicleC + TransactionOrder are packet checks with no listener
                 .put(BadPacketsN.class, new BadPacketsN(player))
-                .put(BadPacketsS.class, new BadPacketsS(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(VehicleC.class, new VehicleC(player))

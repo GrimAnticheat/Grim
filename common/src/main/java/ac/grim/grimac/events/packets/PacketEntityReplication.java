@@ -287,7 +287,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                             GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                         }
                     } else {
-                        if (!player.getInventory().getOffHand().is(items.getItems().get(45).getType())) {
+                        if (items.getItems().size() > 45 && !player.getInventory().getOffHand().is(items.getItems().get(45).getType())) {
                             if (player.packetStateData.eatingHand == InteractionHand.OFF_HAND) {
                                 player.packetStateData.setSlowedByUsingItem(false);
                             }
