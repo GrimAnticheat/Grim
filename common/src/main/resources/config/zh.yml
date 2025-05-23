@@ -29,6 +29,7 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
+    disconnect-blacklisted-forge-versions: true
 
 spectators:
     # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
