@@ -31,6 +31,8 @@ public class BaseConfigManager {
     private String disconnectPacketError;
     @Getter
     private String disconnectBlacklistedForge;
+    @Getter
+    private boolean blockBlacklistedForgeClients;
 
     // initialize the config
     public void load(ConfigManager config) {
@@ -56,6 +58,7 @@ public class BaseConfigManager {
         disconnectTimeout = config.getStringElse("disconnect.timeout", "<lang:disconnect.timeout>");
         disconnectClosed = config.getStringElse("disconnect.closed", "<lang:disconnect.timeout>");
         disconnectPacketError = config.getStringElse("disconnect.error", "<red>An error occurred whilst processing packets. Please contact the administrators.");
+        blockBlacklistedForgeClients = config.getBooleanElse("client-brand.disconnect-blacklisted-forge-versions", true);
         disconnectBlacklistedForge = config.getStringElse("disconnect.blacklisted-forge",
                 "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309.");
     }

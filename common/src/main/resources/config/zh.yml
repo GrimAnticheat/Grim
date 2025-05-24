@@ -29,6 +29,9 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
+    # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
+    # Setting this option to false will allow said clients to connect to the server. Disable this at your own risk.
+    disconnect-blacklisted-forge-versions: true
 
 spectators:
     # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
