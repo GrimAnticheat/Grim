@@ -191,6 +191,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.checkManager.getBlockPlaceCheck(BadPacketsH.class).onWorldChange();
                 }
                 player.dimensionType = respawn.getDimensionType();
+                player.worldName = respawn.getWorldName().orElse(null);
 
                 player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
                 player.compensatedEntities.self = new PacketEntitySelf(player, player.compensatedEntities.self);
@@ -220,6 +221,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
     }
 
     private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
+            return !Objects.equals(respawn.getWorldName().orElse(null), player.worldName);
+        }
+
         ClientVersion version = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
         return respawn.getDimensionType().getId(version) != player.dimensionType.getId(version)
                 || !Objects.equals(respawn.getDimensionType().getName(), player.dimensionType.getName());

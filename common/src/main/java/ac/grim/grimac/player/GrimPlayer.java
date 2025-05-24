@@ -232,6 +232,7 @@ public class GrimPlayer implements GrimUser {
     public int maxAttackSlow = 0;
     public GameMode gamemode;
     public DimensionType dimensionType;
+    public @Nullable String worldName;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
     public long lastBlockBreak = 0;
