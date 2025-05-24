@@ -65,9 +65,8 @@ public class ClientBrand extends Check implements PacketCheck {
         // Fixed in 1.19.4 possibly? Definitely fixed in 1.20+.
         final boolean hasReachHacks = brand.contains("forge")
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)
-                && player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4)
-                && GrimAPI.INSTANCE.getConfigManager().isBlockBlacklistedForgeClients();
-        if (hasReachHacks) {
+                && player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4);
+        if (hasReachHacks && GrimAPI.INSTANCE.getConfigManager().isBlockBlacklistedForgeClients()) {
             player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectBlacklistedForge())));
         }
 
