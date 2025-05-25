@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
+import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.FloodgateUtil;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
@@ -75,6 +76,27 @@ public class PlayerDataManager {
 
     public GrimPlayer remove(final @NonNull User user) {
         return playerDataMap.remove(user);
+    }
+
+    public void onDisconnect(User user) {
+        GrimPlayer grimPlayer = remove(user);
+        if (grimPlayer != null) GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
+        exemptUsers.remove(user);
+
+        UUID uuid = user.getProfile().getUUID();
+
+        // Check if calling async is safe
+        if (uuid == null)
+            return; // folia doesn't like null getPlayer()
+
+        GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(
+                GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid)
+        );
+
+        GrimAPI.INSTANCE.getSpectateManager().onQuit(uuid);
+
+        // TODO (Cross-platform) confirm this is 100% correct and will always remove players from cache when necessary
+        GrimAPI.INSTANCE.getPlatformPlayerFactory().invalidatePlayer(uuid);
     }
 
     public Collection<GrimPlayer> getEntries() {

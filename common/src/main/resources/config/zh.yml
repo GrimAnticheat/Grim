@@ -29,8 +29,8 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
-    # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
-    # Setting this option to false will allow said clients to connect to the server. Disable this at your own risk.
+    # Grim 将把包含内置攻击距离修改功能的特定 Forge 版本列入黑名单（Forge 1.18.2 至 1.19.3） 可能会导致1.18.2-1.19.3的Forge版本玩家无法进入服务器。
+    # 将此选项设置为 false 将允许上述客户端连接服务器。禁用此选项需自行承担风险（建议打开）。
     disconnect-blacklisted-forge-versions: true
 
 spectators:
@@ -136,7 +136,7 @@ TimerA:
     # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
     drift: 120
 
-# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+# 此项是config是用来防止玩家移动与实时差距过大，来限制对 TimerA 平衡机制的滥用。
 TimerLimit:
     # 在检查玩家的延迟时对timer balance进行限制, 防止滥用
     # 在合法玩家的延迟超过这个延迟阈值时可能会造成误拉回
