@@ -56,10 +56,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
             if (!shouldExempt(blockBreak.block, pos.y) && !pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    if (flagAndAlert("action=CANCELLED_DIGGING"
-                            + ", last=" + MessageUtil.toUnlabledString(lastBlock)
-                            + ", pos=" + MessageUtil.toUnlabledString(pos)
-                            + ", type=" + blockBreak.block.getType())) {
+                    if (flagAndAlert(buildAlertMessage("CANCELLED_DIGGING", lastBlock, pos, blockBreak.block.getType()))) {
                         if (shouldModifyPackets()) {
                             blockBreak.cancel();
                         }
