@@ -39,7 +39,8 @@ public class ViaVersionUtil {
 
     public static boolean isAvailable() {
         if (available == ViaState.UNKNOWN) { // Plugins haven't loaded... let's refer to whether we have a class
-            return getViaVersionAccessor();
+            boolean present = getViaVersionAccessor();
+            available = present ? ViaState.ENABLED : ViaState.DISABLED;
         }
         return available == ViaState.ENABLED;
     }
