@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemBlocksAttacks;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEquippable;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -48,31 +49,34 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         final ItemType material = item.getType();
 
-        // Check for data component stuff on 1.21.2+
-        final ItemBlocksAttacks blocksAttacks = item.getComponentOr(ComponentTypes.BLOCKS_ATTACKS, null);
-        final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
-        final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
+        // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+            final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
 
-        // The consumable can override the block attacks component
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && blocksAttacks != null && consumable == null) {
-            player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
-        }
+            if (consumable != null) {
+                final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
 
-        // The food component can override the consumable component, as it provides conditions for using the item
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && consumable != null && foodComponent == null) {
-            player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
-        }
+                if (foodComponent != null) {
+                    if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
+                        player.packetStateData.setSlowedByUsingItem(true);
+                        player.packetStateData.eatingHand = hand;
+                        return;
+                    } else {
+                        player.packetStateData.setSlowedByUsingItem(false);
+                    }
+                } else {
+                    player.packetStateData.setSlowedByUsingItem(true);
+                    player.packetStateData.eatingHand = hand;
+                }
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                final ItemBlocksAttacks blocksAttacks = item.getComponentOr(ComponentTypes.BLOCKS_ATTACKS, null);
+                final ItemEquippable equippable = item.getComponentOr(ComponentTypes.EQUIPPABLE, null);
 
-        // Check for data component stuff on 1.20.5+ (minecraft:blocks_attacks can override the food component)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null && blocksAttacks == null) {
-            if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
-                player.packetStateData.setSlowedByUsingItem(true);
-                player.packetStateData.eatingHand = hand;
-                return;
-            } else {
-                player.packetStateData.setSlowedByUsingItem(false);
+                if ((equippable == null || !equippable.isSwappable()) && blocksAttacks != null) {
+                    player.packetStateData.setSlowedByUsingItem(true);
+                    player.packetStateData.eatingHand = hand;
+                    return;
+                }
             }
         }
 
@@ -248,6 +252,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
             handleUseItem(player, item, hand);
+            System.out.println("using item: " + player.packetStateData.isSlowedByUsingItem());
         }
     }
 }

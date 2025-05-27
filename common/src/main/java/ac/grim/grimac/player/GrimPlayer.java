@@ -265,7 +265,6 @@ public class GrimPlayer implements GrimUser {
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
-    // TODO: teleport clear this?
     public final List<List<Movement>> movementThisTick = new ObjectArrayList<>();
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
