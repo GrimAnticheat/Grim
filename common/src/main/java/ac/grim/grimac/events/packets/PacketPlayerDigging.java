@@ -56,15 +56,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (consumable != null) {
                 final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
 
-                if (foodComponent != null) {
-                    if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
-                        player.packetStateData.setSlowedByUsingItem(true);
-                        player.packetStateData.eatingHand = hand;
-                        return;
-                    } else {
-                        player.packetStateData.setSlowedByUsingItem(false);
-                    }
-                } else {
+                if (foodComponent != null && !(foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE)) {
+                    player.packetStateData.setSlowedByUsingItem(false);
+                } else if ((consumable.getConsumeSeconds() * 20.0F) > 0) {
                     player.packetStateData.setSlowedByUsingItem(true);
                     player.packetStateData.eatingHand = hand;
                 }
