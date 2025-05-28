@@ -50,7 +50,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final ItemType material = item.getType();
 
         // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) { // TODO: bow, crossbow, trident, spyglass, shields, maps(???)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) { // TODO: bow, crossbow, trident, spyglass, shields, maps(???), goat horn
             final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
 
             if (consumable != null) {
