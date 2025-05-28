@@ -246,7 +246,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
             handleUseItem(player, item, hand);
-            System.out.println("using item: " + player.packetStateData.isSlowedByUsingItem());
         }
     }
 }
