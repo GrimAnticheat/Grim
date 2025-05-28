@@ -50,7 +50,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final ItemType material = item.getType();
 
         // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) { // TODO: bow, crossbow, trident, spyglass, shields, maps(???)
             final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
 
             if (consumable != null) {
@@ -58,9 +58,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 if (foodComponent != null && !(foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE)) {
                     player.packetStateData.setSlowedByUsingItem(false);
-                } else if ((consumable.getConsumeSeconds() * 20.0F) > 0) {
-                    player.packetStateData.setSlowedByUsingItem(true);
-                    player.packetStateData.eatingHand = hand;
+                } else {
+                    if ((consumable.getConsumeSeconds() * 20.0F) > 0) {
+                        player.packetStateData.setSlowedByUsingItem(true);
+                        player.packetStateData.eatingHand = hand;
+                    } else {
+                        player.packetStateData.setSlowedByUsingItem(false);
+                    }
                 }
             } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
                 final ItemBlocksAttacks blocksAttacks = item.getComponentOr(ComponentTypes.BLOCKS_ATTACKS, null);
@@ -69,9 +73,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 if ((equippable == null || !equippable.isSwappable()) && blocksAttacks != null) {
                     player.packetStateData.setSlowedByUsingItem(true);
                     player.packetStateData.eatingHand = hand;
-                    return;
+                } else {
+                    player.packetStateData.setSlowedByUsingItem(false);
                 }
             }
+            return;
         }
 
         // 1.14 and below players cannot eat in creative, exceptions are potions or milk
