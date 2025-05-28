@@ -44,7 +44,9 @@ import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -770,6 +772,10 @@ public class GrimPlayer implements GrimUser {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2
         return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.getOpLevel() >= 2);
+    }
+
+    public boolean isInWaterOrRain() {
+        return this.compensatedWorld.isRaining || Collisions.hasMaterial(this, this.boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
     }
 
     @Contract(pure = true)

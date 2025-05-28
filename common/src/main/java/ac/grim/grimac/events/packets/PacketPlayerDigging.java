@@ -3,16 +3,13 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.item.ItemBehaviour;
+import ac.grim.grimac.utils.item.ItemBehaviourRegistry;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemBlocksAttacks;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEquippable;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -50,33 +47,16 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final ItemType material = item.getType();
 
         // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) { // TODO: bow, crossbow, trident, spyglass, shields, maps(???), goat horn
-            final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+            ItemBehaviour itemBehaviour = ItemBehaviourRegistry.getItemBehaviour(material);
 
-            if (consumable != null) {
-                final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
-
-                if (foodComponent != null && !(foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE)) {
-                    player.packetStateData.setSlowedByUsingItem(false);
-                } else {
-                    if ((consumable.getConsumeSeconds() * 20.0F) > 0) {
-                        player.packetStateData.setSlowedByUsingItem(true);
-                        player.packetStateData.eatingHand = hand;
-                    } else {
-                        player.packetStateData.setSlowedByUsingItem(false);
-                    }
-                }
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                final ItemBlocksAttacks blocksAttacks = item.getComponentOr(ComponentTypes.BLOCKS_ATTACKS, null);
-                final ItemEquippable equippable = item.getComponentOr(ComponentTypes.EQUIPPABLE, null);
-
-                if ((equippable == null || !equippable.isSwappable()) && blocksAttacks != null) {
-                    player.packetStateData.setSlowedByUsingItem(true);
-                    player.packetStateData.eatingHand = hand;
-                } else {
-                    player.packetStateData.setSlowedByUsingItem(false);
-                }
+            if (itemBehaviour.canUse(item, player.compensatedWorld, player, hand)) {
+                player.packetStateData.setSlowedByUsingItem(true);
+                player.packetStateData.eatingHand = hand;
+            } else {
+                player.packetStateData.setSlowedByUsingItem(false);
             }
+
             return;
         }
 
