@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
+import java.util.StringJoiner;
+
 @CheckData(name = "MultiActionsC", description = "Clicked in inventory while sprinting", experimental = true)
 public class MultiActionsC extends Check implements PacketCheck {
     public MultiActionsC(GrimPlayer player) {
@@ -15,8 +17,21 @@ public class MultiActionsC extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
-            if (player.isSprinting && !player.isSwimming && !player.serverOpenedInventoryThisTick && flagAndAlert() && shouldModifyPackets()) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !player.serverOpenedInventoryThisTick) {
+            StringJoiner verbose = new StringJoiner(", ");
+            if (player.isSprinting && (!player.isSwimming || !player.clientClaimsLastOnGround)) {
+                verbose.add("sprinting");
+            }
+
+            if (player.packetStateData.knownInput.forward() || player.packetStateData.knownInput.backward()
+                    || player.packetStateData.knownInput.left() || player.packetStateData.knownInput.right()
+                    || player.packetStateData.knownInput.jump()) {
+                verbose.add("input");
+            }
+
+            String joinedVerbose = verbose.toString();
+
+            if (!joinedVerbose.isEmpty() && flagAndAlert(joinedVerbose) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

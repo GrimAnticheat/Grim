@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "BadPacketsP", experimental = true)
+@CheckData(name = "BadPacketsP", description = "Invalid click packets", experimental = true)
 public class BadPacketsP extends Check implements PacketCheck {
 
     private int containerType = -1;
