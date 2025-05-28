@@ -653,7 +653,8 @@ public enum CollisionData implements CollisionFactory {
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-    }, StateTypes.DIRT_PATH),
+        // TODO, replace this hacky patch for 1.16.5 with versioned state types later. DIRT_PATH is new name for GRASS_PATH
+    }, StateTypes.DIRT_PATH, StateTypes.GRASS_PATH),
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.

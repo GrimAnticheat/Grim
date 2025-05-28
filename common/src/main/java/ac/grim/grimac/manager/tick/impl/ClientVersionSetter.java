@@ -12,6 +12,7 @@ public class ClientVersionSetter implements Tickable {
             // channel was somehow closed without us getting a disconnect event
             if (!ChannelHelper.isOpen(player.user.getChannel())) {
                 GrimAPI.INSTANCE.getPlayerDataManager().onDisconnect(player.user);
+                continue;
             }
 
             player.pollData();
