@@ -48,5 +48,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         }
 
         addChunkToCache(event, player, chunks, true, x, z);
+
+        event.setLastUsedWrapper(null); // Prevent PacketEvents from using this incomplete wrapper later
     }
 }

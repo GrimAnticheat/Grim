@@ -109,6 +109,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerChunkData chunkData = new WrapperPlayServerChunkData(event);
         addChunkToCache(event, player, chunkData.getColumn().getChunks(), chunkData.getColumn().isFullChunk(), chunkData.getColumn().getX(), chunkData.getColumn().getZ());
+        event.setLastUsedWrapper(null);
     }
 
     public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {

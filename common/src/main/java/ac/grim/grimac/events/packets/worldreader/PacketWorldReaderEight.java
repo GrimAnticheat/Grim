@@ -60,6 +60,8 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
         this.readChunk((ByteBuf) event.getByteBuf(), chunks, mask);
 
         this.addChunkToCache(event, player, chunks, groundUp, chunkX, chunkZ);
+
+        event.setLastUsedWrapper(null); // Make sure this incomplete packet isn't sent
     }
 
     private void readChunk(final ByteBuf buf, final Chunk_v1_9[] chunks, final BitSet set) {
