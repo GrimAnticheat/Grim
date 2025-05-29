@@ -1,3 +1,5 @@
+# I got bored and I wanna see if an AI could do something well practically anything but we'll see how bad it ***** it up.
+
 # GrimAC
 
 GrimAC is an open source Minecraft anticheat designed for 1.21 and supports 1.8-1.21. It is free while in beta. It will eventually become paid and/or will include offering additional subscription based paid checks. Geyser players are fully exempt.
