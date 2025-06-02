@@ -6,6 +6,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -18,8 +20,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PistonEvent implements Listener {
-    Material SLIME_BLOCK = Material.getMaterial("SLIME_BLOCK");
-    Material HONEY_BLOCK = Material.getMaterial("HONEY_BLOCK");
+
+    private final Material SLIME_BLOCK = Material.getMaterial("SLIME_BLOCK");
+    private final Material HONEY_BLOCK = Material.getMaterial("HONEY_BLOCK");
+
+    private static final double MAX_HORIZONTAL_DISTANCE = 24.0;
+    private static final double MAX_VERTICAL_DISTANCE = 64.0;
+
+    // accuracy isn't that important, it's close enough and performant
+    private static boolean isCloseEnough(Vector3i vectorA, Vector3d vectorB) {
+        return Math.abs(vectorA.getX() - vectorB.getX()) <= MAX_HORIZONTAL_DISTANCE
+                && Math.abs(vectorA.getY() - vectorB.getY()) <= MAX_VERTICAL_DISTANCE
+                && Math.abs(vectorA.getZ() - vectorB.getZ()) <= MAX_HORIZONTAL_DISTANCE;
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
@@ -55,16 +68,17 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
-        boolean finalHasSlimeBlock = hasSlimeBlock;
-        boolean finalHasHoneyBlock = hasHoneyBlock;
+        final int chunkX = event.getBlock().getX() >> 4;
+        final int chunkZ = event.getBlock().getZ() >> 4;
+        final BlockFace blockFace = BukkitConversionUtils.fromBukkitFace(event.getDirection());
+        final Vector3i sourcePos = new Vector3i(piston.getX(), piston.getY(), piston.getZ());
+
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            int lastTrans = player.lastTransactionSent.get();
-            player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                    PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, true, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-                }
-            });
+            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+                final int lastTrans = player.lastTransactionSent.get();
+                PistonData data = new PistonData(blockFace, boxes, lastTrans, true, hasSlimeBlock, hasHoneyBlock);
+                player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+            }
         }
     }
 
@@ -113,16 +127,16 @@ public class PistonEvent implements Listener {
             }
         }
 
-        boolean finalHasSlimeBlock = hasSlimeBlock;
-        boolean finalHasHoneyBlock = hasHoneyBlock;
+        final int chunkX = event.getBlock().getX() >> 4;
+        final int chunkZ = event.getBlock().getZ() >> 4;
+        Vector3i sourcePos = new Vector3i(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            int lastTrans = player.lastTransactionSent.get();
-            player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                    PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, false, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-                }
-            });
+            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+                int lastTrans = player.lastTransactionSent.get();
+                PistonData data = new PistonData(face, boxes, lastTrans, false, hasSlimeBlock, hasHoneyBlock);
+                player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+            }
         }
     }
 }
