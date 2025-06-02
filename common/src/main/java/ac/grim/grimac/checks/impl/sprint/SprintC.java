@@ -26,7 +26,7 @@ public class SprintC extends Check implements PostPredictionCheck {
             }
 
             if (player.isSprinting && (!player.wasTouchingWater || version.isOlderThan(ClientVersion.V_1_13))) {
-                if (flaggedLastTick) flagAndAlertWithSetback();
+                if (flaggedLastTick) flagAndAlert();
                 flaggedLastTick = true;
             } else {
                 reward();
