@@ -24,9 +24,6 @@ public class PistonEvent implements Listener {
     private static final Material SLIME_BLOCK = Material.getMaterial("SLIME_BLOCK");
     private static final Material HONEY_BLOCK = Material.getMaterial("HONEY_BLOCK");
 
-    // Reusable base collision box to avoid creating new instances
-    private static final SimpleCollisionBox BASE_BOX = new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
-
     // Using squared distances for more efficient distance checks
     private static final double MAX_HORIZ_DIST_SQ = 576.0; // 24^2
     private static final double MAX_VERT_DIST_SQ = 4096.0; // 64^2
@@ -56,16 +53,20 @@ public class PistonEvent implements Listener {
 
         // Special case handling for empty retract events
         if (!isExtending && blocks.isEmpty()) {
-            boxes.add(BASE_BOX.offset(pistonX + modX, pistonY + modY, pistonZ + modZ));
+            // Create NEW instance for each collision box
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+                    .offset(pistonX + modX, pistonY + modY, pistonZ + modZ));
         } else {
             for (Block block : blocks) {
                 int x = block.getX();
                 int y = block.getY();
                 int z = block.getZ();
                 
-                // Add boxes for original and new positions
-                boxes.add(BASE_BOX.offset(x, y, z));
-                boxes.add(BASE_BOX.offset(x + modX, y + modY, z + modZ));
+                // Create NEW instances for each collision box
+                boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+                        .offset(x, y, z));
+                boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+                        .offset(x + modX, y + modY, z + modZ));
 
                 Material type = block.getType();
                 if (type == SLIME_BLOCK) {
@@ -77,7 +78,9 @@ public class PistonEvent implements Listener {
 
             // For extend events, add the piston head position
             if (isExtending) {
-                boxes.add(BASE_BOX.offset(pistonX + modX, pistonY + modY, pistonZ + modZ));
+                // Create NEW instance for piston head
+                boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+                        .offset(pistonX + modX, pistonY + modY, pistonZ + modZ));
             }
         }
 
