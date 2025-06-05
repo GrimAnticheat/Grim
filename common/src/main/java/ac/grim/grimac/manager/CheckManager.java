@@ -57,12 +57,7 @@ import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceB;
 import ac.grim.grimac.checks.impl.scaffolding.MultiPlace;
 import ac.grim.grimac.checks.impl.scaffolding.PositionPlace;
 import ac.grim.grimac.checks.impl.scaffolding.RotationPlace;
-import ac.grim.grimac.checks.impl.sprint.SprintA;
-import ac.grim.grimac.checks.impl.sprint.SprintB;
-import ac.grim.grimac.checks.impl.sprint.SprintC;
-import ac.grim.grimac.checks.impl.sprint.SprintD;
-import ac.grim.grimac.checks.impl.sprint.SprintE;
-import ac.grim.grimac.checks.impl.sprint.SprintF;
+import ac.grim.grimac.checks.impl.sprint.*;
 import ac.grim.grimac.checks.impl.timer.NegativeTimer;
 import ac.grim.grimac.checks.impl.timer.TickTimer;
 import ac.grim.grimac.checks.impl.timer.Timer;
@@ -223,6 +218,7 @@ public class CheckManager {
                 .put(SprintD.class, new SprintD(player))
                 .put(SprintE.class, new SprintE(player))
                 .put(SprintF.class, new SprintF(player))
+                .put(SprintG.class, new SprintG(player))
                 .put(MultiInteractA.class, new MultiInteractA(player))
                 .put(MultiInteractB.class, new MultiInteractB(player))
                 .put(ElytraA.class, new ElytraA(player))
