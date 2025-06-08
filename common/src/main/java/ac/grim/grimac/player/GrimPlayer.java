@@ -656,7 +656,7 @@ public class GrimPlayer implements GrimUser {
     @Override
     public int getKeepAlivePing() {
         if (platformPlayer == null) return -1;
-        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer);
+        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {

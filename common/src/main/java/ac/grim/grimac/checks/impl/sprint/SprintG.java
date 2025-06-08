@@ -1,0 +1,31 @@
+package ac.grim.grimac.checks.impl.sprint;
+
+import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+
+@CheckData(name = "SprintG", description = "Sprinting while in water", experimental = true)
+public class SprintG extends Check implements PostPredictionCheck {
+    public SprintG(GrimPlayer player) {
+        super(player);
+    }
+
+    // prevent falses when starting to fly in water and stopping out of water
+    private boolean lastChecked;
+
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        if (player.wasTouchingWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && lastChecked && predictionComplete.isChecked()) {
+            if (player.isSprinting && !player.isSwimming) {
+                flagAndAlertWithSetback();
+            } else {
+                reward();
+            }
+        }
+
+        lastChecked = predictionComplete.isChecked();
+    }
+}
