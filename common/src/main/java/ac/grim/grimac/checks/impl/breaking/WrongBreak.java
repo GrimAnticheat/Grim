@@ -56,7 +56,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
             if (!shouldExempt(blockBreak.block, pos.y) && !pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
+                    if (flagAndAlert(buildAlertMessage("CANCELLED_DIGGING", lastBlock, pos, blockBreak.block.getType()))) {
                         if (shouldModifyPackets()) {
                             blockBreak.cancel();
                         }
@@ -75,7 +75,10 @@ public class WrongBreak extends Check implements BlockBreakCheck {
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
             if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
-                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
+                if (flagAndAlert("action=FINISHED_DIGGING"
+                        + ", last=" + MessageUtil.toUnlabledString(lastBlock)
+                        + ", pos=" + MessageUtil.toUnlabledString(pos)
+                        + ", type=" + blockBreak.block.getType())) {
                     if (shouldModifyPackets()) {
                         blockBreak.cancel();
                     }
