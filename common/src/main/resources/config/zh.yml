@@ -1,212 +1,183 @@
-# config.yml - GrimAC 主要配置
-# 源代码链接: https://github.com/MWHunter/Grim
-# 版权所有 © 2025 DefineOutside 及贡献者 / 遵循 GPLv3 开源协议
-# 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
-# 中文翻译提供 Regotly / nuym / Dg32z_ , 如有错误请提交 Issues 并@我
+# config.yml - GrimAC 核心配置
+# 项目源码: https://github.com/MWHunter/Grim
+# 版权声明 © 2025 DefineOutside 及贡献者 / 使用 GPLv3 开源协议
+# 重要提示：修改后的插件或包含Grim代码的衍生作品不得公开销售，需保持私有
 
 alerts:
-    # 除了向有权限的玩家发送作弊vl外，是否还在控制台中打印作弊vl消息？
+    # 除了向有权限的玩家发送作弊vl外，是否在控制台打印玩家作弊记录？（默认开启）
     print-to-console: true
-    # 是否在其他子服中发送控制台的作弊信息
-    # 如果正在使用Velocity，你必须在Velocity的配置中启用` bungee-plugin-message-channel `。
+    # 跨服作弊警报设置（Velocity代理需配合开启` bungee-plugin-message-channel `使用）
     proxy:
-        # 作弊消息是否应该发送到连接到代理的子服?
+        # 是否向其他子服发送本服作弊警报？
         send: false
-        # 此服务器是否接收来自其他子服的作弊消息？
+        # 是否接收其他子服的作弊警报？
         receive: false
 
 verbose:
-    # 是否在控制台中打印verbose信息
+    # 是否在控制台显示详细调试(verbose)信息？（默认关闭）
     print-to-console: false
-# 是否检查更新
+
+# 是否自动检查插件更新？（推荐开启）
 check-for-updates: true
 
 client-brand:
-    # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端版本显示在聊天栏中
+    # 符合这些名称的客户端不显示版本提示（正则表达式匹配）
     ignored-clients:
-        - "^vanilla$"
-        - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
-        - "^Feather Fabric$"
-        - "^labymod$"
-    # Grim 将把包含内置攻击距离修改功能的特定 Forge 版本列入黑名单（Forge 1.18.2 至 1.19.3） 可能会导致1.18.2-1.19.3的Forge版本玩家无法进入服务器。
-    # 将此选项设置为 false 将允许上述客户端连接服务器。禁用此选项需自行承担风险（建议打开）。
+        - "^vanilla$"        # 原版客户端
+        - "^fabric$"         # Fabric客户端
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"  # Lunar客户端
+        - "^Feather Fabric$" # Feather客户端
+        - "^labymod$"        # LabyMod客户端
+    # 是否禁止携带攻击距离修改功能的Forge客户端进入？（1.18.2-1.19.3版本）
+    # 关闭可能带来安全风险（强烈建议保持开启）
     disconnect-blacklisted-forge-versions: true
 
 spectators:
-    # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
+    # 拥有grim.spectator权限的玩家是否始终隐身？（默认关闭）
     hide-regardless: false
-    # 观察者在这些世界不会隐藏
+    # 观察者模式在这些世界不生效（留空=全部世界生效）
     allowed-worlds:
         - ""
 
-# 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
-# 踢出原因为: disconnect.timeout
-# 玩家超时踢出时间（默认 = 60 秒）
+# 玩家数据（transaction 数据包）超时踢出时间（单位: 秒），原因显示"disconnect.timeout"
 max-transaction-time: 60
 
-# 是否对重复的移动数据包进行撤销?
-# 这可以修复 "bucket desync". https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
-# 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家
+# 是否修复桶放置不同步（bucket desync）问题（MC-12363漏洞→ https://bugs.mojang.com/browse/MC-12363）
+# 注：仅影响1.8服务器中的1.17-1.20.5玩家，Mojang已在1.21修复
 cancel-duplicate-packet: true
 
-# 是否忽视重复的数据包中的玩家转头
+# 是否忽略重复数据包中的玩家视角转动？
 ignore-duplicate-packet-rotation: false
 
 Simulation:
-    # 当玩家合法时，我们应该将总优势乘以多少
+    # 玩家行为正常时，违规值衰减速度乘区（值越小衰减越快）
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/d4ufgxrxer
     setback-decay-multiplier: 0.999
-    # 玩家移动偏移量判定阈值（单位：方块）
-    # 已针对 Optifine 优化三角函数表，若设为 0.001 可减少 FastMath 误报
+    # 玩家移动偏移判定阈值（单位：方块）
+    # 0.001可减少FastMath误报（针对Optifine优化）
     # 如果此补偿不起作用，则反作弊记录此玩家作弊
     threshold: 0.001
-    # 在玩家受到回弹之前，1 ticks 的判定阈值
+    # 单次移动超标立即回弹阈值（-1=关闭）
     # 假设作弊者与模拟移动的阈值（threshold）是0.0945，该项目设置的是0.07，玩家会立即被回弹到合适的位置
-    # -1 关闭
     immediate-setback-threshold: 0.1
-    # 在玩家受到回弹之前，累计回弹的阈值
+    # 累计移动超标回弹阈值（-1=关闭）
     # 假设作弊者与模拟移动的阈值（threshold）是0.0945，并且触发了10次，应为0.9450
     # 而你设置的值为0.94 ， 作弊者会受到回弹
-    # -1 关闭
     max-advantage: 1
+    # 最大违规值上限（防止永久记录）
     # 在默认配置的50秒后，玩家将从4块跑到1块
-    # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
-    # 设置回退的违规等级阈值
+    # 触发回弹所需的最低违规等级
     # 1 为旧行为
     setback-violation-threshold: 1
 
-# 检查玩家是否穿墙
+# 穿墙检测设置
 Phase:
-    setbackvl: 1 # 错误的方块可以允许爬墙，加上这个检查是相对稳定的
-    decay: 0.005
+    setbackvl: 1  # 触发回弹的违规等级
+    decay: 0.005  # 违规值衰减速度
 
-AirLiquidPlace:
+# 以下为物品放置类检测（cancelvl=触发取消操作的违规等级）
+AirLiquidPlace:   # 空中/液体放置
     cancelvl: 0
-
-FabricatedPlace:
+FabricatedPlace:  # 异常位置放置
+    cancelvl: 5
+FarPlace:         # 超远距离放置
+    cancelvl: 5
+PositionPlace:    # 位置异常放置
+    cancelvl: 5
+RotationPlace:    # 角度异常放置
     cancelvl: 5
 
-FarPlace:
-    cancelvl: 5
-
-PositionPlace:
-    cancelvl: 5
-
-RotationPlace:
-    cancelvl: 5
-
-# 使用模拟移动进行的NoSlow(使用物品时不会减速)检查
-# 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
-# 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
+# 防减速绕过检测
 NoSlow:
-    # 有多少偏移量是作弊
-    # 标志 0.03-0.2 与 NoSlow 一致
-    threshold: 0.001
-    # 到达多少VL时回弹
-    setbackvl: 5
-    # 当玩家使用一个物品并被它减慢时衰减多少VL
-    decay: 0.05
+    threshold: 0.001  # 移动偏移判定阈值，标志 0.03-0.2 与 NoSlow 一致
+    setbackvl: 5      # 触发回弹的违规等级
+    decay: 0.05       # 正常减速时违规值衰减量
 
+# 击退检测
 Knockback:
-    # 当玩家合法时，我们应该将总优势乘以多少
+    # 玩家行为正常时，违规值衰减速度乘区（值越小衰减越快）
     setback-decay-multiplier: 0.999
-    # 我们应该为玩家的移动创建多大的偏移量？
-    # 从可能的移动中以方块为单位测量
+    # 玩家移动偏移判定阈值（单位：方块）
     threshold: 0.001
-    # 在玩家受到回弹之前，1 ticks 的违规行为有多大？
-    # -1 关闭
+    # 单次移动超标立即回弹阈值（-1=关闭）
     immediate-setback-threshold: 0.1
-    # 在我们开始遭遇回弹之前，我们的优势有多大?
-    # -1 关闭
+    # 累计移动超标回弹阈值（-1=关闭）
     max-advantage: 1
-    # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+    # 最大违规值上限（防止永久记录）
     max-ceiling: 4
 
-
+# 爆炸击退检测
 Explosion:
     threshold: 0.001
     setbackvl: 3
 
+# 计时器加速检测
 TimerA:
     setbackvl: 10
-    # 玩家卡顿时可以累积以供以后使用的毫秒数
+    # 允许的延迟缓冲值（毫秒），防止网络波动误判
     # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
     drift: 120
 
-# 此项是config是用来防止玩家移动与实时差距过大，来限制对 TimerA 平衡机制的滥用。
+# 防TimerA机制滥用
 TimerLimit:
-    # 在检查玩家的延迟时对timer balance进行限制, 防止滥用
+    # 延迟超过此值(ms)时暂停检测（-1=关闭）
     # 在合法玩家的延迟超过这个延迟阈值时可能会造成误拉回
-    # 填写-1则关闭
     ping-abuse-limit-threshold: 1000
 
+# 负计时器检测
 NegativeTimer:
-    # 在开始检查玩家时，玩家的移动丢失了多少毫秒数
+    # 允许的时间丢失量（毫秒）
     drift: 1200
 
+# 坐骑加速器检测
 # 与 TimerA 相同的检查方法，但适用于坐骑
 VehicleTimer:
-    # 实体1.0005 检查
     setbackvl: 10
 
+# 数据包顺序检测
 PacketOrderI:
-    # 如果玩家因使用 1.7 动画模组而被标记，则启用此项
+    # 是否豁免1.7动画模组使用者？(默认: 关闭)
     exempt-placing-while-digging: false
 
+# 攻击距离检测
 Reach:
-    # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
-    #
-    # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 距离的增加，因为
-    # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大。
-    threshold: 0.0005
-    # 我们应该取消我们知道不可能的命中吗？
-    # 3.00-3.03 命中可能会通过，但仍会被标记，因为数据包顺序限制
-    block-impossible-hits: true
-    # 这将在每个ticks结束时发送一个额外的数据包，以检查作弊的可能性
-    # 这会注入服务器的连接列表以在服务器刷新之前发送最终数据包
-    # 启用这将增加所有玩家的带宽使用
-    # 这不会降低整体服务器性能
-    # 启用此功能将捕获更多作弊者。
-    # 禁用此功能仍会捕获作弊者，不会导致误报
+    threshold: 0.0005      # 碰撞箱扩展量（检测3.0005+范围）
+    block-impossible-hits: true  # 是否直接取消不可能的攻击？
+    # 是否启用额外数据包增强检测？（增加带宽消耗）
     # 除非你是专注于 1.8 PvP 的服务器，否则不建议使用这个额外的数据包
     enable-post-packet: false
 
+# 特殊行为控制
 exploit:
-    #是否允许玩家在使用鞘翅时候进行的疾跑跳跃
+    # 鞘翅飞行时是否允许疾跑跳跃
     allow-sprint-jumping-when-using-elytra: true
-    # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
+    # 是否允许在幽灵方块上放置方块 (默认: 开启)
     # 这可以在玩家遇到幽灵方块时进行同步，这可以减少玩家所碰到幽灵方块
     allow-building-on-ghostblocks: true
-    distance-to-check-if-ghostblocks: 2
+    distance-to-check-if-ghostblocks: 2  # 检测幽灵方块的范围
 
-# 启用在加入时注入 netty 的日志插件以调试兼容性问题
+# 启用在加入时注入 netty 的日志插件以调试兼容性问题（仅开发者使用）
 debug-pipeline-on-join: false
 
-# 启用实验性检查
+# 启用实验性检测（可能不稳定）
 experimental-checks: false
 
-# 取消有问题的格挡
-reset-item-usage-on-item-update: true
-reset-item-usage-on-attack: true
-reset-item-usage-on-slot-change: true
+# 物品使用重置（修复异常交互）
+reset-item-usage-on-item-update: true # 重置物品使用中的更新
+reset-item-usage-on-attack: true # 重置物品使用中的攻击
+reset-item-usage-on-slot-change: true # 重置物品使用中的物品栏切换
 
-# Grim有时会取消非法的数据包，比如用timer，在一秒钟内取消了数个数据包后，我们应该踢掉这个玩家？
-# 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
-packet-spam-threshold: 100
-# 启用此项可在玩家因 packet-spam-threshold 被踢时打印堆栈追踪
-debug-packet-cancel: false
+# 数据包洪水攻击防护
+packet-spam-threshold: 100  # 每秒取消数据包超过此值则踢出
+debug-packet-cancel: false  # 是否打印踢出时的错误详情？
 
-# Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
-# 填写-1则关闭
-max-ping-out-of-flying: 1000
+# 连接限制（-1=关闭）
+max-ping-out-of-flying: 1000     # 非飞行状态最大延迟(ms)
 
-# 限制玩家在使用鞘翅飞行时使用烟花加速的延迟
-# 这可以解决高延迟的玩家可以使用鞘翅时一直使用 1 个烟花就可以加速
-# 填写-1则关闭
-max-ping-firework-boost: 1000
+# 这个限制可以解决高延迟的玩家可以使用鞘翅时一直使用 1 个烟花就可以加速
+max-ping-firework-boost: 1000    # 鞘翅烟花加速最大延迟(ms)
 
-# 不要调整这个
+# 配置文件版本（勿修改）
 config-version: 9
