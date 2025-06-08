@@ -118,6 +118,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.gamemode = joinGame.getGameMode();
             player.entityID = joinGame.getEntityId();
             player.dimensionType = joinGame.getDimensionType();
+            player.worldName = joinGame.getWorldName();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17))
                 return;
@@ -224,7 +225,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
     }
 
     private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16)) {
             return !Objects.equals(respawn.getWorldName().orElse(null), player.worldName);
         }
 
