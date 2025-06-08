@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.change.BlockModification;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
@@ -77,8 +78,9 @@ public class AirLiquidPlace extends BlockPlaceCheck {
             }
         }
 
+        double distance = GrimMath.square(blockPos.getX() - player.x) + GrimMath.square(blockPos.getY() - player.y) + GrimMath.square(blockPos.getZ() - player.z);
         if (placeAgainst.isAir() || Materials.isNoPlaceLiquid(placeAgainst)) { // fail
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            if (flagAndAlert("against=" + placeAgainst.getName() + " type=" + place.getMaterial().getName() + " dist=" + distance) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }
