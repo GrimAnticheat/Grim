@@ -278,7 +278,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (riding instanceof PacketEntityRideable) {
                 VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
 
-                ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
+                ItemType requiredItem = riding.type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.getInventory().getHeldItem();
                 ItemStack offHand = player.getInventory().getOffHand();
 
@@ -325,7 +325,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.isSprinting &= riding instanceof PacketEntityCamel; // camels can sprint
             player.isSneaking = false;
 
-            if (riding.getType() != EntityTypes.PIG && riding.getType() != EntityTypes.STRIDER) {
+            if (riding.type != EntityTypes.PIG && riding.type != EntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
         }
@@ -485,7 +485,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
-            if (riding.isBoat()) {
+            if (riding.isBoat) {
                 PlayerBaseTick.doBaseTick(player);
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
@@ -495,10 +495,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             } else if (riding instanceof PacketEntityHorse) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerHorse(player).livingEntityAIStep();
-            } else if (riding.getType() == EntityTypes.PIG) {
+            } else if (riding.type == EntityTypes.PIG) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerPig(player).livingEntityAIStep();
-            } else if (riding.getType() == EntityTypes.STRIDER) {
+            } else if (riding.type == EntityTypes.STRIDER) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);

@@ -33,7 +33,9 @@ public class MultiActionsE extends Check implements PacketCheck {
             }
         }
 
-        dropping = false;
+        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE) {
+            dropping = false;
+        }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();

@@ -25,7 +25,7 @@ public class BlockProperties {
 
         // The game uses values known as flyingSpeed for some vehicles in the air
         if (player.inVehicle()) {
-            if (player.compensatedEntities.self.getRiding().getType() == EntityTypes.PIG || player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse) {
+            if (player.compensatedEntities.self.getRiding().type == EntityTypes.PIG || player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse) {
                 return (float) (player.speed * 0.1f);
             }
 

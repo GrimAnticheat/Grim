@@ -30,6 +30,7 @@ public class BadPacketsR extends Check implements PacketCheck {
                 } else {
                     reward();
                 }
+                player.compensatedEntities.entitiesRemovedThisTick.clear();
                 player.compensatedWorld.removeInvalidPistonLikeStuff(oldTransId);
                 positions = 0;
                 clock = player.getPlayerClockAtLeast();

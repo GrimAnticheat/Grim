@@ -53,13 +53,13 @@ public class ReachInterpolationData {
             targetLocation.expand(0.03125);
         }
 
-        if (entity.isBoat()) {
+        if (entity.isBoat) {
             interpolationSteps = 10;
-        } else if (entity.isMinecart()) {
+        } else if (entity.isMinecart) {
             interpolationSteps = 5;
-        } else if (entity.getType() == EntityTypes.SHULKER) {
+        } else if (entity.type == EntityTypes.SHULKER) {
             interpolationSteps = 1;
-        } else if (entity.isLivingEntity()) {
+        } else if (entity.isLivingEntity) {
             interpolationSteps = 3;
         } else {
             interpolationSteps = 1;

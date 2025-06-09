@@ -87,7 +87,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
         if (!isTickPacket(event.getPacketType())) return;
-
+        player.compensatedEntities.entitiesRemovedThisTick.clear();
         boolean isTickingReliably = player.isTickingReliablyFor(3);
 
         PacketEntity playerVehicle = player.compensatedEntities.self.getRiding();
@@ -252,7 +252,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
 
             if (status.getStatus() >= 24 && status.getStatus() <= 28 && status.getEntityId() == player.entityID) {
-                player.compensatedEntities.self.setOpLevel(status.getStatus() - 24);
+                player.compensatedEntities.self.opLevel = status.getStatus() - 24;
             }
         } else if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
@@ -376,6 +376,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 for (int integer : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(integer);
                     player.fireworks.removeFirework(integer);
+                    player.compensatedEntities.entitiesRemovedThisTick.add(integer);
                 }
             });
 
@@ -496,7 +497,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (entity == null) return;
             if (entity instanceof PacketEntityTrackXRot xRotEntity && yaw != null) {
                 xRotEntity.packetYaw = yaw;
-                xRotEntity.steps = entity.isBoat() ? 10 : 3;
+                xRotEntity.steps = entity.isBoat ? 10 : 3;
             }
 
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);

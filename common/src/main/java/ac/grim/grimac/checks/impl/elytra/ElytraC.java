@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 public class ElytraC extends Check implements PostPredictionCheck {
     private boolean glideThisTick, glideLastTick, setback;
     private int flags;
+    public boolean exempt;
 
     public ElytraC(GrimPlayer player) {
         super(player);
@@ -30,7 +31,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
             glideThisTick = glideLastTick = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
+        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA && !exempt) {
             if (glideThisTick || glideLastTick) {
                 if (player.canSkipTicks()) {
                     flags++;
@@ -51,7 +52,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
 
         if (isTickPacket(event.getPacketType())) {
             glideLastTick = glideThisTick;
-            glideThisTick = false;
+            glideThisTick = exempt = false;
         }
     }
 

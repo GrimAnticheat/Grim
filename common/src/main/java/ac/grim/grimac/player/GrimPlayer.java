@@ -438,7 +438,7 @@ public class GrimPlayer implements GrimUser {
         final PacketEntity riding = self.getRiding();
         if (riding == null) return (float) self.getAttributeValue(Attributes.STEP_HEIGHT);
 
-        if (riding.isBoat()) {
+        if (riding.isBoat) {
             return 0f;
         }
 
@@ -657,7 +657,7 @@ public class GrimPlayer implements GrimUser {
     @Override
     public int getKeepAlivePing() {
         if (platformPlayer == null) return -1;
-        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer);
+        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
@@ -771,7 +771,7 @@ public class GrimPlayer implements GrimUser {
     public boolean canUseGameMasterBlocks() {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2
-        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.getOpLevel() >= 2);
+        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.opLevel >= 2);
     }
 
     public boolean isInWaterOrRain() {

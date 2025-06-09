@@ -100,7 +100,7 @@ public class PacketEntity extends TypedPacketEntity {
     public void setAttribute(Attribute attribute, double value) {
         ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + type.getName() + "!");
         }
         property.override(value);
     }
@@ -108,7 +108,7 @@ public class PacketEntity extends TypedPacketEntity {
     public double getAttributeValue(Attribute attribute) {
         final ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + type.getName() + "!");
         }
         return property.get();
     }

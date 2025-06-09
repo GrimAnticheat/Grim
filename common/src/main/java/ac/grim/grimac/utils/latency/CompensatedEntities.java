@@ -26,6 +26,7 @@ import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class CompensatedEntities {
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
 
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
+    public final IntArraySet entitiesRemovedThisTick = new IntArraySet();
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Object2ObjectOpenHashMap<UUID, UserProfile> profiles = new Object2ObjectOpenHashMap<>();
     public Integer serverPlayerVehicle = null;
@@ -229,7 +231,7 @@ public class CompensatedEntities {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
-        if (entity.isAgeable()) {
+        if (entity.isAgeable) {
             int id;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
                 id = 12;
@@ -324,7 +326,7 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable rideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                if (entity.getType() == EntityTypes.PIG) {
+                if (entity.type == EntityTypes.PIG) {
                     EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
                     if (pigSaddle != null) {
                         rideable.hasSaddle = ((byte) pigSaddle.getValue()) != 0;
@@ -340,7 +342,7 @@ public class CompensatedEntities {
                 offset = 1;
             }
 
-            if (entity.getType() == EntityTypes.PIG) {
+            if (entity.type == EntityTypes.PIG) {
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
                     offset = 1;
 
@@ -434,7 +436,7 @@ public class CompensatedEntities {
             }
         }
 
-        if (entity.getType() == EntityTypes.FIREWORK_ROCKET) {
+        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
                 offset = 2;

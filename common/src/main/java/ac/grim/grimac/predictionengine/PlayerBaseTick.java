@@ -108,7 +108,7 @@ public final class PlayerBaseTick {
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (riding != null && riding.isBoat() && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (riding != null && riding.isBoat && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -386,7 +386,7 @@ public final class PlayerBaseTick {
 
     public static void updateInWaterStateAndDoWaterCurrentPushing(GrimPlayer player) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat());
+        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }

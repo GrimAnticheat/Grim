@@ -658,7 +658,7 @@ public enum CollisionData implements CollisionFactory {
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
-        if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat() && version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat && version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
             return NoCollisionBox.INSTANCE;
 
         if (version.isOlderThan(ClientVersion.V_1_9))

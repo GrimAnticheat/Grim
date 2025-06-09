@@ -2,12 +2,10 @@ package ac.grim.grimac.utils.data.packetentity;
 
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import lombok.Getter;
 
-@Getter
 public abstract class TypedPacketEntity {
-    private final EntityType type;
-    private final boolean isLivingEntity, isMinecart, isHorse, isAgeable, isAnimal, isBoat;
+    public final EntityType type;
+    public final boolean isLivingEntity, isMinecart, isHorse, isAgeable, isAnimal, isBoat;
 
     public TypedPacketEntity(EntityType type) {
         this.type = type;

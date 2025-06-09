@@ -335,7 +335,7 @@ public class UncertaintyHandler {
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat() || entity.getType() == EntityTypes.SHULKER) && entity != riding
+            if ((entity.isBoat || entity.type == EntityTypes.SHULKER) && entity != riding
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -348,7 +348,7 @@ public class UncertaintyHandler {
         // Stiders can walk on top of other striders
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
+                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
                         && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -361,7 +361,7 @@ public class UncertaintyHandler {
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (riding == null || !riding.isBoat()) return false;
+        if (riding == null || !riding.isBoat) return false;
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity != riding && entity.isPushable() && !riding.hasPassenger(entity)

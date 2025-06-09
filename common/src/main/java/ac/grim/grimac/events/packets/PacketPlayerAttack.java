@@ -33,7 +33,9 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             // The entity does not exist
-            if (!player.compensatedEntities.entityMap.containsKey(interact.getEntityId()) && !player.compensatedEntities.serverPositionsMap.containsKey(interact.getEntityId())) {
+            if (!player.compensatedEntities.entityMap.containsKey(interact.getEntityId()) && !player.compensatedEntities.serverPositionsMap.containsKey(interact.getEntityId())
+                    // the list of entities used to raytrace isn't the same as the list of entities in the world in pre-1.14 (wtf mojang)
+                    && (!player.compensatedEntities.entitiesRemovedThisTick.contains(interact.getEntityId()) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14))) {
                 final BadPacketsW badPacketsW = player.checkManager.getCheck(BadPacketsW.class);
                 if (badPacketsW.flagAndAlert("entityId=" + interact.getEntityId()) && badPacketsW.shouldModifyPackets()) {
                     event.setCancelled(true);
@@ -50,7 +52,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 ItemStack heldItem = player.getInventory().getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
-                if (entity != null && (!entity.isLivingEntity() || entity.getType() == EntityTypes.PLAYER)) {
+                if (entity != null && (!entity.isLivingEntity || entity.type == EntityTypes.PLAYER
+                        || entity.type == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
                     int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                             ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion())
                             : 0;

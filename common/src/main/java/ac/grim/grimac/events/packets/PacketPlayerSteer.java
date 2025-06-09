@@ -44,7 +44,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             if (player.packetStateData.receivedSteerVehicle && riding != null) {
                 // Horse and boat have first passenger in control
                 // If the player is the first passenger, disregard this attempt to have the server control the entity
-                if ((riding.isBoat() || riding instanceof PacketEntityHorse) && riding.passengers.get(0) == player.compensatedEntities.self &&
+                if ((riding.isBoat || riding instanceof PacketEntityHorse) && riding.passengers.get(0) == player.compensatedEntities.self &&
                         // Although if the player has server controlled entities
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
                         // or the server controls the entities, then this is vanilla logic so allow it

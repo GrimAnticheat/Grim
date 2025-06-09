@@ -20,12 +20,12 @@ public final class BoundingBoxSize {
 
     public static float getWidth(GrimPlayer player, PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.getType() == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36f;
+        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36f;
         return getWidthMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
     }
 
     private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
-        final EntityType type = packetEntity.getType();
+        final EntityType type = packetEntity.type;
         if (EntityTypes.AXOLOTL.equals(type)) {
             return 0.75f;
         } else if (EntityTypes.PANDA.equals(type)) {
@@ -139,7 +139,7 @@ public final class BoundingBoxSize {
             // Striders also do the same with animations, causing a desync.
             // At least the only people using buckets are people in boats for villager transportation
             // and people trying to false the anticheat.
-            if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT)) {
+            if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT)) {
                 float f = 0f;
                 float f1 = (float) (getPassengerRidingOffset(player, entity) - 0.35f); // hardcoded player offset
 
@@ -156,11 +156,11 @@ public final class BoundingBoxSize {
                 Vector3d vec3 = new Vector3d(f, 0d, 0d);
                 vec3 = yRot(GrimMath.radians(-xRotEntity.interpYaw) - ((float) Math.PI / 2f), vec3);
                 return new Vector3d(x + vec3.x, y + (double) f1, z + vec3.z);
-            } else if (entity.getType() == EntityTypes.LLAMA) {
+            } else if (entity.type == EntityTypes.LLAMA) {
                 float f = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
                 return new Vector3d(x + (double) (0.3f * f1), y + getPassengerRidingOffset(player, entity) - 0.35f, z + (double) (0.3f * f));
-            } else if (entity.getType() == EntityTypes.CHICKEN) {
+            } else if (entity.type == EntityTypes.CHICKEN) {
                 float f = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
                 y = y + (getHeight(player, entity) * 0.5f);
@@ -183,12 +183,12 @@ public final class BoundingBoxSize {
 
     public static float getHeight(GrimPlayer player, PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.getType() == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12f;
+        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12f;
         return getHeightMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
     }
 
     public static double getMyRidingOffset(PacketEntity packetEntity) {
-        final EntityType type = packetEntity.getType();
+        final EntityType type = packetEntity.type;
         if (EntityTypes.PIGLIN.equals(type) || EntityTypes.ZOMBIFIED_PIGLIN.equals(type) || EntityTypes.ZOMBIE.equals(type)) {
             return packetEntity.isBaby ? -0.05 : -0.45;
         } else if (EntityTypes.SKELETON.equals(type)) {
@@ -212,7 +212,7 @@ public final class BoundingBoxSize {
         if (packetEntity instanceof PacketEntityHorse)
             return (getHeight(player, packetEntity) * 0.75) - 0.25;
 
-        final EntityType type = packetEntity.getType();
+        final EntityType type = packetEntity.type;
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
@@ -236,7 +236,7 @@ public final class BoundingBoxSize {
     }
 
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
-        final EntityType type = packetEntity.getType();
+        final EntityType type = packetEntity.type;
         if (EntityTypes.ARMADILLO.equals(type)) {
             return 0.65f;
         } else if (EntityTypes.AXOLOTL.equals(type)) {

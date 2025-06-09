@@ -39,7 +39,7 @@ public class BadPacketsT extends Check implements PacketCheck {
                 }
 
                 // Make sure our target entity is actually a player (Player NPCs work too)
-                if (!EntityTypes.PLAYER.equals(packetEntity.getType())) {
+                if (!EntityTypes.PLAYER.equals(packetEntity.type)) {
                     // We can't check for any entity that is not a player
                     return;
                 }

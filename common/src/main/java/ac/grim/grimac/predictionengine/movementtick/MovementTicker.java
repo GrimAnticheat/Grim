@@ -159,7 +159,7 @@ public class MovementTicker {
         // By running fluid pushing for the player
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         // this needs to be looked at for 1.21.2+ (especially when riding entities, as Mojang has changed this logic a few times).
-        if (player.getClientVersion() != ClientVersion.V_1_21_4 && (!player.wasTouchingWater && (riding == null || !riding.isBoat()))) {
+        if (player.getClientVersion() != ClientVersion.V_1_21_4 && (!player.wasTouchingWater && (riding == null || !riding.isBoat))) {
             PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
         }
 
@@ -190,13 +190,13 @@ public class MovementTicker {
                 } else {
                     if (player.clientVelocity.getY() < 0.0) {
                         player.clientVelocity.setY(-player.clientVelocity.getY() *
-                                (riding != null && !riding.isLivingEntity() ? 0.8 : 1.0));
+                                (riding != null && !riding.isLivingEntity ? 0.8 : 1.0));
                     }
                 }
             } else if (BlockTags.BEDS.contains(onBlock) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
-                            (riding != null && !riding.isLivingEntity() ? 0.8 : 1.0));
+                            (riding != null && !riding.isLivingEntity ? 0.8 : 1.0));
                 }
             } else {
                 player.clientVelocity.setY(0);
@@ -402,7 +402,7 @@ public class MovementTicker {
         if (player.wasTouchingWater && !player.isFlying) {
             // 0.8F seems hardcoded in
             // 1.13+ players on skeleton horses swim faster! Cool feature.
-            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().getType() == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
+            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().type == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : (isSkeletonHorse ? 0.96F : 0.8F);
             float swimSpeed = 0.02F;
 
