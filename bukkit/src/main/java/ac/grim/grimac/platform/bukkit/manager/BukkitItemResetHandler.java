@@ -44,12 +44,19 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                 return LivingEntity::clearActiveItem;
             }
 
-            Method getHandle = Class.forName(version.isOlderThan(ServerVersion.V_1_20_5)
-                    ? "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackageName().split("\\.")[3] + ".entity.CraftLivingEntity"
-                    : "org.bukkit.craftbukkit.entity.CraftLivingEntity"
-            ).getMethod("getHandle");
+            Class<?> CraftLivingEntity;
+            boolean obfuscated = false;
+            try {
+                CraftLivingEntity = Class.forName("org.bukkit.craftbukkit.entity.CraftLivingEntity");
+            } catch (ClassNotFoundException ignored) {
+                String nmsPackage = Bukkit.getServer().getClass().getPackageName().split("\\.")[3];
+                CraftLivingEntity = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity.CraftLivingEntity");
+                obfuscated = true;
+            }
+
+            Method getHandle = CraftLivingEntity.getMethod("getHandle");
             Method setLivingEntityFlag = getHandle.getReturnType().getDeclaredMethod(
-                    version.isOlderThan(ServerVersion.V_1_20_5) ? "c" : "setLivingEntityFlag", int.class, boolean.class
+                    obfuscated ? "c" : "setLivingEntityFlag", int.class, boolean.class
             );
             setLivingEntityFlag.setAccessible(true);
 
