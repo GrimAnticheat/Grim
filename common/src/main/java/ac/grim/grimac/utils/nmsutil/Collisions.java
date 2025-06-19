@@ -749,6 +749,12 @@ public class Collisions {
 
     public static Vector3d relative(Vector3d curr, Direction direction, double value) {
         Vector3i vec = direction.getVector();
+
+        // TODO workaround: https://github.com/retrooper/packetevents/pull/1255
+        if (direction == Direction.EAST) {
+            vec = new Vector3i(1, 0, 0);
+        }
+
         return new Vector3d(
                 curr.x + value * vec.getX(), curr.y + value * vec.getY(), curr.z + value * vec.getZ()
         );
