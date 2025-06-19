@@ -24,7 +24,13 @@ public class PacketEntityAction extends PacketListenerAbstract {
 
             if (player == null) return;
 
-            switch (action.getAction()) {
+            // TODO workaround https://github.com/retrooper/packetevents/issues/1254
+            WrapperPlayClientEntityAction.Action actionType = action.getAction();
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
+                actionType = WrapperPlayClientEntityAction.Action.values()[actionType.ordinal() + 2];
+            }
+
+            switch (actionType) {
                 case START_SPRINTING:
                     player.isSprinting = true;
                     break;

@@ -42,6 +42,7 @@ allprojects {
         if (BuildConfig.mavenLocalOverride) {
             mavenLocal()
         }
+        maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
         maven {
             name = "FabricMC"
             url = uri("https://maven.fabricmc.net/")
@@ -49,7 +50,7 @@ allprojects {
         maven("https://repo.grim.ac/snapshots") { // Grim API
             content {
                 includeGroup("ac.grim.grimac")
-                includeGroup("com.github.retrooper")
+//                includeGroup("com.github.retrooper")
             }
         }
         maven("https://jitpack.io/") // Conditional Mixin

@@ -126,6 +126,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.vehicleData.nextVehicleForward = forward * 0.98f;
             player.vehicleData.nextVehicleHorizontal = sideways * 0.98f;
 
+            // that's how mojang is dealing with sneaking from now on...
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
+                player.isSneaking = input.isShift();
+            }
+
             player.packetStateData.knownInput = new KnownInput(input.isForward(), input.isBackward(), input.isLeft(), input.isRight(), input.isJump(), input.isShift(), input.isSprint());
         }
     }

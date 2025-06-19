@@ -267,7 +267,7 @@ public class GrimPlayer implements GrimUser {
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
-    public final List<List<Movement>> movementThisTick = new ObjectArrayList<>();
+    public final ArrayDeque<Movement> movementThisTick = new ArrayDeque<>(100);
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
@@ -916,7 +916,18 @@ public class GrimPlayer implements GrimUser {
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 
-    public record Movement(Vector3d from, Vector3d to) {}
+    public void addMovementThisTick(GrimPlayer.Movement movement) {
+        if (this.movementThisTick.size() >= 100) {
+            GrimPlayer.Movement movement1 = this.movementThisTick.removeFirst();
+            GrimPlayer.Movement movement2 = this.movementThisTick.removeFirst();
+            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to(), false);
+            this.movementThisTick.addFirst(movement3);
+        }
+
+        this.movementThisTick.add(movement);
+    }
+
+    public record Movement(Vector3d from, Vector3d to, boolean axisIndependant) {}
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {
