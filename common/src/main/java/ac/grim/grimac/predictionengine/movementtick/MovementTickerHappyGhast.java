@@ -10,6 +10,7 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
     public MovementTickerHappyGhast(GrimPlayer player) {
         super(player);
 
+        // TODO: check if this is right
         PacketEntityHappyGhast happyGhastPacket = (PacketEntityHappyGhast) player.compensatedEntities.self.getRiding();
         player.speed = happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED) + getExtraSpeed();
 
