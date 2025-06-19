@@ -730,6 +730,8 @@ public enum BlockPlaceResult {
     }, ItemTypes.SPORE_BLOSSOM),
 
     FIRE((player, place) -> {
+        if (place.isInLiquid()) return;
+
         boolean byFlammable = false;
         for (BlockFace face : BlockFace.values()) {
             // Do we care about this enuogh to fix? // TODO: Check flmmable

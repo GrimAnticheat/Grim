@@ -326,8 +326,8 @@ public class Materials {
             return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
         }
 
-        // If it's not a copper trapdoor players in any version can open it
-        return true;
+        // If it's not a copper or iron trapdoor, players in any version can open it
+        return mat != StateTypes.IRON_TRAPDOOR;
     }
 
     public static boolean isCompostable(ItemType material) {
