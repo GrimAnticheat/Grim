@@ -169,7 +169,9 @@ public class CompensatedEntities {
         if (entityType == EntityTypes.ITEM) return;
 
         PacketEntity packetEntity;
-        if (EntityTypes.CAMEL.equals(entityType)) {
+        if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
+            packetEntity = new PacketEntityHappyGhast(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (EntityTypes.CAMEL.equals(entityType)) {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
