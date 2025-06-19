@@ -43,4 +43,14 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
             setAttribute(Attributes.MOVEMENT_SPEED, 0.2f);
         }
     }
+
+    private static final boolean HAS_SADDLE_SENT_BY_SERVER = PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_21_4);
+    public boolean hasSaddle(GrimPlayer player) {
+        if (HAS_SADDLE_SENT_BY_SERVER) {
+            return this.hasSaddle;
+        }
+
+        return true; // return true for now, until we track horse inventory
+    }
+
 }

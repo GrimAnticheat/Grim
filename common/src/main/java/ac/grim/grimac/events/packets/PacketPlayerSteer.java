@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -123,8 +124,13 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 sideways--;
             }
 
-            player.vehicleData.nextVehicleForward = forward * 0.98f;
-            player.vehicleData.nextVehicleHorizontal = sideways * 0.98f;
+            Vec2 inputVector = new Vec2(forward * 0.98f, sideways * 0.98f);
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                inputVector = inputVector.normalized();
+            }
+
+            player.vehicleData.nextVehicleForward = inputVector.x();
+            player.vehicleData.nextVehicleHorizontal = inputVector.y();
 
             // that's how mojang is dealing with sneaking from now on...
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
