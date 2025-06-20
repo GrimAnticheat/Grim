@@ -386,6 +386,7 @@ public final class PlayerBaseTick {
 
     public static void updateInWaterStateAndDoWaterCurrentPushing(GrimPlayer player) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
+        player.wasWasTouchingWater = player.wasTouchingWater;
         player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
