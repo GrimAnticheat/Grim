@@ -33,6 +33,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
+    private static final boolean RELIABLE_COMPONENT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4);
     public static void handleUseItem(GrimPlayer player, ItemStack item, InteractionHand hand) {
         if (item == null) {
             player.packetStateData.setSlowedByUsingItem(false);
@@ -47,7 +48,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final ItemType material = item.getType();
 
         // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+        if (RELIABLE_COMPONENT_SYSTEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
             ItemBehaviour itemBehaviour = ItemBehaviourRegistry.getItemBehaviour(material);
 
             if (itemBehaviour.canUse(item, player.compensatedWorld, player, hand)) {
