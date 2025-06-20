@@ -68,7 +68,7 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
+    public static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
         if (moveVector.lengthSquared() == 0.0F) {
             return moveVector;
         } else {

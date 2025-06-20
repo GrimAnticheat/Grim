@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
@@ -124,9 +125,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 sideways--;
             }
 
-            Vec2 inputVector = new Vec2(forward * 0.98f, sideways * 0.98f);
+            Vec2 inputVector;
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                inputVector = inputVector.normalized();
+                inputVector = PredictionEngine.modifyInput(player, new Vec2(forward, sideways).normalized());
+            } else {
+                inputVector = new Vec2(forward * 0.98f, sideways * 0.98f);
             }
 
             player.vehicleData.nextVehicleForward = inputVector.x();
