@@ -35,7 +35,9 @@ public class CompensatedFireworks extends Check implements PostPredictionCheck {
     }
 
     public void removeFirework(int entityID) {
-        fireworksToRemoveNextTick.add(entityID);
+        if (activeFireworks.contains(entityID)) {
+            fireworksToRemoveNextTick.add(entityID);
+        }
     }
 
     public int getMaxFireworksAppliedPossible() {
