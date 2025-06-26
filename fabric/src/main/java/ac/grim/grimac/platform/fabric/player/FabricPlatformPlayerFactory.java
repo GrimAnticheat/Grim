@@ -38,18 +38,8 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    protected boolean isNativePlayerType(@NotNull Object playerObject) {
-        return playerObject instanceof ServerPlayerEntity;
-    }
-
-    @Override
     protected UUID getPlayerUUID(@NotNull ServerPlayerEntity nativePlayer) {
         return nativePlayer.getUuid();
-    }
-
-    @Override
-    protected Class<ServerPlayerEntity> getNativePlayerClass() {
-        return ServerPlayerEntity.class;
     }
 
     @Override

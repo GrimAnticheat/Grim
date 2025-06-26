@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1161;
 
 import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
 import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
@@ -14,7 +15,7 @@ import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-public class GrimACFabric1161LoaderPlugin extends ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin {
+public class GrimACFabric1161LoaderPlugin extends GrimACFabricLoaderPlugin {
 
     public GrimACFabric1161LoaderPlugin() {
         this(

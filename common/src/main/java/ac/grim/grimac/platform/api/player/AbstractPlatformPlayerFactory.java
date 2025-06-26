@@ -3,10 +3,7 @@ package ac.grim.grimac.platform.api.player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayerFactory {
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
@@ -31,13 +28,10 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         return cache.addOrGetPlayer(uuid, platformPlayer);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final PlatformPlayer getFromNativePlayerType(@NonNull Object playerObject) {
-        if (!isNativePlayerType(playerObject)) {
-            throw new IllegalStateException("playerObject was not of type " + getNativePlayerClass().getName());
-        }
-
-        T nativePlayer = (T) playerObject;
+        T nativePlayer = (T) Objects.requireNonNull(playerObject);
         UUID uuid = getPlayerUUID(nativePlayer);
 
         // Check cache first
@@ -64,8 +58,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         List<PlatformPlayer> platformPlayers = new ArrayList<>(nativePlayers.size());
 
         for (T nativePlayer : nativePlayers) {
-            PlatformPlayer platformPlayer = getFromNativePlayerType(nativePlayer);
-            platformPlayers.add(platformPlayer);
+            platformPlayers.add(getFromNativePlayerType(nativePlayer));
         }
 
         return platformPlayers;
@@ -90,27 +83,12 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     protected abstract PlatformPlayer createPlatformPlayer(@NonNull T nativePlayer);
 
     /**
-     * Checks if the given object is of the native player type.
-     *
-     * @param playerObject the object to check
-     * @return true if the object is of the native player type, false otherwise
-     */
-    protected abstract boolean isNativePlayerType(@NonNull Object playerObject);
-
-    /**
      * Gets the UUID of the native player.
      *
      * @param nativePlayer the native player object
      * @return the UUID of the player
      */
     protected abstract UUID getPlayerUUID(@NonNull T nativePlayer);
-
-    /**
-     * Gets the class of the native player type.
-     *
-     * @return the class of the native player type
-     */
-    protected abstract Class<T> getNativePlayerClass();
 
     /**
      * Gets the native online player objects (e.g., Player for Bukkit, ServerPlayerEntity for Fabric).

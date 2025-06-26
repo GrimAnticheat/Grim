@@ -31,7 +31,7 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
 
     @Override
     protected UUID getUniqueId(CommandSender sender) {
-        return sender instanceof Player ? ((Player) sender).getUniqueId() : Sender.CONSOLE_UUID;
+        return sender instanceof Player player ? player.getUniqueId() : Sender.CONSOLE_UUID;
     }
 
     @Override

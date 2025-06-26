@@ -30,7 +30,6 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
         GrimACFabricLoaderPlugin platformLoader = mainChainLoadEntryPoints.get(0);
         GrimACFabricLoaderPlugin.LOADER = platformLoader;
 
-
         // On Fabric we have to register commands earlier, and cannot register them when server is no longer null
         GrimAPI.INSTANCE.load(
                 platformLoader,

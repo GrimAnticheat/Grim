@@ -4,7 +4,6 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1205.player.Fabric1202PlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
-import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,7 +37,7 @@ public class Fabric1212PlatformPlayer extends Fabric1202PlatformPlayer {
         return FabricFutureUtil.supplySync(() -> {
             if (fabricPlayer.getEntityWorld() instanceof ServerWorld) {
                 fabricPlayer.teleport(
-                        ((FabricPlatformWorld) location.getWorld()).getFabricWorld(),
+                        (ServerWorld) location.getWorld(),
                         location.getX(),
                         location.getY(),
                         location.getZ(),

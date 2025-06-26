@@ -12,7 +12,7 @@ public class FabricItemResetHandler implements ItemResetHandler {
     @Override
     public void resetItemUsage(@Nullable PlatformPlayer player) {
         if (player != null) {
-            ((AbstractFabricPlatformPlayer) player).getFabricPlayer().clearActiveItem();
+            ((AbstractFabricPlatformPlayer) player).getNative().clearActiveItem();
         }
     }
 
@@ -22,7 +22,7 @@ public class FabricItemResetHandler implements ItemResetHandler {
             return null;
         }
 
-        ServerPlayerEntity player = ((AbstractFabricPlatformPlayer) platformPlayer).getFabricPlayer();
+        ServerPlayerEntity player = ((AbstractFabricPlatformPlayer) platformPlayer).getNative();
         return player.isUsingItem() ? FabricConversionUtil.fromFabricHand(player.getActiveHand()) : null;
     }
 }

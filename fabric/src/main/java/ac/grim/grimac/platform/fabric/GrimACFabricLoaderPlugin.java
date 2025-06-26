@@ -28,7 +28,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.stream.Collectors;
@@ -43,16 +42,16 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final LazyHolder<FabricSenderFactory> senderFactory = LazyHolder.simple(FabricSenderFactory::new);
     protected final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
     protected final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
-    protected final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() ->
-            new BasicGrimPlugin(
-                    JULoggerFactory.createLogger("GrimAC"),
-                    new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
-                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
-                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
-                    FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
-            )
-    );
-    protected final PlatformPluginManager platformPluginManager = new FabricPlatformPluginManager();
+    protected final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() -> new BasicGrimPlugin(
+            JULoggerFactory.createLogger("GrimAC"),
+            new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
+            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
+            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
+            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
+    ));
+    @Getter
+    protected final PlatformPluginManager pluginManager = new FabricPlatformPluginManager();
+    @Getter
     protected final MessagePlaceHolderManager messagePlaceHolderManager = new FabricMessagePlaceHolderManager();
     protected final LazyHolder<FabricPermissionRegistrationManager> fabricPermissionRegistrationManager = LazyHolder.simple(FabricPermissionRegistrationManager::new);
 
@@ -64,11 +63,11 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final IFabricMessageUtil fabricMessageUtil;
 
     public GrimACFabricLoaderPlugin(
-                                    ParserDescriptorFactory parserDescriptorFactory,
-                                    FabricPlatformPlayerFactory playerFactory,
-                                    PlatformServer platformServer,
-                                    IFabricMessageUtil fabricMessageUtil,
-                                    IFabricConversionUtil fabricConversionUtil
+            ParserDescriptorFactory parserDescriptorFactory,
+            FabricPlatformPlayerFactory playerFactory,
+            PlatformServer platformServer,
+            IFabricMessageUtil fabricMessageUtil,
+            IFabricConversionUtil fabricConversionUtil
     ) {
         this.parserFactory = parserDescriptorFactory;
         this.playerFactory = playerFactory;
@@ -108,18 +107,8 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public PlatformPluginManager getPluginManager() {
-        return platformPluginManager;
-    }
-
-    @Override
     public void registerAPIService() {
         GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
-    }
-
-    @Override @NotNull
-    public  MessagePlaceHolderManager getMessagePlaceHolderManager() {
-        return messagePlaceHolderManager;
     }
 
     @Override

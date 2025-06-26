@@ -11,53 +11,46 @@ import java.util.concurrent.TimeUnit;
 
 public class FoliaAsyncScheduler implements AsyncScheduler {
 
-    private final io.papermc.paper.threadedregions.scheduler.AsyncScheduler asyncScheduler = Bukkit.getAsyncScheduler();
+    private final io.papermc.paper.threadedregions.scheduler.AsyncScheduler scheduler = Bukkit.getAsyncScheduler();
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new FoliaTaskHandle(asyncScheduler.runNow(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
+        return new FoliaTaskHandle(scheduler.runNow(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
-        return new FoliaTaskHandle(
-                asyncScheduler.runDelayed(
-                        GrimACBukkitLoaderPlugin.LOADER,
-                        (ignored) -> task.run(),
-                        delay,
-                        timeUnit
-                )
-        );
+        return new FoliaTaskHandle(scheduler.runDelayed(
+                GrimACBukkitLoaderPlugin.LOADER,
+                (ignored) -> task.run(),
+                delay,
+                timeUnit
+        ));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
-        return new FoliaTaskHandle(
-                asyncScheduler.runAtFixedRate(
-                        GrimACBukkitLoaderPlugin.LOADER,
-                        (ignored) -> task.run(),
-                        delay,
-                        period,
-                        timeUnit
-                )
-        );
+        return new FoliaTaskHandle(scheduler.runAtFixedRate(
+                GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(),
+                delay,
+                period,
+                timeUnit
+        ));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(
-                asyncScheduler.runAtFixedRate(
-                        GrimACBukkitLoaderPlugin.LOADER,
-                        (ignored) -> task.run(),
-                        initialDelayTicks * 50,
-                        periodTicks * 50,
-                        TimeUnit.MILLISECONDS
-                )
-        );
+        return new FoliaTaskHandle(scheduler.runAtFixedRate(
+                GrimACBukkitLoaderPlugin.LOADER,
+                (ignored) -> task.run(),
+                initialDelayTicks * 50,
+                periodTicks * 50,
+                TimeUnit.MILLISECONDS
+        ));
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        asyncScheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
+        scheduler.cancelTasks(GrimACBukkitLoaderPlugin.LOADER);
     }
 }

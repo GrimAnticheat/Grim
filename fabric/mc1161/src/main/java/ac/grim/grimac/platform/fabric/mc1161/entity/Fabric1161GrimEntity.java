@@ -23,7 +23,6 @@ public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
                         location.getX(),
                         location.getY(),
                         location.getZ()
-
                 );
                 return true;
             }
@@ -33,8 +32,6 @@ public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
 
     @Override
     public boolean isDead() {
-        if (this.entity instanceof LivingEntity)
-            return ((LivingEntity) entity).isDead();
-        return this.entity.removed;
+        return entity instanceof LivingEntity living ? living.isDead() : entity.removed;
     }
 }

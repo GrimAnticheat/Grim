@@ -1,36 +1,41 @@
 package ac.grim.grimac.utils.reflection;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Method;
+
 public class ReflectionUtils {
 
     public static boolean hasClass(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return getClass(className) != null;
     }
 
-    public static boolean hasMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+    public static boolean hasMethod(@NotNull Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        return getMethod(clazz, methodName, parameterTypes) != null;
+    }
+
+    public static @Nullable Method getMethod(@NotNull Class<?> clazz, @NotNull String methodName, Class<?>... parameterTypes) {
         try {
-            clazz.getDeclaredMethod(methodName, parameterTypes);
-            return true;
+            return clazz.getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {
-            try {
-                clazz.getMethod(methodName, parameterTypes);
-                return true;
-            } catch (NoSuchMethodException e2) {
-                return false;
+            while (clazz != null) {
+                try {
+                    return clazz.getDeclaredMethod(methodName, parameterTypes);
+                } catch (NoSuchMethodException ignored) {
+                    clazz = clazz.getSuperclass();
+                }
             }
         }
+
+        return null;
     }
 
-    public static Class<?> getClass(String className) {
+    public static @Nullable Class<?> getClass(String className) {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
             return null;
         }
     }
-
 }

@@ -8,7 +8,6 @@ import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,7 +16,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.UUID;
 
 public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEntity implements PlatformPlayer {
-    @Getter
     protected ServerPlayerEntity fabricPlayer;
     protected final AbstractFabricPlatformInventory inventory;
 
@@ -121,8 +119,8 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         this.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
     }
 
-    @Override @NonNull
-    public ServerPlayerEntity getNative() {
+    @Override
+    public @NonNull ServerPlayerEntity getNative() {
         return this.fabricPlayer;
     }
 
