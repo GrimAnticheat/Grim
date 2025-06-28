@@ -103,7 +103,7 @@ public class Reach extends Check implements PacketCheck {
                 return;
             }
 
-            if (ignoreNonPlayerTargets && !entity.getType().equals(EntityTypes.PLAYER)) {
+            if (ignoreNonPlayerTargets && !entity.type.equals(EntityTypes.PLAYER)) {
                 return;
             }
 
@@ -185,11 +185,11 @@ public class Reach extends Check implements PacketCheck {
                     player.checkManager.getCheck(Hitboxes.class).flagAndAlert(result.verbose() + added);
                 }
                 case WALL_HIT -> {
-                    String added = reachEntity.getType() == EntityTypes.PLAYER ? "" : "type=" + reachEntity.getType().getName().getKey();
+                    String added = reachEntity.type == EntityTypes.PLAYER ? "" : "type=" + reachEntity.type.getName().getKey();
                     player.checkManager.getCheck(WallHit.class).flagAndAlert(result.verbose() + added);
                 }
                 case ENTITY_PIERCE -> {
-                    String added = reachEntity.getType() == EntityTypes.PLAYER ? "" : "type=" + reachEntity.getType().getName().getKey();
+                    String added = reachEntity.type == EntityTypes.PLAYER ? "" : "type=" + reachEntity.type.getName().getKey();
                     player.checkManager.getCheck(EntityPierce.class).flagAndAlert(result.verbose() + added);
                 }
             }
@@ -286,7 +286,7 @@ public class Reach extends Check implements PacketCheck {
                 if (foundHitData instanceof BlockHitData) {
                     return new CheckResult(ResultType.WALL_HIT, "Hit block=" + ((BlockHitData) foundHitData).getState().getType().getName() + " ");
                 } else { // entity hit data
-                    return new CheckResult(ResultType.ENTITY_PIERCE, "Hit entity=" + ((EntityHitData) foundHitData).getEntity().getType().getName() + " ");
+                    return new CheckResult(ResultType.ENTITY_PIERCE, "Hit entity=" + ((EntityHitData) foundHitData).getEntity().type.getName() + " ");
                 }
             } else if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
@@ -357,8 +357,7 @@ public class Reach extends Check implements PacketCheck {
                 if (box instanceof NoCollisionBox) {
                     hitboxes.put(entry.getIntKey(), NoCollisionBox.INSTANCE);
                     continue;
-                } else if (box instanceof SimpleCollisionBox) {
-                    SimpleCollisionBox sBox = (SimpleCollisionBox) box;
+                } else if (box instanceof SimpleCollisionBox sBox) {
                     sBox.expand(-threshold);
                     // Shrink non-target entities by movement threshold when applicable
                     if (!player.packetStateData.didLastLastMovementIncludePosition

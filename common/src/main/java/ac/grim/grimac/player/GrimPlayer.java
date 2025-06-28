@@ -665,40 +665,25 @@ public class GrimPlayer implements GrimUser {
     // Players can be a tick behind on both pitch and yaw together
     // 1.21.2+ added end tick input packet, fixing skipped tick issues
     public Vector3dm[] getPossibleLookVectors(boolean isPrediction) {
-        // If we are a tick behind, we don't know their next look so only use current
-        if (isPrediction) {
-            return new Vector3dm[]{ReachUtils.getLook(this, this.xRot, this.yRot)};
+        // https://bugs.mojang.com/browse/MC-67665
+        List<Vector3dm> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(this, this.xRot, this.yRot)));
+
+        // If we are a tick behind, we don't know their next look so don't bother doing this
+        if (!isPrediction) {
+            possibleLookDirs.add(ReachUtils.getLook(this, this.lastXRot, this.yRot));
+
+            // 1.9+ players could be a tick behind because we don't get skipped ticks
+            if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                possibleLookDirs.add(ReachUtils.getLook(this, this.lastXRot, this.lastYRot));
+            }
+
+            // 1.7 players do not have any of these issues! They are always on the latest look vector
+            if (this.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(this, this.xRot, this.yRot));
+            }
         }
 
-        // 1.9-1.10.2: All three vectors (normal, mouse delay, tick desync)
-        if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
-                this.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
-            return new Vector3dm[]{
-                    ReachUtils.getLook(this, this.xRot, this.yRot),
-                    ReachUtils.getLook(this, this.lastXRot, this.yRot),
-                    ReachUtils.getLook(this, this.lastXRot, this.lastYRot)
-            };
-        }
-        // 1.11-1.21.1: Two vectors (normal, tick desync)
-        else if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_11) &&
-                this.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
-            return new Vector3dm[]{
-                    ReachUtils.getLook(this, this.xRot, this.yRot),
-                    ReachUtils.getLook(this, this.lastXRot, this.lastYRot)
-            };
-        }
-        // 1.8: Two vectors (normal, mouse delay)
-        else if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) &&
-                this.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-            return new Vector3dm[]{
-                    ReachUtils.getLook(this, this.xRot, this.yRot),
-                    ReachUtils.getLook(this, this.lastXRot, this.yRot)
-            };
-        }
-        // 1.7 and 1.21.2+: Just normal vector
-        else {
-            return new Vector3dm[]{ReachUtils.getLook(this, this.xRot, this.yRot)};
-        }
+        return possibleLookDirs.toArray(new Vector3dm[0]);
     }
 
     @Override
