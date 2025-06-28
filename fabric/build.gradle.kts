@@ -58,6 +58,7 @@ allprojects {
         maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
         maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://repo.codemc.io/repository/maven-snapshots/") // packet events snapshots
         mavenCentral() // FastUtil
     }
 
