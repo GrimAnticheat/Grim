@@ -1,6 +1,6 @@
 [versions]
 adventure = "4.21.0"
-adventure-platform-bukkit = "4.3.4"
+adventure-platform-bukkit = "4.4.0"
 paper-api = "1.20.6-R0.1-SNAPSHOT"
 placeholderapi = "2.11.6"
 configuralize = "1.4.1:slim"
@@ -17,7 +17,7 @@ fabric-loader = "0.16.10"
 fabric-loom = "1.10.5"
 
 spotless = "6.25.0"
-lombok = "8.6"
+lombok = "8.14"
 shadow = "9.0.0-beta6"
 
 [libraries]
