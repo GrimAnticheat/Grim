@@ -306,7 +306,8 @@ public class PointThreeEstimator {
 
     private boolean checkForGround(double y) {
         SimpleCollisionBox playerBox = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(player.getMovementThreshold(), 0, player.getMovementThreshold()).offset(0, player.getMovementThreshold(), 0);
+        double threshold = player.getMovementThreshold();
+        player.boundingBox = player.boundingBox.copy().expand(threshold, 0, threshold).offset(0, threshold, 0);
         // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
         double searchDistance = -0.2 + Math.min(0, y);
         Vector3dm collisionResult = Collisions.collide(player, 0, searchDistance, 0);
