@@ -20,6 +20,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSt
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
+    public static final boolean SERVER_USE_ACTION_FOR_SNEAKING = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_6);
+
     public PacketPlayerSteer() {
         super(PacketListenerPriority.LOW);
     }
@@ -136,7 +138,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.vehicleData.nextVehicleHorizontal = inputVector.y();
 
             // that's how mojang is dealing with sneaking from now on...
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
+            if (SERVER_USE_ACTION_FOR_SNEAKING && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
                 player.isSneaking = input.isShift();
             }
 
