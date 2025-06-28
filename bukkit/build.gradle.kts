@@ -29,6 +29,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // placeholderapi
+    maven("https://repo.codemc.io/repository/maven-snapshots/") // packet events snapshots
     mavenCentral() // FastUtil
 }
 
