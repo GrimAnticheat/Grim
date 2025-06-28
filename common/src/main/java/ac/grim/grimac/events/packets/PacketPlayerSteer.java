@@ -123,6 +123,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 sideways--;
             }
 
+            player.isSneaking = input.isShift(); // in 1.21.6+ client sends sneaking state using this packet instead of START_SNEAKING/STOP_SNEAKING
+            player.isSprinting = input.isSprint(); // mojang will also probably do the same change for sprinting in a future update
+
             player.vehicleData.nextVehicleForward = forward * 0.98f;
             player.vehicleData.nextVehicleHorizontal = sideways * 0.98f;
 
