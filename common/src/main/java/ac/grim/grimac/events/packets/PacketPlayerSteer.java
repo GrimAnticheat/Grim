@@ -127,12 +127,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 sideways--;
             }
 
-            Vec2 inputVector;
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                inputVector = PredictionEngine.modifyInput(player, new Vec2(forward, sideways).normalized());
-            } else {
-                inputVector = new Vec2(forward * 0.98f, sideways * 0.98f);
-            }
+            Vec2 inputVector = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)
+                    ? PredictionEngine.modifyInput(player, new Vec2(forward, sideways).normalized())
+                    : new Vec2(forward * 0.98f, sideways * 0.98f);
 
             player.vehicleData.nextVehicleForward = inputVector.x();
             player.vehicleData.nextVehicleHorizontal = inputVector.y();

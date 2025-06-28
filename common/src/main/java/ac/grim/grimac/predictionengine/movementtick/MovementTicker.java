@@ -455,8 +455,9 @@ public class MovementTicker {
                 } else {
                     player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
                     // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
-                    if (player.clientVelocity.getY() > -0.5)
+                    if (player.clientVelocity.getY() > -0.5) {
                         player.fallDistance = 1;
+                    }
 
                     new PredictionEngineElytra().guessBestMovement(0, player);
                 }

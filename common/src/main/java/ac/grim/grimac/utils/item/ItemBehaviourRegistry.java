@@ -14,17 +14,11 @@ public class ItemBehaviourRegistry {
             ItemTypes.SPYGLASS, AlwaysUseItem.INSTANCE,
             ItemTypes.CROSSBOW, UnsupportedItem.INSTANCE,
             ItemTypes.BOW, UnsupportedItem.INSTANCE,
-            ItemTypes.TRIDENT, new TridentItem()
+            ItemTypes.TRIDENT, TridentItem.INSTANCE
     );
 
     public static @NotNull ItemBehaviour getItemBehaviour(ItemType type) {
-        ItemBehaviour itemBehaviour = ITEM_MAPPING.get(type);
-
-        if (itemBehaviour != null) {
-            return itemBehaviour;
-        }
-
-        return ItemBehaviour.INSTANCE;
+        return ITEM_MAPPING.getOrDefault(type, ItemBehaviour.INSTANCE);
     }
 
 }

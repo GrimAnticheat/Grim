@@ -19,7 +19,7 @@ public class ItemBehaviour {
     public boolean canUse(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand) {
         ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
         if (consumable != null) {
-            return this.startConsuming(item, world, player, hand, consumable);
+            return this.testConsumableComponent(item, world, player, hand, consumable);
         } else {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
                 final ItemBlocksAttacks blocksAttacks = item.getComponentOr(ComponentTypes.BLOCKS_ATTACKS, null);
@@ -32,15 +32,15 @@ public class ItemBehaviour {
         }
     }
 
-    protected boolean startConsuming(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand, ItemConsumable consumable) {
-        if (!this.canConsume(item, world, player, hand)) {
+    protected boolean testConsumableComponent(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand, ItemConsumable consumable) {
+        if (!this.testFoodComponent(item, world, player, hand)) {
             return false;
         }
 
         return (consumable.getConsumeSeconds() * 20.0F) > 0;
     }
 
-    protected boolean canConsume(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand) {
+    protected boolean testFoodComponent(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand) {
         FoodProperties foodProperties = item.getComponentOr(ComponentTypes.FOOD, null);
         return foodProperties != null ? foodProperties.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE : true;
     }
