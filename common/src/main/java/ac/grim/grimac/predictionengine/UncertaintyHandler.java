@@ -301,6 +301,10 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
+        if (player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            offset -= 1; // TODO horses are fucked up bruh
+        }
+
         // This is a section where I hack around current issues with Grim itself...
         if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.inVehicle())) {
             offset -= 0.01;
