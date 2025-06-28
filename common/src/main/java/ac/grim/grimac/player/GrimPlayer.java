@@ -268,7 +268,7 @@ public class GrimPlayer implements GrimUser {
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
-    public final ArrayDeque<Movement> movementThisTick = new ArrayDeque<>(100);
+    public final ArrayDeque<Movement> movementThisTick = new ArrayDeque<>(8);
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
