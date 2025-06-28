@@ -22,18 +22,8 @@ public class BukkitPlatformPlayerFactory extends AbstractPlatformPlayerFactory<P
     }
 
     @Override
-    protected boolean isNativePlayerType(@NotNull Object playerObject) {
-        return playerObject instanceof Player;
-    }
-
-    @Override
     protected UUID getPlayerUUID(@NotNull Player nativePlayer) {
         return nativePlayer.getUniqueId();
-    }
-
-    @Override
-    protected Class<Player> getNativePlayerClass() {
-        return Player.class;
     }
 
     // The cast is safe because Bukkit.getOnlinePlayers() is guaranteed to contain Player or its subtypes,

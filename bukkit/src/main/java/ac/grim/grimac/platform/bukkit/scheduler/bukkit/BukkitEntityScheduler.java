@@ -11,26 +11,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BukkitEntityScheduler implements EntityScheduler {
-
-    private final BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
+    private final BukkitScheduler scheduler = Bukkit.getScheduler();
 
     @Override
     public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable run, @Nullable Runnable retired, long delay) {
-        bukkitScheduler.runTaskLater(GrimACBukkitLoaderPlugin.LOADER, run, delay);
+        scheduler.runTaskLater(GrimACBukkitLoaderPlugin.LOADER, run, delay);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired) {
-        return new BukkitTaskHandle(bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task));
+        return new BukkitTaskHandle(scheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long delayTicks) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskLater(GrimACBukkitLoaderPlugin.LOADER, task, delayTicks));
+        return new BukkitTaskHandle(scheduler.runTaskLater(GrimACBukkitLoaderPlugin.LOADER, task, delayTicks));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long initialDelayTicks, long periodTicks) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskTimer(GrimACBukkitLoaderPlugin.LOADER, task, initialDelayTicks, periodTicks));
+        return new BukkitTaskHandle(scheduler.runTaskTimer(GrimACBukkitLoaderPlugin.LOADER, task, initialDelayTicks, periodTicks));
     }
 }

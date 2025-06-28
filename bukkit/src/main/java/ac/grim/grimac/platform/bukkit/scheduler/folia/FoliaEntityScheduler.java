@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
 public class FoliaEntityScheduler implements EntityScheduler {
 
     @Override
-    public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable run, @Nullable Runnable retired, long delay) {
-        ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().execute(GrimACBukkitLoaderPlugin.LOADER, run, retired, delay);
+    public void execute(@NotNull GrimEntity entity, @NotNull GrimPlugin plugin, @NotNull Runnable task, @Nullable Runnable retired, long delay) {
+        ((BukkitGrimEntity) entity).getBukkitEntity().getScheduler().execute(GrimACBukkitLoaderPlugin.LOADER, task, retired, delay);
     }
 
     @Override

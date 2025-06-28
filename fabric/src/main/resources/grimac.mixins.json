@@ -4,7 +4,9 @@
     "package": "ac.grim.grimac.platform.fabric.mixins",
     "compatibilityLevel": "JAVA_17",
     "mixins": [
-        "ServerPlayerEntityMixin"
+        "ServerPlayerEntityMixin",
+        "ServerWorldMixin",
+        "WorldChunkMixin"
     ],
     "injectors": {
         "defaultRequire": 1

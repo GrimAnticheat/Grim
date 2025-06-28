@@ -12,8 +12,8 @@ public class FoliaGlobalRegionScheduler implements GlobalRegionScheduler {
     private final io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler globalRegionScheduler = Bukkit.getGlobalRegionScheduler();
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run) {
-        globalRegionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, run);
+    public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
+        globalRegionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, task);
     }
 
     @Override

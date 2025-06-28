@@ -15,13 +15,13 @@ public class BukkitRegionScheduler implements RegionScheduler {
     private final BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable run) {
-        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, run);
+    public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
+        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task);
     }
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable run) {
-        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, run);
+    public void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task) {
+        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task);
     }
 
     @Override

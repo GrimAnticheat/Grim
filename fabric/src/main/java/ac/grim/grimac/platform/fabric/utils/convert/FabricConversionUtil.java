@@ -7,6 +7,9 @@ import net.kyori.adventure.text.Component;
 //import net.minecraft.network.RegistryByteBuf;
 //import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
@@ -80,7 +83,8 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
         };
     }
 
-    public static InteractionHand fromFabricHand(net.minecraft.util.Hand hand) {
+    @Contract(value = "null -> null; !null -> !null", pure = true)
+    public static @Nullable InteractionHand fromFabricHand(@Nullable Hand hand) {
         return hand == null ? null : switch (hand) {
             case OFF_HAND -> InteractionHand.OFF_HAND;
             case MAIN_HAND -> InteractionHand.MAIN_HAND;

@@ -133,8 +133,7 @@ public interface PlatformScheduler {
      *
      * @return The async task scheduler.
      */
-    @NonNull
-    AsyncScheduler getAsyncScheduler();
+    @NonNull AsyncScheduler getAsyncScheduler();
 
     /**
      * Returns the global region task scheduler.
@@ -201,8 +200,7 @@ public interface PlatformScheduler {
      *
      * @return The entity task scheduler.
      */
-    @NonNull
-    EntityScheduler getEntityScheduler();
+    @NonNull EntityScheduler getEntityScheduler();
 
     /**
      * Returns the region task scheduler.

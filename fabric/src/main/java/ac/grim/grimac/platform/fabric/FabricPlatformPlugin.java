@@ -2,12 +2,17 @@ package ac.grim.grimac.platform.fabric;
 
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import net.fabricmc.loader.api.ModContainer;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class FabricPlatformPlugin implements PlatformPlugin {
-    private final ModContainer modContainer;
+    private final @NotNull ModContainer modContainer;
 
-    public FabricPlatformPlugin(ModContainer modContainer) {
-        this.modContainer = modContainer;
+    @Contract(pure = true)
+    public FabricPlatformPlugin(@NotNull ModContainer modContainer) {
+        this.modContainer = Objects.requireNonNull(modContainer);
     }
 
     @Override

@@ -15,19 +15,24 @@ public class FoliaRegionScheduler implements RegionScheduler {
     private final io.papermc.paper.threadedregions.scheduler.RegionScheduler regionScheduler = Bukkit.getRegionScheduler();
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable run) {
-        regionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, run);
+    public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
+        regionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, task);
     }
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable run) {
-        execute(plugin, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, run);
-
+    public void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task) {
+        execute(plugin, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, task);
     }
 
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
-        return new FoliaTaskHandle(regionScheduler.run(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run()));
+        return new FoliaTaskHandle(regionScheduler.run(
+                GrimACBukkitLoaderPlugin.LOADER,
+                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                chunkX,
+                chunkZ,
+                (ignored) -> task.run()
+        ));
     }
 
     @Override
@@ -37,8 +42,14 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks) {
-        return new FoliaTaskHandle(regionScheduler.runDelayed(GrimACBukkitLoaderPlugin.LOADER,
-                ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run(), delayTicks));
+        return new FoliaTaskHandle(regionScheduler.runDelayed(
+                GrimACBukkitLoaderPlugin.LOADER,
+                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                chunkX,
+                chunkZ,
+                (ignored) -> task.run(),
+                delayTicks
+        ));
     }
 
     @Override
@@ -48,12 +59,27 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(regionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER,
-                ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, (ignored) -> task.run(), initialDelayTicks, periodTicks));
+        return new FoliaTaskHandle(regionScheduler.runAtFixedRate(
+                GrimACBukkitLoaderPlugin.LOADER,
+                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                chunkX,
+                chunkZ,
+                (ignored) -> task.run(),
+                initialDelayTicks,
+                periodTicks
+        ));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return runAtFixedRate(plugin, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, task, initialDelayTicks, periodTicks);
+        return runAtFixedRate(
+                plugin,
+                location.getWorld(),
+                location.getBlockX() >> 4,
+                location.getBlockZ() >> 4,
+                task,
+                initialDelayTicks,
+                periodTicks
+        );
     }
 }

@@ -20,8 +20,8 @@ public class BukkitPlatformChunk implements PlatformChunk {
     private static final boolean isFlat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
     private final Chunk chunk;
 
-    public BukkitPlatformChunk(@NotNull Chunk chunkAt) {
-        this.chunk = chunkAt;
+    public BukkitPlatformChunk(@NotNull Chunk chunk) {
+        this.chunk = chunk;
     }
 
     @Override
