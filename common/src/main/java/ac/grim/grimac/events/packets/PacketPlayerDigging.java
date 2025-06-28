@@ -10,6 +10,9 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -59,6 +62,27 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
 
             return;
+        }
+
+        // Check for data component stuff on 1.21.2+
+        final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
+        final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
+
+        // The food component can override the consumable component, as it provides conditions for using the item
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && consumable != null && foodComponent == null) {
+            player.packetStateData.setSlowedByUsingItem(true);
+            player.packetStateData.eatingHand = hand;
+        }
+
+        // Check for data component stuff on 1.20.5+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
+            if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
+                player.packetStateData.setSlowedByUsingItem(true);
+                player.packetStateData.eatingHand = hand;
+                return;
+            } else {
+                player.packetStateData.setSlowedByUsingItem(false);
+            }
         }
 
         // 1.14 and below players cannot eat in creative, exceptions are potions or milk
