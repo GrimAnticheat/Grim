@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitGrimEntity implements GrimEntity {
-
+    // this is a test PR for CLA bot
     private final Entity entity;
     private BukkitPlatformWorld bukkitPlatformWorld;
 
