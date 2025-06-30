@@ -20,7 +20,7 @@ public abstract class TypedPacketEntity {
                         || type == EntityTypes.ZOGLIN;
         this.isAnimal = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
         this.isBoat = EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT);
-        this.isHappyGhast = EntityTypes.isTypeInstanceOf(type, EntityTypes.HAPPY_GHAST);
+        this.isHappyGhast = EntityTypes.HAPPY_GHAST.equals(type);
     }
 
     public boolean isPushable() {
