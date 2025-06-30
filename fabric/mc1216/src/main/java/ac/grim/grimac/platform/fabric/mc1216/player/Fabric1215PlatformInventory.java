@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc1214.player;
+package ac.grim.grimac.platform.fabric.mc1216.player;
 
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import net.minecraft.registry.Registries;

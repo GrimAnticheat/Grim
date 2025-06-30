@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc1214.player;
+package ac.grim.grimac.platform.fabric.mc1216.player;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
@@ -35,20 +35,17 @@ public class Fabric1212PlatformPlayer extends Fabric1202PlatformPlayer {
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
         return FabricFutureUtil.supplySync(() -> {
-            if (fabricPlayer.getEntityWorld() instanceof ServerWorld) {
-                fabricPlayer.teleport(
-                        (ServerWorld) location.getWorld(),
-                        location.getX(),
-                        location.getY(),
-                        location.getZ(),
-                        EnumSet.noneOf(PositionFlag.class), // todo change to match paper? Do they do this?
-                        location.getYaw(),
-                        location.getPitch(),
-                        true
-                );
-                return true;
-            }
-            return false;
+            fabricPlayer.teleport(
+                    (ServerWorld) location.getWorld(),
+                    location.getX(),
+                    location.getY(),
+                    location.getZ(),
+                    EnumSet.noneOf(PositionFlag.class), // todo change to match paper? Do they do this?
+                    location.getYaw(),
+                    location.getPitch(),
+                    true
+            );
+            return true;
         });
     }
 }
