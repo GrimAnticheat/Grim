@@ -9,7 +9,6 @@ repositories {
     if (BuildConfig.mavenLocalOverride) {
         mavenLocal()
     }
-    maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
     maven {
         name = "papermc"
         url = uri("https://repo.papermc.io/repository/maven-public/")
@@ -18,7 +17,7 @@ repositories {
     maven("https://repo.grim.ac/snapshots") { // Grim API
         content {
             includeGroup("ac.grim.grimac")
-//            includeGroup("com.github.retrooper")
+            includeGroup("com.github.retrooper")
         }
     }
     maven("https://repo.viaversion.com") // ViaVersion
