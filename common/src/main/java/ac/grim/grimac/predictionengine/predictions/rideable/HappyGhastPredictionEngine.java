@@ -28,11 +28,6 @@ public class HappyGhastPredictionEngine extends PredictionEngineNormal {
     }
 
     @Override
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        // no-op
-    }
-
-    @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         return PredictionEngineRideableUtils.applyInputsToVelocityPossibilities(this, movementVector, player, possibleVectors, speed);
     }
