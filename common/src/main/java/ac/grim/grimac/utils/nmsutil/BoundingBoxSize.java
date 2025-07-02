@@ -45,7 +45,7 @@ public final class BoundingBoxSize {
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.375f : 1.5f;
         } else if (EntityTypes.HAPPY_GHAST.equals(type)) {
-            return 4.0f; // TODO: check if this is right
+            return 4.0f;
         } else if (EntityTypes.CHICKEN.equals(type) || EntityTypes.ENDERMITE.equals(type) || EntityTypes.SILVERFISH.equals(type) || EntityTypes.VEX.equals(type) || EntityTypes.TADPOLE.equals(type)) {
             return 0.4f;
         } else if (EntityTypes.RABBIT.equals(type)) {
@@ -220,7 +220,7 @@ public final class BoundingBoxSize {
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return -0.1;
         } else if (EntityTypes.HAPPY_GHAST.equals(type)) {
-            return 0.5; // TODO: check if this is right
+            return 0.5;
         } else if (EntityTypes.HOGLIN.equals(type) || EntityTypes.ZOGLIN.equals(type)) {
             return getHeight(player, packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
         } else if (EntityTypes.LLAMA.equals(type)) {
@@ -262,7 +262,7 @@ public final class BoundingBoxSize {
             // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;
         } else if (EntityTypes.HAPPY_GHAST.equals(type)) {
-            return 4.0f; // TODO: check if this is right
+            return 4.0f;
         } else if (EntityTypes.CAT.equals(type)) {
             return 0.7f;
         } else if (EntityTypes.CAVE_SPIDER.equals(type)) {
