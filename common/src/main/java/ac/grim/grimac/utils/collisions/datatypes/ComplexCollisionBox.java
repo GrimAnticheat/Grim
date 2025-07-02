@@ -89,6 +89,14 @@ public class ComplexCollisionBox implements CollisionBox {
         return true;
     }
 
+    public int size() {
+        int size = 0;
+        for (SimpleCollisionBox box : boxes) {
+            if (box != null) ++size;
+        }
+        return size;
+    }
+
     @Override
     public boolean isFullBlock() {
         return false;

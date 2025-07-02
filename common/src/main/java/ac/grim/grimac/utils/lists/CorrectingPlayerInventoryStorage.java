@@ -91,6 +91,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         super.setItem(item, stack);
     }
 
+    /**
+     * Checks that the specified slot is in sync with the server's and resyncs if needed.
+     * @param slot the slot to check
+     */
     private void checkThatBukkitIsSynced(int slot) {
         // The player isn't fully logged in yet, don't bother checking
         if (player.platformPlayer == null) return;
@@ -115,15 +119,19 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     public void tickWithBukkit() {
         if (player.platformPlayer == null) return;
 
+        // Loop all slot changes the client has predicted and check that the server has accepted them
         int tickID = GrimAPI.INSTANCE.getTickManager().currentTick;
         for (Iterator<Map.Entry<Integer, Integer>> it = pendingFinalizedSlot.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Integer, Integer> entry = it.next();
+            // If x ticks have passed, check the slot is equal to the server slot and remove
             if (entry.getValue() <= tickID) {
                 checkThatBukkitIsSynced(entry.getKey());
                 it.remove();
             }
         }
 
+        // If the player's inventory needs to be resent so that Grim can enable the player's packet inventory again
+        // Then resend once the player has a supported inventory to activate that.
         if (player.getInventory().needResend) {
             GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
                 // Potential race condition doing this multiple times

@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.inventory.ClickAction;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
@@ -420,7 +421,12 @@ public abstract class AbstractContainerMenu {
     }
 
     public Slot getSlot(int slotID) {
-        return this.slots.get(slotID);
+        try {
+            return this.slots.get(slotID);
+        } catch (IndexOutOfBoundsException e) {
+            LogUtil.error("Tried to get slot " + slotID + " in a container with only " + this.slots.size() + " slots, container type: " + this.getClass().getName(), e);
+            throw e;
+        }
     }
 
     public boolean canDragTo(Slot slot) {
