@@ -38,16 +38,14 @@ public class HappyGhastPredictionEngine extends PredictionEngineNormal {
     }
 
     @Override
-    public Vector3dm getMovementResultFromInput(GrimPlayer player, Vector3dm vec3, float flyingSpeed, float yRot) {
-        double length = vec3.lengthSquared();
-        if (length < 1.0E-7) {
-            return new Vector3dm();
-        } else {
-            Vector3dm normalized = (length > 1.0 ? vec3.clone().normalize() : vec3.clone()).multiply(flyingSpeed);
-            float sin = player.trigHandler.sin(yRot * (float) (Math.PI / 180.0));
-            float cos = player.trigHandler.cos(yRot * (float) (Math.PI / 180.0));
-            return new Vector3dm(normalized.getX() * cos - normalized.getZ() * sin, normalized.getY(), normalized.getZ() * cos + normalized.getX() * sin);
-        }
+    public Vector3dm getMovementResultFromInput(GrimPlayer player, Vector3dm inputVector, float flyingSpeed, float yRot) {
+        float sin = player.trigHandler.sin(yRot * 0.017453292f);
+        float cos = player.trigHandler.cos(yRot * 0.017453292f);
+
+        double xResult = inputVector.getX() * cos - inputVector.getZ() * sin;
+        double zResult = inputVector.getZ() * cos + inputVector.getX() * sin;
+
+        return new Vector3dm(xResult * flyingSpeed, inputVector.getY() * flyingSpeed, zResult * flyingSpeed);
     }
 
 }
