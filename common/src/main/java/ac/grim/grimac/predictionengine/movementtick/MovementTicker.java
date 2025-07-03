@@ -158,7 +158,11 @@ public class MovementTicker {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         // this needs to be looked at for 1.21.2+ (especially when riding entities, as Mojang has changed this logic a few times).
         if (player.getClientVersion() != ClientVersion.V_1_21_4 && (!player.wasTouchingWater && (riding == null || !riding.isBoat))) {
+            // use player bounding box
+            SimpleCollisionBox boundingBox = player.boundingBox;
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
             PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
+            player.boundingBox = boundingBox;
         }
 
         if (player.onGround) {

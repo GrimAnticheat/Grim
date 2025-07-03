@@ -30,6 +30,7 @@ import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -438,12 +439,17 @@ public class GrimPlayer implements GrimUser {
         final PacketEntity riding = self.getRiding();
         if (riding == null) return (float) self.getAttributeValue(Attributes.STEP_HEIGHT);
 
-        if (riding.isBoat || riding.isHappyGhast) {
+        if (riding.isBoat) {
             return 0f;
         }
 
+        float value = (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        if (riding.isHappyGhast) {
+            return ((PacketEntityHappyGhast) riding).isControllingPassenger() ? Math.max(value, 1.0F) : value;
+        }
+
         // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
-        return (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        return value;
     }
 
     public void sendTransaction() {

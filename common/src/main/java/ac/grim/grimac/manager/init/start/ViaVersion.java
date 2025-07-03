@@ -24,6 +24,11 @@ public class ViaVersion implements StartableInitable {
         if (GrimAPI.INSTANCE.getPluginManager().getPlugin("ViaBackwards") != null && serverVersion.isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
             LogUtil.warn("GrimAC has detected that you have installed ViaBackwards on a 1.21.2+ server.");
             LogUtil.warn("This setup is currently unsupported and you will experience issues with older clients using vehicles.");
+
+            if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_21_6)) {
+                LogUtil.warn("GrimAC also detected a 1.21.6+ server.");
+                LogUtil.warn("Older clients will experience issues when sneaking.");
+            }
         }
     }
 }

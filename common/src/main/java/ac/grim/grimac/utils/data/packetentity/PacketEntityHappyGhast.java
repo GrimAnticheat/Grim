@@ -13,7 +13,6 @@ public class PacketEntityHappyGhast extends PacketEntityTrackXRot {
     public PacketEntityHappyGhast(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z, float xRot) {
         super(player, uuid, type, x, y, z, xRot);
         this.trackEntityEquipment = true;
-        setAttribute(Attributes.STEP_HEIGHT, 0.0f);
 
         trackAttribute(ValuedAttribute.ranged(Attributes.FLYING_SPEED, 0.05, 0, 1024));
         trackAttribute(ValuedAttribute.ranged(Attributes.MOVEMENT_SPEED, 0.05, 0, 1024));
