@@ -10,6 +10,7 @@ public class VectorData {
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector3dm vector;
+    public Vector3dm input;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
@@ -33,6 +34,7 @@ public class VectorData {
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
+            input = lastVector.input;
         }
 
         addVectorType(vectorType);

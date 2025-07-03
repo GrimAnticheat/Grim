@@ -92,6 +92,22 @@ public class MovementTicker {
         player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
+    private boolean isHorizontalCollisionSoft(Vector3dm collide) {
+        double horizontalLengthSquared = collide.getX() * collide.getX() + collide.getZ() * collide.getZ();
+        if (horizontalLengthSquared < 1E-5F) return false;
+
+        float xxa = (float) player.predictedVelocity.input.getX();
+        float zza = (float) player.predictedVelocity.input.getZ();
+
+        float yawInRadians = player.xRot * (float) (Math.PI / 180.0);
+        double sin = player.trigHandler.sin(yawInRadians);
+        double cos = player.trigHandler.cos(yawInRadians);
+        double g = xxa * cos - zza * sin;
+        double h = zza * cos + xxa * sin;
+        double i = g * g + h * h;
+        return i >= 1E-5F && Math.acos((g * collide.getX() + h * collide.getZ()) / Math.sqrt(i * horizontalLengthSquared)) < 0.13962634F;
+    }
+
     public void move(Vector3dm inputVel, Vector3dm collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector3dm();
@@ -110,6 +126,7 @@ public class MovementTicker {
             }
 
             player.horizontalCollision = xAxis || zAxis;
+            player.softHorizontalCollision = player.horizontalCollision && isHorizontalCollisionSoft(collide);
         } else {
             if (inputVel.getX() != collide.getX()) {
                 player.clientVelocity.setX(0);

@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "SprintE", description = "Sprinting while colliding with a wall", setback = 5, experimental = true)
 public class SprintE extends Check implements PostPredictionCheck {
-    private boolean startedSprintingThisTick, wasHorizontalCollision;
+    private boolean startedSprintingThisTick, wasHardHorizontalCollision;
 
     public SprintE(GrimPlayer player) {
         super(player);
@@ -31,17 +31,14 @@ public class SprintE extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        // there's a mechanic in 1.18+ that allows this if you are looking far enough away from the wall
-        // I'll probably check 1.18+ later
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18)) return;
-
-        if (wasHorizontalCollision && !startedSprintingThisTick && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))) {
+        if (wasHardHorizontalCollision && !startedSprintingThisTick && !player.uncertaintyHandler.isNearGlitchyBlock
+                && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))) {
             if (player.isSprinting) {
                 flagAndAlertWithSetback();
             } else reward();
         }
 
-        wasHorizontalCollision = player.horizontalCollision;
+        wasHardHorizontalCollision = player.horizontalCollision && !player.softHorizontalCollision;
         startedSprintingThisTick = false;
     }
 }

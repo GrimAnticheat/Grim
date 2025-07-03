@@ -18,7 +18,9 @@ public class SprintG extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (player.wasTouchingWater && !player.wasEyeInWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && lastChecked && predictionComplete.isChecked()) {
+        if (player.wasTouchingWater && (player.wasWasTouchingWater || player.getClientVersion() == ClientVersion.V_1_21_4)
+                && !player.wasEyeInWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)
+                && lastChecked && predictionComplete.isChecked()) {
             if (player.isSprinting && !player.isSwimming) {
                 flagAndAlertWithSetback();
             } else {

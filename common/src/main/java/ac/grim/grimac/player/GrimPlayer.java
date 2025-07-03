@@ -193,6 +193,7 @@ public class GrimPlayer implements GrimUser {
     public boolean clientClaimsLastOnGround;
     // Set from base tick
     public boolean wasTouchingWater = false;
+    public boolean wasWasTouchingWater = false;
     public boolean wasTouchingLava = false;
     // For slightly reduced vertical lava friction and jumping
     public boolean slightlyTouchingLava = false;
@@ -200,6 +201,7 @@ public class GrimPlayer implements GrimUser {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
+    public boolean softHorizontalCollision;
     public boolean horizontalCollision;
     public boolean verticalCollision;
     public boolean clientControlledVerticalCollision;
