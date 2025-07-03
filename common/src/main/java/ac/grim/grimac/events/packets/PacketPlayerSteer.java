@@ -37,8 +37,18 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             float forwards = steer.getForward();
             float sideways = steer.getSideways();
 
-            player.vehicleData.nextVehicleForward = forwards;
-            player.vehicleData.nextVehicleHorizontal = sideways;
+            Vec2 inputVector;
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                forwards = forwards > 0 ? 1f : forwards < 0 ? -1f : 0f;
+                sideways = sideways > 0 ? 1f : sideways < 0 ? -1f : 0f;
+
+                inputVector = PredictionEngine.modifyInput(player, new Vec2(forwards, sideways).normalized());
+            } else {
+                inputVector = new Vec2(forwards, sideways);
+            }
+
+            player.vehicleData.nextVehicleForward = inputVector.x();
+            player.vehicleData.nextVehicleHorizontal = inputVector.y();
 
             this.tickPlayerWorld(player);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
