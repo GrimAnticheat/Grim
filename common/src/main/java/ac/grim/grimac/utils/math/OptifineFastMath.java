@@ -23,6 +23,9 @@ package ac.grim.grimac.utils.math;
 
 // Update a few months later
 
+import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.Contract;
+
 // WHY DID THEY CHANGE FASTMATH
 // This is impossible, and I give up!
 //
@@ -36,6 +39,7 @@ package ac.grim.grimac.utils.math;
 // I'm seriously considering allowing a warning for FastMath users that it may lead to false bans
 // his arrogance is impossible to patch.
 //
+@UtilityClass
 public class OptifineFastMath {
     private static final float[] SIN_TABLE_FAST = new float[4096];
     private static final float radToIndex = roundToFloat(651.8986469044033d);
@@ -46,14 +50,17 @@ public class OptifineFastMath {
         }
     }
 
+    @Contract(pure = true)
     public static float sin(float value) {
         return SIN_TABLE_FAST[(int) (value * radToIndex) & 4095];
     }
 
+    @Contract(pure = true)
     public static float cos(float value) {
         return SIN_TABLE_FAST[(int) (value * radToIndex + 1024f) & 4095];
     }
 
+    @Contract(pure = true)
     public static float roundToFloat(double d) {
         return (float) ((double) Math.round(d * 1.0E8d) / 1.0E8d);
     }

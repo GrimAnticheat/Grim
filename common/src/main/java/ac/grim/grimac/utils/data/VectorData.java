@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import java.util.Objects;
 
@@ -10,7 +11,7 @@ public class VectorData {
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector3dm vector;
-    public Vector3dm input;
+    public @MonotonicNonNull Vector3dm input;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;

@@ -1,6 +1,10 @@
 package ac.grim.grimac.utils.math;
 
+import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.Contract;
+
 // My previous rant was wrong, we have 4 fastmath versions.  what the fuck optifine.
+@UtilityClass
 public class LegacyFastMath {
     private static final float[] SIN_TABLE_FAST = new float[4096];
 
@@ -14,10 +18,12 @@ public class LegacyFastMath {
         }
     }
 
+    @Contract(pure = true)
     public static float sin(float par0) {
         return SIN_TABLE_FAST[(int) (par0 * 651.8986f) & 4095];
     }
 
+    @Contract(pure = true)
     public static float cos(float par0) {
         return SIN_TABLE_FAST[(int) ((par0 + ((float) Math.PI / 2f)) * 651.8986f) & 4095];
     }

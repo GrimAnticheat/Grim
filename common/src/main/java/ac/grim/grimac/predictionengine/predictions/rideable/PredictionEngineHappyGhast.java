@@ -8,12 +8,12 @@ import ac.grim.grimac.utils.math.Vector3dm;
 import java.util.List;
 import java.util.Set;
 
-public class HappyGhastPredictionEngine extends PredictionEngineNormal {
+public class PredictionEngineHappyGhast extends PredictionEngineNormal {
 
     final Vector3dm movementVector;
     final double multiplier;
 
-    public HappyGhastPredictionEngine(Vector3dm movementVector, double multiplier) {
+    public PredictionEngineHappyGhast(Vector3dm movementVector, double multiplier) {
         this.movementVector = movementVector;
         this.multiplier = multiplier;
     }

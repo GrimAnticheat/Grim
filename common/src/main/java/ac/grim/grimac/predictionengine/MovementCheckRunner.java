@@ -14,7 +14,7 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
-import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -488,7 +488,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (riding.isBoat) {
                 PlayerBaseTick.doBaseTick(player);
                 // Speed doesn't affect anything with boat movement
-                new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
+                new PredictionEngineBoat(player).guessBestMovement(0.1f, player);
             } else if (riding instanceof PacketEntityCamel) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerCamel(player).livingEntityAIStep();
