@@ -37,7 +37,7 @@ public class LogUtil {
     }
 
     public void console(final String info) {
-        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
+        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(MessageUtil.translateAlternateColorCodes('&', info));
     }
 
     public void console(final Component info) {

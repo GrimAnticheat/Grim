@@ -4,19 +4,15 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.Vector3dm;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class PredictionEngineHappyGhast extends PredictionEngineNormal {
-
-    final Vector3dm movementVector;
-    final double multiplier;
-
-    public PredictionEngineHappyGhast(Vector3dm movementVector, double multiplier) {
-        this.movementVector = movementVector;
-        this.multiplier = multiplier;
-    }
+    private final Vector3dm movementVector;
+    private final double multiplier;
 
     @Override
     public void endOfTick(GrimPlayer player, double delta) {

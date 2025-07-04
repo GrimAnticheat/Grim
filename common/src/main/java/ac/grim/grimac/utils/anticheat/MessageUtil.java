@@ -12,6 +12,7 @@ import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ import java.util.regex.Pattern;
 
 @UtilityClass
 public class MessageUtil {
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + '§' + "[0-9A-FK-ORX]");
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
     private final char PLACEHOLDER_ESCAPE_CHAR = '\uFFFF'; // this specific character holds no significance
 
@@ -117,7 +119,7 @@ public class MessageUtil {
         string = matcher.appendTail(sb).toString();
 
         // MiniMessage doesn't like legacy formatting codes
-        string = ChatUtil.translateAlternateColorCodes('&', string)
+        string = translateAlternateColorCodes('&', string)
                 .replace("§0", "<!b><!i><!u><!st><!obf><black>")
                 .replace("§1", "<!b><!i><!u><!st><!obf><dark_blue>")
                 .replace("§2", "<!b><!i><!u><!st><!obf><dark_green>")
@@ -148,5 +150,24 @@ public class MessageUtil {
         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse(key, fallbackText);
         message = MessageUtil.replacePlaceholders(sender, message);
         return MessageUtil.miniMessage(message);
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull String translateAlternateColorCodes(char altColorChar, @NotNull String textToTranslate) {
+        char[] b = textToTranslate.toCharArray();
+
+        for (int i = 0; i < b.length - 1; ++i) {
+            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
+                b[i] = 167;
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
+            }
+        }
+
+        return new String(b);
+    }
+
+    @Contract("!null -> !null; null -> null")
+    public static @Nullable String stripColor(@Nullable String input) {
+        return input == null ? null : STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
     }
 }

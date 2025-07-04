@@ -15,11 +15,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineWater extends PredictionEngine {
-    boolean isFalling;
-    double playerGravity;
-    float swimmingSpeed;
-    float swimmingFriction;
-    double lastY;
+    private boolean isFalling;
+    private double playerGravity;
+    private float swimmingFriction;
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector, float swimmingFriction, double playerGravity, boolean isFalling) {
         vector.multiply(new Vector3dm(swimmingFriction, 0.8F, swimmingFriction));
@@ -64,12 +62,10 @@ public class PredictionEngineWater extends PredictionEngine {
         return base;
     }
 
-    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
+    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction) {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
-        this.swimmingSpeed = swimmingSpeed;
         this.swimmingFriction = swimmingFriction;
-        this.lastY = lastY;
         super.guessBestMovement(swimmingSpeed, player);
     }
 

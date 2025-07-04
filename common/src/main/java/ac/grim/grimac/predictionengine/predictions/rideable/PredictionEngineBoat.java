@@ -14,6 +14,8 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +32,16 @@ public class PredictionEngineBoat extends PredictionEngine {
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer player) {
-        BoatEntityStatus boatentity$status = isUnderwater(player);
-        if (boatentity$status != null) {
+        BoatEntityStatus status = isUnderwater(player);
+        if (status != null) {
             player.vehicleData.waterLevel = player.boundingBox.maxY;
-            return boatentity$status;
+            return status;
         } else if (checkInWater(player)) {
             return BoatEntityStatus.IN_WATER;
         } else {
-            float f = getGroundFriction(player);
-            if (f > 0.0F) {
-                player.vehicleData.landFriction = f;
+            float friction = getGroundFriction(player);
+            if (friction > 0.0F) {
+                player.vehicleData.landFriction = friction;
                 return BoatEntityStatus.ON_LAND;
             } else {
                 return BoatEntityStatus.IN_AIR;
@@ -47,7 +49,7 @@ public class PredictionEngineBoat extends PredictionEngine {
         }
     }
 
-    private static BoatEntityStatus isUnderwater(GrimPlayer player) {
+    private static @Nullable BoatEntityStatus isUnderwater(@NotNull GrimPlayer player) {
         SimpleCollisionBox axisalignedbb = player.boundingBox;
         double d0 = axisalignedbb.maxY + 0.001D;
         int i = GrimMath.floor(axisalignedbb.minX);

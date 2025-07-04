@@ -26,7 +26,6 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
-import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -517,7 +516,7 @@ public class GrimPlayer implements GrimUser {
         } else {
             textReason = LegacyComponentSerializer.legacySection().serialize(reason);
         }
-        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + ChatUtil.stripColor(textReason));
+        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + MessageUtil.stripColor(textReason));
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...

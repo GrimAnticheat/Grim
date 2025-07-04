@@ -13,10 +13,13 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 // HOW DIFFICULT CAN IT BE TO TELL THE SERVER THAT YOU RANG A BELL, AND NOT CREATE A GHOST BLOCK???
+@UtilityClass
 public class ConsumesBlockPlace {
-    public static boolean consumesPlace(GrimPlayer player, WrappedBlockState state, BlockPlace place) {
+    public static boolean consumesPlace(@NotNull GrimPlayer player, @NotNull WrappedBlockState state, @NotNull BlockPlace place) {
         // Hey look, it's another DESYNC MOJANG
         if (state.getType() == StateTypes.BELL) {
             return goodBellHit(state, place);
@@ -96,12 +99,12 @@ public class ConsumesBlockPlace {
         return false;
     }
 
-    private static boolean goodBellHit(WrappedBlockState bell, BlockPlace place) {
+    private static boolean goodBellHit(@NotNull WrappedBlockState bell, @NotNull BlockPlace place) {
         BlockFace direction = place.getDirection();
         return place.getHitData() != null && isProperHit(bell, direction, place.getHitData().getRelativeBlockHitLocation().getY());
     }
 
-    private static boolean isProperHit(WrappedBlockState bell, BlockFace direction, double p_49742_) {
+    private static boolean isProperHit(@NotNull WrappedBlockState bell, @NotNull BlockFace direction, double p_49742_) {
         if (direction != BlockFace.UP && direction != BlockFace.DOWN && !(p_49742_ > (double) 0.8124F)) {
             BlockFace dir = bell.getFacing();
             Attachment attachment = bell.getAttachment();

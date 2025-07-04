@@ -13,12 +13,14 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 
+@UtilityClass
 public final class PredictionEngineRideableUtils {
 
     public static Set<VectorData> handleJumps(GrimPlayer player, Set<VectorData> possibleVectors) {

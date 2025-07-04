@@ -6,7 +6,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
-import ac.grim.grimac.utils.chat.ChatUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -49,7 +48,7 @@ public class ClientBrand extends Check implements PacketCheck {
             System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
             brand = new String(minusLength).replace(" (Velocity)", ""); // removes velocity's brand suffix
-            brand = ChatUtil.stripColor(brand); // strip color codes from client brand
+            brand = MessageUtil.stripColor(brand); // strip color codes from client brand
             if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                 String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                 Component component = MessageUtil.replacePlaceholders(player, MessageUtil.miniMessage(message));
