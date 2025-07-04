@@ -63,7 +63,7 @@ public class PredictionEngineElytra extends PredictionEngine {
             Vector3dm elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector3dm(0.99F, 0.98F, 0.99F));
             VectorData modified = data.returnNewModified(elytraResult, VectorData.VectorType.InputResult);
             modified.input = new Vector3dm(0, 0, 0);
-            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
+            results.add(modified);
 
             // We must bruteforce Optifine ShitMath
             player.trigHandler.toggleShitMath();
