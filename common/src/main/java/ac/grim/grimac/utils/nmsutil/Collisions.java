@@ -556,26 +556,40 @@ public class Collisions {
     public static void applyEffectsFromBlocks(GrimPlayer player) {
         for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
             Vector3d from = movement.from();
-            Vector3d to = movement.to();
-
-            SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
-                    player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
-
-            for (Vector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
-                WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-                StateType blockType = blockState.getType();
-
-                if (blockType.isAir()) {
-                    continue;
+            Vector3d to = movement.to().subtract(movement.from());
+            if (movement.axisIndependant() && to.lengthSquared() > 0.0) {
+                for (Axis axis : Collisions.axisStepOrder(to)) {
+                    double value = axis.choose(to.getX(), to.getY(), to.getZ());
+                    if (value != 0.0) {
+                        Vector3d vector = Collisions.relative(from, axis.getPositive(), value);
+                        Collisions.checkInsideBlocks(player, from, vector);
+                        from = vector;
+                    }
                 }
-
-                if (player.visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
-                    onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
-                }
+            } else {
+                Collisions.checkInsideBlocks(player, movement.from(), movement.to());
             }
         }
 
         player.visitedBlocks.clear();
+    }
+
+    public static void checkInsideBlocks(GrimPlayer player, Vector3d from, Vector3d to) {
+        SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
+                player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
+
+        for (Vector3i blockPos : Collisions.boxTraverseBlocks(player, from, to, boundingBox)) {
+            WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
+            StateType blockType = blockState.getType();
+
+            if (blockType.isAir()) {
+                continue;
+            }
+
+            if (player.visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+            }
+        }
     }
 
     public static Iterable<Vector3i> boxTraverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
@@ -591,7 +605,9 @@ public class Collisions {
             addCollisionsAlongTravel(alreadyVisited, traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
-                traversedBlocks.add(blockPos);
+                if (alreadyVisited == null || !alreadyVisited.contains(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+                    traversedBlocks.add(blockPos);
+                }
             }
 
             return traversedBlocks;
@@ -726,7 +742,7 @@ public class Collisions {
         double sideDistance = (minSide - startSide) / distanceSide;
         double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
         double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
-        if (sideDistance > 0.0  && sideDistance < minDistance[0] &&
+        if (sideDistance > 0.0 && sideDistance < minDistance[0] &&
                 minOtherA - COLLISION_EPSILON < otherDistanceA &&
                 otherDistanceA < maxOtherA + COLLISION_EPSILON &&
                 minOtherB - COLLISION_EPSILON < otherDistanceB &&
@@ -741,7 +757,7 @@ public class Collisions {
     public static final ImmutableList<Axis> YXZ_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.X, Collisions.Axis.Z);
     public static final ImmutableList<Collisions.Axis> YZX_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.Z, Collisions.Axis.X);
 
-    public static Iterable<Collisions.Axis> axisStepOrder(Vector3dm vector) {
+    public static Iterable<Collisions.Axis> axisStepOrder(Vector3d vector) {
         return Math.abs(vector.getX()) < Math.abs(vector.getZ()) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
     }
 

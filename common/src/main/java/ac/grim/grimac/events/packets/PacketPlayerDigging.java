@@ -3,6 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.item.ItemBehaviour;
+import ac.grim.grimac.utils.item.ItemBehaviourRegistry;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -34,6 +36,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
+    private static final boolean RELIABLE_COMPONENT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4);
     public static void handleUseItem(GrimPlayer player, ItemStack item, InteractionHand hand) {
         if (item == null) {
             player.packetStateData.setSlowedByUsingItem(false);
@@ -46,6 +49,20 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         final ItemType material = item.getType();
+
+        // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
+        if (RELIABLE_COMPONENT_SYSTEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+            ItemBehaviour itemBehaviour = ItemBehaviourRegistry.getItemBehaviour(material);
+
+            if (itemBehaviour.canUse(item, player.compensatedWorld, player, hand)) {
+                player.packetStateData.setSlowedByUsingItem(true);
+                player.packetStateData.eatingHand = hand;
+            } else {
+                player.packetStateData.setSlowedByUsingItem(false);
+            }
+
+            return;
+        }
 
         // Check for data component stuff on 1.21.2+
         final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);

@@ -35,6 +35,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // Updated to support modern 1.17 protocol
 public class CompensatedInventory extends Check implements PacketCheck {
@@ -114,6 +115,11 @@ public class CompensatedInventory extends Check implements PacketCheck {
         return hand == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
     }
 
+    /**
+     * Marks that the server has updated a slot by the specified ID in the specified inventory ID.
+     * @param clicked the updated slot
+     * @param windowID the inventory ID
+     */
     private void markServerForChangingSlot(int clicked, int windowID) {
         // Unsupported inventory
         if (packetSendingInventorySize == -2) return;
@@ -190,6 +196,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         return false;
     }
 
+    @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
@@ -216,18 +223,20 @@ public class CompensatedInventory extends Check implements PacketCheck {
                         return;
                 }
 
-                ItemStack itemstack1 = getByEquipmentType(equipmentType);
+                ItemStack currentEquippedItem = getByEquipmentType(equipmentType);
                 // Only 1.19.4+ clients support swapping with non-empty items
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty())
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !currentEquippedItem.isEmpty())
                     return;
 
                 // 1.19.4+ clients support swapping with non-empty items
                 int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
 
                 // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
+                // Slot in hotbar
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(swapItemSlot);
-                inventory.getInventoryStorage().setItem(swapItemSlot, itemstack1);
+                inventory.getInventoryStorage().setItem(swapItemSlot, currentEquippedItem);
 
+                // Equipment slot
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
                 inventory.getInventoryStorage().setItem(slot, use);
             }
@@ -312,9 +321,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
-            menu = inventory;
-            openWindowID = 0;
-            menu.setCarried(ItemStack.EMPTY); // Reset carried item
+            this.closeActiveInventory();
         }
     }
 
@@ -334,6 +341,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
     }
 
+    @Override
     public void onPacketSend(final PacketSendEvent event) {
         // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
         // For example, we don't need permanent storage, only storing data until the client closes the window
@@ -380,11 +388,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
             // Disregard provided window ID, client doesn't care...
             // We need to do this because the client doesn't send a packet when closing the window
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                openWindowID = 0;
-                menu = inventory;
-                menu.setCarried(ItemStack.EMPTY); // Reset carried item
-            });
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), this::closeActiveInventory);
         }
 
         // Should be 1:1 MCP
@@ -397,12 +401,17 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 markServerForChangingSlot(i, items.getWindowId());
             }
 
-            int cachedPacketInvSize = packetSendingInventorySize;
+            final int cachedPacketInvSize = packetSendingInventorySize;
+            final AtomicBoolean updatedValue = new AtomicBoolean();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 // Never true when the inventory is unsupported.
                 // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
+                // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
+                // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
+                // Regardless, the client does accept this packet and update its inventory, so we must do the same.
                 if (slots.size() == cachedPacketInvSize || items.getWindowId() == 0) {
                     isPacketInventoryActive = true;
+                    updatedValue.set(true);
                 }
             });
 
@@ -429,6 +438,13 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     }
                 });
             }
+
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                // The server sent a packet for the player's inventory when they had another inventory open - revert.
+                if (updatedValue.get() && !menu.equals(inventory)) {
+                    isPacketInventoryActive = false;
+                }
+            });
         }
 
         // Also 1:1 MCP
@@ -468,5 +484,14 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 }
             });
         }
+    }
+
+    /**
+     * Closes the player's currently open inventory on the client by resetting to the player's inventory.
+     */
+    private void closeActiveInventory() {
+        openWindowID = 0;
+        menu = inventory;
+        menu.setCarried(ItemStack.EMPTY); // Reset carried item
     }
 }

@@ -33,16 +33,12 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Axis;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
 import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.viaversion.viaversion.api.Via;
@@ -63,32 +59,6 @@ import java.util.stream.Stream;
 //
 // This is actually mean to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
 public enum CollisionData implements CollisionFactory {
-    VINE((player, version, block, x, y, z) -> {
-        ComplexCollisionBox boxes = new ComplexCollisionBox(5);
-
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && block.isUp())
-            boxes.add(new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D));
-
-        if (block.getWest() == West.TRUE)
-            boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D));
-
-        if (block.getEast() == East.TRUE)
-            boxes.add(new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D));
-
-        if (block.getNorth() == North.TRUE)
-            boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
-
-        if (block.getSouth() == South.TRUE)
-            boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
-
-        // This is where fire differs from vine with its hitbox
-        if (block.getType() == StateTypes.FIRE && boxes.isNull())
-            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
-
-        return boxes;
-
-    }, StateTypes.VINE, StateTypes.FIRE),
-
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
             if (block.getLevel() == 0) {
@@ -298,11 +268,11 @@ public enum CollisionData implements CollisionFactory {
             StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.SHORT_GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
             StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
             StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
-            StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
+            StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS, StateTypes.VINE,
             StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM,
             StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM, StateTypes.BEETROOTS, StateTypes.POTATOES,
             StateTypes.WHEAT, StateTypes.CARROTS, StateTypes.NETHER_WART, StateTypes.MOVING_PISTON, StateTypes.AIR, StateTypes.CAVE_AIR,
-            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER),
+            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER, StateTypes.FIRE, StateTypes.SOUL_FIRE),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -1028,6 +998,25 @@ public enum CollisionData implements CollisionFactory {
         case WEST, EAST -> new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
         default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+
+    DRIED_GHAST((player, version, data, x, y, z) -> {
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_21_5)) {
+            return new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 10.0, 13.0);
+        // ViaVersion replacement block - chorus plant (down: true, up: false, east: false, south: false, west: false)
+        } else if (player.getClientVersion().isNewerThan(ClientVersion.V_1_12_2)) {
+            // While the 2nd SimpleCollisionBox clearly encompasses the first, it's unclear if Mojang's collision code on any version
+            // May give a different result if the vanilla boxes aren't replicated perfectly, even the inefficiencies like the code below
+            return new ComplexCollisionBox(2,
+                    new SimpleCollisionBox(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125),
+                    new SimpleCollisionBox(0.1875, 0, 0.1875, 0.8125, 0.8125, 0.8125)
+            );
+        } else if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+            return new SimpleCollisionBox(0.1875F, 0.0F, 0.1875F, 0.8125F, 0.8125F, 0.8125F);
+        } else {
+            // ViaVersion replacement block (Purple wool)
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+    }, StateTypes.DRIED_GHAST),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 

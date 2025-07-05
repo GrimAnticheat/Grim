@@ -3,7 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
-import ac.grim.grimac.utils.Vec2;
+import ac.grim.grimac.utils.math.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.Pair;
@@ -68,7 +68,7 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
+    public static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
         if (moveVector.lengthSquared() == 0.0F) {
             return moveVector;
         } else {
@@ -812,9 +812,11 @@ public class PredictionEngine {
                         continue;
                     for (int strafe = strafeMin; strafe <= strafeMax; strafe++) {
                         for (int forward = forwardMin; forward <= forwardMax; forward++) {
+                            Vector3dm input = transformInputsToVector(player, new Vector3dm(strafe, 0, forward));
                             VectorData result = new VectorData(possibleLastTickOutput.vector.clone()
-                                    .add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector3dm(strafe, 0, forward)), speed, player.xRot)),
+                                    .add(getMovementResultFromInput(player, input, speed, player.xRot)),
                                     possibleLastTickOutput, VectorData.VectorType.InputResult);
+                            result.input = input;
                             result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                             result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                             // Signal that we need to flip sneaking bounding box
@@ -867,10 +869,10 @@ public class PredictionEngine {
         if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
 
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
+        player.boundingBox = player.boundingBox.copy().expand(-player.getMovementThreshold(), 0, -player.getMovementThreshold());
         // By flipping the distance to the ground, we can avoid players from swim hopping on the floor
         // Although it is unclear what advantage this would even give.
-        double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
+        double pointThreeToGround = Collisions.collide(player, 0, -player.getMovementThreshold(), 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
         SimpleCollisionBox newBox = player.inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :

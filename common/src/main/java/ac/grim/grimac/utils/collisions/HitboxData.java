@@ -13,6 +13,8 @@ import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.OffsetCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -27,6 +29,7 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +39,24 @@ import java.util.Set;
 
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData implements HitBoxFactory {
+    VINE((player, item, version, data, isTargetBlock, x, y, z) -> {
+        ComplexCollisionBox boxes = new ComplexCollisionBox(5);
+
+        if (data.getWest() == West.TRUE) boxes.add(new HexCollisionBox(0, 0, 0, 1, 16, 16));
+        if (data.getEast() == East.TRUE) boxes.add(new HexCollisionBox(15, 0, 0, 16, 16, 16));
+        if (data.getNorth() == North.TRUE) boxes.add(new HexCollisionBox(0, 0, 0, 16, 16, 1));
+        if (data.getSouth() == South.TRUE) boxes.add(new HexCollisionBox(0, 0, 15, 16, 16, 16));
+
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) && boxes.size() > 1) {
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && data.isUp()) {
+            boxes.add(new HexCollisionBox(0, 15, 0, 16, 16, 16));
+        }
+
+        return boxes;
+    }, StateTypes.VINE),
 
     RAILS((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getShape()) {
         case ASCENDING_NORTH, ASCENDING_SOUTH, ASCENDING_EAST, ASCENDING_WEST -> {
@@ -299,9 +320,24 @@ public enum HitboxData implements HitBoxFactory {
     TALL_FLOWERS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
 
     FIRE((player, item, version, data, isTargetBlock, x, y, z) -> {
-        // Since 1.16 fire has a small hitbox
         if (version.isNewerThanOrEquals(ClientVersion.V_1_16)) {
-            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
+            ComplexCollisionBox boxes = new ComplexCollisionBox(5);
+            // FIXME: via does fire wrong
+            // FIXME: this doesn't work on 1.8 servers
+
+            if (data.getWest() == West.TRUE) boxes.add(new HexCollisionBox(0, 0, 0, 1, 16, 16));
+            if (data.getEast() == East.TRUE) boxes.add(new HexCollisionBox(15, 0, 0, 16, 16, 16));
+            if (data.getNorth() == North.TRUE) boxes.add(new HexCollisionBox(0, 0, 0, 16, 16, 1));
+            if (data.getSouth() == South.TRUE) boxes.add(new HexCollisionBox(0, 0, 15, 16, 16, 16));
+
+            // TODO: when was isUp() added?
+            if (data.getInternalData().containsKey(StateValue.UP) && data.isUp()) {
+                boxes.add(new HexCollisionBox(0, 15, 0, 16, 16, 16));
+            }
+
+            if (boxes.isNull()) return new HexCollisionBox(0, 0, 0, 16, 1, 16);
+
+            return boxes;
         }
         return NoCollisionBox.INSTANCE;
     }, BlockTags.FIRE.getStates().toArray(new StateType[0])),

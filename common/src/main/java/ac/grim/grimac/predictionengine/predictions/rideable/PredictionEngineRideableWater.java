@@ -4,17 +4,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.Vector3dm;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class PredictionEngineRideableWater extends PredictionEngineWater {
-
-    Vector3dm movementVector;
-
-    public PredictionEngineRideableWater(Vector3dm movementVector) {
-        this.movementVector = movementVector;
-    }
+    private final Vector3dm movementVector;
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {

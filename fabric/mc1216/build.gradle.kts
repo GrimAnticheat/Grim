@@ -1,13 +1,14 @@
 dependencies {
-    minecraft("com.mojang:minecraft:1.21.5")
-    mappings("net.fabricmc:yarn:1.21.5+build.1:v2")
+    minecraft("com.mojang:minecraft:1.21.6")
+    mappings("net.fabricmc:yarn:1.21.6+build.1:v2")
     compileOnly(project(":fabric:mc1161", configuration = "namedElements"))
     compileOnly(project(":fabric:mc1171", configuration = "namedElements"))
     compileOnly(project(":fabric:mc1194", configuration = "namedElements"))
     compileOnly(project(":fabric:mc1205", configuration = "namedElements"))
 
-    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", "0.121.0+1.21.5"))
-    modImplementation("me.lucko:fabric-permissions-api:0.3.1")
+    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", "0.128.1+1.21.6"))
+    modImplementation("me.lucko:fabric-permissions-api:0.4.0")
+    include("me.lucko:fabric-permissions-api:0.4.0")
 }
 
 

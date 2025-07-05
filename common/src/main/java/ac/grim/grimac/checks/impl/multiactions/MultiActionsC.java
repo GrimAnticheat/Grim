@@ -28,9 +28,9 @@ public class MultiActionsC extends Check implements PacketCheck {
                 verbose.add("sneaking");
             }
 
-            if (player.packetStateData.knownInput.forward() || player.packetStateData.knownInput.backward()
-                    || player.packetStateData.knownInput.left() || player.packetStateData.knownInput.right()
-                    || player.packetStateData.knownInput.jump()) {
+            if (player.supportsEndTick() && (player.packetStateData.knownInput.forward()
+                    || player.packetStateData.knownInput.backward() || player.packetStateData.knownInput.left()
+                    || player.packetStateData.knownInput.right() || player.packetStateData.knownInput.jump())) {
                 verbose.add("input");
             }
 

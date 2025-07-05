@@ -31,9 +31,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.List;
 
 public class MovementTicker {
     public final GrimPlayer player;
@@ -94,6 +92,22 @@ public class MovementTicker {
         player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
+    private boolean isHorizontalCollisionSoft(Vector3dm collide) {
+        double horizontalLengthSquared = collide.getX() * collide.getX() + collide.getZ() * collide.getZ();
+        if (horizontalLengthSquared < 1E-5F) return false;
+
+        float xxa = (float) player.predictedVelocity.input.getX();
+        float zza = (float) player.predictedVelocity.input.getZ();
+
+        float yawInRadians = player.xRot * (float) (Math.PI / 180.0);
+        double sin = player.trigHandler.sin(yawInRadians);
+        double cos = player.trigHandler.cos(yawInRadians);
+        double g = xxa * cos - zza * sin;
+        double h = zza * cos + xxa * sin;
+        double i = g * g + h * h;
+        return i >= 1E-5F && Math.acos((g * collide.getX() + h * collide.getZ()) / Math.sqrt(i * horizontalLengthSquared)) < 0.13962634F;
+    }
+
     public void move(Vector3dm inputVel, Vector3dm collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector3dm();
@@ -112,6 +126,7 @@ public class MovementTicker {
             }
 
             player.horizontalCollision = xAxis || zAxis;
+            player.softHorizontalCollision = player.horizontalCollision && isHorizontalCollisionSoft(collide);
         } else {
             if (inputVel.getX() != collide.getX()) {
                 player.clientVelocity.setX(0);
@@ -211,19 +226,10 @@ public class MovementTicker {
                 && (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) || inputVel.lengthSquared() - collide.lengthSquared() >= 1e-7)) {
             collide = new Vector3dm();
         } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-            Vector3d position = new Vector3d(player.lastX, player.lastY, player.lastZ);
-            List<GrimPlayer.Movement> movements = new ObjectArrayList<>();
+            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+            Vector3d to = new Vector3d(player.x, player.y, player.z);
 
-            for (Collisions.Axis axis : Collisions.axisStepOrder(collide)) {
-                double value = axis.choose(collide.getX(), collide.getY(), collide.getZ());
-                if (value != 0.0) {
-                    Vector3d vector = Collisions.relative(position, axis.getPositive(), value);
-                    movements.add(new GrimPlayer.Movement(position, vector));
-                    position = vector;
-                }
-            }
-
-            player.movementThisTick.add(movements);
+            player.addMovementThisTick(new GrimPlayer.Movement(from, to, true));
         }
 
         // This is where vanilla moves the bounding box and sets it
@@ -453,13 +459,23 @@ public class MovementTicker {
                     player.clientVelocity.add(new Vector3dm(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
-                player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
-                // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
-                if (player.clientVelocity.getY() > -0.5)
-                    player.fallDistance = 1;
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ)) {
+                    float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
+                    player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                new PredictionEngineElytra().guessBestMovement(0, player);
+                    doNormalMove(blockFriction);
 
+                    player.isGliding = false;
+                    player.pointThreeEstimator.updatePlayerGliding(); // TODO: should this be true even if player stopped gliding?
+                } else {
+                    player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
+                    // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
+                    if (player.clientVelocity.getY() > -0.5) {
+                        player.fallDistance = 1;
+                    }
+
+                    new PredictionEngineElytra().guessBestMovement(0, player);
+                }
             } else {
                 float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
@@ -482,15 +498,15 @@ public class MovementTicker {
 
             ClientVersion clientVersion = player.getClientVersion();
             if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
-                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
             } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                player.movementThisTick.forEach(player.finalMovementsThisTick::addAll);
+                player.finalMovementsThisTick.addAll(player.movementThisTick);
                 player.movementThisTick.clear();
 
                 if (player.finalMovementsThisTick.isEmpty()) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
                 } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to));
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to, false));
                 }
             }
 

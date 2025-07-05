@@ -2,6 +2,8 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
+import ac.grim.grimac.utils.math.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -17,6 +19,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
+
+    public static final boolean SERVER_USES_INPUT_FOR_SNEAKING = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_6);
 
     public PacketPlayerSteer() {
         super(PacketListenerPriority.LOW);
@@ -123,8 +127,17 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 sideways--;
             }
 
-            player.vehicleData.nextVehicleForward = forward * 0.98f;
-            player.vehicleData.nextVehicleHorizontal = sideways * 0.98f;
+            Vec2 inputVector = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)
+                    ? PredictionEngine.modifyInput(player, new Vec2(forward, sideways).normalized())
+                    : new Vec2(forward * 0.98f, sideways * 0.98f);
+
+            player.vehicleData.nextVehicleForward = inputVector.x();
+            player.vehicleData.nextVehicleHorizontal = inputVector.y();
+
+            // that's how mojang is dealing with sneaking from now on...
+            if (SERVER_USES_INPUT_FOR_SNEAKING && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
+                player.isSneaking = input.isShift();
+            }
 
             player.packetStateData.knownInput = new KnownInput(input.isForward(), input.isBackward(), input.isLeft(), input.isRight(), input.isJump(), input.isShift(), input.isSprint());
         }

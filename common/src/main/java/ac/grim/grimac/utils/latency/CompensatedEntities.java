@@ -17,6 +17,7 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.Equipment;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
@@ -169,7 +170,9 @@ public class CompensatedEntities {
         if (entityType == EntityTypes.ITEM) return;
 
         PacketEntity packetEntity;
-        if (EntityTypes.CAMEL.equals(entityType)) {
+        if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
+            packetEntity = new PacketEntityHappyGhast(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (EntityTypes.CAMEL.equals(entityType)) {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
@@ -524,4 +527,14 @@ public class CompensatedEntities {
             }
         }
     }
+
+    public void updateEntityEquipment(int entityId, List<Equipment> equipment) {
+        PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+        if (entity == null || !entity.trackEntityEquipment) return;
+
+        for (Equipment equipmentItem : equipment) {
+            entity.setItemBySlot(equipmentItem.getSlot(), equipmentItem.getItem());
+        }
+    }
+
 }

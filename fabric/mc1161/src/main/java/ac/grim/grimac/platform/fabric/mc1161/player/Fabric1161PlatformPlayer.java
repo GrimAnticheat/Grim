@@ -33,18 +33,15 @@ public class Fabric1161PlatformPlayer extends AbstractFabricPlatformPlayer {
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
         return FabricFutureUtil.supplySync(() -> {
-            if (fabricPlayer.getEntityWorld() instanceof ServerWorld) {
-                fabricPlayer.teleport(
-                        (ServerWorld) location.getWorld(),
-                        location.getX(),
-                        location.getY(),
-                        location.getZ(),
-                        location.getYaw(),
-                        location.getPitch()
-                );
-                return true;
-            }
-            return false;
+            fabricPlayer.teleport(
+                    (ServerWorld) location.getWorld(),
+                    location.getX(),
+                    location.getY(),
+                    location.getZ(),
+                    location.getYaw(),
+                    location.getPitch()
+            );
+            return true;
         });
     }
 }

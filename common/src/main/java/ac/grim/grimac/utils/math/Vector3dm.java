@@ -2,55 +2,61 @@ package ac.grim.grimac.utils.math;
 
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Random;
 
 public class Vector3dm implements Cloneable, Serializable {
+    @Serial
     private static final long serialVersionUID = -2657651106777219169L;
     private static final Random random = new Random();
-    private static final double epsilon = 1.0E-6;
+    public static final double epsilon = 1.0E-6;
     protected double x;
     protected double y;
     protected double z;
 
+    @Contract(pure = true)
     public Vector3dm() {
         this.x = 0.0F;
         this.y = 0.0F;
         this.z = 0.0F;
     }
 
+    @Contract(pure = true)
     public Vector3dm(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
+    @Contract(pure = true)
     public Vector3dm(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
+    @Contract(pure = true)
     public Vector3dm(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    public static double getEpsilon() {
-        return 1.0E-6;
-    }
-
+    @Contract("_, _ -> new")
     public static @NotNull Vector3dm getMinimum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
         return new Vector3dm(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
     }
 
+    @Contract("_, _ -> new")
     public static @NotNull Vector3dm getMaximum(@NotNull Vector3dm v1, @NotNull Vector3dm v2) {
         return new Vector3dm(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
     }
 
+    @Contract(" -> new")
     public static @NotNull Vector3dm getRandom() {
         return new Vector3dm(random.nextDouble(), random.nextDouble(), random.nextDouble());
     }
@@ -206,7 +212,7 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public boolean isNormalized() {
-        return Math.abs(this.lengthSquared() - (double) 1.0F) < getEpsilon();
+        return Math.abs(this.lengthSquared() - (double) 1.0F) < epsilon;
     }
 
     public @NotNull Vector3dm rotateAroundX(double angle) {
@@ -302,19 +308,16 @@ public class Vector3dm implements Cloneable, Serializable {
         return GrimMath.mojangFloor(this.z);
     }
 
+    @Contract(value = "null -> false", pure = true)
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vector3dm other)) {
-            return false;
-        } else {
-            return Math.abs(this.x - other.x) < 1.0E-6 && Math.abs(this.y - other.y) < 1.0E-6 && Math.abs(this.z - other.z) < 1.0E-6 && this.getClass().equals(obj.getClass());
-        }
+        return obj instanceof Vector3dm other && Math.abs(this.x - other.x) < 1.0E-6 && Math.abs(this.y - other.y) < 1.0E-6 && Math.abs(this.z - other.z) < 1.0E-6 && this.getClass().equals(obj.getClass());
     }
 
     public int hashCode() {
         int hash = 7;
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.x));
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.y));
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.z));
         return hash;
     }
 

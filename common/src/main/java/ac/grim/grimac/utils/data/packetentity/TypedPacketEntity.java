@@ -5,7 +5,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
 public abstract class TypedPacketEntity {
     public final EntityType type;
-    public final boolean isLivingEntity, isMinecart, isHorse, isAgeable, isAnimal, isBoat;
+    public final boolean isLivingEntity, isMinecart, isHorse, isAgeable, isAnimal, isBoat, isHappyGhast;
 
     public TypedPacketEntity(EntityType type) {
         this.type = type;
@@ -20,6 +20,7 @@ public abstract class TypedPacketEntity {
                         || type == EntityTypes.ZOGLIN;
         this.isAnimal = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
         this.isBoat = EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT);
+        this.isHappyGhast = EntityTypes.HAPPY_GHAST.equals(type);
     }
 
     public boolean isPushable() {
