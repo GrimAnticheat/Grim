@@ -13,21 +13,16 @@ public class SprintG extends Check implements PostPredictionCheck {
         super(player);
     }
 
-    // prevent falses when starting to fly in water and stopping out of water
-    private boolean lastChecked;
-
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (player.wasTouchingWater && (player.wasWasTouchingWater || player.getClientVersion() == ClientVersion.V_1_21_4)
                 && !player.wasEyeInWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)
-                && lastChecked && predictionComplete.isChecked()) {
+                && player.wasLastPredictionCompleteChecked && predictionComplete.isChecked()) {
             if (player.isSprinting && !player.isSwimming) {
                 flagAndAlertWithSetback();
             } else {
                 reward();
             }
         }
-
-        lastChecked = predictionComplete.isChecked();
     }
 }

@@ -273,6 +273,7 @@ public class GrimPlayer implements GrimUser {
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
+    public boolean wasLastPredictionCompleteChecked;
 
     public GrimPlayer(@NonNull User user) {
         this.user = user;

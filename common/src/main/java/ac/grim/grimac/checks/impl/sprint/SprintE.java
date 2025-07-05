@@ -32,13 +32,17 @@ public class SprintE extends Check implements PostPredictionCheck {
         if (!predictionComplete.isChecked()) return;
 
         if (wasHardHorizontalCollision && !startedSprintingThisTick && !player.uncertaintyHandler.isNearGlitchyBlock
-                && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))) {
+                && !player.inVehicle() && !player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0)
+                && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))
+                && player.wasLastPredictionCompleteChecked) {
             if (player.isSprinting) {
                 flagAndAlertWithSetback();
-            } else reward();
+            } else {
+                reward();
+            }
         }
 
-        wasHardHorizontalCollision = player.horizontalCollision && !player.softHorizontalCollision;
+        wasHardHorizontalCollision = player.horizontalCollision && !player.softHorizontalCollision && player.wasLastPredictionCompleteChecked;
         startedSprintingThisTick = false;
     }
 }

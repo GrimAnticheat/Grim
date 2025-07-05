@@ -48,7 +48,8 @@ public enum EquipmentType {
         }
         if (item == ItemTypes.LEATHER_HELMET || item == ItemTypes.CHAINMAIL_HELMET
                 || item == ItemTypes.IRON_HELMET || item == ItemTypes.DIAMOND_HELMET
-                || item == ItemTypes.GOLDEN_HELMET || item == ItemTypes.NETHERITE_HELMET) {
+                || item == ItemTypes.GOLDEN_HELMET || item == ItemTypes.NETHERITE_HELMET 
+                || item == ItemTypes.TURTLE_HELMET) {
             return HEAD;
         }
         return ItemTypes.SHIELD == item ? OFFHAND : MAINHAND;
