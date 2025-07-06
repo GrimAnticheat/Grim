@@ -20,10 +20,13 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSt
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
-    public static final boolean SERVER_USES_INPUT_FOR_SNEAKING = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_6);
-
     public PacketPlayerSteer() {
         super(PacketListenerPriority.LOW);
+    }
+
+    @Override
+    public boolean isPreVia() {
+        return true;
     }
 
     @Override
@@ -37,18 +40,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             float forwards = steer.getForward();
             float sideways = steer.getSideways();
 
-            Vec2 inputVector;
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                forwards = forwards > 0 ? 1f : forwards < 0 ? -1f : 0f;
-                sideways = sideways > 0 ? 1f : sideways < 0 ? -1f : 0f;
-
-                inputVector = PredictionEngine.modifyInput(player, new Vec2(forwards, sideways).normalized());
-            } else {
-                inputVector = new Vec2(forwards, sideways);
-            }
-
-            player.vehicleData.nextVehicleForward = inputVector.x();
-            player.vehicleData.nextVehicleHorizontal = inputVector.y();
+            player.vehicleData.nextVehicleForward = forwards;
+            player.vehicleData.nextVehicleHorizontal = sideways;
 
             this.tickPlayerWorld(player);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
@@ -82,7 +75,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.vehicleData.nextVehicleHorizontal = inputVector.y();
 
             // that's how mojang is dealing with sneaking from now on...
-            if (SERVER_USES_INPUT_FOR_SNEAKING) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
                 player.isSneaking = input.isShift();
             }
 
