@@ -706,6 +706,7 @@ public class GrimPlayer implements GrimUser {
                         EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) ||
                         data.getEntityType() == EntityTypes.PIG ||
                         data.getEntityType() == EntityTypes.STRIDER ||
+                        data.getEntityType() == EntityTypes.CAMEL ||
                         data.getEntityType() == EntityTypes.HAPPY_GHAST) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
