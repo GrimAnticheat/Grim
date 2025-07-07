@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import lombok.Getter;
 
 // This is to keep all the packet data out of the main player class
@@ -11,7 +10,7 @@ public class PacketStateData {
     public boolean packetPlayerOnGround = false;
     public boolean lastPacketWasTeleport = false;
     public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate, isReceivingQueuedDuplicate;
-    public WrapperPlayClientPlayerFlying queuedDuplicatePacket;
+    public QueuedDuplicate queuedDuplicate;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
     public InteractionHand itemInUseHand = InteractionHand.MAIN_HAND;

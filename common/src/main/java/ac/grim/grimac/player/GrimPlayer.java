@@ -143,6 +143,7 @@ public class GrimPlayer implements GrimUser {
     public double gravity;
     public float friction;
     public double speed;
+    public @Nullable HeadRotation lastDuplicateRotationThisTick;
     public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
     public double x;
     public double y;
@@ -255,6 +256,7 @@ public class GrimPlayer implements GrimUser {
     private int maxTransactionTime = 60;
     @Getter private boolean ignoreDuplicatePacketRotation = false;
     @Getter private boolean queuePossibleDuplicates = false;
+    @Getter private boolean requireSameRotationInDuplicates = false;
     @Getter @Setter private boolean experimentalChecks = false;
     @Getter private boolean cancelDuplicatePacket = true;
     @Getter @Setter private boolean exemptElytra = false;
@@ -917,6 +919,7 @@ public class GrimPlayer implements GrimUser {
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         queuePossibleDuplicates = config.getBooleanElse("queue-possible-duplicates", false);
+        requireSameRotationInDuplicates = queuePossibleDuplicates && config.getBooleanElse("require-same-rotation-in-duplicates", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
 
         boolean shouldDisableResync = config.getBooleanElse("disable-default-resync-handler", false);
