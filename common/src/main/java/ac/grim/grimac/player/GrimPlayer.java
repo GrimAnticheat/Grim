@@ -741,7 +741,11 @@ public class GrimPlayer implements GrimUser {
                 // vehicle velocity is present after dismounting, this is a workaround for that
                 // otherwise jumping on a horse and then dismounting it will cause false positives
                 // it's just easier to do this rather than dealing with all this transaction splitting bullshit
-                user.writePacket(new WrapperPlayServerEntityVelocity(entityID, new Vector3d()));
+                //
+                // TODO: turns out to be a 1.21.2+ client/1.21.2+ server issue
+                if (supportsEndTick()) {
+                    user.writePacket(new WrapperPlayServerEntityVelocity(entityID, new Vector3d()));
+                }
             }
         });
 
