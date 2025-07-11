@@ -30,8 +30,25 @@ public final class PredictionEngineRideableUtils {
         if (horse instanceof PacketEntityCamel camel) {
             handleCamelDash(player, possibleVectors, camel);
         } else {
+            if (horse.horseJump != null && horse.dismounted) {
+                float horseJump = player.vehicleData.horseJump;
+                boolean horseJumping = player.vehicleData.horseJumping;
+
+                player.vehicleData.horseJump = horse.horseJump;
+                player.vehicleData.horseJumping = false;
+
+                handleHorseJumping(player, possibleVectors, horse);
+
+                player.vehicleData.horseJump = horseJump;
+                player.vehicleData.horseJumping = horseJumping;
+
+                horse.horseJump = null;
+            }
+
             handleHorseJumping(player, possibleVectors, horse);
         }
+
+        horse.dismounted = false;
 
         // More jumping stuff
         if (player.lastOnGround) {

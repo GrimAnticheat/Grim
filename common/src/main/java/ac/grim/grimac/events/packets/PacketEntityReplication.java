@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -421,6 +422,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (wasInVehicle || inThisVehicle) {
             player.sendTransaction();
         }
+
+        final boolean dismounted = !inThisVehicle && wasInVehicle;
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
 
@@ -437,6 +440,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
                 if (passenger == null) continue;
                 passenger.mount(vehicle);
+            }
+
+            if (dismounted && vehicle instanceof PacketEntityHorse horse) {
+                horse.dismounted = true;
             }
         });
     }
