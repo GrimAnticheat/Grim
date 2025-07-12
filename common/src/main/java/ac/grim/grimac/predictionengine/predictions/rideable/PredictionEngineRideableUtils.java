@@ -38,7 +38,6 @@ public final class PredictionEngineRideableUtils {
                 boolean horseJumping = player.vehicleData.horseJumping;
 
                 player.vehicleData.horseJump = horse.horseJump;
-                player.vehicleData.horseJumping = false;
 
                 possible.addAll(handleHorseJumping(player, possibleVectors, horse));
 
