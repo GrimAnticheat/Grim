@@ -34,6 +34,7 @@ public final class PredictionEngineRideableUtils {
         } else {
             Set<VectorData> possible = new HashSet<>();
 
+            // which version did mojang broke this in? don't know, don't care (1.12.2 works fine, so let's assume 1.13+ (it's definitely broken in 1.14.4))
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && horse.horseJump != null && horse.dismounted) {
                 float horseJump = player.vehicleData.horseJump;
                 boolean horseJumping = player.vehicleData.horseJumping;
