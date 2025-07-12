@@ -21,6 +21,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVe
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
+    private static final boolean STUPID_TELEPORT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+
     public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
     }
@@ -60,7 +62,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            boolean isStupidTeleportSystem = player.inVehicle() && player.supportsEndTick();
+            boolean isStupidTeleportSystem = player.inVehicle() && STUPID_TELEPORT_SYSTEM;
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) || isStupidTeleportSystem) {
                 if (teleport.isRelativeFlag(RelativeFlag.X)) {
                     pos = pos.add(new Vector3d(player.x, 0, 0));
