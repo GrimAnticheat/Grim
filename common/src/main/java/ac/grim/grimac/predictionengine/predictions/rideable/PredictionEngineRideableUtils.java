@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.experimental.UtilityClass;
@@ -33,7 +34,7 @@ public final class PredictionEngineRideableUtils {
         } else {
             Set<VectorData> possible = new HashSet<>();
 
-            if (horse.horseJump != null && horse.dismounted) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && horse.horseJump != null && horse.dismounted) {
                 float horseJump = player.vehicleData.horseJump;
                 boolean horseJumping = player.vehicleData.horseJumping;
 
