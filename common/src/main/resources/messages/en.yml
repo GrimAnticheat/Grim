@@ -70,5 +70,5 @@ grim-history-load-failure: "%prefix% &cHistory subsystem failed to load! Check s
 grim-history-disabled: "%prefix% &cHistory subsystem is disabled!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bShowing logs for &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %check% %vl% %verbose% %timeago% %server%
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bFailed &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% ago&7)"

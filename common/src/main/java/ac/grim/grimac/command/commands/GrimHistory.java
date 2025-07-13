@@ -73,7 +73,10 @@ public class GrimHistory implements BuildableCommand {
                 Violation log = logs.get(i);
                 sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, logFormat
                         .replace("%player%", targetPlayer.getName())
-                        .replace("%version%", log.version())
+                        .replace("%grim_version%", log.grimVersion())
+                        .replace("%client_brand%", log.clientBrand())
+                        .replace("%client_version%", log.clientVersion())
+                        .replace("%server_version%", log.serverVersion())
                         .replace("%check%", log.checkName())
                         .replace("%verbose%", log.verbose())
                         .replace("%vl%", String.valueOf(log.vl()))

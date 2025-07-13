@@ -70,5 +70,5 @@ grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar
 grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bKayıtlar gösteriliyor: &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %check% %vl% %verbose% %timeago% %server%
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bBaşarısız &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% önce&7)"

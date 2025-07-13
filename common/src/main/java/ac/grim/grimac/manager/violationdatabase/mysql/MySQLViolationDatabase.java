@@ -10,6 +10,7 @@ import ac.grim.grimac.manager.violationdatabase.ViolationDatabase;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -70,18 +71,53 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CHECK_NAMES_TABLE + "_string ON " + DatabaseConstants.CHECK_NAMES_TABLE + "(" + DatabaseConstants.CHECK_NAMES_STRING_COLUMN + ");"
             ).execute();
 
-            // 3. Create Lookup Table for Version Strings
+            // --- NEW LOOKUP TABLES ---
+            // 3. Create Lookup Table for Grim Versions
             connection.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.VERSIONS_TABLE + "(" +
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.GRIM_VERSIONS_TABLE + "(" +
                             "id " + pkSyntax + ", " +
-                            DatabaseConstants.VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
+                            DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
             connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VERSIONS_TABLE + "_string ON " + DatabaseConstants.VERSIONS_TABLE + "(" + DatabaseConstants.VERSIONS_STRING_COLUMN + ");"
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.GRIM_VERSIONS_TABLE + "_string ON " + DatabaseConstants.GRIM_VERSIONS_TABLE + "(" + DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN + ");"
             ).execute();
 
-            // 4. Create Main Violations Table with Foreign Keys and optimized UUID
+            // 4. Create Lookup Table for Client Brands
+            connection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.CLIENT_BRANDS_TABLE + "(" +
+                            "id " + pkSyntax + ", " +
+                            DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
+                            ")"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CLIENT_BRANDS_TABLE + "_string ON " + DatabaseConstants.CLIENT_BRANDS_TABLE + "(" + DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN + ");"
+            ).execute();
+
+            // 5. Create Lookup Table for Client Versions
+            connection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.CLIENT_VERSIONS_TABLE + "(" +
+                            "id " + pkSyntax + ", " +
+                            DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
+                            ")"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CLIENT_VERSIONS_TABLE + "_string ON " + DatabaseConstants.CLIENT_VERSIONS_TABLE + "(" + DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN + ");"
+            ).execute();
+
+            // 6. Create Lookup Table for Server Versions
+            connection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.SERVER_VERSIONS_TABLE + "(" +
+                            "id " + pkSyntax + ", " +
+                            DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
+                            ")"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.SERVER_VERSIONS_TABLE + "_string ON " + DatabaseConstants.SERVER_VERSIONS_TABLE + "(" + DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN + ");"
+            ).execute();
+            // --- END NEW LOOKUP TABLES ---
+
+            // 7. Create Main Violations Table with ALL Foreign Keys and optimized UUID
             connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.VIOLATIONS_TABLE + "(" +
                             "id " + pkSyntax + ", " +
@@ -91,14 +127,20 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN + " TEXT NOT NULL, " +
                             DatabaseConstants.VIOLATIONS_VL_COLUMN + " INT NOT NULL, " +
                             DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN + " BIGINT NOT NULL, " +
-                            DatabaseConstants.VIOLATIONS_VERSION_ID_COLUMN + " BIGINT NOT NULL, " +
+                            DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + " BIGINT NOT NULL, " + // NEW
+                            DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + " BIGINT NOT NULL, " + // NEW
+                            DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + " BIGINT NOT NULL, " + // NEW
+                            DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + " BIGINT NOT NULL, " + // NEW
                             "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_SERVER_ID_COLUMN + ") REFERENCES " + DatabaseConstants.SERVERS_TABLE + "(id), " +
                             "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_CHECK_NAME_ID_COLUMN + ") REFERENCES " + DatabaseConstants.CHECK_NAMES_TABLE + "(id), " +
-                            "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_VERSION_ID_COLUMN + ") REFERENCES " + DatabaseConstants.VERSIONS_TABLE + "(id)" +
+                            "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + ") REFERENCES " + DatabaseConstants.GRIM_VERSIONS_TABLE + "(id), " + // NEW
+                            "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + ") REFERENCES " + DatabaseConstants.CLIENT_BRANDS_TABLE + "(id), " + // NEW
+                            "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + ") REFERENCES " + DatabaseConstants.CLIENT_VERSIONS_TABLE + "(id), " + // NEW
+                            "FOREIGN KEY (" + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + ") REFERENCES " + DatabaseConstants.SERVER_VERSIONS_TABLE + "(id)" + // NEW
                             ")"
             ).execute();
 
-            // 5. Create Indexes for efficient querying on main table
+            // 8. Create Indexes for efficient querying on main table (includes new FKs)
             connection.prepareStatement(
                     "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_uuid ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_UUID_COLUMN + ");"
             ).execute();
@@ -112,7 +154,16 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_check_name_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CHECK_NAME_ID_COLUMN + ");"
             ).execute();
             connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_VERSION_ID_COLUMN + ");"
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_grim_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + ");" // NEW
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_brand_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + ");" // NEW
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + ");" // NEW
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + ");" // NEW
             ).execute();
 
         } catch (SQLException ex) {
@@ -122,8 +173,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
     }
 
     @Override
+    // Updated method signature to accept all new parameters
     public synchronized void logAlert(GrimPlayer player, String grimVersion, String verbose, String checkName, int vls) {
         try (Connection connection = dataSource.getConnection();
+             // Updated INSERT statement with all new columns
              PreparedStatement insertAlert = connection.prepareStatement(
                      "INSERT INTO " + DatabaseConstants.VIOLATIONS_TABLE + " (" +
                              DatabaseConstants.VIOLATIONS_SERVER_ID_COLUMN + ", " +
@@ -132,22 +185,33 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                              DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN + ", " +
                              DatabaseConstants.VIOLATIONS_VL_COLUMN + ", " +
                              DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN + ", " +
-                             DatabaseConstants.VIOLATIONS_VERSION_ID_COLUMN +
-                             ") VALUES (?, ?, ?, ?, ?, ?, ?)"
+                             DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + ", " + // NEW
+                             DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + ", " + // NEW
+                             DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + ", " + // NEW
+                             DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + // NEW
+                             ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" // Total 10 parameters now
              )
         ) {
+            // Get or create IDs for all deduplicated strings
             String serverName = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("history.server-name", "Prison");
             long serverId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.SERVERS_TABLE, DatabaseConstants.SERVERS_STRING_COLUMN, serverName);
             long checkNameId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.CHECK_NAMES_TABLE, DatabaseConstants.CHECK_NAMES_STRING_COLUMN, checkName);
-            long versionId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.VERSIONS_TABLE, DatabaseConstants.VERSIONS_STRING_COLUMN, grimVersion);
+            long grimVersionId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.GRIM_VERSIONS_TABLE, DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN, grimVersion);
+            long clientBrandId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.CLIENT_BRANDS_TABLE, DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN, player.getBrand());
+            long clientVersionId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.CLIENT_VERSIONS_TABLE, DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN, player.getClientVersion().getReleaseName());
+            long serverVersionId = DatabaseUtils.getOrCreateId(connection, dialect, DatabaseConstants.SERVER_VERSIONS_TABLE, DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN, PacketEvents.getAPI().getServerManager().getVersion().toString());
 
+            // Set parameters for the PreparedStatement
             insertAlert.setLong(1, serverId);
             insertAlert.setBytes(2, DatabaseUtils.uuidToBytes(player.getUniqueId()));
             insertAlert.setLong(3, checkNameId);
             insertAlert.setString(4, verbose);
             insertAlert.setInt(5, vls);
             insertAlert.setLong(6, System.currentTimeMillis());
-            insertAlert.setLong(7, versionId);
+            insertAlert.setLong(7, grimVersionId); // NEW
+            insertAlert.setLong(8, clientBrandId); // NEW
+            insertAlert.setLong(9, clientVersionId); // NEW
+            insertAlert.setLong(10, serverVersionId); // NEW
 
             insertAlert.execute();
         } catch (SQLException ex) {
@@ -176,6 +240,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
     @Override
     public synchronized List<Violation> getViolations(UUID player, int page, int limit) {
         try (Connection connection = dataSource.getConnection();
+             // Updated SELECT statement with all new joins and column selections
              PreparedStatement fetchLogs = connection.prepareStatement(
                      "SELECT " +
                              "v." + DatabaseConstants.VIOLATIONS_ID_COLUMN + ", " +
@@ -185,11 +250,17 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                              "v." + DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN + ", " +
                              "v." + DatabaseConstants.VIOLATIONS_VL_COLUMN + ", " +
                              "v." + DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN + ", " +
-                             "vers." + DatabaseConstants.VERSIONS_STRING_COLUMN + " " +
+                             "gv." + DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN + ", " + // NEW
+                             "cb." + DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN + ", " + // NEW
+                             "clv." + DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN + ", " + // NEW
+                             "srv." + DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN + " " + // NEW
                              "FROM " + DatabaseConstants.VIOLATIONS_TABLE + " v " +
                              "JOIN " + DatabaseConstants.SERVERS_TABLE + " s ON v." + DatabaseConstants.VIOLATIONS_SERVER_ID_COLUMN + " = s.id " +
                              "JOIN " + DatabaseConstants.CHECK_NAMES_TABLE + " cn ON v." + DatabaseConstants.VIOLATIONS_CHECK_NAME_ID_COLUMN + " = cn.id " +
-                             "JOIN " + DatabaseConstants.VERSIONS_TABLE + " vers ON v." + DatabaseConstants.VIOLATIONS_VERSION_ID_COLUMN + " = vers.id " +
+                             "JOIN " + DatabaseConstants.GRIM_VERSIONS_TABLE + " gv ON v." + DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + " = gv.id " + // NEW
+                             "JOIN " + DatabaseConstants.CLIENT_BRANDS_TABLE + " cb ON v." + DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + " = cb.id " + // NEW
+                             "JOIN " + DatabaseConstants.CLIENT_VERSIONS_TABLE + " clv ON v." + DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + " = clv.id " + // NEW
+                             "JOIN " + DatabaseConstants.SERVER_VERSIONS_TABLE + " srv ON v." + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + " = srv.id " + // NEW
                              "WHERE v." + DatabaseConstants.VIOLATIONS_UUID_COLUMN + " = ? ORDER BY v." + DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN + " DESC LIMIT ? OFFSET ?"
              )
         ) {

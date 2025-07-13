@@ -70,5 +70,5 @@ grim-history-load-failure: "%prefix% &cНе удалось загрузить п
 grim-history-disabled: "%prefix% &cПодсистема истории отключена!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bПоказ журналов для &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %check% %vl% %verbose% %timeago% %server%
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bПровалено &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% назад&7)"
