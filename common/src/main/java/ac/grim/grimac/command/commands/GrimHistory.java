@@ -24,7 +24,7 @@ public class GrimHistory implements BuildableCommand {
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("history", "hist")
                         .permission("grim.help")
-                        .required("target", StringParser.stringParser())
+                        .required("target", StringParser.stringParser(), GrimAPI.INSTANCE.getCommandAdapter().onlinePlayerSuggestions())
                         .optional("page", IntegerParser.integerParser())
                         .permission("grim.history")
                         .handler(this::handleHistory)

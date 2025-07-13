@@ -3,6 +3,7 @@ package ac.grim.grimac.manager.violationdatabase;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -10,7 +11,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class SQLiteViolationDatabase implements ViolationDatabase {
 
@@ -41,7 +41,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_violations_uuid ON violations(uuid)"
             ).execute();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to generate violations database:", ex);
+            LogUtil.error("Failed to generate violations database:", ex);
             throw ex;
         }
     }
@@ -63,7 +63,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
 
             insertLog.executeUpdate();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to insert violation:", ex);
+            LogUtil.error("Failed to insert violation:", ex);
         }
     }
 
@@ -80,7 +80,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
                 return resultSet.getInt(1);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to fetch number of violations:", ex);
+            LogUtil.error("Failed to fetch number of violations:", ex);
         }
         return 0;
     }
@@ -101,7 +101,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
 
             return Violation.fromResultSet(fetchLogs.executeQuery());
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to fetch violations:", ex);
+            LogUtil.error("Failed to fetch violations:", ex);
         }
 
         return violations;
@@ -114,7 +114,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
                 openConnection.close();
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to close connection", ex);
+            LogUtil.error("Failed to close connection", ex);
         }
     }
 

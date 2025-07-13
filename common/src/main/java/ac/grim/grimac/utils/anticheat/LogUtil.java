@@ -31,6 +31,15 @@ public class LogUtil {
         }
     }
 
+    public void error(final Throwable throwable) {
+        Logger logger = getLogger();
+        if (logger != null) {
+            logger.severe(getStackTrace(throwable));
+        } else {
+            throwable.printStackTrace();
+        }
+    }
+
     public Logger getLogger() {
         return GrimAPI.INSTANCE.getGrimPlugin().getLogger();
     }

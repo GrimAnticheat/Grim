@@ -16,7 +16,7 @@ import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -95,8 +95,8 @@ public final class GrimAPI {
         return loader.getPlatformPlayerFactory();
     }
 
-    public ParserDescriptorFactory getParserDescriptors() {
-        return loader.getParserDescriptorFactory();
+    public CommandAdapter getCommandAdapter() {
+        return loader.getCommandAdapter();
     }
 
     public GrimPlugin getGrimPlugin() {

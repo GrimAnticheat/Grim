@@ -54,7 +54,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final MessagePlaceHolderManager messagePlaceHolderManager = new FabricMessagePlaceHolderManager();
     protected final LazyHolder<FabricPermissionRegistrationManager> fabricPermissionRegistrationManager = LazyHolder.simple(FabricPermissionRegistrationManager::new);
 
-    protected final ParserDescriptorFactory parserFactory;
+    protected final CommandAdapter parserFactory;
     protected final FabricPlatformPlayerFactory playerFactory;
     protected final AbstractFabricPlatformServer platformServer;
     @Getter
@@ -62,7 +62,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final IFabricMessageUtil fabricMessageUtil;
 
     public GrimACFabricLoaderPlugin(
-            ParserDescriptorFactory parserDescriptorFactory,
+            CommandAdapter parserDescriptorFactory,
             FabricPlatformPlayerFactory playerFactory,
             AbstractFabricPlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
@@ -127,7 +127,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public ParserDescriptorFactory getParserDescriptorFactory() {
+    public CommandAdapter getCommandAdapter() {
         return parserFactory;
     }
 

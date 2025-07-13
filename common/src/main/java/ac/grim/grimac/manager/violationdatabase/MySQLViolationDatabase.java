@@ -3,6 +3,7 @@ package ac.grim.grimac.manager.violationdatabase;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -12,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class MySQLViolationDatabase implements ViolationDatabase {
 
@@ -56,7 +56,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_violations_uuid ON violations(uuid);"
             ).execute();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to generate violations database:", ex);
+            LogUtil.error("Failed to generate violations database:", ex);
             throw ex;
         }
     }
@@ -76,7 +76,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             insertAlert.setLong(6, System.currentTimeMillis());
             insertAlert.execute();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to log alert", ex);
+            LogUtil.error("Failed to log alert", ex);
         }
     }
 
@@ -93,7 +93,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                 return result.getInt(1);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to count logs", ex);
+            LogUtil.error("Failed to count logs", ex);
         }
         return 0;
     }
@@ -111,7 +111,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             fetchLogs.setInt(3, (page - 1) * limit);
             return Violation.fromResultSet(fetchLogs.executeQuery());
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to fetch logs", ex);
+            LogUtil.error("Failed to fetch logs", ex);
             return null;
         }
     }

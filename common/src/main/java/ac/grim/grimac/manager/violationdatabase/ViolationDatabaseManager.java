@@ -6,18 +6,19 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.init.ReloadableInitable;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class ViolationDatabaseManager implements StartableInitable, ReloadableInitable {
 
     private final GrimPlugin plugin;
-    private boolean enabled = false;
-    private boolean loaded = false;
+    @Getter private boolean enabled = false;
+    @Getter private boolean loaded = false;
 
     private @NonNull ViolationDatabase database;
 
@@ -52,7 +53,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                         database.connect();
                         loaded = true;
                     } catch (ClassNotFoundException e) {
-                        plugin.getLogger().log(Level.SEVERE,
+                        LogUtil.error(
                                 """
                                         Could not load SQLite driver for /grim history database.
                                         Download the minecraft-sqlite-jdbc mod/plugin for SQLite support, or change history.database.type
@@ -61,6 +62,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                         this.database = NoOpViolationDatabase.INSTANCE;
                         loaded = false;
                     } catch (SQLException e) {
+                        LogUtil.error(e);
                         this.database = NoOpViolationDatabase.INSTANCE;
                         loaded = false;
                     }
@@ -83,6 +85,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                     database.connect();
                     loaded = true;
                 } catch (SQLException e) {
+                    LogUtil.error(e);
                     this.database = NoOpViolationDatabase.INSTANCE;
                     loaded = false;
                 }
@@ -110,11 +113,4 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
         return database.getViolations(player, page, limit);
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public boolean isLoaded() {
-        return loaded;
-    }
 }

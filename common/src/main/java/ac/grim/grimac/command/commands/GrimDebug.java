@@ -26,14 +26,14 @@ public class GrimDebug implements BuildableCommand {
         Command.Builder<Sender> debugCommand = grimCommand
                 .literal("debug", Description.of("Toggle debug output for a player"))
                 .permission("grim.debug")
-                .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                .optional("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
                 .handler(this::handleDebug);
 
         // Register "consoledebug" subcommand
         Command.Builder<Sender> consoleDebugCommand = grimCommand
                 .literal("consoledebug", Description.of("Toggle console debug output for a player"))
                 .permission("grim.consoledebug")
-                .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                .required("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
                 .handler(this::handleConsoleDebug);
 
         // Register command
