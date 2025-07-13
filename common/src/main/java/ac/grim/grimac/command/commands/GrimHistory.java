@@ -12,7 +12,6 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -74,18 +73,30 @@ public class GrimHistory implements BuildableCommand {
                 Violation log = logs.get(i);
                 sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, logFormat
                         .replace("%player%", targetPlayer.getName())
-                        .replace("%check%", log.getCheckName())
-                        .replace("%verbose%", log.getVerbose())
-                        .replace("%vl%", String.valueOf(log.getVl()))
-                        .replace("%timeago%", getTimeAgo(log.getCreatedAt()))
-                        .replace("%server%", log.getServerName())
+                        .replace("%check%", log.checkName())
+                        .replace("%verbose%", log.verbose())
+                        .replace("%vl%", String.valueOf(log.vl()))
+                        .replace("%timeago%", getTimeAgo(log.createdAt()))
+                        .replace("%server%", log.server())
                 )));
             }
         });
     }
 
-    private String getTimeAgo(Date date) {
-        long durationMillis = new Date().getTime() - date.getTime();
+    /**
+     * Calculates the time elapsed since a given timestamp in a human-readable format.
+     *
+     * @param timestamp The timestamp in milliseconds since epoch (e.g., from System.currentTimeMillis()).
+     * @return A string representing the time elapsed (e.g., "5d 3h 10m").
+     */
+    private String getTimeAgo(long timestamp) {
+        // Calculate duration directly from current time and the provided timestamp
+        long durationMillis = System.currentTimeMillis() - timestamp;
+
+        // Ensure duration is non-negative, though for "time ago" it should be.
+        if (durationMillis < 0) {
+            return "0s"; // Or handle as an error/future time
+        }
 
         long days = TimeUnit.MILLISECONDS.toDays(durationMillis);
         durationMillis -= TimeUnit.DAYS.toMillis(days);
@@ -102,7 +113,7 @@ public class GrimHistory implements BuildableCommand {
         if (days > 0) result.append(days).append("d ");
         if (hours > 0) result.append(hours).append("h ");
         if (minutes > 0) result.append(minutes).append("m ");
-        if (seconds > 0) result.append(seconds).append("s");
+        if (seconds > 0 || result.length() == 0) result.append(seconds).append("s"); // Always show seconds if nothing else, or if it's 0s.
 
         return result.toString().trim();
     }

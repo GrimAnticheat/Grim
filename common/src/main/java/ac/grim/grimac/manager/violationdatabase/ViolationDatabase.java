@@ -10,7 +10,7 @@ public interface ViolationDatabase {
 
     void connect() throws SQLException;
 
-    void logAlert(GrimPlayer player, String verbose, String checkName, int vls);
+    void logAlert(GrimPlayer player, String grimVersion, String verbose, String checkName, int vls);
 
     int getLogCount(UUID player);
 

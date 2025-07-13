@@ -5,6 +5,8 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.init.ReloadableInitable;
 import ac.grim.grimac.manager.init.start.StartableInitable;
+import ac.grim.grimac.manager.violationdatabase.mysql.MySQLViolationDatabase;
+import ac.grim.grimac.manager.violationdatabase.sqlite.SQLiteViolationDatabase;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import lombok.Getter;
@@ -102,7 +104,8 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
     }
 
     public void logAlert(GrimPlayer player, String verbose, String checkName, int vls) {
-        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(plugin, () -> database.logAlert(player, verbose, checkName, vls));
+        String grimVersion = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(plugin, () -> database.logAlert(player, grimVersion, verbose, checkName, vls));
     }
 
     public int getLogCount(UUID player) {
