@@ -63,43 +63,55 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) || player.inVehicle()) {
-                if (teleport.isRelativeFlag(RelativeFlag.X)) {
+                boolean relativeX = teleport.isRelativeFlag(RelativeFlag.X),
+                        relativeY = teleport.isRelativeFlag(RelativeFlag.Y),
+                        relativeZ = teleport.isRelativeFlag(RelativeFlag.Z);
+
+                if (relativeX) {
                     pos = pos.add(new Vector3d(player.x, 0, 0));
                     teleport.setRelative(RelativeFlag.X, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.Y)) {
+                if (relativeY) {
                     pos = pos.add(new Vector3d(0, player.y, 0));
                     teleport.setRelative(RelativeFlag.Y, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.Z)) {
+                if (relativeZ) {
                     pos = pos.add(new Vector3d(0, 0, player.z));
                     teleport.setRelative(RelativeFlag.Z, false);
                 }
 
-                teleport.setX(pos.getX());
-                teleport.setY(pos.getY());
-                teleport.setZ(pos.getZ());
+                if (relativeX || relativeY || relativeZ) {
+                    teleport.setX(pos.getX());
+                    teleport.setY(pos.getY());
+                    teleport.setZ(pos.getZ());
 
-                event.markForReEncode(true);
+                    event.markForReEncode(true);
+                }
             }
 
             if (STUPID_TELEPORT_SYSTEM && player.inVehicle()) {
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_X)) {
+                boolean relativeDeltaX = teleport.isRelativeFlag(RelativeFlag.DELTA_X),
+                        relativeDeltaY = teleport.isRelativeFlag(RelativeFlag.DELTA_Y),
+                        relativeDeltaZ = teleport.isRelativeFlag(RelativeFlag.DELTA_Z);
+
+                if (relativeDeltaX) {
                     teleport.setRelative(RelativeFlag.DELTA_X, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_Y)) {
+                if (relativeDeltaY) {
                     teleport.setRelative(RelativeFlag.DELTA_Y, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_Z)) {
+                if (relativeDeltaZ) {
                     teleport.setRelative(RelativeFlag.DELTA_Z, false);
                 }
 
-                teleport.setDeltaMovement(Vector3d.zero());
-                event.markForReEncode(true);
+                if (relativeDeltaX || relativeDeltaY || relativeDeltaZ) {
+                    teleport.setDeltaMovement(Vector3d.zero());
+                    event.markForReEncode(true);
+                }
             }
 
             player.sendTransaction();
