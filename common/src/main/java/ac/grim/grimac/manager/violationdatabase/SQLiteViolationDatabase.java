@@ -56,8 +56,8 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
         ) {
             insertLog.setString(1, GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("history.server-name", "Prison"));
             insertLog.setString(2, player.getUniqueId().toString());
-            insertLog.setString(3, verbose);
-            insertLog.setString(4, checkName);
+            insertLog.setString(3, checkName);
+            insertLog.setString(4, verbose);
             insertLog.setInt(5, vls);
             insertLog.setLong(6, System.currentTimeMillis());
 
