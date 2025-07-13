@@ -21,8 +21,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVe
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
-    private static final boolean STUPID_TELEPORT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
-
     public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
     }
@@ -62,7 +60,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) || player.inVehicle()) {
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
                 if (teleport.isRelativeFlag(RelativeFlag.X)) {
                     pos = pos.add(new Vector3d(player.x, 0, 0));
                     teleport.setRelative(RelativeFlag.X, false);
@@ -81,25 +79,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 teleport.setX(pos.getX());
                 teleport.setY(pos.getY());
                 teleport.setZ(pos.getZ());
-
-                event.markForReEncode(true);
-            }
-
-            if (STUPID_TELEPORT_SYSTEM && player.inVehicle()) {
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_X)) {
-                    teleport.setRelative(RelativeFlag.DELTA_X, false);
-                }
-
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_Y)) {
-                    teleport.setRelative(RelativeFlag.DELTA_Y, false);
-                }
-
-                if (teleport.isRelativeFlag(RelativeFlag.DELTA_Z)) {
-                    teleport.setRelative(RelativeFlag.DELTA_Z, false);
-                }
-
-                teleport.setDeltaMovement(Vector3d.zero());
-                event.markForReEncode(true);
             }
 
             player.sendTransaction();
