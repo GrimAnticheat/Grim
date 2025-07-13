@@ -63,4 +63,12 @@ help:
     - "/grim spectate <player> &f- &7Een speler bekijken"
     - "/grim verbose &f- &7Toont elke flag, zonder buffers"
     - "/grim log [0-255] &f- &7Uploadt een debug-log voor voorspellings-flaggen"
+    - "/grim history <player> [pagina] &f- &7Toont eerdere waarschuwingen voor de speler"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cGeschiedenissubsysteem kon niet worden geladen! Controleer de serverconsole op fouten."
+grim-history-disabled: "%prefix% &cHet geschiedenissubsysteem is uitgeschakeld!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bLogbestanden tonen voor &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bMislukt &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% geleden&7)"

@@ -56,6 +56,7 @@ public class InitManager {
                 .add(GrimAPI.INSTANCE.getAlertManager())
                 .add(GrimAPI.INSTANCE.getDiscordManager())
                 .add(GrimAPI.INSTANCE.getSpectateManager())
+                .add(GrimAPI.INSTANCE.getViolationDatabaseManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())

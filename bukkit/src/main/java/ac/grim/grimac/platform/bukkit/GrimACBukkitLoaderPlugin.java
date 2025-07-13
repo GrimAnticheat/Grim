@@ -13,7 +13,7 @@ import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -60,7 +60,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
 
     private final PlatformPlayerFactory playerFactory = new BukkitPlatformPlayerFactory();
-    private final ParserDescriptorFactory parserFactory = new BukkitParserDescriptorFactory();
+    private final CommandAdapter parserFactory = new BukkitParserDescriptorFactory();
     private final PlatformPluginManager platformPluginManager = new BukkitPlatformPluginManager();
     private final GrimPlugin plugin;
     private final PlatformServer platformServer = new BukkitPlatformServer();
@@ -118,7 +118,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
-    public ParserDescriptorFactory getParserDescriptorFactory() {
+    public CommandAdapter getCommandAdapter() {
         return parserFactory;
     }
 

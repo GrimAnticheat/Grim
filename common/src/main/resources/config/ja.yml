@@ -214,4 +214,20 @@ max-ping-out-of-flying: 1000
 # これにより、レイテンシの高いプレイヤーが1つのロケット花火による加速でエリトラを永久に使用するのを防ぎます。
 max-ping-firework-boost: 1000
 
+history:
+    enabled: true
+    # /grim history <player> で 1 ページに表示するエントリー数
+    entries-per-page: 15
+    # history コマンドで挿入されるサーバー名は？ 複数サーバーで同じデータベースを使用する場合に便利
+    server-name: Prison
+    database:
+        # ローカル保存には SQLITE、外部 MySQL データベースには MYSQL を使用します。サーバー再起動時にのみ反映
+        type: SQLITE
+        # MySQL 接続情報
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
 config-version: 9

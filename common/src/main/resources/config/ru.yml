@@ -201,4 +201,20 @@ max-ping-out-of-flying: 1000
 # Это предотвращает возможность для игроков с большим пингом бесконечно использовать один фейерверк‑буст с элитрой.
 max-ping-firework-boost: 1000
 
+history:
+    enabled: true
+    # Сколько записей показывать на странице команды /grim history <player>
+    entries-per-page: 15
+    # Какое имя сервера вставлять для команды history? Полезно при использовании одной базы для нескольких серверов
+    server-name: Prison
+    database:
+        # Используйте SQLITE для локального хранения или MYSQL для внешней MySQL‑БД. Изменения применяются после перезапуска сервера
+        type: SQLITE
+        # Параметры подключения MySQL
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
 config-version: 9

@@ -1,12 +1,20 @@
 package ac.grim.grimac.platform.fabric.manager;
 
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.incendo.cloud.parser.ParserDescriptor;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 
-public class FabricParserDescriptorFactory implements ParserDescriptorFactory {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class FabricParserDescriptorFactory implements CommandAdapter {
 
     private final FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser;
 
@@ -15,7 +23,22 @@ public class FabricParserDescriptorFactory implements ParserDescriptorFactory {
     }
 
     @Override
-    public ParserDescriptor<Sender, PlayerSelector> getSinglePlayer() {
+    public ParserDescriptor<Sender, PlayerSelector> singlePlayerSelectorParser() {
         return fabricPlayerSelectorParser.descriptor();
+    }
+
+    // TODO (Cross-platform) brigadier style & better suggestions
+    @Override
+    public SuggestionProvider<Sender> onlinePlayerSuggestions() {
+        return (context, input) -> {
+            List<Suggestion> suggestions = new ArrayList<>();
+
+            // TODO Support Vanish mods?
+            for(ServerPlayerEntity player : GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayerList()) {
+                suggestions.add(Suggestion.suggestion(player.getName().getString()));
+            }
+
+            return CompletableFuture.completedFuture(suggestions);
+        };
     }
 }
