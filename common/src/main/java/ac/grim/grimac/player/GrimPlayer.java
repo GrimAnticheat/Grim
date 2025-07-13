@@ -737,22 +737,14 @@ public class GrimPlayer implements GrimUser {
                 if (data != null) {
                     user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
-
-                // vehicle velocity is present after dismounting, this is a workaround for that
-                // otherwise jumping on a horse and then dismounting it will cause false positives
-                // it's just easier to do this rather than dealing with all this transaction splitting bullshit
-                //
-                // TODO: turns out to be a 1.21.2+ client/1.21.2+ server issue
-                if (supportsEndTick()) {
-                    user.writePacket(new WrapperPlayServerEntityVelocity(entityID, new Vector3d()));
-                }
             }
         });
 
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
+            // 1.21.5 introduced this again!
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) || getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
