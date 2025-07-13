@@ -61,4 +61,12 @@ help:
     - "/grim spectate <player> &f- &7Especta um jogador."
     - "/grim verbose &f- &7Esconde as informações extra."
     - "/grim log [0-255] &f- &7Envia o registro da simulação."
+    - "/grim history <player> [página] &f- &7Mostra alertas anteriores do jogador"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cO subsistema de histórico falhou ao carregar! Verifique o console do servidor por erros."
+grim-history-disabled: "%prefix% &cO subsistema de histórico está desativado!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bMostrando logs de &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bFalhou &f%check% (x&c%vl%&f) &7%verbose% (&bhá %timeago%&7)"

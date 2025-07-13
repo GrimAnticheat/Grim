@@ -62,4 +62,12 @@ help:
     - "/grim spectate <player> &f- &7Beobachte einen Spieler"
     - "/grim verbose &f- &7Zeigt dir jeden Verstoß ohne Puffer an"
     - "/grim log [0-255] &f- &7Lädt ein Debug-Log für Vorhersagefehler hoch"
+    - "/grim history <player> [Seite] &f- &7Zeigt frühere Warnungen für den Spieler"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cDas Verlaufs-Subsystem konnte nicht geladen werden! Überprüfe die Serverkonsole auf Fehler."
+grim-history-disabled: "%prefix% &cDas History‑Subsystem ist deaktiviert!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bZeige Logs für &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bFehlgeschlagen &f%check% (x&c%vl%&f) &7%verbose% (&bvor %timeago%&7)"

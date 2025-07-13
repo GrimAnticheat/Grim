@@ -60,4 +60,12 @@ help:
     - "/grim spectate <player> &f- &7プレイヤーを観戦します"
     - "/grim verbose &f- &7全てのフラグをバッファなしで表示します"
     - "/grim log [0-255] &f- &7予測フラグのデバッグログをアップロードします"
+    - "/grim history <player> [ページ] &f- &7プレイヤーの過去のアラートを表示します"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &c履歴サブシステムの読み込みに失敗しました！サーバーコンソールでエラーを確認してください。"
+grim-history-disabled: "%prefix% &c履歴サブシステムは無効です！"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &b%player% のログを表示中 (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &b失敗 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"

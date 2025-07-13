@@ -202,4 +202,20 @@ max-ping-out-of-flying: 1000
 # Cela empêche les joueurs à forte latence d’utiliser indéfiniment un seul boost de feu d’artifice avec une élytra.
 max-ping-firework-boost: 1000
 
+history:
+    enabled: true
+    # Combien d’entrées doivent être affichées par page avec /grim history <player>
+    entries-per-page: 15
+    # Quel nom de serveur doit être inséré pour la commande history ? Utile si vous utilisez la même base de données pour plusieurs serveurs
+    server-name: Prison
+    database:
+        # Utilisez SQLITE pour un stockage local, MYSQL si vous disposez d’une base MySQL externe. Mis à jour seulement au redémarrage du serveur
+        type: SQLITE
+        # Détails de connexion MySQL
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
 config-version: 9

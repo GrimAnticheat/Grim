@@ -19,7 +19,7 @@ public class GrimProfile implements BuildableCommand {
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("profile")
                         .permission("grim.profile")
-                        .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                        .required("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
                         .handler(this::handleProfile)
         );
     }

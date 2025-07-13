@@ -205,4 +205,20 @@ max-ping-out-of-flying: 1000
 # Bu, yüksek gecikmeli oyuncuların bir havai fişek ivmesini elytra ile sonsuza kadar kullanmalarını engeller.
 max-ping-firework-boost: 1000
 
+history:
+    enabled: true
+    # /grim history <player> ile her sayfada kaç kayıt gösterilsin
+    entries-per-page: 15
+    # History komutu için eklenecek sunucu adı nedir? Aynı veritabanını birden fazla sunucuda kullanıyorsanız faydalıdır
+    server-name: Prison
+    database:
+        # Yerel saklama için SQLITE, harici MySQL veritabanı için MYSQL kullanın. Sadece sunucu yeniden başlatıldığında güncellenir
+        type: SQLITE
+        # MySQL bağlantı bilgileri
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
 config-version: 9

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1161;
 
-import ac.grim.grimac.platform.api.PlatformServer;
+import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
@@ -32,7 +32,7 @@ public class GrimACFabric1161LoaderPlugin extends GrimACFabricLoaderPlugin {
 
     protected GrimACFabric1161LoaderPlugin(
             FabricPlatformPlayerFactory playerFactory,
-            PlatformServer platformServer,
+            AbstractFabricPlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil
     ) {

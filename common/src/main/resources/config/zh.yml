@@ -208,5 +208,21 @@ max-ping-out-of-flying: 1000
 # 填写-1则关闭
 max-ping-firework-boost: 1000
 
+history:
+    enabled: true
+    # 使用 /grim history <player> 时每页显示多少条记录
+    entries-per-page: 15
+    # history 指令中插入的服务器名称？如果多个服务器共用同一数据库则很有用
+    server-name: Prison
+    database:
+        # 本地存储使用 SQLITE，外部数据库使用 MYSQL。仅在重启服务器后生效
+        type: SQLITE
+        # MySQL 连接详情
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
 # 不要调整这个
 config-version: 9

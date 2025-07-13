@@ -63,4 +63,12 @@ help:
     - "/grim spectate <player> &f- &7Espectar a un jugador"
     - "/grim verbose &f- &7Te muestra todo aviso, sin buffers"
     - "/grim log [0-255] &f- &7Sube un registro de depuración para avisos de predicciones"
+    - "/grim history <player> [página] &f- &7Muestra alertas previas del jugador"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &c¡El subsistema de historial no se pudo cargar! Revisa la consola del servidor en busca de errores."
+grim-history-disabled: "%prefix% &c¡El subsistema de historial está deshabilitado!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bMostrando registros de &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bFallido &f%check% (x&c%vl%&f) &7%verbose% (&bhace %timeago%&7)"

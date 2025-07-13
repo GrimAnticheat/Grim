@@ -6,7 +6,6 @@ import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.events.GrimReloadEvent;
-import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
@@ -72,8 +71,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public String getGrimVersion() {
-        GrimPluginDescription description = GrimAPI.INSTANCE.getGrimPlugin().getDescription();
-        return description.getVersion();
+        return api.getGrimPlugin().getDescription().getVersion();
     }
 
     @Override
@@ -181,6 +179,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         GrimAPI.INSTANCE.getAlertManager().reload(configManager);
         GrimAPI.INSTANCE.getDiscordManager().reload();
         GrimAPI.INSTANCE.getSpectateManager().reload();
+        GrimAPI.INSTANCE.getViolationDatabaseManager().reload();
         // Don't reload players if the plugin hasn't started yet
         if (!started) return;
         // Reload checks for all players

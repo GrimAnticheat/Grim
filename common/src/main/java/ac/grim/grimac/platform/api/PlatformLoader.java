@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.api;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -19,7 +19,7 @@ public interface PlatformLoader {
 
     PlatformPlayerFactory getPlatformPlayerFactory();
 
-    ParserDescriptorFactory getParserDescriptorFactory();
+    CommandAdapter getCommandAdapter();
 
     PacketEventsAPI<?> getPacketEvents();
 

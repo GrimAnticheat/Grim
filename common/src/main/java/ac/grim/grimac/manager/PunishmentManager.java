@@ -137,6 +137,11 @@ public class PunishmentManager implements ConfigReloadable {
 
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
+                                case "[log]" -> {
+                                    int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
+                                    String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
+                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                                }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
                                     sentDebug = true;

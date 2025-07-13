@@ -55,4 +55,12 @@ help:
     - "/grim spectate <giocatore> &f- &7Osserva un giocatore"
     - "/grim verbose &f- &7Mostra ogni segnalazione a te, senza buffer"
     - "/grim log [0-255] &f- &7Carica un registro di debug per le segnalazioni di previsione"
+    - "/grim history <player> [pagina] &f- &7Mostra gli avvisi precedenti del giocatore"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cImpossibile caricare il sottosistema della cronologia! Controlla la console del server per errori."
+grim-history-disabled: "%prefix% &cIl sottosistema cronologia è disabilitato!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bMostrando log per &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bFallito &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% fa&7)"

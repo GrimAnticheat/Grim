@@ -1,15 +1,13 @@
 package ac.grim.grimac.platform.api.entity;
 
+import ac.grim.grimac.api.GrimIdentity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface GrimEntity {
-    UUID getUniqueId();
-
+public interface GrimEntity extends GrimIdentity {
     /**
      * Eject any passenger.
      *
