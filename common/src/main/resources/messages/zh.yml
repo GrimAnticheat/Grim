@@ -66,6 +66,7 @@ help:
     - "/grim history <player> [页码] &f- &7显示玩家之前的警报"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &c历史子系统加载失败！请检查服务器控制台中的错误。"
 grim-history-disabled: "%prefix% &c历史子系统已禁用！"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &b显示 &f%player% 的日志 (&f%page%&b/&f%maxPages%&f)"

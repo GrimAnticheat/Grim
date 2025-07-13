@@ -66,6 +66,7 @@ help:
     - "/grim history <player> [página] &f- &7Muestra alertas previas del jugador"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &c¡El subsistema de historial no se pudo cargar! Revisa la consola del servidor en busca de errores."
 grim-history-disabled: "%prefix% &c¡El subsistema de historial está deshabilitado!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bMostrando registros de &f%player% (&f%page%&b/&f%maxPages%&f)"

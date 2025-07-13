@@ -66,6 +66,7 @@ help:
     - "/grim history <player> [страница] &f- &7Показывает предыдущие предупреждения игрока"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &cНе удалось загрузить подсистему истории! Проверьте консоль сервера на наличие ошибок."
 grim-history-disabled: "%prefix% &cПодсистема истории отключена!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bПоказ журналов для &f%player% (&f%page%&b/&f%maxPages%&f)"

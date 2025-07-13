@@ -66,6 +66,7 @@ help:
     - "/grim history <player> [pagina] &f- &7Toont eerdere waarschuwingen voor de speler"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &cGeschiedenissubsysteem kon niet worden geladen! Controleer de serverconsole op fouten."
 grim-history-disabled: "%prefix% &cHet geschiedenissubsysteem is uitgeschakeld!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bLogbestanden tonen voor &f%player% (&f%page%&b/&f%maxPages%&f)"

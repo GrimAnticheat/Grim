@@ -63,6 +63,7 @@ help:
     - "/grim history <player> [ページ] &f- &7プレイヤーの過去のアラートを表示します"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &c履歴サブシステムの読み込みに失敗しました！サーバーコンソールでエラーを確認してください。"
 grim-history-disabled: "%prefix% &c履歴サブシステムは無効です！"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &b%player% のログを表示中 (&f%page%&b/&f%maxPages%&f)"

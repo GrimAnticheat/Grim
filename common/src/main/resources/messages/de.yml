@@ -65,6 +65,7 @@ help:
     - "/grim history <player> [Seite] &f- &7Zeigt frühere Warnungen für den Spieler"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &cDas Verlaufs-Subsystem konnte nicht geladen werden! Überprüfe die Serverkonsole auf Fehler."
 grim-history-disabled: "%prefix% &cDas History‑Subsystem ist deaktiviert!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bZeige Logs für &f%player% (&f%page%&b/&f%maxPages%&f)"

@@ -9,7 +9,7 @@ public final class NoOpViolationDatabase implements ViolationDatabase {
     public static final NoOpViolationDatabase INSTANCE = new NoOpViolationDatabase();
     private NoOpViolationDatabase() {}
 
-    @Override public void connect()    {}
+    @Override public void connect()    { }
     @Override public void disconnect() {}
     @Override public void logAlert(GrimPlayer p, String v, String c, int vl) {}
     @Override public int getLogCount(UUID player) { return 0; }

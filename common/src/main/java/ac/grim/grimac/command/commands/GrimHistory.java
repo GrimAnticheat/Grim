@@ -42,6 +42,12 @@ public class GrimHistory implements BuildableCommand {
                             "%prefix% &cHistory subsystem is disabled!");
             sender.sendMessage(MessageUtil.miniMessage(msg));
             return;
+        } else if (!GrimAPI.INSTANCE.getViolationDatabaseManager().isLoaded()) {
+            String msg = GrimAPI.INSTANCE.getConfigManager().getConfig()
+                    .getStringElse("grim-history-load-failure",
+                            "%prefix% &cHistory subsystem failed to load! Check server console for errors.");
+            sender.sendMessage(MessageUtil.miniMessage(msg));
+            return;
         }
 
         GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> {

@@ -66,6 +66,7 @@ help:
     - "/grim history <player> [sayfa] &f- &7Oyuncunun önceki uyarılarını gösterir"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar için sunucu konsolunu kontrol edin."
 grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bKayıtlar gösteriliyor: &f%player% (&f%page%&b/&f%maxPages%&f)"

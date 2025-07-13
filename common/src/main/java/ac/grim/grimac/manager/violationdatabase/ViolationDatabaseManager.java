@@ -8,6 +8,7 @@ import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -15,6 +16,8 @@ import java.util.logging.Level;
 public class ViolationDatabaseManager implements StartableInitable, ReloadableInitable {
 
     private final GrimPlugin plugin;
+    private boolean enabled = false;
+    private boolean loaded = false;
 
     private @NonNull ViolationDatabase database;
 
@@ -35,8 +38,8 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
 
     public void load() {
         ConfigManager cfg = GrimAPI.INSTANCE.getConfigManager().getConfig();
-        boolean enabled = cfg.getBooleanElse("history.enabled", false);
-        String rawType = enabled ? cfg.getStringElse("history.database.type", "SQLITE").toUpperCase() : "NOOP";
+        this.enabled = cfg.getBooleanElse("history.enabled", false);
+        String rawType = this.enabled ? cfg.getStringElse("history.database.type", "SQLITE").toUpperCase() : "NOOP";
 
         switch (rawType) {
             case "SQLITE" -> {
@@ -46,16 +49,21 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                         // Init sqlite
                         Class.forName("org.sqlite.JDBC");
                         this.database = new SQLiteViolationDatabase(plugin);
+                        database.connect();
+                        loaded = true;
                     } catch (ClassNotFoundException e) {
                         plugin.getLogger().log(Level.SEVERE,
                                 """
                                         Could not load SQLite driver for /grim history database.
                                         Download the minecraft-sqlite-jdbc mod/plugin for SQLite support, or change history.database.type
-                                        Alternatively set history.enabled=false if /grim history support is not desired"""
+                                        Alternatively set history.enabled=false to remove this message if /grim history support is not desired"""
                         );
                         this.database = NoOpViolationDatabase.INSTANCE;
+                        loaded = false;
+                    } catch (SQLException e) {
+                        this.database = NoOpViolationDatabase.INSTANCE;
+                        loaded = false;
                     }
-                    database.connect();
                 }
             }
 
@@ -71,13 +79,20 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                 }
                 database.disconnect();
                 database = new MySQLViolationDatabase(plugin, host, db, user, pwd);
-                database.connect();
+                try {
+                    database.connect();
+                    loaded = true;
+                } catch (SQLException e) {
+                    this.database = NoOpViolationDatabase.INSTANCE;
+                    loaded = false;
+                }
             }
 
             default -> {                            // NOOP or invalid
                 if (!(database instanceof NoOpViolationDatabase)) {
                     database.disconnect();
                     database = NoOpViolationDatabase.INSTANCE;
+                    loaded = false;
                 }
             }
         }
@@ -96,6 +111,10 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
     }
 
     public boolean isEnabled() {
-        return !(database instanceof NoOpViolationDatabase);
+        return enabled;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
     }
 }

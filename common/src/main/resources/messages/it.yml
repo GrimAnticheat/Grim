@@ -58,6 +58,7 @@ help:
     - "/grim history <player> [pagina] &f- &7Mostra gli avvisi precedenti del giocatore"
     - "&7======================"
 
+grim-history-load-failure: "%prefix% &cImpossibile caricare il sottosistema della cronologia! Controlla la console del server per errori."
 grim-history-disabled: "%prefix% &cIl sottosistema cronologia è disabilitato!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%
 grim-history-header: "%prefix% &bMostrando log per &f%player% (&f%page%&b/&f%maxPages%&f)"

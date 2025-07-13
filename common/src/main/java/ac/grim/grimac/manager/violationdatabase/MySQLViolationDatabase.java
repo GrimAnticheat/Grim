@@ -38,7 +38,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
     }
 
     @Override
-    public void connect() {
+    public void connect() throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS violations(" +
@@ -57,6 +57,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             ).execute();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Failed to generate violations database:", ex);
+            throw ex;
         }
     }
 

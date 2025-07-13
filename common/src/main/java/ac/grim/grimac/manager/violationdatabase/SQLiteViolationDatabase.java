@@ -23,7 +23,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
     }
 
     @Override
-    public void connect() {
+    public void connect() throws SQLException {
         try (Connection connection = getConnection()) {
             connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS violations(" +
@@ -42,6 +42,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
             ).execute();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Failed to generate violations database:", ex);
+            throw ex;
         }
     }
 
