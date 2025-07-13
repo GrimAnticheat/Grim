@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-@CheckData(name = "PositionPlace")
+@CheckData(name = "PositionPlace", description = "Placed a block against a hidden face")
 public class PositionPlace extends BlockPlaceCheck {
 
     public PositionPlace(GrimPlayer player) {

@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3i;
 
-@CheckData(name = "AirLiquidPlace")
+@CheckData(name = "AirLiquidPlace", description = "Placed a block against an invalid support")
 public class AirLiquidPlace extends BlockPlaceCheck {
     public AirLiquidPlace(GrimPlayer player) {
         super(player);

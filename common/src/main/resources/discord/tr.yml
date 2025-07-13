@@ -1,6 +1,8 @@
 enabled: false
 webhook: ""
+embed-title: "**Grim Alert**"
 embed-color: "#00FFFF"
+include-timestamp: true
 violation-content:
     - "**Oyuncu**: %player%"
     - "**Kontrol**: %check%"

@@ -6,36 +6,23 @@ import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
-import ac.grim.grimac.checks.impl.breaking.AirLiquidBreak;
-import ac.grim.grimac.checks.impl.breaking.FarBreak;
-import ac.grim.grimac.checks.impl.breaking.FastBreak;
-import ac.grim.grimac.checks.impl.breaking.InvalidBreak;
-import ac.grim.grimac.checks.impl.breaking.MultiBreak;
-import ac.grim.grimac.checks.impl.breaking.NoSwingBreak;
-import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
-import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
-import ac.grim.grimac.checks.impl.breaking.RotationBreak;
-import ac.grim.grimac.checks.impl.breaking.WrongBreak;
+import ac.grim.grimac.checks.impl.breaking.*;
+import ac.grim.grimac.checks.impl.chat.ChatA;
+import ac.grim.grimac.checks.impl.chat.ChatB;
+import ac.grim.grimac.checks.impl.chat.ChatC;
+import ac.grim.grimac.checks.impl.chat.ChatD;
 import ac.grim.grimac.checks.impl.combat.Hitboxes;
 import ac.grim.grimac.checks.impl.combat.MultiInteractA;
 import ac.grim.grimac.checks.impl.combat.MultiInteractB;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.*;
-import ac.grim.grimac.checks.impl.elytra.ElytraA;
-import ac.grim.grimac.checks.impl.elytra.ElytraB;
-import ac.grim.grimac.checks.impl.elytra.ElytraC;
-import ac.grim.grimac.checks.impl.elytra.ElytraD;
-import ac.grim.grimac.checks.impl.elytra.ElytraE;
-import ac.grim.grimac.checks.impl.elytra.ElytraF;
-import ac.grim.grimac.checks.impl.elytra.ElytraG;
-import ac.grim.grimac.checks.impl.elytra.ElytraH;
-import ac.grim.grimac.checks.impl.elytra.ElytraI;
+import ac.grim.grimac.checks.impl.elytra.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
-import ac.grim.grimac.checks.impl.exploit.ExploitC;
 import ac.grim.grimac.checks.impl.groundspoof.NoFall;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
+import ac.grim.grimac.checks.impl.misc.Post;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
@@ -43,39 +30,20 @@ import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
 import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.packetorder.*;
-import ac.grim.grimac.checks.impl.misc.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.GroundSpoof;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.Phase;
-import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
-import ac.grim.grimac.checks.impl.scaffolding.DuplicateRotPlace;
-import ac.grim.grimac.checks.impl.scaffolding.FabricatedPlace;
-import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
-import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceA;
-import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceB;
-import ac.grim.grimac.checks.impl.scaffolding.MultiPlace;
-import ac.grim.grimac.checks.impl.scaffolding.PositionPlace;
-import ac.grim.grimac.checks.impl.scaffolding.RotationPlace;
+import ac.grim.grimac.checks.impl.scaffolding.*;
 import ac.grim.grimac.checks.impl.sprint.*;
-import ac.grim.grimac.checks.impl.timer.NegativeTimer;
-import ac.grim.grimac.checks.impl.timer.TickTimer;
-import ac.grim.grimac.checks.impl.timer.Timer;
-import ac.grim.grimac.checks.impl.timer.TimerLimit;
-import ac.grim.grimac.checks.impl.timer.VehicleTimer;
+import ac.grim.grimac.checks.impl.timer.*;
 import ac.grim.grimac.checks.impl.vehicle.VehicleA;
 import ac.grim.grimac.checks.impl.vehicle.VehicleB;
 import ac.grim.grimac.checks.impl.vehicle.VehicleC;
 import ac.grim.grimac.checks.impl.vehicle.VehicleD;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
-import ac.grim.grimac.checks.type.BlockPlaceCheck;
-import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.checks.type.PositionCheck;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
-import ac.grim.grimac.checks.type.RotationCheck;
-import ac.grim.grimac.checks.type.VehicleCheck;
+import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
@@ -85,12 +53,7 @@ import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
-import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
-import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
-import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
@@ -131,9 +94,12 @@ public class CheckManager {
                 .put(TeamHandler.class, new TeamHandler(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFall.class, new NoFall(player))
+                .put(ChatA.class, new ChatA(player))
+                .put(ChatB.class, new ChatB(player))
+                .put(ChatC.class, new ChatC(player))
+                .put(ChatD.class, new ChatD(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
-                .put(ExploitC.class, new ExploitC(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))

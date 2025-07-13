@@ -2,6 +2,7 @@ enabled: false
 webhook: ""
 embed-title: "**Grim Warnung**"
 embed-color: "#00FFFF"
+include-timestamp: true
 violation-content:
     - "**Spieler**: %player%"
     - "**Überprüfung**: %check%"

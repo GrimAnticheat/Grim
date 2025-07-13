@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.exploit;
+package ac.grim.grimac.checks.impl.chat;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -14,10 +14,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCh
 
 // this can false from click events, but I doubt this would actually
 // happen unless they're trying to flag, or if the server is set up badly
-@CheckData(name = "ExploitC", description = "Invalid chat message")
-public class ExploitC extends Check implements PacketCheck {
-    public ExploitC(GrimPlayer playerData) {
-        super(playerData);
+@CheckData(name = "ChatB", description = "Invalid chat message")
+public class ChatB extends Check implements PacketCheck {
+    public ChatB(GrimPlayer player) {
+        super(player);
     }
 
     @Override

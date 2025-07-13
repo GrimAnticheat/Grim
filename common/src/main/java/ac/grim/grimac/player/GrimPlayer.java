@@ -29,6 +29,7 @@ import ac.grim.grimac.utils.change.PlayerBlockHistory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -440,12 +441,17 @@ public class GrimPlayer implements GrimUser {
         final PacketEntity riding = self.getRiding();
         if (riding == null) return (float) self.getAttributeValue(Attributes.STEP_HEIGHT);
 
-        if (riding.isBoat || riding.isHappyGhast) {
+        if (riding.isBoat) {
             return 0f;
         }
 
+        float value = (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        if (riding.isHappyGhast) {
+            return ((PacketEntityHappyGhast) riding).isControllingPassenger() ? Math.max(value, 1.0F) : value;
+        }
+
         // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
-        return (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        return value;
     }
 
     public void sendTransaction() {
@@ -696,7 +702,12 @@ public class GrimPlayer implements GrimUser {
             // If we actually need to check vehicle movement
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 // And if the vehicle is a type of vehicle that we track
-                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
+                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) ||
+                        EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) ||
+                        data.getEntityType() == EntityTypes.PIG ||
+                        data.getEntityType() == EntityTypes.STRIDER ||
+                        data.getEntityType() == EntityTypes.CAMEL ||
+                        data.getEntityType() == EntityTypes.HAPPY_GHAST) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
@@ -725,6 +736,15 @@ public class GrimPlayer implements GrimUser {
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
                     user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                }
+
+                // vehicle velocity is present after dismounting, this is a workaround for that
+                // otherwise jumping on a horse and then dismounting it will cause false positives
+                // it's just easier to do this rather than dealing with all this transaction splitting bullshit
+                //
+                // TODO: turns out to be a 1.21.2+ client/1.21.2+ server issue
+                if (supportsEndTick()) {
+                    user.writePacket(new WrapperPlayServerEntityVelocity(entityID, new Vector3d()));
                 }
             }
         });

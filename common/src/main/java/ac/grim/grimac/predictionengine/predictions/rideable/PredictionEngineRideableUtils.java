@@ -71,8 +71,6 @@ public final class PredictionEngineRideableUtils {
     private static void handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
-        //
-        // There's a float/double error causing 1e-8 imprecision if anyone wants to debug it
         final boolean wantsToJump = player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
         if (!wantsToJump) return;
 
@@ -82,7 +80,7 @@ public final class PredictionEngineRideableUtils {
             forwardInput *= 0.25F;
         }
 
-        double jumpFactor = horse.getAttributeValue(Attributes.JUMP_STRENGTH) * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
+        double jumpFactor = (float) horse.getAttributeValue(Attributes.JUMP_STRENGTH) * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
         double jumpVelocity;
 
         // This doesn't even work because vehicle jump boost has (likely) been

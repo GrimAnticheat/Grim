@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiPlace", experimental = true)
+@CheckData(name = "MultiPlace", description = "Placed multiple blocks in a tick", experimental = true)
 public class MultiPlace extends BlockPlaceCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean hasPlaced;

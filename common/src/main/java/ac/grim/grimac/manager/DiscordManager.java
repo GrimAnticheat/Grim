@@ -37,6 +37,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private int embedColor;
     private String staticContent = "";
     private String embedTitle = "";
+    private boolean includeTimestamp;
 
     @Override
     public void start() {
@@ -73,6 +74,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 sb.append(string).append("\n");
             }
             staticContent = sb.toString();
+            includeTimestamp = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("include-timestamp", true);
         } catch (Exception e) {
             LogUtil.error("Failed to load Discord webhook configuration", e);
         }
@@ -105,8 +107,11 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 .thumbnailURL("https://crafthead.net/helm/" + player.user.getProfile().getUUID())
                 .color(embedColor)
                 .title(embedTitle)
-                .timestamp(Instant.now())
                 .footer(new EmbedFooter("", "https://grim.ac/images/grim.png"));
+
+        if (includeTimestamp) {
+            embed.timestamp(Instant.now());
+        }
 
         if (!verbose.isEmpty()) {
             embed.addFields(new EmbedField("Verbose", MessageUtil.filterDiscordText(verbose), true));

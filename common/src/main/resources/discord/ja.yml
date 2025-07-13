@@ -5,6 +5,7 @@ enabled: false
 webhook: ""
 embed-title: "**Grim アラート**"
 embed-color: "#00FFFF"
+include-timestamp: true
 violation-content:
     - "**プレイヤー**: %player%"
     - "**違反項目**: %check%"

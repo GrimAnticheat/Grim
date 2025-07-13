@@ -12,6 +12,8 @@ embed-title: "**Grim Alert**"
 # El color del embed que se mandara por este webhook.
 embed-color: "#00FFFF"
 
+include-timestamp: true
+
 # El contenido del embed que se mandara por este webhook.
 violation-content:
     - "**Jugador**: %player%"

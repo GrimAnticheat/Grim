@@ -85,6 +85,8 @@ Punishments:
       - "Break"
       - "TransactionOrder"
       - "Elytra"
+      - "Chat"
+      - "Exploit"
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"

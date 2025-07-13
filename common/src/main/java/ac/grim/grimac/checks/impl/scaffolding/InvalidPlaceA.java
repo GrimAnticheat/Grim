@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.util.Vector3f;
 
-@CheckData(name = "InvalidPlaceA")
+@CheckData(name = "InvalidPlaceA", description = "Sent invalid cursor position")
 public class InvalidPlaceA extends BlockPlaceCheck {
     public InvalidPlaceA(GrimPlayer player) {
         super(player);
