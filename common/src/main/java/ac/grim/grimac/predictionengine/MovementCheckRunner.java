@@ -317,6 +317,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
         }
 
+        player.lastJumping = player.isJumping;
+        player.isJumping = player.packetStateData.knownInput.jump();
+
         boolean oldFlying = player.isFlying;
         boolean oldGliding = player.isGliding;
         boolean oldSprinting = player.isSprinting;

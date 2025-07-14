@@ -14,7 +14,7 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
         PacketEntityHappyGhast happyGhastPacket = (PacketEntityHappyGhast) player.compensatedEntities.self.getRiding();
         if (!happyGhastPacket.isControllingPassenger()) return;
 
-        player.speed = happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED) * 5.0F / 3.0F;
+        player.speed = (float) happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED) * 5.0F / 3.0F;
 
         // Setup player inputs
         float sideways = player.vehicleData.vehicleHorizontal;
@@ -33,7 +33,7 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
             forward = calcForward;
         }
 
-        if (player.packetStateData.knownInput.jump()) {
+        if (player.lastJumping) {
             upAndDown += 0.5F;
         }
 

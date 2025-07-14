@@ -274,6 +274,7 @@ public class GrimPlayer implements GrimUser {
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
     public boolean wasLastPredictionCompleteChecked;
+    public boolean isJumping = false, lastJumping = false;
 
     public GrimPlayer(@NonNull User user) {
         this.user = user;
