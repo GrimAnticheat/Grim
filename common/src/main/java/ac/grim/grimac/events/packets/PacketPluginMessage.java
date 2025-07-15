@@ -2,12 +2,10 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
-import com.github.retrooper.packetevents.PacketEvents;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
@@ -15,13 +13,17 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static net.kyori.adventure.text.Component.text;
+
 // Grim has no way of knowing the actual protocol version of players when viaversion is used on the proxy
 // Luckily, viaversion now forwards the original client version in vv:proxy_details plugin message
 // Plugin messages should never be trusted as they can be spoofed, but in this instance, it doesn't matter
+// Additionally, viaversion on proxy, when installed, blocks the client from sending any spoofed "vv:proxy_details" packets
 // https://github.com/ViaVersion/ViaVersion/blob/fd5dadbe01b4e522def2b0509ef6e831c1ce881d/velocity/src/main/java/com/viaversion/viaversion/velocity/listeners/ConnectionDetailsListener.java#L37
 public class PacketPluginMessage extends PacketListenerAbstract {
     private static final String VIA_VERSION_PROXY_DETAILS_CHANNEL = "vv:proxy_details";
@@ -46,6 +48,9 @@ public class PacketPluginMessage extends PacketListenerAbstract {
     private void handle(PacketReceiveEvent event, String channel, byte[] data) {
         if (!channel.equals(VIA_VERSION_PROXY_DETAILS_CHANNEL)) return;
 
+        // Ignore via:proxy messages if we have viaversion locally
+        if (ViaVersionUtil.isAvailable()) return;
+
         if (data.length > 4096) return; // sanity
 
         String payload = new String(data, StandardCharsets.UTF_8);
@@ -67,10 +72,9 @@ public class PacketPluginMessage extends PacketListenerAbstract {
 
         player.hasSentViaProxyPacket = true;
         player.user.setClientVersion(version);
-        
-        if (HAS_SHOWN_WARNING.compareAndSet(false, true)
-                && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
-            LogUtil.warn("ViaVersion on the proxy has been detected, this may cause issues with 1.9+ clients on 1.8 servers, we recommend installing it on the server itself!");
+
+        if (HAS_SHOWN_WARNING.compareAndSet(false, true) && player.hasPermission("grim.alerts")) {
+            player.sendMessage(text("ViaVersion on the proxy has been detected, this may cause issues with 1.9+ clients on 1.8 servers, we recommend installing it on the server itself!", NamedTextColor.RED));
         }
     }
 }
