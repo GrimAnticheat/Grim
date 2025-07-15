@@ -51,7 +51,7 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         // Ignore via:proxy messages if we have viaversion locally
         if (ViaVersionUtil.isAvailable()) return;
 
-        if (data.length > 4096) return; // sanity
+        if (data.length > 2048) return; // sanity
 
         String payload = new String(data, StandardCharsets.UTF_8);
 
@@ -74,7 +74,7 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         player.user.setClientVersion(version);
 
         if (HAS_SHOWN_WARNING.compareAndSet(false, true) && player.hasPermission("grim.alerts")) {
-            player.sendMessage(text("ViaVersion on the proxy has been detected, this may cause issues with 1.9+ clients on 1.8 servers, we recommend installing it on the server itself!", NamedTextColor.RED));
+            player.sendMessage(text("ViaVersion on the proxy has been detected, this may cause issues, we recommend installing it on the server itself!", NamedTextColor.RED));
         }
     }
 }
