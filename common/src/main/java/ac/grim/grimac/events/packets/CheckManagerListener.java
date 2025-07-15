@@ -694,16 +694,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.cancelDuplicatePacket = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
-            player.serverOpenedInventoryThisTick = false;
-            if (!player.packetStateData.didSendMovementBeforeTickEnd) {
-                // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
-                player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
-                player.packetStateData.didLastMovementIncludePosition = false;
-            }
-            player.packetStateData.didSendMovementBeforeTickEnd = false;
-        }
-
         // Finally, remove the packet state variables on this packet
         player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
         player.packetStateData.lastPacketWasTeleport = false;

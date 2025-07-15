@@ -25,7 +25,7 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
             if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 if (player.packetOrderProcessor.isClickingInInventory() || player.packetOrderProcessor.isClosingInventory()) {
                     String verbose = "open, clicking=" + player.packetOrderProcessor.isClickingInInventory() + ", closing=" + player.packetOrderProcessor.isClosingInventory();
-                    if (!player.canSkipTicks()) {
+                    if (!player.canSkipTicksPreVia()) {
                         flagAndAlert(verbose);
                     } else {
                         flags.add(verbose);
@@ -37,7 +37,7 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW || event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             if (player.packetOrderProcessor.isOpeningInventory()) {
                 String verbose = event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW ? "click" : "close";
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -51,7 +51,7 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

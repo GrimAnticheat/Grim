@@ -1,20 +1,6 @@
 package ac.grim.grimac.manager.init.start;
 
-import ac.grim.grimac.events.packets.CheckManagerListener;
-import ac.grim.grimac.events.packets.PacketBlockAction;
-import ac.grim.grimac.events.packets.PacketEntityAction;
-import ac.grim.grimac.events.packets.PacketHidePlayerInfo;
-import ac.grim.grimac.events.packets.PacketPingListener;
-import ac.grim.grimac.events.packets.PacketPlayerAttack;
-import ac.grim.grimac.events.packets.PacketPlayerCooldown;
-import ac.grim.grimac.events.packets.PacketPlayerDigging;
-import ac.grim.grimac.events.packets.PacketPlayerJoinQuit;
-import ac.grim.grimac.events.packets.PacketPlayerRespawn;
-import ac.grim.grimac.events.packets.PacketPlayerSteer;
-import ac.grim.grimac.events.packets.PacketSelfMetadataListener;
-import ac.grim.grimac.events.packets.PacketServerTags;
-import ac.grim.grimac.events.packets.PacketServerTeleport;
-import ac.grim.grimac.events.packets.ProxyAlertMessenger;
+import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEight;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
@@ -28,6 +14,7 @@ public class PacketManager implements StartableInitable {
     public void start() {
         LogUtil.info("Registering packets...");
 
+        PacketEvents.getAPI().getEventManager().registerListener(new PreViaCheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerJoinQuit());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPingListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerDigging());

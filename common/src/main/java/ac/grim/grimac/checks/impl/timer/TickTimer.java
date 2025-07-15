@@ -2,14 +2,13 @@ package ac.grim.grimac.checks.impl.timer;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-
 @CheckData(name = "TickTimer", setback = 1)
-public class TickTimer extends Check implements PostPredictionCheck {
+public class TickTimer extends Check implements PacketCheck {
 
     private boolean receivedTickEnd = true;
     private int flyingPackets = 0;
@@ -20,7 +19,7 @@ public class TickTimer extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!player.supportsEndTick()) return;
+        if (!player.supportsEndTickPreVia()) return;
         if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
             if (!receivedTickEnd && flagAndAlertWithSetback("type=flying, packets=" + flyingPackets)) {
                 handleViolation();

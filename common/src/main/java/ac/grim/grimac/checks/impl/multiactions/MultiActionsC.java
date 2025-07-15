@@ -29,7 +29,7 @@ public class MultiActionsC extends Check implements PacketCheck {
             verbose.add("sneaking");
         }
 
-        if (player.supportsEndTick() && player.packetStateData.knownInput.moving()) {
+        if (player.supportsEndTickPreVia() && player.packetStateData.knownInput.moving()) {
             verbose.add("input");
         }
 

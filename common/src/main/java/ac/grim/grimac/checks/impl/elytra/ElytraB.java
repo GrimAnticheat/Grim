@@ -22,7 +22,7 @@ public class ElytraB extends Check implements PostPredictionCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
                 && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
-                && player.supportsEndTick()
+                && player.supportsEndTickPreVia()
         ) {
             if (player.packetStateData.knownInput.jump()) {
                 if (flagAndAlert("no release")) {

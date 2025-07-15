@@ -37,7 +37,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
                             + ", picking=" + player.packetOrderProcessor.isPicking()
                             + ", releasing=" + player.packetOrderProcessor.isReleasing()
                             + ", digging=" + player.packetOrderProcessor.isDigging();
-                    if (!player.canSkipTicks()) {
+                    if (!player.canSkipTicksPreVia()) {
                         if (flagAndAlert(verbose) && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -48,7 +48,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
                 }
             } else if (player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
                 String verbose = "type=interact, releasing=" + player.packetOrderProcessor.isReleasing() + ", digging=" + player.packetOrderProcessor.isDigging();
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -62,7 +62,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT || event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             if (player.packetOrderProcessor.isReleasing() || digging) {
                 String verbose = "type=place/use, releasing=" + player.packetOrderProcessor.isReleasing() + ", digging=" + digging;
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -83,7 +83,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
                                 + ", rightClicking=" + player.packetOrderProcessor.isRightClicking()
                                 + ", picking=" + player.packetOrderProcessor.isPicking()
                                 + ", digging=" + player.packetOrderProcessor.isDigging();
-                        if (!player.canSkipTicks()) {
+                        if (!player.canSkipTicksPreVia()) {
                             if (flagAndAlert(verbose)) {
                                 setback = true;
                             }
@@ -113,7 +113,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) {
+        if (!player.canSkipTicksPreVia()) {
             if (setback) {
                 setbackIfAboveSetbackVL();
                 setback = false;

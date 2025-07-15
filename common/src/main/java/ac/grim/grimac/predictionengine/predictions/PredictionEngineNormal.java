@@ -37,7 +37,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        if (player.supportsEndTick() && !player.packetStateData.knownInput.jump()) {
+        if (player.supportsEndTickPreVia() && !player.packetStateData.knownInput.jump()) {
             return;
         }
 
