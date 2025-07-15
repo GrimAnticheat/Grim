@@ -2,9 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
@@ -14,6 +17,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // Grim has no way of knowing the actual protocol version of players when viaversion is used on the proxy
 // Luckily, viaversion now forwards the original client version in vv:proxy_details plugin message
@@ -22,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 public class PacketPluginMessage extends PacketListenerAbstract {
     private static final String VIA_VERSION_PROXY_DETAILS_CHANNEL = "vv:proxy_details";
     private static final Gson GSON = new GsonBuilder().create();
+    private static final AtomicBoolean HAS_SHOWN_WARNING = new AtomicBoolean(false);
 
     public PacketPluginMessage() {
         super(PacketListenerPriority.HIGH);
@@ -58,8 +63,14 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         if (version == null) return;
 
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-        if (player == null) return;
+        if (player == null || player.hasSentViaProxyPacket) return;
 
+        player.hasSentViaProxyPacket = true;
         player.user.setClientVersion(version);
+        
+        if (HAS_SHOWN_WARNING.compareAndSet(false, true)
+                && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+            LogUtil.warn("ViaVersion on the proxy has been detected, this may cause issues with 1.9+ clients on 1.8 servers, we recommend installing it on the server itself!");
+        }
     }
 }
