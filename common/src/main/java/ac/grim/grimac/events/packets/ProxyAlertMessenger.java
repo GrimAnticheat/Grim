@@ -20,7 +20,7 @@ import java.io.*;
 
 // TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
-    private static boolean usingProxy;
+    public static boolean usingProxy;
 
     public ProxyAlertMessenger() {
         usingProxy = ProxyAlertMessenger.getBooleanFromFile("spigot.yml", "settings.bungeecord")
