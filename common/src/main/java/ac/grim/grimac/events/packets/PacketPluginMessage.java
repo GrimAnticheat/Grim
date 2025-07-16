@@ -51,7 +51,7 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         // Ignore via:proxy messages if we have viaversion locally
         if (ViaVersionUtil.isAvailable()) return;
 
-        if (data.length > 2048) return; // sanity
+        if (data.length > 512) return; // sanity
 
         String payload = new String(data, StandardCharsets.UTF_8);
 
