@@ -28,7 +28,6 @@ import static net.kyori.adventure.text.Component.text;
 public class PacketPluginMessage extends PacketListenerAbstract {
     private static final String VIA_VERSION_PROXY_DETAILS_CHANNEL = "vv:proxy_details";
     private static final Gson GSON = new GsonBuilder().create();
-    private static final AtomicBoolean HAS_SHOWN_WARNING = new AtomicBoolean(false);
 
     public PacketPluginMessage() {
         super(PacketListenerPriority.HIGH);
@@ -48,10 +47,10 @@ public class PacketPluginMessage extends PacketListenerAbstract {
     private void handle(PacketReceiveEvent event, String channel, byte[] data) {
         if (!channel.equals(VIA_VERSION_PROXY_DETAILS_CHANNEL)) return;
 
-        // Ignore via:proxy messages if we have viaversion locally
-        if (ViaVersionUtil.isAvailable()) return;
+        // Ignore via:proxy messages if we have viaversion locally or aren't using proxy
+        if (ViaVersionUtil.isAvailable() || !ProxyAlertMessenger.usingProxy) return;
 
-        if (data.length > 512) return; // sanity
+        if (data.length > 4096) return; // sanity
 
         String payload = new String(data, StandardCharsets.UTF_8);
 
@@ -73,8 +72,8 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         player.hasSentViaProxyPacket = true;
         player.user.setClientVersion(version);
 
-        if (HAS_SHOWN_WARNING.compareAndSet(false, true) && player.hasPermission("grim.alerts")) {
-            player.sendMessage(text("ViaVersion on the proxy has been detected, this may cause issues, we recommend installing it on the server itself!", NamedTextColor.RED));
+        if (player.hasPermission("grim.alerts")) {
+            player.sendMessage(text("ViaVersion on the proxy has been detected, this may cause issues with 1.9+ clients on 1.8 servers, we recommend installing it on the server itself!", NamedTextColor.RED));
         }
     }
 }
