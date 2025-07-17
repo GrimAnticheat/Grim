@@ -465,7 +465,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (didNotSendPreWave) player.sendTransaction();
 
         if (data != null) {
-            if (data.isHorse()) {
+            if (data.isJumpableEntity()) {
                 event.markForReEncode(true); // mark for re-encode so onGround status = false will be sent
             }
 
