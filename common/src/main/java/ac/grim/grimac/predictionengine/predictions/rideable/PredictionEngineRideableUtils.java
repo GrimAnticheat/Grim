@@ -50,7 +50,7 @@ public final class PredictionEngineRideableUtils {
 
         if (horse.nextHorseJump != 0.0F) {
             horse.horseJump = horse.nextHorseJump;
-            horse.nextHorseJump = 0;
+            horse.nextHorseJump = 0.0F;
         }
 
         player.vehicleData.firstRidingTick = false;
@@ -80,6 +80,7 @@ public final class PredictionEngineRideableUtils {
             vectorData.vector.add(jumpVelocity);
         }
 
+        camel.horseJump = 0.0F;
         player.vehicleData.horseJumping = true;
         player.vehicleData.camelDashCooldown = 55;
     }
