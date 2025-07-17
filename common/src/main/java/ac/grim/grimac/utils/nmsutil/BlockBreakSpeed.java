@@ -45,6 +45,7 @@ public class BlockBreakSpeed {
             StateTypes.BREWING_STAND,
             StateTypes.ENDER_CHEST
     );
+
     public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
         // GET destroy speed
         // Starts with itemstack get destroy speed
