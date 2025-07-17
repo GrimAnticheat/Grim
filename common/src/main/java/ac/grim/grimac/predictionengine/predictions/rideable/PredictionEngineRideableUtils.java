@@ -17,7 +17,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -37,35 +36,21 @@ public final class PredictionEngineRideableUtils {
         if (horse instanceof PacketEntityCamel camel) {
             handleCamelDash(player, possibleVectors, camel);
         } else {
-            Set<VectorData> possible = new HashSet<>();
-
-            // which version did mojang broke this in? don't know, don't care (1.12.2 works fine, so let's assume 1.13+ (it's definitely broken in 1.14.4))
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && horse.lastHorseJump != null && horse.dismounted && player.lastOnGround) {
-                float horseJump = player.vehicleData.horseJump;
-                boolean horseJumping = player.vehicleData.horseJumping;
-
-                player.vehicleData.horseJump = horse.lastHorseJump;
-                player.vehicleData.horseJumping = false;
-
-                possible.addAll(handleHorseJumping(player, possibleVectors, horse));
-
-                player.vehicleData.horseJump = horseJump;
-                player.vehicleData.horseJumping = horseJumping;
-
-                horse.lastHorseJump = null;
-                horse.dismounted = false;
-            }
-
-            possible.addAll(handleHorseJumping(player, possibleVectors, horse));
-
-            possibleVectors.clear();
-            possibleVectors.addAll(possible);
+            handleHorseJumping(player, possibleVectors, horse);
         }
 
         // More jumping stuff
         if (player.lastOnGround) {
-            player.vehicleData.horseJump = 0.0F;
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+                horse.horseJump = 0.0F;
+            }
+
             player.vehicleData.horseJumping = false;
+        }
+
+        if (horse.nextHorseJump != 0.0F) {
+            horse.horseJump = horse.nextHorseJump;
+            horse.nextHorseJump = 0;
         }
 
         player.vehicleData.firstRidingTick = false;
@@ -74,7 +59,7 @@ public final class PredictionEngineRideableUtils {
     }
 
     private static void handleCamelDash(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityCamel camel) {
-        final boolean wantsToJump = player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
+        final boolean wantsToJump = camel.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
         if (!wantsToJump) return;
 
         final double jumpFactor = camel.getAttributeValue(Attributes.JUMP_STRENGTH) * JumpPower.getPlayerJumpFactor(player);
@@ -88,8 +73,8 @@ public final class PredictionEngineRideableUtils {
             jumpYVelocity = jumpFactor;
         }
 
-        final double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector3dm(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector3dm(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0));
+        final double multiplier = (double) (22.2222F * camel.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
+        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector3dm(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector3dm(0, (double) (1.4285F * camel.horseJump) * jumpYVelocity, 0));
 
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.add(jumpVelocity);
@@ -99,11 +84,11 @@ public final class PredictionEngineRideableUtils {
         player.vehicleData.camelDashCooldown = 55;
     }
 
-    private static Set<VectorData> handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
+    private static void handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
-        final boolean wantsToJump = player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
-        if (!wantsToJump) return possibleVectors;
+        final boolean wantsToJump = horse.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
+        if (!wantsToJump) return;
 
         float forwardInput = player.vehicleData.vehicleForward;
 
@@ -111,7 +96,7 @@ public final class PredictionEngineRideableUtils {
             forwardInput *= 0.25F;
         }
 
-        double jumpFactor = (float) horse.getAttributeValue(Attributes.JUMP_STRENGTH) * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
+        double jumpFactor = (float) horse.getAttributeValue(Attributes.JUMP_STRENGTH) * horse.horseJump * JumpPower.getPlayerJumpFactor(player);
         double jumpVelocity;
 
         // This doesn't even work because vehicle jump boost has (likely) been
@@ -130,20 +115,14 @@ public final class PredictionEngineRideableUtils {
         float f2 = player.trigHandler.sin(player.xRot * ((float) Math.PI / 180F));
         float f3 = player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F));
 
-        Set<VectorData> possible = new HashSet<>();
         for (VectorData vectorData : possibleVectors) {
-            VectorData modified = vectorData.returnNewModified(vectorData.vector.clone(), vectorData.vectorType);
-
-            modified.vector.setY(jumpVelocity);
+            vectorData.vector.setY(jumpVelocity);
             if (forwardInput > 0.0F) {
-                modified.vector.add(new Vector3dm(-0.4F * f2 * player.vehicleData.horseJump, 0.0D, 0.4F * f3 * player.vehicleData.horseJump));
+                vectorData.vector.add(new Vector3dm(-0.4F * f2 * horse.horseJump, 0.0D, 0.4F * f3 * horse.horseJump));
             }
-
-            possible.add(modified);
         }
 
-        player.vehicleData.horseJump = 0.0F;
-        return possible;
+        horse.horseJump = 0.0F;
     }
 
     public static List<VectorData> applyInputsToVelocityPossibilities(Vector3dm movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {

@@ -615,10 +615,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
-        if (player.onGround) { // if vehicle is on ground, this gets set
-            player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
-            player.vehicleData.nextHorseJump = 0;
-        }
 
         player.vehicleData.camelDashCooldown = Math.max(0, player.vehicleData.camelDashCooldown - 1);
 

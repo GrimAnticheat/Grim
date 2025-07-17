@@ -451,10 +451,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (mounted) {
                 player.vehicleData.firstRidingTick = true;
             }
-
-            if (dismounted && vehicle instanceof PacketEntityHorse horse) {
-                horse.dismounted = true;
-            }
         });
     }
 
