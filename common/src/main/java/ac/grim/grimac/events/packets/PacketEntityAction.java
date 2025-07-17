@@ -87,7 +87,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     }
                     PacketEntity riding = player.compensatedEntities.self.getRiding();
                     if (riding instanceof PacketEntityHorse horse) {
-                        horse.horseJump = player.vehicleData.nextHorseJump;
+                        horse.lastHorseJump = player.vehicleData.nextHorseJump;
                     }
                     break;
             }

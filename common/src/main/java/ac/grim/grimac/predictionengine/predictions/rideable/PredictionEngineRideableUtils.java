@@ -29,17 +29,22 @@ public final class PredictionEngineRideableUtils {
         if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse horse))
             return possibleVectors;
 
+        boolean lastOnGround = player.lastOnGround;
+        if (player.vehicleData.firstRidingTick) {
+            player.lastOnGround = false;
+        }
+
         if (horse instanceof PacketEntityCamel camel) {
             handleCamelDash(player, possibleVectors, camel);
         } else {
             Set<VectorData> possible = new HashSet<>();
 
             // which version did mojang broke this in? don't know, don't care (1.12.2 works fine, so let's assume 1.13+ (it's definitely broken in 1.14.4))
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && horse.horseJump != null && horse.dismounted) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && horse.lastHorseJump != null && horse.dismounted && player.lastOnGround) {
                 float horseJump = player.vehicleData.horseJump;
                 boolean horseJumping = player.vehicleData.horseJumping;
 
-                player.vehicleData.horseJump = horse.horseJump;
+                player.vehicleData.horseJump = horse.lastHorseJump;
                 player.vehicleData.horseJumping = false;
 
                 possible.addAll(handleHorseJumping(player, possibleVectors, horse));
@@ -47,7 +52,8 @@ public final class PredictionEngineRideableUtils {
                 player.vehicleData.horseJump = horseJump;
                 player.vehicleData.horseJumping = horseJumping;
 
-                horse.horseJump = null;
+                horse.lastHorseJump = null;
+                horse.dismounted = false;
             }
 
             possible.addAll(handleHorseJumping(player, possibleVectors, horse));
@@ -56,14 +62,14 @@ public final class PredictionEngineRideableUtils {
             possibleVectors.addAll(possible);
         }
 
-        horse.dismounted = false;
-
         // More jumping stuff
         if (player.lastOnGround) {
             player.vehicleData.horseJump = 0.0F;
             player.vehicleData.horseJumping = false;
         }
 
+        player.vehicleData.firstRidingTick = false;
+        player.lastOnGround = lastOnGround;
         return possibleVectors;
     }
 

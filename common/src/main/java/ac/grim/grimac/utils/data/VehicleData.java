@@ -25,4 +25,5 @@ public class VehicleData {
     public float horseJump = 0;
     public boolean horseJumping = false;
     public int camelDashCooldown;
+    public boolean firstRidingTick = false;
 }
