@@ -416,6 +416,11 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (inThisVehicle) break;
         }
 
+        // Better lag compensation if we were affected by this
+        if (wasInVehicle || inThisVehicle) {
+            player.sendTransaction();
+        }
+
         final boolean mounted = inThisVehicle && !wasInVehicle;
         if (mounted) {
             player.handleMountVehicle(vehicleID);
@@ -424,10 +429,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         final boolean dismounted = !inThisVehicle && wasInVehicle;
         if (dismounted) {
             player.handleDismountVehicle(event);
-        }
-        // Better lag compensation if we were affected by this
-        if (wasInVehicle || inThisVehicle) {
-            player.sendTransaction();
         }
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {

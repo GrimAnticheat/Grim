@@ -730,11 +730,12 @@ public class GrimPlayer implements GrimUser {
         // Help prevent transaction split
         sendTransaction();
 
+        int ridingId = getRidingVehicleId();
+        TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
+
         compensatedEntities.serverPlayerVehicle = null;
         event.getTasksAfterSend().add(() -> {
             if (inVehicle()) {
-                int ridingId = getRidingVehicleId();
-                TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
                     user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
@@ -745,7 +746,7 @@ public class GrimPlayer implements GrimUser {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
             // 1.21.5 introduced this again!
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) || getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) || (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && (data != null && data.getEntityType() == EntityTypes.MINECART))) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });

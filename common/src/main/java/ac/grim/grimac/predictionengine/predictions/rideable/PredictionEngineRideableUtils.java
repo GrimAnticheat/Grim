@@ -33,24 +33,32 @@ public final class PredictionEngineRideableUtils {
             player.lastOnGround = false;
         }
 
-        if (horse instanceof PacketEntityCamel camel) {
-            handleCamelDash(player, possibleVectors, camel);
+        boolean isCamel = horse instanceof PacketEntityCamel;
+        if (isCamel) {
+            handleCamelDash(player, possibleVectors, (PacketEntityCamel) horse);
         } else {
             handleHorseJumping(player, possibleVectors, horse);
         }
 
         // More jumping stuff
         if (player.lastOnGround) {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+            if (isCamel || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
                 horse.horseJump = 0.0F;
             }
 
             player.vehicleData.horseJumping = false;
         }
 
-        if (horse.nextHorseJump != 0.0F) {
-            horse.horseJump = horse.nextHorseJump;
-            horse.nextHorseJump = 0.0F;
+        if (isCamel) {
+            if (player.lastOnGround) {
+                horse.horseJump = horse.nextHorseJump;
+                horse.nextHorseJump = 0;
+            }
+        } else {
+            if (horse.nextHorseJump != 0.0F) {
+                horse.horseJump = horse.nextHorseJump;
+                horse.nextHorseJump = 0.0F;
+            }
         }
 
         player.vehicleData.firstRidingTick = false;
@@ -80,7 +88,6 @@ public final class PredictionEngineRideableUtils {
             vectorData.vector.add(jumpVelocity);
         }
 
-        camel.horseJump = 0.0F;
         player.vehicleData.horseJumping = true;
         player.vehicleData.camelDashCooldown = 55;
     }

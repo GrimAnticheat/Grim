@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.bukkit.initables;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.bukkit.events.PistonEvent;
+import ac.grim.grimac.platform.bukkit.events.VehicleExitEvent;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import org.bukkit.Bukkit;
 
@@ -11,5 +12,8 @@ public class BukkitEventManager implements StartableInitable {
         LogUtil.info("Registering singular bukkit event... (PistonEvent)");
 
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), GrimACBukkitLoaderPlugin.LOADER);
+        if (VehicleExitEvent.canBeRegistered()) {
+            Bukkit.getPluginManager().registerEvents(new VehicleExitEvent(), GrimACBukkitLoaderPlugin.LOADER);
+        }
     }
 }
