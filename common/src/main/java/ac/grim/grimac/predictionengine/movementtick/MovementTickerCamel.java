@@ -18,6 +18,6 @@ public class MovementTickerCamel extends MovementTickerHorse {
         final boolean wantsToJump = camel.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
         if (wantsToJump) return 0;
 
-        return player.isSprinting && player.vehicleData.camelDashCooldown <= 0 && !camel.dashing ? 0.1f : 0.0f;
+        return player.isSprinting && camel.dashCooldown <= 0 && !camel.dashing ? 0.1f : 0.0f;
     }
 }

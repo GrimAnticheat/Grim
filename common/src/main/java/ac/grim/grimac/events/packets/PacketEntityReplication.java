@@ -8,8 +8,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -149,6 +149,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             handleMoveEntity(event, move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
+
+            if (isDirectlyAffectingPlayer(player, entityMetadata.getEntityId())) player.sendTransaction();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_EQUIPMENT) {
             WrapperPlayServerEntityEquipment equipment = new WrapperPlayServerEntityEquipment(event);
@@ -385,6 +387,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.latencyUtils.addRealTimeTask(destroyTransaction, () -> {
                 for (int integer : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(integer);
+                    player.compensatedCamels.removeCamel(integer);
                     player.fireworks.removeFirework(integer);
                     player.compensatedEntities.entitiesRemovedThisTick.add(integer);
                 }
@@ -540,7 +543,11 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
+            PacketEntity entity = player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
+            if (entity instanceof PacketEntityCamel camel) {
+                player.compensatedCamels.addCamel(entityID, camel);
+            }
+
             if (entityMetadata != null) {
                 player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
             }

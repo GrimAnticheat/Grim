@@ -703,7 +703,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 // Track camel dash cooldown
                 if (!player.inVehicle()) {
-                    player.vehicleData.camelDashCooldown = Math.max(0, player.vehicleData.camelDashCooldown - 1);
+                    player.compensatedCamels.tick();
                 }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;

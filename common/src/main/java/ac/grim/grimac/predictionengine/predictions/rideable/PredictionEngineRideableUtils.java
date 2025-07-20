@@ -81,8 +81,8 @@ public final class PredictionEngineRideableUtils {
         }
 
         player.vehicleData.horseJumping = true;
-        player.vehicleData.camelDashCooldown = 55;
 
+        camel.dashCooldown = 55;
         camel.horseJump = 0.0F;
     }
 

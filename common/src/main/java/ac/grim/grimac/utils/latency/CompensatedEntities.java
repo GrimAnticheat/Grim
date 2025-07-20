@@ -165,9 +165,9 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
+    public PacketEntity addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
-        if (entityType == EntityTypes.ITEM) return;
+        if (entityType == EntityTypes.ITEM) return null;
 
         PacketEntity packetEntity;
         if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
@@ -213,6 +213,7 @@ public class CompensatedEntities {
         }
 
         entityMap.put(entityID, packetEntity);
+        return packetEntity;
     }
 
     public PacketEntity getEntity(int entityID) {
@@ -408,11 +409,9 @@ public class CompensatedEntities {
                         if (entityData != null) {
                             camel.dashing = (boolean) entityData.getValue();
 
-                            // TODO: this should be tracked per entity
-                            // also there is
-                            // if (!this.firstTick && DASH.equals(accessor)) {
+                            // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
                             // !firstTick condition
-                            player.vehicleData.camelDashCooldown = player.vehicleData.camelDashCooldown == 0 ? 55 : player.vehicleData.camelDashCooldown;
+                            camel.dashCooldown = camel.dashCooldown == 0 ? 55 : camel.dashCooldown;
                         }
                     }
                 }
