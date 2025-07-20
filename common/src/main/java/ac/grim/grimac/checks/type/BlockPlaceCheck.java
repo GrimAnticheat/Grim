@@ -74,7 +74,7 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
             return new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
         }
 
-        HitboxData.getBlockHitbox(
+        int size = HitboxData.getBlockHitbox(
                 player,
                 place.material,
                 player.getClientVersion(),
@@ -86,7 +86,8 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
         ).downCast(boxes);
 
         SimpleCollisionBox combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ());
-        for (SimpleCollisionBox box : boxes) {
+        for (int i = 0; i < size; i++) {
+            SimpleCollisionBox box = boxes[i];
             combined = new SimpleCollisionBox(
                     Math.max(box.minX, combined.minX),
                     Math.max(box.minY, combined.minY),
