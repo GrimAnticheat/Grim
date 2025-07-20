@@ -407,6 +407,12 @@ public class CompensatedEntities {
                         EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
                         if (entityData != null) {
                             camel.dashing = (boolean) entityData.getValue();
+
+                            // TODO: this should be tracked per entity
+                            // also there is
+                            // if (!this.firstTick && DASH.equals(accessor)) {
+                            // !firstTick condition
+                            player.vehicleData.camelDashCooldown = player.vehicleData.camelDashCooldown == 0 ? 55 : player.vehicleData.camelDashCooldown;
                         }
                     }
                 }

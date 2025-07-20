@@ -33,32 +33,24 @@ public final class PredictionEngineRideableUtils {
             player.lastOnGround = false;
         }
 
-        boolean isCamel = horse instanceof PacketEntityCamel;
-        if (isCamel) {
-            handleCamelDash(player, possibleVectors, (PacketEntityCamel) horse);
+        if (horse instanceof PacketEntityCamel camel) {
+            handleCamelDash(player, possibleVectors, camel);
         } else {
             handleHorseJumping(player, possibleVectors, horse);
         }
 
         // More jumping stuff
         if (player.lastOnGround) {
-            if (isCamel || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
                 horse.horseJump = 0.0F;
             }
 
             player.vehicleData.horseJumping = false;
         }
 
-        if (isCamel) {
-            if (player.lastOnGround) {
-                horse.horseJump = horse.nextHorseJump;
-                horse.nextHorseJump = 0;
-            }
-        } else {
-            if (horse.nextHorseJump != 0.0F) {
-                horse.horseJump = horse.nextHorseJump;
-                horse.nextHorseJump = 0.0F;
-            }
+        if (horse.nextHorseJump != 0.0F) {
+            horse.horseJump = horse.nextHorseJump;
+            horse.nextHorseJump = 0.0F;
         }
 
         player.vehicleData.firstRidingTick = false;
@@ -90,6 +82,8 @@ public final class PredictionEngineRideableUtils {
 
         player.vehicleData.horseJumping = true;
         player.vehicleData.camelDashCooldown = 55;
+
+        camel.horseJump = 0.0F;
     }
 
     private static void handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
