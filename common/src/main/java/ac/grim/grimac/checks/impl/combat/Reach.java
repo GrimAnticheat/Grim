@@ -22,6 +22,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
@@ -240,6 +241,27 @@ public class Reach extends Check implements PacketCheck {
         // if the entity is not exempt and the entity is alive
         if ((!blacklisted.contains(reachEntity.type) && reachEntity.isLivingEntity) || reachEntity.type == EntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
+                // Interacting with a horse (not necessarily mounting it) forcefully sets the
+                // rotation of the player to the horse's rotation on the client in versions 1.13
+                // and lower, so in that case the rotation sent in the following flying packet
+                // is not the one used for interacting with the horse, but we used it for the reach
+                // calculation, which leads to hitbox flags. However, the player's position is
+                // still accurate, so this forced rotation will not cause reach falses, and we
+                // can still check reach on horse interactions.
+                //
+                // This even affects attacks from the same tick as the client only ray traces
+                // at the start of the tick, so an attack can occur first and then the interaction
+                // happens which breaks the rotation. We exempt attacks automatically because the
+                // horseInteractCausedForcedRotation is set as soon as an interact is received
+                // and is only set to false on the next flying/transaction. This function here is
+                // run either directly on attack/interact if packets have previously been cancelled
+                // or on that next flying/transaction so we always know if the rotation was forced.
+                // If there wasn't any interaction with a horse in a tick, attacks can still be
+                // checked normally.
+                if (reachEntity instanceof PacketEntityHorse && player.packetStateData.horseInteractCausedForcedRotation) {
+                    return NONE;
+                }
+
                 cancelBuffer = 1;
                 return new CheckResult(ResultType.HITBOX, "");
             } else if (minDistance > maxReach) {

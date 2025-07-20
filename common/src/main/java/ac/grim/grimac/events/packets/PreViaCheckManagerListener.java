@@ -331,8 +331,6 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
         if (!player.packetStateData.lastPacketWasTeleport) {
             player.packetStateData.didSendMovementBeforeTickEnd = true;
         }
-
-        player.packetStateData.horseInteractCausedForcedRotation = false;
     }
 
     private void handleDigging(GrimPlayer player, PacketReceiveEvent event) {
