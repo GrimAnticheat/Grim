@@ -149,8 +149,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             handleMoveEntity(event, move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
-
-            if (isDirectlyAffectingPlayer(player, entityMetadata.getEntityId())) player.sendTransaction();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_EQUIPMENT) {
             WrapperPlayServerEntityEquipment equipment = new WrapperPlayServerEntityEquipment(event);
