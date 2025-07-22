@@ -18,6 +18,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class SQLiteViolationDatabase implements ViolationDatabase {
 
@@ -227,6 +228,13 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
     }
 
     @Override
+    public CompletableFuture<Integer> getLogCountAsync(UUID player) {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(plugin, () -> future.complete(getLogCount(player)));
+        return future;
+    }
+
+    @Override
     public synchronized List<Violation> getViolations(UUID player, int page, int limit) {
         List<Violation> violations = new ArrayList<>();
         try (
@@ -263,6 +271,13 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
             LogUtil.error("Failed to fetch violations:", ex);
         }
         return violations;
+    }
+
+    @Override
+    public CompletableFuture<List<Violation>> getViolationsAsync(UUID player, int page, int limit) {
+        CompletableFuture<List<Violation>> future = new CompletableFuture<>();
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(plugin, () -> future.complete(getViolations(player, page, limit)));
+        return future;
     }
 
     @Override

@@ -1,7 +1,7 @@
 [versions]
 adventure = "4.23.0"
 adventure-platform-bukkit = "4.4.0"
-paper-api = "1.20.6-R0.1-SNAPSHOT"
+paper-api = "1.21.5-R0.1-SNAPSHOT"
 placeholderapi = "2.11.6"
 configuralize = "1.4.1:slim"
 cloud = "2.0.0"

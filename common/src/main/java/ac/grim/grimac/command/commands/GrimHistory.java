@@ -12,7 +12,6 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class GrimHistory implements BuildableCommand {
@@ -59,31 +58,31 @@ public class GrimHistory implements BuildableCommand {
             OfflinePlatformPlayer targetPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getOfflineFromName(target);
 
             ViolationDatabaseManager violations = GrimAPI.INSTANCE.getViolationDatabaseManager();
-            int logCount = violations.getLogCount(targetPlayer.getUniqueId());
-            List<Violation> logs = violations.getViolations(targetPlayer.getUniqueId(), page, entriesPerPage);
-            int maxPages = (int) Math.ceil((float) logCount / entriesPerPage);
+            violations.getLogCountAsync(targetPlayer.getUniqueId()).thenAcceptBoth(violations.getViolationsAsync(targetPlayer.getUniqueId(), page.intValue(), entriesPerPage), (logCount, logs) -> {
+                int maxPages = (int) Math.ceil((float) logCount / entriesPerPage);
 
-            sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, header
-                    .replace("%player%", targetPlayer.getName())
-                    .replace("%page%", String.valueOf(page))
-                    .replace("%maxPages%", String.valueOf(maxPages))
-            )));
-
-            for (int i = logs.size() - 1; i >= 0; i--) {
-                Violation log = logs.get(i);
-                sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, logFormat
+                sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, header
                         .replace("%player%", targetPlayer.getName())
-                        .replace("%grim_version%", log.grimVersion())
-                        .replace("%client_brand%", log.clientBrand())
-                        .replace("%client_version%", log.clientVersion())
-                        .replace("%server_version%", log.serverVersion())
-                        .replace("%check%", log.checkName())
-                        .replace("%verbose%", log.verbose())
-                        .replace("%vl%", String.valueOf(log.vl()))
-                        .replace("%timeago%", getTimeAgo(log.createdAt()))
-                        .replace("%server%", log.server())
+                        .replace("%page%", String.valueOf(page))
+                        .replace("%maxPages%", String.valueOf(maxPages))
                 )));
-            }
+
+                for (int i = logs.size() - 1; i >= 0; i--) {
+                    Violation log = logs.get(i);
+                    sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, logFormat
+                            .replace("%player%", targetPlayer.getName())
+                            .replace("%grim_version%", log.grimVersion())
+                            .replace("%client_brand%", log.clientBrand())
+                            .replace("%client_version%", log.clientVersion())
+                            .replace("%server_version%", log.serverVersion())
+                            .replace("%check%", log.checkName())
+                            .replace("%verbose%", log.verbose())
+                            .replace("%vl%", String.valueOf(log.vl()))
+                            .replace("%timeago%", getTimeAgo(log.createdAt()))
+                            .replace("%server%", log.server())
+                    )));
+                }
+            });
         });
     }
 

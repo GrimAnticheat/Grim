@@ -15,6 +15,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class ViolationDatabaseManager implements StartableInitable, ReloadableInitable {
 
@@ -112,8 +113,16 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
         return database.getLogCount(player);
     }
 
+    public CompletableFuture<Integer> getLogCountAsync(UUID player) {
+        return database.getLogCountAsync(player);
+    }
+
     public List<Violation> getViolations(UUID player, int page, int limit) {
         return database.getViolations(player, page, limit);
+    }
+
+    public CompletableFuture<List<Violation>> getViolationsAsync(UUID player, int page, int limit) {
+        return database.getViolationsAsync(player, page, limit);
     }
 
 }

@@ -144,7 +144,7 @@ publishing.publications.create<MavenPublication>("maven") {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.21.5")
     }
 
     shadowJar {
