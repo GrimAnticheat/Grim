@@ -117,7 +117,9 @@ public class BlockProperties {
      * On soul speed block (server-sided only)
      */
     private static StateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
-        Vector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
+        Vector3i pos = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_4)
+                ? new Vector3i(GrimMath.floor(playerPos.getX()), GrimMath.floor(playerPos.getY() - 0.5000001), GrimMath.floor(playerPos.getZ()))
+                : getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
         return player.compensatedWorld.getBlockType(pos.x, pos.y, pos.z);
     }
 
