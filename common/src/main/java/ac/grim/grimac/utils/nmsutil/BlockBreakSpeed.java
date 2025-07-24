@@ -16,11 +16,36 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.google.common.collect.Sets;
 
 import java.util.OptionalInt;
+import java.util.Set;
 
 public class BlockBreakSpeed {
+    // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2117
+    private static final Set<StateType> HARVESTABLE_TYPES_1_21_4 = Sets.newHashSet(
+            StateTypes.BELL,
+            StateTypes.LANTERN,
+            StateTypes.SOUL_LANTERN,
+            StateTypes.COPPER_DOOR,
+            StateTypes.EXPOSED_COPPER_DOOR,
+            StateTypes.OXIDIZED_COPPER_DOOR,
+            StateTypes.WEATHERED_COPPER_DOOR,
+            StateTypes.WAXED_COPPER_DOOR,
+            StateTypes.WAXED_EXPOSED_COPPER_DOOR,
+            StateTypes.WAXED_OXIDIZED_COPPER_DOOR,
+            StateTypes.WAXED_WEATHERED_COPPER_DOOR,
+            StateTypes.IRON_DOOR,
+            StateTypes.HEAVY_WEIGHTED_PRESSURE_PLATE,
+            StateTypes.LIGHT_WEIGHTED_PRESSURE_PLATE,
+            StateTypes.POLISHED_BLACKSTONE_PRESSURE_PLATE,
+            StateTypes.STONE_PRESSURE_PLATE,
+            StateTypes.BREWING_STAND,
+            StateTypes.ENDER_CHEST
+    );
+
     public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
         // GET destroy speed
         // Starts with itemstack get destroy speed
@@ -176,7 +201,7 @@ public class BlockBreakSpeed {
 
         boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop
                 // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
-                || block.getType() == StateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4);
+                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4) && HARVESTABLE_TYPES_1_21_4.contains(block.getType());
         if (canHarvest) {
             damage /= 30F;
         } else {

@@ -476,7 +476,7 @@ public class BlockPlace {
 
             // Blame mojang for this code, not me
             int i = 0;
-            while (i < faces.length && faces[i++] != direction.getOppositeFace()) ;
+            while (i < faces.length && faces[i] != direction.getOppositeFace()) i++;
 
             if (i > 0) {
                 System.arraycopy(faces, 0, faces, 1, i);
