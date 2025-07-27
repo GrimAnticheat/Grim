@@ -208,6 +208,12 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
             // Additionally, only yaw/pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
             if (player.isCancelDuplicatePacket()) {
                 player.packetStateData.cancelDuplicatePacket = true;
+            } else {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                    // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
+                    flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
+                    event.markForReEncode(true);
+                }
             }
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
