@@ -18,7 +18,7 @@ fabric-loom = "1.11.4"
 
 spotless = "6.25.0"
 lombok = "8.6"
-shadow = "9.0.0-beta8"
+shadow = "9.0.0-rc2"
 
 [libraries]
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure"}
