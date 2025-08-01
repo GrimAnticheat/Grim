@@ -40,7 +40,7 @@ public class GrimDebug implements BuildableCommand {
         Command.Builder<Sender> hitboxDebugCommand = grimCommand
                 .literal("hitboxdebug", Description.of("Toggle hitbox debug visualization"))
                 .permission("grim.hitboxdebug")
-                .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer(), Description.of("Player to debug (defaults to self if sender is player)"))
+                .optional("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser(), Description.of("Player to debug (defaults to self if sender is player)"))
                 .handler(this::handleHitboxDebug);
 
         // Register command

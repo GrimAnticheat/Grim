@@ -52,14 +52,14 @@ public class BlockPlace {
     private final GrimPlayer player;
     public final ItemStack itemStack;
     public final StateType material;
-    public final @Nullable HitData hitData;
+    public final @Nullable BlockHitData hitData;
     @Getter private int faceId;
     @Getter private BlockFace face;
     public boolean isInside;
     public Vector3f cursor;
     public final int sequence;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i position, int faceId, BlockFace face, ItemStack itemStack, @Nullable HitData hitData, int sequence) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i position, int faceId, BlockFace face, ItemStack itemStack, @Nullable BlockHitData hitData, int sequence) {
         this.player = player;
         this.hand = hand;
         this.position = position;

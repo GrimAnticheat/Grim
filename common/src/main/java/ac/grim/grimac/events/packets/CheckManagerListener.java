@@ -1,14 +1,13 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.inventory.InventoryB;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
+import ac.grim.grimac.utils.data.BlockHitData;
 import ac.grim.grimac.utils.data.BlockPlaceSnapshot;
-import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;

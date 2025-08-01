@@ -273,7 +273,7 @@ public class Reach extends Check implements PacketCheck {
                 minDistance = Double.MIN_VALUE;
                 foundHitData = hitData;
                 // until I fix block modeling exempt any blocks changed this tick
-            } else if (hitData instanceof BlockHitData && !blocksChangedThisTick.contains(((BlockHitData) hitData).getPosition())) {
+            } else if (hitData instanceof BlockHitData && !blocksChangedThisTick.contains(((BlockHitData) hitData).position())) {
                 minDistance = Double.MIN_VALUE;
                 foundHitData = hitData;
             }
@@ -284,7 +284,7 @@ public class Reach extends Check implements PacketCheck {
             if (minDistance == Double.MIN_VALUE && foundHitData != null) {
                 cancelBuffer = 1;
                 if (foundHitData instanceof BlockHitData) {
-                    return new CheckResult(ResultType.WALL_HIT, "Hit block=" + ((BlockHitData) foundHitData).getState().getType().getName() + " ");
+                    return new CheckResult(ResultType.WALL_HIT, "Hit block=" + ((BlockHitData) foundHitData).state().getType().getName() + " ");
                 } else { // entity hit data
                     return new CheckResult(ResultType.ENTITY_PIERCE, "Hit entity=" + ((EntityHitData) foundHitData).getEntity().type.getName() + " ");
                 }

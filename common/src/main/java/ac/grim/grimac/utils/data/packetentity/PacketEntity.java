@@ -237,10 +237,6 @@ public class PacketEntity extends TypedPacketEntity {
         return ReachInterpolationData.getOverlapHitbox(oldPacketLocation.getOverlapHitboxCombined(), newPacketLocation.getOverlapHitboxCombined());
     }
 
-    public PacketEntity getRiding() {
-        return riding;
-    }
-
     public OptionalInt getPotionEffectLevel(PotionType effect) {
         final int amplifier = potionsMap == null ? -1 : potionsMap.getInt(effect);
         return amplifier == -1 ? OptionalInt.empty() : OptionalInt.of(amplifier);

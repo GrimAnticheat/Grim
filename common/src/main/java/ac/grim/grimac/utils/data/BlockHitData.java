@@ -7,8 +7,10 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Getter
+@Accessors(fluent = true)
 @ToString
 public class BlockHitData extends HitData {
     Vector3i position;
