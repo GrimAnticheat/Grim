@@ -50,12 +50,13 @@ dependencies {
 }
 
 bukkit {
-    name = "GrimAC"
+    name = "LightningGrimAC"
     author = "GrimAC"
     main = "ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin"
     website = "https://grim.ac/"
     apiVersion = "1.13"
     foliaSupported = true
+    provides = listOf("GrimAC")
 
     if (!BuildConfig.shadePE) {
         depend = listOf("packetevents")

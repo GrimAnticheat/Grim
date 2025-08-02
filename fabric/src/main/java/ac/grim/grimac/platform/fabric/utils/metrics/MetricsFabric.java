@@ -97,7 +97,7 @@ public class MetricsFabric implements Metrics {
     }
 
     private void appendServiceData(JsonObjectBuilder builder) {
-        builder.appendField("pluginVersion", FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString());
+        builder.appendField("pluginVersion", FabricLoader.getInstance().getModContainer("lightninggrimac").get().getMetadata().getVersion().getFriendlyString());
     }
 
     private int getPlayerAmount() {

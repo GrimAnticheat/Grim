@@ -42,11 +42,11 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final LazyHolder<CommandManager<Sender>> commandManager = LazyHolder.simple(this::createCommandManager);
     protected final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
     protected final LazyHolder<GrimPlugin> plugin = LazyHolder.simple(() -> new BasicGrimPlugin(
-            JULoggerFactory.createLogger("GrimAC"),
-            new File(FabricLoader.getInstance().getConfigDir().toFile(), "GrimAC"),
-            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getVersion().getFriendlyString(),
-            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getDescription(),
-            FabricLoader.getInstance().getModContainer("grimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
+            JULoggerFactory.createLogger("LightningGrimAC"),
+            new File(FabricLoader.getInstance().getConfigDir().toFile(), "LightningGrimAC"),
+            FabricLoader.getInstance().getModContainer("lightninggrimac").get().getMetadata().getVersion().getFriendlyString(),
+            FabricLoader.getInstance().getModContainer("lightninggrimac").get().getMetadata().getDescription(),
+            FabricLoader.getInstance().getModContainer("lightninggrimac").get().getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
     ));
     @Getter
     protected final PlatformPluginManager pluginManager = new FabricPlatformPluginManager();
