@@ -36,7 +36,7 @@ public class GrimVersion implements BuildableCommand {
     public static void checkForUpdatesAsync(Sender sender) {
         String current = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
         sender.sendMessage(Component.text()
-                .append(Component.text("Grim Version: ").color(NamedTextColor.GRAY))
+                .append(Component.text("LightningGrim Version: ").color(NamedTextColor.GRAY))
                 .append(Component.text(current).color(NamedTextColor.AQUA))
                 .build());
         // use cached message if last check was less than 1 minute ago
