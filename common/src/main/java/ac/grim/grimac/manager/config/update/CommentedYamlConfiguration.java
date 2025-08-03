@@ -50,37 +50,15 @@ public class CommentedYamlConfiguration {
         this.root = (YamlMapping) replaceValue(this.root, keys, value);
     }
 
+    /**
+     * Saves the modified configuration using our perfect CustomYamlVisitor.
+     */
     public void save() throws IOException {
-        try {
-            // 1. Get the hidden class by its full name
-            Class<?> visitorClass = Class.forName("com.amihaiemil.eoyaml.YamlPrintVisitor");
+        HighFidelityYamlVisitor visitor = new HighFidelityYamlVisitor(4); // Or 2 for standard YAML
+        String perfectlyFormattedYaml = visitor.visitYamlNode(this.root);
 
-            // 2. Get the specific constructor: (int, String, boolean)
-            Constructor<?> constructor = visitorClass.getDeclaredConstructor(int.class, String.class, boolean.class);
-
-            // 3. Make it accessible
-            constructor.setAccessible(true);
-
-            // 4. Create an instance with 4-space indentation
-            Object visitorInstance = constructor.newInstance(4, System.lineSeparator(), false);
-
-            // 5. Cast to the public interface and use it
-            @SuppressWarnings("unchecked")
-            YamlVisitor<String> prettyPrinter = (YamlVisitor<String>) visitorInstance;
-            String perfectlyFormattedYaml = prettyPrinter.visitYamlNode(this.root);
-
-            // 6. Write to file
-            try (PrintWriter writer = new PrintWriter(file)) {
-                writer.print(perfectlyFormattedYaml);
-            }
-
-        } catch (Exception e) {
-            // If reflection fails (e.g., library updates), fall back to default toString() as a safety measure.
-            System.err.println("Reflection failed, falling back to default YAML printer. Formatting might be incorrect.");
-            e.printStackTrace();
-            try (PrintWriter writer = new PrintWriter(file)) {
-                writer.print(this.root.toString());
-            }
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.print(perfectlyFormattedYaml);
         }
     }
 
