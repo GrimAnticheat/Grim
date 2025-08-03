@@ -10,8 +10,8 @@ import java.util.regex.Pattern;
 
 public final class ConfigPatcher {
 
-    private File file;
-    private List<String> lines;
+    private final File file;
+    private final List<String> lines;
     private final Map<String, NodePosition> locationMap;
 
     // ... (formatValue and YAML_KEYWORDS/SPECIAL_CHARS constants are unchanged) ...
@@ -35,10 +35,10 @@ public final class ConfigPatcher {
     }
 
     public void applyChange(UltimateUpdater.PendingChange change) {
-        if (change.value instanceof List) {
-            replaceListBlock(change.position, (List<?>) change.value);
+        if (change.value() instanceof List) {
+            replaceListBlock(change.position(), (List<?>) change.value());
         } else {
-            replaceScalarValue(change.position, change.value);
+            replaceScalarValue(change.position(), change.value());
         }
     }
 
@@ -156,12 +156,5 @@ public final class ConfigPatcher {
     public void save() throws IOException {
         Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
     }
-    public static class NodePosition {
-        final int lineIndex;
-        final int indent;
-        NodePosition(int lineIndex, int indent) {
-            this.lineIndex = lineIndex;
-            this.indent = indent;
-        }
-    }
+    public record NodePosition(int lineIndex, int indent) {}
 }
