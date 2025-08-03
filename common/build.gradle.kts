@@ -100,6 +100,8 @@ dependencies {
     compileOnly(libs.floodgate.api)
     compileOnly(libs.viaversion)
     compileOnly(libs.netty)
+
+    api("com.amihaiemil.web:eo-yaml:8.0.6")
 }
 
 publishing.publications.create<MavenPublication>("maven") {
