@@ -9,9 +9,6 @@ import me.grim.bench.blockchange.AbstractBenchmarkBlockChangeHandler;
 
 public class LowHangingFruitBlockChangeHandler extends AbstractBenchmarkBlockChangeHandler {
 
-    private static final int RANGE = 16;
-    private static final long TRANSACTION_COOLDOWN_MS = 2; // In milliseconds
-
     public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);
 

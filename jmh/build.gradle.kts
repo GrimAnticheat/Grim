@@ -38,12 +38,13 @@ dependencies {
     implementation("org.openjdk.jmh:jmh-core:1.37")
     implementation("org.openjdk.jmh:jmh-generator-annprocess:1.37")
     implementation("com.github.seeseemelk:MockBukkit-v1.21:3.133.2")
-    implementation("com.github.retrooper:packetevents-spigot:2.8.0-SNAPSHOT")
+    implementation(libs.packetevents.spigot)
     implementation("org.objenesis:objenesis:3.4")
     implementation("io.netty:netty-all:4.1.85.Final")
     implementation("io.netty:netty-transport:4.1.85.Final")
     implementation("org.slf4j:slf4j-simple:2.0.16")
     implementation(libs.via.version.api)
+    implementation("org.openjdk.jol:jol-core:0.17")
 
     implementation(project(":common"))
     jmh(project(":common"))                       // also on the JMH class-paths
