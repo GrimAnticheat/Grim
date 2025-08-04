@@ -12,10 +12,12 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMu
 import io.netty.buffer.ByteBuf;
 import me.grim.bench.blockchange.bit_repack.V1160MultiBlockChangeBitRepackHandler;
 import me.grim.bench.blockchange.bit_repack.V3LatencyUtils;
+import me.grim.bench.blockchange.no_waste_bit_packing.MultiBlockChangeNoWasteBitPack;
 import me.grim.bench.blockchange.original.OriginalBlockChangeHandler;
 import me.grim.bench.blockchange.original.OriginalLatencyUtils;
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitBlockChangeHandler;
 import me.grim.bench.blockchange.original_low_hanging_fruit.LowHangingFruitLatencyUtils;
+import me.grim.bench.blockchange.unsafe_no_waste_bit_packing.V1200MultiBlockChangeUnsafeNoWasteBitPackingHandler;
 import me.grim.bench.setup.MockFactory;
 import me.grim.bench.setup.TestPacketEventsBuilder;
 import org.bukkit.plugin.Plugin;
@@ -44,10 +46,10 @@ public class ReusingWrapperBenchmarkFixed {
 
     // ──────────────────── Benchmark parameters ─────────────────
     @Param({"1000"})  private int    totalEventsPerOp;
-    @Param({"100"})   private int    blocksPerMultiChange;
-    @Param({"0.6"})   private double multiBlockProbability;
-    @Param({"0.1"})   private double singleBlockProbability;
-    @Param({"50"})    private int    ackDelayEvents;
+    @Param({"50"})   private int    blocksPerMultiChange;
+    @Param({"0.4"})   private double multiBlockProbability;
+    @Param({"0.4"})   private double singleBlockProbability;
+    @Param({"100"})    private int    ackDelayEvents;
 
     // ───────────────────── Shared work-load ────────────────────
     private List<WorkloadItem> sharedWorkload;
@@ -105,6 +107,7 @@ public class ReusingWrapperBenchmarkFixed {
         @Setup
         public void setupIterationBase(ReusingWrapperBenchmarkFixed bench) {
             player             = MockFactory.newMockPlayer();
+            MockFactory.addMockPlayer(player.user, player);
             sharedWorkloadRef  = bench.sharedWorkload;
 
             Object channel = player.user.getChannel();

@@ -68,4 +68,9 @@ public class V3LatencyUtils implements ILatencyUtils {
             iterator.remove();
         }
     }
+
+    @Override
+    public Object getTasksObject() {
+        return this.transactionMap;
+    }
 }
