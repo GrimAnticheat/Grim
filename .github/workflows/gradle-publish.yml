@@ -106,7 +106,7 @@ jobs:
       if: github.event_name == 'push'
       id: changelog
       run: |
-          NOTES='${{ steps.cliff.outputs.changelog_content }}'
+          NOTES='${{ steps.git-cliff.outputs.changelog }}'
           if [ -z "$NOTES" ]; then
             NOTES="* No new code changes in this build."
           fi
@@ -155,7 +155,7 @@ jobs:
       if: github.event_name == 'push' && github.ref_name == '2.0'
       uses: Kir-Antipov/mc-publish@v3.3
       with:
-          modrinth-id:    ${{ secrets.MODRINTH_ID }}
+          modrinth-id:    ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           modrinth-featured: true
 
