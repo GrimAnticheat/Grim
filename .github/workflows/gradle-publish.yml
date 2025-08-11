@@ -95,6 +95,16 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Debug Changelog Output
+      if: github.event_name == 'push'
+      run: |
+        echo "File output path: ${{ steps.git-cliff.outputs.changelog }}"
+        echo "Content output: ${{ steps.git-cliff.outputs.content }}"
+        if [[ -f "${{ steps.git-cliff.outputs.changelog }}" ]]; then
+          echo "File content:"
+            cat "${{ steps.git-cliff.outputs.changelog }}"
+        fi
+
     - name: Prepare Final Changelog for Modrinth
       if: github.event_name == 'push'
       id: changelog
