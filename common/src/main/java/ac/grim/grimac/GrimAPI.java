@@ -63,7 +63,7 @@ public final class GrimAPI {
 
     // the order matters
     private static Platform detectPlatform() {
-        if (ReflectionUtils.hasMethod("org.bukkit.Bukkit", "getRegionScheduler")) return Platform.FOLIA;
+        if (ReflectionUtils.hasServerBrand("ShreddedPaper")) return Platform.FOLIA;
         if (ReflectionUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) return Platform.FOLIA;
         if (ReflectionUtils.hasClass("org.bukkit.Bukkit")) return Platform.BUKKIT;
         if (ReflectionUtils.hasClass("net.fabricmc.loader.api.FabricLoader")) return Platform.FABRIC;

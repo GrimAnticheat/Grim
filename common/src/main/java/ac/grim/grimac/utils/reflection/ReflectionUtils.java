@@ -17,13 +17,17 @@ public class ReflectionUtils {
         return getMethod(clazz, methodName, parameterTypes) != null;
     }
 
-    public static boolean hasMethod(@NotNull String className, @NotNull String methodName, Class<?>... parameterTypes) {
-        Class<?> clazz = getClass(className);
-        return clazz != null && hasMethod(clazz, methodName, parameterTypes);
-    }
-
-    public static boolean hasMethod(@NotNull String className, @NotNull String methodName) {
-        return hasMethod(className, methodName, new Class<?>[0]);
+    public static boolean hasServerBrand(@NotNull String expected) {
+        try {
+            Class<?> bukkit = getClass("org.bukkit.Bukkit");
+            if (bukkit == null) return false;
+            Method m = getMethod(bukkit, "getName");
+            if (m == null) return false;
+            Object v = m.invoke(null);
+            return expected.equalsIgnoreCase(String.valueOf(v));
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     public static @Nullable Method getMethod(@NotNull Class<?> clazz, @NotNull String methodName, Class<?>... parameterTypes) {
