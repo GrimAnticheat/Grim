@@ -35,11 +35,10 @@ public class NoFall extends Check implements PacketCheck {
             if (player.getSetbackTeleportUtil().blockOffsets) return;
 
             WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
-            boolean hasPosition = false;
 
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
-            if (wrapper.isOnGround() && !hasPosition) {
+            if (wrapper.isOnGround() && !wrapper.hasPositionChanged()) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
                     if (!GhostBlockDetector.isGhostBlock(player)) flagAndAlertWithSetback();
@@ -76,7 +75,7 @@ public class NoFall extends Check implements PacketCheck {
         }
     }
 
-    public boolean isNearGround(boolean onGround) {
+    private boolean isNearGround(boolean onGround) {
         if (onGround) {
             SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 0.001f);
             feetBB.expand(player.getMovementThreshold()); // Movement threshold can be in any direction

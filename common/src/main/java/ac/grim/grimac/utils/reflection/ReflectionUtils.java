@@ -1,10 +1,12 @@
 package ac.grim.grimac.utils.reflection;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
+@UtilityClass
 public class ReflectionUtils {
 
     public static boolean hasClass(String className) {

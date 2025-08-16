@@ -35,7 +35,7 @@ public interface RegionScheduler {
      * @param world  The world of the region that owns the task
      * @param chunkX The chunk X coordinate of the region that owns the task
      * @param chunkZ The chunk Z coordinate of the region that owns the task
-     * @param run    The task to execute
+     * @param task   The task to execute
      */
     void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task);
 
@@ -44,7 +44,7 @@ public interface RegionScheduler {
      *
      * @param plugin   The plugin that owns the task
      * @param location The location at which the region executing should own
-     * @param run      The task to execute
+     * @param task     The task to execute
      */
     void execute(@NotNull GrimPlugin plugin, @NotNull Location location, @NotNull Runnable task);
 

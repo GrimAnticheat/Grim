@@ -774,7 +774,7 @@ public class PredictionEngine {
         int strafeMax = 1;
 
         // Calculate inputs by the players known inputs on 1.21.2+
-        if (player.supportsEndTick()) {
+        if (player.supportsEndTickPreVia()) {
             forwardMin = forwardMax = strafeMin = strafeMax = 0;
 
             final KnownInput knownInput = player.packetStateData.knownInput;
@@ -807,22 +807,28 @@ public class PredictionEngine {
             // But nothing works as well as brute force
             for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
                 for (VectorData possibleLastTickOutput : possibleVectors) {
-                    // Only do this when there is tick skipping
-                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree())
+                    // Only do this when there is tick skipping (unless we want to allow cheating)
+                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree() && player.isForceSlowMovement())
                         continue;
                     for (int strafe = strafeMin; strafe <= strafeMax; strafe++) {
                         for (int forward = forwardMin; forward <= forwardMax; forward++) {
-                            Vector3dm input = transformInputsToVector(player, new Vector3dm(strafe, 0, forward));
-                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone()
-                                    .add(getMovementResultFromInput(player, input, speed, player.xRot)),
-                                    possibleLastTickOutput, VectorData.VectorType.InputResult);
-                            result.input = input;
-                            result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                            result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                            // Signal that we need to flip sneaking bounding box
-                            if (loopUsingItem == 1)
-                                result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Use_Item);
-                            returnVectors.add(result);
+                            for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
+                                if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
+
+                                Vector3dm input = transformInputsToVector(player, new Vector3dm(strafe, 0, forward));
+                                VectorData result = new VectorData(possibleLastTickOutput.vector.clone()
+                                        .add(getMovementResultFromInput(player, input, speed, player.xRot)),
+                                        possibleLastTickOutput, VectorData.VectorType.InputResult);
+                                result.input = input;
+                                if (applyStuckSpeed != 0) {
+                                    result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                                }
+                                result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                                // Signal that we need to flip sneaking bounding box
+                                if (loopUsingItem == 1)
+                                    result = result.returnNewModified(VectorData.VectorType.Flip_Use_Item);
+                                returnVectors.add(result);
+                            }
                         }
                     }
                 }

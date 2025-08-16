@@ -22,9 +22,9 @@ public class FarPlace extends BlockPlaceCheck {
     public void onBlockPlace(final BlockPlace place) {
         if (player.gamemode == GameMode.SPECTATOR || player.inVehicle()) return;
 
-        Vector3i blockPos = place.getPlacedAgainstBlockLocation();
+        Vector3i blockPos = place.position;
 
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (place.material == StateTypes.SCAFFOLDING) return;
 
         double min = Double.MAX_VALUE;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();

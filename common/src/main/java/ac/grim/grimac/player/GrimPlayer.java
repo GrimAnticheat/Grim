@@ -57,6 +57,7 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEquippable;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -143,7 +144,7 @@ public class GrimPlayer implements GrimUser {
     public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
     public Vector3dm actualMovement = new Vector3dm();
     public Vector3dm stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
-    public UncertaintyHandler uncertaintyHandler;
+    public final UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
     public double speed;
@@ -262,6 +263,8 @@ public class GrimPlayer implements GrimUser {
     @Getter @Setter private boolean experimentalChecks = false;
     @Getter private boolean cancelDuplicatePacket = true;
     @Getter @Setter private boolean exemptElytra = false;
+    @Getter @Setter private boolean forceStuckSpeed = true;
+    @Getter @Setter private boolean forceSlowMovement = true;
     @Getter private boolean resetItemUsageOnAttack;
     @Getter private boolean resetItemUsageOnItemUpdate;
     @Getter private boolean resetItemUsageOnSlotChange;
@@ -276,7 +279,8 @@ public class GrimPlayer implements GrimUser {
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
     public boolean wasLastPredictionCompleteChecked;
-    public boolean isJumping = false, lastJumping = false;
+    public boolean isJumping;
+    public boolean lastJumping;
 
     public GrimPlayer(@NonNull User user) {
         this.user = user;
@@ -640,6 +644,14 @@ public class GrimPlayer implements GrimUser {
         return compensatedEntities.self.inVehicle();
     }
 
+    public PacketEntity getVehicle() {
+        return compensatedEntities.self.riding;
+    }
+
+    public EntityType getVehicleType() {
+        return inVehicle() ? getVehicle().type : null;
+    }
+
     public CompensatedInventory getInventory() {
         return checkManager.getInventory();
     }
@@ -730,15 +742,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void handleDismountVehicle(PacketSendEvent event) {
+        EntityType entityType = getVehicleType();
+
         // Help prevent transaction split
         sendTransaction();
-
-        int ridingId = getRidingVehicleId();
-        TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
 
         compensatedEntities.serverPlayerVehicle = null;
         event.getTasksAfterSend().add(() -> {
             if (inVehicle()) {
+                int ridingId = getRidingVehicleId();
+                TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
                     user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
@@ -749,7 +762,8 @@ public class GrimPlayer implements GrimUser {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
             // 1.21.5 introduced this again! (only in minecarts?)
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) || (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && (data != null && data.getEntityType() == EntityTypes.MINECART))) {
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
+                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && EntityTypes.MINECART == entityType)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
@@ -799,13 +813,22 @@ public class GrimPlayer implements GrimUser {
 
     @Contract(pure = true)
     public boolean supportsEndTick() {
-        // TODO: Bypass viaversion
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+        return supportsEndTickPreVia() && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+    }
+
+    @Contract(pure = true)
+    public boolean supportsEndTickPreVia() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2);
     }
 
     @Contract(pure = true)
     public boolean canSkipTicks() {
         return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !supportsEndTick();
+    }
+
+    @Contract(pure = true)
+    public boolean canSkipTicksPreVia() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !supportsEndTickPreVia();
     }
 
     @Override

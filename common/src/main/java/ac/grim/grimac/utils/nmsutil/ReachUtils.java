@@ -9,7 +9,9 @@ import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class ReachUtils {
     // Copied from 1.8... I couldn't figure out 1.14+. "Enterprise" java code is unreadable!
     public static Pair<Vector3dm, BlockFace> calculateIntercept(SimpleCollisionBox self, Vector3dm origin, Vector3dm end) {

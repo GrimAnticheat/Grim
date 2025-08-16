@@ -1,10 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
-
 name: Gradle Package
 
 on: [push, workflow_dispatch]
@@ -17,7 +10,12 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository with full history
+      uses: actions/checkout@v4
+      with:
+          # Required to fetch commit history for git-cliff to analyze and generate changelog
+          # TODO optimize later to not fetch entire history
+          fetch-depth: 0
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
@@ -38,15 +36,34 @@ jobs:
         restore-keys: |
           loom-cache-${{ runner.os }}
 
-    - name: Build with Gradle (Actual Build for Artifacts)
+    - name: Compute MAIN version (default build)
+      id: ver_main
+      run: |
+          VERSION=$(./gradlew -q printVersion | grep '^VERSION=' | cut -d'=' -f2)
+          echo "main_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "MAIN_VERSION=$VERSION"  >> $GITHUB_ENV
+          echo "Main version: $VERSION"
+
+    - name: Compute LITE version (-PshadePE=false)
+      id: ver_lite
+      run: |
+          VERSION=$(./gradlew -q -PshadePE=false printVersion | grep '^VERSION=' | cut -d'=' -f2)
+          echo "lite_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "LITE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Lite  version: $VERSION"
+
+    - name: Build with Gradle for all platforms with shaded PacketEvents
       run: ./gradlew build
+
+    - name: Build with Gradle for Bukkit-Lite without shaded PacketEvents
+      run: ./gradlew :bukkit:build -PshadePE=false
 
     - name: Upload Bukkit Artifact
       uses: actions/upload-artifact@v4
       with:
         name: grimac-bukkit
         # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
+        path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.MAIN_VERSION }}.jar
         if-no-files-found: error
 
     - name: Upload Fabric Artifact
@@ -54,6 +71,116 @@ jobs:
       with:
         name: grimac-fabric
         # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
+        path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.MAIN_VERSION }}.jar
         if-no-files-found: error
 
+    - name: Upload Bukkit - Lite Artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: grimac-bukkit+lite
+          # Adding if-no-files-found for robustness
+          path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.LITE_VERSION }}.jar
+          if-no-files-found: error
+
+        #------------------------------------------------------------------
+        #  Generate Changelog
+        #------------------------------------------------------------------
+    - name: Generate Changelog with git-cliff
+      if: github.event_name == 'push'
+      id: git-cliff
+      uses: orhun/git-cliff-action@v4
+      with:
+          config: cliff.toml
+          args: --verbose ${{ github.event.before }}..${{ github.event.after }}
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Debug Changelog Output
+      if: github.event_name == 'push'
+      run: |
+        echo "File output path: ${{ steps.git-cliff.outputs.changelog }}"
+        echo "Content output: ${{ steps.git-cliff.outputs.content }}"
+        if [[ -f "${{ steps.git-cliff.outputs.changelog }}" ]]; then
+          echo "File content:"
+            cat "${{ steps.git-cliff.outputs.changelog }}"
+        fi
+
+    - name: Prepare Final Changelog for Modrinth
+      if: github.event_name == 'push'
+      id: changelog
+      env:
+          CHANGELOG_CONTENT: ${{ steps.git-cliff.outputs.content }}
+      run: |
+          # Read the content from the environment variable. This is safe.
+          NOTES="$CHANGELOG_CONTENT"
+          
+          if [ -z "$NOTES" ]; then
+            NOTES="* No new code changes in this build."
+          fi
+          
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+    #------------------------------------------------------------------
+    #  Publish Bukkit to Modrinth
+    #------------------------------------------------------------------
+    - name: Publish Bukkit to Modrinth
+      if: github.event_name == 'push' && github.ref_name == '2.0'
+      uses: Kir-Antipov/mc-publish@v3.3
+      with:
+          modrinth-id:    ${{ secrets.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-featured: true
+
+          # Upload BOTH Bukkit jars (main and lite)
+          files: |
+              bukkit/build/libs/grimac-bukkit-${{ env.MAIN_VERSION }}.jar
+              bukkit/build/libs/grimac-bukkit-${{ env.LITE_VERSION }}.jar
+
+          name: Grim Anticheat (Bukkit) ${{ env.MAIN_VERSION }}
+          version: ${{ env.MAIN_VERSION }}
+          version-type: alpha
+          changelog: ${{ steps.changelog.outputs.notes || 'No changelog generated for this build.' }}
+
+          # Loaders for the Bukkit version
+          loaders: |
+              bukkit
+              spigot
+              paper
+              folia
+              purpur
+
+          game-versions: |
+              >=1.7 <=1.21.8
+
+    #------------------------------------------------------------------
+    #  Publish Fabric to Modrinth
+    #------------------------------------------------------------------
+    - name: Publish Fabric to Modrinth
+      if: github.event_name == 'push' && github.ref_name == '2.0'
+      uses: Kir-Antipov/mc-publish@v3.3
+      with:
+          modrinth-id:    ${{ vars.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-featured: true
+
+          # Upload ONLY the Fabric jar
+          files: fabric/build/libs/grimac-fabric-${{ env.MAIN_VERSION }}.jar
+
+          name: Grim Anticheat (Fabric) ${{ env.MAIN_VERSION }}
+          version: ${{ env.MAIN_VERSION }}
+          version-type: alpha
+          changelog: ${{ steps.changelog.outputs.notes || 'No changelog generated for this build.' }}
+
+          # Loader for the Fabric version
+          loaders: |
+              fabric
+
+          game-versions: |
+              >=1.16.1 <=1.21.8
+
+          dependencies: |
+              fabric-api

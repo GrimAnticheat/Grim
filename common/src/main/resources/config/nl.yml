@@ -42,6 +42,11 @@ spectators:
 # Hoe lang moeten spelers hebben voordat we ze schoppen voor timing-out? Standaard = 60 seconden
 max-transaction-time: 60
 
+# Enable this to stop Grim cancelling pongs received from players.
+# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
+# Do not enable this if you are not sure what you are doing.
+disable-pong-cancelling: false
+
 # Moet het dubbele bewegingspakket worden geannuleerd?
 # Mojang heeft dit probleem opgelost in 1.21. Dit was hun poging om de "bucket desync" op te lossen. https://bugs.mojang.com/browse/MC-12363
 # Deze instelling geldt alleen voor 1.17-1.20.5 clients op 1.8 servers

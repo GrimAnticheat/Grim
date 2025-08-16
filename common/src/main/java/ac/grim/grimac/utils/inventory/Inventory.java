@@ -26,10 +26,9 @@ public class Inventory extends AbstractContainerMenu {
     CorrectingPlayerInventoryStorage inventoryStorage;
 
     public Inventory(GrimPlayer player, CorrectingPlayerInventoryStorage inventoryStorage) {
+        super(player);
+        this.setPlayerInventory(this);
         this.inventoryStorage = inventoryStorage;
-
-        super.setPlayer(player);
-        super.setPlayerInventory(this);
 
         // Result slot
         addSlot(new ResultSlot(inventoryStorage, 0));

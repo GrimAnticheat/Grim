@@ -2,7 +2,9 @@ package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class VectorUtils {
     public static Vector3dm cutBoxToVector(Vector3dm vectorToCutTo, Vector3dm min, Vector3dm max) {
         SimpleCollisionBox box = new SimpleCollisionBox(min, max).sort();

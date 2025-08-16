@@ -37,7 +37,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
             final String verbose = "face=" + blockBreak.face + ", lastFace=" + lastFace
                     + ", pos=" + MessageUtil.toUnlabledString(blockBreak.position)
                     + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
-            if (!player.canSkipTicks()) {
+            if (!player.canSkipTicksPreVia()) {
                 if (flagAndAlert(verbose) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
@@ -60,7 +60,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

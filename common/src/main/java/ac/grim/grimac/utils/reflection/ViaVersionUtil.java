@@ -2,7 +2,9 @@ package ac.grim.grimac.utils.reflection;
 
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class ViaVersionUtil {
     private static final boolean isViaLoaded;
 
@@ -22,9 +24,6 @@ public class ViaVersionUtil {
             }
         }
         isViaLoaded = temp;
-    }
-
-    private ViaVersionUtil() {
     }
 
     public static boolean isAvailable() {

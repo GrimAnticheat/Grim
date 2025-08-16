@@ -11,10 +11,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
@@ -76,13 +73,12 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
                 profile = GrimACFabricLoaderPlugin.LOADER.getPlatformServer().getProfileByName(name);
             }
 
-            if (profile == null) {
-                // Make an OfflinePlayer using an offline mode UUID since the name has no profile
-                result = this.getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)), name));
-            } else {
-                // Use the GameProfile even when we get a UUID so we ensure we still have a name
-                result = this.getOfflinePlayer(profile);
-            }
+            result = this.getOfflinePlayer(profile != null
+                    // Use the GameProfile even when we get a UUID so we ensure we still have a name
+                    ? profile
+                    // Make an OfflinePlayer using an offline mode UUID since the name has no profile
+                    : new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)), name)
+            );
         } else {
             this.offlinePlatformPlayerCache.remove(result.getUniqueId());
         }

@@ -6,8 +6,6 @@ import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -17,7 +15,7 @@ import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
 @CheckData(name = "WrongBreak")
 public class WrongBreak extends Check implements BlockBreakCheck {
-    private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
+    private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? -1 : 4095);
     private boolean lastBlockWasInstantBreak = false;
     private Vector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
 

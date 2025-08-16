@@ -33,7 +33,7 @@ public class DynamicHitboxWall extends DynamicConnecting implements HitBoxFactor
     }
 
     private int[] getConnections(GrimPlayer player, ClientVersion version, WrappedBlockState state, int x, int y, int z) {
-        int north = 0, south = 0, west = 0, east = 0, up = 0;
+        int north, south, west, east, up;
 
         if (isModernServer()) {
             boolean sixteen = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16);
@@ -50,7 +50,7 @@ public class DynamicHitboxWall extends DynamicConnecting implements HitBoxFactor
             up = 1;
         }
 
-        return new int[]{north, south, west, east, up};
+        return new int[] { north, south, west, east, up };
     }
 
     private boolean isModernServer() {

@@ -9,7 +9,7 @@ public class VanillaMath {
 
     static {
         for (int i = 0; i < SIN.length; ++i) {
-            SIN[i] = (float) StrictMath.sin(i * 3.141592653589793 * 2d / 65536d);
+            SIN[i] = (float) StrictMath.sin(i * Math.PI * 2d / 65536d);
         }
     }
 

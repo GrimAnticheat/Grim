@@ -27,7 +27,7 @@ public class PacketOrderM extends Check implements PostPredictionCheck {
             if (new WrapperPlayClientInteractEntity(event).getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 interacting = true;
                 if (usingWithoutInteract) {
-                    if (!player.canSkipTicks()) {
+                    if (!player.canSkipTicksPreVia()) {
                         if (flagAndAlert() && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -56,7 +56,7 @@ public class PacketOrderM extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {

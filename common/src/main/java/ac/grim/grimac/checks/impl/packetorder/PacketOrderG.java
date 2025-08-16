@@ -47,7 +47,7 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
                         + ", rightClicking=" + player.packetOrderProcessor.isRightClicking()
                         + ", picking=" + player.packetOrderProcessor.isPicking()
                         + ", digging=" + player.packetOrderProcessor.isDigging();
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -61,7 +61,7 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

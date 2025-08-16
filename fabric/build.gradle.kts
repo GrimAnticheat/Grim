@@ -1,4 +1,3 @@
-import net.fabricmc.loom.task.RemapJarTask
 import versioning.BuildConfig
 
 val minecraft_version: String by project

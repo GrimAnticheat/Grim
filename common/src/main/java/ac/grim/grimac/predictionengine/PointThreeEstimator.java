@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -129,13 +130,13 @@ public class PointThreeEstimator {
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
-        double movementThreshold = player.getMovementThreshold();
+        final double movementThreshold = player.getMovementThreshold();
         SimpleCollisionBox slightlyExpanded = normalBox.copy().expand(movementThreshold, 0, movementThreshold);
         if (!slightlyExpanded.isIntersected(data) && slightlyExpanded.offset(0, movementThreshold, 0).isIntersected(data)) {
             headHitter = true;
         }
 
-        float collisionBoxThreshold = player.isPointThree() ? 0.06f : 0.0004f;
+        final float collisionBoxThreshold = (float) (movementThreshold * 2.f);
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
         if ((Materials.isWater(player.getClientVersion(), state) || stateType == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
@@ -158,9 +159,17 @@ public class PointThreeEstimator {
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             // https://github.com/MWHunter/Grim/issues/613
             int controllingEntityId = player.inVehicle() ? player.getRidingVehicleId() : player.entityID;
+
+            // This can allow a player to ignore knockback and explosions within 0.03 (e.g. if standing still)
+            // But I'm not sure there's a way to fix that without falses
+            // Doesn't matter too much, would only work for 1.9-1.18.1 too
+            final VelocityData oldFirstBreadKB = player.firstBreadKB;
+            final VelocityData oldLikelyKB = player.likelyKB;
             player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
             player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get(), true);
 
+            final VelocityData oldFirstBreadEx = player.firstBreadExplosion;
+            final VelocityData oldLikelyEx = player.likelyExplosions;
             player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
             player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
 
@@ -168,6 +177,12 @@ public class PointThreeEstimator {
 
             if (player.couldSkipTick) {
                 player.uncertaintyHandler.lastPointThree.reset();
+            } else {
+                // Player could not skip this tick, so restore the old values (mimics what happens in CheckManagerListener)
+                player.firstBreadKB = oldFirstBreadKB;
+                player.likelyKB = oldLikelyKB;
+                player.firstBreadExplosion = oldFirstBreadEx;
+                player.likelyExplosions = oldLikelyEx;
             }
         }
 

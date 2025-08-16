@@ -18,7 +18,7 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
 
     private IFabricConversionUtil fabricConversionUtilSupplier;
 
-    private Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
+    private final Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
 //        if (fabricStack.isEmpty()) {
 //            return ItemStack.EMPTY;
 //        }
@@ -48,7 +48,7 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
 //        }
         throw new UnsupportedOperationException();
     };
-    private Function<Component, Text> nativeTextMapperFunction = (component) -> {
+    private final Function<Component, Text> nativeTextMapperFunction = (component) -> {
         throw new UnsupportedOperationException();
 //        Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
     };

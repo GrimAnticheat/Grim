@@ -34,6 +34,9 @@ public class BaseConfigManager {
     @Getter
     private boolean blockBlacklistedForgeClients;
 
+    @Getter
+    private boolean disablePongCancelling;
+
     // initialize the config
     public void load(ConfigManager config) {
         this.config = config;
@@ -61,6 +64,8 @@ public class BaseConfigManager {
         blockBlacklistedForgeClients = config.getBooleanElse("client-brand.disconnect-blacklisted-forge-versions", true);
         disconnectBlacklistedForge = config.getStringElse("disconnect.blacklisted-forge",
                 "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309.");
+
+        disablePongCancelling = config.getBooleanElse("disable-pong-cancelling", false);
     }
 
     // ran on start, can be used to handle things that can't be done while loading

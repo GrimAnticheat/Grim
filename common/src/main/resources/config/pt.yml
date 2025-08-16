@@ -43,6 +43,11 @@ spectators:
 # Quanto tempo os jogadores tem até expulsarmos eles por inatividade? Padrão = 60 segundos.
 max-transaction-time: 60
 
+# Enable this to stop Grim cancelling pongs received from players.
+# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
+# Do not enable this if you are not sure what you are doing.
+disable-pong-cancelling: false
+
 # Deve-se cancelar o pacote de movimento duplicado?
 # A Mojang arrumou esse erro na 1.21, sendo sua tentativa de concertar a dessincronização do balde. https://bugs.mojang.com/browse/MC-12363
 # Isso só se aplica à clientes da 1.17-1.20.5 em servidores da 1.8.

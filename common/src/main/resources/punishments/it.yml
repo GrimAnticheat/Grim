@@ -91,7 +91,6 @@ Punishments:
     remove-violations-after: 300
     checks:
       - "Interact"
-      - "Killaura"
       - "Aim"
     commands:
       - "20:40 [alert]"

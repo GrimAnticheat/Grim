@@ -13,6 +13,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
+import java.util.Objects;
+
 public class GrimSpectate implements BuildableCommand {
     @Override
     public void register(CommandManager<Sender> commandManager) {
@@ -43,7 +45,7 @@ public class GrimSpectate implements BuildableCommand {
             return;
         }
 
-        @NonNull PlatformPlayer platformPlayer = sender.getPlatformPlayer();
+        @NonNull PlatformPlayer platformPlayer = Objects.requireNonNull(sender.getPlatformPlayer());
 
         // hide player from tab list
         if (GrimAPI.INSTANCE.getSpectateManager().enable(platformPlayer)) {
@@ -51,6 +53,6 @@ public class GrimSpectate implements BuildableCommand {
         }
 
         platformPlayer.setGameMode(GameMode.SPECTATOR);
-        platformPlayer.teleportAsync(targetPlatformPlayer.getLocation());
+        platformPlayer.teleportAsync(Objects.requireNonNull(targetPlatformPlayer).getLocation());
     }
 }

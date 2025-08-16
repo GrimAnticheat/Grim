@@ -24,7 +24,7 @@ public class PacketOrderN extends BlockPlaceCheck {
     public void onBlockPlace(BlockPlace place) {
         placing = true;
         if (usingWithoutPlacing) {
-            if (!player.canSkipTicks()) {
+            if (!player.canSkipTicksPreVia()) {
                 if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
@@ -53,7 +53,7 @@ public class PacketOrderN extends BlockPlaceCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {

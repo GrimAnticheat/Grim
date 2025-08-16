@@ -149,6 +149,15 @@ public class PacketEntity extends TypedPacketEntity {
         this.oldPacketLocation = newPacketLocation;
         this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
 
+        // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
+        // https://bugs.mojang.com/browse/MC-255263
+        if (!hasPos &&
+                (player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4) ||
+                (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2)) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4))
+        ) {
+            newPacketLocation.cancelLerp();
+        }
+
         // In versions < 1.16.2 when the client receives non-relative teleport for an entity
         // And they move less by the thresholds given, the entity does not move client side
         if (hasPos && !relative && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {

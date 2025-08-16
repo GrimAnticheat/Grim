@@ -12,11 +12,10 @@
  <br>
 </div>
 
-GrimAC is an open source minecraft anticheat designed for the latest versions of minecraft with
-support for versions 1.8 and higher. Geyser players are fully exempt from the anticheat to prevent
-false positives. This project is currently free and open source, but future versions will eventually
-become paid and/or will include additional subscription based paid checks. If you would like a
-bugfix or enhancement and cannot sponsor the work, pull requests are welcome.
+GrimAC is an open source Minecraft anticheat designed to support the latest versions of Minecraft.
+It currently supports minecraft versions 1.8–1.21. Geyser players are fully exempt from the anticheat to prevent false positives.
+This project is considered feature-complete for the 2.0 (open-source) branch. If you would like a bug fix or enhancement and cannot sponsor the work, pull requests are welcome.
+A premium version is planned, which will offer additional subscription-based paid checks, such as heuristics.
 
 ## Downloads
 
@@ -31,6 +30,13 @@ bugfix or enhancement and cannot sponsor the work, pull requests are welcome.
 - For documentation and examples visit the [Wiki](https://github.com/GrimAnticheat/Grim/wiki).
 - For answers to commonly asked questions visit the [FAQ](https://github.com/GrimAnticheat/Grim/wiki/FAQ).
 - For community support and project discussion join our [Discord](https://discord.grim.ac).
+
+
+## Pull Requests
+
+See [Contributing](CONTRIBUTING.md) for more information about contributing and what our guidelines
+are.
+
 
 ## Requirements & Installation
 
@@ -55,11 +61,6 @@ information.
 2. `cd Grim`
 3. `./gradlew build`
 4. The final jars will compile into the `<platform>/build/libs` folders
-
-## Pull Requests
-
-See [Contributing](CONTRIBUTING.md) for more information about contributing and what our guidelines
-are.
 
 ## Grim Supremacy
 

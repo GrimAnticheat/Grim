@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class BasicInventoryMenu extends AbstractContainerMenu {
-    int rows;
+    private final int rows;
 
     public BasicInventoryMenu(GrimPlayer player, Inventory playerInventory, int rows) {
         super(player, playerInventory);

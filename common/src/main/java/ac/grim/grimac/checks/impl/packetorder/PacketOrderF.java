@@ -39,7 +39,7 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
                     : "openInventory")
                     + ", sprinting=" + player.packetOrderProcessor.isSprinting()
                     + ", sneaking=" + player.packetOrderProcessor.isSneaking();
-            if (!player.canSkipTicks()) {
+            if (!player.canSkipTicksPreVia()) {
                 if (flagAndAlert(verbose) && shouldModifyPackets()) {
                     if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING
                             && new WrapperPlayClientPlayerDigging(event).getAction() == DiggingAction.RELEASE_USE_ITEM
@@ -56,7 +56,7 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

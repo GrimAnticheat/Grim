@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
@@ -43,6 +44,7 @@ public class ChatB extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
+            // TODO make previa after making wrapper parse by client version instead of server version
             String command = "/" + new WrapperPlayClientChatCommand(event).getCommand();
             if (!command.trim().equals(command)) {
                 if (flagAndAlert("command=" + command)) {

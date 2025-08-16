@@ -3,14 +3,9 @@ package ac.grim.grimac.utils.inventory;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentType;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class EnchantmentHelper {
-    public static boolean isCurse(EnchantmentType type) {
-        return type == EnchantmentTypes.BINDING_CURSE || type == EnchantmentTypes.VANISHING_CURSE;
-    }
-
     // Some enchants work on any armor piece but only the maximum level counts
     public static int getMaximumEnchantLevel(CompensatedInventory inventory, EnchantmentType enchantmentType, ClientVersion clientVersion) {
         int maxEnchantLevel = 0;

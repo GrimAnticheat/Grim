@@ -57,7 +57,7 @@ import java.util.stream.Stream;
 // An enum will break support for all previous versions which is very bad
 // An if statement for new data types is perfectly safe and should be used instead
 //
-// This is actually mean to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
+// This is actually meant to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
 public enum CollisionData implements CollisionFactory {
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {

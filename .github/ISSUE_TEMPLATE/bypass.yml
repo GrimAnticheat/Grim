@@ -30,6 +30,14 @@ body:
     validations:
       required: true
 
+  - type: input
+    attributes:
+        label: Client version
+        description: |
+            Provide the version of your Minecraft client.
+    validations:
+        required: true
+
   - type: textarea
     attributes:
       label: Plugins

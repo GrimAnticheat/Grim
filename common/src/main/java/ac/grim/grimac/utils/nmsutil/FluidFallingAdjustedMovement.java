@@ -3,7 +3,9 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class FluidFallingAdjustedMovement {
     public static Vector3dm getFluidFallingAdjustedMovement(GrimPlayer player, double d, boolean bl, Vector3dm vec3) {
         if (player.hasGravity && !player.isSprinting) {

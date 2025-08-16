@@ -11,30 +11,26 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWo
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorderCenter;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorderSize;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayWorldBorderLerpSize;
+import lombok.Getter;
 
 public class PacketWorldBorder extends Check implements PacketCheck {
-    double centerX;
-    double centerZ;
-    double oldDiameter;
-    double newDiameter;
-    double absoluteMaxSize;
-    long startTime = 1;
-    long endTime = 1;
+    @Getter
+    private double centerX;
+    @Getter
+    private double centerZ;
+    private double oldDiameter;
+    private double newDiameter;
+    @Getter
+    private double absoluteMaxSize;
+    private long startTime = 1;
+    private long endTime = 1;
 
     public PacketWorldBorder(GrimPlayer playerData) {
         super(playerData);
     }
 
-    public double getCenterX() {
-        return centerX;
-    }
-
-    public double getCenterZ() {
-        return centerZ;
-    }
-
     public double getCurrentDiameter() {
-        double d0 = (double) (System.currentTimeMillis() - this.startTime) / ((double) this.endTime - this.startTime);
+        double d0 = (double) (System.currentTimeMillis() - startTime) / ((double) endTime - startTime);
         return d0 < 1.0D ? GrimMath.lerp(d0, oldDiameter, newDiameter) : newDiameter;
     }
 
@@ -105,10 +101,6 @@ public class PacketWorldBorder extends Check implements PacketCheck {
             this.startTime = System.currentTimeMillis();
             this.endTime = this.startTime + length;
         });
-    }
-
-    public double getAbsoluteMaxSize() {
-        return absoluteMaxSize;
     }
 
     private void setAbsoluteMaxSize(double absoluteMaxSize) {

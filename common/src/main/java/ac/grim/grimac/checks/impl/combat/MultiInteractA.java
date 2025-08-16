@@ -33,7 +33,7 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
             if (hasInteracted && entity != lastEntity) {
                 String verbose = "lastEntity=" + lastEntity + ", entity=" + entity
                         + ", lastSneaking=" + lastSneaking + ", sneaking=" + sneaking;
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -55,7 +55,7 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

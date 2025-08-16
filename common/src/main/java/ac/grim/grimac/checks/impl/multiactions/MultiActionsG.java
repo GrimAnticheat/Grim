@@ -33,7 +33,7 @@ public class MultiActionsG extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(BlockPlace place) {
-        if (isCheckActive() && flagAndAlert(place.getDirection() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets() && shouldCancel()) {
+        if (isCheckActive() && flagAndAlert(place.getFace() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets() && shouldCancel()) {
             place.resync();
         }
     }

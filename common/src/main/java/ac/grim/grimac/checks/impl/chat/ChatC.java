@@ -28,6 +28,7 @@ public class ChatC extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
+            // TODO make previa after making wrapper parse by client version instead of server version
             check(new WrapperPlayClientChatMessage(event).getMessage(), event);
         }
 
@@ -36,6 +37,7 @@ public class ChatC extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
+            // TODO make previa after making wrapper parse by client version instead of server version
             check("/" + new WrapperPlayClientChatCommand(event).getCommand(), event);
         }
     }

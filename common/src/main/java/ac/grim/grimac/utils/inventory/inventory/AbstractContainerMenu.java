@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.google.common.collect.Sets;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -22,28 +23,26 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractContainerMenu {
-    @Setter
-    protected GrimPlayer player;
+    protected final GrimPlayer player;
     // Quick crafting/dragging
-    int quickcraftStatus = 0;
-    int quickcraftType = -1;
-    Set<Slot> quickcraftSlots = Sets.newHashSet();
-    @Setter
-    Inventory playerInventory;
+    private int quickcraftStatus = 0;
+    private int quickcraftType = -1;
+    private final Set<Slot> quickcraftSlots = Sets.newHashSet();
+    @Setter(AccessLevel.PROTECTED)
+    private Inventory playerInventory;
     @Getter
     List<Slot> slots = new ArrayList<>();
     @Getter
     @NotNull
-    ItemStack carriedItem;
+    ItemStack carriedItem = ItemStack.EMPTY;
 
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;
         this.playerInventory = playerInventory;
-        this.carriedItem = ItemStack.EMPTY;
     }
 
-    public AbstractContainerMenu() {
-        this.carriedItem = ItemStack.EMPTY;
+    public AbstractContainerMenu(GrimPlayer player) {
+        this.player = player;
     }
 
     public static int calculateQuickcraftHeader(int p_38948_) {
@@ -206,7 +205,9 @@ public abstract class AbstractContainerMenu {
                     return;
                 }
 
-                for (ItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
+                ItemStack itemstack9 = this.quickMoveStack(slotID);
+                while (!itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9)) {
+                    itemstack9 = this.quickMoveStack(slotID);
                 }
             } else {
                 if (slotID < 0) return;

@@ -28,6 +28,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -181,9 +182,13 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             Vector3dm collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
 
             position = position.withX(position.getX() + collide.getX());
-            // 1.8 players need the collision epsilon to not phase into blocks when being setback
-            // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
-            position = position.withY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+            position = position.withY(position.getY() + collide.getY());
+            // TODO: Is this even needed? Can't reproduce any phasing on vanilla 1.8 when being setback.
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                // 1.8 players need the collision epsilon to not phase into blocks when being setback
+                // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
+                position = position.withY(position.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+            }
             position = position.withZ(position.getZ() + collide.getZ());
 
             if (clientVel.getX() != collide.getX()) clientVel.setX(0);

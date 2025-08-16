@@ -145,7 +145,7 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         // Some proxies break packet order in sending brand and send the data too early for performance
         // which causes us to iterate over all players with this method
         // before platformPlayer is intialized; while generally packet order is important to maintain
-        // for compatibles sake lets just default to not sending alerts to these players
+        // for compatibility's sake lets just default to not sending alerts to these players
         if (grimPlayer.platformPlayer == null) return false;
 
         return hasBrandsEnabled(grimPlayer.platformPlayer);

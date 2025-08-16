@@ -542,7 +542,7 @@ public enum HitboxData implements HitBoxFactory {
             new HexOffsetCollisionBox(data.getType(), 4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D), StateTypes.BAMBOO_SAPLING),
 
     SCAFFOLDING((player, item, version, data, isTargetBlock, x, y, z) -> {
-        // If is holding scaffolding or Via replacement - hay bale
+        // holding scaffolding or via replacement (hay bale)
         if (item == StateTypes.SCAFFOLDING || version.isOlderThan(ClientVersion.V_1_14)) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }

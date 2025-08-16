@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.item.enchantment.type.Enchantm
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 public class EquipmentSlot extends Slot {
-    EquipmentType type;
+    private final EquipmentType type;
 
     public EquipmentSlot(EquipmentType type, InventoryStorage menu, int slot) {
         super(menu, slot);

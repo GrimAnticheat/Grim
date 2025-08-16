@@ -35,7 +35,7 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
 
             if (hasInteracted && !pos.equals(lastPos)) {
                 String verbose = "pos=" + MessageUtil.toUnlabledString(pos) + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
-                if (!player.canSkipTicks()) {
+                if (!player.canSkipTicksPreVia()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -56,7 +56,7 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) return;
+        if (!player.canSkipTicksPreVia()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

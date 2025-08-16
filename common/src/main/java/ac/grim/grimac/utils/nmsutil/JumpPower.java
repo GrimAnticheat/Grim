@@ -6,9 +6,11 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.experimental.UtilityClass;
 
 import java.util.OptionalInt;
 
+@UtilityClass
 public class JumpPower {
     public static void jumpFromGround(GrimPlayer player, Vector3dm vector) {
         float jumpPower = getJumpPower(player);

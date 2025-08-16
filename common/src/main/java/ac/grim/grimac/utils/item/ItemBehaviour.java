@@ -44,5 +44,4 @@ public class ItemBehaviour {
         FoodProperties foodProperties = item.getComponentOr(ComponentTypes.FOOD, null);
         return foodProperties != null ? foodProperties.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE : true;
     }
-
 }

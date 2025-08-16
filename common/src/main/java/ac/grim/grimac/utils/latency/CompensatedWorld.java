@@ -70,8 +70,8 @@ public class CompensatedWorld {
     public final GrimPlayer player;
     public final Long2ObjectMap<Column> chunks;
     // Packet locations for blocks
-    public Set<PistonData> activePistons = new HashSet<>();
-    public Set<ShulkerData> openShulkerBoxes = new HashSet<>();
+    public final Set<PistonData> activePistons = new HashSet<>();
+    public final Set<ShulkerData> openShulkerBoxes = new HashSet<>();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     @Getter
     private int minHeight = 0;
@@ -206,7 +206,7 @@ public class CompensatedWorld {
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
         } else {
             // ViaVersion is updated and runs tasks with bukkit which is correct
-            // So we must wait for the bukkit thread to start ticking so via can "confirm" it
+            // So we must wait for the bukkit thread to start ticking so via can "confirm" it.
             //
             // no need to support Folia on this one because Folia is 1.19+ only
             GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
@@ -332,7 +332,7 @@ public class CompensatedWorld {
                     data.setOpen(!data.isOpen());
                     updateBlock(blockX, blockY, blockZ, data.getGlobalId());
                 } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
-                    // Then tries setting the first bit of whatever is below it, disregarding it's type
+                    // Then tries setting the first bit of whatever is below it, disregarding its type
                     otherDoor.setOpen(!otherDoor.isOpen());
                     updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }

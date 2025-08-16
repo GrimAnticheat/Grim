@@ -45,6 +45,11 @@ spectators:
 # 玩家超时踢出时间（默认 = 60 秒）
 max-transaction-time: 60
 
+# Enable this to stop Grim cancelling pongs received from players.
+# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
+# Do not enable this if you are not sure what you are doing.
+disable-pong-cancelling: false
+
 # 是否对重复的移动数据包进行撤销?
 # 这可以修复 "bucket desync". https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
 # 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家

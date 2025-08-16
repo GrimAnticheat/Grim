@@ -6,6 +6,7 @@ import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.common.GrimArguments;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
@@ -38,7 +39,7 @@ public class GrimLog implements BuildableCommand {
     }
 
     private static void sendLog(Sender sender, String log, String success, String failure, Consumer<String> consumer, String type) throws IOException {
-        URL mUrl = new URL("https://paste.grim.ac/data/post");
+        URL mUrl = new URL(GrimArguments.PASTE_URL + "data/post");
         HttpURLConnection urlConn = (HttpURLConnection) mUrl.openConnection();
         try {
             urlConn.setDoOutput(true);
@@ -52,7 +53,7 @@ public class GrimLog implements BuildableCommand {
             final int response = urlConn.getResponseCode();
             if (response == HttpURLConnection.HTTP_CREATED) {
                 String responseURL = urlConn.getHeaderField("Location");
-                String message = success.replace("%url%", "https://paste.grim.ac/" + responseURL);
+                String message = success.replace("%url%", GrimArguments.PASTE_URL + responseURL);
                 consumer.accept(message);
                 message = MessageUtil.replacePlaceholders(sender, message);
                 sender.sendMessage(MessageUtil.miniMessage(message));

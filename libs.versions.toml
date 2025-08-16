@@ -1,24 +1,24 @@
 [versions]
-adventure = "4.21.0"
-adventure-platform-bukkit = "4.3.4"
+adventure = "4.23.0"
+adventure-platform-bukkit = "4.4.0"
 paper-api = "1.20.6-R0.1-SNAPSHOT"
 placeholderapi = "2.11.6"
 configuralize = "1.4.1:slim"
 cloud = "2.0.0"
-cloud-paper = "2.0.0-beta.10"
-cloud-fabric = "2.0.0-beta.10"
-packetevents = "2.9.0-SNAPSHOT"
+cloud-paper = "2.0.0-beta.11"
+cloud-fabric = "2.0.0-beta.11"
+packetevents = "2.9.5-SNAPSHOT"
 fastutil = "8.5.15"
 jetbrains-annotations = "24.1.0"
 floodgate-api = "2.0-SNAPSHOT"
 via-version = "5.0.4-SNAPSHOT"
 netty = "4.1.85.Final"
-fabric-loader = "0.16.10"
-fabric-loom = "1.10.5"
+fabric-loader = "0.16.14"
+fabric-loom = "1.11.4"
 
 spotless = "6.25.0"
 lombok = "8.6"
-shadow = "9.0.0-beta6"
+shadow = "9.0.0-rc2"
 
 [libraries]
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure"}

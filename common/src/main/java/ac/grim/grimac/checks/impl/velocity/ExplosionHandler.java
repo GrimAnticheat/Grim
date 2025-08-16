@@ -241,6 +241,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                     lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 }
 
+                // Explosion has been applied and is now required, remove it from first bread
                 firstBreadAddedExplosion = null;
                 firstBreadMap.poll();
                 data = firstBreadMap.peek();

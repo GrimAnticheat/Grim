@@ -41,6 +41,4 @@ public class CrashH extends Check implements PacketCheck {
             }
         }
     }
-
-
 }

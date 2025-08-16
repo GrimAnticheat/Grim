@@ -48,6 +48,10 @@ dependencies {
 
     api("ac.grim.grimac:GrimAPI:1.1.0.0")
 
+    compileOnly("org.geysermc.api:base-api:1.0.2") {
+        isTransitive = false // messes with guava otherwise
+    }
+
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)
     compileOnly(libs.netty)

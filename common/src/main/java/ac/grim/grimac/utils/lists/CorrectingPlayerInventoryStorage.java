@@ -45,14 +45,14 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
             Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
     );
-    GrimPlayer player;
+    private final GrimPlayer player;
     // The key for this map is the inventory slot ID
     // The value for this map is the transaction that we care about
     // Returns -1 if the entry is null
-    Map<Integer, Integer> serverIsCurrentlyProcessingThesePredictions = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> serverIsCurrentlyProcessingThesePredictions = new ConcurrentHashMap<>();
     // A list of predictions the client has made for inventory changes
     // Remove if the server rejects these changes
-    Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
 
     public CorrectingPlayerInventoryStorage(GrimPlayer player, int size) {
         super(size);
@@ -146,7 +146,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         // Every five ticks, we pull a new item for the player
         // This means no desync will last longer than 10 seconds
-        // (Required as mojang has screwed up some things with inventories that we can't easily fix.
+        // (Required as mojang has screwed up some things with inventories that we can't easily fix)
         // Don't spam this as it could cause lag (I was getting 0.3 ms to query this, this is done async though)
         if (tickID % 5 == 0) {
             int slotToCheck = (tickID / 5) % getSize();

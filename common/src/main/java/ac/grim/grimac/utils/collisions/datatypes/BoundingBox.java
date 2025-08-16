@@ -4,7 +4,7 @@ import ac.grim.grimac.utils.math.Vector3dm;
 
 public class BoundingBox {
 
-    public float minX, minY, minZ, maxX, maxY, maxZ;
+    public final float minX, minY, minZ, maxX, maxY, maxZ;
 
     public BoundingBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
         this.minX = minX;
@@ -34,49 +34,19 @@ public class BoundingBox {
     }
 
     public BoundingBox add(float x, float y, float z) {
-        float newMinX = minX + x;
-        float newMaxX = maxX + x;
-        float newMinY = minY + y;
-        float newMaxY = maxY + y;
-        float newMinZ = minZ + z;
-        float newMaxZ = maxZ + z;
-
-        return new BoundingBox(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
+        return new BoundingBox(minX + x, minY + y, minZ + z, maxX + x, maxY + y, maxZ + z);
     }
 
     public BoundingBox add(Vector3dm vector) {
-        float x = (float) vector.getX(), y = (float) vector.getY(), z = (float) vector.getZ();
-
-        float newMinX = minX + x;
-        float newMaxX = maxX + x;
-        float newMinY = minY + y;
-        float newMaxY = maxY + y;
-        float newMinZ = minZ + z;
-        float newMaxZ = maxZ + z;
-
-        return new BoundingBox(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
+        return add((float) vector.getX(), (float) vector.getY(), (float) vector.getZ());
     }
 
     public BoundingBox grow(float x, float y, float z) {
-        float newMinX = minX - x;
-        float newMaxX = maxX + x;
-        float newMinY = minY - y;
-        float newMaxY = maxY + y;
-        float newMinZ = minZ - z;
-        float newMaxZ = maxZ + z;
-
-        return new BoundingBox(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
+        return new BoundingBox(minX - x, minY - y, minZ - z, maxX + x, maxY + y, maxZ + z);
     }
 
     public BoundingBox shrink(float x, float y, float z) {
-        float newMinX = minX + x;
-        float newMaxX = maxX - x;
-        float newMinY = minY + y;
-        float newMaxY = maxY - y;
-        float newMinZ = minZ + z;
-        float newMaxZ = maxZ - z;
-
-        return new BoundingBox(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
+        return new BoundingBox(minX + x, minY + y, minZ + z, maxX - x, maxY - y, maxZ - z);
     }
 
     public BoundingBox add(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
@@ -88,7 +58,9 @@ public class BoundingBox {
     }
 
     public boolean intersectsWithBox(Vector3dm vector) {
-        return (vector.getX() > this.minX && vector.getX() < this.maxX) && ((vector.getY() > this.minY && vector.getY() < this.maxY) && (vector.getZ() > this.minZ && vector.getZ() < this.maxZ));
+        return vector.getX() > this.minX && vector.getX() < this.maxX
+                && vector.getY() > this.minY && vector.getY() < this.maxY
+                && vector.getZ() > this.minZ && vector.getZ() < this.maxZ;
     }
 
     public Vector3dm getMinimum() {
@@ -104,121 +76,95 @@ public class BoundingBox {
     }
 
     public boolean collidesHorizontally(Vector3dm vector) {
-        return (vector.getX() >= this.minX && vector.getX() <= this.maxX) && ((vector.getY() > this.minY && vector.getY() < this.maxY) && (vector.getZ() >= this.minZ && vector.getZ() <= this.maxZ));
+        return vector.getX() >= this.minX && vector.getX() <= this.maxX
+                && vector.getY() > this.minY && vector.getY() < this.maxY
+                && vector.getZ() >= this.minZ && vector.getZ() <= this.maxZ;
     }
 
     public boolean collidesVertically(Vector3dm vector) {
-        return (vector.getX() > this.minX && vector.getX() < this.maxX) && ((vector.getY() >= this.minY && vector.getY() <= this.maxY) && (vector.getZ() > this.minZ && vector.getZ() < this.maxZ));
+        return vector.getX() > this.minX && vector.getX() < this.maxX
+                && vector.getY() >= this.minY && vector.getY() <= this.maxY
+                && vector.getZ() > this.minZ && vector.getZ() < this.maxZ;
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the Y and Z dimensions, calculate the offset between them
-     * in the X dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the Y and Z dimensions, calculate the offset between them
+     * in the X dimension. return {@code offsetX} if the bounding boxes do not overlap or if {@code offsetX}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double calculateXOffset(BoundingBox other, double offsetX) {
         if (other.maxY > this.minY && other.minY < this.maxY && other.maxZ > this.minZ && other.minZ < this.maxZ) {
             if (offsetX > 0.0D && other.maxX <= this.minX) {
-                double d1 = this.minX - other.maxX;
-
-                if (d1 < offsetX) {
-                    offsetX = d1;
+                double offset = this.minX - other.maxX;
+                if (offset < offsetX) {
+                    return offset;
                 }
             } else if (offsetX < 0.0D && other.minX >= this.maxX) {
-                double d0 = this.maxX - other.minX;
-
-                if (d0 > offsetX) {
-                    offsetX = d0;
+                double offset = this.maxX - other.minX;
+                if (offset > offsetX) {
+                    return offset;
                 }
             }
-
-            return offsetX;
-        } else {
-            return offsetX;
         }
+
+        return offsetX;
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the X and Z dimensions, calculate the offset between them
-     * in the Y dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the X and Z dimensions, calculate the offset between them
+     * in the Y dimension. return {@code offsetY} if the bounding boxes do not overlap or if {@code offsetY}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double calculateYOffset(BoundingBox other, double offsetY) {
         if (other.maxX > this.minX && other.minX < this.maxX && other.maxZ > this.minZ && other.minZ < this.maxZ) {
             if (offsetY > 0.0D && other.maxY <= this.minY) {
-                double d1 = this.minY - other.maxY;
-
-                if (d1 < offsetY) {
-                    offsetY = d1;
+                double offset = this.minY - other.maxY;
+                if (offset < offsetY) {
+                    return offset;
                 }
             } else if (offsetY < 0.0D && other.minY >= this.maxY) {
-                double d0 = this.maxY - other.minY;
-
-                if (d0 > offsetY) {
-                    offsetY = d0;
+                double offset = this.maxY - other.minY;
+                if (offset > offsetY) {
+                    return offset;
                 }
             }
-
-            return offsetY;
-        } else {
-            return offsetY;
         }
+
+        return offsetY;
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the Y and X dimensions, calculate the offset between them
-     * in the Z dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the Y and X dimensions, calculate the offset between them
+     * in the Z dimension. return {@code offsetZ} if the bounding boxes do not overlap or if {@code offsetZ}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double calculateZOffset(BoundingBox other, double offsetZ) {
         if (other.maxX > this.minX && other.minX < this.maxX && other.maxY > this.minY && other.minY < this.maxY) {
             if (offsetZ > 0.0D && other.maxZ <= this.minZ) {
-                double d1 = this.minZ - other.maxZ;
-
-                if (d1 < offsetZ) {
-                    offsetZ = d1;
+                double offset = this.minZ - other.maxZ;
+                if (offset < offsetZ) {
+                    return offset;
                 }
             } else if (offsetZ < 0.0D && other.minZ >= this.maxZ) {
-                double d0 = this.maxZ - other.minZ;
-
-                if (d0 > offsetZ) {
-                    offsetZ = d0;
+                double offset = this.maxZ - other.minZ;
+                if (offset > offsetZ) {
+                    return offset;
                 }
             }
-
-            return offsetZ;
-        } else {
-            return offsetZ;
         }
+
+        return offsetZ;
     }
 
     public BoundingBox addCoord(float x, float y, float z) {
-        float d0 = this.minX;
-        float d1 = this.minY;
-        float d2 = this.minZ;
-        float d3 = this.maxX;
-        float d4 = this.maxY;
-        float d5 = this.maxZ;
-
-        if (x < 0.0D) {
-            d0 += x;
-        } else if (x > 0.0D) {
-            d3 += x;
-        }
-
-        if (y < 0.0D) {
-            d1 += y;
-        } else if (y > 0.0D) {
-            d4 += y;
-        }
-
-        if (z < 0.0D) {
-            d2 += z;
-        } else if (z > 0.0D) {
-            d5 += z;
-        }
-
-        return new BoundingBox(d0, d1, d2, d3, d4, d5);
+        return new BoundingBox(
+                x < 0 ? this.minX + x : this.minX,
+                y < 0 ? this.minY + y : this.minY,
+                z < 0 ? this.minZ + z : this.minZ,
+                x > 0 ? this.maxX + x : this.maxX,
+                y > 0 ? this.maxY + y : this.maxY,
+                z > 0 ? this.maxZ + z : this.maxZ
+        );
     }
 
     public SimpleCollisionBox toCollisionBox() {

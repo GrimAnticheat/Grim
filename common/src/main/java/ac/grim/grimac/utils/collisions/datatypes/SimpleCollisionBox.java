@@ -314,76 +314,57 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the Y and Z dimensions, calculate the offset between them
-     * in the X dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the Y and Z dimensions, calculate the offset between them
+     * in the X dimension. return {@code offsetX} if the bounding boxes do not overlap or if {@code offsetX}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double collideX(SimpleCollisionBox other, double offsetX) {
         if (offsetX != 0 && (other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON &&
                 (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
-
             if (offsetX >= 0.0) {
                 double max_move = minX - other.maxX; // < 0.0 if no strict collision
-                if (max_move < -COLLISION_EPSILON) {
-                    return offsetX;
-                }
-                return Math.min(max_move, offsetX);
+                return max_move < -COLLISION_EPSILON ? offsetX : Math.min(max_move, offsetX);
             } else {
                 double max_move = maxX - other.minX; // > 0.0 if no strict collision
-                if (max_move > COLLISION_EPSILON) {
-                    return offsetX;
-                }
-                return Math.max(max_move, offsetX);
+                return max_move > COLLISION_EPSILON ? offsetX : Math.max(max_move, offsetX);
             }
         }
         return offsetX;
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the X and Z dimensions, calculate the offset between them
-     * in the Y dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the X and Z dimensions, calculate the offset between them
+     * in the Y dimension. return {@code offsetY} if the bounding boxes do not overlap or if {@code offsetY}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double collideY(SimpleCollisionBox other, double offsetY) {
         if (offsetY != 0 && (other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
                 (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
             if (offsetY >= 0.0) {
                 double max_move = minY - other.maxY; // < 0.0 if no strict collision
-                if (max_move < -COLLISION_EPSILON) {
-                    return offsetY;
-                }
-                return Math.min(max_move, offsetY);
+                return max_move < -COLLISION_EPSILON ? offsetY : Math.min(max_move, offsetY);
             } else {
                 double max_move = maxY - other.minY; // > 0.0 if no strict collision
-                if (max_move > COLLISION_EPSILON) {
-                    return offsetY;
-                }
-                return Math.max(max_move, offsetY);
+                return max_move > COLLISION_EPSILON ? offsetY : Math.max(max_move, offsetY);
             }
         }
         return offsetY;
     }
 
     /**
-     * if instance and the argument bounding boxes overlap in the Y and X dimensions, calculate the offset between them
-     * in the Z dimension.  return var2 if the bounding boxes do not overlap or if var2 is closer to 0 then the
-     * calculated offset.  Otherwise return the calculated offset.
+     * if {@code this} and {@code other} overlap in the Y and X dimensions, calculate the offset between them
+     * in the Z dimension. return {@code offsetZ} if the bounding boxes do not overlap or if {@code offsetZ}
+     * is closer to {@code 0} then the calculated offset. Otherwise return the calculated offset.
      */
     public double collideZ(SimpleCollisionBox other, double offsetZ) {
         if (offsetZ != 0 && (other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
                 (other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON) {
             if (offsetZ >= 0.0) {
                 double max_move = minZ - other.maxZ; // < 0.0 if no strict collision
-                if (max_move < -COLLISION_EPSILON) {
-                    return offsetZ;
-                }
-                return Math.min(max_move, offsetZ);
+                return max_move < -COLLISION_EPSILON ? offsetZ : Math.min(max_move, offsetZ);
             } else {
                 double max_move = maxZ - other.minZ; // > 0.0 if no strict collision
-                if (max_move > COLLISION_EPSILON) {
-                    return offsetZ;
-                }
-                return Math.max(max_move, offsetZ);
+                return max_move > COLLISION_EPSILON ? offsetZ : Math.max(max_move, offsetZ);
             }
         }
         return offsetZ;
@@ -423,8 +404,7 @@ public class SimpleCollisionBox implements CollisionBox {
      * @param ray     incident ray
      * @param minDist minimum distance
      * @param maxDist maximum distance
-     * @return intersection point on the bounding box (only the first is
-     * returned) or null if no intersection
+     * @return intersection point on the bounding box (only the first is returned) or null if no intersection
      */
     // Copied from hawk lol
     // I would like to point out that this is magic to me and I have not attempted to understand this code
@@ -435,55 +415,33 @@ public class SimpleCollisionBox implements CollisionBox {
         boolean signDirY = invDir.getY() < 0;
         boolean signDirZ = invDir.getZ() < 0;
 
-        Vector3dm bbox = signDirX ? max() : min();
-        double tmin = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
-        bbox = signDirX ? min() : max();
-        double tmax = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
-        bbox = signDirY ? max() : min();
-        double tymin = (bbox.getY() - ray.getOrigin().getY()) * invDir.getY();
-        bbox = signDirY ? min() : max();
-        double tymax = (bbox.getY() - ray.getOrigin().getY()) * invDir.getY();
+        double tmin = ((signDirX ? maxX : minX) - ray.getOrigin().getX()) * invDir.getX();
+        double tmax = ((signDirX ? minX : maxX) - ray.getOrigin().getX()) * invDir.getX();
+        double tymin = ((signDirY ? maxY : minY) - ray.getOrigin().getY()) * invDir.getY();
+        double tymax = ((signDirY ? minY : maxY) - ray.getOrigin().getY()) * invDir.getY();
 
-        if ((tmin > tymax) || (tymin > tmax)) {
+        if (tmin > tymax || tymin > tmax) {
             return null;
         }
-        if (tymin > tmin) {
-            tmin = tymin;
-        }
-        if (tymax < tmax) {
-            tmax = tymax;
-        }
 
-        bbox = signDirZ ? max() : min();
-        double tzmin = (bbox.getZ() - ray.getOrigin().getZ()) * invDir.getZ();
-        bbox = signDirZ ? min() : max();
-        double tzmax = (bbox.getZ() - ray.getOrigin().getZ()) * invDir.getZ();
+        if (tymin > tmin) tmin = tymin;
+        if (tymax < tmax) tmax = tymax;
+
+        double tzmin = ((signDirZ ? maxZ : minZ) - ray.getOrigin().getZ()) * invDir.getZ();
+        double tzmax = ((signDirZ ? minZ : maxZ) - ray.getOrigin().getZ()) * invDir.getZ();
 
         if ((tmin > tzmax) || (tzmin > tmax)) {
             return null;
         }
-        if (tzmin > tmin) {
-            tmin = tzmin;
-        }
-        if (tzmax < tmax) {
-            tmax = tzmax;
-        }
-        if ((tmin < maxDist) && (tmax > minDist)) {
-            return ray.getPointAtDistance(tmin);
-        }
-        return null;
-    }
 
-    public Vector3d getMaxPosition() { // done to omit conversions bukkit -> packetevents
-        return new Vector3d(maxX, maxY, maxZ);
+        if (tzmin > tmin) tmin = tzmin;
+        if (tzmax < tmax) tmax = tzmax;
+
+        return tmin < maxDist && tmax > minDist ? ray.getPointAtDistance(tmin) : null;
     }
 
     public Vector3dm max() {
         return new Vector3dm(maxX, maxY, maxZ);
-    }
-
-    public Vector3d getMinPosition() { // done to omit conversions bukkit -> packetevents
-        return new Vector3d(minX, minY, minZ);
     }
 
     public Vector3dm min() {

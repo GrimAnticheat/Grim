@@ -12,6 +12,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
+import java.util.Objects;
+
 public class GrimProfile implements BuildableCommand {
     @Override
     public void register(CommandManager<Sender> commandManager) {
@@ -29,7 +31,7 @@ public class GrimProfile implements BuildableCommand {
         PlayerSelector target = context.get("target");
 
         PlatformPlayer targetPlatformPlayer = target.getSinglePlayer().getPlatformPlayer();
-        if (targetPlatformPlayer.isExternalPlayer()) {
+        if (Objects.requireNonNull(targetPlatformPlayer).isExternalPlayer()) {
             sender.sendMessage(MessageUtil.getParsedComponent(sender,"player-not-this-server", "%prefix% &cThis player isn't on this server!"));
             return;
         }

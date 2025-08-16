@@ -78,7 +78,7 @@ public class Location implements Cloneable {
     }
 
     public @NotNull Location add(@NotNull Location vec) {
-        if (vec != null && vec.getWorld() == this.getWorld()) {
+        if (Objects.requireNonNull(vec).getWorld() == this.getWorld()) {
             this.x += vec.x;
             this.y += vec.y;
             this.z += vec.z;
@@ -96,7 +96,7 @@ public class Location implements Cloneable {
     }
 
     public @NotNull Location subtract(@NotNull Location vec) {
-        if (vec != null && vec.getWorld() == this.getWorld()) {
+        if (Objects.requireNonNull(vec).getWorld() == this.getWorld()) {
             this.x -= vec.x;
             this.y -= vec.y;
             this.z -= vec.z;
@@ -176,9 +176,9 @@ public class Location implements Cloneable {
         int hash = 3;
         PlatformWorld world = this.world == null ? null : this.world.get();
         hash = 19 * hash + (world != null ? world.hashCode() : 0);
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
+        hash = 19 * hash + Long.hashCode(Double.doubleToLongBits(this.x));
+        hash = 19 * hash + Long.hashCode(Double.doubleToLongBits(this.y));
+        hash = 19 * hash + Long.hashCode(Double.doubleToLongBits(this.z));
         hash = 19 * hash + Float.floatToIntBits(this.pitch);
         hash = 19 * hash + Float.floatToIntBits(this.yaw);
         return hash;

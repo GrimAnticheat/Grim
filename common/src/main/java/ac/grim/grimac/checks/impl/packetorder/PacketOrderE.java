@@ -42,7 +42,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
                         + ", sprinting=" + player.packetOrderProcessor.isSprinting()
                         + ", gliding=" + player.packetOrderProcessor.isStartingToGlide()
                         + ", mountJumping=" + player.packetOrderProcessor.isJumpingWithMount();
-                if (player.canSkipTicks() && flags.add(verbose) || flagAndAlert(verbose)) {
+                if (player.canSkipTicksPreVia() && flags.add(verbose) || flagAndAlert(verbose)) {
                     if (player.packetOrderProcessor.isUsing()) {
                         setback = true;
                     }
@@ -53,7 +53,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicks()) {
+        if (!player.canSkipTicksPreVia()) {
             if (setback) {
                 setback = false;
                 setbackIfAboveSetbackVL();

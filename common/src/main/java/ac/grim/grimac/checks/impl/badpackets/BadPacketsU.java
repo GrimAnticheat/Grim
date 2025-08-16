@@ -31,9 +31,7 @@ public class BadPacketsU extends Check implements PacketCheck {
                 // except y gets wrapped?
                 final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
 
-                final boolean failedItemCheck = packet.getItemStack().isPresent() && isEmpty(packet.getItemStack().get())
-                        // ViaVersion can sometimes cause this part of the check to false
-                        && player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+                final boolean failedItemCheck = packet.getItemStack().isPresent() && isEmpty(packet.getItemStack().get());
 
                 final Vector3i pos = packet.getBlockPosition();
                 final Vector3f cursor = packet.getCursorPosition();

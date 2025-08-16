@@ -47,15 +47,9 @@ public class GrimDump implements BuildableCommand {
         GrimLog.sendLogAsync(sender, generateDump(), string -> link = string, "text/yaml");
     }
 
-    /**
-     * Generates a diagnostic dump in JSON format that contains various metadata
-     * about the system, platform, and plugins. This dump is primarily used for
-     * debugging and finding potential issues with the environment.
-     * @return A JSON-formatted string containing the diagnostic dump.
-     */
-    private String generateDump() {
+    public static JsonObject getBasicInfo(String type) {
         JsonObject base = new JsonObject();
-        base.addProperty("type", "dump");
+        base.addProperty("type", type);
         base.addProperty("timestamp", System.currentTimeMillis());
         // versions
         JsonObject versions = new JsonObject();
@@ -76,6 +70,17 @@ public class GrimDump implements BuildableCommand {
         system.addProperty("os_name", System.getProperty("os.name"));
         system.addProperty("java_version", System.getProperty("java.version"));
         system.addProperty("user_language", System.getProperty("user.language"));
+        return base;
+    }
+
+    /**
+     * Generates a diagnostic dump in JSON format that contains various metadata
+     * about the system, platform, and plugins. This dump is primarily used for
+     * debugging and finding potential issues with the environment.
+     * @return A JSON-formatted string containing the diagnostic dump.
+     */
+    private String generateDump() {
+        JsonObject base = getBasicInfo("dump");
         // plugins
         JsonArray plugins = new JsonArray();
         base.add("plugins", plugins);
