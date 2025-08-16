@@ -40,11 +40,12 @@ public final class PredictionEngineRideableUtils {
         }
 
         // More jumping stuff
-        boolean onGround = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_3)
+        boolean legacyJumpingMechanics = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_3);
+        boolean onGround = legacyJumpingMechanics
                 ? player.clientControlledVerticalCollision
                 : player.lastOnGround;
         if (onGround) {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_3)) {
+            if (legacyJumpingMechanics) {
                 horse.horseJump = 0.0F;
             }
 
