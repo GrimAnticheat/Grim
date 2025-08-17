@@ -21,6 +21,6 @@ public class TrackerData {
         this.yRot = yRot;
         this.entityType = entityType;
         this.lastTransactionHung = lastTransactionHung;
-        this.isJumpableEntity = EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE) || EntityTypes.CAMEL.equals(entityType);
+        this.isJumpableEntity = EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE);
     }
 }
