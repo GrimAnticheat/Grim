@@ -36,6 +36,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
+    @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
     private static final boolean RELIABLE_COMPONENT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4);
     public static void handleUseItem(GrimPlayer player, ItemStack item, InteractionHand hand) {
         if (item == null) {

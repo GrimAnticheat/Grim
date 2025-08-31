@@ -79,7 +79,7 @@ public class ConsumesBlockPlace {
         if (state.getType() == StateTypes.COMMAND_BLOCK || state.getType() == StateTypes.CHAIN_COMMAND_BLOCK ||
                 state.getType() == StateTypes.REPEATING_COMMAND_BLOCK || state.getType() == StateTypes.JIGSAW
                 || state.getType() == StateTypes.STRUCTURE_BLOCK) {
-            return player.canUseGameMasterBlocks();
+            return player.canPlaceGameMasterBlocks();
         }
         if (state.getType() == StateTypes.COMPOSTER) {
             if (Materials.isCompostable(place.itemStack.getType()) && state.getLevel() < 8) {

@@ -22,7 +22,7 @@ public class CrashH extends Check implements PacketCheck {
             String text = wrapper.getText();
             final int length = text.length();
             // general length limit
-            if (length > 256) {
+            if (length > (!player.canUseGameMasterBlocks() ? 256 : 32500)) {
                 if (shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
