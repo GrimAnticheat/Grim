@@ -184,10 +184,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         if (!started) return;
         // Reload checks for all players
         for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
-                grimPlayer.updatePermissions();
-                grimPlayer.reload(configManager);
-            });
+            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> grimPlayer.reload(configManager));
         }
     }
 

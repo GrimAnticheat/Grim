@@ -126,15 +126,22 @@ bukkit {
         }
 
         register("grim.verbose") {
-            description = "Receive verbose alerts for violations. Requires grim.alerts"
+            description = "Receive verbose alerts for violations"
             default = Permission.Default.OP
         }
 
         register("grim.verbose.enable-on-join") {
             description =
-                "Enable verbose alerts on join. Requires grim.alerts and grim.alerts.enable-on-join"
+                "Enable verbose alerts on join"
             default = Permission.Default.FALSE
         }
+
+        register("grim.list") {
+            description =
+                "Shows lists of specific data"
+            default = Permission.Default.FALSE
+        }
+
     }
 }
 

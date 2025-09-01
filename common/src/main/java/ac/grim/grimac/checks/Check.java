@@ -63,19 +63,12 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exemptPermission;
     }
 
-    public void updatePermissions() {
-        if (player.platformPlayer == null || configName == null) return;
-        GrimAPI.INSTANCE.getScheduler().getEntityScheduler().run(
-                player.platformPlayer,
-                GrimAPI.INSTANCE.getGrimPlugin(),
-                () -> {
-                    final String id = configName.toLowerCase();
-                    exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
-                    noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
-                    noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
-                },
-                () -> {}
-        );
+    public final void updatePermissions() {
+        if (configName == null || player.platformPlayer == null) return;
+        final String id = configName.toLowerCase();
+        exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
+        noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
+        noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
     }
 
     public final boolean flagAndAlert(String verbose) {
@@ -137,14 +130,13 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     @Override
-    public void reload(ConfigManager configuration) {
+    public final void reload(ConfigManager configuration) {
         decay = configuration.getDoubleElse(configName + ".decay", decay);
         setbackVL = configuration.getDoubleElse(configName + ".setbackvl", setbackVL);
         displayName = configuration.getStringElse(configName + ".displayname", checkName);
         description = configuration.getStringElse(configName + ".description", description);
 
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
-        updatePermissions();
         onReload(configuration);
     }
 

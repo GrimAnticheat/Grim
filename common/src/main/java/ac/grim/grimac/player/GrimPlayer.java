@@ -584,15 +584,19 @@ public class GrimPlayer implements GrimUser {
     @Override
     public void updatePermissions() {
         if (platformPlayer == null) return;
-        this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
-        this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
-        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-            for (AbstractCheck check : checkManager.allChecks.values()) {
-                if (check instanceof Check) {
-                    ((Check) check).updatePermissions();
+        try {
+            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
+                this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
+                this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
+                for (AbstractCheck check : checkManager.allChecks.values()) {
+                    if (check instanceof Check c) {
+                        c.updatePermissions();
+                    }
                 }
-            }
-        });
+            }, null, 0);
+        } catch (Exception e) {
+            LogUtil.error("Failed to update permissions for " + getName() + "!", e);
+        }
     }
 
     public boolean isPointThree() {
@@ -897,7 +901,8 @@ public class GrimPlayer implements GrimUser {
     }
 
     @Override
-    public void reload(ConfigManager config) {
+    public final void reload(ConfigManager config) {
+        updatePermissions();
         featureManager.onReload(config);
         debugPacketCancel = config.getBooleanElse("debug-packet-cancel", false);
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
