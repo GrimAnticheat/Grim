@@ -49,7 +49,7 @@ public final class PredictionEngineRideableUtils {
                 horse.horseJump = 0.0F;
             }
 
-            player.vehicleData.horseJumping = false;
+            horse.horseJumping = false;
         }
 
         if (horse.nextHorseJump != 0.0F) {
@@ -63,7 +63,7 @@ public final class PredictionEngineRideableUtils {
     }
 
     private static void handleCamelDash(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityCamel camel) {
-        final boolean wantsToJump = camel.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
+        final boolean wantsToJump = camel.horseJump > 0.0F && !camel.horseJumping && player.lastOnGround;
         if (!wantsToJump) return;
 
         final double jumpFactor = camel.getAttributeValue(Attributes.JUMP_STRENGTH) * JumpPower.getPlayerJumpFactor(player);
@@ -84,8 +84,7 @@ public final class PredictionEngineRideableUtils {
             vectorData.vector.add(jumpVelocity);
         }
 
-        player.vehicleData.horseJumping = true;
-
+        camel.horseJumping = true;
         camel.dashCooldown = 55;
         camel.horseJump = 0.0F;
     }
@@ -93,7 +92,7 @@ public final class PredictionEngineRideableUtils {
     private static void handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
-        final boolean wantsToJump = horse.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
+        final boolean wantsToJump = horse.horseJump > 0.0F && !horse.horseJumping && player.lastOnGround;
         if (!wantsToJump) return;
 
         float forwardInput = player.vehicleData.vehicleForward;
@@ -116,7 +115,7 @@ public final class PredictionEngineRideableUtils {
             jumpVelocity = jumpFactor;
         }
 
-        player.vehicleData.horseJumping = true;
+        horse.horseJumping = true;
 
         float f2 = player.trigHandler.sin(player.xRot * ((float) Math.PI / 180F));
         float f3 = player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F));

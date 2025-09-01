@@ -18,6 +18,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
     public boolean hasSaddle = false;
     public boolean isTame = false;
 
+    public boolean horseJumping = false;
     public float nextHorseJump = 0;
     public float horseJump = 0;
     public PacketEntityHorse(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z, float xRot) {

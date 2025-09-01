@@ -15,7 +15,7 @@ public class MovementTickerCamel extends MovementTickerHorse {
 
         // If jumping... speed wouldn't apply after this
         // This engine was not designed for this edge case
-        final boolean wantsToJump = camel.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround;
+        final boolean wantsToJump = camel.horseJump > 0.0F && !camel.horseJumping && player.lastOnGround;
         if (wantsToJump) return 0;
 
         return player.isSprinting && camel.dashCooldown <= 0 && !camel.dashing ? 0.1f : 0.0f;

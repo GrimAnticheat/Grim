@@ -21,6 +21,5 @@ public class VehicleData {
     public boolean lastDummy = false;
     public boolean wasVehicleSwitch = false;
     public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
-    public boolean horseJumping = false;
     public boolean firstRidingTick = false;
 }
