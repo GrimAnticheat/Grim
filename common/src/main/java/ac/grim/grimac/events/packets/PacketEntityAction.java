@@ -57,7 +57,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     }
                     // Starting fall flying is server sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
-                    player.checkManager.getPreViaPostPredictionCheck(ElytraA.class).onStartGliding(event);
+                    player.checkManager.getPostPredictionCheck(ElytraA.class).onStartGliding(event);
 
                     // This shouldn't be needed with latency compensated inventories
                     // TODO: Remove this?

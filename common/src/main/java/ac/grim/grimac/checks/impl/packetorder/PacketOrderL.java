@@ -26,7 +26,7 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_STATUS) {
             if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 if (player.packetOrderProcessor.isDropping()) {
-                    if (!player.canSkipTicksPreVia()) {
+                    if (!player.canSkipTicks()) {
                         if (flagAndAlert("inventory") && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -41,7 +41,7 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             if (new WrapperPlayClientPlayerDigging(event).getAction() == DiggingAction.SWAP_ITEM_WITH_OFFHAND) {
                 if (player.packetOrderProcessor.isDropping()) {
-                    if (!player.canSkipTicksPreVia()) {
+                    if (!player.canSkipTicks()) {
                         if (flagAndAlert("swap") && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
@@ -56,7 +56,7 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicksPreVia()) return;
+        if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (String verbose : flags) {

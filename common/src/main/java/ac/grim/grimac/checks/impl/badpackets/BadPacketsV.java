@@ -20,7 +20,7 @@ public class BadPacketsV extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!player.canSkipTicksPreVia() && isTickPacket(event.getPacketType())) {
+        if (!player.canSkipTicks() && isTickPacket(event.getPacketType())) {
             if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
                 int positionAtLeastEveryNTicks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) ? 20 : 19;
 

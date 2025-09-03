@@ -29,7 +29,7 @@ public class VehicleF extends Check implements PacketCheck {
             boolean expectedLeft;
             boolean expectedRight;
 
-            if (player.supportsEndTickPreVia()) {
+            if (player.supportsEndTick()) {
                 KnownInput input = player.packetStateData.knownInput;
                 expectedLeft = input.forward() || !input.left() && input.right();
                 expectedRight = input.forward() || input.left() && !input.right();
