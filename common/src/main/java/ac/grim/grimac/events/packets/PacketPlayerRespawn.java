@@ -167,7 +167,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedEntities.self.hasGravity = true;
                     player.playerEntityHasGravity = true;
                     player.packetStateData.knownInput = KnownInput.DEFAULT;
-                    player.checkManager.getPreViaPostPredictionCheck(ElytraC.class).exempt = true;
+                    player.checkManager.getPostPredictionCheck(ElytraC.class).exempt = true;
 
                     // 1.19.4 uses current sprinting, older versions use last sprinting
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
@@ -177,12 +177,12 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     }
                 }
 
-                player.checkManager.getPreViaPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
-                player.checkManager.getPreViaPacketCheck(BadPacketsG.class).handleRespawn();
+                player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
+                player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-                    player.checkManager.getPreViaPacketCheck(BadPacketsF.class).exemptNext = true;
+                    player.checkManager.getPacketCheck(BadPacketsF.class).exemptNext = true;
                 }
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
@@ -203,7 +203,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
-                    player.checkManager.getPreViaPacketCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
+                    player.checkManager.getPacketCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
                     // The server doesn't even use it... what do we do?
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;

@@ -22,7 +22,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!player.canSkipTicksPreVia()) {
+        if (!player.canSkipTicks()) {
             if (flags > 0) {
                 setbackIfAboveSetbackVL();
             }
@@ -51,7 +51,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
             switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SNEAKING, STOP_SNEAKING -> {
                     if (sneak) {
-                        if (player.canSkipTicksPreVia() || flagAndAlert()) {
+                        if (player.canSkipTicks() || flagAndAlert()) {
                             flags++;
                         }
                     }
@@ -64,7 +64,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
                     }
 
                     if (sprint) {
-                        if (player.canSkipTicksPreVia() || flagAndAlert()) {
+                        if (player.canSkipTicks() || flagAndAlert()) {
                             flags++;
                         }
                     }
