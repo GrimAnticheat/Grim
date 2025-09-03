@@ -130,8 +130,6 @@ public class CheckManager {
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
                 .put(VehicleF.class, new VehicleF(player))
-                .put(TickTimer.class, new TickTimer(player))
-                .put(SprintA.class, new SprintA(player))
                 .put(CrashB.class, new CrashB(player))
                 .put(CrashD.class, new CrashD(player))
                 .put(CrashE.class, new CrashE(player))
@@ -303,7 +301,7 @@ public class CheckManager {
         for (BlockPlaceCheck check : blockPlaceChecks.values()) {
             check.onPacketReceive(packet);
         }
-        for (PacketCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onPacketReceive(packet);
         }
     }
@@ -321,7 +319,7 @@ public class CheckManager {
         for (BlockPlaceCheck check : blockPlaceChecks.values()) {
             check.onPacketSend(packet);
         }
-        for (PacketCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecks.values()) {
             check.onPacketSend(packet);
         }
     }
