@@ -25,10 +25,10 @@ public class Riptide {
 
         float yaw = GrimMath.radians(player.xRot);
         float pitch = GrimMath.radians(player.yRot);
-        float yawCos = player.trigHandler.cos(yaw);
-        float f1 = -player.trigHandler.sin(pitch) * yawCos;
-        float f2 = -player.trigHandler.sin(yaw);
-        float f3 = player.trigHandler.cos(pitch) * yawCos;
+        float pitchCos = player.trigHandler.cos(pitch);
+        float f1 = -player.trigHandler.sin(yaw) * pitchCos;
+        float f2 = -player.trigHandler.sin(pitch);
+        float f3 = player.trigHandler.cos(yaw) * pitchCos;
         float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
         float f5 = (3f * ((1f + j) / 4f)) / f4;
 
