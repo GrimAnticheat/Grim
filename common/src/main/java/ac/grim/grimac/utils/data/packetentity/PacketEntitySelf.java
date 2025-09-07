@@ -100,7 +100,7 @@ public class PacketEntitySelf extends PacketEntity {
                     }
 
                     // On clients < 1.21, use depth strider enchant level always
-                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.inventory, EnchantmentTypes.DEPTH_STRIDER);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return depthStrider;
                     }
@@ -123,7 +123,7 @@ public class PacketEntitySelf extends PacketEntity {
                         return (double) 0.3f;
                     }
 
-                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK);
+                    final int swiftSneak = player.inventory.getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK);
                     final double clamped = GrimMath.clamp(0.3f + swiftSneak * 0.15f, 0f, 1f);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return clamped;

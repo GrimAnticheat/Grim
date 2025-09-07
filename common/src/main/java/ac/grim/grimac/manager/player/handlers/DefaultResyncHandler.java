@@ -7,7 +7,6 @@ import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
@@ -90,7 +89,7 @@ public class DefaultResyncHandler implements ResyncHandler {
                                 }
 
                                 WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(new Vector3i(currChunkX, currChunkY, currChunkZ), true, encodedBlocks);
-                                ChannelHelper.runInEventLoop(player.user.getChannel(), () -> player.user.sendPacket(packet));
+                                player.runSafely(() -> player.user.sendPacket(packet));
                             }
                         }
                     }

@@ -14,12 +14,12 @@ public class VanillaMath {
     }
 
     @Contract(pure = true)
-    public static float sin(float f) {
-        return SIN[(int) (f * 10430.378f) & 0xFFFF];
+    public static float sin(float value) {
+        return SIN[(int) (value * 10430.378f) & 0xFFFF];
     }
 
     @Contract(pure = true)
-    public static float cos(float f) {
-        return SIN[(int) (f * 10430.378f + 16384.0f) & 0xFFFF];
+    public static float cos(float value) {
+        return SIN[(int) (value * 10430.378f + 16384.0f) & 0xFFFF];
     }
 }

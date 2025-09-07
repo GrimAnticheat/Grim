@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
@@ -10,8 +9,8 @@ import lombok.Getter;
 @Getter
 public class Ray implements Cloneable {
 
-    private Vector3dm origin;
-    private Vector3dm direction;
+    private final Vector3dm origin;
+    private final Vector3dm direction;
 
     public Ray(Vector3dm origin, Vector3dm direction) {
         this.origin = origin;
@@ -36,17 +35,10 @@ public class Ray implements Cloneable {
         return vector;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
     public Ray clone() {
-        Ray clone;
-        try {
-            clone = (Ray) super.clone();
-            clone.origin = this.origin.clone();
-            clone.direction = this.direction.clone();
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            LogUtil.error("Failed to clone ray", e);
-        }
-        return null;
+        return new Ray(this.origin.clone(), this.direction.clone());
     }
 
     public String toString() {
@@ -59,7 +51,7 @@ public class Ray implements Cloneable {
         return orig.add(dir.multiply(distance));
     }
 
-    //https://en.wikipedia.org/wiki/Skew_lines#Nearest_Points
+    // https://en.wikipedia.org/wiki/Skew_lines#Nearest_Points
     public Pair<Vector3dm, Vector3dm> closestPointsBetweenLines(Ray other) {
         Vector3dm n1 = direction.clone().crossProduct(other.direction.clone().crossProduct(direction));
         Vector3dm n2 = other.direction.clone().crossProduct(direction.clone().crossProduct(other.direction));

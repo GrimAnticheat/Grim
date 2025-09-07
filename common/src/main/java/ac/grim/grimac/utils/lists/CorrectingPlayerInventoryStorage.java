@@ -99,10 +99,10 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         // The player isn't fully logged in yet, don't bother checking
         if (player.platformPlayer == null) return;
         // We aren't tracking the player's inventory, so don't bother
-        if (!player.getInventory().isPacketInventoryActive) return;
+        if (!player.inventory.isPacketInventoryActive) return;
 
         // Bukkit uses different slot ID's to vanilla
-        int bukkitSlot = player.getInventory().getBukkitSlot(slot); // 8 -> 39, should be 36
+        int bukkitSlot = player.inventory.getBukkitSlot(slot); // 8 -> 39, should be 36
 
         if (bukkitSlot != -1) {
             ItemStack existing = getItem(slot);
@@ -132,13 +132,13 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         // If the player's inventory needs to be resent so that Grim can enable the player's packet inventory again
         // Then resend once the player has a supported inventory to activate that.
-        if (player.getInventory().needResend) {
+        if (player.inventory.needResend) {
             GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
                 // Potential race condition doing this multiple times
-                if (!player.getInventory().needResend) return;
+                if (!player.inventory.needResend) return;
 
                 if (SUPPORTED_INVENTORIES.contains(player.platformPlayer.getInventory().getOpenInventoryKey().toUpperCase(Locale.ROOT))) {
-                    player.getInventory().needResend = false;
+                    player.inventory.needResend = false;
                     player.platformPlayer.updateInventory();
                 }
             }, null, 0);

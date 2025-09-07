@@ -62,7 +62,7 @@ public class GrimDump implements BuildableCommand {
         JsonObject states = new JsonObject();
         base.add("states", states);
         if (GrimAPI.INSTANCE.isInitialized()) states.addProperty("platform", GrimAPI.INSTANCE.getPlatform().toString());
-        if (ViaVersionUtil.isAvailable()) states.addProperty("has_viaversion", true);
+        if (ViaVersionUtil.isAvailable) states.addProperty("has_viaversion", true);
         if (PAPER) states.addProperty("has_paper", true);
         // system
         JsonObject system = new JsonObject();

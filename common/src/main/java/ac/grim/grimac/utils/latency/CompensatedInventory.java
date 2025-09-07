@@ -202,26 +202,19 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
 
-            ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
+            ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
 
             EquipmentType equipmentType = EquipmentType.getEquipmentSlotForItem(use);
             if (equipmentType != null) {
                 int slot;
                 switch (equipmentType) {
-                    case HEAD:
-                        slot = Inventory.SLOT_HELMET;
-                        break;
-                    case CHEST:
-                        slot = Inventory.SLOT_CHESTPLATE;
-                        break;
-                    case LEGS:
-                        slot = Inventory.SLOT_LEGGINGS;
-                        break;
-                    case FEET:
-                        slot = Inventory.SLOT_BOOTS;
-                        break;
-                    default: // Not armor, therefore we shouldn't run this code
-                        return;
+                    case HEAD -> slot = Inventory.SLOT_HELMET;
+                    case CHEST -> slot = Inventory.SLOT_CHESTPLATE;
+                    case LEGS -> slot = Inventory.SLOT_LEGGINGS;
+                    case FEET -> slot = Inventory.SLOT_BOOTS;
+                    default -> {
+                        return; // Not armor, therefore we shouldn't run this code
+                    }
                 }
 
                 ItemStack currentEquippedItem = getByEquipmentType(equipmentType);
@@ -285,7 +278,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                             action.getSlot() <= 45 : action.getSlot() < 45);
 
             if (valid) {
-                player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());
+                inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
         }

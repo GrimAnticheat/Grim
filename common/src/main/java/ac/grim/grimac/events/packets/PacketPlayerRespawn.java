@@ -166,7 +166,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.powderSnowFrozenTicks = 0;
                     player.compensatedEntities.self.hasGravity = true;
                     player.playerEntityHasGravity = true;
-                    player.packetStateData.knownInput = new KnownInput(false, false, false, false, false, false, false);
+                    player.packetStateData.knownInput = KnownInput.DEFAULT;
                     player.checkManager.getPreViaPostPredictionCheck(ElytraC.class).exempt = true;
 
                     // 1.19.4 uses current sprinting, older versions use last sprinting

@@ -1,6 +1,8 @@
 package ac.grim.grimac.utils.math;
 
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -9,6 +11,7 @@ public class GrimMath {
     public static final double MINIMUM_DIVISOR = ((Math.pow(0.2f, 3) * 8) * 0.15) - 1e-3; // 1e-3 for float imprecision
     private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180f;
 
+    @Contract(pure = true)
     public static double gcd(double a, double b) {
         if (a == 0) return 0;
 
@@ -28,7 +31,8 @@ public class GrimMath {
         return a;
     }
 
-    public static double calculateSD(List<Double> numbers) {
+    @Contract(pure = true)
+    public static double calculateSD(@NotNull List<Double> numbers) {
         double sum = 0.0;
         double standardDeviation = 0.0;
 
@@ -45,26 +49,31 @@ public class GrimMath {
         return Math.sqrt(standardDeviation / numbers.size());
     }
 
+    @Contract(pure = true)
     public static int floor(double d) {
         return (int) Math.floor(d);
     }
 
+    @Contract(pure = true)
     public static int ceil(double d) {
         return (int) Math.ceil(d);
     }
 
     // Should produce the same output as Math.floor() and Math.ceil() but mojang do it differently
     // Replicating what they do jussst in case
+    @Contract(pure = true)
     public static int mojangFloor(double num) {
         final int floor = (int) num;
         return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
     }
 
+    @Contract(pure = true)
     public static int mojangCeil(final double num) {
         final int floor = (int) num;
         return floor == num ? floor : floor + (int) (~Double.doubleToRawLongBits(num) >>> 63);
     }
 
+    @Contract(pure = true)
     public static double clamp(double num, double min, double max) {
         if (num < min) {
             return min;
@@ -72,6 +81,7 @@ public class GrimMath {
         return Math.min(num, max);
     }
 
+    @Contract(pure = true)
     public static int clamp(int num, int min, int max) {
         if (num < min) {
             return min;
@@ -79,6 +89,7 @@ public class GrimMath {
         return Math.min(num, max);
     }
 
+    @Contract(pure = true)
     public static float clamp(float num, float min, float max) {
         if (num < min) {
             return min;
@@ -86,31 +97,33 @@ public class GrimMath {
         return Math.min(num, max);
     }
 
+    @Contract(pure = true)
     public static double lerp(double lerpAmount, double start, double end) {
         return start + lerpAmount * (end - start);
     }
 
+    @Contract(pure = true)
     public static double frac(double p_14186_) {
         return p_14186_ - lfloor(p_14186_);
     }
 
+    @Contract(pure = true)
     public static long lfloor(double p_14135_) {
         long i = (long) p_14135_;
         return p_14135_ < (double) i ? i - 1L : i;
     }
 
+    @Contract(pure = true)
     public static int sign(double x) {
-        if (x == 0.0) {
-            return 0;
-        } else {
-            return x > 0.0 ? 1 : -1;
-        }
+        return x == 0.0 ? 0 : x > 0.0 ? 1 : -1;
     }
 
+    @Contract(pure = true)
     public static float square(float value) {
         return value * value;
     }
 
+    @Contract(pure = true)
     public static float sqrt(float value) {
         return (float)Math.sqrt(value);
     }
@@ -129,28 +142,34 @@ public class GrimMath {
         return Math.min(Math.abs(position % (1 / 640d)), Math.abs(Math.abs(position % (1 / 640d)) - (1 / 640d)));
     }
 
+    @Contract(pure = true)
     public static boolean betweenRange(double value, double min, double max) {
         return value > min && value < max;
     }
 
+    @Contract(pure = true)
     public static boolean inRange(double value, double min, double max) {
         return value >= min && value <= max;
     }
 
+    @Contract(pure = true)
     public static boolean inRange(int value, int min, int max) {
         return value >= min && value <= max;
     }
 
+    @Contract(pure = true)
     public static boolean isNearlySame(double a, double b, double epoch) {
         return Math.abs(a - b) < epoch;
     }
 
+    @Contract(pure = true)
     public static long hashCode(double x, int y, double z) {
         long l = (long) (x * 3129871) ^ (long) z * 116129781L ^ (long) y;
         l = l * l * 42317861L + l * 11L;
         return l >> 16;
     }
 
+    @Contract(pure = true)
     public static float radians(float degrees) {
         return degrees * DEGREES_TO_RADIANS;
     }
@@ -167,11 +186,11 @@ public class GrimMath {
     private static final int Z_OFFSET = PACKED_Y_LENGTH;
     private static final int X_OFFSET = PACKED_Y_LENGTH + PACKED_HORIZONTAL_LENGTH;
 
+    @Contract(pure = true)
     public static long asLong(int x, int y, int z) {
-        long value = 0L;
-        value |= (x & PACKED_X_MASK) << X_OFFSET;
-        value |= (y & PACKED_Y_MASK) << 0;
-        return value | (z & PACKED_Z_MASK) << Z_OFFSET;
+        return (x & PACKED_X_MASK) << X_OFFSET
+                | y & PACKED_Y_MASK
+                | (z & PACKED_Z_MASK) << Z_OFFSET;
     }
 
     public static int log2(int value) {
@@ -183,10 +202,12 @@ public class GrimMath {
         return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int)(value * 125613361L >> 27) & 31];
     }
 
+    @Contract(pure = true)
     public static boolean isPowerOfTwo(int value) {
         return value != 0 && (value & value - 1) == 0;
     }
 
+    @Contract(pure = true)
     public static int smallestEncompassingPowerOfTwo(int value) {
         int output = value - 1;
         output |= output >> 1;
@@ -197,10 +218,12 @@ public class GrimMath {
         return output + 1;
     }
 
+    @Contract(pure = true)
     public static boolean equal(double first, double second) {
         return Math.abs(second - first) < 1.0E-5F;
     }
 
+    @Contract(pure = true)
     public static double square(double num) {
         return num * num;
     }

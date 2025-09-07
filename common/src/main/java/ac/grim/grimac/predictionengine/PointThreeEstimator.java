@@ -186,7 +186,7 @@ public class PointThreeEstimator {
             }
         }
 
-        if (!player.inVehicle() && ((stateType == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+        if (!player.inVehicle() && ((stateType == StateTypes.POWDER_SNOW && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)
                 || player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
@@ -271,7 +271,7 @@ public class PointThreeEstimator {
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             final WrappedBlockState state = pair.first();
             final StateType stateType = state.getType();
-            if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
+            if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 

@@ -104,7 +104,7 @@ public final class PlayerBaseTick {
     // 1.16 eye in water is a tick behind
     // 1.15 eye in water is the most recent result
     private static void updateFluidOnEyes(GrimPlayer player) {
-        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
+        player.wasEyeInWater = player.fluidOnEyes == FluidTag.WATER;
         player.fluidOnEyes = null;
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;

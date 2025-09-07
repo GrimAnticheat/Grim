@@ -77,7 +77,6 @@ public class CheckManager {
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
     private final ClassToInstanceMap<PostPredictionCheck> preViaPostPredictionChecks;
     private PacketEntityReplication packetEntityReplication = null;
-    private CompensatedInventory inventory = null;
 
     public CheckManager(GrimPlayer player) {
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -132,7 +131,7 @@ public class CheckManager {
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
-                .put(CompensatedInventory.class, new CompensatedInventory(player))
+                .put(CompensatedInventory.class, player.inventory)
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
                 .put(PacketWorldBorder.class, new PacketWorldBorder(player))
                 .put(ActionManager.class, player.actionManager)
@@ -444,11 +443,6 @@ public class CheckManager {
 
     public NoFall getNoFall() {
         return getPacketCheck(NoFall.class);
-    }
-
-    public CompensatedInventory getInventory() {
-        if (inventory == null) inventory = getPacketCheck(CompensatedInventory.class);
-        return inventory;
     }
 
     public KnockbackHandler getKnockbackHandler() {

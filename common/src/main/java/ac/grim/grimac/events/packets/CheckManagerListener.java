@@ -74,11 +74,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (player.gamemode != GameMode.CREATIVE) {
-                player.getInventory().markSlotAsResyncing(blockPlace);
+                player.inventory.markSlotAsResyncing(blockPlace);
                 if (hand == InteractionHand.MAIN_HAND) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                    player.inventory.inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
                 } else {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                    player.inventory.inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
                 }
             }
         }
@@ -185,9 +185,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
 
             if (place.getFace() == BlockFace.OTHER) {
-                ItemStack placedWith = player.getInventory().getHeldItem();
+                ItemStack placedWith = player.inventory.getHeldItem();
                 if (place.getHand() == InteractionHand.OFF_HAND) {
-                    placedWith = player.getInventory().getOffHand();
+                    placedWith = player.inventory.getOffHand();
                 }
 
                 handleUseItem(player, placedWith, place.getHand(), place.getSequence());
@@ -199,9 +199,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
                 return;
 
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            ItemStack placedWith = player.inventory.getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
-                placedWith = player.getInventory().getOffHand();
+                placedWith = player.inventory.getOffHand();
             }
 
             handleUseItem(player, placedWith, place.getHand(), place.getSequence());
@@ -209,8 +209,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // Check for interactable first (door, etc)
         if (packet instanceof WrapperPlayClientPlayerBlockPlacement place) {
-            ItemStack placedWith = player.getInventory().getHeldItem();
-            ItemStack offhand = player.getInventory().getOffHand();
+            ItemStack placedWith = player.inventory.getHeldItem();
+            ItemStack offhand = player.inventory.getOffHand();
 
             boolean onlyAir = placedWith.isEmpty() && offhand.isEmpty();
 
@@ -247,9 +247,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            ItemStack placedWith = player.inventory.getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
-                placedWith = player.getInventory().getOffHand();
+                placedWith = player.inventory.getOffHand();
             }
 
             BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), face, placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
@@ -314,7 +314,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (player.gamemode != GameMode.CREATIVE) {
-                player.getInventory().markSlotAsResyncing(blockPlace);
+                player.inventory.markSlotAsResyncing(blockPlace);
                 setPlayerItem(player, hand, type);
             }
         }
@@ -324,20 +324,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Give the player a water bucket
         if (player.gamemode != GameMode.CREATIVE) {
             if (hand == InteractionHand.MAIN_HAND) {
-                if (player.getInventory().getHeldItem().getAmount() == 1) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
+                if (player.inventory.getHeldItem().getAmount() == 1) {
+                    player.inventory.inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
                 } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(ItemStack.builder().type(type).amount(1).build());
+                    player.inventory.inventory.add(ItemStack.builder().type(type).amount(1).build());
                     // and reduce the held item
-                    player.getInventory().getHeldItem().setAmount(player.getInventory().getHeldItem().getAmount() - 1);
+                    player.inventory.getHeldItem().setAmount(player.inventory.getHeldItem().getAmount() - 1);
                 }
             } else {
-                if (player.getInventory().getOffHand().getAmount() == 1) {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                if (player.inventory.getOffHand().getAmount() == 1) {
+                    player.inventory.inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
                 } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                    player.inventory.inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
                     // and reduce the held item
-                    player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                    player.inventory.getOffHand().setAmount(player.inventory.getOffHand().getAmount() - 1);
                 }
             }
         }
@@ -363,11 +363,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
 
                 if (player.gamemode != GameMode.CREATIVE) {
-                    player.getInventory().markSlotAsResyncing(blockPlace);
+                    player.inventory.markSlotAsResyncing(blockPlace);
                     if (hand == InteractionHand.MAIN_HAND) {
-                        player.getInventory().inventory.getHeldItem().setAmount(player.getInventory().inventory.getHeldItem().getAmount() - 1);
+                        player.inventory.inventory.getHeldItem().setAmount(player.inventory.inventory.getHeldItem().getAmount() - 1);
                     } else {
-                        player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                        player.inventory.getOffHand().setAmount(player.inventory.getOffHand().getAmount() - 1);
                     }
                 }
             }
@@ -390,9 +390,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
 
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            ItemStack placedWith = player.inventory.getHeldItem();
             if (packet.getHand() == InteractionHand.OFF_HAND) {
-                placedWith = player.getInventory().getOffHand();
+                placedWith = player.inventory.getOffHand();
             }
 
             // This is the use item packet
@@ -439,10 +439,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
                             ItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, mainHand));
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.inventory.stateID, 36 + player.packetStateData.lastSlotSelected, mainHand));
                         } else {
                             ItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, offHand));
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.inventory.stateID, 45, offHand));
                         }
                     }
 

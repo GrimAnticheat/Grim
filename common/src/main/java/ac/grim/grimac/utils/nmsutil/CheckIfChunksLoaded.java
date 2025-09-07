@@ -10,10 +10,10 @@ public class CheckIfChunksLoaded {
             return true;
         }
 
-        minX = minX >> 4;
-        minZ = minZ >> 4;
-        maxX = maxX >> 4;
-        maxZ = maxZ >> 4;
+        minX >>= 4;
+        minZ >>= 4;
+        maxX >>= 4;
+        maxZ >>= 4;
 
         for (int i = minX; i <= maxX; ++i) {
             for (int j = minZ; j <= maxZ; ++j) {

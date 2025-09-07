@@ -7,8 +7,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 public class NotImplementedMenu extends AbstractContainerMenu {
     public NotImplementedMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
-        player.getInventory().isPacketInventoryActive = false;
-        player.getInventory().needResend = true;
+        player.inventory.isPacketInventoryActive = false;
+        player.inventory.needResend = true;
     }
 
     @Override

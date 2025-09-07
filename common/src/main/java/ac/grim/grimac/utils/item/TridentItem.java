@@ -16,7 +16,7 @@ public class TridentItem extends ItemBehaviour {
             return false;
         }
 
-        return !(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0F) || player.isInWaterOrRain();
+        return item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0;
     }
 
     private boolean nextDamageWillBreak(ItemStack item) {

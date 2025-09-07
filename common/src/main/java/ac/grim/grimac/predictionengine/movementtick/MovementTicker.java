@@ -46,7 +46,7 @@ public class MovementTicker {
         boolean hasEntityPushing = !(player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 // Check that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
                 || (!serverSupported
-                && (!ViaVersionUtil.isAvailable() || Via.getConfig().isPreventCollision())));
+                && (!ViaVersionUtil.isAvailable || Via.getConfig().isPreventCollision())));
 
         int possibleCollidingEntities = 0;
         int possibleRiptideEntities = 0;

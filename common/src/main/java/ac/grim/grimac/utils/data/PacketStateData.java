@@ -12,7 +12,7 @@ public class PacketStateData {
     public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate = false;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
-    public InteractionHand eatingHand = InteractionHand.MAIN_HAND;
+    public InteractionHand itemInUseHand = InteractionHand.MAIN_HAND;
     public long lastRiptide = 0;
     public boolean tryingToRiptide = false;
     public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
@@ -22,13 +22,11 @@ public class PacketStateData {
     public boolean didLastMovementIncludePosition = false;
     // This works on 1.21.2+ only
     public boolean didSendMovementBeforeTickEnd = false;
-    public KnownInput knownInput = new KnownInput(false, false, false, false, false, false, false);
+    public KnownInput knownInput = KnownInput.DEFAULT;
     public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
     public float lastHealth, lastSaturation;
     public int lastFood;
     public boolean lastServerTransWasValid = false;
-    @Getter
-    private boolean slowedByUsingItem;
     @Getter
     private int slowedByUsingItemSlot = Integer.MIN_VALUE;
 
@@ -36,7 +34,10 @@ public class PacketStateData {
     public boolean horseInteractCausedForcedRotation = false;
 
     public void setSlowedByUsingItem(boolean slowedByUsingItem) {
-        this.slowedByUsingItem = slowedByUsingItem;
         slowedByUsingItemSlot = slowedByUsingItem ? lastSlotSelected : Integer.MIN_VALUE;
+    }
+
+    public boolean isSlowedByUsingItem() {
+        return slowedByUsingItemSlot != Integer.MIN_VALUE;
     }
 }

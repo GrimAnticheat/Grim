@@ -51,7 +51,7 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
         lastBlockType = block;
 
         // the block does not have a hitbox
-        boolean invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)))
+        boolean invalid = (block == StateTypes.LIGHT && !(player.inventory.getHeldItem().is(ItemTypes.LIGHT) || player.inventory.getOffHand().is(ItemTypes.LIGHT)))
                 || block.isAir()
                 || block == StateTypes.WATER
                 || block == StateTypes.LAVA

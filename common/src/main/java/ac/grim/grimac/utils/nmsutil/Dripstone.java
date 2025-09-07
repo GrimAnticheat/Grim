@@ -6,10 +6,11 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
 import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class Dripstone {
-    public static WrappedBlockState update(GrimPlayer player, WrappedBlockState toPlace, int x, int y, int z, boolean secondaryUse) {
+    public static void update(@NotNull GrimPlayer player, @NotNull WrappedBlockState toPlace, int x, int y, int z, boolean secondaryUse) {
         VerticalDirection primaryDirection = toPlace.getVerticalDirection();
         VerticalDirection opposite = toPlace.getVerticalDirection() == VerticalDirection.UP ? VerticalDirection.DOWN : VerticalDirection.UP;
 
@@ -38,10 +39,9 @@ public class Dripstone {
                 }
             }
         }
-        return toPlace;
     }
 
-    private static boolean isPointedDripstoneWithDirection(WrappedBlockState unknown, VerticalDirection direction) {
+    private static boolean isPointedDripstoneWithDirection(@NotNull WrappedBlockState unknown, VerticalDirection direction) {
         return unknown.getType() == StateTypes.POINTED_DRIPSTONE && unknown.getVerticalDirection() == direction;
     }
 }

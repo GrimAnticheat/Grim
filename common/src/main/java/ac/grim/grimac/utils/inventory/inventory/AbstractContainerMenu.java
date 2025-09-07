@@ -219,7 +219,7 @@ public abstract class AbstractContainerMenu {
                 // TODO: What do we do with crafting? I think this is overkill and we shouldn't attempt to track crafting, and just resync inventory.
                 // 1.17+ clients send changed itemstacks anyways, so just hack around stuff until people stop using decade old versions.
                 if (slot instanceof ResultSlot) {
-                    player.getInventory().isPacketInventoryActive = false;
+                    player.inventory.isPacketInventoryActive = false;
                 }
 
                 // TODO: Bundle support

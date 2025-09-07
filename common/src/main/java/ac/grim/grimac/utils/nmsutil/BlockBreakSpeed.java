@@ -59,7 +59,7 @@ public class BlockBreakSpeed {
     public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
         // GET destroy speed
         // Starts with itemstack get destroy speed
-        ItemStack tool = player.getInventory().getHeldItem();
+        ItemStack tool = player.inventory.getHeldItem();
         ItemType toolType = tool.getType();
 
         if (player.gamemode == GameMode.CREATIVE) {
@@ -213,7 +213,7 @@ public class BlockBreakSpeed {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier += (float) player.compensatedEntities.self.getAttributeValue(Attributes.MINING_EFFICIENCY);
             } else {
-                int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY);
                 if (digSpeed > 0) {
                     speedMultiplier += digSpeed * digSpeed + 1;
                 }
@@ -252,7 +252,7 @@ public class BlockBreakSpeed {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier *= (float) player.compensatedEntities.self.getAttributeValue(Attributes.SUBMERGED_MINING_SPEED);
             } else {
-                if (EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) {
+                if (EnchantmentHelper.getMaximumEnchantLevel(player.inventory, EnchantmentTypes.AQUA_AFFINITY) == 0) {
                     speedMultiplier /= 5;
                 }
             }
@@ -267,11 +267,7 @@ public class BlockBreakSpeed {
         boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop
                 // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
                 || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4) && HARVESTABLE_TYPES_1_21_4.contains(block.getType());
-        if (canHarvest) {
-            damage /= 30F;
-        } else {
-            damage /= 100F;
-        }
+        damage /= canHarvest ? 30F : 100F;
 
         return damage;
     }

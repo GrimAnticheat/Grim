@@ -12,7 +12,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
-import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,8 +182,8 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         // Don't reload players if the plugin hasn't started yet
         if (!started) return;
         // Reload checks for all players
-        for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> grimPlayer.reload(configManager));
+        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            player.runSafely(() -> player.reload(configManager));
         }
     }
 

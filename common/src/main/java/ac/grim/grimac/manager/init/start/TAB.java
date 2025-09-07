@@ -11,7 +11,7 @@ public class TAB implements StartableInitable {
     @Override
     public void start() {
         if (GrimAPI.INSTANCE.getPluginManager().getPlugin("TAB") == null) return;
-        if (!ViaVersionUtil.isAvailable()) return;
+        if (!ViaVersionUtil.isAvailable) return;
         // I don't know when team limits were changed, 1.13 is reasonable enough
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13))
             return;

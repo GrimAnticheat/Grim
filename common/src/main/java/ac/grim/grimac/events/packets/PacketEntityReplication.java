@@ -191,14 +191,14 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             //
             // Set to 24 so ViaVersion blocks it
             // 24 is the levitation effect
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) > 23) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && ViaVersionUtil.isAvailable && type.getId(player.getClientVersion()) > 23) {
                 event.setCancelled(true);
                 return;
             }
 
             // ViaVersion dolphin's grace also messes us up, set it to a potion effect that doesn't exist on 1.12
             // Effect 31 is bad omen
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) == 30) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && ViaVersionUtil.isAvailable && type.getId(player.getClientVersion()) == 30) {
                 event.setCancelled(true);
                 return;
             }
@@ -270,10 +270,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (slot.getWindowId() == 0) {
                 Runnable task = () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (
-                            !player.getInventory().getHeldItem().is(slot.getItem().getType()) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)
-                    ) || slot.getSlot() == 45 && !player.getInventory().getOffHand().is(slot.getItem().getType())) {
+                            !player.inventory.getHeldItem().is(slot.getItem().getType()) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)
+                    ) || slot.getSlot() == 45 && !player.inventory.getOffHand().is(slot.getItem().getType())) {
                         InteractionHand hand = slot.getSlot() == 45 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-                        if (hand == player.packetStateData.eatingHand) {
+                        if (hand == player.packetStateData.itemInUseHand) {
                             player.packetStateData.setSlowedByUsingItem(false);
                         }
 
@@ -297,8 +297,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                             GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                         }
                     } else {
-                        if (items.getItems().size() > 45 && !player.getInventory().getOffHand().is(items.getItems().get(45).getType())) {
-                            if (player.packetStateData.eatingHand == InteractionHand.OFF_HAND) {
+                        if (items.getItems().size() > 45 && !player.inventory.getOffHand().is(items.getItems().get(45).getType())) {
+                            if (player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND) {
                                 player.packetStateData.setSlowedByUsingItem(false);
                             }
 
@@ -307,8 +307,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                             }
                         }
 
-                        if (!player.getInventory().getHeldItem().is(items.getItems().get(player.packetStateData.lastSlotSelected + 36).getType())) {
-                            if (player.packetStateData.eatingHand == InteractionHand.MAIN_HAND) {
+                        if (!player.inventory.getHeldItem().is(items.getItems().get(player.packetStateData.lastSlotSelected + 36).getType())) {
+                            if (player.packetStateData.itemInUseHand == InteractionHand.MAIN_HAND) {
                                 player.packetStateData.setSlowedByUsingItem(false);
                             }
 

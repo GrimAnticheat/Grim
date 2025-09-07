@@ -8,7 +8,7 @@ public class TickInventory implements Tickable {
     @Override
     public void tick() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            player.getInventory().inventory.getInventoryStorage().tickWithBukkit();
+            player.inventory.inventory.getInventoryStorage().tickWithBukkit();
         }
     }
 }
