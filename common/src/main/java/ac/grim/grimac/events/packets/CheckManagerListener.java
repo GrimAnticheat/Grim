@@ -38,6 +38,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
@@ -461,6 +462,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
+
+        // Reset exemption for forced horse rotation when we know a new tick is starting
+        // The second case (transaction) will be quite unlikely since we should receive a rotation
+        // packet because of the large forced rotation difference.
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())
+                || event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION
+                || event.getPacketType() == PacketType.Play.Client.PONG
+        ) {
+            player.packetStateData.horseInteractCausedForcedRotation = false;
+        }
 
         if (player.packetStateData.cancelDuplicatePacket) {
             event.setCancelled(true);
