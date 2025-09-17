@@ -20,7 +20,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT || event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             if (player.packetOrderProcessor.isAttacking() && !player.packetOrderProcessor.isInteracting()) {
-                if (!player.canSkipTicksPreVia()) {
+                if (!player.canSkipTicks()) {
                     if (flagAndAlert() && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
@@ -34,7 +34,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(PredictionComplete predictionComplete) {
-        if (!player.canSkipTicksPreVia()) return;
+        if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {

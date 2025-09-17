@@ -99,6 +99,10 @@ public class CompensatedEntities {
         return getEntityInControl().getPotionEffectLevel(type);
     }
 
+    public OptionalInt getPotionLevelForSelfPlayer(PotionType type) {
+        return self.getPotionEffectLevel(type);
+    }
+
     public boolean hasPotionEffect(PotionType type) {
         return getEntityInControl().hasPotionEffect(type);
     }
