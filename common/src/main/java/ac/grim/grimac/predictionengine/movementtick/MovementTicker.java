@@ -47,6 +47,7 @@ public class MovementTicker {
                 // Check that ViaVersion disables all collisions on a 1.8 server for 1.9+ clients
                 || (!serverSupported
                 && (!ViaVersionUtil.isAvailable || Via.getConfig().isPreventCollision())));
+        if (!hasEntityPushing) return;
 
         int possibleCollidingEntities = 0;
         int possibleRiptideEntities = 0;
@@ -67,8 +68,7 @@ public class MovementTicker {
 
                 possibleRiptideEntities++;
 
-                if (!hasEntityPushing || !entity.isPushable())
-                    continue;
+                if (!entity.isPushable()) continue;
 
                 // Filters out entities that can't be pushed/collided because of team collision rules
                 // Also handles 1.9+ player on 1.8- server with ViaVersion prevent-collision disabled.
