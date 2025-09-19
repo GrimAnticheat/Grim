@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "FarBreak", description = "Breaking blocks too far away", experimental = true)
 public class FarBreak extends Check implements BlockBreakCheck {
@@ -20,7 +19,7 @@ public class FarBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR || player.inVehicle() || blockBreak.action == DiggingAction.CANCELLED_DIGGING)
+        if (!player.cameraEntity.isSelf() || player.inVehicle() || blockBreak.action == DiggingAction.CANCELLED_DIGGING)
             return; // falses
 
         double min = Double.MAX_VALUE;

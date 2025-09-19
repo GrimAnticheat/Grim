@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
@@ -49,7 +48,7 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             hasInteracted = true;
         }
 
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
             hasInteracted = false;
         }
     }

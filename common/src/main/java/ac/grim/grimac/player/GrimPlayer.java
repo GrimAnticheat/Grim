@@ -240,6 +240,7 @@ public class GrimPlayer implements GrimUser {
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
+    public final CompensatedCameraEntity cameraEntity = new CompensatedCameraEntity(this);
     @Getter @Setter private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;

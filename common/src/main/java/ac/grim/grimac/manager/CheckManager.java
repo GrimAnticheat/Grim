@@ -51,6 +51,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.utils.anticheat.update.*;
+import ac.grim.grimac.utils.latency.CompensatedCameraEntity;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
@@ -78,6 +79,7 @@ public class CheckManager {
 
     public CheckManager(GrimPlayer player) {
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+                .put(CompensatedCameraEntity.class, player.cameraEntity)
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
