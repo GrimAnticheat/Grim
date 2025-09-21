@@ -1,4 +1,5 @@
 repositories {
+    maven("https://repo.grim.ac/snapshots")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     mavenCentral()
 }
