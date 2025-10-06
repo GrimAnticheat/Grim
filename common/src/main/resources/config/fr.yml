@@ -74,6 +74,14 @@ Simulation:
     # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
     # Plafond d'avantage par défaut (l"axe x = secondes, l'axe y = 1/1000 de bloc)) : https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Dans quelle mesure doit-on augmenter les VL en fonction de l'avantage du joueur ?
+    # ≤1 pour conserver l'ancien comportement sans échelle
+    vl-scale: 1
+    # Délai en millisecondes entre les flags pour la mise à l'échelle du VL
+    vl-scale-delay: 0
+    # Limite la quantité de VL que le joueur peut gagner par alerte
+    # -1 pour désactiver
+    max-vls-per-flag: -1
     # Seuil du niveau de violation pour le setback
     # 1 pour le comportement ancien
     setback-violation-threshold: 1
@@ -186,6 +194,8 @@ debug-pipeline-on-join: false
 
 # Active les vérifications expérimentales
 experimental-checks: false
+# Réinitialise le nombre d'exécutions de la sanction lorsque le VL du joueur repasse sous le seuil
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

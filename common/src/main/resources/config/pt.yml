@@ -75,6 +75,14 @@ Simulation:
     # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
     # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Quanto devemos escalar o ganho de VL de um flag com base na vantagem do jogador?
+    # ≤1 para manter o comportamento antigo
+    vl-scale: 1
+    # Atraso em milissegundos entre flags para o escalonamento de VL
+    vl-scale-delay: 0
+    # Limita a quantidade de VL que o jogador pode ganhar por flag
+    # -1 para desativar
+    max-vls-per-flag: -1
     # Quantas violações para começar a recuar o jogador?
     # 1 para comportamento antigo
     setback-violation-threshold: 1
@@ -195,6 +203,8 @@ debug-pipeline-on-join: false
 
 # Habilita verificações experimentais.
 experimental-checks: false
+# Reinicia a contagem de execuções da punição quando o VL do jogador fica abaixo do limite
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

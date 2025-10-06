@@ -76,6 +76,14 @@ Simulation:
     # これは、プレイヤーが違反を蓄積しすぎて、違反を解消できなくなるのを防ぐためです。
     # デフォルトのアドバンテージの上限 (x軸 = 秒, y軸 = 1/1000ブロック): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # プレイヤーのアドバンテージに応じてVL増加量をどれだけスケールさせるか
+    # 1以下で従来の挙動になります
+    vl-scale: 1
+    # VLスケーリングのフラグ間の遅延（ミリ秒）
+    vl-scale-delay: 0
+    # 1回のフラグで増加できるVLの上限
+    # -1で無制限
+    max-vls-per-flag: -1
     # セットバックの違反レベル閾値
     # 旧仕様の挙動は 1 です
     setback-violation-threshold: 1
@@ -199,6 +207,8 @@ debug-pipeline-on-join: false
 
 # 実験的なチェックを有効にします
 experimental-checks: false
+# プレイヤーのVLがしきい値を下回ったときに制裁実行回数をリセット
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

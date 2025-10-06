@@ -74,6 +74,15 @@ Simulation:
     # This is to stop the player from gathering too many violations and never being able to clear them all
     # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # How much should we scale VL gain from a flag by the player's advantage?
+    # ≤1 for no scaling (old behavior)
+    vl-scale: 1
+    # Delay in milliseconds between flags for VL scaling
+    vl-scale-delay: 0
+    # Limits the amount of VLs the player could gain from each flag
+    # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+    # -1 to disable
+    max-vls-per-flag: -1
     # Violation level threshold for setback
     # 1 for old behavior
     setback-violation-threshold: 1
@@ -190,6 +199,8 @@ debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
+# Resets how many times a punishment command has executed when the player's VL drops below its threshold
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

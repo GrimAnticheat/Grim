@@ -66,6 +66,14 @@ Simulation:
     max-advantage: 1
     # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
     max-ceiling: 4
+    # Di quanto dobbiamo scalare l'aumento di VL di un flag in base al vantaggio del giocatore?
+    # ≤1 per mantenere il vecchio comportamento
+    vl-scale: 1
+    # Ritardo in millisecondi tra le flag per la scalatura VL
+    vl-scale-delay: 0
+    # Limita quante VL si possono ottenere per ogni flag
+    # -1 per disattivare
+    max-vls-per-flag: -1
     # Soglia del livello di violazione per il setback
     # 1 per il comportamento precedente
     setback-violation-threshold: 1
@@ -168,6 +176,8 @@ debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
+# Reimposta il conteggio di esecuzione della punizione quando il VL del giocatore scende sotto la soglia
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

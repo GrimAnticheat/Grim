@@ -79,6 +79,14 @@ Simulation:
     # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # 根据玩家的优势对VL增量进行缩放
+    # ≤1 表示与以前相同
+    vl-scale: 1
+    # VL缩放标记之间的延迟（毫秒）
+    vl-scale-delay: 0
+    # 限制每次触发可增加的VL数量
+    # -1 表示不限制
+    max-vls-per-flag: -1
     # 设置回退的违规等级阈值
     # 1 为旧行为
     setback-violation-threshold: 1
@@ -192,6 +200,8 @@ debug-pipeline-on-join: false
 
 # 启用实验性检查
 experimental-checks: false
+# 当玩家的VL低于阈值时重置头期执行次数
+reset-punishment-execute-count: true
 
 # 取消有问题的格挡
 reset-item-usage-on-item-update: true
