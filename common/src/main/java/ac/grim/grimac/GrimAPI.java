@@ -1,8 +1,9 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.api.event.EventBus;
-import ac.grim.grimac.api.event.OptimizedEventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.events.GrimExtensionManager;
+import ac.grim.grimac.events.OptimizedEventBus;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
 import ac.grim.grimac.manager.InitManager;
@@ -24,6 +25,7 @@ import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
+import ac.grim.grimac.utils.common.GrimArguments;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import lombok.Getter;
 import org.incendo.cloud.CommandManager;
@@ -42,6 +44,7 @@ public final class GrimAPI {
     private final DiscordManager discordManager;
     private final PlayerDataManager playerDataManager;
     private final TickManager tickManager;
+    private final GrimExtensionManager extensionManager;
     private final EventBus eventBus;
     private final GrimExternalAPI externalAPI;
     private ViolationDatabaseManager violationDatabaseManager;
@@ -57,12 +60,15 @@ public final class GrimAPI {
         this.discordManager = new DiscordManager();
         this.playerDataManager = new PlayerDataManager();
         this.tickManager = new TickManager();
-        this.eventBus = new OptimizedEventBus();
+        this.extensionManager = new GrimExtensionManager();
+        this.eventBus = new OptimizedEventBus(extensionManager);
         this.externalAPI = new GrimExternalAPI(this);
     }
 
     // the order matters
     private static Platform detectPlatform() {
+        Platform override = Platform.getByName(GrimArguments.PLATFORM_OVERRIDE);
+        if (override != null) return override;
         if (ReflectionUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) return Platform.FOLIA;
         if (ReflectionUtils.hasClass("org.bukkit.Bukkit")) return Platform.BUKKIT;
         if (ReflectionUtils.hasClass("net.fabricmc.loader.api.FabricLoader")) return Platform.FABRIC;
@@ -135,5 +141,9 @@ public final class GrimAPI {
 
     public PermissionRegistrationManager getPermissionManager() {
         return loader.getPermissionManager();
+    }
+
+    public GrimExtensionManager getExtensionManager() {
+        return extensionManager;
     }
 }

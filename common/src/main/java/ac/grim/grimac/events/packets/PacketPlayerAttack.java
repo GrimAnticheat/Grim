@@ -53,13 +53,13 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 // However, plugins can still set this by sending an attributes packet
                 if (player.compensatedEntities.self.getAttributeValue(Attributes.ATTACK_DAMAGE) <= 0) return;
 
-                ItemStack heldItem = player.getInventory().getHeldItem();
+                ItemStack heldItem = player.inventory.getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
                 if (entity != null && (!entity.isLivingEntity || entity.type == EntityTypes.PLAYER || entity.type == EntityTypes.PAINTING
                         || entity.type == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
                     int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
-                            ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion())
+                            ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                             : 0;
                     final boolean hasNegativeKB = knockbackLevel < 0;
 

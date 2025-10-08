@@ -30,6 +30,11 @@ public class BukkitPlatformChunk implements PlatformChunk {
 
         return isFlat // Cache blockDataToID because Strings are expensive
                 ? blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId())
-                : (block.getType().getId() << 4) | block.getData();
+                : getLegacyBlockID(block);
+    }
+
+    @SuppressWarnings({ "deprecation", "UnstableApiUsage" })
+    private static int getLegacyBlockID(@NotNull Block block) {
+        return (block.getType().getId() << 4) | block.getData();
     }
 }

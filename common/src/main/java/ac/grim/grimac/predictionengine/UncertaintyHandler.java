@@ -23,9 +23,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
-    public EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
-    public EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -67,28 +67,28 @@ public class UncertaintyHandler {
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box that are pushable?
-    public EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
+    public final EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
     // How many entities are within 0.5 blocks of the player's bounding box? Should only exclude entities in spectator
-    public EvictingQueue<Integer> riptideEntities = new EvictingQueue<>(3);
+    public final EvictingQueue<Integer> riptideEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
-    public List<Integer> fishingRodPulls = new ArrayList<>();
+    public final List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
 
-    public LastInstance lastFlyingTicks;
-    public LastInstance lastFlyingStatusChange;
-    public LastInstance lastUnderwaterFlyingHack;
-    public LastInstance lastStuckSpeedMultiplier;
-    public LastInstance lastHardCollidingLerpingEntity;
-    public LastInstance lastThirtyMillionHardBorder;
-    public LastInstance lastTeleportTicks;
-    public LastInstance lastPointThree;
-    public LastInstance stuckOnEdge;
-    public LastInstance lastStuckNorth;
-    public LastInstance lastStuckSouth;
-    public LastInstance lastStuckWest;
-    public LastInstance lastStuckEast;
-    public LastInstance lastVehicleSwitch;
+    public final LastInstance lastFlyingTicks;
+    public final LastInstance lastFlyingStatusChange;
+    public final LastInstance lastUnderwaterFlyingHack;
+    public final LastInstance lastStuckSpeedMultiplier;
+    public final LastInstance lastHardCollidingLerpingEntity;
+    public final LastInstance lastThirtyMillionHardBorder;
+    public final LastInstance lastTeleportTicks;
+    public final LastInstance lastPointThree;
+    public final LastInstance stuckOnEdge;
+    public final LastInstance lastStuckNorth;
+    public final LastInstance lastStuckSouth;
+    public final LastInstance lastStuckWest;
+    public final LastInstance lastStuckEast;
+    public final LastInstance lastVehicleSwitch;
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
@@ -177,8 +177,8 @@ public class UncertaintyHandler {
 
         fireworksBox = new SimpleCollisionBox();
 
-        Vector3dm currentLook = ReachUtils.getLook(player, player.xRot, player.yRot);
-        Vector3dm lastLook = ReachUtils.getLook(player, player.lastXRot, player.lastYRot);
+        Vector3dm currentLook = ReachUtils.getLook(player, player.yaw, player.pitch);
+        Vector3dm lastLook = ReachUtils.getLook(player, player.lastYaw, player.lastPitch);
 
         double antiTickSkipping = player.isPointThree() ? 0 : 0.05; // With 0.03, let that handle tick skipping
 

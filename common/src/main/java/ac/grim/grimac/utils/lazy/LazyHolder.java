@@ -34,8 +34,7 @@ final class ThreadSafeLazyHolder<T> implements LazyHolder<T> {
             synchronized (this) {
                 result = value;
                 if (result == null) {
-                    result = supplier.get();
-                    value = result;
+                    value = result = supplier.get();
                 }
             }
         }

@@ -8,7 +8,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public class FabricPermissionRegistrationManager implements PermissionRegistrationManager {
 
-    FabricSenderFactory fabricSenderFactory = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory();
+    final FabricSenderFactory fabricSenderFactory = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory();
 
     public FabricPermissionRegistrationManager() {
         registerPermission("grim.exempt", PermissionDefaultValue.FALSE);

@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
-import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -68,31 +67,35 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {
         // Alright, instead of skidding AACAdditionsPro, let's just use bounding boxes
-        Vector3i clicked = place.getPlacedAgainstBlockLocation();
-        CollisionBox placedOn = HitboxData.getBlockHitbox(player, place.getMaterial(), player.getClientVersion(), player.compensatedWorld.getBlock(clicked), true, clicked.getX(), clicked.getY(), clicked.getZ());
+        Vector3i clicked = place.position;
 
-        int size = placedOn.downCast(boxes);
+        if (weirdBoxes.contains(place.getPlacedAgainstMaterial()) || buggyBoxes.contains(place.getPlacedAgainstMaterial())) {
+            // Invert the box to give lenience
+            return new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
+        }
+
+        int size = HitboxData.getBlockHitbox(
+                player,
+                place.material,
+                player.getClientVersion(),
+                player.compensatedWorld.getBlock(clicked),
+                true,
+                clicked.getX(),
+                clicked.getY(),
+                clicked.getZ()
+        ).downCast(boxes);
 
         SimpleCollisionBox combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ());
         for (int i = 0; i < size; i++) {
             SimpleCollisionBox box = boxes[i];
-            double minX = Math.max(box.minX, combined.minX);
-            double minY = Math.max(box.minY, combined.minY);
-            double minZ = Math.max(box.minZ, combined.minZ);
-            double maxX = Math.min(box.maxX, combined.maxX);
-            double maxY = Math.min(box.maxY, combined.maxY);
-            double maxZ = Math.min(box.maxZ, combined.maxZ);
-            combined = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
-        }
-
-        if (weirdBoxes.contains(place.getPlacedAgainstMaterial())) {
-            // Invert the box to give lenience
-            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
-        }
-
-        if (buggyBoxes.contains(place.getPlacedAgainstMaterial())) {
-            // Invert the bounding box to give a block of lenience
-            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
+            combined = new SimpleCollisionBox(
+                    Math.max(box.minX, combined.minX),
+                    Math.max(box.minY, combined.minY),
+                    Math.max(box.minZ, combined.minZ),
+                    Math.min(box.maxX, combined.maxX),
+                    Math.min(box.maxY, combined.maxY),
+                    Math.min(box.maxZ, combined.maxZ)
+            );
         }
 
         return combined;

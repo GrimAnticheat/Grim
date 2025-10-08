@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 public class PacketEventsInit implements LoadableInitable {
 
-    PacketEventsAPI<?> packetEventsAPI;
+    private final PacketEventsAPI<?> packetEventsAPI;
 
     public PacketEventsInit(PacketEventsAPI<?> packetEventsAPI) {
         this.packetEventsAPI = packetEventsAPI;

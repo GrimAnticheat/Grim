@@ -50,7 +50,7 @@ public class CompensatedEntities {
     public boolean hasSprintingAttributeEnabled = false;
     public TrackerData selfTrackedEntity;
     public PacketEntitySelf self;
-    GrimPlayer player;
+    private final GrimPlayer player;
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
@@ -97,6 +97,10 @@ public class CompensatedEntities {
 
     public OptionalInt getPotionLevelForPlayer(PotionType type) {
         return getEntityInControl().getPotionEffectLevel(type);
+    }
+
+    public OptionalInt getPotionLevelForSelfPlayer(PotionType type) {
+        return self.getPotionEffectLevel(type);
     }
 
     public boolean hasPotionEffect(PotionType type) {
@@ -522,7 +526,7 @@ public class CompensatedEntities {
 
             EntityData<?> guardianByte = WatchableIndexUtil.getIndex(watchableObjects, index);
             if (guardianByte != null) {
-                int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows its an integer
+                int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows it's an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
             }
         }

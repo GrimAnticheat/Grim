@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.experimental.UtilityClass;
 
 /**
  * Yeah, I know this is a bad class
@@ -16,6 +17,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
  * I could PR a ton of classes in order to accomplish it but then no one would use it
  * (And even if they did they would likely be breaking my license...)
  */
+@UtilityClass
 public final class BoundingBoxSize {
 
     public static float getWidth(GrimPlayer player, PacketEntity packetEntity) {

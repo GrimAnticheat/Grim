@@ -5,7 +5,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;
 
 public class TrigHandler {
-    GrimPlayer player;
+    private final GrimPlayer player;
     private double buffer = 0;
     @Getter
     private boolean isVanillaMath = true;
@@ -49,8 +49,8 @@ public class TrigHandler {
 
         if (offset > 1e-5) {
             Vector3dm trueMovement = player.actualMovement.clone().subtract(player.startTickClientVel);
-            Vector3dm correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
-            Vector3dm fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
+            Vector3dm correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.yaw);
+            Vector3dm fastMath = getShitMathMovement(trueMovement, 0.1f, player.yaw);
 
             correctMath = new Vector3dm(Math.abs(correctMath.getX()), 0, Math.abs(correctMath.getZ()));
             fastMath = new Vector3dm(Math.abs(fastMath.getX()), 0, Math.abs(fastMath.getZ()));
@@ -76,11 +76,11 @@ public class TrigHandler {
         }
     }
 
-    public float sin(float f) {
-        return isVanillaMath ? VanillaMath.sin(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(f) : LegacyFastMath.sin(f));
+    public float sin(float value) {
+        return isVanillaMath ? VanillaMath.sin(value) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(value) : LegacyFastMath.sin(value));
     }
 
-    public float cos(float f) {
-        return isVanillaMath ? VanillaMath.cos(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(f) : LegacyFastMath.cos(f));
+    public float cos(float value) {
+        return isVanillaMath ? VanillaMath.cos(value) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(value) : LegacyFastMath.cos(value));
     }
 }

@@ -21,7 +21,7 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
         float forward = 0.0F;
         float upAndDown = 0.0F;
         if (player.vehicleData.vehicleForward != 0.0F) {
-            float xRot = player.yRot * 2F;
+            float xRot = player.pitch * 2F;
             float calcForward = player.trigHandler.cos(xRot * (float) (Math.PI / 180.0));
             float calcUpAndDown = -player.trigHandler.sin(xRot * (float) (Math.PI / 180.0));
             if (player.vehicleData.vehicleForward < 0.0F) {

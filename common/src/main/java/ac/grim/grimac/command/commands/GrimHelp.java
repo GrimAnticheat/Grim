@@ -24,6 +24,7 @@ public class GrimHelp implements BuildableCommand {
         Sender sender = context.sender();
 
         for (String string : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("help")) {
+            if (string == null) continue;
             string = MessageUtil.replacePlaceholders(sender, string);
             sender.sendMessage(MessageUtil.miniMessage(string));
         }

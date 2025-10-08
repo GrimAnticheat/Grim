@@ -13,6 +13,7 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.List;
+import java.util.Objects;
 
 public class GrimStopSpectating implements BuildableCommand {
 
@@ -38,7 +39,7 @@ public class GrimStopSpectating implements BuildableCommand {
         String string = commandContext.getOrDefault("here", null);
         if (GrimAPI.INSTANCE.getSpectateManager().isSpectating(sender.getUniqueId())) {
             boolean teleportBack = string == null || !string.equalsIgnoreCase("here") || !sender.hasPermission("grim.spectate.stophere");
-            GrimAPI.INSTANCE.getSpectateManager().disable(sender.getPlatformPlayer(), teleportBack);
+            GrimAPI.INSTANCE.getSpectateManager().disable(Objects.requireNonNull(sender.getPlatformPlayer()), teleportBack);
         } else {
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player."));
         }

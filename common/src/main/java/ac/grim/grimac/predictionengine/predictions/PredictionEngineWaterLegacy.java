@@ -31,8 +31,8 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
 
             lengthSquared = swimmingSpeed / lengthSquared;
             inputVector.multiply(lengthSquared);
-            float sinResult = player.trigHandler.sin(player.xRot * 0.017453292F);
-            float cosResult = player.trigHandler.cos(player.xRot * 0.017453292F);
+            float sinResult = player.trigHandler.sin(player.yaw * 0.017453292F);
+            float cosResult = player.trigHandler.cos(player.yaw * 0.017453292F);
 
             return new Vector3dm(inputVector.getX() * cosResult - inputVector.getZ() * sinResult,
                     inputVector.getY(), inputVector.getZ() * cosResult + inputVector.getX() * sinResult);

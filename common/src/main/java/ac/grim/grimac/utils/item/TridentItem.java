@@ -2,14 +2,17 @@ package ac.grim.grimac.utils.item;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 
 public class TridentItem extends ItemBehaviour {
 
-    public static TridentItem INSTANCE = new TridentItem();
+    public static final TridentItem INSTANCE = new TridentItem();
+
+    private TridentItem() {
+        if (INSTANCE != null) throw new UnsupportedOperationException();
+    }
 
     @Override
     public boolean canUse(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand) {
@@ -17,7 +20,7 @@ public class TridentItem extends ItemBehaviour {
             return false;
         }
 
-        return !(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0F) || player.isInWaterOrRain();
+        return item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0;
     }
 
     private boolean nextDamageWillBreak(ItemStack item) {

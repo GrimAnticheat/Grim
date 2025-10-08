@@ -4,16 +4,8 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 
 public abstract class AbstractDebugHandler extends Check {
-
-    protected final GrimPlayer grimPlayer;
-
-    public AbstractDebugHandler(GrimPlayer grimPlayer) {
-        super(grimPlayer);
-        this.grimPlayer = grimPlayer;
-    }
-
-    public GrimPlayer getPlayer() {
-        return grimPlayer;
+    public AbstractDebugHandler(GrimPlayer player) {
+        super(player);
     }
 
     public abstract void toggleListener(GrimPlayer player);

@@ -23,7 +23,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
 
         PlatformWorld world = player.platformPlayer.getWorld();
         Vector3i pos = place.getPlacedBlockPos();
-        Vector3i posAgainst = place.getPlacedAgainstBlockLocation();
+        Vector3i posAgainst = place.position;
 
         int x = pos.getX();
         int y = pos.getY();

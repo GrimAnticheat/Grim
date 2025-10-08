@@ -37,7 +37,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        if (player.supportsEndTickPreVia() && !player.packetStateData.knownInput.jump()) {
+        if (player.supportsEndTick() && !player.packetStateData.knownInput.jump()) {
             return;
         }
 
@@ -76,7 +76,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         if (!player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                 player.compensatedWorld.getBlockType(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
-            ItemStack boots = player.getInventory().getBoots();
+            ItemStack boots = player.inventory.getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;
         }
 

@@ -8,13 +8,11 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-
 public class PacketManager implements StartableInitable {
     @Override
     public void start() {
         LogUtil.info("Registering packets...");
 
-        PacketEvents.getAPI().getEventManager().registerListener(new PreViaCheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerJoinQuit());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPingListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerDigging());

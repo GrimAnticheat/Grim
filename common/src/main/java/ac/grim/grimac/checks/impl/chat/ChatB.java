@@ -43,6 +43,7 @@ public class ChatB extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
+            // TODO make previa after making wrapper parse by client version instead of server version
             String command = "/" + new WrapperPlayClientChatCommand(event).getCommand();
             if (!command.trim().equals(command)) {
                 if (flagAndAlert("command=" + command)) {

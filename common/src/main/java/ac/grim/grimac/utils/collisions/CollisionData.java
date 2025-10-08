@@ -57,7 +57,7 @@ import java.util.stream.Stream;
 // An enum will break support for all previous versions which is very bad
 // An if statement for new data types is perfectly safe and should be used instead
 //
-// This is actually mean to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
+// This is actually meant to be put into PacketEvents, but I don't like proprietary plugins stealing my code...
 public enum CollisionData implements CollisionFactory {
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
@@ -540,7 +540,7 @@ public enum CollisionData implements CollisionFactory {
         int layers = data.getLayers();
         if (layers == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                    || !ViaVersionUtil.isAvailable() || !Via.getConfig().isSnowCollisionFix()) {
+                    || !ViaVersionUtil.isAvailable || !Via.getConfig().isSnowCollisionFix()) {
                 return NoCollisionBox.INSTANCE;
             }
 
@@ -915,7 +915,7 @@ public enum CollisionData implements CollisionFactory {
                     : new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.9, 1.0, false);
         }
 
-        ItemStack boots = player.getInventory().getBoots();
+        ItemStack boots = player.inventory.getBoots();
         if (player.lastY > y + 1 - 1e-5 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.inVehicle())
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 

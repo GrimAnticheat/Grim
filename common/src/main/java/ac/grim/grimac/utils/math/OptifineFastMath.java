@@ -61,7 +61,7 @@ public class OptifineFastMath {
     }
 
     @Contract(pure = true)
-    public static float roundToFloat(double d) {
-        return (float) ((double) Math.round(d * 1.0E8d) / 1.0E8d);
+    public static float roundToFloat(double value) {
+        return (float) ((double) Math.round(value * 1.0E8d) / 1.0E8d);
     }
 }

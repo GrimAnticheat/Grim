@@ -10,7 +10,9 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class FluidTypeFlowing {
     public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
@@ -73,7 +75,7 @@ public class FluidTypeFlowing {
         return isEmpty(player, x2, y2, z2) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
     }
 
-    protected static boolean isSolidFace(GrimPlayer player, int originalX, int y, int originalZ, BlockFace direction) {
+    private static boolean isSolidFace(GrimPlayer player, int originalX, int y, int originalZ, BlockFace direction) {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
 

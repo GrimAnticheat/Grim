@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
+import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
+
 @CheckData(name = "TickTimer", setback = 1)
 public class TickTimer extends Check implements PacketCheck {
 
@@ -19,7 +21,7 @@ public class TickTimer extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!player.supportsEndTickPreVia()) return;
+        if (!player.supportsEndTick()) return;
         if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
             if (!receivedTickEnd && flagAndAlertWithSetback("type=flying, packets=" + flyingPackets)) {
                 handleViolation();

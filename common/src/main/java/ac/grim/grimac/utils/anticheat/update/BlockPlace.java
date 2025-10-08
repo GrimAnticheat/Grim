@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.anticheat.update;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.AxisSelect;
-import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -27,12 +26,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
+import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
@@ -40,74 +34,51 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
-import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class BlockPlace {
-    protected static final BlockFace[] UPDATE_SHAPE_ORDER = {BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
-    static final BlockFace[] BY_3D = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
-    private static final BlockFace[] BY_2D = {BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
-    @Getter
-    private final boolean block;
+    private static final BlockFace[] BY_3D = { BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST };
+    public static final BlockFace[] BY_2D = { BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST };
+    public final boolean isBlock;
     // Allocated once instead of in functions to reduce new[] calls that need to be made. Since per-instance BlockPlace is always dealt with on the same thread we can use 1 buffer array
     private final SimpleCollisionBox[] collisions = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
-    @Setter
-    Vector3i blockPosition;
-    @Getter
-    InteractionHand hand;
-    @Getter
-    @Setter
-    boolean replaceClicked;
-    @Getter
-    boolean isCancelled = false;
-    GrimPlayer player;
-    @Getter
-    ItemStack itemStack;
-    @Getter
-    StateType material;
-    @Getter
-    @Nullable HitData hitData;
-    @Getter
-    int faceId;
-    BlockFace face;
-    @Getter
-    @Setter
-    boolean isInside;
-    @Getter
-    @Setter
-    Vector3f cursor;
+    public Vector3i position;
+    public final InteractionHand hand;
+    public boolean replaceClicked;
+    @Getter private boolean isCancelled;
+    private final GrimPlayer player;
+    public final ItemStack itemStack;
+    public final StateType material;
+    public final @Nullable HitData hitData;
+    @Getter private int faceId;
+    @Getter private BlockFace face;
+    public boolean isInside;
+    public Vector3f cursor;
     public final int sequence;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData, int sequence) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i position, int faceId, BlockFace face, ItemStack itemStack, @Nullable HitData hitData, int sequence) {
         this.player = player;
         this.hand = hand;
-        this.blockPosition = blockPosition;
+        this.position = position;
         this.faceId = faceId;
         this.face = face;
         this.itemStack = itemStack;
         if (itemStack.getType().getPlacedType() == null) {
             this.material = StateTypes.FIRE;
-            this.block = false;
+            this.isBlock = false;
         } else {
             this.material = itemStack.getType().getPlacedType();
-            this.block = true;
+            this.isBlock = true;
         }
         this.hitData = hitData;
 
-        WrappedBlockState state = player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation());
-        this.replaceClicked = canBeReplaced(this.material, state, face);
+        WrappedBlockState state = player.compensatedWorld.getBlock(position);
+        this.replaceClicked = canBeReplaced(material, state, face);
         this.sequence = sequence;
-    }
-
-    public static BlockFace[] getHorizontalFaces() {
-        return BY_2D;
-    }
-
-    public Vector3i getPlacedAgainstBlockLocation() {
-        return blockPosition;
     }
 
     public WrappedBlockState getExistingBlockData() {
@@ -115,7 +86,7 @@ public class BlockPlace {
     }
 
     public StateType getPlacedAgainstMaterial() {
-        return player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation()).getType();
+        return player.compensatedWorld.getBlock(position).getType();
     }
 
     public WrappedBlockState getBelowState() {
@@ -177,7 +148,7 @@ public class BlockPlace {
             // uh... what?  I'm unsure what Mojang is doing here.  I think they just made a stupid mistake.
             // as this code is quite old.
             boolean flag = getClickedLocation().getY() > 0.5D;
-            BlockFace clickedFace = getDirection();
+            BlockFace clickedFace = getFace();
             if (state.getTypeData() == Type.BOTTOM) {
                 return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
             } else {
@@ -220,7 +191,7 @@ public class BlockPlace {
 
         int size = box.downCast(collisions);
 
-        AxisSelect axis = AxisUtil.getAxis(facing.getOppositeFace());
+        AxisSelect axis = AxisSelect.byFace(facing.getOppositeFace());
 
         for (int i = 0; i < size; i++) {
             SimpleCollisionBox simpleBox = collisions[i];
@@ -245,7 +216,7 @@ public class BlockPlace {
 
         int size = box.downCast(collisions);
 
-        AxisSelect axis = AxisUtil.getAxis(facing.getOppositeFace());
+        AxisSelect axis = AxisSelect.byFace(facing.getOppositeFace());
 
         for (int i = 0; i < size; i++) {
             SimpleCollisionBox simpleBox = collisions[i];
@@ -265,7 +236,7 @@ public class BlockPlace {
         BlockFace face = relative.getOppositeFace();
         BlockFace bukkitFace = BlockFace.valueOf(face.name());
 
-        AxisSelect axis = AxisUtil.getAxis(face);
+        AxisSelect axis = AxisSelect.byFace(face);
 
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state);
 
@@ -298,12 +269,11 @@ public class BlockPlace {
         } else if (BlockTags.DOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on doors
             CollisionData data = CollisionData.getData(blockMaterial);
 
-            if (data.dynamic instanceof DoorHandler) {
-                int x = getPlacedAgainstBlockLocation().getX();
-                int y = getPlacedAgainstBlockLocation().getY();
-                int z = getPlacedAgainstBlockLocation().getZ();
-                BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), state, x, y, z);
-                return dir.getOppositeFace() == bukkitFace;
+            if (data.dynamic instanceof DoorHandler doorHandler) {
+                return doorHandler.fetchDirection(
+                        player, player.getClientVersion(), state,
+                        position.x, position.y, position.z
+                ).getOppositeFace() == bukkitFace;
             }
         }
 
@@ -337,7 +307,7 @@ public class BlockPlace {
 
         int size = box.downCast(collisions);
 
-        AxisSelect axis = AxisUtil.getAxis(facing.getOppositeFace());
+        AxisSelect axis = AxisSelect.byFace(facing.getOppositeFace());
 
         for (int i = 0; i < size; i++) {
             SimpleCollisionBox simpleBox = collisions[i];
@@ -412,7 +382,7 @@ public class BlockPlace {
         for (BlockFace face : BY_3D) {
             Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
-            // A block next to the player is providing power.  Therefore the block is powered
+            // A block next to the player is providing power. Therefore the block is powered
             if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
                 return true;
             }
@@ -448,10 +418,6 @@ public class BlockPlace {
         return false;
     }
 
-    public BlockFace getDirection() {
-        return face;
-    }
-
     public void setFace(BlockFace face) {
         this.face = face;
         this.faceId = face.getFaceValue();
@@ -463,33 +429,37 @@ public class BlockPlace {
     }
 
     private List<BlockFace> getNearestLookingDirections() {
-        float f = player.yRot * ((float) Math.PI / 180F);
-        float f1 = -player.xRot * ((float) Math.PI / 180F);
-        float f2 = player.trigHandler.sin(f);
-        float f3 = player.trigHandler.cos(f);
-        float f4 = player.trigHandler.sin(f1);
-        float f5 = player.trigHandler.cos(f1);
-        boolean flag = f4 > 0.0F;
-        boolean flag1 = f2 < 0.0F;
-        boolean flag2 = f5 > 0.0F;
-        float f6 = flag ? f4 : -f4;
-        float f7 = flag1 ? -f2 : f2;
-        float f8 = flag2 ? f5 : -f5;
-        float f9 = f6 * f3;
-        float f10 = f8 * f3;
-        BlockFace direction = flag ? BlockFace.EAST : BlockFace.WEST;
-        BlockFace direction1 = flag1 ? BlockFace.UP : BlockFace.DOWN;
-        BlockFace direction2 = flag2 ? BlockFace.SOUTH : BlockFace.NORTH;
-        if (f6 > f8) {
-            if (f7 > f9) {
-                return makeDirList(direction1, direction, direction2);
+        float pitch = GrimMath.radians(player.pitch);
+        float yaw = GrimMath.radians(-player.yaw);
+        float y = player.trigHandler.sin(pitch);
+        float cosPitch = player.trigHandler.cos(pitch);
+        float x = player.trigHandler.sin(yaw);
+        float z = player.trigHandler.cos(yaw);
+
+        boolean isPositiveX = x > 0;
+        boolean isNegativeY = y < 0;
+        boolean isPositiveZ = z > 0;
+
+        float absX = isPositiveX ? x : -x;
+        float absY = isNegativeY ? -y : y;
+        float absZ = isPositiveZ ? z : -z;
+        float modifiedX = absX * cosPitch;
+        float modifiedZ = absZ * cosPitch;
+
+        BlockFace xDir = isPositiveX ? BlockFace.EAST : BlockFace.WEST;
+        BlockFace yDir = isNegativeY ? BlockFace.UP : BlockFace.DOWN;
+        BlockFace zDir = isPositiveZ ? BlockFace.SOUTH : BlockFace.NORTH;
+
+        if (absX > absZ) {
+            if (absY > modifiedX) {
+                return makeDirList(yDir, xDir, zDir);
             } else {
-                return f10 > f7 ? makeDirList(direction, direction2, direction1) : makeDirList(direction, direction1, direction2);
+                return modifiedZ > absY ? makeDirList(xDir, zDir, yDir) : makeDirList(xDir, yDir, zDir);
             }
-        } else if (f7 > f10) {
-            return makeDirList(direction1, direction2, direction);
+        } else if (absY > modifiedZ) {
+            return makeDirList(yDir, zDir, xDir);
         } else {
-            return f9 > f7 ? makeDirList(direction2, direction, direction1) : makeDirList(direction2, direction1, direction);
+            return modifiedX > absY ? makeDirList(zDir, xDir, yDir) : makeDirList(zDir, yDir, xDir);
         }
     }
 
@@ -498,20 +468,19 @@ public class BlockPlace {
     }
 
     public BlockFace getNearestVerticalDirection() {
-        return player.yRot < 0.0F ? BlockFace.UP : BlockFace.DOWN;
+        return player.pitch < 0.0F ? BlockFace.UP : BlockFace.DOWN;
     }
 
     // Copied from vanilla nms
     public List<BlockFace> getNearestPlacingDirections() {
         BlockFace[] faces = getNearestLookingDirections().toArray(new BlockFace[0]);
 
-        if (!isReplaceClicked()) {
-            BlockFace direction = getDirection();
+        if (!replaceClicked) {
+            BlockFace direction = getFace();
 
             // Blame mojang for this code, not me
-            int i;
-            for (i = 0; i < faces.length && faces[i] != direction.getOppositeFace(); ++i) {
-            }
+            int i = 0;
+            while (i < faces.length && faces[i] != direction.getOppositeFace()) i++;
 
             if (i > 0) {
                 System.arraycopy(faces, 0, faces, 1, i);
@@ -527,21 +496,21 @@ public class BlockPlace {
     }
 
     public boolean isFaceHorizontal() {
-        BlockFace face = getDirection();
+        BlockFace face = getFace();
         return face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST;
     }
 
     public boolean isXAxis() {
-        BlockFace face = getDirection();
+        BlockFace face = getFace();
         return face == BlockFace.WEST || face == BlockFace.EAST;
     }
 
     public Vector3i getPlacedBlockPos() {
-        if (replaceClicked) return blockPosition;
+        if (replaceClicked) return position;
 
-        int x = blockPosition.getX() + getNormalBlockFace().getX();
-        int y = blockPosition.getY() + getNormalBlockFace().getY();
-        int z = blockPosition.getZ() + getNormalBlockFace().getZ();
+        int x = position.getX() + getNormalBlockFace().getX();
+        int y = position.getY() + getNormalBlockFace().getY();
+        int z = position.getZ() + getNormalBlockFace().getZ();
         return new Vector3i(x, y, z);
     }
 
@@ -628,12 +597,12 @@ public class BlockPlace {
             }
         }
 
-        player.getInventory().onBlockPlace(this);
+        player.inventory.onBlockPlace(this);
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
     }
 
     public boolean isZAxis() {
-        BlockFace face = getDirection();
+        BlockFace face = getFace();
         return face == BlockFace.NORTH || face == BlockFace.SOUTH;
     }
 
@@ -668,8 +637,8 @@ public class BlockPlace {
     // No mojang, you really do need to track client ticks to get their accurate eye height.
     // another damn desync added... maybe next decade it will get fixed and double the amount of issues.
     public Vector3dm getClickedLocation() {
-        SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
-        Vector3dm look = ReachUtils.getLook(player, player.xRot, player.yRot);
+        SimpleCollisionBox box = new SimpleCollisionBox(position);
+        Vector3dm look = ReachUtils.getLook(player, player.yaw, player.pitch);
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 3;
         Vector3dm eyePos = new Vector3dm(player.x, player.y + player.getEyeHeight(), player.z);
@@ -689,7 +658,7 @@ public class BlockPlace {
 
     // Remember to use the next tick's look, which we handle elsewhere
     public BlockFace getPlayerFacing() {
-        return BY_2D[GrimMath.floor(player.xRot / 90.0D + 0.5D) & 3];
+        return BY_2D[GrimMath.floor(player.yaw / 90.0D + 0.5D) & 3];
     }
 
     public void set() {

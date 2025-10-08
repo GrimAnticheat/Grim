@@ -4,6 +4,7 @@ import ac.grim.grimac.utils.data.Pair;
 import it.unimi.dsi.fastutil.doubles.Double2IntMap;
 import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -13,10 +14,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 // This class calculates the running mode of a list in best case o(1) worst case o(n) time.
 public class RunningMode {
     private static final double threshold = 1e-3;
-    Queue<Double> addList;
-    Double2IntMap popularityMap = new Double2IntOpenHashMap();
-    @Getter
-    int maxSize;
+    private final Queue<Double> addList;
+    private final Double2IntMap popularityMap = new Double2IntOpenHashMap();
+    @Getter private final int maxSize;
 
     public RunningMode(int maxSize) {
         if (maxSize == 0) throw new IllegalArgumentException("There's no mode to a size 0 list!");
@@ -46,7 +46,7 @@ public class RunningMode {
 
     private void pop() {
         if (addList.size() >= maxSize) {
-            double type = addList.poll();
+            double type = addList.remove();
             int popularity = popularityMap.get(type);  // Being null isn't possible
             if (popularity == 1) {
                 popularityMap.remove(type); // Make sure not to leak memory
@@ -56,7 +56,7 @@ public class RunningMode {
         }
     }
 
-    public Pair<Double, Integer> getMode() {
+    public @NotNull Pair<Double, Integer> getMode() {
         int max = 0;
         Double mostPopular = null;
 

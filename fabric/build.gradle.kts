@@ -1,4 +1,3 @@
-import net.fabricmc.loom.task.RemapJarTask
 import versioning.BuildConfig
 
 val minecraft_version: String by project
@@ -52,7 +51,12 @@ allprojects {
                 includeGroup("com.github.retrooper")
             }
         }
-        maven("https://jitpack.io/") // Conditional Mixin
+        maven("https://jitpack.io/") {
+            content {
+                excludeGroup("ac.grim.grimac")
+                excludeGroup("com.github.retrooper")
+            }
+        }// Conditional Mixin
         maven("https://repo.viaversion.com") // ViaVersion
         maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
         maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate

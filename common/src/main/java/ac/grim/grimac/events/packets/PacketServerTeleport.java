@@ -30,13 +30,12 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-
             Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
-
-            if (player == null) return;
 
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
@@ -44,14 +43,14 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.x = teleport.getX();
                 player.y = teleport.getY();
                 player.z = teleport.getZ();
-                player.xRot = teleport.getYaw();
-                player.yRot = teleport.getPitch();
+                player.yaw = teleport.getYaw();
+                player.pitch = teleport.getPitch();
 
                 player.lastX = teleport.getX();
                 player.lastY = teleport.getY();
                 player.lastZ = teleport.getZ();
-                player.lastXRot = teleport.getYaw();
-                player.lastYRot = teleport.getPitch();
+                player.lastYaw = teleport.getYaw();
+                player.lastPitch = teleport.getPitch();
 
                 player.pollData();
             }
@@ -153,17 +152,15 @@ public class PacketServerTeleport extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
-            WrapperPlayServerVehicleMove vehicleMove = new WrapperPlayServerVehicleMove(event);
-
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             player.sendTransaction();
-            int lastTransactionSent = player.lastTransactionSent.get();
-            Vector3d finalPos = vehicleMove.getPosition();
-
             event.getTasksAfterSend().add(player::sendTransaction);
-            player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
+            player.vehicleData.vehicleTeleports.add(new Pair<>(
+                    player.lastTransactionSent.get(),
+                    new WrapperPlayServerVehicleMove(event).getPosition()
+            ));
         }
     }
 }

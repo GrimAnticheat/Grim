@@ -1,10 +1,10 @@
 package ac.grim.grimac.platform.bukkit;
 
-import ac.grim.grimac.api.plugin.BasicGrimPlugin;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.events.GrimExtensionManager;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
 import ac.grim.grimac.manager.init.start.StartableInitable;
@@ -29,6 +29,7 @@ import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPermissionRegistrationManager;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPlatformPluginManager;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
+import ac.grim.grimac.platform.bukkit.resolver.BukkitResolverRegistrar;
 import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
@@ -49,6 +50,7 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.setting.Configurable;
 import org.jetbrains.annotations.NotNull;
 
+
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
 
     public static GrimACBukkitLoaderPlugin LOADER;
@@ -68,13 +70,10 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final BukkitPermissionRegistrationManager bukkitPermissionRegistrationManager = new BukkitPermissionRegistrationManager();
 
     public GrimACBukkitLoaderPlugin() {
-        this.plugin = new BasicGrimPlugin(
-                this.getLogger(),
-                this.getDataFolder(),
-                this.getDescription().getVersion(),
-                this.getDescription().getDescription(),
-                this.getDescription().getAuthors()
-        );
+        GrimExtensionManager extensionManager = GrimAPI.INSTANCE.getExtensionManager();
+        BukkitResolverRegistrar registrar = new BukkitResolverRegistrar(extensionManager);
+        registrar.registerAll();
+        this.plugin = registrar.resolvePlugin(this);
     }
 
     @Override

@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.reflection.FloodgateUtil;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -41,9 +40,8 @@ public class PlayerDataManager {
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
         if (user.getUUID() != null) {
-            // Geyser players don't have Java movement
-            // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
-            if (GeyserUtil.isGeyserPlayer(user.getUUID()) || FloodgateUtil.isFloodgatePlayer(user.getUUID())) {
+            // Bedrock players don't have Java movement
+            if (GeyserUtil.isBedrockPlayer(user.getUUID())) {
                 exemptUsers.add(user);
                 return false;
             }

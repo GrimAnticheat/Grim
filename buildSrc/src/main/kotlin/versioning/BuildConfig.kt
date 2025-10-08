@@ -2,6 +2,11 @@ package versioning
 
 import org.gradle.api.Project
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import versioning.BuildConfig.init
+import versioning.BuildConfig.mavenLocalOverride
+import versioning.BuildConfig.release
+import versioning.BuildConfig.relocate
+import versioning.BuildConfig.shadePE
 
 /**
  * BuildConfig provides access to user-defined build flags that control how a Grim
@@ -96,4 +101,5 @@ object BuildConfig {
 
     val mavenLocalOverride: Boolean get() = _mavenLocalOverride
         ?: error("BuildConfig.release accessed before init() was called")
+
 }

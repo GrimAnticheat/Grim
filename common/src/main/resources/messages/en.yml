@@ -65,7 +65,7 @@ help:
     - "/grim log [0-255] &f- &7Uploads a debug log for prediction flags"
     - "/grim history <player> [page] &f- &7Shows previous alerts for the player"
     - "&7======================"
-    -
+
 grim-history-load-failure: "%prefix% &cHistory subsystem failed to load! Check server console for errors."
 grim-history-disabled: "%prefix% &cHistory subsystem is disabled!"
 # Valid placeholders: %prefix% %player% %page% %maxPages%

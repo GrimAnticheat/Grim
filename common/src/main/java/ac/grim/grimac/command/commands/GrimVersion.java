@@ -4,13 +4,17 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.common.GrimArguments;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
@@ -49,29 +53,43 @@ public class GrimVersion implements BuildableCommand {
     // Using UserAgent format recommended by https://docs.modrinth.com/api/
     @SuppressWarnings("deprecation")
     private static void checkForUpdates(Sender sender) {
-        String current = GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
         try {
+            //
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.modrinth.com/v2/project/LJNGWSvH/version"))
+                    .uri(URI.create(GrimArguments.API_URL + "updates"))
                     .GET()
-                    .header("User-Agent", "GrimAnticheat/Grim/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion())
+                    .header("User-Agent", "GrimAC/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion())
                     .header("Content-Type", "application/json")
                     .timeout(Duration.of(5, ChronoUnit.SECONDS))
                     .build();
 
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
+            final int statusCode = response.statusCode();
+            if (statusCode != 200) {
                 Component msg = updateMessage.get();
                 sender.sendMessage(Objects.requireNonNullElseGet(msg, () -> Component.text()
-                        .append(Component.text("Failed to check latest version.").color(NamedTextColor.RED))
+                        .append(MessageUtil.miniMessage("%prefix%"))
+                        .append(Component.text(" Failed to check latest GrimAC version. Update server responded with code: ")
+                                .color(NamedTextColor.YELLOW))
+                        .append(Component.text(statusCode)
+                                .color(getColorForStatusCode(statusCode))
+                                .decorate(TextDecoration.BOLD))
                         .build()));
-                LogUtil.error("Failed to check latest GrimAC version. Response code: " + response.statusCode());
                 return;
             }
             // Using old JsonParser method, as old versions of Gson don't include the static one
-            JsonObject object = new JsonParser().parse(response.body()).getAsJsonArray().get(0).getAsJsonObject();
-            String latest = object.get("version_number").getAsString();
-            Status status = compareVersions(current, latest);
+            JsonObject object = new JsonParser().parse(response.body()).getAsJsonObject();
+            String downloadPage = getJsonString(object, "download_page", "Unknown");
+            String latest = getJsonString(object, "latest_version", "Unknown");
+            @Nullable String warning = getJsonString(object, "warning", null);
+            // allow status to be overridden if provided
+            Status status;
+            if (object.has("status")) {
+                status = Status.getStatus(object.get("status").getAsString());
+            } else {
+                status = Status.SemVer.getVersionStatus(GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(), latest);
+            }
+            //
             Component msg = switch (status) {
                 case AHEAD ->
                         Component.text("You are using a development version of GrimAC").color(NamedTextColor.LIGHT_PURPLE);
@@ -82,56 +100,39 @@ public class GrimVersion implements BuildableCommand {
                         .append(Component.text(" Version ").color(NamedTextColor.GRAY))
                         .append(Component.text(latest).color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC))
                         .append(Component.text(" is available to be downloaded here: ").color(NamedTextColor.GRAY))
-                        .append(Component.text("https://modrinth.com/plugin/grimac").color(NamedTextColor.GRAY).decorate(TextDecoration.UNDERLINED)
-                                .clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/grimac")))
+                        .append(Component.text(downloadPage).color(NamedTextColor.GRAY).decorate(TextDecoration.UNDERLINED)
+                                .clickEvent(ClickEvent.openUrl(downloadPage)))
                         .build();
+                case UNKNOWN ->
+                        Component.text("You are using an unknown GrimAC version.").color(NamedTextColor.RED);
             };
+            // in case of a critical exploit that requires attention, allow us to provide a warning
+            if (warning != null && !warning.isBlank()) {
+                msg = msg.append(Component.text().append(Component.text(warning).color(NamedTextColor.RED)).build());
+            }
             updateMessage.set(msg);
             sender.sendMessage(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             sender.sendMessage(Component.text("Failed to check latest version.").color(NamedTextColor.RED));
-            LogUtil.error("Failed to check latest GrimAC version.", ignored);
+            LogUtil.error("Failed to check latest GrimAC version.", e);
         }
     }
 
-    private static Status compareVersions(String local, String latest) {
-        if (local.equals(latest)) return Status.UPDATED;
-        String[] localParts  = splitVersionIntoParts(local);
-        String[] latestParts = splitVersionIntoParts(latest);
-        int length = Math.max(localParts.length, latestParts.length);
-        for (int i = 0; i < length; i++) {
-            int localPart = i < localParts.length ? Integer.parseInt(localParts[i]) : 0;
-            int latestPart = i < latestParts.length ? Integer.parseInt(latestParts[i]) : 0;
-            if (localPart < latestPart) {
-                return Status.OUTDATED;
-            } else if (localPart > latestPart) {
-                return Status.AHEAD;
-            }
-        }
-        return Status.UPDATED;
+    private static String getJsonString(JsonObject object, String key, String defaultValue) {
+        return object.has(key) ? object.get(key).getAsString() : defaultValue;
     }
 
-    private static String[] splitVersionIntoParts(String version) {
-        // 1. regular dot‑split
-        String[] dotParts = version.split("\\.");
-
-        // nothing to fix if we have fewer than 3 segments
-        if (dotParts.length < 3) return dotParts;
-
-        // 2. look at the 3rd element (patch) — it might contain a hyphen tail
-        String patchAndTail = dotParts[2];
-        int dash = patchAndTail.indexOf('-');
-        if (dash == -1) {
-            // plain 2.3.72 style => already correct
-            return dotParts;
+    private static NamedTextColor getColorForStatusCode(int code) {
+        if (code >= 500) { // Server Errors (e.g., 500, 503)
+            return NamedTextColor.RED;
+        } else if (code >= 400) { // Client Errors (e.g., 403, 404)
+            return NamedTextColor.RED;
+        } else if (code >= 300) { // Redirection (e.g., 301, 302)
+            return NamedTextColor.YELLOW;
+        } else if (code >= 200) { // Success (e.g., 200, 201)
+            return NamedTextColor.GREEN;
         }
-
-        // 3. separate "72" and "feat_platform-…"
-        String patch   = patchAndTail.substring(0, dash);
-        String tail    = patchAndTail.substring(dash + 1);
-
-        // 4. rebuild an array with 4 elements
-        return new String[] { dotParts[0], dotParts[1], patch, tail };
+        return NamedTextColor.GRAY; // Default for 1xx codes or others
     }
 
     @Override
@@ -149,10 +150,84 @@ public class GrimVersion implements BuildableCommand {
         checkForUpdatesAsync(sender);
     }
 
+
+    @AllArgsConstructor
     private enum Status {
-        AHEAD,
-        UPDATED,
-        OUTDATED
+        AHEAD("ahead"),
+        UPDATED("updated"),
+        OUTDATED("outdated"),
+        UNKNOWN("unknown")
+        //
+        ;
+        private final String id;
+
+        public static Status getStatus(String id) {
+            for (Status status : Status.values()) {
+                if (status.id.equals(id)) return status;
+            }
+            return UNKNOWN;
+        }
+
+        private static class SemVer {
+
+            public static Status getVersionStatus(String current, String latest) {
+                try {
+                    var cmp = compareSemver(current, latest);
+                    if (cmp == 0) {
+                        return Status.UPDATED;
+                    }
+                    if (cmp < 0) {
+                        return Status.OUTDATED;
+                    }
+                    return Status.AHEAD;
+                } catch (Exception ignored) {}
+                return Status.UNKNOWN;
+            }
+
+            public static String normalizeCoreVersion(String version) {
+                String trimmed = version.trim();
+                String[] dashParts = trimmed.split("-");
+                String[] plusParts = dashParts[0].split("\\+");
+                return plusParts[0];
+            }
+
+            public static int[] parseVersion(String version) {
+                String core = normalizeCoreVersion(version);
+                if (core.isEmpty()) return null;
+                String[] parts = core.split("\\.");
+                if (parts.length < 1) return null;
+
+                int major = parseInt(parts[0]);
+                int minor = parts.length > 1 ? parseInt(parts[1]) : 0;
+                int patch = parts.length > 2 ? parseInt(parts[2]) : 0;
+
+                if (major < 0 || minor < 0 || patch < 0) {
+                    return null;
+                }
+
+                return new int[] { major, minor, patch };
+            }
+
+            private static int parseInt(String str) {
+                try {
+                    return Integer.parseInt(str);
+                } catch (NumberFormatException e) {
+                    return -1;
+                }
+            }
+
+            public static int compareSemver(String a, String b) {
+                int[] pa = parseVersion(a);
+                int[] pb = parseVersion(b);
+                if (pa == null || pb == null) return 0;
+
+                for (int i = 0; i < 3; i++) {
+                    if (pa[i] < pb[i]) return -1;
+                    if (pa[i] > pb[i]) return 1;
+                }
+                return 0;
+            }
+        }
     }
 
 }

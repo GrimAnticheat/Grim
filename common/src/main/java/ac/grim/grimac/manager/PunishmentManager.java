@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PunishmentManager implements ConfigReloadable {
-    GrimPlayer player;
-    List<PunishGroup> groups = new ArrayList<>();
-    String experimentalSymbol = "*";
+    private final GrimPlayer player;
+    private final List<PunishGroup> groups = new ArrayList<>();
+    private String experimentalSymbol = "*";
     private String alertString;
     private boolean testMode;
     private String proxyAlertString = "";

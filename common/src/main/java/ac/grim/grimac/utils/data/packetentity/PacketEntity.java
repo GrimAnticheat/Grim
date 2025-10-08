@@ -51,7 +51,7 @@ public class PacketEntity extends TypedPacketEntity {
     private final UUID uuid; // NULL ON VERSIONS BELOW 1.9 (or for some entities, apparently??)
     @Getter
     public PacketEntity riding;
-    public List<PacketEntity> passengers = new ArrayList<>(0);
+    public final List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
@@ -148,6 +148,15 @@ public class PacketEntity extends TypedPacketEntity {
         }
         this.oldPacketLocation = newPacketLocation;
         this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+
+        // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
+        // https://bugs.mojang.com/browse/MC-255263
+        if (!hasPos &&
+                (player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4) ||
+                (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2)) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4))
+        ) {
+            newPacketLocation.cancelLerp();
+        }
 
         // In versions < 1.16.2 when the client receives non-relative teleport for an entity
         // And they move less by the thresholds given, the entity does not move client side

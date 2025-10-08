@@ -53,7 +53,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
-            if (!ViaVersionUtil.isAvailable()) {
+            if (!ViaVersionUtil.isAvailable) {
                 // Exempt all blocks that do not exist in the player version
                 final WrappedBlockState defaultState = WrappedBlockState.getDefaultState(player.getClientVersion(), blockBreak.block.getType());
                 if (defaultState.getType() == StateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {

@@ -6,7 +6,7 @@ public class HexCollisionBox extends SimpleCollisionBox {
      * Creates a box defined by two points in 3d space; used to represent hitboxes and collision boxes.
      * Mojang's block hitbox values are all based on chunks, so they're stored in game as 16 * the actual size
      * When copying block hitbox values, it may be easier to simple copy the multiplied values and use this class
-     * If your min/max values are < 1 you should probably check out {@link SimpleCollisionBox}
+     * If your min/max values are {@literal <} 1 you should probably check out {@link SimpleCollisionBox}
      *
      * @param minX 16 * x position of first corner
      * @param minY 16 * y position of first corner

@@ -148,19 +148,23 @@ public class PredictionEngineBoat extends PredictionEngine {
             // TODO: is this correct?
             data.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
 
-            // Boats ignore forward steering, using raw inputs instead,
-            // so if a player tries to move in both directions, a packet will
-            // show that the player is staying, but the boat will move anyway
-            if (player.vehicleData.vehicleForward == 0) {
-                Vector3dm vector = data.vector.clone();
-                controlBoat(player, vector, true);
-                vector.multiply(player.stuckSpeedMultiplier);
-                vectors.add(data.returnNewModified(vector, VectorData.VectorType.InputResult));
-            }
+            for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
+                if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-            controlBoat(player, data.vector, false);
-            data.vector.multiply(player.stuckSpeedMultiplier);
-            vectors.add(data);
+                // Boats ignore forward steering, using raw inputs instead,
+                // so if a player tries to move in both directions, a packet will
+                // show that the player is staying, but the boat will move anyway
+                if (player.vehicleData.vehicleForward == 0) {
+                    Vector3dm vector = data.vector.clone();
+                    controlBoat(player, vector, true);
+                    if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
+                    vectors.add(data.returnNewModified(vector, VectorData.VectorType.InputResult));
+                }
+
+                controlBoat(player, data.vector, false);
+                if (applyStuckSpeed != 0) data.vector.multiply(player.stuckSpeedMultiplier);
+                vectors.add(data);
+            }
         }
 
         return vectors;
@@ -280,6 +284,6 @@ public class PredictionEngineBoat extends PredictionEngine {
             f -= 0.005F;
         }
 
-        vector.add(new Vector3dm(player.trigHandler.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
+        vector.add(new Vector3dm(player.trigHandler.sin(-player.yaw * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.yaw * ((float) Math.PI / 180F)) * f)));
     }
 }

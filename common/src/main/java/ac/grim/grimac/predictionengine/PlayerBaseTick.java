@@ -104,7 +104,7 @@ public final class PlayerBaseTick {
     // 1.16 eye in water is a tick behind
     // 1.15 eye in water is the most recent result
     private static void updateFluidOnEyes(GrimPlayer player) {
-        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
+        player.wasEyeInWater = player.fluidOnEyes == FluidTag.WATER;
         player.fluidOnEyes = null;
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
@@ -411,7 +411,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
 
@@ -461,7 +461,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
         double d2 = 0.0;

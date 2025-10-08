@@ -28,6 +28,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -132,7 +133,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             if (player.hasGravity)
                 vector.add(new Vector3dm(0.0D, -player.gravity / 4.0D, 0.0D));
         } else if (player.isGliding) {
-            PredictionEngineElytra.getElytraMovement(player, vector, ReachUtils.getLook(player, player.xRot, player.yRot)).multiply(player.stuckSpeedMultiplier).multiply(new Vector3dm(0.99F, 0.98F, 0.99F));
+            PredictionEngineElytra.getElytraMovement(player, vector, ReachUtils.getLook(player, player.yaw, player.pitch)).multiply(player.stuckSpeedMultiplier).multiply(new Vector3dm(0.99F, 0.98F, 0.99F));
             vector.setY(vector.getY() - 0.05); // Make the player fall a bit
         } else { // Gliding doesn't have friction, we handle it differently
             PredictionEngineNormal.staticVectorEndOfTick(player, vector); // Lava and normal movement
@@ -181,9 +182,13 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             Vector3dm collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
 
             position = position.withX(position.getX() + collide.getX());
-            // 1.8 players need the collision epsilon to not phase into blocks when being setback
-            // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
-            position = position.withY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+            position = position.withY(position.getY() + collide.getY());
+            // TODO: Is this even needed? Can't reproduce any phasing on vanilla 1.8 when being setback.
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                // 1.8 players need the collision epsilon to not phase into blocks when being setback
+                // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
+                position = position.withY(position.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+            }
             position = position.withZ(position.getZ() + collide.getZ());
 
             if (clientVel.getX() != collide.getX()) clientVel.setX(0);
@@ -203,7 +208,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.inVehicle(), false);
+        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
 
@@ -225,7 +230,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
                     // Stop the player from being able to teleport vehicles and simply re-enter them to continue,
                     // therefore, teleport the entity
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.yaw % 360, 0, false));
                     player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
 
                     // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
@@ -255,7 +260,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.yaw % 360, player.pitch % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
@@ -411,7 +416,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         }
 
         data = new TeleportData(safePosition, velocity, new RelativeFlag(0b11000), transaction, teleportId);
-        requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
+        requiredSetBack = new SetBackData(data, player.yaw, player.pitch, null, false, plugin);
 
         this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, new Vector3dm());
     }
@@ -420,7 +425,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     @Getter
     @Setter
     public static class SetbackPosWithVector {
-        private Vector3d pos;
+        private final Vector3d pos;
         private Vector3dm vector;
     }
 }

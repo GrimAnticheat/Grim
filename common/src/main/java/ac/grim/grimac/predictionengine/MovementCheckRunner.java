@@ -271,8 +271,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             riding.setPositionRaw(player, new SimpleCollisionBox(player.x, player.y, player.z, player.x, player.y, player.z));
 
             if (riding instanceof PacketEntityTrackXRot boat) {
-                boat.packetYaw = player.xRot;
-                boat.interpYaw = player.xRot;
+                boat.packetYaw = player.yaw;
+                boat.interpYaw = player.yaw;
                 boat.steps = 0;
             }
 
@@ -286,8 +286,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
 
                 ItemType requiredItem = riding.type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
-                ItemStack mainHand = player.getInventory().getHeldItem();
-                ItemStack offHand = player.getInventory().getOffHand();
+                ItemStack mainHand = player.inventory.getHeldItem();
+                ItemStack offHand = player.inventory.getOffHand();
 
                 boolean correctMainHand = mainHand.getType() == requiredItem;
                 boolean correctOffhand = offHand.getType() == requiredItem;

@@ -5,6 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.common.PropertiesUtil;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -16,6 +17,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
+
+import java.util.Map;
+import java.util.Properties;
 
 public class GrimDump implements BuildableCommand {
 
@@ -47,15 +51,9 @@ public class GrimDump implements BuildableCommand {
         GrimLog.sendLogAsync(sender, generateDump(), string -> link = string, "text/yaml");
     }
 
-    /**
-     * Generates a diagnostic dump in JSON format that contains various metadata
-     * about the system, platform, and plugins. This dump is primarily used for
-     * debugging and finding potential issues with the environment.
-     * @return A JSON-formatted string containing the diagnostic dump.
-     */
-    private String generateDump() {
+    public static JsonObject getBasicInfo(String type) {
         JsonObject base = new JsonObject();
-        base.addProperty("type", "dump");
+        base.addProperty("type", type);
         base.addProperty("timestamp", System.currentTimeMillis());
         // versions
         JsonObject versions = new JsonObject();
@@ -68,7 +66,7 @@ public class GrimDump implements BuildableCommand {
         JsonObject states = new JsonObject();
         base.add("states", states);
         if (GrimAPI.INSTANCE.isInitialized()) states.addProperty("platform", GrimAPI.INSTANCE.getPlatform().toString());
-        if (ViaVersionUtil.isAvailable()) states.addProperty("has_viaversion", true);
+        if (ViaVersionUtil.isAvailable) states.addProperty("has_viaversion", true);
         if (PAPER) states.addProperty("has_paper", true);
         // system
         JsonObject system = new JsonObject();
@@ -76,6 +74,31 @@ public class GrimDump implements BuildableCommand {
         system.addProperty("os_name", System.getProperty("os.name"));
         system.addProperty("java_version", System.getProperty("java.version"));
         system.addProperty("user_language", System.getProperty("user.language"));
+        // build
+        JsonObject build = new JsonObject();
+        base.add("build", getBuildInfo());
+        return base;
+    }
+
+    private static JsonObject getBuildInfo() {
+        JsonObject object = new JsonObject();
+        try {
+            Properties properties = PropertiesUtil.readProperties(GrimAPI.INSTANCE.getClass(), "grimac.properties");
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                object.addProperty(entry.getKey().toString(), entry.getValue().toString());
+            }
+        } catch (Exception ignored) {}
+        return object;
+    }
+
+    /**
+     * Generates a diagnostic dump in JSON format that contains various metadata
+     * about the system, platform, and plugins. This dump is primarily used for
+     * debugging and finding potential issues with the environment.
+     * @return A JSON-formatted string containing the diagnostic dump.
+     */
+    private String generateDump() {
+        JsonObject base = getBasicInfo("dump");
         // plugins
         JsonArray plugins = new JsonArray();
         base.add("plugins", plugins);

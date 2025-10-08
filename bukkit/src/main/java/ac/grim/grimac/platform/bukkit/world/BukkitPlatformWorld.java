@@ -34,7 +34,7 @@ public class BukkitPlatformWorld implements PlatformWorld {
     public WrappedBlockState getBlockAt(int x, int y, int z) {
         if (LEGACY_SERVER_VERSION) {
             Block block = bukkitWorld.getBlockAt(x, y, z);
-            int blockId = (block.getType().getId() << 4) | block.getData();
+            @SuppressWarnings("deprecation") int blockId = (block.getType().getId() << 4) | block.getData();
             return WrappedBlockState.getByGlobalId(blockId);
         } else {
             return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());

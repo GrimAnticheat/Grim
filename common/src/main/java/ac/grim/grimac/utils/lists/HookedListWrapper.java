@@ -33,13 +33,13 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
     }
 
     @Override
-    public Iterator<T> iterator() {
+    public @NotNull Iterator<T> iterator() {
         this.onIterator();
         return this.listIterator();
     }
 
     @Override
-    public Object[] toArray() {
+    public Object @NotNull [] toArray() {
         return this.base.toArray();
     }
 
@@ -54,12 +54,12 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
     }
 
     @Override
-    public boolean addAll(Collection c) {
+    public boolean addAll(@NotNull Collection c) {
         return this.base.addAll(c);
     }
 
     @Override
-    public boolean addAll(int index, Collection c) {
+    public boolean addAll(int index, @NotNull Collection c) {
         return this.base.addAll(index, c);
     }
 
@@ -99,37 +99,37 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
     }
 
     @Override
-    public ListIterator<T> listIterator() {
+    public @NotNull ListIterator<T> listIterator() {
         return this.base.listIterator();
     }
 
     @Override
-    public ListIterator<T> listIterator(int index) {
+    public @NotNull ListIterator<T> listIterator(int index) {
         return this.base.listIterator(index);
     }
 
     @Override
-    public List<T> subList(int fromIndex, int toIndex) {
+    public @NotNull List<T> subList(int fromIndex, int toIndex) {
         return this.base.subList(fromIndex, toIndex);
     }
 
     @Override
-    public boolean retainAll(Collection c) {
+    public boolean retainAll(@NotNull Collection c) {
         return this.base.retainAll(c);
     }
 
     @Override
-    public boolean removeAll(Collection c) {
+    public boolean removeAll(@NotNull Collection c) {
         return this.base.removeAll(c);
     }
 
     @Override
-    public boolean containsAll(Collection c) {
+    public boolean containsAll(@NotNull Collection c) {
         return this.base.containsAll(c);
     }
 
     @Override
-    public Object @NotNull [] toArray(Object[] a) {
+    public Object @NotNull [] toArray(Object @NotNull [] a) {
         return this.base.toArray(a);
     }
 }

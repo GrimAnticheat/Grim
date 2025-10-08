@@ -6,7 +6,7 @@ import java.util.List;
 public class ComplexCollisionBox implements CollisionBox {
 
     // Most complex shape is the Modern MC Cauldron which is made up of 15 boxes
-    public static int DEFAULT_MAX_COLLISION_BOX_SIZE = 15; // increase if we somehow have a shape made of more than 15 parts.
+    public static final int DEFAULT_MAX_COLLISION_BOX_SIZE = 15; // increase if we somehow have a shape made of more than 15 parts.
     private final SimpleCollisionBox[] boxes;
     private int currentLength;
 

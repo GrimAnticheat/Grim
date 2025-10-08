@@ -9,7 +9,6 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -196,18 +195,16 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                             // Player has gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                                ItemStack item = isOffhand ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
-
                                 // If the player hasn't overridden this packet by using or stopping using an item
                                 // Vanilla update order: Receive this -> process new interacts
                                 // Grim update order: Process new interacts -> receive this
                                 if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
-                                    PacketPlayerDigging.handleUseItem(player, item, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
+                                    PacketPlayerDigging.handleUseItem(player, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
                                     // The above line is a hack to fake activate use item
                                     player.packetStateData.setSlowedByUsingItem(isActive);
 
                                     if (isActive) {
-                                        player.packetStateData.eatingHand = isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+                                        player.packetStateData.itemInUseHand = isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
                                     }
                                 }
                             });

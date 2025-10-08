@@ -53,7 +53,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player.addTransactionResponse(shortID)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
-                    event.setCancelled(true);
+                    event.setCancelled(!GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling());
                 }
             }
         }

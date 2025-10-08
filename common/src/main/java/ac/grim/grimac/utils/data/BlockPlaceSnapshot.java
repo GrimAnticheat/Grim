@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class BlockPlaceSnapshot {
-    PacketWrapper<?> wrapper;
-    boolean sneaking;
+public final class BlockPlaceSnapshot {
+    private final PacketWrapper<?> wrapper;
+    private final boolean sneaking;
 }

@@ -20,6 +20,7 @@ public class BukkitPlatformPlugin implements PlatformPlugin {
         return plugin.getName();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String getVersion() {
         return plugin.getDescription().getVersion();
