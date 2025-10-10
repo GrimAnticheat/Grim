@@ -6,6 +6,7 @@ import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -24,7 +25,9 @@ public class V1_21_2BlockEffectsResolver implements BlockEffectsResolver {
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
         LongSet visitedBlocks = player.visitedBlocks;
-        SimpleCollisionBox boundingBox = player.boundingBox.copy().expand(-1.0E-5F);
+        SimpleCollisionBox boundingBox = (player.inVehicle()
+                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
+                : player.boundingBox.copy()).expand(-1.0E-5F);
 
         for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
             Vector3d from = movement.from();

@@ -447,9 +447,9 @@ public final class Collisions {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
-        SimpleCollisionBox aABB = player.inVehicle()
-                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-expandAmount)
-                : player.boundingBox.copy().expand(-expandAmount);
+        SimpleCollisionBox aABB = (player.inVehicle()
+                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
+                : player.boundingBox.copy()).expand(-expandAmount);
 
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
@@ -555,6 +555,49 @@ public final class Collisions {
 
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+            return;
+        }
+
+        // Reset stuck speed so it can update
+        if (player.stuckSpeedMultiplier.getX() < 0.99) {
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
+        }
+
+        player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        player.finalMovementsThisTick.clear();
+
+        Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+        Vector3d to = new Vector3d(player.x, player.y, player.z);
+
+        ClientVersion clientVersion = player.getClientVersion();
+        if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
+            player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+        } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            player.finalMovementsThisTick.addAll(player.movementThisTick);
+            player.movementThisTick.clear();
+
+            if (player.finalMovementsThisTick.isEmpty()) {
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+            } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to));
+            }
+        }
+
+        Collisions.resolveBlockEffects(player);
+
+        if (player.stuckSpeedMultiplier.getX() < 0.9) {
+            // Reset fall distance if stuck in block
+            player.fallDistance = 0;
+        }
+
+        // Flying players are not affected by cobwebs/sweet berry bushes
+        if (player.isFlying) {
+            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        }
+    }
+
+    public static void resolveBlockEffects(GrimPlayer player) {
         ClientVersion version = player.getClientVersion();
         BlockEffectsResolver resolver;
 
