@@ -26,6 +26,7 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
         LongSet visitedBlocks = player.visitedBlocks;
+
         for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
             Vector3d from = movement.from();
             Vector3d to = movement.to().subtract(movement.from());
@@ -33,7 +34,7 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
             int iterationCount = 16;
             if (movement.axisIndependant() && to.lengthSquared() > 0.0) {
                 for (Collisions.Axis axis : BlockCollisions.axisStepOrder(movement.axisDependentOriginalMovement())) {
-                    double value = axis.choose(to.getX(), to.getY(), to.getZ());
+                    double value = axis.get(to);
                     if (value != 0.0) {
                         Vector3d vector = BlockCollisions.relative(from, axis.getPositive(), value);
                         iterationCount -= checkInsideBlocks(player, from, vector, visitedBlocks, iterationCount);
@@ -126,21 +127,25 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
         Vector3i furthestCorner = BlockCollisions.getFurthestCorner(direction);
 
         Vector3d center = boundingBox.getCenter();
-        Vector3d vec33 = new Vector3d(center.x + sizeX * 0.5 * furthestCorner.getX(), center.y + sizeY * 0.5 * furthestCorner.getY(), center.z + sizeZ * 0.5 * furthestCorner.getZ());
-        Vector3d vec34 = vec33.subtract(direction);
+        Vector3d end = new Vector3d(
+                center.x + sizeX * 0.5 * furthestCorner.getX(),
+                center.y + sizeY * 0.5 * furthestCorner.getY(),
+                center.z + sizeZ * 0.5 * furthestCorner.getZ()
+        );
+        Vector3d start = end.subtract(direction);
 
-        int currentX = GrimMath.floor(vec34.x);
-        int currentY = GrimMath.floor(vec34.y);
-        int currentZ = GrimMath.floor(vec34.z);
+        int currentX = GrimMath.floor(start.x);
+        int currentY = GrimMath.floor(start.y);
+        int currentZ = GrimMath.floor(start.z);
         int stepX = GrimMath.sign(direction.x);
         int stepY = GrimMath.sign(direction.y);
         int stepZ = GrimMath.sign(direction.z);
         double tMaxX = stepX == 0 ? Double.MAX_VALUE : stepX / direction.x;
         double tMaxY = stepY == 0 ? Double.MAX_VALUE : stepY / direction.y;
         double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : stepZ / direction.z;
-        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(vec34.x) : GrimMath.frac(vec34.x));
-        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(vec34.y) : GrimMath.frac(vec34.y));
-        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(vec34.z) : GrimMath.frac(vec34.z));
+        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(start.x) : GrimMath.frac(start.x));
+        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(start.y) : GrimMath.frac(start.y));
+        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(start.z) : GrimMath.frac(start.z));
         int iterationCount = 0;
 
         while (tDeltaX <= 1.0 || tDeltaY <= 1.0 || tDeltaZ <= 1.0) {
@@ -160,7 +165,7 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
                 tDeltaZ += tMaxZ;
             }
 
-            Optional<Vector3d> collisionPoint = BlockCollisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, vec34, vec33);
+            Optional<Vector3d> collisionPoint = BlockCollisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
             if (!collisionPoint.isEmpty()) {
                 iterationCount++;
                 Vector3d collisionVec = collisionPoint.get();

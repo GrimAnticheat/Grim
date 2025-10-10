@@ -31,6 +31,7 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
@@ -925,6 +926,16 @@ public final class Collisions {
     public enum Axis {
         X {
             @Override
+            public double get(Vector3d vector) {
+                return vector.getX();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getX();
+            }
+
+            @Override
             public double choose(double x, double y, double z) {
                 return x;
             }
@@ -945,6 +956,16 @@ public final class Collisions {
             }
         },
         Y {
+            @Override
+            public double get(Vector3d vector) {
+                return vector.getY();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getY();
+            }
+
             @Override
             public double choose(double x, double y, double z) {
                 return y;
@@ -967,6 +988,16 @@ public final class Collisions {
         },
         Z {
             @Override
+            public double get(Vector3d vector) {
+                return vector.getZ();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getZ();
+            }
+
+            @Override
             public double choose(double x, double y, double z) {
                 return z;
             }
@@ -987,6 +1018,9 @@ public final class Collisions {
             }
         };
 
+        public abstract double get(Vector3d vector);
+
+        public abstract int get(Vector3i vector);
 
         public abstract double choose(double x, double y, double z);
 

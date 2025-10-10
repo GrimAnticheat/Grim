@@ -592,7 +592,7 @@ public class SimpleCollisionBox implements CollisionBox {
         };
     }
 
-    public static Iterable<Vector3i> betweenCornersInDirection(SimpleCollisionBox boundingBox, Vector3d vector) {
+    public static Iterable<Vector3i> betweenCornersInDirection(SimpleCollisionBox boundingBox, Vector3d directionVector) {
         Vector3d min = boundingBox.min().toVector3d();
         int minX = GrimMath.floor(min.x);
         int minY = GrimMath.floor(min.y);
@@ -601,67 +601,73 @@ public class SimpleCollisionBox implements CollisionBox {
         int maxX = GrimMath.floor(max.x);
         int maxY = GrimMath.floor(max.y);
         int maxZ = GrimMath.floor(max.z);
-        return betweenCornersInDirection(minX, minY, minZ, maxX, maxY, maxZ, vector);
+        return betweenCornersInDirection(minX, minY, minZ, maxX, maxY, maxZ, directionVector);
     }
 
-    public static Iterable<Vector3i> betweenCornersInDirection(Vector3i blockPos, Vector3i blockPos2, Vector3d vec3) {
-        return betweenCornersInDirection(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos2.getX(), blockPos2.getY(), blockPos2.getZ(), vec3);
+    public static Iterable<Vector3i> betweenCornersInDirection(Vector3i min, Vector3i max, Vector3d directionVector) {
+        return betweenCornersInDirection(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), directionVector);
     }
 
-    public static Iterable<Vector3i> betweenCornersInDirection(int i, int j, int k, int l, int m, int n, Vector3d vec3) {
-        int o = Math.min(i, l);
-        int p = Math.min(j, m);
-        int q = Math.min(k, n);
-        int r = Math.max(i, l);
-        int s = Math.max(j, m);
-        int t = Math.max(k, n);
-        int u = r - o;
-        int v = s - p;
-        int w = t - q;
-        int x = vec3.x >= 0.0 ? o : r;
-        int y = vec3.y >= 0.0 ? p : s;
-        int z = vec3.z >= 0.0 ? q : t;
-        List<Collisions.Axis> list = BlockCollisions.axisStepOrder(vec3);
-        Collisions.Axis axis = list.get(0);
-        Collisions.Axis axis2 = list.get(1);
-        Collisions.Axis axis3 = list.get(2);
-        Direction direction = get(vec3, axis) >= 0.0 ? axis.getPositive() : axis.getNegative();
-        Direction direction2 = get(vec3, axis2) >= 0.0 ? axis2.getPositive() : axis2.getNegative();
-        Direction direction3 = get(vec3, axis3) >= 0.0 ? axis3.getPositive() : axis3.getNegative();
-        int aa = axis.choose(u, v, w);
-        int ab = axis2.choose(u, v, w);
-        int ac = axis3.choose(u, v, w);
+    public static Iterable<Vector3i> betweenCornersInDirection(int x1, int y1, int z1, int x2, int y2, int z2, Vector3d directionVector) {
+        int minX = Math.min(x1, x2);
+        int minY = Math.min(y1, y2);
+        int minZ = Math.min(z1, z2);
+        int maxX = Math.max(x1, x2);
+        int maxY = Math.max(y1, y2);
+        int maxZ = Math.max(z1, z2);
+
+        int sizeX = maxX - minX;
+        int sizeY = maxY - minY;
+        int sizeZ = maxZ - minZ;
+
+        int startX = directionVector.x >= 0.0 ? minX : maxX;
+        int startY = directionVector.y >= 0.0 ? minY : maxY;
+        int startZ = directionVector.z >= 0.0 ? minZ : maxZ;
+
+        List<Collisions.Axis> axisOrder = BlockCollisions.axisStepOrder(directionVector);
+        Collisions.Axis primaryAxis = axisOrder.get(0);
+        Collisions.Axis secondaryAxis = axisOrder.get(1);
+        Collisions.Axis tertiaryAxis = axisOrder.get(2);
+
+        Direction primaryDirection = primaryAxis.get(directionVector) >= 0.0 ? primaryAxis.getPositive() : primaryAxis.getNegative();
+        Direction secondaryDirection = secondaryAxis.get(directionVector) >= 0.0 ? secondaryAxis.getPositive() : secondaryAxis.getNegative();
+        Direction tertiaryDirection = tertiaryAxis.get(directionVector) >= 0.0 ? tertiaryAxis.getPositive() : tertiaryAxis.getNegative();
+
+        int primaryCount = primaryAxis.choose(sizeX, sizeY, sizeZ);
+        int secondaryCount = secondaryAxis.choose(sizeX, sizeY, sizeZ);
+        int tertiaryCount = tertiaryAxis.choose(sizeX, sizeY, sizeZ);
+
         return () -> new AbstractIterator<>() {
-            private Vector3i cursor = new Vector3i();
             private int firstIndex;
             private int secondIndex;
             private int thirdIndex;
             private boolean end;
-            private final int firstDirX = direction.getVector().getX();
-            private final int firstDirY = direction.getVector().getY();
-            private final int firstDirZ = direction.getVector().getZ();
-            private final int secondDirX = direction2.getVector().getX();
-            private final int secondDirY = direction2.getVector().getY();
-            private final int secondDirZ = direction2.getVector().getZ();
-            private final int thirdDirX = direction3.getVector().getX();
-            private final int thirdDirY = direction3.getVector().getY();
-            private final int thirdDirZ = direction3.getVector().getZ();
+            private final int firstDirX = primaryDirection.getVector().getX();
+            private final int firstDirY = primaryDirection.getVector().getY();
+            private final int firstDirZ = primaryDirection.getVector().getZ();
+            private final int secondDirX = secondaryDirection.getVector().getX();
+            private final int secondDirY = secondaryDirection.getVector().getY();
+            private final int secondDirZ = secondaryDirection.getVector().getZ();
+            private final int thirdDirX = tertiaryDirection.getVector().getX();
+            private final int thirdDirY = tertiaryDirection.getVector().getY();
+            private final int thirdDirZ = tertiaryDirection.getVector().getZ();
 
             protected Vector3i computeNext() {
                 if (this.end) {
                     return this.endOfData();
                 } else {
-                    this.cursor = new Vector3i(
-                            x + this.firstDirX * this.firstIndex + this.secondDirX * this.secondIndex + this.thirdDirX * this.thirdIndex,
-                            y + this.firstDirY * this.firstIndex + this.secondDirY * this.secondIndex + this.thirdDirY * this.thirdIndex,
-                            z + this.firstDirZ * this.firstIndex + this.secondDirZ * this.secondIndex + this.thirdDirZ * this.thirdIndex
+                    Vector3i cursor = new Vector3i(
+                            startX + this.firstDirX * this.firstIndex + this.secondDirX * this.secondIndex + this.thirdDirX * this.thirdIndex,
+                            startY + this.firstDirY * this.firstIndex + this.secondDirY * this.secondIndex + this.thirdDirY * this.thirdIndex,
+                            startZ + this.firstDirZ * this.firstIndex + this.secondDirZ * this.secondIndex + this.thirdDirZ * this.thirdIndex
                     );
-                    if (this.thirdIndex < ac) {
+
+                    if (this.thirdIndex < tertiaryCount) {
                         this.thirdIndex++;
-                    } else if (this.secondIndex < ab) {
+                    } else if (this.secondIndex < secondaryCount) {
                         this.secondIndex++;
                         this.thirdIndex = 0;
-                    } else if (this.firstIndex < aa) {
+                    } else if (this.firstIndex < primaryCount) {
                         this.firstIndex++;
                         this.thirdIndex = 0;
                         this.secondIndex = 0;
@@ -669,14 +675,10 @@ public class SimpleCollisionBox implements CollisionBox {
                         this.end = true;
                     }
 
-                    return this.cursor;
+                    return cursor;
                 }
             }
         };
-    }
-
-    private static double get(Vector3d vector, Collisions.Axis axis) {
-        return axis.choose(vector.x, vector.y, vector.z);
     }
 
     @Override

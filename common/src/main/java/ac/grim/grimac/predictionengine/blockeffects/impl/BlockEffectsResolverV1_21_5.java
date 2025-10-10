@@ -31,7 +31,7 @@ public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
             Vector3d to = movement.to().subtract(movement.from());
             if (movement.axisIndependant() && to.lengthSquared() > 0.0) {
                 for (Collisions.Axis axis : BlockCollisions.axisStepOrder(to)) {
-                    double value = axis.choose(to.getX(), to.getY(), to.getZ());
+                    double value = axis.get(to);
                     if (value != 0.0) {
                         Vector3d vector = BlockCollisions.relative(from, axis.getPositive(), value);
                         checkInsideBlocks(player, from, vector, visitedBlocks);
