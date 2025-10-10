@@ -20,8 +20,8 @@ public interface PermissionRegistrationManager {
      * that rely on registered permissions for autocomplete functionality.</p>
      *
      * <p>Note that modern permission plugins (e.g., LuckPerms) may register
-     * autocompletions dynamically through {@link #hasPermission(org.bukkit.Player, String)}
-     * calls, even if the permission is not explicitly registered. However, explicitly
+     * autocompletions dynamically through player hasPermission calls, even
+     * if the permission is not explicitly registered. However, explicitly
      * registering permissions on startup ensures that they are available for
      * autocomplete immediately, improving user experience and compatibility with
      * older or less dynamic permission systems.</p>

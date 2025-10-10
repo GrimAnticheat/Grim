@@ -31,11 +31,6 @@ public class BukkitConversionUtils {
         };
     }
 
-    /**
-     * For use with bukkit events only
-     * Grim is not meant to be restrained by bukkit!
-     */
-    @Deprecated
     public static BlockFace fromBukkitFace(org.bukkit.block.BlockFace face) {
         return switch (face) {
             case NORTH -> BlockFace.NORTH;

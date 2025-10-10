@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,14 +27,14 @@ import java.util.Set;
 public final class SuperDebug extends Check implements PostPredictionCheck {
     private static final StringBuilder[] flags = new StringBuilder[256]; //  17 MB of logs in memory
 
-    Object2IntMap<StringBuilder> continuedDebug = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<StringBuilder> continuedDebug = new Object2IntOpenHashMap<>();
 
-    List<VectorData> predicted = new EvictingQueue<>(60);
-    List<Vector3dm> actually = new EvictingQueue<>(60);
-    List<Location> locations = new EvictingQueue<>(60);
-    List<Vector3dm> startTickClientVel = new EvictingQueue<>(60);
-    List<Vector3dm> baseTickAddition = new EvictingQueue<>(60);
-    List<Vector3dm> baseTickWater = new EvictingQueue<>(60);
+    private final List<VectorData> predicted = new EvictingQueue<>(60);
+    private final List<Vector3dm> actually = new EvictingQueue<>(60);
+    private final List<Location> locations = new EvictingQueue<>(60);
+    private final List<Vector3dm> startTickClientVel = new EvictingQueue<>(60);
+    private final List<Vector3dm> baseTickAddition = new EvictingQueue<>(60);
+    private final List<Vector3dm> baseTickWater = new EvictingQueue<>(60);
 
     public SuperDebug(GrimPlayer player) {
         super(player);
@@ -50,7 +50,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        Location location = new Location(player.x, player.y, player.z, player.xRot, player.yRot, player.platformPlayer == null ? "null" : player.platformPlayer.getWorld().getName());
+        Location location = new Location(player.x, player.y, player.z, player.yaw, player.pitch, player.platformPlayer == null ? "null" : player.platformPlayer.getWorld().getName());
 
         for (Iterator<Object2IntMap.Entry<StringBuilder>> it = continuedDebug.object2IntEntrySet().iterator(); it.hasNext(); ) {
             Map.Entry<StringBuilder, Integer> debug = it.next();
@@ -283,14 +283,9 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         return new Vector3dm(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
-    @AllArgsConstructor
-    private static final class Location {
-        double x, y, z;
-        float xRot, yRot;
-        String world;
-
+    private record Location(double x, double y, double z, float xRot, float yRot, String world) {
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "x: " + x + " y: " + y + " z: " + z + " xRot: " + xRot + " yRot: " + yRot + " world: " + world;
         }
     }

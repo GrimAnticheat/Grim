@@ -411,7 +411,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
 
@@ -461,7 +461,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
         double d2 = 0.0;

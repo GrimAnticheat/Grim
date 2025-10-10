@@ -77,8 +77,8 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -142,10 +142,11 @@ public class GrimPlayer implements GrimUser {
     public double lastX;
     public double lastY;
     public double lastZ;
-    public float xRot;
-    public float yRot;
-    public float lastXRot;
-    public float lastYRot;
+    // mojang uses xRot pitch and yRot for yaw
+    public float yaw;
+    public float pitch;
+    public float lastYaw;
+    public float lastPitch;
     public boolean onGround;
     public boolean lastOnGround;
     public boolean isSneaking;
@@ -256,6 +257,7 @@ public class GrimPlayer implements GrimUser {
     @Getter private boolean resetItemUsageOnAttack;
     @Getter private boolean resetItemUsageOnItemUpdate;
     @Getter private boolean resetItemUsageOnSlotChange;
+    @Getter private boolean resetItemUsageOnItemUse;
     // end config
     public boolean noModifyPacketPermission = false;
     public boolean noSetbackPermission = false;
@@ -270,7 +272,7 @@ public class GrimPlayer implements GrimUser {
     public boolean isJumping;
     public boolean lastJumping;
 
-    public GrimPlayer(@NonNull User user) {
+    public GrimPlayer(@NotNull User user) {
         this.user = user;
         this.uuid = user.getUUID();
         fireworks = new CompensatedFireworks(this); // Must be before checkmanager
@@ -895,6 +897,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnAttack = config.getBooleanElse("reset-item-usage-on-attack", true);
         resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
+        resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
         for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
         // reload punishment manager
@@ -952,7 +955,7 @@ public class GrimPlayer implements GrimUser {
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {
-        return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
+        return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.yaw, this.pitch);
     }
 
     public int getViaTranslatedClientBlockID(int blockStateId) {

@@ -19,7 +19,7 @@ public class SimpleCollisionBox implements CollisionBox {
     public static final double COLLISION_EPSILON = 1.0E-7;
 
     public double minX, minY, minZ, maxX, maxY, maxZ;
-    SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
+    private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
     private boolean isFullBlock = false;
 
     public SimpleCollisionBox() {

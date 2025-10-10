@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHe
 
 @CheckData(name = "BadPacketsA", description = "Sent duplicate slot id")
 public class BadPacketsA extends Check implements PacketCheck {
-    int lastSlot = -1;
+    private int lastSlot = -1;
 
     public BadPacketsA(final GrimPlayer player) {
         super(player);

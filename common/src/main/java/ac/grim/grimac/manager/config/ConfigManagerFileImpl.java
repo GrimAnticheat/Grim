@@ -37,7 +37,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
             config.addSource(GrimAPI.class, "discord", getConfigFile("discord.yml"));
             config.addSource(GrimAPI.class, "punishments", getConfigFile("punishments.yml"));
         }
-        //
+
         String languageCode = System.getProperty("user.language").toUpperCase();
 
         try {

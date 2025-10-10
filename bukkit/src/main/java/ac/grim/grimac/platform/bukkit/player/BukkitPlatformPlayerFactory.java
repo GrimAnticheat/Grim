@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -21,7 +20,7 @@ public class BukkitPlatformPlayerFactory extends AbstractPlatformPlayerFactory<P
     }
 
     @Override
-    protected Player getNativePlayer(@NonNull String name) {
+    protected Player getNativePlayer(@NotNull String name) {
         return Bukkit.getPlayer(name);
     }
 

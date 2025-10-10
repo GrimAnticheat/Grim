@@ -271,8 +271,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             riding.setPositionRaw(player, new SimpleCollisionBox(player.x, player.y, player.z, player.x, player.y, player.z));
 
             if (riding instanceof PacketEntityTrackXRot boat) {
-                boat.packetYaw = player.xRot;
-                boat.interpYaw = player.xRot;
+                boat.packetYaw = player.yaw;
+                boat.interpYaw = player.yaw;
                 boat.steps = 0;
             }
 

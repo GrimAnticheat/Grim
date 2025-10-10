@@ -203,6 +203,7 @@ experimental-checks: false
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
+reset-item-usage-on-item-use: true
 
 # Grimは "Timer" のような違反パケットをキャンセルすることがありますが、1秒間にキャンセルされたパケット数がXを超えた場合、
 # プレイヤーを強制的にキックしますか？これは、いくつかのパケットリミッターがGrimによってキャンセルされたパケットをカウントしないためです。

@@ -14,8 +14,8 @@ public class NoSlow extends Check implements PostPredictionCheck {
     // to another item that can be used.  What the fuck mojang.  Affects 1.8 (and most likely 1.7) clients.
     public boolean didSlotChangeLastTick = false;
     public boolean flaggedLastTick = false;
-    double offsetToFlag;
-    double bestOffset = 1;
+    private double offsetToFlag;
+    private double bestOffset = 1;
 
     public NoSlow(GrimPlayer player) {
         super(player);

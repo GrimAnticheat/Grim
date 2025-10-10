@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 
 import java.util.HashSet;
@@ -31,8 +32,9 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
 
             lengthSquared = swimmingSpeed / lengthSquared;
             inputVector.multiply(lengthSquared);
-            float sinResult = player.trigHandler.sin(player.xRot * 0.017453292F);
-            float cosResult = player.trigHandler.cos(player.xRot * 0.017453292F);
+            float yawRadians = GrimMath.radians(player.yaw);
+            float sinResult = player.trigHandler.sin(yawRadians);
+            float cosResult = player.trigHandler.cos(yawRadians);
 
             return new Vector3dm(inputVector.getX() * cosResult - inputVector.getZ() * sinResult,
                     inputVector.getY(), inputVector.getZ() * cosResult + inputVector.getX() * sinResult);

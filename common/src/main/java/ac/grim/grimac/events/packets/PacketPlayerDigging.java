@@ -257,6 +257,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
+            if (player.isResetItemUsageOnItemUse()) {
+                GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+            }
+
             handleUseItem(player, hand);
         }
     }

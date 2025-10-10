@@ -7,7 +7,7 @@ import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import org.bukkit.entity.Entity;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -19,8 +19,7 @@ public class BukkitGrimEntity implements GrimEntity {
     private BukkitPlatformWorld bukkitPlatformWorld;
 
     public BukkitGrimEntity(Entity entity) {
-        Objects.requireNonNull(entity);
-        this.entity = entity;
+        this.entity = Objects.requireNonNull(entity);
     }
 
     public Entity getBukkitEntity() {
@@ -44,7 +43,7 @@ public class BukkitGrimEntity implements GrimEntity {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public Entity getNative() {
         return entity;
     }

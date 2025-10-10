@@ -27,7 +27,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         }
 
         this.movementInput = new Vector3dm(horizInput, 0, forwardsInput);
-        if (movementInput.lengthSquared() > 1) movementInput.normalize();
+        if (this.movementInput.lengthSquared() > 1) this.movementInput.normalize();
     }
 
     @Override

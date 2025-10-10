@@ -29,16 +29,15 @@ import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
 public class ExplosionHandler extends Check implements PostPredictionCheck {
-    Deque<VelocityData> firstBreadMap = new LinkedList<>();
+    private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    VelocityData lastExplosionsKnownTaken = null;
-    VelocityData firstBreadAddedExplosion = null;
+    private VelocityData lastExplosionsKnownTaken = null;
+    private VelocityData firstBreadAddedExplosion = null;
 
     @Getter
-    boolean explosionPointThree = false;
+    private boolean explosionPointThree = false;
 
-    double offsetToFlag;
-    double setbackVL;
+    private double offsetToFlag;
 
     public ExplosionHandler(GrimPlayer player) {
         super(player);
@@ -259,8 +258,5 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     @Override
     public void onReload(ConfigManager config) {
         offsetToFlag = config.getDoubleElse("Explosion.threshold", 0.00001);
-        setbackVL = config.getDoubleElse("Explosion.setbackvl", 10);
-        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
-
 }

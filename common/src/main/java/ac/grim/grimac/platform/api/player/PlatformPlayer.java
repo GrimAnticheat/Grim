@@ -5,7 +5,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface PlatformPlayer extends GrimEntity, OfflinePlatformPlayer {
     void kickPlayer(String textReason);

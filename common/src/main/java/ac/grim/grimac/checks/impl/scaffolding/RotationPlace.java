@@ -24,8 +24,8 @@ import java.util.List;
 
 @CheckData(name = "RotationPlace", description = "Placed a block while not looking at it")
 public class RotationPlace extends BlockPlaceCheck {
-    double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
-    boolean ignorePost = false;
+    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    private boolean ignorePost = false;
 
     public RotationPlace(GrimPlayer player) {
         super(player);
@@ -75,8 +75,8 @@ public class RotationPlace extends BlockPlaceCheck {
         SimpleCollisionBox box = new SimpleCollisionBox(place.position);
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.xRot, player.yRot, 0),
-                new Vector3f(player.lastXRot, player.yRot, 0)
+                new Vector3f(player.yaw, player.pitch, 0),
+                new Vector3f(player.lastYaw, player.pitch, 0)
         ));
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
@@ -100,12 +100,12 @@ public class RotationPlace extends BlockPlaceCheck {
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
+            possibleLookDirs.add(new Vector3f(player.lastYaw, player.lastPitch, 0));
         }
 
         // 1.7 players do not have any of these issues! They are always on the latest look vector
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-            possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
+            possibleLookDirs = Collections.singletonList(new Vector3f(player.yaw, player.pitch, 0));
         }
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);

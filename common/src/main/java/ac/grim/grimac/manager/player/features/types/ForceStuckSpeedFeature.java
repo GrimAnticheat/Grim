@@ -4,10 +4,11 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.feature.FeatureState;
 import ac.grim.grimac.player.GrimPlayer;
 
-public class ForceStuckSpeedFeature extends GrimFeature {
+public class ForceStuckSpeedFeature implements GrimFeature {
 
-    public ForceStuckSpeedFeature() {
-        super("ForceStuckSpeed");
+    @Override
+    public String getName() {
+        return "ForceStuckSpeed";
     }
 
     @Override

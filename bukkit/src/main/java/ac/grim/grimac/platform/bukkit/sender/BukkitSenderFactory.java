@@ -12,8 +12,8 @@ import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.SenderMapper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -78,12 +78,12 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     }
 
     @Override
-    public @NonNull Sender map(@NonNull CommandSender base) {
+    public @NotNull Sender map(@NotNull CommandSender base) {
         return this.wrap(base);
     }
 
     @Override
-    public @NonNull CommandSender reverse(@NonNull Sender mapped) {
+    public @NotNull CommandSender reverse(@NotNull Sender mapped) {
         return this.unwrap(mapped);
     }
 }

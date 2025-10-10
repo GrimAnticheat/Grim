@@ -15,14 +15,14 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new FoliaTaskHandle(scheduler.runNow(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
+        return new FoliaTaskHandle(scheduler.runNow(GrimACBukkitLoaderPlugin.LOADER, ignored -> task.run()));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
         return new FoliaTaskHandle(scheduler.runDelayed(
                 GrimACBukkitLoaderPlugin.LOADER,
-                (ignored) -> task.run(),
+                ignored -> task.run(),
                 delay,
                 timeUnit
         ));
@@ -31,7 +31,8 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
         return new FoliaTaskHandle(scheduler.runAtFixedRate(
-                GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(),
+                GrimACBukkitLoaderPlugin.LOADER,
+                ignored -> task.run(),
                 delay,
                 period,
                 timeUnit
@@ -42,7 +43,7 @@ public class FoliaAsyncScheduler implements AsyncScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         return new FoliaTaskHandle(scheduler.runAtFixedRate(
                 GrimACBukkitLoaderPlugin.LOADER,
-                (ignored) -> task.run(),
+                ignored -> task.run(),
                 initialDelayTicks * 50,
                 periodTicks * 50,
                 TimeUnit.MILLISECONDS

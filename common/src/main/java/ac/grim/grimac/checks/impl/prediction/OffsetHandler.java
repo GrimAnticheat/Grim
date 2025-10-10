@@ -15,14 +15,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class OffsetHandler extends Check implements PostPredictionCheck {
     private static final AtomicInteger flags = new AtomicInteger(0);
     // Config
-    double setbackDecayMultiplier;
-    double threshold;
-    double immediateSetbackThreshold;
-    double maxAdvantage;
-    double maxCeiling;
-    double setbackViolationThreshold;
+    private double setbackDecayMultiplier;
+    private double threshold;
+    private double immediateSetbackThreshold;
+    private double maxAdvantage;
+    private double maxCeiling;
+    private double setbackViolationThreshold;
     // Current advantage gained
-    double advantageGained = 0;
+    private double advantageGained = 0;
 
     public OffsetHandler(GrimPlayer player) {
         super(player);

@@ -4,6 +4,7 @@ import ac.grim.grimac.utils.data.Pair;
 import it.unimi.dsi.fastutil.doubles.Double2IntMap;
 import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -55,7 +56,7 @@ public class RunningMode {
         }
     }
 
-    public Pair<Double, Integer> getMode() {
+    public @NotNull Pair<Double, Integer> getMode() {
         int max = 0;
         Double mostPopular = null;
 

@@ -3,10 +3,10 @@ package ac.grim.grimac.command.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.sender.Sender;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -22,7 +22,7 @@ public class GrimAlerts implements BuildableCommand {
     }
 
     // Suppress warning as we've already checked sender is not console
-    private void handleAlerts(@NonNull CommandContext<Sender> context) {
+    private void handleAlerts(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         if (sender.isPlayer()) {
             GrimAPI.INSTANCE.getAlertManager().toggleAlerts(Objects.requireNonNull(context.sender().getPlatformPlayer()), false);

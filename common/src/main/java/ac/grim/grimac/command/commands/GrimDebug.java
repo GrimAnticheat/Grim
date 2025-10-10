@@ -10,12 +10,12 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GrimDebug implements BuildableCommand {
 
@@ -41,7 +41,7 @@ public class GrimDebug implements BuildableCommand {
         commandManager.command(consoleDebugCommand);
     }
 
-    private void handleDebug(@NonNull CommandContext<Sender> context) {
+    private void handleDebug(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         PlayerSelector playerSelector = context.getOrDefault("target", null);
 
@@ -61,7 +61,7 @@ public class GrimDebug implements BuildableCommand {
         }
     }
 
-    private void handleConsoleDebug(@NonNull CommandContext<Sender> context) {
+    private void handleConsoleDebug(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         PlayerSelector targetName = context.getOrDefault("target", null);
 
@@ -81,7 +81,7 @@ public class GrimDebug implements BuildableCommand {
         sender.sendMessage(message);
     }
 
-    private @Nullable GrimPlayer parseTarget(@NonNull Sender sender, @Nullable Sender t) {
+    private @Nullable GrimPlayer parseTarget(@NotNull Sender sender, @Nullable Sender t) {
         if (sender.isConsole() && t == null) {
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "console-specify-target", "%prefix% &cYou must specify a target as the console!"));
             return null;

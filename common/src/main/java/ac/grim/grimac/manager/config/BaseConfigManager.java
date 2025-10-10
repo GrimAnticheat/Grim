@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+/*
+ * This is to hold whatever config manager was set via the reload method in the API
+ * and any global variables that are the same between players.
+ */
 public class BaseConfigManager {
-
-    /*
-    This is to hold whatever config manager was set via the reload method in the API
-    and any global variables that are the same between players.
-     */
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
     @Getter
@@ -78,6 +77,4 @@ public class BaseConfigManager {
         }
         return false;
     }
-
-
 }

@@ -1,6 +1,8 @@
 package ac.grim.grimac.manager.violationdatabase;
 
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import lombok.experimental.UtilityClass;
+
 import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
+@UtilityClass
 public class DatabaseUtils {
 
     public static byte[] uuidToBytes(UUID uuid) {

@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -454,7 +455,7 @@ public final class Collisions {
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
 
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return;
 
         for (int blockX = blockPos.getBlockX(); blockX <= blockPos2.getBlockX(); ++blockX) {
@@ -802,7 +803,7 @@ public final class Collisions {
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
 
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return false;
 
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
@@ -960,7 +961,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBox(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<Vector3d> searchingFor) {
+    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull Consumer<@NotNull Vector3d> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;

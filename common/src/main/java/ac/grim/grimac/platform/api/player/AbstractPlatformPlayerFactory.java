@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.api.player;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,8 +12,8 @@ import java.util.UUID;
 public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayerFactory {
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
 
-    @Override @Nullable
-    public final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
+    @Override
+    public final @Nullable PlatformPlayer getFromUUID(@NotNull UUID uuid) {
         // Check cache first
         PlatformPlayer cachedPlayer = cache.getPlayer(uuid);
         if (cachedPlayer != null) {
@@ -31,8 +31,8 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         return cache.addOrGetPlayer(uuid, platformPlayer);
     }
 
-    @Override @Nullable
-    public PlatformPlayer getFromName(@NonNull String name) {
+    @Override
+    public @Nullable PlatformPlayer getFromName(@NotNull String name) {
         T nativePlayer = getNativePlayer(name);
         if (nativePlayer == null) {
             return null;
@@ -45,7 +45,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
 
     @SuppressWarnings("unchecked")
     @Override
-    public final PlatformPlayer getFromNativePlayerType(@NonNull Object playerObject) {
+    public final PlatformPlayer getFromNativePlayerType(@NotNull Object playerObject) {
         T nativePlayer = (T) Objects.requireNonNull(playerObject);
         UUID uuid = getPlayerUUID(nativePlayer);
 
@@ -61,7 +61,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     }
 
     @Override
-    public final void invalidatePlayer(@NonNull UUID uuid) {
+    public final void invalidatePlayer(@NotNull UUID uuid) {
         cache.removePlayer(uuid);
     }
 
@@ -79,7 +79,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         return platformPlayers;
     }
 
-    public void replaceNativePlayer(@NonNull UUID uuid, @NonNull T player) {}
+    public void replaceNativePlayer(@NotNull UUID uuid, @NotNull T player) {}
 
     /**
      * Retrieves the native player object for the given UUID.
@@ -87,9 +87,9 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param uuid the UUID of the player
      * @return the native player object, or null if not found
      */
-    protected abstract T getNativePlayer(@NonNull UUID uuid);
+    protected abstract T getNativePlayer(@NotNull UUID uuid);
 
-    protected abstract T getNativePlayer(@NonNull String name);
+    protected abstract T getNativePlayer(@NotNull String name);
 
     /**
      * Creates a PlatformPlayer instance from the native player object.
@@ -97,7 +97,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param nativePlayer the native player object
      * @return a new PlatformPlayer instance
      */
-    protected abstract PlatformPlayer createPlatformPlayer(@NonNull T nativePlayer);
+    protected abstract PlatformPlayer createPlatformPlayer(@NotNull T nativePlayer);
 
     /**
      * Gets the UUID of the native player.
@@ -105,7 +105,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param nativePlayer the native player object
      * @return the UUID of the player
      */
-    protected abstract UUID getPlayerUUID(@NonNull T nativePlayer);
+    protected abstract UUID getPlayerUUID(@NotNull T nativePlayer);
 
     /**
      * Gets the native online player objects (e.g., Player for Bukkit, ServerPlayerEntity for Fabric).
@@ -116,8 +116,8 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
 
 
     @Override
-    public abstract OfflinePlatformPlayer getOfflineFromUUID(@NonNull UUID uuid);
+    public abstract OfflinePlatformPlayer getOfflineFromUUID(@NotNull UUID uuid);
 
     @Override
-    public abstract OfflinePlatformPlayer getOfflineFromName(@NonNull String name);
+    public abstract OfflinePlatformPlayer getOfflineFromName(@NotNull String name);
 }

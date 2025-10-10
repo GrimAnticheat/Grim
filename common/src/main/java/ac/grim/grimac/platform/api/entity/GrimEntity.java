@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.api.entity;
 import ac.grim.grimac.api.GrimIdentity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.utils.math.Location;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -17,7 +17,7 @@ public interface GrimEntity extends GrimIdentity {
 
     CompletableFuture<Boolean> teleportAsync(Location location);
 
-    @NonNull
+    @NotNull
     Object getNative();
 
     boolean isDead();

@@ -22,7 +22,7 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
     private static final Component A_PREFIX = MiniMessage.miniMessage().deserialize("<reset>A: </reset>");
     private static final Component O_PREFIX = MiniMessage.miniMessage().deserialize("<reset>O: </reset>");
 
-    private Set<GrimPlayer> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
+    private final Set<GrimPlayer> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
     private boolean outputToConsole = false;
     private boolean enabledFlags = false;
     private boolean lastMovementIsFlag = false;

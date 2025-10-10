@@ -1,4 +1,3 @@
-// src/main/java/ac/grim/grimac/utils/database/MySQLDialect.java
 package ac.grim.grimac.manager.violationdatabase.mysql;
 
 import ac.grim.grimac.manager.violationdatabase.DatabaseDialect;

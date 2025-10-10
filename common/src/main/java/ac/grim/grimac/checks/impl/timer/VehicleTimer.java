@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
 @CheckData(name = "VehicleTimer", setback = 10)
 public class VehicleTimer extends Timer {
-    boolean isDummy = false;
+    private boolean isDummy = false;
 
     public VehicleTimer(GrimPlayer player) {
         super(player);

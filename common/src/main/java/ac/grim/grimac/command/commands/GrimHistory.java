@@ -117,7 +117,7 @@ public class GrimHistory implements BuildableCommand {
         if (days > 0) result.append(days).append("d ");
         if (hours > 0) result.append(hours).append("h ");
         if (minutes > 0) result.append(minutes).append("m ");
-        if (seconds > 0 || result.length() == 0) result.append(seconds).append("s"); // Always show seconds if nothing else, or if it's 0s.
+        if (seconds > 0 || result.isEmpty()) result.append(seconds).append("s"); // Always show seconds if nothing else, or if it's 0s.
 
         return result.toString().trim();
     }

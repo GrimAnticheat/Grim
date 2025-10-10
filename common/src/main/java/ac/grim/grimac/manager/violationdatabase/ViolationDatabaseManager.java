@@ -10,7 +10,7 @@ import ac.grim.grimac.manager.violationdatabase.sqlite.SQLiteViolationDatabase;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -22,7 +22,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
     @Getter private boolean enabled = false;
     @Getter private boolean loaded = false;
 
-    private @NonNull ViolationDatabase database;
+    private @NotNull ViolationDatabase database;
 
     public ViolationDatabaseManager(GrimPlugin plugin) {
         this.plugin = plugin;
@@ -93,7 +93,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                 }
             }
 
-            default -> {                            // NOOP or invalid
+            default -> { // NOOP or invalid
                 if (!(database instanceof NoOpViolationDatabase)) {
                     database.disconnect();
                     database = NoOpViolationDatabase.INSTANCE;

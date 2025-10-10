@@ -16,7 +16,7 @@ public class PistonData {
     public int ticksOfPistonBeingAlive = 0;
 
     // The actual blocks pushed by the piston, plus the piston head itself
-    public List<SimpleCollisionBox> boxes;
+    public final List<SimpleCollisionBox> boxes;
 
     public PistonData(BlockFace direction, List<SimpleCollisionBox> pushedBlocks, int lastTransactionSent, boolean isPush, boolean hasSlimeBlock, boolean hasHoneyBlock) {
         this.direction = direction;

@@ -9,14 +9,14 @@ import lombok.ToString;
 @Setter
 @ToString
 public class SetBackData {
-    TeleportData teleportData;
-    float xRot, yRot;
-    Vector3dm velocity;
-    boolean vehicle;
-    boolean isComplete = false;
+    private final TeleportData teleportData;
+    private final float xRot, yRot;
+    private final Vector3dm velocity;
+    private final boolean vehicle;
+    private boolean isComplete = false;
     // TODO: Rethink when we block movements for teleports, perhaps after 10 ticks or 5 blocks?
-    boolean isPlugin;
-    int ticksComplete = 0;
+    private boolean isPlugin;
+    private int ticksComplete = 0;
 
     public SetBackData(TeleportData teleportData, float xRot, float yRot, Vector3dm velocity, boolean vehicle, boolean isPlugin) {
         this.teleportData = teleportData;

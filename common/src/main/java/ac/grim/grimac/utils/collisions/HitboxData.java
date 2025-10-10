@@ -72,7 +72,7 @@ public enum HitboxData implements HitBoxFactory {
                 yield new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F, false);
             } else if (version.isNewerThanOrEquals(ClientVersion.V_1_9) && version.isOlderThan(ClientVersion.V_1_10)) {
                 // https://bugs.mojang.com/browse/MC-89552 sloped rails in 1.9 - it is slightly taller than a regular rail
-                yield new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.1875F, 1.0F, false);
+                yield new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.15625F, 1.0F, false);
             } else if (version.isOlderThan(ClientVersion.V_1_11)) {
                 // https://bugs.mojang.com/browse/MC-102638 All sloped rails are full blocks in 1.10
                 yield new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -593,9 +593,9 @@ public enum HitboxData implements HitBoxFactory {
 
     PINK_PETALS_BLOCK((player, item, version, data, isTargetBlock, x, y, z) -> {
         if (version.isNewerThan(ClientVersion.V_1_20_2)) {
-            return getFlowerBedHitBox(data.getFlowerAmount(), data.getFacing().getHorizontalId());
+            return getSegmentedHitBox(data.getFlowerAmount(), data.getFacing(), 3);
         } else if (version.isNewerThan(ClientVersion.V_1_19_3)) {
-            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D);
+            return new SimpleCollisionBox(0, 0, 0, 1, 0.1875, 1);
         } else if (version.isNewerThan(ClientVersion.V_1_12_2)) {
             return CORAL_FAN.box.copy();
         }
@@ -635,13 +635,13 @@ public enum HitboxData implements HitBoxFactory {
 
     LEAF_LITTER((player, item, version, data, isTargetBlock, x, y, z)
             -> version.isNewerThan(ClientVersion.V_1_21_4)
-            ? getFlowerBedHitBox(data.getSegmentAmount(), data.getFacing().getHorizontalId())
+            ? getSegmentedHitBox(data.getSegmentAmount(), data.getFacing(), 1)
             // GLOW_LICHEN Facing Upwards, can't call glow lichen dynamic because data has no isUp() key
             : new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D), StateTypes.LEAF_LITTER),
 
     WILDFLOWERS((player, item, version, data, isTargetBlock, x, y, z)
             -> version.isNewerThan(ClientVersion.V_1_21_4)
-            ? getFlowerBedHitBox(data.getFlowerAmount(), data.getFacing().getHorizontalId())
+            ? getSegmentedHitBox(data.getFlowerAmount(), data.getFacing(), 3)
             // GLOW_LICHEN Facing Upwards, can't call glow lichen dynamic because data has no isUp() key
             : new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D), StateTypes.WILDFLOWERS),
 
@@ -711,40 +711,42 @@ public enum HitboxData implements HitBoxFactory {
 
     private static CollisionBox getVineCollisionBox(ClientVersion version, boolean isWeeping, boolean isBlock) {
         if (version.isNewerThan(ClientVersion.V_1_15_2)) {
-            if (isWeeping) {
-                return isBlock
-                        ? new HexCollisionBox(4.0, 9.0, 4.0, 12.0, 16.0, 12.0)
-                        : new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 16.0, 15.0);
-            } else {
-                return new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, isBlock ? 15.0D : 16.0D, 12.0D);
-            }
+            return isWeeping
+                    ? isBlock
+                        ? new SimpleCollisionBox(0.25, 0.5625, 0.25, 0.75, 1, 0.75)
+                        : new SimpleCollisionBox(0.0625, 0, 0.0625, 0.9375, 1, 0.9375)
+                    : new SimpleCollisionBox(0.25, 0, 0.25, 0.75, isBlock ? 0.9375 : 1, 0.75);
         } else {
             // Via replacement - 4 sided vine
             return new ComplexCollisionBox(4,
-                    new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D),
-                    new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-                    new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D),
-                    new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D)
+                    new SimpleCollisionBox(0, 0, 0, 0.0625, 1, 1),
+                    new SimpleCollisionBox(0.9375, 0, 0, 1, 1, 1),
+                    new SimpleCollisionBox(0, 0, 0, 1, 1, 0.0625),
+                    new SimpleCollisionBox(0, 0, 0.9375, 1, 1, 1)
             );
         }
     }
 
-    // Pre-defined collision boxes for each quadrant
-    private static final HexCollisionBox[] flowerBedHitboxes = new HexCollisionBox[]{
-            new HexCollisionBox(8, 0, 8, 16, 3, 16),  // SE
-            new HexCollisionBox(8, 0, 0, 16, 3, 8),   // NE
-            new HexCollisionBox(0, 0, 0, 8, 3, 8),    // NW
-            new HexCollisionBox(0, 0, 8, 8, 3, 16)    // SW
-    };
     // TODO, optimize? We don't have to return a CCB and will never return NCB, use SCB.encompass()?
-    private static CollisionBox getFlowerBedHitBox(int flowerAmount, int horizontalIndex) {
-        CollisionBox result = flowerAmount < 2 ? NoCollisionBox.INSTANCE : new ComplexCollisionBox(flowerAmount);
-
-        // Add boxes based on flower amount and facing
-        for (int i = 0; i < flowerAmount; i++) {
-            int index = Math.floorMod(i - horizontalIndex, 4);
-            result = result.union(flowerBedHitboxes[index]);
-        }
-        return result;
+    private static CollisionBox getSegmentedHitBox(int segments, BlockFace facing, int height) {
+        return switch (segments) {
+            case 0 -> NoCollisionBox.INSTANCE;
+            case 1 -> switch (facing) {
+                case SOUTH -> new SimpleCollisionBox(0.5, 0, 0.5, 1, height / 16d, 1, false); // SE
+                case WEST -> new SimpleCollisionBox(0.5, 0, 0, 1, height / 16d, 0.5, false);  // NE
+                case NORTH -> new SimpleCollisionBox(0, 0, 0, 0.5, height / 16d, 0.5, false); // NW
+                case EAST -> new SimpleCollisionBox(0, 0, 0.5, 0.5, height / 16d, 1, false);  // SW
+                default -> throw new IllegalStateException("Unexpected value: " + facing);
+            };
+            case 2 -> switch (facing) {
+                case SOUTH -> new SimpleCollisionBox(0.5, 0, 0, 1, height / 16d, 1, false);
+                case WEST -> new SimpleCollisionBox(0, 0, 0.5, 1, height / 16d, 1, false);
+                case NORTH -> new SimpleCollisionBox(0, 0, 0, 0.5, height / 16d, 1, false);
+                case EAST -> new SimpleCollisionBox(0, 0, 0, 1, height / 16d, 0.5, false);
+                default -> throw new IllegalStateException("Unexpected value: " + facing);
+            };
+            case 3, 4 -> new SimpleCollisionBox(0, 0, 0, 1, height / 16d, 1, false);
+            default -> throw new IllegalStateException("Unexpected value: " + segments);
+        };
     }
 }

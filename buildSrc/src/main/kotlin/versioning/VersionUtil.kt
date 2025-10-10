@@ -37,23 +37,24 @@ object VersionUtil {
         val modifiers = buildList {
             if (!BuildConfig.shadePE) add("lite")
             if (!BuildConfig.relocate) add("no_relocate")
-        }.takeIf { it.isNotEmpty() }?.joinToString("-")
+        }.joinToString("-").takeIf { it.isNotEmpty() }
 
         return buildString {
             append(baseVersion)
             append("-")
             branch?.let { append("$it-") }
             append(commitHash)
-            modifiers?.let { append("+$modifiers") }
+            modifiers?.let { append("+$it") }
         }
     }
 
     /**
-     * Retrieves the current Git commit as a short hash.
+     * Retrieves the current Git commit
      */
-    private fun getGitCommitHash(): String {
+    fun getGitCommitHash(full: Boolean = false): String {
         val stdout = ByteArrayOutputStream()
-        ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+        val command = listOfNotNull("git", "rev-parse", if (full) null else "--short", "HEAD")
+        ProcessBuilder(command)
             .redirectErrorStream(true)
             .start()
             .apply { waitFor() }
@@ -69,7 +70,7 @@ object VersionUtil {
      * Any slash (/) in the branch name is replaced with an underscore (_)
      * to avoid filesystem issues.
      */
-    private fun getGitBranch(): String? {
+    fun getGitBranch(raw: Boolean = false): String? {
         val stdout = ByteArrayOutputStream()
 
         ProcessBuilder("git", "rev-parse", "--abbrev-ref", "HEAD")
@@ -78,11 +79,34 @@ object VersionUtil {
             .apply { waitFor() }
             .inputStream.use { stdout.writeBytes(it.readAllBytes()) }
 
+        if (raw) return stdout.toString().trim()
+
         val branch = stdout.toString().trim()
+            .replace(Regex("[^a-zA-Z0-9_.-]+"), "_")
+            .replace(Regex("_{2,}"), "_")
+            .trim(' ', '.', '_', '-')
+            .removePrefix("heads_")
+
+        val mainBranch = System.getenv("GRIM_MAIN_BRANCH") ?: "2.0"
 
         return when (branch) {
-            "main", "2.0" -> null                    // ← ignore these branches
-            else           -> branch.replace("/", "_")
+            "main", mainBranch -> null                    // ← ignore these branches
+            else -> branch
         }
     }
+
+    fun getGitUser(): String {
+        try {
+            val stdout = ByteArrayOutputStream()
+            ProcessBuilder("git", "config", "user.name")
+                .redirectErrorStream(true)
+                .start()
+                .apply { waitFor() }
+                .inputStream.use { stdout.writeBytes(it.readAllBytes()) }
+            return stdout.toString().trim()
+        } catch (_: Exception) {
+            return "unknown"
+        }
+    }
+
 }

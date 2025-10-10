@@ -17,7 +17,7 @@ fabric-loader = "0.16.14"
 fabric-loom = "1.11.4"
 
 spotless = "6.25.0"
-lombok = "8.6"
+lombok = "9.0.0"
 shadow = "9.0.0-rc2"
 
 [libraries]
