@@ -421,13 +421,27 @@ public abstract class AbstractContainerMenu {
         return this.slots.get(slotID).getItem();
     }
 
+    /**
+     * Safely gets a slot from the container.
+     * Prevents IndexOutOfBounds crashes by logging and returning null instead of throwing.
+     */
     public Slot getSlot(int slotID) {
-        try {
-            return this.slots.get(slotID);
-        } catch (IndexOutOfBoundsException e) {
-            LogUtil.error("Tried to get slot " + slotID + " in a container with only " + this.slots.size() + " slots, container type: " + this.getClass().getName(), e);
-            throw e;
+        if (slotID < 0 || slotID >= this.slots.size()) {
+            boolean verbose = GrimAPI.INSTANCE.getConfigManager().getBoolean("verbose.print-to-console");
+
+            if (verbose) {
+                LogUtil.warn("Attempted to access invalid slot ID " + slotID +
+                        " in " + this.getClass().getSimpleName() +
+                        " (size=" + this.slots.size() + ")");
+                Thread.dumpStack(); // optional for debug visibility
+            } else {
+                LogUtil.debug("Suppressed invalid slot access in " + this.getClass().getSimpleName());
+            }
+
+            return null;
         }
+
+        return this.slots.get(slotID);
     }
 
     public boolean canDragTo(Slot slot) {
