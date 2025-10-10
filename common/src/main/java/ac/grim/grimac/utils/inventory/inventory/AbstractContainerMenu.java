@@ -36,6 +36,34 @@ public abstract class AbstractContainerMenu {
     @NotNull
     private ItemStack carriedItem = ItemStack.EMPTY;
 
+    // Dummy slot placeholder for safe fallback
+    private static final Slot DUMMY_SLOT = new Slot(null, -1) {
+        @Override
+        public boolean hasItem() {
+            return false;
+        }
+
+        @Override
+        public ItemStack getItem() {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public void set(ItemStack stack) {
+            // No-op
+        }
+
+        @Override
+        public boolean mayPickup() {
+            return false;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return false;
+        }
+    };
+
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;
         this.playerInventory = playerInventory;
@@ -423,7 +451,7 @@ public abstract class AbstractContainerMenu {
 
     /**
      * Safely gets a slot from the container.
-     * Prevents IndexOutOfBounds crashes by logging and returning null instead of throwing.
+     * Prevents IndexOutOfBounds crashes by logging and returning a dummy slot instead of throwing.
      */
     public Slot getSlot(int slotID) {
         if (slotID < 0 || slotID >= this.slots.size()) {
@@ -438,7 +466,8 @@ public abstract class AbstractContainerMenu {
                 LogUtil.debug("Suppressed invalid slot access in " + this.getClass().getSimpleName());
             }
 
-            return null;
+            // Return dummy slot to prevent null-related crashes
+            return DUMMY_SLOT;
         }
 
         return this.slots.get(slotID);
