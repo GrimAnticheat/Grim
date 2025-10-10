@@ -1,8 +1,7 @@
-package ac.grim.grimac.predictionengine.blockeffects.V1_21_4;
+package ac.grim.grimac.predictionengine.blockeffects.impl;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_2.V1_21_2BlockEffectsResolver;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -17,9 +16,9 @@ import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import java.util.Set;
 
 // 1.21.4
-public class V1_21_4BlockEffectsResolver implements BlockEffectsResolver {
+public class BlockEffectsResolverV1_21_4 implements BlockEffectsResolver {
 
-    public static final BlockEffectsResolver INSTANCE = new V1_21_4BlockEffectsResolver();
+    public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_4();
 
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
@@ -56,7 +55,7 @@ public class V1_21_4BlockEffectsResolver implements BlockEffectsResolver {
             Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
             Vector3d boxMinPosition = boundingBox.min().toVector3d();
             Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
-            V1_21_2BlockEffectsResolver.addCollisionsAlongTravel(traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
+            BlockEffectsResolverV1_21_2.addCollisionsAlongTravel(traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
             for (Vector3i blockPos : initialBlocks) {
                 traversedBlocks.add(blockPos);

@@ -5,9 +5,11 @@ import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.ImmutableList;
+import lombok.experimental.UtilityClass;
 
 import java.util.Optional;
 
+@UtilityClass
 public class BlockCollisions {
 
     public static final Vector3d X_AXIS = new Vector3d(1.0, 0.0, 0.0);

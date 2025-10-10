@@ -1,8 +1,9 @@
-package ac.grim.grimac.predictionengine.blockeffects.V1_21_2;
+package ac.grim.grimac.predictionengine.blockeffects.impl;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.blockeffects.BlockCollisions;
 import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
+import ac.grim.grimac.predictionengine.blockeffects.BlockStepVisitor;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -11,66 +12,89 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 
 import java.util.Optional;
-import java.util.Set;
 
-// 1.21.2-1.21.3
-public class V1_21_2BlockEffectsResolver implements BlockEffectsResolver {
+// 1.21.6-1.21.8
+public class BlockEffectsResolverV1_21_6 implements BlockEffectsResolver {
 
-    public static BlockEffectsResolver INSTANCE = new V1_21_2BlockEffectsResolver();
+    public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_6();
 
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
         LongSet visitedBlocks = player.visitedBlocks;
-        SimpleCollisionBox boundingBox = (player.inVehicle()
-                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
-                : player.boundingBox.copy()).expand(-1.0E-5F);
 
         for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
             Vector3d from = movement.from();
-            Vector3d to = movement.to();
-
-            for (Vector3i blockPos : boxTraverseBlocks(from, to, boundingBox)) {
-                WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-                StateType blockType = blockState.getType();
-
-                if (blockType.isAir()) {
-                    continue;
+            Vector3d to = movement.to().subtract(movement.from());
+            if (movement.axisIndependant() && to.lengthSquared() > 0.0) {
+                for (Collisions.Axis axis : BlockCollisions.axisStepOrder(to)) {
+                    double value = axis.choose(to.getX(), to.getY(), to.getZ());
+                    if (value != 0.0) {
+                        Vector3d vector = BlockCollisions.relative(from, axis.getPositive(), value);
+                        checkInsideBlocks(player, from, vector, visitedBlocks);
+                        from = vector;
+                    }
                 }
-
-                if (visitedBlocks.add(GrimMath.asLong(blockPos))) {
-                    Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z, true);
-                }
+            } else {
+                checkInsideBlocks(player, movement.from(), movement.to(), visitedBlocks);
             }
         }
 
         visitedBlocks.clear();
     }
 
-    private static Iterable<Vector3i> boxTraverseBlocks(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d direction = end.subtract(start);
-        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (direction.lengthSquared() < GrimMath.square(0.99999F)) {
-            return initialBlocks;
-        } else {
-            Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
-            Vector3d normalizedDirection = direction.normalize().multiply(Collisions.COLLISION_EPSILON);
-            Vector3d boxMinPosition = boundingBox.min().toVector3d().add(normalizedDirection);
-            Vector3d subtractedMinPosition = boundingBox.min().toVector3d().subtract(direction).subtract(normalizedDirection);
-            addCollisionsAlongTravel(traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
+    private static void checkInsideBlocks(GrimPlayer player, Vector3d from, Vector3d to, LongSet visitedBlocks) {
+        SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z).expand(-1.0E-5F);
+        forEachBlockIntersectedBetween(from, to, boundingBox, (blockPos, i) -> {
+            WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
+            StateType blockType = blockState.getType();
 
-            for (Vector3i blockPos : initialBlocks) {
-                traversedBlocks.add(blockPos);
+            if (blockType.isAir()) {
+                return true;
             }
 
-            return traversedBlocks;
+            if (visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z, true);
+            }
+
+            return true;
+        });
+    }
+
+    private static boolean forEachBlockIntersectedBetween(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox, BlockStepVisitor blockStepVisitor) {
+        Vector3d direction = end.subtract(start);
+        if (direction.lengthSquared() < GrimMath.square(0.99999F)) {
+            for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
+                if (!blockStepVisitor.visit(blockPos, 0)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            LongSet alreadyVisited = new LongOpenHashSet();
+            Vector3d boxMinPosition = boundingBox.min().toVector3d();
+            Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
+
+            int iterationCount = addCollisionsAlongTravel(alreadyVisited, subtractedMinPosition, boxMinPosition, boundingBox, blockStepVisitor);
+            if (iterationCount < 0) {
+                return false;
+            } else {
+                for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
+                    if (!alreadyVisited.contains(GrimMath.asLong(blockPos)) && !blockStepVisitor.visit(blockPos, iterationCount + 1)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 
-    public static void addCollisionsAlongTravel(Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
+    private static int addCollisionsAlongTravel(LongSet alreadyVisited, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox, BlockStepVisitor blockStepVisitor) {
         Vector3d direction = end.subtract(start);
         int currentX = GrimMath.floor(start.x);
         int currentY = GrimMath.floor(start.y);
@@ -120,12 +144,16 @@ public class V1_21_2BlockEffectsResolver implements BlockEffectsResolver {
                 for (int x = currentX; x <= endX; x++) {
                     for (int y = currentY; y <= endY; y++) {
                         for (int z = currentZ; z <= endZ; z++) {
-                            output.add(new Vector3i(x, y, z));
+                            if (alreadyVisited.add(GrimMath.asLong(x, y, z)) && !blockStepVisitor.visit(new Vector3i(x, y, z), iterationCount)) {
+                                return -1;
+                            }
                         }
                     }
                 }
             }
         }
+
+        return iterationCount;
     }
 
 }

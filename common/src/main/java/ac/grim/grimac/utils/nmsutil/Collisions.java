@@ -3,11 +3,11 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_10.V1_21_10BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_2.V1_21_2BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_4.V1_21_4BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_5.V1_21_5BlockEffectsResolver;
-import ac.grim.grimac.predictionengine.blockeffects.V1_21_6.V1_21_6BlockEffectsResolver;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_10;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_2;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_4;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_5;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_6;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -602,15 +602,15 @@ public final class Collisions {
         BlockEffectsResolver resolver;
 
         if (version == ClientVersion.V_1_21_2) {
-            resolver = V1_21_2BlockEffectsResolver.INSTANCE; // 1.21.2-1.21.3
+            resolver = BlockEffectsResolverV1_21_2.INSTANCE; // 1.21.2-1.21.3
         } else if (version == ClientVersion.V_1_21_4) {
-            resolver = V1_21_4BlockEffectsResolver.INSTANCE; // 1.21.4
+            resolver = BlockEffectsResolverV1_21_4.INSTANCE; // 1.21.4
         } else if (version == ClientVersion.V_1_21_5) {
-            resolver = V1_21_5BlockEffectsResolver.INSTANCE; // 1.21.5
+            resolver = BlockEffectsResolverV1_21_5.INSTANCE; // 1.21.5
         } else if (version.isNewerThanOrEquals(ClientVersion.V_1_21_6) && version.isOlderThanOrEquals(ClientVersion.V_1_21_7)) {
-            resolver = V1_21_6BlockEffectsResolver.INSTANCE; // 1.21.6-1.21.8
+            resolver = BlockEffectsResolverV1_21_6.INSTANCE; // 1.21.6-1.21.8
         } else {
-            resolver = V1_21_10BlockEffectsResolver.INSTANCE; // 1.21.10
+            resolver = BlockEffectsResolverV1_21_10.INSTANCE; // 1.21.10
         }
 
         resolver.applyEffectsFromBlocks(player);

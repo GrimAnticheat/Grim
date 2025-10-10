@@ -1,4 +1,4 @@
-package ac.grim.grimac.predictionengine.blockeffects.V1_21_6;
+package ac.grim.grimac.predictionengine.blockeffects.impl;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.blockeffects.BlockCollisions;
@@ -17,10 +17,10 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 
 import java.util.Optional;
 
-// 1.21.6-1.21.8
-public class V1_21_6BlockEffectsResolver implements BlockEffectsResolver {
+// 1.21.5
+public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
 
-    public static final BlockEffectsResolver INSTANCE = new V1_21_6BlockEffectsResolver();
+    public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_5();
 
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
@@ -64,32 +64,22 @@ public class V1_21_6BlockEffectsResolver implements BlockEffectsResolver {
         });
     }
 
-    private static boolean forEachBlockIntersectedBetween(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox, BlockStepVisitor blockStepVisitor) {
+    private static void forEachBlockIntersectedBetween(Vector3d start, Vector3d end, SimpleCollisionBox boundingBox, BlockStepVisitor blockStepVisitor) {
         Vector3d direction = end.subtract(start);
-        if (direction.lengthSquared() < GrimMath.square(0.99999F)) {
-            for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
-                if (!blockStepVisitor.visit(blockPos, 0)) {
-                    return false;
-                }
-            }
-
-            return true;
-        } else {
+        if (!(direction.lengthSquared() < GrimMath.square(0.99999F))) {
             LongSet alreadyVisited = new LongOpenHashSet();
             Vector3d boxMinPosition = boundingBox.min().toVector3d();
             Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
-
             int iterationCount = addCollisionsAlongTravel(alreadyVisited, subtractedMinPosition, boxMinPosition, boundingBox, blockStepVisitor);
-            if (iterationCount < 0) {
-                return false;
-            } else {
-                for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
-                    if (!alreadyVisited.contains(GrimMath.asLong(blockPos)) && !blockStepVisitor.visit(blockPos, iterationCount + 1)) {
-                        return false;
-                    }
-                }
 
-                return true;
+            for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
+                if (!alreadyVisited.contains(GrimMath.asLong(blockPos))) {
+                    blockStepVisitor.visit(blockPos, iterationCount + 1);
+                }
+            }
+        } else {
+            for (Vector3i blockPos : SimpleCollisionBox.betweenClosed(boundingBox)) {
+                blockStepVisitor.visit(blockPos, 0);
             }
         }
     }
@@ -144,8 +134,8 @@ public class V1_21_6BlockEffectsResolver implements BlockEffectsResolver {
                 for (int x = currentX; x <= endX; x++) {
                     for (int y = currentY; y <= endY; y++) {
                         for (int z = currentZ; z <= endZ; z++) {
-                            if (alreadyVisited.add(GrimMath.asLong(x, y, z)) && !blockStepVisitor.visit(new Vector3i(x, y, z), iterationCount)) {
-                                return -1;
+                            if (alreadyVisited.add(GrimMath.asLong(x, y, z))) {
+                                blockStepVisitor.visit(new Vector3i(x, y, z), iterationCount);
                             }
                         }
                     }

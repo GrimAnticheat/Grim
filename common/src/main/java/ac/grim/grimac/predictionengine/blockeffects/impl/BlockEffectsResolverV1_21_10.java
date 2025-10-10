@@ -1,4 +1,4 @@
-package ac.grim.grimac.predictionengine.blockeffects.V1_21_10;
+package ac.grim.grimac.predictionengine.blockeffects.impl;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.blockeffects.BlockCollisions;
@@ -19,9 +19,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // 1.21.10 ONLY - 1.21.9 is impossible to implement due to Mojang awesomeness
-public class V1_21_10BlockEffectsResolver implements BlockEffectsResolver {
+public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
 
-    public static final BlockEffectsResolver INSTANCE = new V1_21_10BlockEffectsResolver();
+    public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_10();
 
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player) {
