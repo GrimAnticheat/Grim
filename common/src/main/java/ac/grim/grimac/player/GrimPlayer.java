@@ -942,14 +942,24 @@ public class GrimPlayer implements GrimUser {
         if (this.movementThisTick.size() >= 100) {
             GrimPlayer.Movement movement1 = this.movementThisTick.removeFirst();
             GrimPlayer.Movement movement2 = this.movementThisTick.removeFirst();
-            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to(), false);
+            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to());
             this.movementThisTick.addFirst(movement3);
         }
 
         this.movementThisTick.add(movement);
     }
 
-    public record Movement(Vector3d from, Vector3d to, boolean axisIndependant) {}
+    public record Movement(Vector3d from, Vector3d to, Vector3d axisDependentOriginalMovement) {
+
+        public Movement(Vector3d from, Vector3d to) {
+            this(from, to, null);
+        }
+
+        public boolean axisIndependant() {
+            return axisDependentOriginalMovement != null;
+        }
+
+    }
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {

@@ -226,7 +226,7 @@ public class MovementTicker {
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
             Vector3d to = new Vector3d(player.x, player.y, player.z);
 
-            player.addMovementThisTick(new GrimPlayer.Movement(from, to, true));
+            player.addMovementThisTick(new GrimPlayer.Movement(from, to, new Vector3d(inputVel.getX(), inputVel.getY(), inputVel.getZ())));
         }
 
         // This is where vanilla moves the bounding box and sets it
@@ -495,15 +495,15 @@ public class MovementTicker {
 
             ClientVersion clientVersion = player.getClientVersion();
             if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
-                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
             } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
                 player.finalMovementsThisTick.addAll(player.movementThisTick);
                 player.movementThisTick.clear();
 
                 if (player.finalMovementsThisTick.isEmpty()) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
                 } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to, false));
+                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to));
                 }
             }
 

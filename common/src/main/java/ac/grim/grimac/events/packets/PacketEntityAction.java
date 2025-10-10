@@ -16,10 +16,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    @Override
+    /*@Override
     public boolean isPreVia() {
         return true;
-    }
+    }*/
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
