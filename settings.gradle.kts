@@ -12,11 +12,20 @@ dependencyResolutionManagement {
 
 pluginManagement {
     repositories {
-        maven {
-            name = "FabricMC"
-            url = uri("https://maven.fabricmc.net/")
+        // For the Fabric Loom plugin
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "FabricMC"
+                    url = uri("https://maven.fabricmc.net/")
+                }
+            }
+            filter {
+                includeModule("fabric-loom", "fabric-loom.gradle.plugin")
+                includeGroupByRegex("net.fabricmc.*")
+            }
         }
-        mavenCentral()
+
         gradlePluginPortal()
     }
 }
