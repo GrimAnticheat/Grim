@@ -69,6 +69,8 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 event.markForReEncode(true);
             }
 
+            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
+
             // Wrap velocity between two transactions
             player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
