@@ -56,7 +56,7 @@ public class BlockEffectsResolverV1_21_6 implements BlockEffectsResolver {
                 return true;
             }
 
-            if (visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
+            if (visitedBlocks.add(GrimMath.asLong(blockPos))) {
                 Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z, true);
             }
 
