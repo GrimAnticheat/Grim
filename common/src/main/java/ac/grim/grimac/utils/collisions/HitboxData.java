@@ -331,7 +331,7 @@ public enum HitboxData implements HitBoxFactory {
             if (data.getSouth() == South.TRUE) boxes.add(new HexCollisionBox(0, 0, 15, 16, 16, 16));
 
             // TODO: when was isUp() added?
-            if (data.getInternalData().containsKey(StateValue.UP) && data.isUp()) {
+            if (data.hasProperty(StateValue.UP) && data.isUp()) {
                 boxes.add(new HexCollisionBox(0, 15, 0, 16, 16, 16));
             }
 

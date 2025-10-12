@@ -239,7 +239,7 @@ public class Materials {
         if (clientVersion.isOlderThan(ClientVersion.V_1_17) && BlockTags.RAILS.contains(type))
             return false;
         // Nice check to see if waterlogged :)
-        return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
+        return state.hasProperty(StateValue.WATERLOGGED) && state.isWaterlogged();
     }
 
     public static boolean isPlaceableWaterBucket(ItemType mat) {

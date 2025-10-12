@@ -65,11 +65,11 @@ public class GrimVersion implements BuildableCommand {
 
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             final int statusCode = response.statusCode();
-            if (statusCode != 200) {
+            if (statusCode < 200 || statusCode >= 300) {
                 Component msg = updateMessage.get();
                 sender.sendMessage(Objects.requireNonNullElseGet(msg, () -> Component.text()
                         .append(MessageUtil.miniMessage("%prefix%"))
-                        .append(Component.text(" Failed to check latest GrimAC version. Update server responded with code: ")
+                        .append(Component.text(" Failed to check latest GrimAC version. Update server responded with status code: ")
                                 .color(NamedTextColor.YELLOW))
                         .append(Component.text(statusCode)
                                 .color(getColorForStatusCode(statusCode))

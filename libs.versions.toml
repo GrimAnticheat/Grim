@@ -14,7 +14,7 @@ geyser-base-api = "1.0.2"
 grim-api = "1.2.0.0"
 packetevents = "2.10.0+cca07b3-SNAPSHOT"
 placeholderapi = "2.11.6"
-via-version = "5.0.4"
+viaversion = "5.5.0"
 
 # --- General Java Utilities ---
 fastutil = "8.5.15"
@@ -52,7 +52,7 @@ grim-api = { group = "ac.grim.grimac", name = "GrimAPI", version.ref = "grim-api
 packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", version.ref = "packetevents" }
 packetevents-fabric = { group  = "com.github.retrooper", name = "packetevents-fabric", version.ref = "packetevents" }
 packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
-via-version-api = { group = "com.viaversion", name = "viaversion-api", version.ref = "via-version" }
+viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 
 # --- General Java Utilities ---
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}

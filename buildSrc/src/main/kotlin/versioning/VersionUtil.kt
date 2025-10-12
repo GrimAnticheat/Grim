@@ -60,7 +60,8 @@ object VersionUtil {
             .apply { waitFor() }
             .inputStream
             .use { stdout.writeBytes(it.readAllBytes()) }
-        return stdout.toString().trim()
+        val fullCommit = stdout.toString().trim()
+        return fullCommit.take(minOf(fullCommit.length, 7))
     }
 
     /**

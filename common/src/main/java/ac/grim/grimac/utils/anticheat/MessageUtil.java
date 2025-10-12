@@ -34,23 +34,29 @@ public class MessageUtil {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
-    public @NotNull String replacePlaceholders(@Nullable GrimPlayer player, @NotNull String string, boolean removeFormatting) {
+    @Contract("_, null, _ -> null; _, !null, _ -> !null")
+    public @Nullable String replacePlaceholders(@Nullable GrimPlayer player, @Nullable String string, boolean removeFormatting) {
         return replacePlaceholders(player, player == null ? null : player.platformPlayer, string, removeFormatting);
     }
 
-    public @NotNull String replacePlaceholders(@Nullable GrimPlayer player, @NotNull String string) {
+    @Contract("_, null -> null; _, !null -> !null")
+    public @Nullable String replacePlaceholders(@Nullable GrimPlayer player, @Nullable String string) {
         return replacePlaceholders(player, player == null ? null : player.platformPlayer, string, false);
     }
 
-    public @NotNull String replacePlaceholders(@Nullable Sender sender, @NotNull String string) {
+    @Contract("_, null -> null; _, !null -> !null")
+    public @Nullable String replacePlaceholders(@Nullable Sender sender, @Nullable String string) {
         return replacePlaceholders(sender != null ? sender.getPlatformPlayer() : null, string);
     }
 
-    public @NotNull String replacePlaceholders(@Nullable PlatformPlayer player, @NotNull String string) {
+    @Contract("_, null -> null; _, !null -> !null")
+    public @Nullable String replacePlaceholders(@Nullable PlatformPlayer player, @Nullable String string) {
         return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string, false);
     }
 
-    private @NotNull String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @NotNull String string, boolean removeFormatting) {
+    @Contract("_, _, null, _ -> null; _, _, !null, _ -> !null")
+    private @Nullable String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @Nullable String string, boolean removeFormatting) {
+        if (string == null) return null;
         for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
             string = string.replace(entry.getKey(), entry.getValue());
         }

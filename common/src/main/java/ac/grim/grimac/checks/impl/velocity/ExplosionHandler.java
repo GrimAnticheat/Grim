@@ -91,8 +91,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                     }
 
                     // Otherwise try and flip/open it.
-                    final Object poweredValue = state.getInternalData().get(StateValue.POWERED);
-                    final boolean canFlip = (poweredValue != null && !(Boolean) poweredValue) || type == StateTypes.LEVER;
+                    final boolean canFlip = state.hasProperty(StateValue.POWERED) && !state.isPowered() || type == StateTypes.LEVER;
                     if (canFlip) {
                         player.compensatedWorld.tickOpenable(record.x, record.y, record.z);
                     }

@@ -98,7 +98,7 @@ dependencies {
     }
 
     compileOnly(libs.floodgate.api)
-    compileOnly(libs.via.version.api)
+    compileOnly(libs.viaversion)
     compileOnly(libs.netty)
 }
 

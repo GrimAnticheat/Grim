@@ -68,7 +68,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (Materials.isPlaceableWaterBucket(blockPlace.itemStack.getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.replaceClicked = true; // See what's in the existing place
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (!(boolean) existing.getInternalData().getOrDefault(StateValue.WATERLOGGED, true)) {
+                if (existing.hasProperty(StateValue.WATERLOGGED) && !existing.isWaterlogged()) {
                     // Strangely, the client does not predict waterlogged placements
                     didPlace = true;
                 }
@@ -308,7 +308,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
+                if (existing.hasProperty(StateValue.WATERLOGGED)) { // waterloggable
                     existing.setWaterlogged(false);
                     blockPlace.set(existing);
                     placed = true;
