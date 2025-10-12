@@ -5,6 +5,7 @@ import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
+import lombok.RequiredArgsConstructor;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.incendo.cloud.parser.ParserDescriptor;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -14,13 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@RequiredArgsConstructor
 public class FabricParserDescriptorFactory implements CommandAdapter {
 
     private final FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser;
-
-    public FabricParserDescriptorFactory(FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser) {
-        this.fabricPlayerSelectorParser = fabricPlayerSelectorParser;
-    }
 
     @Override
     public ParserDescriptor<Sender, PlayerSelector> singlePlayerSelectorParser() {

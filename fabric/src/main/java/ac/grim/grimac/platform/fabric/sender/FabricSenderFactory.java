@@ -12,8 +12,8 @@ import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.rcon.RconCommandOutput;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.SenderMapper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,12 +96,12 @@ public class FabricSenderFactory extends SenderFactory<ServerCommandSource> impl
     }
 
     @Override
-    public @NonNull Sender map(@NonNull ServerCommandSource base) {
+    public @NotNull Sender map(@NotNull ServerCommandSource base) {
         return this.wrap(base);
     }
 
     @Override
-    public @NonNull ServerCommandSource reverse(@NonNull Sender mapped) {
+    public @NotNull ServerCommandSource reverse(@NotNull Sender mapped) {
         return this.unwrap(mapped);
     }
 

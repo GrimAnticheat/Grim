@@ -1,4 +1,3 @@
-// src/main/java/ac/grim/grimac/utils/database/SQLiteDialect.java
 package ac.grim.grimac.manager.violationdatabase.sqlite;
 
 import ac.grim.grimac.manager.violationdatabase.DatabaseDialect;

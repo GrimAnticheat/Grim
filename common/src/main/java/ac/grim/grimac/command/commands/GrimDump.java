@@ -5,6 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.PlatformPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.common.PropertiesUtil;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -12,10 +13,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.Properties;
 
 public class GrimDump implements BuildableCommand {
 
@@ -34,7 +38,7 @@ public class GrimDump implements BuildableCommand {
         );
     }
 
-    private void handleDump(@NonNull CommandContext<Sender> context) {
+    private void handleDump(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
 
         if (link != null) {
@@ -70,7 +74,21 @@ public class GrimDump implements BuildableCommand {
         system.addProperty("os_name", System.getProperty("os.name"));
         system.addProperty("java_version", System.getProperty("java.version"));
         system.addProperty("user_language", System.getProperty("user.language"));
+        // build
+        JsonObject build = new JsonObject();
+        base.add("build", getBuildInfo());
         return base;
+    }
+
+    private static JsonObject getBuildInfo() {
+        JsonObject object = new JsonObject();
+        try {
+            Properties properties = PropertiesUtil.readProperties(GrimAPI.INSTANCE.getClass(), "grimac.properties");
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                object.addProperty(entry.getKey().toString(), entry.getValue().toString());
+            }
+        } catch (Exception ignored) {}
+        return object;
     }
 
     /**

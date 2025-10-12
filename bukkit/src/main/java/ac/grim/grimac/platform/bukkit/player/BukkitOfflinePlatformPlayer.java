@@ -1,13 +1,14 @@
 package ac.grim.grimac.platform.bukkit.player;
 
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
 
-@lombok.RequiredArgsConstructor
+@RequiredArgsConstructor
 public class BukkitOfflinePlatformPlayer implements OfflinePlatformPlayer {
     private final OfflinePlayer offlinePlayer;
 

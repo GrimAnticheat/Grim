@@ -31,10 +31,10 @@ public abstract class AbstractContainerMenu {
     @Setter(AccessLevel.PROTECTED)
     private Inventory playerInventory;
     @Getter
-    List<Slot> slots = new ArrayList<>();
+    protected final List<Slot> slots = new ArrayList<>();
     @Getter
     @NotNull
-    ItemStack carriedItem = ItemStack.EMPTY;
+    private ItemStack carriedItem = ItemStack.EMPTY;
 
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;

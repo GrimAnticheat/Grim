@@ -70,32 +70,35 @@ public class InitManager {
     }
 
     public void load() {
-        for (LoadableInitable initable : initializersOnLoad)
+        for (LoadableInitable initable : initializersOnLoad) {
             try {
                 initable.load();
             } catch (Exception e) {
                 LogUtil.error("Failed to load " + initable.getClass().getSimpleName(), e);
             }
+        }
         loaded = true;
     }
 
     public void start() {
-        for (StartableInitable initable : initializersOnStart)
+        for (StartableInitable initable : initializersOnStart) {
             try {
                 initable.start();
             } catch (Exception e) {
                 LogUtil.error("Failed to start " + initable.getClass().getSimpleName(), e);
             }
+        }
         started = true;
     }
 
     public void stop() {
-        for (StoppableInitable initable : initializersOnStop)
+        for (StoppableInitable initable : initializersOnStop) {
             try {
                 initable.stop();
             } catch (Exception e) {
                 LogUtil.error("Failed to stop " + initable.getClass().getSimpleName(), e);
             }
+        }
         stopped = true;
     }
 }

@@ -1,9 +1,3 @@
-repositories {
-    maven("https://repo.grim.ac/snapshots")
-    maven("https://oss.sonatype.org/content/repositories/snapshots")
-    mavenCentral()
-}
-
 dependencies {
     minecraft("com.mojang:minecraft:1.16.1")
     mappings("net.fabricmc:yarn:1.16.1+build.21:v2")

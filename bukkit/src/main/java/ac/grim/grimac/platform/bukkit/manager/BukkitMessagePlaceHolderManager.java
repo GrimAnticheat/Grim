@@ -5,14 +5,14 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BukkitMessagePlaceHolderManager implements MessagePlaceHolderManager {
     public static final boolean hasPlaceholderAPI = Reflection.getClassByNameWithoutException("me.clip.placeholderapi.PlaceholderAPI") != null;
 
     @Override
-    public @NonNull String replacePlaceholders(@Nullable PlatformPlayer player, @NonNull String string) {
+    public @NotNull String replacePlaceholders(@Nullable PlatformPlayer player, @NotNull String string) {
         if (!hasPlaceholderAPI) return string;
         return PlaceholderAPI.setPlaceholders(player instanceof BukkitPlatformPlayer bukkitPlatformPlayer ? bukkitPlatformPlayer.getBukkitPlayer() : null, string);
     }

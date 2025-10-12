@@ -7,19 +7,20 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 @Getter
 public class TeleportData {
-    Vector3d location;
-    Vector3d velocity;
-    RelativeFlag flags;
+    private final Vector3d location;
+    private final Vector3d velocity;
+    private final RelativeFlag flags;
     @Setter
-    int transaction;
+    private int transaction;
     @Setter
-    int teleportId;
+    private int teleportId;
 
-    public void modifyVector(GrimPlayer player, Vector3dm vector) {
+    public void modifyVector(@NotNull GrimPlayer player, Vector3dm vector) {
         final boolean isStupidTeleportSystem = player.supportsEndTick();
         if (!isStupidTeleportSystem) {
             if (!isRelativeX()) {

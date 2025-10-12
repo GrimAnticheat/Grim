@@ -49,8 +49,8 @@ public class TrigHandler {
 
         if (offset > 1e-5) {
             Vector3dm trueMovement = player.actualMovement.clone().subtract(player.startTickClientVel);
-            Vector3dm correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
-            Vector3dm fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
+            Vector3dm correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.yaw);
+            Vector3dm fastMath = getShitMathMovement(trueMovement, 0.1f, player.yaw);
 
             correctMath = new Vector3dm(Math.abs(correctMath.getX()), 0, Math.abs(correctMath.getZ()));
             fastMath = new Vector3dm(Math.abs(fastMath.getX()), 0, Math.abs(fastMath.getZ()));

@@ -8,7 +8,7 @@ import ac.grim.grimac.manager.player.features.types.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.google.common.collect.ImmutableSet;
-import lombok.Getter;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -17,8 +17,19 @@ import java.util.Map;
 
 public class FeatureManagerImpl implements FeatureManager, ConfigReloadObserver {
 
-    @Getter
     private static final Map<String, GrimFeature> FEATURES;
+
+    /// @deprecated use {@link #getFeatures()}
+    @Contract(pure = true)
+    @Deprecated
+    public static Map<String, GrimFeature> getFEATURES() {
+        return getFeatures();
+    }
+
+    @Contract(pure = true)
+    public static Map<String, GrimFeature> getFeatures() {
+        return FEATURES;
+    }
 
     static {
         FeatureBuilder builder = new FeatureBuilder();

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 
 public class TridentItem extends ItemBehaviour {
 
-    public static TridentItem INSTANCE = new TridentItem();
+    public static final TridentItem INSTANCE = new TridentItem();
 
     @Override
     public boolean canUse(ItemStack item, CompensatedWorld world, GrimPlayer player, InteractionHand hand) {

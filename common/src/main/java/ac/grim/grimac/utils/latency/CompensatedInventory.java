@@ -43,7 +43,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     // "Temporarily" public for debugging
-    public Inventory inventory;
+    public final Inventory inventory;
     // "Temporarily" public for debugging
     public AbstractContainerMenu menu;
     // Not all inventories are supported due to complexity and version differences

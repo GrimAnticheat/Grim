@@ -85,7 +85,9 @@ public class PacketEntitySelf extends PacketEntity {
                 .withGetRewriter(value -> {
                     // Server versions older than 1.20.5 don't send the attribute, if the player is in creative then assume legacy max reach distance.
                     if (player.gamemode == GameMode.CREATIVE
-                            && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)) {
+                            && (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)
+                                // Clients below 1.20.5 also don't have the attribute.
+                                || player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5))) {
                         return 5.0;
                     }
                     // < 1.20.5 is unchanged due to requiredVersion, otherwise controlled by the server

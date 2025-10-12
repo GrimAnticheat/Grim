@@ -1,49 +1,85 @@
 [versions]
+# --- Platform Dependencies ---
 adventure = "4.23.0"
 adventure-platform-bukkit = "4.4.0"
 paper-api = "1.20.6-R0.1-SNAPSHOT"
-placeholderapi = "2.11.6"
-configuralize = "1.4.1:slim"
 cloud = "2.0.0"
-cloud-paper = "2.0.0-beta.11"
-cloud-fabric = "2.0.0-beta.11"
-packetevents = "2.9.6+4519ccba2-SNAPSHOT"
-fastutil = "8.5.15"
-jetbrains-annotations = "24.1.0"
-floodgate-api = "2.0-SNAPSHOT"
-via-version = "5.0.4-SNAPSHOT"
-netty = "4.1.85.Final"
-fabric-loader = "0.16.14"
-fabric-loom = "1.11.4"
+cloud-paper = "2.0.0-beta.12"
+cloud-fabric = "2.0.0-beta.12"
+cloud-processors-requirements = "1.0.0-rc.1"
 
-spotless = "6.25.0"
-lombok = "8.6"
+# --- Minecraft-Specific APIs ---
+floodgate-api = "2.0-SNAPSHOT"
+geyser-base-api = "1.0.2"
+grim-api = "1.2.0.0"
+packetevents = "2.10.0+cca07b3-SNAPSHOT"
+placeholderapi = "2.11.6"
+viaversion = "5.5.0"
+
+# --- General Java Utilities ---
+fastutil = "8.5.15"
+hikaricp = "7.0.2"
+jetbrains-annotations = "24.1.0"
+netty = "4.1.85.Final"
+snakeyaml = "2.2"
+configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
+
+# --- Build & Tooling ---
+fabric-loader = "0.16.14"
+fabric-loom = "1.11.8"
+lombok = "9.0.0"
 shadow = "9.0.0-rc2"
+spotless = "6.25.0"
 
 [libraries]
-adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure"}
+# --- Core Frameworks: Adventure (Text) & Cloud (Commands) ---
 adventure-platform-bukkit = { group = "net.kyori", name = "adventure-platform-bukkit", version.ref = "adventure-platform-bukkit" }
-jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
-fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
-netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
-via-version-api = { group = "com.viaversion", name = "viaversion-api", version.ref = "via-version" }
-floodgate-api = { group = "org.geysermc.floodgate", name = "api", version.ref = "floodgate-api"}
+adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-paper" }
+cloud-processors-requirements = { group = "org.incendo", name = "cloud-processors-requirements", version.ref = "cloud-processors-requirements" }
+
+# --- Minecraft Server APIs ---
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-api" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
-cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
-cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-paper" }
-cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric" }
+
+# --- Minecraft-Specific Libraries ---
+configuralize = { group = "github.scarsz", name = "configuralize", version.ref = "configuralize" }
+floodgate-api = { group = "org.geysermc.floodgate", name = "api", version.ref = "floodgate-api"}
+geyser-base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "geyser-base-api" }
+grim-api = { group = "ac.grim.grimac", name = "GrimAPI", version.ref = "grim-api" }
 packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", version.ref = "packetevents" }
-packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
 packetevents-fabric = { group  = "com.github.retrooper", name = "packetevents-fabric", version.ref = "packetevents" }
+packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
+viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
+
+# --- General Java Utilities ---
+fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
+hikaricp = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikaricp" }
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
+snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
+
+# --- Build Tooling (Fabric) ---
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+
+# --- Gradle Plugin Definitions ---
+# These are referenced by the [plugins] section or applied directly in build scripts
+gradle-lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
+gradle-shadow = { group = "com.gradleup.shadow", name = "shadow-gradle-plugin", version.ref = "shadow"}
+gradle-spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 
 spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 shadow = { "group" = "com.gradleup.shadow", name = "shadow-gradle-plugin", version.ref = "shadow"}
 
 [bundles]
-
+# Bundles group common dependencies together for cleaner build scripts
+cloud-api = ["cloud-core", "cloud-processors-requirements"]
 
 [plugins]
 fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

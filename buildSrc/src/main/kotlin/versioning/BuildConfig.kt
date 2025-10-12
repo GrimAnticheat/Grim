@@ -2,6 +2,11 @@ package versioning
 
 import org.gradle.api.Project
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import versioning.BuildConfig.init
+import versioning.BuildConfig.mavenLocalOverride
+import versioning.BuildConfig.release
+import versioning.BuildConfig.relocate
+import versioning.BuildConfig.shadePE
 
 /**
  * BuildConfig provides access to user-defined build flags that control how a Grim
@@ -10,9 +15,9 @@ import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
  *
  * Flags can be defined in three ways:
  *
- *   ① JVM system properties  (-Dflag=value)
- *   ② Gradle project properties  (-Pflag=value or in gradle.properties)
- *   ③ Environment variables  (FLAG=value)
+ *   1. JVM system properties  (-Dflag=value)
+ *   2. Gradle project properties  (-Pflag=value or in gradle.properties)
+ *   3. Environment variables  (FLAG=value)
  *
  * You can use these to enable/disable features like shading, relocation, or release mode.
  *
@@ -56,24 +61,15 @@ object BuildConfig {
 
     // Unified resolution logic (System > Gradle > Env)
     private fun resolveRaw(project: Project, key: String): String? =
-        System.getProperty(key)                       // ① JVM   (-Dkey=value)
-            ?: project.findProperty(key)?.toString()  // ② Gradle (-Pkey=value or gradle.properties)
-            ?: System.getenv(key.uppercase())         // ③ ENV   (KEY=value)
+        System.getProperty(key)                      // 1. JVM   (-Dkey=value)
+            ?: project.findProperty(key)?.toString() // 2. Gradle (-Pkey=value or gradle.properties)
+            ?: System.getenv(key.uppercase())        // 3. ENV   (KEY=value)
 
     private fun resolveBool(project: Project, key: String, altKey: String? = null, default: Boolean): Boolean {
-        val primaryValue = resolveRaw(project, key)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
-        if (primaryValue != null) {
-            return primaryValue
-        }
-
-        if (altKey != null) {
-            val altValue = resolveRaw(project, altKey)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
-            if (altValue != null) {
-                return altValue
-            }
-        }
-
-        return default
+        return resolveRaw(project, key)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
+            ?: altKey?.let {
+                resolveRaw(project, it)?.toDefaultLowerCase()?.toBooleanStrictOrNull()
+            } ?: default
     }
 
     // Private backing vars (nullable because we can't use lateinit with primitives)
@@ -96,4 +92,5 @@ object BuildConfig {
 
     val mavenLocalOverride: Boolean get() = _mavenLocalOverride
         ?: error("BuildConfig.release accessed before init() was called")
+
 }

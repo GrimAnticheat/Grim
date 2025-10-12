@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions.rideable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.RequiredArgsConstructor;
 
@@ -30,8 +31,9 @@ public class PredictionEngineHappyGhast extends PredictionEngineNormal {
 
     @Override
     public Vector3dm getMovementResultFromInput(GrimPlayer player, Vector3dm inputVector, float flyingSpeed, float yRot) {
-        float sin = player.trigHandler.sin(yRot * 0.017453292f);
-        float cos = player.trigHandler.cos(yRot * 0.017453292f);
+        float yRotRadians = GrimMath.radians(yRot);
+        float sin = player.trigHandler.sin(yRotRadians);
+        float cos = player.trigHandler.cos(yRotRadians);
 
         double xResult = inputVector.getX() * cos - inputVector.getZ() * sin;
         double zResult = inputVector.getZ() * cos + inputVector.getX() * sin;

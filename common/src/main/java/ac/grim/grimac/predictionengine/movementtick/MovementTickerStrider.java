@@ -22,7 +22,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
-        movementInput = new Vector3dm(0, 0, 1);
+        this.movementInput = new Vector3dm(0, 0, 1);
     }
 
     public static void floatStrider(GrimPlayer player) {

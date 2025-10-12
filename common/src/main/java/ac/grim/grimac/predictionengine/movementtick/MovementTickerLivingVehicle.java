@@ -10,7 +10,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
-    Vector3dm movementInput = new Vector3dm();
+    protected Vector3dm movementInput = new Vector3dm();
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);

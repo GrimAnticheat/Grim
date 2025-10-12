@@ -8,9 +8,9 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -26,7 +26,7 @@ public class GrimProfile implements BuildableCommand {
         );
     }
 
-    private void handleProfile(@NonNull CommandContext<Sender> context) {
+    private void handleProfile(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         PlayerSelector target = context.get("target");
 

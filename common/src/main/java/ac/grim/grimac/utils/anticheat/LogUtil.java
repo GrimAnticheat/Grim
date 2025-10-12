@@ -22,6 +22,7 @@ public class LogUtil {
         getLogger().severe(error);
     }
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public void error(final String description, final Throwable throwable) {
         Logger logger = getLogger();
         if (logger != null) {
@@ -31,6 +32,7 @@ public class LogUtil {
         }
     }
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public void error(final Throwable throwable) {
         Logger logger = getLogger();
         if (logger != null) {

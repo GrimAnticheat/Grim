@@ -33,8 +33,8 @@ import java.util.List;
  **/
 public class SneakingEstimator extends Check implements PostPredictionCheck {
     @Getter
-    SimpleCollisionBox sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
-    List<VectorData> possible = new ArrayList<>();
+    private SimpleCollisionBox sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
+    private List<VectorData> possible = new ArrayList<>();
 
     public SneakingEstimator(GrimPlayer player) {
         super(player);

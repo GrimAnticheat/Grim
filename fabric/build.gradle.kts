@@ -41,28 +41,105 @@ allprojects {
         if (BuildConfig.mavenLocalOverride) {
             mavenLocal()
         }
-        maven {
-            name = "FabricMC"
-            url = uri("https://maven.fabricmc.net/")
+
+        exclusiveContent {
+            forRepository {
+                maven("https://maven.fabricmc.net/")
+            }
+            filter {
+                includeGroup("net.fabricmc")
+                includeGroup("net.fabricmc.fabric-api")
+            }
         }
-        maven("https://repo.grim.ac/snapshots") { // Grim API
-            content {
+
+        exclusiveContent {
+            forRepository {
+                maven("https://repo.grim.ac/snapshots") // Grim API & PacketEvents
+            }
+            filter {
                 includeGroup("ac.grim.grimac")
                 includeGroup("com.github.retrooper")
             }
         }
-        maven("https://jitpack.io/") {
-            content {
-                excludeGroup("ac.grim.grimac")
-                excludeGroup("com.github.retrooper")
+
+        exclusiveContent {
+            forRepository {
+                maven("https://jitpack.io") { // Conditional Mixin
+                    mavenContent { releasesOnly() }
+                }
             }
-        }// Conditional Mixin
-        maven("https://repo.viaversion.com") // ViaVersion
-        maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
-        maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-        maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        mavenCentral() // FastUtil
+            filter {
+                includeGroup("com.github.Fallen-Breath.conditional-mixin")
+            }
+        }
+
+        exclusiveContent {
+            // The repository URL is determined by the project's name
+            if (project.name == "mc1161") {
+                // For the 1.16.1 subproject, the old snapshot is on the Grim repo
+                forRepository {
+                    maven("https://repo.grim.ac/snapshots")
+                }
+            } else {
+                // For all other subprojects, the releases are on Maven Central
+                forRepository {
+                    mavenCentral()
+                }
+            }
+            // This filter applies to whichever repository was chosen above
+            filter {
+                includeGroup("me.lucko")
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven("https://repo.viaversion.com") { // ViaVersion
+                    mavenContent { releasesOnly() }
+                }
+            }
+            filter {
+                includeGroup("com.viaversion")
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven("https://nexus.scarsz.me/content/repositories/releases") { // Configuralize
+                    mavenContent { releasesOnly() }
+                }
+            }
+            filter {
+                includeGroup("github.scarsz")
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven("https://repo.opencollab.dev/maven-releases/") { // Cumulus (for Floodgate)
+                    mavenContent { releasesOnly() }
+                }
+            }
+            filter {
+                includeGroup("org.geysermc.api")
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven("https://repo.opencollab.dev/maven-snapshots/") { // Floodgate
+                    mavenContent { snapshotsOnly() }
+                }
+            }
+            filter {
+                includeGroup("org.geysermc.floodgate")
+                includeGroup("org.geysermc.cumulus")
+                includeModule("org.geysermc", "common")
+                includeModule("org.geysermc", "geyser-parent")
+            }
+        }
+
+        mavenCentral()
     }
 
     loom {

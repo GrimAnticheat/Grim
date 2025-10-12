@@ -2,7 +2,7 @@ package ac.grim.grimac.platform.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @AllArgsConstructor
 public enum Platform {

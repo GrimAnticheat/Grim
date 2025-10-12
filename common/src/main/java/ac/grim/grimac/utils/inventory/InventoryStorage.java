@@ -4,9 +4,9 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import lombok.Getter;
 
 public class InventoryStorage {
-    protected ItemStack[] items;
+    protected final ItemStack[] items;
     @Getter
-    int size;
+    private final int size;
 
     public InventoryStorage(int size) {
         this.items = new ItemStack[size];

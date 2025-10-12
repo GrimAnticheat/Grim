@@ -51,7 +51,7 @@ public class PacketEntity extends TypedPacketEntity {
     private final UUID uuid; // NULL ON VERSIONS BELOW 1.9 (or for some entities, apparently??)
     @Getter
     public PacketEntity riding;
-    public List<PacketEntity> passengers = new ArrayList<>(0);
+    public final List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;

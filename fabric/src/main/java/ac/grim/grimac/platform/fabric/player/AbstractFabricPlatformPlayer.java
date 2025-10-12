@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -120,7 +120,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     }
 
     @Override
-    public @NonNull ServerPlayerEntity getNative() {
+    public @NotNull ServerPlayerEntity getNative() {
         return this.fabricPlayer;
     }
 

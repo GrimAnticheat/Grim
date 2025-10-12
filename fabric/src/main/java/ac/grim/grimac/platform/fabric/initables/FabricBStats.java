@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.platform.fabric.utils.metrics.MetricsFabric;
+import ac.grim.grimac.utils.anticheat.Constants;
 
 public class FabricBStats implements StartableInitable, StoppableInitable {
 
@@ -11,9 +12,8 @@ public class FabricBStats implements StartableInitable, StoppableInitable {
 
     @Override
     public void start() {
-        int pluginId = 12820; // <-- Replace with the id of your plugin!
         try {
-            metricsFabric = new MetricsFabric(GrimAPI.INSTANCE.getGrimPlugin(), pluginId);
+            metricsFabric = new MetricsFabric(GrimAPI.INSTANCE.getGrimPlugin(), Constants.BSTATS_PLUGIN_ID);
         } catch (Exception ignored) {}
     }
 

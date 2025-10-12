@@ -24,17 +24,17 @@ import java.util.LinkedList;
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
-    Deque<VelocityData> firstBreadMap = new LinkedList<>();
+    private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
-    VelocityData firstBreadOnlyKnockback = null;
+    private final Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
+    private VelocityData firstBreadOnlyKnockback = null;
     @Getter
-    boolean knockbackPointThree = false;
+    private boolean knockbackPointThree = false;
 
-    double offsetToFlag;
-    double maxAdv, immediate, ceiling, multiplier;
+    private double offsetToFlag;
+    private double maxAdv, immediate, ceiling, multiplier;
 
-    double threshold;
+    private double threshold;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);

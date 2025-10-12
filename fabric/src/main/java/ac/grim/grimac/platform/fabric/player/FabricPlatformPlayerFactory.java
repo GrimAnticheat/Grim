@@ -5,15 +5,16 @@ import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import com.mojang.authlib.GameProfile;
+import lombok.RequiredArgsConstructor;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
+@RequiredArgsConstructor
 public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
 
     private final Map<UUID, OfflinePlatformPlayer> offlinePlatformPlayerCache = new HashMap<>();
@@ -21,22 +22,13 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     private final Function<Entity, GrimEntity> getEntityFunction;
     private final Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
 
-    public FabricPlatformPlayerFactory(Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> playerSupplier,
-                                       Function<Entity, GrimEntity> getEntityFunction,
-                                       Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getInventoryFunction
-    ) {
-        this.getPlayerFunction = playerSupplier;
-        this.getEntityFunction = getEntityFunction;
-        this.getPlayerInventoryFunction = getInventoryFunction;
-    }
-
     @Override
     protected ServerPlayerEntity getNativePlayer(@NotNull UUID uuid) {
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(uuid);
     }
 
     @Override
-    protected ServerPlayerEntity getNativePlayer(@NonNull String name) {
+    protected ServerPlayerEntity getNativePlayer(@NotNull String name) {
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(name);
     }
 
@@ -93,7 +85,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    public void replaceNativePlayer(@NonNull UUID uuid, @NonNull ServerPlayerEntity serverPlayerEntity) {
+    public void replaceNativePlayer(@NotNull UUID uuid, @NotNull ServerPlayerEntity serverPlayerEntity) {
         super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
     }
 

@@ -4,10 +4,11 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.feature.FeatureState;
 import ac.grim.grimac.player.GrimPlayer;
 
-public class ForceSlowMovementFeature extends GrimFeature {
+public class ForceSlowMovementFeature implements GrimFeature {
 
-    public ForceSlowMovementFeature() {
-        super("ForceSlowMovement");
+    @Override
+    public String getName() {
+        return "ForceSlowMovement";
     }
 
     @Override

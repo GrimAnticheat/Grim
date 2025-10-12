@@ -7,7 +7,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import java.util.Objects;
 
 public class VectorData {
-    public VectorType vectorType;
+    public final VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector3dm vector;

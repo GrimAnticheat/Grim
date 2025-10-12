@@ -13,7 +13,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -41,7 +41,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     }
 
     @Override
-    public @NonNull EventBus getEventBus() {
+    public @NotNull EventBus getEventBus() {
         return api.getEventBus();
     }
 

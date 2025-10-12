@@ -4,10 +4,11 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.feature.FeatureState;
 import ac.grim.grimac.player.GrimPlayer;
 
-public class ExperimentalChecksFeature extends GrimFeature {
+public class ExperimentalChecksFeature implements GrimFeature {
 
-    public ExperimentalChecksFeature() {
-        super("ExperimentalChecks");
+    @Override
+    public String getName() {
+        return "ExperimentalChecks";
     }
 
     @Override

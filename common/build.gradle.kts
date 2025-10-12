@@ -9,23 +9,65 @@ repositories {
     if (BuildConfig.mavenLocalOverride) {
         mavenLocal()
     }
-    maven {
-        name = "papermc"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
-    }
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://repo.grim.ac/snapshots") { // Grim API
-        content {
+
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.grim.ac/snapshots") // Grim API
+        }
+        filter {
             includeGroup("ac.grim.grimac")
             includeGroup("com.github.retrooper")
         }
     }
-    maven("https://repo.viaversion.com") // ViaVersion
-    maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
-    maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-    maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    mavenCentral() // FastUtil
+
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.viaversion.com") { // ViaVersion
+                mavenContent { releasesOnly() }
+            }
+        }
+        filter {
+            includeGroup("com.viaversion")
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven("https://nexus.scarsz.me/content/repositories/releases") { // Configuralize
+                mavenContent { releasesOnly() }
+            }
+        }
+        filter {
+            includeGroup("github.scarsz")
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.opencollab.dev/maven-releases/") { // Cumulus (for Floodgate)
+                mavenContent { releasesOnly() }
+            }
+        }
+        filter {
+            includeGroup("org.geysermc.api")
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.opencollab.dev/maven-snapshots/") { // Floodgate
+                mavenContent { snapshotsOnly() }
+            }
+        }
+        filter {
+            includeGroup("org.geysermc.floodgate")
+            includeGroup("org.geysermc.cumulus")
+            includeModule("org.geysermc", "common")
+            includeModule("org.geysermc", "geyser-parent")
+        }
+    }
+
+    mavenCentral()
 }
 
 dependencies {
@@ -35,25 +77,28 @@ dependencies {
         compileOnly(libs.packetevents.api)
     }
     api(libs.cloud.core)
-    api("org.incendo:cloud-processors-requirements:1.0.0-rc.1")
-    api("github.scarsz:configuralize:1.4.1:slim") {
+    api(libs.cloud.processors.requirements)
+    api(libs.configuralize) {
+        artifact {
+            classifier = "slim"
+        }
         exclude(group = "org.yaml", module = "snakeyaml")
     }
-    // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
-    api("org.yaml:snakeyaml:2.2")
+    // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2+ for geyser-fabric
+    api(libs.snakeyaml)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
-    api("com.zaxxer:HikariCP:4.0.3")
+    api(libs.hikaricp)
 
-    api("ac.grim.grimac:GrimAPI:1.1.0.0")
+    api(libs.grim.api)
 
-    compileOnly("org.geysermc.api:base-api:1.0.2") {
+    compileOnly(libs.geyser.base.api) {
         isTransitive = false // messes with guava otherwise
     }
 
     compileOnly(libs.floodgate.api)
-    compileOnly(libs.via.version.api)
+    compileOnly(libs.viaversion)
     compileOnly(libs.netty)
 }
 

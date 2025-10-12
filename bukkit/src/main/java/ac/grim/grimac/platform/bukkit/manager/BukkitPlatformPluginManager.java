@@ -5,7 +5,7 @@ import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.bukkit.BukkitPlatformPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class BukkitPlatformPluginManager implements PlatformPluginManager {
 

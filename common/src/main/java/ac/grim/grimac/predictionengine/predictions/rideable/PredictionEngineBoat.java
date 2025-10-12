@@ -50,94 +50,94 @@ public class PredictionEngineBoat extends PredictionEngine {
     }
 
     private static @Nullable BoatEntityStatus isUnderwater(@NotNull GrimPlayer player) {
-        SimpleCollisionBox axisalignedbb = player.boundingBox;
-        double d0 = axisalignedbb.maxY + 0.001D;
-        int i = GrimMath.floor(axisalignedbb.minX);
-        int j = GrimMath.ceil(axisalignedbb.maxX);
-        int k = GrimMath.floor(axisalignedbb.maxY);
-        int l = GrimMath.ceil(d0);
-        int i1 = GrimMath.floor(axisalignedbb.minZ);
-        int j1 = GrimMath.ceil(axisalignedbb.maxZ);
-        boolean flag = false;
+        SimpleCollisionBox box = player.boundingBox;
+        double maxBoxY = box.maxY + 0.001D;
+        int minX = GrimMath.floor(box.minX);
+        int maxX = GrimMath.ceil(box.maxX);
+        int minY = GrimMath.floor(box.maxY);
+        int maxY = GrimMath.ceil(maxBoxY);
+        int minZ = GrimMath.floor(box.minZ);
+        int maxZ = GrimMath.ceil(box.maxZ);
+        boolean underWater = false;
 
-        for (int k1 = i; k1 < j; ++k1) {
-            for (int l1 = k; l1 < l; ++l1) {
-                for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = player.compensatedWorld.getWaterFluidLevelAt(k1, l1, i2);
-                    if (d0 < l1 + level) {
-                        if (!player.compensatedWorld.isWaterSourceBlock(k1, l1, i2)) {
+        for (int x = minX; x < maxX; ++x) {
+            for (int y = minY; y < maxY; ++y) {
+                for (int z = minZ; z < maxZ; ++z) {
+                    double level = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
+                    if (maxBoxY < y + level) {
+                        if (!player.compensatedWorld.isWaterSourceBlock(x, y, z)) {
                             return BoatEntityStatus.UNDER_FLOWING_WATER;
                         }
 
-                        flag = true;
+                        underWater = true;
                     }
                 }
             }
         }
 
-        return flag ? BoatEntityStatus.UNDER_WATER : null;
+        return underWater ? BoatEntityStatus.UNDER_WATER : null;
     }
 
     private static boolean checkInWater(GrimPlayer grimPlayer) {
-        SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
-        int i = GrimMath.floor(axisalignedbb.minX);
-        int j = GrimMath.ceil(axisalignedbb.maxX);
-        int k = GrimMath.floor(axisalignedbb.minY);
-        int l = GrimMath.ceil(axisalignedbb.minY + 0.001D);
-        int i1 = GrimMath.floor(axisalignedbb.minZ);
-        int j1 = GrimMath.ceil(axisalignedbb.maxZ);
-        boolean flag = false;
+        SimpleCollisionBox box = grimPlayer.boundingBox;
+        int minX = GrimMath.floor(box.minX);
+        int maxX = GrimMath.ceil(box.maxX);
+        int minY = GrimMath.floor(box.minY);
+        int maxY = GrimMath.ceil(box.minY + 0.001D);
+        int minZ = GrimMath.floor(box.minZ);
+        int maxZ = GrimMath.ceil(box.maxZ);
+        boolean inWater = false;
         grimPlayer.vehicleData.waterLevel = -Double.MAX_VALUE;
 
-        for (int k1 = i; k1 < j; ++k1) {
-            for (int l1 = k; l1 < l; ++l1) {
-                for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = grimPlayer.compensatedWorld.getWaterFluidLevelAt(k1, l1, i2);
+        for (int x = minX; x < maxX; ++x) {
+            for (int y = minY; y < maxY; ++y) {
+                for (int z = minZ; z < maxZ; ++z) {
+                    double level = grimPlayer.compensatedWorld.getWaterFluidLevelAt(x, y, z);
                     if (level > 0) {
-                        float f = (float) ((float) l1 + level);
+                        float f = (float) ((float) y + level);
                         grimPlayer.vehicleData.waterLevel = Math.max(f, grimPlayer.vehicleData.waterLevel);
-                        flag |= axisalignedbb.minY < (double) f;
+                        inWater |= box.minY < (double) f;
                     }
                 }
             }
         }
 
-        return flag;
+        return inWater;
     }
 
     public static float getGroundFriction(GrimPlayer player) {
-        SimpleCollisionBox axisalignedbb = player.boundingBox;
-        SimpleCollisionBox axisalignedbb1 = new SimpleCollisionBox(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ, false);
-        int i = (int) (Math.floor(axisalignedbb1.minX) - 1);
-        int j = (int) (Math.ceil(axisalignedbb1.maxX) + 1);
-        int k = (int) (Math.floor(axisalignedbb1.minY) - 1);
-        int l = (int) (Math.ceil(axisalignedbb1.maxY) + 1);
-        int i1 = (int) (Math.floor(axisalignedbb1.minZ) - 1);
-        int j1 = (int) (Math.ceil(axisalignedbb1.maxZ) + 1);
+        SimpleCollisionBox playerBox = player.boundingBox;
+        SimpleCollisionBox box = new SimpleCollisionBox(playerBox.minX, playerBox.minY - 0.001D, playerBox.minZ, playerBox.maxX, playerBox.minY, playerBox.maxZ, false);
+        int minX = (int) (Math.floor(box.minX) - 1);
+        int maxX = (int) (Math.ceil(box.maxX) + 1);
+        int minY = (int) (Math.floor(box.minY) - 1);
+        int maxY = (int) (Math.ceil(box.maxY) + 1);
+        int minZ = (int) (Math.floor(box.minZ) - 1);
+        int maxZ = (int) (Math.ceil(box.maxZ) + 1);
 
-        float f = 0.0F;
-        int k1 = 0;
+        float friction = 0;
+        int blocks = 0;
 
-        for (int l1 = i; l1 < j; ++l1) {
-            for (int i2 = i1; i2 < j1; ++i2) {
-                int j2 = (l1 != i && l1 != j - 1 ? 0 : 1) + (i2 != i1 && i2 != j1 - 1 ? 0 : 1);
-                if (j2 != 2) {
-                    for (int k2 = k; k2 < l; ++k2) {
-                        if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            WrappedBlockState blockData = player.compensatedWorld.getBlock(l1, k2, i2);
-                            StateType blockMaterial = blockData.getType();
+        for (int x = minX; x < maxX; ++x) {
+            for (int z = minZ; z < maxZ; ++z) {
+                // can be 0, 1, or 2
+                int j2 = (x != minX && x != maxX - 1 ? 0 : 1) + (z != minZ && z != maxZ - 1 ? 0 : 1);
+                if (j2 == 2) continue;
+                for (int y = minY; y < maxY; ++y) {
+                    if (j2 == 1 && (y == minY || y == maxY - 1)) continue;
 
-                            if (blockMaterial != StateTypes.LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
-                                f += BlockProperties.getMaterialFriction(player, blockMaterial);
-                                ++k1;
-                            }
-                        }
+                    WrappedBlockState blockData = player.compensatedWorld.getBlock(x, y, z);
+                    StateType blockMaterial = blockData.getType();
+
+                    if (blockMaterial != StateTypes.LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, x, y, z).isIntersected(box)) {
+                        friction += BlockProperties.getMaterialFriction(player, blockMaterial);
+                        blocks++;
                     }
                 }
             }
         }
 
-        return f / (float) k1;
+        return friction / (float) blocks;
     }
 
     @Override
@@ -284,6 +284,6 @@ public class PredictionEngineBoat extends PredictionEngine {
             f -= 0.005F;
         }
 
-        vector.add(new Vector3dm(player.trigHandler.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
+        vector.add(new Vector3dm(player.trigHandler.sin(GrimMath.radians(-player.yaw)) * f, 0, (double) (player.trigHandler.cos(GrimMath.radians(player.yaw)) * f)));
     }
 }

@@ -37,12 +37,12 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
 //        XYZ_OFFSET_BLOCKSTATES.add(StateTypes.SMALL_DRIPLEAF);
     }
 
-    float maxHorizontalModelOffset = 0.25F;
-    float maxVerticalModelOffset = 0.2F;
-    double offsetX = 0;
-    double offsetY = 0;
-    double offsetZ = 0;
-    OffsetType offsetType;
+    private float maxHorizontalModelOffset = 0.25F;
+    private float maxVerticalModelOffset = 0.2F;
+    private double offsetX = 0;
+    private double offsetY = 0;
+    private double offsetZ = 0;
+    private final OffsetType offsetType;
 
     public OffsetCollisionBox(StateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         super(minX, minY, minZ, maxX, maxY, maxZ);

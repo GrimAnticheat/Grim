@@ -32,7 +32,7 @@ public class GrimMath {
     }
 
     @Contract(pure = true)
-    public static double calculateSD(@NotNull List<Double> numbers) {
+    public static double calculateSD(@NotNull List<@NotNull Double> numbers) {
         double sum = 0.0;
         double standardDeviation = 0.0;
 

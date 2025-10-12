@@ -4,10 +4,10 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
+import org.jetbrains.annotations.NotNull;
 
 public class GrimPerf {
 
@@ -22,7 +22,7 @@ public class GrimPerf {
         commandManager.command(configuredBuilder);
     }
 
-    private void handlePerformance(@NonNull CommandContext<Sender> context) {
+    private void handlePerformance(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
 
         double millis = MovementCheckRunner.predictionNanos / 1000000;

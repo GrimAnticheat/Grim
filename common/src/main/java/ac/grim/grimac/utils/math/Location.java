@@ -6,12 +6,11 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class Location implements Cloneable {
-    private Reference<PlatformWorld> world;
+    private @Nullable WeakReference<PlatformWorld> world;
     @Getter
     @Setter
     private double x;

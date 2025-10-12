@@ -43,14 +43,14 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.x = teleport.getX();
                 player.y = teleport.getY();
                 player.z = teleport.getZ();
-                player.xRot = teleport.getYaw();
-                player.yRot = teleport.getPitch();
+                player.yaw = teleport.getYaw();
+                player.pitch = teleport.getPitch();
 
                 player.lastX = teleport.getX();
                 player.lastY = teleport.getY();
                 player.lastZ = teleport.getZ();
-                player.lastXRot = teleport.getYaw();
-                player.lastYRot = teleport.getPitch();
+                player.lastYaw = teleport.getYaw();
+                player.lastPitch = teleport.getPitch();
 
                 player.pollData();
             }

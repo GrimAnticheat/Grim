@@ -31,7 +31,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
                 ((BukkitPlatformWorld) world).getBukkitWorld(),
                 chunkX,
                 chunkZ,
-                (ignored) -> task.run()
+                ignored -> task.run()
         ));
     }
 
@@ -47,7 +47,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
                 ((BukkitPlatformWorld) world).getBukkitWorld(),
                 chunkX,
                 chunkZ,
-                (ignored) -> task.run(),
+                ignored -> task.run(),
                 delayTicks
         ));
     }
@@ -64,7 +64,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
                 ((BukkitPlatformWorld) world).getBukkitWorld(),
                 chunkX,
                 chunkZ,
-                (ignored) -> task.run(),
+                ignored -> task.run(),
                 initialDelayTicks,
                 periodTicks
         ));

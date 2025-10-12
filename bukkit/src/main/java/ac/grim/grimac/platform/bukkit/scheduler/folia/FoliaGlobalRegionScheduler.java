@@ -18,17 +18,17 @@ public class FoliaGlobalRegionScheduler implements GlobalRegionScheduler {
 
     @Override
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return new FoliaTaskHandle(globalRegionScheduler.run(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run()));
+        return new FoliaTaskHandle(globalRegionScheduler.run(GrimACBukkitLoaderPlugin.LOADER, ignored -> task.run()));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay) {
-        return new FoliaTaskHandle(globalRegionScheduler.runDelayed(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), delay));
+        return new FoliaTaskHandle(globalRegionScheduler.runDelayed(GrimACBukkitLoaderPlugin.LOADER, ignored -> task.run(), delay));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new FoliaTaskHandle(globalRegionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER, (ignored) -> task.run(), initialDelayTicks, periodTicks));
+        return new FoliaTaskHandle(globalRegionScheduler.runAtFixedRate(GrimACBukkitLoaderPlugin.LOADER, ignored -> task.run(), initialDelayTicks, periodTicks));
     }
 
     @Override

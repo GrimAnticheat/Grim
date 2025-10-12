@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -13,13 +14,13 @@ import java.util.Set;
 
 public class PredictionEngineElytra extends PredictionEngine {
     public static Vector3dm getElytraMovement(GrimPlayer player, Vector3dm vector, Vector3dm lookVector) {
-        float yRotRadians = player.yRot * 0.017453292F;
+        float pitchRadians = GrimMath.radians(player.pitch);
         double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double horizontalLength = vector.clone().setY(0).length();
         double length = lookVector.length();
 
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
-        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(yRotRadians) : player.trigHandler.cos(yRotRadians);
+        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(pitchRadians) : player.trigHandler.cos(pitchRadians);
         vertCosRotation = (float) (vertCosRotation * vertCosRotation * Math.min(1.0D, length / 0.4D));
 
         // So we actually use the player's actual movement to get the gravity/slow falling status
@@ -40,8 +41,8 @@ public class PredictionEngineElytra extends PredictionEngine {
         }
 
         // Handle accelerating the player when they are looking down
-        if (yRotRadians < 0.0F && horizontalSqrt > 0.0D) {
-            d5 = horizontalLength * (double) (-player.trigHandler.sin(yRotRadians)) * 0.04D;
+        if (pitchRadians < 0.0F && horizontalSqrt > 0.0D) {
+            d5 = horizontalLength * (double) (-player.trigHandler.sin(pitchRadians)) * 0.04D;
             vector.add(new Vector3dm(-lookVector.getX() * d5 / horizontalSqrt, d5 * 3.2D, -lookVector.getZ() * d5 / horizontalSqrt));
         }
 
@@ -60,7 +61,7 @@ public class PredictionEngineElytra extends PredictionEngine {
 
         // We must bruteforce Optifine ShitMath
         for (int shitmath = 0; shitmath <= 1; shitmath++, player.trigHandler.toggleShitMath()) {
-            Vector3dm currentLook = ReachUtils.getLook(player, player.xRot, player.yRot);
+            Vector3dm currentLook = ReachUtils.getLook(player, player.yaw, player.pitch);
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
                 for (VectorData data : possibleVectors) {

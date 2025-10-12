@@ -3,15 +3,13 @@ package ac.grim.grimac.platform.bukkit.player;
 import ac.grim.grimac.platform.api.player.PlatformInventory;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
+@RequiredArgsConstructor
 public class BukkitPlatformInventory implements PlatformInventory {
 
     private final Player bukkitPlayer;
-
-    public BukkitPlatformInventory(Player bukkitPlayer) {
-        this.bukkitPlayer = bukkitPlayer;
-    }
 
     @Override
     public ItemStack getItemInHand() {

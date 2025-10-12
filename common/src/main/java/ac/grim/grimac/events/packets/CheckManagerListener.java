@@ -68,7 +68,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (Materials.isPlaceableWaterBucket(blockPlace.itemStack.getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.replaceClicked = true; // See what's in the existing place
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (!(boolean) existing.getInternalData().getOrDefault(StateValue.WATERLOGGED, true)) {
+                if (existing.hasProperty(StateValue.WATERLOGGED) && !existing.isWaterlogged()) {
                     // Strangely, the client does not predict waterlogged placements
                     didPlace = true;
                 }
@@ -104,7 +104,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.z = player.packetStateData.lastClaimedPosition.getZ();
 
             boolean lastSneaking = player.isSneaking;
-            player.isSneaking = snapshot.isSneaking();
+            player.isSneaking = snapshot.sneaking();
 
             if (player.inVehicle()) {
                 Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.compensatedEntities.self.getRiding(), player);
@@ -117,13 +117,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Or mojang had the idle packet... for the 1.7/1.8 clients
             // No idle packet on 1.9+
             if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
-                player.xRot = yaw;
-                player.yRot = pitch;
+                player.yaw = yaw;
+                player.pitch = pitch;
             }
 
             player.compensatedWorld.startPredicting();
-            handleBlockPlaceOrUseItem(snapshot.getWrapper(), player);
-            player.compensatedWorld.stopPredicting(snapshot.getWrapper());
+            handleBlockPlaceOrUseItem(snapshot.wrapper(), player);
+            player.compensatedWorld.stopPredicting(snapshot.wrapper());
 
             player.x = lastX;
             player.y = lastY;
@@ -154,8 +154,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Or mojang had the idle packet... for the 1.7/1.8 clients
             // No idle packet on 1.9+
             if ((now - player.lastBlockBreak < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
-                player.xRot = yaw;
-                player.yRot = pitch;
+                player.yaw = yaw;
+                player.pitch = pitch;
             }
 
             player.checkManager.onPostFlyingBlockBreak(blockBreak);
@@ -308,7 +308,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
+                if (existing.hasProperty(StateValue.WATERLOGGED)) { // waterloggable
                     existing.setWaterlogged(false);
                     blockPlace.set(existing);
                     placed = true;
@@ -480,8 +480,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.y = clamp.getY();
             player.z = clamp.getZ();
 
-            player.xRot = move.getYaw();
-            player.yRot = move.getPitch();
+            player.yaw = move.getYaw();
+            player.pitch = move.getPitch();
 
             final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
@@ -642,14 +642,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             if (!player.isIgnoreDuplicatePacketRotation()) {
-                if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
-                    player.lastXRot = player.xRot;
-                    player.lastYRot = player.yRot;
+                if (player.yaw != location.getYaw() || player.pitch != location.getPitch()) {
+                    player.lastYaw = player.yaw;
+                    player.lastPitch = player.pitch;
                 }
 
                 // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-                player.xRot = location.getYaw();
-                player.yRot = location.getPitch();
+                player.yaw = location.getYaw();
+                player.pitch = location.getPitch();
             }
 
             player.packetStateData.lastClaimedPosition = location.getPosition();
@@ -672,9 +672,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // If it was stupid, only change the look if it's different
         // Otherwise, reach and fireworks can false
         if (hasLook && (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate ||
-                player.xRot != yaw || player.yRot != pitch)) {
-            player.lastXRot = player.xRot;
-            player.lastYRot = player.yRot;
+                player.yaw != yaw || player.pitch != pitch)) {
+            player.lastYaw = player.yaw;
+            player.lastPitch = player.pitch;
         }
 
         CheckManagerListener.handleQueuedPlaces(player, hasLook, pitch, yaw, now);
@@ -709,13 +709,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (hasLook) {
-            player.xRot = yaw;
-            player.yRot = pitch;
+            player.yaw = yaw;
+            player.pitch = pitch;
 
-            float deltaXRot = player.xRot - player.lastXRot;
-            float deltaYRot = player.yRot - player.lastYRot;
+            float deltaXRot = player.yaw - player.lastYaw;
+            float deltaYRot = player.pitch - player.lastPitch;
 
-            final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
+            final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastYaw, player.lastPitch), new HeadRotation(player.yaw, player.pitch), deltaXRot, deltaYRot);
             player.checkManager.onRotationUpdate(update);
         }
 
