@@ -152,8 +152,9 @@ public class PacketEntity extends TypedPacketEntity {
         // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
         // https://bugs.mojang.com/browse/MC-255263
         if (!hasPos &&
-                (player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4) ||
-                (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2)) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4))
+                // Fixed in 1.21.9 again
+                (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_9) && player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4)) ||
+                (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4))
         ) {
             newPacketLocation.cancelLerp();
         }

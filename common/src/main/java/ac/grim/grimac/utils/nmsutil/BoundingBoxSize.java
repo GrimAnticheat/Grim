@@ -21,9 +21,8 @@ import lombok.experimental.UtilityClass;
 public final class BoundingBoxSize {
 
     public static float getWidth(GrimPlayer player, PacketEntity packetEntity) {
-        // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36f;
-        return getWidthMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
+        float width = getWidthMinusBaby(player, packetEntity);
+        return width * (packetEntity.isBaby ? getBabyScaleFactor(packetEntity) : 1f);
     }
 
     private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
@@ -186,9 +185,8 @@ public final class BoundingBoxSize {
     }
 
     public static float getHeight(GrimPlayer player, PacketEntity packetEntity) {
-        // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12f;
-        return getHeightMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
+        float height = getHeightMinusBaby(player, packetEntity);
+        return height * (packetEntity.isBaby ? getBabyScaleFactor(packetEntity) : 1f);
     }
 
     public static double getMyRidingOffset(PacketEntity packetEntity) {
@@ -409,5 +407,15 @@ public final class BoundingBoxSize {
             return 0.25F;
         }
         return 1.95f;
+    }
+
+    private static float getBabyScaleFactor(PacketEntity packetEntity) {
+        final EntityType type = packetEntity.type;
+        if (type == EntityTypes.TURTLE) return 0.3f;
+        if (type == EntityTypes.HAPPY_GHAST) return 0.2375f;
+        if (type == EntityTypes.DOLPHIN) return 0.65f;
+        if (type == EntityTypes.ARMADILLO) return 0.6f;
+        if (type == EntityTypes.CAMEL) return 0.45f;
+        return 0.5f;
     }
 }
