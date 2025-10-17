@@ -98,11 +98,11 @@ public class BlockCollisions {
         double sideDistance = (minSide - startSide) / distanceSide;
         double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
         double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
-        if (sideDistance > 0.0 && sideDistance < minDistance[0] &&
-                minOtherA - Collisions.COLLISION_EPSILON < otherDistanceA &&
-                otherDistanceA < maxOtherA + Collisions.COLLISION_EPSILON &&
-                minOtherB - Collisions.COLLISION_EPSILON < otherDistanceB &&
-                otherDistanceB < maxOtherB + Collisions.COLLISION_EPSILON) {
+        if (sideDistance > 0.0 && sideDistance < minDistance[0]
+                && minOtherA - Collisions.COLLISION_EPSILON < otherDistanceA
+                && otherDistanceA < maxOtherA + Collisions.COLLISION_EPSILON
+                && minOtherB - Collisions.COLLISION_EPSILON < otherDistanceB
+                && otherDistanceB < maxOtherB + Collisions.COLLISION_EPSILON) {
             minDistance[0] = sideDistance;
             return hitSide;
         } else {

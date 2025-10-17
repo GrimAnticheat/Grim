@@ -17,9 +17,9 @@ public class VectorPrecisionConverter {
 
     public static Vector3d convert(ClientVersion version, Vector3d vector) {
         if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9) && SERVER_VERSION.isOlderThanOrEquals(ServerVersion.V_1_21_8)) {
-            vector = VectorPrecisionConverter.legacyToLp(vector);
+            return VectorPrecisionConverter.legacyToLp(vector);
         } else if (version.isOlderThanOrEquals(ClientVersion.V_1_21_7) && SERVER_VERSION.isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
-            vector = VectorPrecisionConverter.lpToLegacy(vector);
+            return VectorPrecisionConverter.lpToLegacy(vector);
         }
 
         return vector;
