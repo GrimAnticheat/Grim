@@ -268,6 +268,7 @@ public class GrimPlayer implements GrimUser {
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
     public boolean wasLastPredictionCompleteChecked;
+    public boolean hasSentViaProxyPacket;
     public boolean isJumping;
     public boolean lastJumping;
 

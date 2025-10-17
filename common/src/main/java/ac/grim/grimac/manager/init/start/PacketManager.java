@@ -22,6 +22,7 @@ public class PacketManager implements StartableInitable {
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSelfMetadataListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketServerTeleport());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerCooldown());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPluginMessage());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerRespawn());
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
