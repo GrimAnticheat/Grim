@@ -599,6 +599,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
         }
 
+        if (event.getPacketType() == PacketType.Play.Server.BUNDLE) {
+            player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
+        }
+
         player.checkManager.onPacketSend(event);
     }
 

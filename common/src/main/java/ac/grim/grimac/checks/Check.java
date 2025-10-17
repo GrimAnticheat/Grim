@@ -170,8 +170,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public static boolean isAsync(PacketTypeCommon packetType) {
-        return packetType == PacketType.Play.Client.CHUNK_BATCH_ACK
-                || packetType == PacketType.Play.Client.KEEP_ALIVE;
+        return packetType == PacketType.Play.Client.KEEP_ALIVE;
     }
 
     public boolean isUpdate(PacketTypeCommon packetType) {
