@@ -318,7 +318,7 @@ public enum BlockPlaceResult {
         WrappedBlockState typePlacingOn = place.getDirectionalState(primaryDir.getOppositeFace()); // Block we are placing on
 
         // Check to see if we can place on the block or there is dripstone on the block that we are placing on also pointing upwards
-        boolean primarySameType = typePlacingOn.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && typePlacingOn.getVerticalDirection().name().equals(primaryDir.name());
+        boolean primarySameType = typePlacingOn.hasProperty(StateValue.VERTICAL_DIRECTION) && typePlacingOn.getVerticalDirection().name().equals(primaryDir.name());
         boolean primaryValid = place.isFullFace(primaryDir.getOppositeFace()) || primarySameType;
 
         // Try to use the opposite direction, just to see if switching directions makes it valid.
@@ -326,7 +326,7 @@ public enum BlockPlaceResult {
             BlockFace secondaryDirection = primaryDir.getOppositeFace(); // See if placing it DOWNWARDS is valid
             WrappedBlockState secondaryType = place.getDirectionalState(secondaryDirection.getOppositeFace()); // Get the block above us
             // Check if the dripstone above us is also facing downwards
-            boolean secondarySameType = secondaryType.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && secondaryType.getVerticalDirection().name().equals(primaryDir.name());
+            boolean secondarySameType = secondaryType.hasProperty(StateValue.VERTICAL_DIRECTION) && secondaryType.getVerticalDirection().name().equals(primaryDir.name());
 
             primaryDir = secondaryDirection;
             // Update block survivability

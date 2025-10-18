@@ -26,9 +26,9 @@ on:
                 type: boolean
         secrets:
             MODRINTH_ID:
-                required: true
+                required: false
             MODRINTH_TOKEN:
-                required: true
+                required: false
             BUILD_UPDATE_TOKEN:
                 required: true
             BUILD_UPDATE_URL:
@@ -42,7 +42,10 @@ jobs:
             packages: write
 
         env:
+            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             GRIM_MAIN_BRANCH: ${{ github.event.repository.default_branch }}
+            BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
 
         steps:
             - name: Checkout repository with full history
@@ -80,6 +83,9 @@ jobs:
             - name: Compute version and Build with Gradle
               id: build_with_version
               run: |
+                  # If any command in a pipeline fails, treat the pipeline as failed.
+                  set -o pipefail
+                  
                   BUILD_ARGS="build"
                   if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS -Prelease=true"
@@ -139,7 +145,7 @@ jobs:
               uses: orhun/git-cliff-action@v4
               with:
                   config: cliff.toml
-                  args: --verbose
+                  args: --verbose ${{ github.event.before }}..${{ github.event.after }}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
 
@@ -174,7 +180,7 @@ jobs:
             #  Publish to Modrinth & API
             #------------------------------------------------------------------
             - name: Publish Bukkit to Modrinth
-              if: ${{ inputs.publish-artifacts == true }}
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
                   modrinth-id:    ${{ secrets.MODRINTH_ID }}
@@ -195,7 +201,7 @@ jobs:
                   game-versions: '>=1.7 <=1.21.8'
 
             - name: Publish Fabric to Modrinth
-              if: ${{ inputs.publish-artifacts == true }}
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
                   modrinth-id:    ${{ secrets.MODRINTH_ID }}
@@ -213,7 +219,7 @@ jobs:
                   dependencies: 'fabric-api'
 
             - name: Publish to API
-              if: ${{ inputs.publish-artifacts == true }}
+              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}
               run: |
                   curl -X POST \
                     -H "Content-Type: application/json" \

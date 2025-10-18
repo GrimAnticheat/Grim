@@ -33,7 +33,7 @@ public class MultiActionsE extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE) {
+        if (!isAsync(event.getPacketType())) {
             dropping = false;
         }
 

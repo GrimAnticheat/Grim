@@ -4,6 +4,8 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.reflection.ViaVersionUtil;
+import ac.grim.grimac.utils.via.ViaHooks;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -11,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
+
 
 // this can false from click events, but I doubt this would actually
 // happen unless they're trying to flag, or if the server is set up badly
@@ -24,11 +27,8 @@ public class ChatB extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
             String message = new WrapperPlayClientChatMessage(event).getMessage();
-            if (message.isEmpty() || !message.trim().equals(message) || message.startsWith("/") && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
-                if (flagAndAlert("message=" + message)) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+            if (checkChatMessage(message)) {
+                event.setCancelled(true);
             }
         }
 
@@ -51,6 +51,23 @@ public class ChatB extends Check implements PacketCheck {
                     player.onPacketCancel();
                 }
             }
+        }
+    }
+
+    // returns whether the packet should be cancelled
+    public boolean checkChatMessage(String message) {
+        if (message.isEmpty() || !message.trim().equals(message) || message.startsWith("/") && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
+            if (flagAndAlert("message=" + message) && shouldModifyPackets()) {
+                player.onPacketCancel();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static {
+        if (ViaVersionUtil.isAvailable && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_11)) {
+            ViaHooks.injectVia();
         }
     }
 }

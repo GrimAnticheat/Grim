@@ -29,6 +29,7 @@ public class PacketStateData {
     public boolean lastServerTransWasValid = false;
     @Getter
     private int slowedByUsingItemSlot = Integer.MIN_VALUE;
+    public boolean sendingBundlePacket;
 
     // If true, the player's rotation was forced to the horse's rotation only on 1.13-
     public boolean horseInteractCausedForcedRotation = false;

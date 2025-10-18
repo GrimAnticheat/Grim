@@ -105,6 +105,15 @@ public class Embed implements JsonSerializable {
         return fields(newFields);
     }
 
+    public @NotNull Embed footer(@Nullable EmbedFooter footer) {
+        if (footer == null || footer.icon() == null && footer.text().isBlank()) {
+            this.footer = null;
+        } else {
+            this.footer = footer;
+        }
+        return this;
+    }
+
     public @NotNull JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("description", description());

@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
     grim.`base-conventions`
     grim.`shadow-conventions`
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("de.eldoria.plugin-yml.bukkit") version "0.8.0"
     id("xyz.jpenilla.run-paper") version "3.0.0-beta.1"
 }
 
@@ -13,25 +13,69 @@ repositories {
     if (BuildConfig.mavenLocalOverride) {
         mavenLocal()
     }
-    maven {
-        name = "papermc"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
+
+    // For paper-api
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "papermc"
+                url = uri("https://repo.papermc.io/repository/maven-public/")
+            }
+        }
+        filter {
+            includeGroup("io.papermc.paper")
+            includeGroup("net.md-5")
+        }
     }
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://repo.grim.ac/snapshots") { // Grim API
-        content {
+
+    exclusiveContent {
+        forRepository {
+            maven("https://libraries.minecraft.net") { // Brigadier
+                mavenContent { releasesOnly() }
+            }
+        }
+        filter {
+            includeModule("com.mojang", "brigadier")
+        }
+    }
+
+    // For placeholderapi
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+        }
+        filter {
+            includeGroup("me.clip")
+        }
+    }
+
+    // For GrimAPI and PacketEvents (transitive from :common, direct in :bukkit)
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.grim.ac/snapshots")
+        }
+        filter {
             includeGroup("ac.grim.grimac")
             includeGroup("com.github.retrooper")
         }
     }
-    maven("https://repo.viaversion.com") // ViaVersion
-    maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
-    maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-    maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // placeholderapi
-    mavenCentral() // FastUtil
+
+    // For Configuralize (transitive from :common)
+    exclusiveContent {
+        forRepository {
+            maven("https://nexus.scarsz.me/content/repositories/releases") {
+                mavenContent { releasesOnly() }
+            }
+        }
+        filter {
+            includeGroup("github.scarsz")
+        }
+    }
+
+    // Maven Central Fallback
+    mavenCentral()
 }
+
 
 dependencies {
     compileOnly(libs.paper.api)

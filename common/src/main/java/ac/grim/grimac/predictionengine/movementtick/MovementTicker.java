@@ -226,7 +226,7 @@ public class MovementTicker {
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
             Vector3d to = new Vector3d(player.x, player.y, player.z);
 
-            player.addMovementThisTick(new GrimPlayer.Movement(from, to, true));
+            player.addMovementThisTick(new GrimPlayer.Movement(from, to, new Vector3d(inputVel.getX(), inputVel.getY(), inputVel.getZ())));
         }
 
         // This is where vanilla moves the bounding box and sets it
@@ -481,44 +481,7 @@ public class MovementTicker {
             }
         }
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
-            // Reset stuck speed so it can update
-            if (player.stuckSpeedMultiplier.getX() < 0.99) {
-                player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
-            }
-
-            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
-            player.finalMovementsThisTick.clear();
-
-            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
-            Vector3d to = new Vector3d(player.x, player.y, player.z);
-
-            ClientVersion clientVersion = player.getClientVersion();
-            if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
-                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
-            } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-                player.finalMovementsThisTick.addAll(player.movementThisTick);
-                player.movementThisTick.clear();
-
-                if (player.finalMovementsThisTick.isEmpty()) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to, false));
-                } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
-                    player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to, false));
-                }
-            }
-
-            Collisions.applyEffectsFromBlocks(player);
-
-            if (player.stuckSpeedMultiplier.getX() < 0.9) {
-                // Reset fall distance if stuck in block
-                player.fallDistance = 0;
-            }
-
-            // Flying players are not affected by cobwebs/sweet berry bushes
-            if (player.isFlying) {
-                player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
-            }
-        }
+        Collisions.applyEffectsFromBlocks(player);
     }
 
     public boolean canStandOnLava() {

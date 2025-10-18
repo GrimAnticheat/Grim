@@ -437,9 +437,21 @@ public class PredictionEngine {
             minimumMovement = 0.005D;
         }
 
-        for (VectorData vector : velocities) {
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle()) {
+        boolean stupidVectors = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle();
+        boolean stuckOnEdge = player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(2);
+        Set<VectorData> vectors = stupidVectors && stuckOnEdge ? new HashSet<>(velocities) : velocities;
+        for (VectorData vector : vectors) {
+            if (stupidVectors) {
                 if (Collisions.getHorizontalDistanceSqr(vector.vector) < 9.0E-6) {
+                    if (stuckOnEdge) {
+                        VectorData edgeVector = vector.returnNewModified(vector.vector.clone(), vector.vectorType);
+                        if (Math.abs(edgeVector.vector.getY()) < minimumMovement) {
+                            edgeVector.vector.setY(0D);
+                        }
+
+                        velocities.add(edgeVector);
+                    }
+
                     vector.vector.setX(0D);
                     vector.vector.setZ(0D);
                 }
@@ -460,6 +472,7 @@ public class PredictionEngine {
     }
 
     public void addExplosionToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        if (player.likelyExplosions == null && player.firstBreadExplosion == null) return;
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             if (player.likelyExplosions != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));

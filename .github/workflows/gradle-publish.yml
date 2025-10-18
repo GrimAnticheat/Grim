@@ -31,8 +31,6 @@ on:
             - '**.toml'
 jobs:
     call-build-workflow:
-        # Only publish on pushes to the main repo, not on forks
-        if: github.event_name != 'pull_request' && github.repository == 'GrimAnticheat/Grim'
         uses: ./.github/workflows/build-and-publish.yml
         with:
             is-release-build: false

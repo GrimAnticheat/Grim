@@ -378,7 +378,7 @@ public enum CollisionData implements CollisionFactory {
                 new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 7.0D, 11.0D),
                 new HexCollisionBox(6.0D, 7.0D, 6.0D, 10.0D, 9.0D, 10.0D));
 
-    }, StateTypes.LANTERN, StateTypes.SOUL_LANTERN),
+    }, BlockTags.LANTERNS.getStates().toArray(new StateType[0])),
 
 
     LECTERN((player, version, data, x, y, z) -> {
@@ -516,7 +516,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
-    }, StateTypes.CHAIN),
+    }, StateTypes.CHAIN, StateTypes.IRON_CHAIN),
 
     CHORUS_PLANT(new DynamicChorusPlant(), StateTypes.CHORUS_PLANT),
 
@@ -552,7 +552,7 @@ public enum CollisionData implements CollisionFactory {
 
     STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new StateType[0])),
 
-    CHEST(new DynamicChest(), StateTypes.CHEST, StateTypes.TRAPPED_CHEST),
+    CHEST(new DynamicChest(), Materials.getChests().toArray(new StateType[0])),
 
     ENDER_CHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
             0.9375F, 0.875F, 0.9375F, false),
@@ -675,7 +675,7 @@ public enum CollisionData implements CollisionFactory {
             0.625, 0.625, 0.625, false),
             StateTypes.STRUCTURE_VOID),
 
-    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
+    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), Materials.getRods().toArray(new StateType[0])),
 
     CAULDRON((player, version, data, x, y, z) -> {
         if (version.isNewerThan(ClientVersion.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
@@ -813,7 +813,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.TRIPWIRE_HOOK),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
-            StateTypes.TORCH, StateTypes.REDSTONE_TORCH),
+            StateTypes.TORCH, StateTypes.REDSTONE_TORCH, StateTypes.COPPER_TORCH),
 
     WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
@@ -822,7 +822,7 @@ public enum CollisionData implements CollisionFactory {
         case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
         // 1.13 separates wall and normal torches, 1.12 does not
         default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
+    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH, StateTypes.COPPER_WALL_TORCH),
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {
