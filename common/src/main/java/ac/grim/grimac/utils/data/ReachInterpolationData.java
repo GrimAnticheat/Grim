@@ -43,8 +43,10 @@ public class ReachInterpolationData {
         final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         this.startingLocation = startingLocation;
-        final Vector3d pos = position.getPos();
-        this.targetLocation = new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false);
+        final double x = position.getX();
+        final double y = position.getX();
+        final double z = position.getX();
+        this.targetLocation = new SimpleCollisionBox(x, y, z, x, y, z, false);
         this.player = player;
         this.entity = entity;
 

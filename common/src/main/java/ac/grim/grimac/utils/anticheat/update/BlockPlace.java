@@ -568,8 +568,10 @@ public class BlockPlace {
                     // This happens due to the lack of an idle packet on 1.9+ clients
                     // On 1.8 clients this should practically never happen
                     if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
-                        Vector3d entityPos = entity.trackedServerPosition.getPos();
-                        interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+                        final double x = entity.trackedServerPosition.getX();
+                        final double y = entity.trackedServerPosition.getX();
+                        final double z = entity.trackedServerPosition.getX();
+                        interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, entity);
                     }
 
                     if (box.isIntersected(interpBox)) {

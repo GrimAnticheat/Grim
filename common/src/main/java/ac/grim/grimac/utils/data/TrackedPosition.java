@@ -11,8 +11,9 @@ public final class TrackedPosition {
     private static final double LEGACY_COORDINATE_SCALE = 32.0;
 
     private final double scale;
-    @Setter
-    private Vector3d pos = new Vector3d();
+    private double x;
+    private double y;
+    private double z;
 
     public TrackedPosition() {
 //        this.scale = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? MODERN_COORDINATE_SCALE : LEGACY_COORDINATE_SCALE;
@@ -35,23 +36,38 @@ public final class TrackedPosition {
         return value / scale;
     }
 
-    // Method since 1.16.
-    public Vector3d withDelta(long x, long y, long z) {
-        if (x == 0L && y == 0L && z == 0L) {
-            return this.pos;
-        }
-
-        double d = x == 0L ? this.pos.x : unpack(pack(this.pos.x, scale) + x);
-        double e = y == 0L ? this.pos.y : unpack(pack(this.pos.y, scale) + y);
-        double f = z == 0L ? this.pos.z : unpack(pack(this.pos.z, scale) + z);
-        return new Vector3d(d, e, f);
+    // Methods since 1.16.
+    public double withDeltaX(long x) {
+        if (x == 0L) return this.x;
+        return unpack(pack(this.x, scale) + x);
     }
 
-    // In 1.16-, this was different.
-    public Vector3d withDeltaLegacy(double x, double y, double z) {
-        double d = unpackLegacy(packLegacy(this.pos.x, scale) + x);
-        double e = unpackLegacy(packLegacy(this.pos.y, scale) + y);
-        double f = unpackLegacy(packLegacy(this.pos.z, scale) + z);
-        return new Vector3d(d, e, f);
+    public double withDeltaY(long y) {
+        if (y == 0L) return this.y;
+        return unpack(pack(this.y, scale) + y);
+    }
+
+    public double withDeltaZ(long z) {
+        if (z == 0L) return this.z;
+        return unpack(pack(this.z, scale) + z);
+    }
+
+    // In 1.16-, these were different.
+    public double withDeltaLegacyX(double x) {
+        return unpackLegacy(packLegacy(this.x, scale) + x);
+    }
+
+    public double withDeltaLegacyY(double y) {
+        return unpackLegacy(packLegacy(this.y, scale) + y);
+    }
+
+    public double withDeltaLegacyZ(double z) {
+        return unpackLegacy(packLegacy(this.z, scale) + z);
+    }
+
+    public void setPos(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 }
