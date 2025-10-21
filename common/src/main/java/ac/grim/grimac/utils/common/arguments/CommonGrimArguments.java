@@ -17,4 +17,16 @@ public class CommonGrimArguments {
     public final static SystemArgument<String> PASTE_URL = FACTORY.create(string("PasteUrl", "https://paste.grim.ac/"));
     public final static SystemArgument<Platform> PLATFORM_OVERRIDE = FACTORY.create(platform("PlatformOverride"));
 
+    /**
+     * Enables "Fast Bypass" mode for chat messages sent by GrimAC.
+     * <p>
+     * <b>BENEFIT:</b> Messages are sent directly as packets, significantly improving
+     * performance and reducing server overhead especially when lots of alerts are being sent.
+     * <p>
+     * <b>TRADE-OFF:</b> This completely bypasses the platform's event system (e.g., Bukkit's chat events).
+     * Other plugins will NOT be able to see, format, or cancel these messages.
+     * <p>
+     * This setting is opt-in (default: false) and requires a server restart to change.
+     */
+    public final static SystemArgument<Boolean> USE_CHAT_FAST_BYPASS = FACTORY.create(string("ChatFastBypass", true));
 }

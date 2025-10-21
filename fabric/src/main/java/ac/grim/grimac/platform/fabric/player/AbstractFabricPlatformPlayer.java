@@ -7,6 +7,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
@@ -29,8 +30,12 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         super(player);
         this.fabricPlayer = player;
         this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(player);
-        Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(fabricPlayer.getUuid());
-        this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
+            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(fabricPlayer.getUuid());
+            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        } else {
+            this.user = null;
+        }
     }
 
     @Override
@@ -50,7 +55,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void sendMessage(String message) {
-        if (user != null) {
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
             fabricPlayer.sendMessage(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(message), false);
@@ -59,7 +64,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void sendMessage(Component message) {
-        if (user != null) {
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
             fabricPlayer.sendMessage(GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);

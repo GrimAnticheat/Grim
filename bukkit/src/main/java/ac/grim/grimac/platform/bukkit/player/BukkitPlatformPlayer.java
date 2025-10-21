@@ -9,6 +9,7 @@ import ac.grim.grimac.platform.bukkit.entity.BukkitGrimEntity;
 import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -43,8 +44,12 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
         super(bukkitPlayer);
         this.bukkitPlayer = bukkitPlayer;
         this.inventory = new BukkitPlatformInventory(bukkitPlayer);
-        Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
-        this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
+            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
+            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        } else {
+            this.user = null;
+        }
     }
 
     @Override
@@ -74,7 +79,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void sendMessage(String message) {
-        if (user != null) {
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
             bukkitPlayer.sendMessage(message);
@@ -83,7 +88,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void sendMessage(Component message) {
-        if (user != null) {
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
             audiences.player(bukkitPlayer).sendMessage(message);
