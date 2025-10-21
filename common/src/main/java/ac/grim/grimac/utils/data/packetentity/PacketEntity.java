@@ -80,7 +80,7 @@ public class PacketEntity extends TypedPacketEntity {
         final double xPos = trackedServerPosition.getX();
         final double yPos = trackedServerPosition.getY();
         final double zPos = trackedServerPosition.getZ();
-        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(xPos, yPos, zPos, xPos, yPos, zPos, false), trackedServerPosition, this);
+        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(xPos, yPos, zPos, xPos, yPos, zPos, false), xPos, yPos, zPos, this);
     }
 
     protected void trackAttribute(ValuedAttribute valuedAttribute) {
@@ -155,7 +155,7 @@ public class PacketEntity extends TypedPacketEntity {
             }
         }
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition.getX(), trackedServerPosition.getY(), trackedServerPosition.getZ(), this);
 
         // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
         // https://bugs.mojang.com/browse/MC-255263

@@ -39,13 +39,10 @@ public class ReachInterpolationData {
     private boolean expandNonRelative = false;
     private int cancelledLerpInterpolationStepsLowBound = Integer.MAX_VALUE;
 
-    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
+    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, final double x, final double y, final double z, PacketEntity entity) {
         final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         this.startingLocation = startingLocation;
-        final double x = position.getX();
-        final double y = position.getX();
-        final double z = position.getX();
         this.targetLocation = new SimpleCollisionBox(x, y, z, x, y, z, false);
         this.player = player;
         this.entity = entity;
