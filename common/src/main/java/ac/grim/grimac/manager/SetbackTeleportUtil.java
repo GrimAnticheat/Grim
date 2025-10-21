@@ -82,12 +82,12 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             // The player needs to now wait for their vehicle to go into the right place before getting back in
             if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 10;
             // Teleport, let velocity be reset
-            lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
+            lastKnownGoodPosition = new SetbackPosWithVector(player.x, player.y, player.z, afterTickFriction);
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             cheatVehicleInterpolationDelay--;
             // No simulation... we can do that later. We just need to know the valid position.
             // As we didn't setback here, the new position is known to be safe!
-            lastKnownGoodPosition = new SetbackPosWithVector(new Vector3d(player.x, player.y, player.z), afterTickFriction);
+            lastKnownGoodPosition = new SetbackPosWithVector(player.x, player.y, player.z, afterTickFriction);
         }
 
         if (requiredSetBack != null) requiredSetBack.tick();
@@ -172,24 +172,26 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             clientVel.add(futureExplosion.vector);
         }
 
-        Vector3d position = lastKnownGoodPosition.pos;
+        double x = lastKnownGoodPosition.posX;
+        double y = lastKnownGoodPosition.posY;
+        double z = lastKnownGoodPosition.posZ;
 
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, position.getX(), position.getY(), position.getZ());
+        player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, x, y, z);
 
         // Mini prediction engine - simulate collisions
         if (simulateNextTickPosition) {
             Vector3dm collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
 
-            position = position.withX(position.getX() + collide.getX());
-            position = position.withY(position.getY() + collide.getY());
+            x += collide.getX();
+            y += collide.getY();
             // TODO: Is this even needed? Can't reproduce any phasing on vanilla 1.8 when being setback.
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                 // 1.8 players need the collision epsilon to not phase into blocks when being setback
                 // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
-                position = position.withY(position.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+                y += SimpleCollisionBox.COLLISION_EPSILON;
             }
-            position = position.withZ(position.getZ() + collide.getZ());
+            z += collide.getZ();
 
             if (clientVel.getX() != collide.getX()) clientVel.setX(0);
             if (clientVel.getY() != collide.getY()) clientVel.setY(0);
@@ -208,13 +210,15 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
+        SetBackData data = new SetBackData(new TeleportData(x, y, z, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
 
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;
-        Vector3d position = data.getTeleportData().getLocation();
+        double positionX = data.getTeleportData().getLocationX();
+        double positionY = data.getTeleportData().getLocationY();
+        double positionZ = data.getTeleportData().getLocationZ();
 
         try {
             // Player is in a vehicle
@@ -230,7 +234,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
                     // Stop the player from being able to teleport vehicles and simply re-enter them to continue,
                     // therefore, teleport the entity
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, position, player.yaw % 360, 0, false));
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(positionX, positionY, positionZ), player.yaw % 360, 0, false));
                     player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
 
                     // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
@@ -245,7 +249,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 }
             }
 
-            double y = position.getY();
+            double y = positionY;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
@@ -260,11 +264,11 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.yaw % 360, player.pitch % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
+            addSentTeleport(new Location(null, positionX, y, positionZ, player.yaw % 360, player.pitch % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
-            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
+            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(positionX, positionY, positionZ, 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
             player.sendTransaction();
 
             if (data.getVelocity() != null && data.getVelocity().lengthSquared() > 0) {
@@ -288,9 +292,9 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
         TeleportData teleportPos;
         while ((teleportPos = pendingTeleports.peek()) != null) {
-            double trueTeleportX = (teleportPos.isRelativeX() ? player.x : 0) + teleportPos.getLocation().getX();
-            double trueTeleportY = (teleportPos.isRelativeY() ? player.y : 0) + teleportPos.getLocation().getY();
-            double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
+            double trueTeleportX = (teleportPos.isRelativeX() ? player.x : 0) + teleportPos.getLocationX();
+            double trueTeleportY = (teleportPos.isRelativeY() ? player.y : 0) + teleportPos.getLocationY();
+            double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocationZ();
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
             Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
@@ -397,35 +401,39 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     }
 
     public void addSentTeleport(Location position, Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
-        TeleportData data = new TeleportData(new Vector3d(position.getX(), position.getY(), position.getZ()), velocity, flags, transaction, teleportId);
+        TeleportData data = new TeleportData(position.getX(), position.getY(), position.getZ(), velocity, flags, transaction, teleportId);
         pendingTeleports.add(data);
 
-        Vector3d safePosition = new Vector3d(position.getX(), position.getY(), position.getZ());
+        double safePositionX = position.getX();
+        double safePositionY = position.getY();
+        double safePositionZ = position.getZ();
 
         // We must convert relative teleports to avoid them becoming client controlled in the case of setback
         if (flags.has(RelativeFlag.X)) {
-            safePosition = safePosition.withX(safePosition.getX() + lastKnownGoodPosition.pos.getX());
+            safePositionX += lastKnownGoodPosition.posX;
         }
 
         if (flags.has(RelativeFlag.Y)) {
-            safePosition = safePosition.withY(safePosition.getY() + lastKnownGoodPosition.pos.getY());
+            safePositionY += lastKnownGoodPosition.posY;
         }
 
         if (flags.has(RelativeFlag.Z)) {
-            safePosition = safePosition.withZ(safePosition.getZ() + lastKnownGoodPosition.pos.getZ());
+            safePositionZ += lastKnownGoodPosition.posZ;
         }
 
-        data = new TeleportData(safePosition, velocity, new RelativeFlag(0b11000), transaction, teleportId);
+        data = new TeleportData(safePositionX, safePositionY, safePositionZ, velocity, new RelativeFlag(0b11000), transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.yaw, player.pitch, null, false, plugin);
 
-        this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, new Vector3dm());
+        this.lastKnownGoodPosition = new SetbackPosWithVector(safePositionX, safePositionY, safePositionZ, new Vector3dm());
     }
 
     @AllArgsConstructor
     @Getter
     @Setter
     public static class SetbackPosWithVector {
-        private final Vector3d pos;
+        private final double posX;
+        private final double posY;
+        private final double posZ;
         private Vector3dm vector;
     }
 }

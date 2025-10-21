@@ -12,7 +12,9 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @Getter
 public class TeleportData {
-    private final Vector3d location;
+    private final double locationX;
+    private final double locationY;
+    private final double locationZ;
     private final Vector3d velocity;
     private final RelativeFlag flags;
     @Setter

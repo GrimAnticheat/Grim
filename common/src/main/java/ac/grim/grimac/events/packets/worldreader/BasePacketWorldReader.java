@@ -121,7 +121,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             if (teleports.getFlags().getMask() != 0) {
                 continue; // Worse that will happen is people will get an extra setback...
             }
-            shouldPostTrans = shouldPostTrans || (Math.abs(teleports.getLocation().getX() - chunkCenterX) < 16 && Math.abs(teleports.getLocation().getZ() - chunkCenterZ) < 16);
+            shouldPostTrans = shouldPostTrans || (Math.abs(teleports.getLocationX() - chunkCenterX) < 16 && Math.abs(teleports.getLocationZ() - chunkCenterZ) < 16);
         }
 
         if (shouldPostTrans) {
