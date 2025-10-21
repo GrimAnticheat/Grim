@@ -1,6 +1,5 @@
 package ac.grim.grimac.platform.bukkit.player;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
@@ -11,6 +10,7 @@ import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.utils.math.Location;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -25,24 +25,26 @@ import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPlayer {
+
+    private static final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
 
     @Getter
     private final Player bukkitPlayer;
     @Getter
     private final PlatformInventory inventory;
 
-    private @NotNull final User user;
+    private final @Nullable User user;
 
     public BukkitPlatformPlayer(Player bukkitPlayer) {
         super(bukkitPlayer);
         this.bukkitPlayer = bukkitPlayer;
         this.inventory = new BukkitPlatformInventory(bukkitPlayer);
-        this.user = Objects.requireNonNull(GrimAPI.INSTANCE.getPlayerDataManager().getUser(bukkitPlayer.getUniqueId()));
+        Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
+        this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
     }
 
     @Override
@@ -72,12 +74,20 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void sendMessage(String message) {
-        user.sendMessage(message);
+        if (user != null) {
+            user.sendMessage(message);
+        } else {
+            bukkitPlayer.sendMessage(message);
+        }
     }
 
     @Override
     public void sendMessage(Component message) {
-        user.sendMessage(message);
+        if (user != null) {
+            user.sendMessage(message);
+        } else {
+            audiences.player(bukkitPlayer).sendMessage(message);
+        }
     }
 
     @Override

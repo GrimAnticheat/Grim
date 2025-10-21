@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerDataManager {
     public final Collection<User> exemptUsers = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<UUID, User> allUsers = new ConcurrentHashMap<>();
 
     @Nullable
     public GrimPlayer getPlayer(final @NotNull UUID uuid) {
@@ -35,11 +34,6 @@ public class PlayerDataManager {
         if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer())
             return null;
         return player;
-    }
-
-    @Nullable
-    public User getUser(final @NotNull UUID uuid) {
-        return allUsers.get(uuid);
     }
 
     public boolean shouldCheck(@NotNull User user) {
@@ -77,7 +71,6 @@ public class PlayerDataManager {
             playerDataMap.put(user, player);
             GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
         }
-        allUsers.put(user.getUUID(), user);
     }
 
     public GrimPlayer remove(final @NotNull User user) {
@@ -88,7 +81,6 @@ public class PlayerDataManager {
         GrimPlayer grimPlayer = remove(user);
         if (grimPlayer != null) GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
         exemptUsers.remove(user);
-        allUsers.remove(user.getUUID());
 
         UUID uuid = user.getProfile().getUUID();
 

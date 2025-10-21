@@ -64,8 +64,8 @@ public class MessageUtil {
         // If the string contains no '%' characters, it's impossible for it to have placeholders.
         // indexOf() is a JVM intrinsic and is magnitudes faster than even creating a Matcher.
         if (string.indexOf('%') == -1) {
-            // We still need to call the final PAPI replacer, but we've skipped all our own work.
-            return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string);
+            // Since there are no % signs we can skip calling papi or our own replacement code
+            return string;
         }
 
         final Matcher matcher = UNIFIED_PLACEHOLDER_PATTERN.matcher(string);
