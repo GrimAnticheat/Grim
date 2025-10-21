@@ -218,21 +218,27 @@ public class Reach extends Check implements PacketCheck {
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
+
+        final double eyePosX = from.getX();
+        final double eyePosZ = from.getZ();
+
         for (Vector3dm lookVec : possibleLookDirs) {
             for (double eye : possibleEyeHeights) {
-                eyePos.setY(from.getY() + eye);
-                Vector3dm endReachPos = eyePos.clone().add(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance);
+                final double eyePosY = from.getY() + eye;
 
-                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos.getX(), eyePos.getY(), eyePos.getZ(), endReachPos.getX(), endReachPos.getY(), endReachPos.getZ()).first();
+                final double endX = eyePosX + lookVec.getX() * distance;
+                final double endY = eyePosY + lookVec.getY() * distance;
+                final double endZ = eyePosZ + lookVec.getZ() * distance;
 
-                if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePosX, eyePosY, eyePosZ, endX, endY, endZ).first();
+
+                if (ReachUtils.isVecInside(targetBox, eyePosX, eyePosY, eyePosZ)) {
                     minDistance = 0;
                     break;
                 }
 
                 if (intercept != null) {
-                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                    minDistance = Math.min(intercept.distance(eyePosX, eyePosY, eyePosZ), minDistance);
                 }
             }
         }

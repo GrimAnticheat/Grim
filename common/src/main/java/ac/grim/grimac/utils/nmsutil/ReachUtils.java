@@ -180,8 +180,8 @@ public class ReachUtils {
         }
     }
 
-    public static boolean isVecInside(@NotNull SimpleCollisionBox self, @NotNull Vector3dm vec) {
-        return vec.getX() > self.minX && vec.getX() < self.maxX && (vec.getY() > self.minY && vec.getY() < self.maxY && vec.getZ() > self.minZ && vec.getZ() < self.maxZ);
+    public static boolean isVecInside(@NotNull SimpleCollisionBox self, double x, double y, double z) {
+        return x > self.minX && x < self.maxX && y > self.minY && y < self.maxY && z > self.minZ && z < self.maxZ;
     }
 
     public static double getMinReachToBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox targetBox) {
