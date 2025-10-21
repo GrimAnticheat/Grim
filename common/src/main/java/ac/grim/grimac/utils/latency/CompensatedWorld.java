@@ -263,16 +263,18 @@ public class CompensatedWorld {
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
-        Vector3i asVector = new Vector3i(x, y, z);
-        BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
+        long serializedPosition = GrimMath.getSerializedPosition(x, y, z);
+        BlockPrediction prediction = originalServerBlocks.get(serializedPosition);
 
         if (isCurrentlyPredicting) {
+            Vector3i asVector = new Vector3i(x , y, z);
             if (prediction == null) {
-                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                originalServerBlocks.put(serializedPosition, new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(x, y, z).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                currentlyChangedBlocks.add(asVector);
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
+                currentlyChangedBlocks.add(asVector);
             }
-            currentlyChangedBlocks.add(asVector);
         }
 
         if (!isCurrentlyPredicting && prediction != null) {
