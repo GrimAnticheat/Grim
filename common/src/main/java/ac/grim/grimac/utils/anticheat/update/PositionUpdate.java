@@ -11,7 +11,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public final class PositionUpdate {
-    private final Vector3d from, to;
+    private final double fromX;
+    private final double fromY;
+    private final double fromZ;
+    private final double toX;
+    private final double toY;
+    private final double toZ;
     private final boolean onGround;
     private final SetBackData setback;
     private final TeleportData teleportData;

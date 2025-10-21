@@ -483,7 +483,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.yaw = move.getYaw();
             player.pitch = move.getPitch();
 
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp.getX(), clamp.getY(), clamp.getZ(),
+                    position.getX(), position.getY(), position.getZ(), move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
@@ -724,9 +725,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (hasPosition) {
-            Vector3d position = new Vector3d(x, y, z);
-            Vector3d clampVector = VectorUtils.clampVector(position);
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
+            Vector3d clampVector = VectorUtils.clampVector(x, y, z);
+            final PositionUpdate update = new PositionUpdate(player.x, player.y, player.z, x, y ,z, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
             // Stupidity doesn't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
