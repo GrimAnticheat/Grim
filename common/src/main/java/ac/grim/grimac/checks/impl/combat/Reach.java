@@ -224,7 +224,7 @@ public class Reach extends Check implements PacketCheck {
                 eyePos.setY(from.getY() + eye);
                 Vector3dm endReachPos = eyePos.clone().add(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance);
 
-                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
+                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos.getX(), eyePos.getY(), eyePos.getZ(), endReachPos.getX(), endReachPos.getY(), endReachPos.getZ()).first();
 
                 if (ReachUtils.isVecInside(targetBox, eyePos)) {
                     minDistance = 0;

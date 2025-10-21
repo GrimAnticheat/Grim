@@ -9,56 +9,53 @@ import lombok.Getter;
 @Getter
 public class Ray implements Cloneable {
 
-    private final Vector3dm origin;
-    private final Vector3dm direction;
+    public final double originX;
+    public final double originY;
+    public final double originZ;
 
-    public Ray(Vector3dm origin, Vector3dm direction) {
-        this.origin = origin;
-        this.direction = direction;
+    public final double dirX;
+    public final double dirY;
+    public final double dirZ;
+
+    public Ray(double originX, double originY, double originZ, double dirX, double dirY, double dirZ) {
+        this.originX = originX;
+        this.originY = originY;
+        this.originZ = originZ;
+        this.dirX = dirX;
+        this.dirY = dirY;
+        this.dirZ = dirZ;
     }
 
     public Ray(GrimPlayer player, double x, double y, double z, float xRot, float yRot) {
-        this.origin = new Vector3dm(x, y, z);
-        this.direction = calculateDirection(player, xRot, yRot);
-    }
+        this.originX = x;
+        this.originY = y;
+        this.originZ = z;
 
-    // Account for FastMath by using player's trig handler
-    // Copied from hawk which probably copied it from NMS
-    public static Vector3dm calculateDirection(GrimPlayer player, float xRot, float yRot) {
-        Vector3dm vector = new Vector3dm();
+        // Account for FastMath by using player's trig handler
+        // Copied from hawk which probably copied it from NMS
         float rotX = (float) Math.toRadians(xRot);
         float rotY = (float) Math.toRadians(yRot);
-        vector.setY(-player.trigHandler.sin(rotY));
+        dirY = -player.trigHandler.sin(rotY);
         double xz = player.trigHandler.cos(rotY);
-        vector.setX(-xz * player.trigHandler.sin(rotX));
-        vector.setZ(xz * player.trigHandler.cos(rotX));
-        return vector;
+        dirX = -xz * player.trigHandler.sin(rotX);
+        dirZ = xz * player.trigHandler.cos(rotX);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public Ray clone() {
-        return new Ray(this.origin.clone(), this.direction.clone());
+        return new Ray(this.originX, this.originY, this.originZ, this.dirX, this.dirY, this.dirZ);
     }
 
     public String toString() {
-        return "origin: " + origin + " direction: " + direction;
+        return "origin: " + this.originX + "," + this.originY + "," + this.originZ + " direction: " + this.dirX + "," + this.dirY + "," + this.dirZ;
     }
 
     public Vector3dm getPointAtDistance(double distance) {
-        Vector3dm dir = new Vector3dm(direction.getX(), direction.getY(), direction.getZ());
-        Vector3dm orig = new Vector3dm(origin.getX(), origin.getY(), origin.getZ());
-        return orig.add(dir.multiply(distance));
-    }
-
-    // https://en.wikipedia.org/wiki/Skew_lines#Nearest_Points
-    public Pair<Vector3dm, Vector3dm> closestPointsBetweenLines(Ray other) {
-        Vector3dm n1 = direction.clone().crossProduct(other.direction.clone().crossProduct(direction));
-        Vector3dm n2 = other.direction.clone().crossProduct(direction.clone().crossProduct(other.direction));
-
-        Vector3dm c1 = origin.clone().add(direction.clone().multiply(other.origin.clone().subtract(origin).dot(n2) / direction.dot(n2)));
-        Vector3dm c2 = other.origin.clone().add(other.direction.clone().multiply(origin.clone().subtract(other.origin).dot(n1) / other.direction.dot(n1)));
-
-        return new Pair<>(c1, c2);
+        return new Vector3dm(
+                this.originX + this.dirX * distance,
+                this.originY + this.dirY * distance,
+                this.originZ + this.dirZ * distance
+        );
     }
 }

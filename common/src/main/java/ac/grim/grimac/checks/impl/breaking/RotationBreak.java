@@ -111,7 +111,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
                 Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                Vector3dm pointAtDistance = trace.getPointAtDistance(distance);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOriginX(), trace.getOriginY(), trace.getOriginZ(), pointAtDistance.getX(), pointAtDistance.getY(), pointAtDistance.getZ());
 
                 if (intercept.first() != null) return true;
             }

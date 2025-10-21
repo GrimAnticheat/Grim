@@ -47,7 +47,8 @@ public class WorldRayTrace {
             BlockFace bestFace = null;
 
             for (SimpleCollisionBox box : boxes) {
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                Vector3dm pointAtDistance = trace.getPointAtDistance(distance);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOriginX(), trace.getOriginY(), trace.getOriginZ(), pointAtDistance.getX(), pointAtDistance.getY(), pointAtDistance.getZ());
                 if (intercept.first() == null) continue; // No intercept
 
                 Vector3dm hitLoc = intercept.first();
@@ -69,7 +70,8 @@ public class WorldRayTrace {
                         : player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
                 SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
 
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                Vector3dm pointAtDistance = trace.getPointAtDistance(distance);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOriginX(), trace.getOriginY(), trace.getOriginZ(), pointAtDistance.getX(), pointAtDistance.getY(), pointAtDistance.getZ());
 
                 if (intercept.first() != null) {
                     return new HitData(vector3i, intercept.first(), intercept.second(), block);

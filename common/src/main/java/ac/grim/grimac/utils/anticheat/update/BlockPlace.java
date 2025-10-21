@@ -643,7 +643,7 @@ public class BlockPlace {
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 3;
         Vector3dm eyePos = new Vector3dm(player.x, player.y + player.getEyeHeight(), player.z);
         Vector3dm endReachPos = eyePos.clone().add(new Vector3dm(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
-        Vector3dm intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
+        Vector3dm intercept = ReachUtils.calculateIntercept(box, eyePos.getX(), eyePos.getY(), eyePos.getZ(), endReachPos.getX(), endReachPos.getY(), endReachPos.getZ()).first();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)
