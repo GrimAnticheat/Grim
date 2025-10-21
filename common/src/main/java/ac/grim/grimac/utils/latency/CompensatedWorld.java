@@ -135,12 +135,13 @@ public class CompensatedWorld {
     private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
-            BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
+            long serializedPosition = GrimMath.getSerializedPosition(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            BlockPrediction predictionData = originalServerBlocks.get(serializedPosition);
 
             // We are the last to care about this prediction, remove it to stop memory leak
             // Block changes are allowed to execute out of order, because it actually doesn't matter
             if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) {
-                originalServerBlocks.remove(vector3i.getSerializedPosition());
+                originalServerBlocks.remove(serializedPosition);
                 handleAck(vector3i, predictionData.getOriginalBlockId(), predictionData.getPlayerPosition());
             }
         }));
@@ -270,11 +271,10 @@ public class CompensatedWorld {
             Vector3i asVector = new Vector3i(x , y, z);
             if (prediction == null) {
                 originalServerBlocks.put(serializedPosition, new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(x, y, z).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
-                currentlyChangedBlocks.add(asVector);
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
-                currentlyChangedBlocks.add(asVector);
             }
+            currentlyChangedBlocks.add(asVector);
         }
 
         if (!isCurrentlyPredicting && prediction != null) {
