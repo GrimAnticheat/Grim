@@ -89,8 +89,8 @@ public class MovementTicker {
         player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
-    private boolean isHorizontalCollisionSoft(Vector3dm collide) {
-        double horizontalLengthSquared = collide.getX() * collide.getX() + collide.getZ() * collide.getZ();
+    private boolean isHorizontalCollisionSoft(double x, double y, double z) {
+        double horizontalLengthSquared = x * x + z * z;
         if (horizontalLengthSquared < 1E-5F) return false;
 
         float xxa = (float) player.predictedVelocity.input.getX();
@@ -102,17 +102,17 @@ public class MovementTicker {
         double g = xxa * cos - zza * sin;
         double h = zza * cos + xxa * sin;
         double i = g * g + h * h;
-        return i >= 1E-5F && Math.acos((g * collide.getX() + h * collide.getZ()) / Math.sqrt(i * horizontalLengthSquared)) < 0.13962634F;
+        return i >= 1E-5F && Math.acos((g * x + h * z) / Math.sqrt(i * horizontalLengthSquared)) < 0.13962634F;
     }
 
-    public void move(Vector3dm inputVel, Vector3dm collide) {
+    public void move(Vector3dm inputVel, double x, double y, double z) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector3dm();
         }
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) {
-            boolean xAxis = !GrimMath.equal(inputVel.getX(), collide.getX());
-            boolean zAxis = !GrimMath.equal(inputVel.getZ(), collide.getZ());
+            boolean xAxis = !GrimMath.equal(inputVel.getX(), x);
+            boolean zAxis = !GrimMath.equal(inputVel.getZ(), z);
 
             if (xAxis) {
                 player.clientVelocity.setX(0);
@@ -123,20 +123,20 @@ public class MovementTicker {
             }
 
             player.horizontalCollision = xAxis || zAxis;
-            player.softHorizontalCollision = player.horizontalCollision && isHorizontalCollisionSoft(collide);
+            player.softHorizontalCollision = player.horizontalCollision && isHorizontalCollisionSoft(x, y, z);
         } else {
-            if (inputVel.getX() != collide.getX()) {
+            if (inputVel.getX() != x) {
                 player.clientVelocity.setX(0);
             }
 
-            if (inputVel.getZ() != collide.getZ()) {
+            if (inputVel.getZ() != z) {
                 player.clientVelocity.setZ(0);
             }
 
-            player.horizontalCollision = inputVel.getX() != collide.getX() || inputVel.getZ() != collide.getZ();
+            player.horizontalCollision = inputVel.getX() != x || inputVel.getZ() != z;
         }
 
-        player.verticalCollision = inputVel.getY() != collide.getY();
+        player.verticalCollision = inputVel.getY() != y;
 
         // Avoid order of collisions being wrong because 0.03 movements
         // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
@@ -145,7 +145,7 @@ public class MovementTicker {
         boolean calculatedOnGround = (player.verticalCollision && inputVel.getY() < 0.0D);
 
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
-        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0 && !player.inVehicle())
+        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && y > -SimpleCollisionBox.COLLISION_EPSILON && y <= 0 && !player.inVehicle())
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
@@ -177,9 +177,9 @@ public class MovementTicker {
 
         if (player.onGround) {
             player.fallDistance = 0;
-        } else if (collide.getY() < 0) {
-            player.fallDistance = (player.fallDistance) - collide.getY();
-            player.vehicleData.lastYd = collide.getY();
+        } else if (y < 0) {
+            player.fallDistance = (player.fallDistance) - y;
+            player.vehicleData.lastYd = y;
         }
 
         // Striders call the method for inside blocks AGAIN!
@@ -187,11 +187,11 @@ public class MovementTicker {
             Collisions.handleInsideBlocks(player);
         }
 
-        player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, new Vector3d(collide.getX(), collide.getY(), collide.getZ()), player.boundingBox, player.onGround);
+        player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, new Vector3d(x, y, z), player.boundingBox, player.onGround);
         StateType onBlock = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
 
         // Hack with 1.14+ poses issue
-        if (inputVel.getY() != collide.getY()) {
+        if (inputVel.getY() != y) {
             // If the client supports slime blocks
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
@@ -214,14 +214,15 @@ public class MovementTicker {
                 player.clientVelocity.setY(0);
             }
         }
-
-        collide = PredictionEngine.clampMovementToHardBorder(player, collide);
+        // TODO reimplement? the comment about reimplementing clampMovementToHardBorder is 3 years old...
+//        collide = PredictionEngine.clampMovementToHardBorder(player, collide);
 
         // The game disregards movements smaller than 1e-7 (such as in boats)
-        if (collide.lengthSquared() <= 1e-7
+        double collideLengthSquared = GrimMath.lengthSquared(x, y, z);
+        if (collideLengthSquared <= 1e-7
                 // New condition added in 1.21.2
-                && (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) || inputVel.lengthSquared() - collide.lengthSquared() >= 1e-7)) {
-            collide = new Vector3dm();
+                && (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) || inputVel.lengthSquared() - collideLengthSquared >= 1e-7)) {
+            x = y = z = 0;
         } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
             Vector3d to = new Vector3d(player.x, player.y, player.z);
@@ -230,7 +231,7 @@ public class MovementTicker {
         }
 
         // This is where vanilla moves the bounding box and sets it
-        player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
+        player.predictedVelocity = new VectorData(x, y, z, player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
         float f = BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
         player.clientVelocity.multiply(f, 1, f);
@@ -306,10 +307,10 @@ public class MovementTicker {
         // Meaning we should scan upwards!
         oldBB.expand(-SimpleCollisionBox.COLLISION_EPSILON);
 
-        double posX = Math.max(0, player.predictedVelocity.vector.getX()) + SimpleCollisionBox.COLLISION_EPSILON;
-        double negX = Math.min(0, player.predictedVelocity.vector.getX()) - SimpleCollisionBox.COLLISION_EPSILON;
-        double posZ = Math.max(0, player.predictedVelocity.vector.getZ()) + SimpleCollisionBox.COLLISION_EPSILON;
-        double negZ = Math.min(0, player.predictedVelocity.vector.getZ()) - SimpleCollisionBox.COLLISION_EPSILON;
+        double posX = Math.max(0, player.predictedVelocity.vectorX) + SimpleCollisionBox.COLLISION_EPSILON;
+        double negX = Math.min(0, player.predictedVelocity.vectorX) - SimpleCollisionBox.COLLISION_EPSILON;
+        double posZ = Math.max(0, player.predictedVelocity.vectorZ) + SimpleCollisionBox.COLLISION_EPSILON;
+        double negZ = Math.min(0, player.predictedVelocity.vectorZ) - SimpleCollisionBox.COLLISION_EPSILON;
 
         boolean xAxisCollision = !Collisions.isEmpty(player, oldBB.expandMin(negX, 0, 0).expandMax(posX, 0, 0));
         boolean zAxisCollision = !Collisions.isEmpty(player, oldBB.expandMin(0, 0, negZ).expandMax(0, 0, posZ));
@@ -435,7 +436,7 @@ public class MovementTicker {
             // 1.13 and below players can't climb ladders while touching water
             // yes, 1.13 players cannot climb ladders underwater
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isClimbing) {
-                player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
+                player.lastWasClimbing = FluidFallingAdjustedMovement.getAdjustedY(player, playerGravity, isFalling, 0.2D * 0.8F);
             }
 
         } else {
@@ -447,7 +448,7 @@ public class MovementTicker {
                 // Lava movement changed in 1.16
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.slightlyTouchingLava) {
                     player.clientVelocity = player.clientVelocity.multiply(0.5D, 0.800000011920929D, 0.5D);
-                    player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
+                    player.clientVelocity.setY(FluidFallingAdjustedMovement.getAdjustedY(player, playerGravity, isFalling, player.clientVelocity.getY()));
                 } else {
                     player.clientVelocity.multiply(0.5D);
                 }

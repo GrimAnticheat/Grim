@@ -148,7 +148,7 @@ public final class Collisions {
 
                     for (float stepHeight : stepHeights) {
                         Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), startingOffsetBox, stepCollisions, order);
-                        if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
+                        if (getHorizontalDistanceSqr(vec3d2.getX(), vec3d2.getZ()) > getHorizontalDistanceSqr(collisionResult.getX(), collisionResult.getZ())) {
                             final double d = player.boundingBox.minY - startingOffsetBox.minY;
                             collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
                             break;
@@ -162,13 +162,13 @@ public final class Collisions {
                         Vector3dm stepUpBugFix = collideBoundingBoxLegacy(new Vector3dm(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), desiredMovementCollisionBoxes, order);
                         if (stepUpBugFix.getY() < stepUpHeight) {
                             Vector3dm stepUpBugFixResult = collideBoundingBoxLegacy(new Vector3dm(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), desiredMovementCollisionBoxes, order).add(stepUpBugFix);
-                            if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
+                            if (getHorizontalDistanceSqr(stepUpBugFixResult.getX(), stepUpBugFixResult.getZ()) > getHorizontalDistanceSqr(regularStepUp.getX(), regularStepUp.getZ())) {
                                 regularStepUp = stepUpBugFixResult;
                             }
                         }
                     }
 
-                    if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
+                    if (getHorizontalDistanceSqr(regularStepUp.getX(), regularStepUp.getZ()) > getHorizontalDistanceSqr(collisionResult.getX(), collisionResult.getZ())) {
                         collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector3dm(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), desiredMovementCollisionBoxes, order));
                     }
                 }
@@ -388,8 +388,8 @@ public final class Collisions {
         return !getCollisionBoxes(player, playerBB, null, true);
     }
 
-    public static double getHorizontalDistanceSqr(Vector3dm vector) {
-        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+    public static double getHorizontalDistanceSqr(double x, double z) {
+        return x * x + z * z;
     }
 
     public static Vector3dm maybeBackOffFromEdge(Vector3dm vec3, GrimPlayer player, boolean overrideVersion) {
@@ -520,17 +520,17 @@ public final class Collisions {
                 if (blockAbove.getType().isAir()) {
                     for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                         if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
+                            vector.setY(Math.max(-0.9D, vector.vectorY - 0.03D));
                         } else {
-                            vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
+                            vector.setY(Math.min(1.8D, vector.vectorY + 0.1D));
                         }
                     }
                 } else {
                     for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                         if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
+                            vector.setY(Math.max(-0.3D, vector.vectorY - 0.03D));
                         } else {
-                            vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
+                            vector.setY(Math.min(0.7D, vector.vectorY + 0.06D));
                         }
                     }
                 }

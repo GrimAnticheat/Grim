@@ -257,4 +257,12 @@ public class GrimMath {
         // 1.13 and below store X Y Z
         return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
     }
+
+    public static double lengthSquared(double x, double y, double z) {
+        return GrimMath.square(x) + GrimMath.square(y) + GrimMath.square(z);
+    }
+
+    public static double length(double x, double y, double z) {
+        return Math.sqrt(lengthSquared(x, y, z));
+    }
 }

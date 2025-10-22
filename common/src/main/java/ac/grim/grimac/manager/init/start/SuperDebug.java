@@ -6,10 +6,12 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vec2;
 import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -54,7 +56,12 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
 
         for (Iterator<Object2IntMap.Entry<StringBuilder>> it = continuedDebug.object2IntEntrySet().iterator(); it.hasNext(); ) {
             Map.Entry<StringBuilder, Integer> debug = it.next();
-            appendDebug(debug.getKey(), player.predictedVelocity, player.actualMovement, location, player.startTickClientVel, player.baseTickAddition, player.baseTickWaterPushing);
+            appendDebug(debug.getKey(), player.predictedVelocity,
+                    player.actualMovement.getX(), player.actualMovement.getY(), player.actualMovement.getZ(),
+                    location,
+                    player.startTickClientVel.getX(), player.startTickClientVel.getY(), player.startTickClientVel.getZ(),
+                    player.baseTickAddition.getX(), player.baseTickAddition.getY(), player.baseTickAddition.getZ(),
+                    player.baseTickWaterPushing.getX(), player.baseTickWaterPushing.getY(), player.baseTickWaterPushing.getZ());
             debug.setValue(debug.getValue() - 1);
             if (debug.getValue() <= 0) it.remove();
         }
@@ -90,7 +97,14 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
             Vector3dm startTickVel = startTickClientVel.get(i);
             Vector3dm addition = baseTickAddition.get(i);
             Vector3dm water = baseTickWater.get(i);
-            appendDebug(sb, predict, actual, loc, startTickVel, addition, water);
+            appendDebug(sb,
+                    predict,
+                    actual.getX(), actual.getY(), actual.getZ(),
+                    loc,
+                    startTickVel.getX(), startTickVel.getY(), startTickVel.getZ(),
+                    addition.getX(), addition.getY(), addition.getZ(),
+                    water.getX(), water.getY(), water.getZ()
+            );
         }
 
         UncertaintyHandler uncertaintyHandler = player.uncertaintyHandler;
@@ -194,7 +208,13 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         continuedDebug.put(sb, 40);
     }
 
-    private void appendDebug(StringBuilder sb, VectorData predict, Vector3dm actual, Location location, Vector3dm startTick, Vector3dm addition, Vector3dm water) {
+    private void appendDebug(final StringBuilder sb, final VectorData predict,
+                             final double actualX, final double actualY, final double actualZ,
+                             final Location location,
+                             final double startTickX, final double startTickY, final double startTickZ,
+                             final double additionX, final double additionY, final double additionZ,
+                             final double waterX, final double waterY, final double waterZ) {
+
         if (predict.isZeroPointZeroThree()) {
             sb.append("Movement threshold/tick skipping\n");
         }
@@ -228,36 +248,45 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         }
 
         // Apply 0.003/0.005 to make numbers more accurate
-        Set<VectorData> set = new HashSet<>(Collections.singletonList(new VectorData(startTick.clone(), VectorData.VectorType.BestVelPicked)));
+        Set<VectorData> set = new HashSet<>(Collections.singletonList(new VectorData(startTickX, startTickY, startTickZ, VectorData.VectorType.BestVelPicked)));
         new PredictionEngine().applyMovementThreshold(player, set);
-        Vector3dm trueStartVel = ((VectorData) set.toArray()[0]).vector;
+        VectorData tempVectorData = ((VectorData) set.toArray()[0]);
+        double trueStartVelX = tempVectorData.vectorX;
+        double trueStartVelY = tempVectorData.vectorY;
+        double trueStartVelZ = tempVectorData.vectorZ;
 
-        Vector3dm clientMovement = getPlayerMathMovement(player, actual.clone().subtract(trueStartVel), location.xRot);
-        Vector3dm simulatedMovement = getPlayerMathMovement(player, predict.vector.clone().subtract(trueStartVel), location.xRot);
-        Vector3dm offset = actual.clone().subtract(predict.vector);
-        trueStartVel.add(addition);
-        trueStartVel.add(water);
+        final double offsetX = actualX - trueStartVelX;
+        final double offsetY = actualY - trueStartVelY;
+        final double offsetZ = actualZ - trueStartVelZ;
+
+        double offsetLength = Math.sqrt(offsetX*offsetX + offsetY*offsetY + offsetZ*offsetZ);
+
+        Vec2 clientMovement = getPlayerMathMovement(player, offsetX, offsetZ, location.xRot);
+        Vec2 simulatedMovement = getPlayerMathMovement(player, predict.vectorX - trueStartVelX, predict.vectorZ - trueStartVelZ, location.xRot);
+        trueStartVelX += additionX + waterX;
+        trueStartVelY += additionY + waterY;
+        trueStartVelZ += additionZ + waterZ;
 
         sb.append("Simulated: ");
-        sb.append(predict.vector.toString());
+        sb.append(MessageUtil.toUnlabeledString(trueStartVelX, trueStartVelY, trueStartVelZ));
         sb.append("\nActually:  ");
-        sb.append(actual);
+        sb.append(MessageUtil.toUnlabeledString(actualX, actualY, actualZ));
         sb.append("\nOffset Vector: ");
-        sb.append(offset);
+        sb.append(MessageUtil.toUnlabeledString(offsetX, offsetY, offsetZ));
         sb.append("\nOffset: ");
-        sb.append(offset.length());
+        sb.append(offsetLength);
         sb.append("\nLocation:  ");
         sb.append(location);
         sb.append("\nInitial velocity: ");
-        sb.append(startTick);
+        sb.append(MessageUtil.toUnlabeledString(startTickX, startTickY, startTickZ));
 
-        if (addition.lengthSquared() > 0) {
+        if (additionX != 0 || additionY != 0 || additionZ != 0) {
             sb.append("\nInitial vel addition: ");
-            sb.append(addition);
+            sb.append(MessageUtil.toUnlabeledString(additionX, additionY, additionZ));
         }
-        if (water.lengthSquared() > 0) {
+        if (waterX != 0 || waterY != 0 || waterZ != 0) {
             sb.append("\nWater vel addition: ");
-            sb.append(water);
+            sb.append(MessageUtil.toUnlabeledString(waterX, waterY, waterZ));
         }
 
         sb.append("\nClient input:    ");
@@ -273,14 +302,14 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
         sb.append("\n\n");
     }
 
-    private Vector3dm getPlayerMathMovement(GrimPlayer player, Vector3dm wantedMovement, float f2) {
+    private Vec2 getPlayerMathMovement(GrimPlayer player, double x, double z, float f2) {
         float f3 = player.trigHandler.sin(f2 * 0.017453292f);
         float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4);
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4);
+        float bestTheoreticalX = (float) (f3 * z + f4 * x) / (f3 * f3 + f4 * f4);
+        float bestTheoreticalZ = (float) (-f3 * x + f4 * z) / (f3 * f3 + f4 * f4);
 
-        return new Vector3dm(bestTheoreticalX, 0, bestTheoreticalZ);
+        return new Vec2(bestTheoreticalX, bestTheoreticalZ);
     }
 
     private record Location(double x, double y, double z, float xRot, float yRot, String world) {

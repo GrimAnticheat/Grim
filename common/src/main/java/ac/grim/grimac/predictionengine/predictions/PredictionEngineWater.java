@@ -19,12 +19,19 @@ public class PredictionEngineWater extends PredictionEngine {
     private double playerGravity;
     private float swimmingFriction;
 
-    public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector, float swimmingFriction, double playerGravity, boolean isFalling) {
-        vector.multiply(swimmingFriction, 0.8F, swimmingFriction);
-        Vector3dm fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, vector);
-        vector.setX(fluidVector.getX());
-        vector.setY(fluidVector.getY());
-        vector.setZ(fluidVector.getZ());
+    public static void staticVectorEndOfTick(GrimPlayer player, double[] vector, float swimmingFriction, double playerGravity, boolean isFalling) {
+        vector[0] *= swimmingFriction;
+        vector[1] *= 0.8F;
+        vector[2] *= swimmingFriction;
+        double y = FluidFallingAdjustedMovement.getAdjustedY(player, playerGravity, isFalling, vector[1]);
+        vector[1] = y;
+    }
+
+    public static void staticVectorEndOfTick(GrimPlayer player, VectorData vectorData, float swimmingFriction, double playerGravity, boolean isFalling) {
+        vectorData.vectorX *= swimmingFriction;
+        vectorData.vectorY *= 0.8F;
+        vectorData.vectorZ *= swimmingFriction;
+        vectorData.vectorY = FluidFallingAdjustedMovement.getAdjustedY(player, playerGravity, isFalling, vectorData.vectorY);
     }
 
     public static Set<VectorData> transformSwimmingVectors(GrimPlayer player, Set<VectorData> base) {
@@ -45,7 +52,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 double scalar = lookYAmount < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
-                swimmingVelocities.add(vector.returnNewModified(new Vector3dm(vector.vector.getX(), vector.vector.getY() + ((lookYAmount - vector.vector.getY()) * scalar), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
+                swimmingVelocities.add(vector.returnNewModified(new Vector3dm(vector.vectorX, vector.vectorY + ((lookYAmount - vector.vectorY) * scalar), vector.vectorZ), VectorData.VectorType.SwimmingSpace));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 // Theoretically we should check this BEFORE allowing no look, but there isn't a cheat that takes advantage of this yet
@@ -54,7 +61,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 // If you feel adventurous, re-add the following line to eliminate this unfair disadvantage
 
                 //if (d > 0.0 && player.world.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
-                swimmingVelocities.add(vector.returnNewModified(vector.vector, VectorData.VectorType.SurfaceSwimming));
+                swimmingVelocities.add(vector.returnNewModified(vector.vectorX, vector.vectorY, vector.vectorZ, VectorData.VectorType.SurfaceSwimming));
 
             }
             return swimmingVelocities;
@@ -72,17 +79,21 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
+            final double startX = vector.vectorX;
+            final double startY = vector.vectorY;
+            final double startZ = vector.vectorZ;
+
             if (player.couldSkipTick && vector.isZeroPointZeroThree()) {
-                double extraVelFromVertTickSkipUpwards = GrimMath.clamp(player.actualMovement.getY(), vector.vector.clone().getY(), vector.vector.clone().getY() + 0.05f);
-                existingVelocities.add(new VectorData(vector.vector.clone().setY(extraVelFromVertTickSkipUpwards), vector, VectorData.VectorType.Jump));
+                double extraVelFromVertTickSkipUpwards = GrimMath.clamp(player.actualMovement.getY(), startY, startY + 0.05f);
+                existingVelocities.add(new VectorData(startX, extraVelFromVertTickSkipUpwards, startZ, vector, VectorData.VectorType.Jump));
             } else {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(0, 0.04f, 0), vector, VectorData.VectorType.Jump));
+                existingVelocities.add(new VectorData(startX, startY + 0.04f, startZ, vector, VectorData.VectorType.Jump));
             }
 
             if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
-                Vector3dm withJump = vector.vector.clone();
-                super.doJump(player, withJump);
-                existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
+                double[] jumpValues = {startX, startY, startZ};
+                super.doJump(player, jumpValues);
+                existingVelocities.add(new VectorData(jumpValues[0], jumpValues[1], jumpValues[2], vector, VectorData.VectorType.Jump));
             }
         }
     }
@@ -92,7 +103,7 @@ public class PredictionEngineWater extends PredictionEngine {
         super.endOfTick(player, playerGravity);
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
+            staticVectorEndOfTick(player, vector, swimmingFriction, playerGravity, isFalling);
         }
     }
 
@@ -101,7 +112,7 @@ public class PredictionEngineWater extends PredictionEngine {
         // "hacky" climbing where player enters ladder within 0.03 movement (WHY DOES 0.03 EXIST???)
         if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
-            player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
+            player.lastWasClimbing = FluidFallingAdjustedMovement.getAdjustedY(player, playerGravity, isFalling, 0.2D * 0.8F);
         }
 
         Set<VectorData> baseVelocities = super.fetchPossibleStartTickVectors(player);

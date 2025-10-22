@@ -8,10 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class FluidFallingAdjustedMovement {
-    public static Vector3dm getFluidFallingAdjustedMovement(@NotNull GrimPlayer player, double gravity, boolean isFalling, Vector3dm velocity) {
-        if (!player.hasGravity || player.isSprinting) return velocity;
-        isFalling = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? isFalling : velocity.getY() < 0;
-        double newY = isFalling && Math.abs(velocity.getY() - 0.005) >= 0.003 && Math.abs(velocity.getY() - gravity / 16.0) < 0.003 ? -0.003 : velocity.getY() - gravity / 16.0;
-        return new Vector3dm(velocity.getX(), newY, velocity.getZ());
+    public static double getAdjustedY(GrimPlayer player, double gravity, boolean isFalling, double currentY) {
+        if (!player.hasGravity || player.isSprinting) return currentY;
+        isFalling = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? isFalling : currentY < 0;
+        return isFalling && Math.abs(currentY - 0.005) >= 0.003 && Math.abs(currentY - gravity / 16.0) < 0.003 ? -0.003 : currentY - gravity / 16.0;
     }
 }

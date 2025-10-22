@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class VectorUtils {
-    public static @NotNull Vector3dm cutBoxToVector(@NotNull Vector3dm vectorToCutTo, @NotNull Vector3dm min, @NotNull Vector3dm max) {
-        SimpleCollisionBox box = new SimpleCollisionBox(min, max).sort();
+    public static @NotNull Vector3dm cutBoxToVector(@NotNull Vector3dm vectorToCutTo, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        SimpleCollisionBox box = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ).sort();
         return cutBoxToVector(vectorToCutTo, box);
     }
 

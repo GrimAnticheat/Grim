@@ -62,7 +62,9 @@ public final class PredictionEngineRideableUtils {
         Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch).multiply(1.0, 0.0, 1.0).normalize().multiply(multiplier).add(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0);
 
         for (VectorData vectorData : possibleVectors) {
-            vectorData.vector.add(jumpVelocity);
+            vectorData.vectorX += jumpVelocity.getX();
+            vectorData.vectorY += jumpVelocity.getY();
+            vectorData.vectorZ += jumpVelocity.getZ();
         }
 
         player.vehicleData.horseJumping = true;
@@ -102,9 +104,11 @@ public final class PredictionEngineRideableUtils {
         float f3 = player.trigHandler.cos(yawRadians);
 
         for (VectorData vectorData : possibleVectors) {
-            vectorData.vector.setY(jumpVelocity);
+            vectorData.vectorY = jumpVelocity;
             if (forwardInput > 0.0F) {
-                vectorData.vector.add(new Vector3dm(-0.4F * f2 * player.vehicleData.horseJump, 0.0D, 0.4F * f3 * player.vehicleData.horseJump));
+                vectorData.vectorX += -0.4F * f2 * player.vehicleData.horseJump;
+                vectorData.vectorY += 0.0D;
+                vectorData.vectorZ += 0.4F * f3 * player.vehicleData.horseJump;
             }
         }
 
@@ -122,22 +126,24 @@ public final class PredictionEngineRideableUtils {
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-                VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(predictionEngine.getMovementResultFromInput(player, movementVector, speed, player.yaw)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                Vector3dm vector3dm = predictionEngine.getMovementResultFromInput(player, movementVector, speed, player.yaw).add(possibleLastTickOutput.vectorX, possibleLastTickOutput.vectorY, possibleLastTickOutput.vectorZ);
+                VectorData result = new VectorData(vector3dm, possibleLastTickOutput, VectorData.VectorType.InputResult);
                 result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
-                Vector3dm vector = result.vector.clone();
+
+                Vector3dm vector = new Vector3dm(result.vectorX, result.vectorY, result.vectorZ);
                 if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
                 result = result.returnNewModified(vector, VectorData.VectorType.StuckMultiplier);
-                result = result.returnNewModified(new PredictionEngineNormal().handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                result = result.returnNewModified(new PredictionEngineNormal().handleOnClimbable(result.vectorX, result.vectorY, result.vectorZ, player), VectorData.VectorType.Climbable);
                 returnVectors.add(result);
 
                 // This is the laziest way to reduce false positives such as horse rearing
                 // No bypasses can ever be derived from this, so why not?
-                result = new VectorData(possibleLastTickOutput.vector.clone(), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                result = new VectorData(possibleLastTickOutput.vectorX, possibleLastTickOutput.vectorY, possibleLastTickOutput.vectorZ, possibleLastTickOutput, VectorData.VectorType.InputResult);
                 result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
-                vector = result.vector.clone();
+                vector = new Vector3dm(result.vectorX, result.vectorY, result.vectorZ);
                 if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
                 result = result.returnNewModified(vector, VectorData.VectorType.StuckMultiplier);
-                result = result.returnNewModified(new PredictionEngineNormal().handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                result = result.returnNewModified(new PredictionEngineNormal().handleOnClimbable(result.vectorX, result.vectorY, result.vectorZ, player), VectorData.VectorType.Climbable);
                 returnVectors.add(result);
             }
         }

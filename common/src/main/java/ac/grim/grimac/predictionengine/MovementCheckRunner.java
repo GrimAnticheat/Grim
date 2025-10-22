@@ -18,6 +18,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
@@ -230,9 +231,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 handleTeleport(update);
 
                 if (player.isClimbing) {
-                    Vector3dm ladder = player.clientVelocity.clone().setY(0.2);
-                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
-                    player.lastWasClimbing = ladder.getY();
+                    player.lastWasClimbing = PredictionEngineNormal.staticVectorEndOfTickY(player, 0.2);
                 }
                 return;
             }
@@ -451,7 +450,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
             player.friction = 0.91f;
-            PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
+            player.clientVelocity.setX(player.clientVelocity.getX() * player.friction);
+            player.clientVelocity.setY(PredictionEngineNormal.staticVectorEndOfTickY(player, player.clientVelocity.getY()));
+            player.clientVelocity.setZ(player.clientVelocity.getZ() * player.friction);
         } else if (riding == null) {
             wasChecked = true;
 
@@ -520,7 +521,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
         // No, don't comment about the sqrt call.  It doesn't matter unless you run sqrt thousands of times a second.
-        double offset = player.predictedVelocity.vector.distance(player.actualMovement);
+        double offset = player.actualMovement.distance(player.predictedVelocity.vectorX, player.predictedVelocity.vectorY, player.predictedVelocity.vectorZ);
         offset = player.uncertaintyHandler.reduceOffset(offset);
 
         if (player.packetStateData.tryingToRiptide != clientClaimsRiptide) {
@@ -533,19 +534,19 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         //
         // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
         if (player.getSetbackTeleportUtil().getRequiredSetBack() != null && player.getSetbackTeleportUtil().getRequiredSetBack().getTicksComplete() == 1) {
-            Vector3dm setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
+            SetBackData setback = player.getSetbackTeleportUtil().getRequiredSetBack();
             // A player must have velocity going INTO the ground to be able to jump
             // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
             // So if they are supposed to be going upwards, or are supposed to be off the ground, resync
             if (player.predictedVelocity.isJump()
                     && !player.wasTouchingLava && !player.wasTouchingWater
-                    && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
+                    && ((setback.isHasVelocity() && setback.getVelocityY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
             boolean lavaBugFix = player.wasTouchingLava && player.predictedVelocity.isJump() &&
-                    player.predictedVelocity.vector.getY() < 0.06 && player.predictedVelocity.vector.getY() > -0.02;
+                    player.predictedVelocity.vectorY < 0.06 && player.predictedVelocity.vectorY > -0.02;
             // Player ignored the knockback or is delaying it a tick... bad!
-            if (!player.predictedVelocity.isKnockback() && !lavaBugFix && player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity() != null) {
+            if (!player.predictedVelocity.isKnockback() && !lavaBugFix && player.getSetbackTeleportUtil().getRequiredSetBack().isHasVelocity()) {
                 // And then send it again!
                 player.getSetbackTeleportUtil().executeForceResync();
             }
@@ -565,7 +566,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
-            lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(0.6 * 0.91, 1, 0.6 * 0.91));
+            lastKnownGoodPosition.setVectorX(lastKnownGoodPosition.getVectorX() * 0.6 * 0.91);
+            lastKnownGoodPosition.setVectorZ(lastKnownGoodPosition.getVectorZ() * 0.6 * 0.91);
+
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();
         }
 

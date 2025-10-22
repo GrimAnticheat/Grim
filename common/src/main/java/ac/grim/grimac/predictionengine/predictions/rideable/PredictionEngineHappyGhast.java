@@ -18,9 +18,9 @@ public class PredictionEngineHappyGhast extends PredictionEngineNormal {
     @Override
     public void endOfTick(GrimPlayer player, double delta) {
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            vector.vector.setX(vector.vector.getX() * multiplier);
-            vector.vector.setY(vector.vector.getY() * multiplier);
-            vector.vector.setZ(vector.vector.getZ() * multiplier);
+            vector.vectorX *= multiplier;
+            vector.vectorY *= multiplier;
+            vector.vectorZ *= multiplier;
         }
     }
 

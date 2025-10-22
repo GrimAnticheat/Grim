@@ -13,11 +13,13 @@ import java.util.List;
 import java.util.Set;
 
 public class PredictionEngineElytra extends PredictionEngine {
-    public static Vector3dm getElytraMovement(GrimPlayer player, Vector3dm vector, Vector3dm lookVector) {
+    public static void applyElytraMovementInPlace(GrimPlayer player,
+                                                  double[] vectorArr,
+                                                  double lookX, double lookY, double lookZ) {
         float pitchRadians = GrimMath.radians(player.pitch);
-        double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
-        double horizontalLength = vector.clone().setY(0).length();
-        double length = lookVector.length();
+        double horizontalSqrt = Math.sqrt(lookX * lookX + lookZ * lookZ);
+        double horizontalLength = GrimMath.length(vectorArr[0], 0, vectorArr[1]);
+        double length = GrimMath.length(lookX, lookY, lookZ);
 
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
         double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(pitchRadians) : player.trigHandler.cos(pitchRadians);
@@ -31,27 +33,30 @@ public class PredictionEngineElytra extends PredictionEngine {
             recalculatedGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(recalculatedGravity, 0.01);
         }
 
-        vector.add(0.0D, recalculatedGravity * (-1.0D + vertCosRotation * 0.75D), 0.0D);
+        vectorArr[1] += recalculatedGravity * (-1.0D + vertCosRotation * 0.75D);
         double d5;
 
         // Handle slowing the player down when falling
-        if (vector.getY() < 0.0D && horizontalSqrt > 0.0D) {
-            d5 = vector.getY() * -0.1D * vertCosRotation;
-            vector.add(lookVector.getX() * d5 / horizontalSqrt, d5, lookVector.getZ() * d5 / horizontalSqrt);
+        if (vectorArr[1] < 0.0D && horizontalSqrt > 0.0D) {
+            d5 = vectorArr[1] * -0.1D * vertCosRotation;
+            vectorArr[0] += lookX * d5 / horizontalSqrt;
+            vectorArr[1] += d5;
+            vectorArr[2] += lookZ * d5 / horizontalSqrt;
         }
 
         // Handle accelerating the player when they are looking down
         if (pitchRadians < 0.0F && horizontalSqrt > 0.0D) {
             d5 = horizontalLength * (double) (-player.trigHandler.sin(pitchRadians)) * 0.04D;
-            vector.add(-lookVector.getX() * d5 / horizontalSqrt, d5 * 3.2D, -lookVector.getZ() * d5 / horizontalSqrt);
+            vectorArr[0] += -lookX * d5 / horizontalSqrt;
+            vectorArr[1] += d5 * 3.2D;
+            vectorArr[2] += -lookZ * d5 / horizontalSqrt;
         }
 
         // Handle accelerating the player sideways
         if (horizontalSqrt > 0) {
-            vector.add((lookVector.getX() / horizontalSqrt * horizontalLength - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / horizontalSqrt * horizontalLength - vector.getZ()) * 0.1D);
+            vectorArr[0] += (lookX / horizontalSqrt * horizontalLength - vectorArr[0]) * 0.1D;
+            vectorArr[2] += (lookZ / horizontalSqrt * horizontalLength - vectorArr[2]) * 0.1D;
         }
-
-        return vector;
     }
 
     // Inputs have no effect on movement
@@ -65,10 +70,18 @@ public class PredictionEngineElytra extends PredictionEngine {
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
                 for (VectorData data : possibleVectors) {
-                    Vector3dm elytraResult = getElytraMovement(player, data.vector.clone(), currentLook);
-                    if (applyStuckSpeed != 0) elytraResult.multiply(player.stuckSpeedMultiplier);
-                    elytraResult.multiply(0.99F, 0.98F, 0.99F);
-                    VectorData modified = data.returnNewModified(elytraResult, VectorData.VectorType.InputResult);
+                    double[] vector = {data.vectorX, data.vectorY, data.vectorZ};
+                    applyElytraMovementInPlace(player, vector, currentLook.getX(), currentLook.getY(), currentLook.getZ());
+                    if (applyStuckSpeed != 0) {
+                        vector[0] *= player.stuckSpeedMultiplier.getX();
+                        vector[1] *= player.stuckSpeedMultiplier.getY();
+                        vector[2] *= player.stuckSpeedMultiplier.getZ();
+                    }
+                    vector[0] *= 0.99F;
+                    vector[1] *= 0.98F;
+                    vector[2] *= 0.99f;
+
+                    VectorData modified = data.returnNewModified(vector[0], vector[1], vector[2], VectorData.VectorType.InputResult);
                     modified.input = new Vector3dm(0, 0, 0);
                     results.add(modified);
                 }
