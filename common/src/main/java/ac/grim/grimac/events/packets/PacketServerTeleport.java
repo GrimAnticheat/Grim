@@ -38,7 +38,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
-//            Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
             double posX = teleport.getX();
             double posY = teleport.getY();
             double posZ = teleport.getZ();
@@ -134,7 +133,11 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
                 posY -= 1.62;
 
-            player.getSetbackTeleportUtil().addSentTeleport(posX, posY, posZ, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
+            final Vector3d deltaMovement = teleport.getDeltaMovement();
+            player.getSetbackTeleportUtil().addSentTeleport(posX, posY, posZ,
+                    deltaMovement.getX(), deltaMovement.getY(), deltaMovement.getZ(),
+                    lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId()
+            );
         }
 
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION) {
