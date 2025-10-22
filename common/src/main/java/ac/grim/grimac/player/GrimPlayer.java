@@ -796,7 +796,10 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean isInWaterOrRain() {
-        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
+        return compensatedWorld.isRaining
+                || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f),
+                (block, x, y, z) -> Materials.isWater(CompensatedWorld.blockVersion, block)
+        );
     }
 
     @Contract(pure = true)

@@ -46,10 +46,7 @@ public class MainSupportingBlockPosFinder {
 
         final BestBlockHolder bestBlock = new BestBlockHolder();
 
-        Collisions.forEachCollisionBox(player, searchBox, pos -> {
-            int blockPosX = (int) pos.getX();
-            int blockPosY = (int) pos.getY();
-            int blockPosZ = (int) pos.getZ();
+        Collisions.forEachCollisionBox(player, searchBox, (blockPosX, blockPosY, blockPosZ) -> {
             double distanceSquared = GrimMath.distanceSquared(playerX, playerY, playerZ, blockPosX + 0.5, blockPosY + 0.5, blockPosZ + 0.5);
 
             if (distanceSquared < bestBlock.distanceSquared || distanceSquared == bestBlock.distanceSquared && (bestBlock.pos == null || firstHasPriorityOverSecond(blockPosX, blockPosY, blockPosZ, bestBlock.pos))) {
