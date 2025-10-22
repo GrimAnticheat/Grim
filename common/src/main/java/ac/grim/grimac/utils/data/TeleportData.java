@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
+//@AllArgsConstructor
 @Getter
 public class TeleportData {
     private final double locationX;
@@ -21,6 +21,16 @@ public class TeleportData {
     private int transaction;
     @Setter
     private int teleportId;
+
+    public TeleportData(double locationX, double locationY, double locationZ, Vector3d velocity, RelativeFlag flags, int transaction, int teleportId) {
+        this.locationX = locationX;
+        this.locationY = locationY;
+        this.locationZ = locationZ;
+        this.velocity = velocity;
+        this.flags = flags;
+        this.transaction = transaction;
+        this.teleportId = teleportId;
+    }
 
     public void modifyVector(@NotNull GrimPlayer player, Vector3dm vector) {
         final boolean isStupidTeleportSystem = player.supportsEndTick();

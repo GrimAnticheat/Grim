@@ -264,7 +264,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, positionX, y, positionZ, player.yaw % 360, player.pitch % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
+            addSentTeleport(positionX, y, positionZ, new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
@@ -400,31 +400,27 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport);
     }
 
-    public void addSentTeleport(Location position, Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
-        TeleportData data = new TeleportData(position.getX(), position.getY(), position.getZ(), velocity, flags, transaction, teleportId);
+    public void addSentTeleport(double x, double y, double z, Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
+        TeleportData data = new TeleportData(x, y, z, velocity, flags, transaction, teleportId);
         pendingTeleports.add(data);
-
-        double safePositionX = position.getX();
-        double safePositionY = position.getY();
-        double safePositionZ = position.getZ();
 
         // We must convert relative teleports to avoid them becoming client controlled in the case of setback
         if (flags.has(RelativeFlag.X)) {
-            safePositionX += lastKnownGoodPosition.posX;
+            x += lastKnownGoodPosition.posX;
         }
 
         if (flags.has(RelativeFlag.Y)) {
-            safePositionY += lastKnownGoodPosition.posY;
+            y += lastKnownGoodPosition.posY;
         }
 
         if (flags.has(RelativeFlag.Z)) {
-            safePositionZ += lastKnownGoodPosition.posZ;
+            z += lastKnownGoodPosition.posZ;
         }
 
-        data = new TeleportData(safePositionX, safePositionY, safePositionZ, velocity, new RelativeFlag(0b11000), transaction, teleportId);
+        data = new TeleportData(x, y, z, velocity, new RelativeFlag(0b11000), transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.yaw, player.pitch, null, false, plugin);
 
-        this.lastKnownGoodPosition = new SetbackPosWithVector(safePositionX, safePositionY, safePositionZ, new Vector3dm());
+        this.lastKnownGoodPosition = new SetbackPosWithVector(x, y, z, new Vector3dm());
     }
 
     @AllArgsConstructor
