@@ -31,9 +31,9 @@ public class PredictionEngine {
         return outputVel;
     }
 
-    public static Vector3dm transformInputsToVector(GrimPlayer player, Vector3dm theoreticalInput) {
+    public static Vector3dm transformInputsToVector(GrimPlayer player, int strafe, int forward) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
-            Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
+            Vec2 moveVector = new Vec2((float) strafe, (float) forward).normalized();
             Vec2 input = modifyInput(player, moveVector);
             return new Vector3dm(input.x(), 0, input.y());
         }
@@ -42,11 +42,11 @@ public class PredictionEngine {
 
         // Slow movement was determined by the previous pose
         if (player.isSlowMovement) {
-            bestPossibleX = (float) (theoreticalInput.getX() * player.sneakingSpeedMultiplier);
-            bestPossibleZ = (float) (theoreticalInput.getZ() * player.sneakingSpeedMultiplier);
+            bestPossibleX = (float) (strafe * player.sneakingSpeedMultiplier);
+            bestPossibleZ = (float) (forward * player.sneakingSpeedMultiplier);
         } else {
-            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
-            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
+            bestPossibleX = Math.min(Math.max(-1f, strafe), 1f);
+            bestPossibleZ = Math.min(Math.max(-1f, forward), 1f);
         }
 
         if (player.packetStateData.isSlowedByUsingItem()) {
@@ -863,7 +863,7 @@ public class PredictionEngine {
                             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-                                Vector3dm input = transformInputsToVector(player, new Vector3dm(strafe, 0, forward));
+                                Vector3dm input = transformInputsToVector(player, strafe, forward);
                                 Vector3dm movementResultFromInput = getMovementResultFromInput(player, input, speed, player.yaw);
                                 VectorData result = new VectorData(possibleLastTickOutput.vectorX + movementResultFromInput.getX(),
                                         possibleLastTickOutput.vectorY + movementResultFromInput.getY(),
