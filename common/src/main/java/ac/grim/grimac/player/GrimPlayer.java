@@ -925,12 +925,12 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    public void resyncPosition(Vector3i pos) {
-        this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    public void resyncPosition(final int x, final int y, final int z) {
+        this.resyncHandler.resync(x, y, z, x, y, z);
     }
 
-    public void resyncPosition(Vector3i pos, int sequenceID) {
-        this.resyncHandler.resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    public void resyncPosition(final int x, final int y, final int z, final int sequenceID) {
+        this.resyncHandler.resyncPosition(x, y, z, sequenceID);
     }
 
     public void resyncPositions(SimpleCollisionBox box) {

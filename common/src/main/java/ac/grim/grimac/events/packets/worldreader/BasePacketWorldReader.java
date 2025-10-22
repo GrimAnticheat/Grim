@@ -77,7 +77,11 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerAcknowledgePlayerDigging ack = new WrapperPlayServerAcknowledgePlayerDigging(event);
-            player.compensatedWorld.handleBlockBreakAck(ack.getBlockPosition(), ack.getBlockId(), ack.getAction(), ack.isSuccessful());
+            Vector3i blockPosition = ack.getBlockPosition();
+            final int x = blockPosition.getX();
+            final int y = blockPosition.getY();
+            final int z = blockPosition.getZ();
+            player.compensatedWorld.handleBlockBreakAck(x, y, z, ack.getBlockId(), ack.getAction(), ack.isSuccessful());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {

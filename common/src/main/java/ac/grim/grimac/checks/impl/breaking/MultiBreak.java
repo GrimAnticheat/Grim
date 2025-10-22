@@ -21,7 +21,9 @@ public class MultiBreak extends Check implements BlockBreakCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean hasBroken;
     private BlockFace lastFace;
-    private Vector3i lastPos;
+    private int lastX;
+    private int lastY;
+    private int lastZ;
 
     public MultiBreak(GrimPlayer player) {
         super(player);
@@ -33,10 +35,22 @@ public class MultiBreak extends Check implements BlockBreakCheck {
             return;
         }
 
-        if (hasBroken && (blockBreak.face != lastFace || !blockBreak.position.equals(lastPos))) {
+        final int currentX = blockBreak.x;
+        final int currentY = blockBreak.y;
+        final int currentZ = blockBreak.z;
+
+        if (hasBroken && (blockBreak.face != lastFace ||
+                currentX != lastX ||
+                currentY != lastY ||
+                currentZ != lastZ)) {
+
+            final String currentPosString = MessageUtil.toUnlabeledString(currentX, currentY, currentZ);
+            final String lastPosString = MessageUtil.toUnlabeledString(lastX, lastY, lastZ);
+
             final String verbose = "face=" + blockBreak.face + ", lastFace=" + lastFace
-                    + ", pos=" + MessageUtil.toUnlabledString(blockBreak.position)
-                    + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
+                    + ", pos=" + currentPosString
+                    + ", lastPos=" + lastPosString;
+
             if (!player.canSkipTicks()) {
                 if (flagAndAlert(verbose) && shouldModifyPackets()) {
                     blockBreak.cancel();
@@ -47,7 +61,9 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         }
 
         lastFace = blockBreak.face;
-        lastPos = blockBreak.position;
+        lastX = currentX;
+        lastY = currentY;
+        lastZ = currentZ;
         hasBroken = true;
     }
 

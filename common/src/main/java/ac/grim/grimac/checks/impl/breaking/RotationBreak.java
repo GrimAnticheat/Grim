@@ -72,7 +72,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
     }
 
     private boolean didRayTraceHit(BlockBreak blockBreak) {
-        SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
+        SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.x, blockBreak.y, blockBreak.z);
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
 

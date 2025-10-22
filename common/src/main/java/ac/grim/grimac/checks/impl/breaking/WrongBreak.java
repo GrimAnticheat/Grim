@@ -19,7 +19,14 @@ import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 public class WrongBreak extends Check implements BlockBreakCheck {
     private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
     private boolean lastBlockWasInstantBreak = false;
-    private Vector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
+
+    private boolean lastBlockIsSet;
+    private int lastBlockX, lastBlockY, lastBlockZ;
+
+    private boolean lastCancelledBlockIsSet;
+    private int lastCancelledBlockX, lastCancelledBlockY, lastCancelledBlockZ;
+
+    private boolean lastLastBlockIsSet;
 
     public WrongBreak(final GrimPlayer player) {
         super(player);
@@ -28,7 +35,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
     // The client sometimes sends a wierd cancel packet
     private boolean shouldExempt(final WrappedBlockState block, int yPos) {
         // lastLastBlock is always null when this happens, and lastBlock isn't
-        if (lastLastBlock != null || lastBlock == null)
+        if (lastLastBlockIsSet || !lastBlockIsSet)
             return false;
 
         // on pre 1.14.4 clients, the YPos of this packet is always the same
@@ -41,22 +48,29 @@ public class WrongBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
+        final int x = blockBreak.x;
+        final int y = blockBreak.y;
+        final int z = blockBreak.z;
+
         if (blockBreak.action == DiggingAction.START_DIGGING) {
-            final Vector3i pos = blockBreak.position;
-
             lastBlockWasInstantBreak = getBlockDamage(player, blockBreak.block) >= 1;
-            lastCancelledBlock = null;
-            lastLastBlock = lastBlock;
-            lastBlock = pos;
-        }
+            lastCancelledBlockIsSet = false;
 
-        if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            final Vector3i pos = blockBreak.position;
+            // State transfer: lastBlock becomes lastLastBlock
+            lastLastBlockIsSet = lastBlockIsSet;
 
-            if (!shouldExempt(blockBreak.block, pos.y) && !pos.equals(lastBlock)) {
+            // Update lastBlock to the current position
+            lastBlockIsSet = true; lastBlockX = x; lastBlockY = y; lastBlockZ = z;
+        } else if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
+            // Equivalent to `!pos.equals(lastBlock)` but for primitives and handles the "null" (not set) case.
+            boolean notEqualsLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
+
+            if (!shouldExempt(blockBreak.block, y) && notEqualsLastBlock) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
+                boolean equalsLastCancelled = lastCancelledBlockIsSet && x == lastCancelledBlockX && y == lastCancelledBlockY && z == lastCancelledBlockZ;
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && equalsLastCancelled)) {
+                    String lastBlockStr = lastBlockIsSet ? MessageUtil.toUnlabeledString(lastBlockX, lastBlockY, lastBlockZ) : "null";
+                    if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + lastBlockStr + ", pos=" + MessageUtil.toUnlabeledString(x, y, z))) {
                         if (shouldModifyPackets()) {
                             blockBreak.cancel();
                         }
@@ -64,18 +78,17 @@ public class WrongBreak extends Check implements BlockBreakCheck {
                 }
             }
 
-            lastCancelledBlock = pos;
-            lastLastBlock = null;
-            lastBlock = null;
-            return;
-        }
+            lastCancelledBlockIsSet = true; lastCancelledBlockX = x; lastCancelledBlockY = y; lastCancelledBlockZ = z;
 
-        if (blockBreak.action == DiggingAction.FINISHED_DIGGING) {
-            final Vector3i pos = blockBreak.position;
+            lastLastBlockIsSet = lastBlockIsSet = false;
+        } else if (blockBreak.action == DiggingAction.FINISHED_DIGGING) {
+            boolean notEqualsLastCancelled = !lastCancelledBlockIsSet || x != lastCancelledBlockX || y != lastCancelledBlockY || z != lastCancelledBlockZ;
+            boolean notEqualsLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
-            if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
-                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + MessageUtil.toUnlabledString(lastBlock) + ", pos=" + MessageUtil.toUnlabledString(pos))) {
+            if (notEqualsLastCancelled && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && notEqualsLastBlock) {
+                String lastBlockStr = lastBlockIsSet ? MessageUtil.toUnlabeledString(lastBlockX, lastBlockY, lastBlockZ) : "null";
+                if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + lastBlockStr + ", pos=" + MessageUtil.toUnlabeledString(x, y, z))) {
                     if (shouldModifyPackets()) {
                         blockBreak.cancel();
                     }
@@ -84,9 +97,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
 
             // 1.14.4+ clients don't send another start break in protected regions
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) {
-                lastCancelledBlock = null;
-                lastLastBlock = null;
-                lastBlock = null;
+                lastCancelledBlockIsSet = lastLastBlockIsSet = lastBlockIsSet = false;
             }
         }
     }

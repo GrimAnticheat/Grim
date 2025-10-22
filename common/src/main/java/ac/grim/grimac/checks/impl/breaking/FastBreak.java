@@ -36,8 +36,11 @@ public class FastBreak extends Check implements BlockBreakCheck {
         super(playerData);
     }
 
-    // The block the player is currently breaking
-    Vector3i targetBlockPosition = null;
+    // The block the player is currently breaking, represented by primitives for performance.
+    // The boolean flag `targetBlockIsSet` explicitly tracks the `null` state of the original ImmutableVector3i.
+    private boolean targetBlockIsSet;
+    private int targetBlockX, targetBlockY, targetBlockZ;
+
     // The maximum amount of damage the player deals to the block
     //
     double maximumBlockDamage = 0;
@@ -67,8 +70,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
             //  * can we translate back "up" to server version and run check against server version to avoid loading older registries?
             WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
-            startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
-            targetBlockPosition = blockBreak.position;
+            startBreak = System.currentTimeMillis() - (!targetBlockIsSet ? 50 : 0); // ???
+            targetBlockIsSet = true; targetBlockX = blockBreak.x; targetBlockY = blockBreak.y; targetBlockZ = blockBreak.z;
 
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
@@ -87,9 +90,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             clampBalance();
-        }
-
-        if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockPosition != null) {
+        } else if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockIsSet) {
             double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
             double realTime = System.currentTimeMillis() - startBreak;
             double diff = predictedTime - realTime;
@@ -117,8 +118,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
-        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockPosition != null) {
-            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockPosition)));
+        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockIsSet) {
+            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockX, targetBlockY, targetBlockZ)));
         }
     }
 

@@ -7,7 +7,9 @@ import org.jetbrains.annotations.NotNull;
 public record BlockModification(
         WrappedBlockState oldBlockContents,
         WrappedBlockState newBlockContents,
-        Vector3i location,
+        int x,
+        int y,
+        int z,
         int tick,
         Cause cause
 ) {
@@ -15,7 +17,7 @@ public record BlockModification(
     public @NotNull String toString() {
         return String.format(
                 "BlockModification{location=%s, old=%s, new=%s, tick=%d, cause=%s}",
-                location, oldBlockContents, newBlockContents, tick, cause
+                "X: " + x + ", Y: " + y + ", Z: " + z, oldBlockContents, newBlockContents, tick, cause
         );
     }
 
