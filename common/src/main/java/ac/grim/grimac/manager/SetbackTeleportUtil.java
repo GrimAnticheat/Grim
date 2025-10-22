@@ -18,6 +18,7 @@ import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.data.TeleportData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VehicleData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
@@ -343,18 +344,17 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         int lastTransaction = player.lastTransactionReceived.get();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
+            VehicleData.VehicleTeleport teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
-            if (lastTransaction < teleportPos.first()) {
+            if (lastTransaction < teleportPos.teleportId()) {
                 break;
             }
 
-            Vector3d position = teleportPos.second();
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+            if (teleportPos.x() == x && teleportPos.y() == y && teleportPos.z() == z) {
                 player.vehicleData.vehicleTeleports.poll();
 
                 return true;
-            } else if (lastTransaction > teleportPos.first() + 1) {
+            } else if (lastTransaction > teleportPos.teleportId() + 1) {
                 player.vehicleData.vehicleTeleports.poll();
 
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back

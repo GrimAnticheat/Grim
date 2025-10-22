@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.RotationData;
+import ac.grim.grimac.utils.data.VehicleData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -18,6 +19,8 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
+
+import javax.swing.text.Position;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -161,9 +164,12 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             event.getTasksAfterSend().add(player::sendTransaction);
-            player.vehicleData.vehicleTeleports.add(new Pair<>(
+            Vector3d position = new WrapperPlayServerVehicleMove(event).getPosition();
+            player.vehicleData.vehicleTeleports.add(new VehicleData.VehicleTeleport(
                     player.lastTransactionSent.get(),
-                    new WrapperPlayServerVehicleMove(event).getPosition()
+                    position.getX(),
+                    position.getY(),
+                    position.getZ()
             ));
         }
     }
