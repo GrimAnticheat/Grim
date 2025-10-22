@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
@@ -126,9 +127,9 @@ public final class PredictionEngineRideableUtils {
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-                Vector3dm vector3dm = predictionEngine.getMovementResultFromInput(player, movementVector, speed, player.yaw).add(possibleLastTickOutput.vectorX, possibleLastTickOutput.vectorY, possibleLastTickOutput.vectorZ);
+                Vector3dm vector3dm = predictionEngine.getMovementResultFromInput(player, movementVector.getX(), movementVector.getY(), movementVector.getZ(), speed, player.yaw).add(possibleLastTickOutput.vectorX, possibleLastTickOutput.vectorY, possibleLastTickOutput.vectorZ);
                 VectorData result = new VectorData(vector3dm, possibleLastTickOutput, VectorData.VectorType.InputResult);
-                result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
+                result.input = new Vec2d(player.vehicleData.vehicleForward, player.vehicleData.vehicleHorizontal);
 
                 Vector3dm vector = new Vector3dm(result.vectorX, result.vectorY, result.vectorZ);
                 if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
@@ -139,7 +140,7 @@ public final class PredictionEngineRideableUtils {
                 // This is the laziest way to reduce false positives such as horse rearing
                 // No bypasses can ever be derived from this, so why not?
                 result = new VectorData(possibleLastTickOutput.vectorX, possibleLastTickOutput.vectorY, possibleLastTickOutput.vectorZ, possibleLastTickOutput, VectorData.VectorType.InputResult);
-                result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
+                result.input = new Vec2d(player.vehicleData.vehicleForward,  player.vehicleData.vehicleHorizontal);
                 vector = new Vector3dm(result.vectorX, result.vectorY, result.vectorZ);
                 if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
                 result = result.returnNewModified(vector, VectorData.VectorType.StuckMultiplier);

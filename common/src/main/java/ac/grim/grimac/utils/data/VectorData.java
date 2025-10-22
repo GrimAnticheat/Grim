@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -12,7 +13,7 @@ public class VectorData {
     public VectorData lastVector;
     public VectorData preUncertainty;
     public double vectorX, vectorY, vectorZ;
-    public @MonotonicNonNull Vector3dm input;
+    public @MonotonicNonNull Vec2d input;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;

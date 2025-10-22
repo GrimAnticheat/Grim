@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -31,11 +32,11 @@ public class PredictionEngine {
         return outputVel;
     }
 
-    public static Vector3dm transformInputsToVector(GrimPlayer player, int strafe, int forward) {
+    public static Vec2d transformInputsToVector(GrimPlayer player, int strafe, int forward) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
             Vec2 moveVector = new Vec2((float) strafe, (float) forward).normalized();
             Vec2 input = modifyInput(player, moveVector);
-            return new Vector3dm(input.x(), 0, input.y());
+            return new Vec2d(input.x(), input.y());
         }
         float bestPossibleX;
         float bestPossibleZ;
@@ -54,18 +55,23 @@ public class PredictionEngine {
             bestPossibleZ *= 0.2F;
         }
 
-        Vector3dm inputVector = new Vector3dm(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98F);
+        double inputVectorX = bestPossibleX;
+        double inputVectorZ = bestPossibleZ;
+        inputVectorX *= 0.98F;
+        inputVectorZ *= 0.98F;
 
         // Simulate float rounding imprecision
-        inputVector = new Vector3dm((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+        inputVectorX = (float) inputVectorX;
+        inputVectorZ = (float) inputVectorZ;
 
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ());
-            inputVector = new Vector3dm(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+        double lengthSquared = GrimMath.lengthSquared(inputVectorX, inputVectorZ);
+        if (lengthSquared > 1) {
+            double d0 = Math.sqrt(lengthSquared);
+            inputVectorX = inputVectorX / d0;
+            inputVectorZ = inputVectorZ / d0;
         }
 
-        return inputVector;
+        return new Vec2d(inputVectorX, inputVectorZ);
     }
 
     public static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
@@ -863,8 +869,8 @@ public class PredictionEngine {
                             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-                                Vector3dm input = transformInputsToVector(player, strafe, forward);
-                                Vector3dm movementResultFromInput = getMovementResultFromInput(player, input, speed, player.yaw);
+                                Vec2d input = transformInputsToVector(player, strafe, forward);
+                                Vector3dm movementResultFromInput = getMovementResultFromInput(player, input.x(), 0, input.z(), speed, player.yaw);
                                 VectorData result = new VectorData(possibleLastTickOutput.vectorX + movementResultFromInput.getX(),
                                         possibleLastTickOutput.vectorY + movementResultFromInput.getY(),
                                         possibleLastTickOutput.vectorZ + movementResultFromInput.getZ(),
@@ -942,13 +948,13 @@ public class PredictionEngine {
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
-    public Vector3dm getMovementResultFromInput(GrimPlayer player, Vector3dm inputVector, float f, float f2) {
+    public Vector3dm getMovementResultFromInput(GrimPlayer player, double x, double y, double z, float f, float f2) {
         float f2InRadians = GrimMath.radians(f2);
         float f3 = player.trigHandler.sin(f2InRadians);
         float f4 = player.trigHandler.cos(f2InRadians);
 
-        double xResult = inputVector.getX() * f4 - inputVector.getZ() * f3;
-        double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
+        double xResult = x * f4 - z * f3;
+        double zResult = z * f4 + x * f3;
 
         return new Vector3dm(xResult * f, 0, zResult * f);
     }

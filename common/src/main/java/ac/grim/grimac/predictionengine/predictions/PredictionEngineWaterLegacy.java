@@ -20,8 +20,8 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
 
     // This is just the vanilla equation for legacy water movement
     @Override
-    public Vector3dm getMovementResultFromInput(GrimPlayer player, Vector3dm inputVector, float f, float f2) {
-        float lengthSquared = (float) inputVector.lengthSquared();
+    public Vector3dm getMovementResultFromInput(GrimPlayer player, double x, double y, double z, float f, float f2) {
+        float lengthSquared = (float) GrimMath.lengthSquared(x, y, z);
 
         if (lengthSquared >= 1.0E-4F) {
             lengthSquared = (float) Math.sqrt(lengthSquared);
@@ -31,13 +31,15 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
             }
 
             lengthSquared = swimmingSpeed / lengthSquared;
-            inputVector.multiply(lengthSquared);
+            x *= lengthSquared;
+            y *= lengthSquared;
+            z *= lengthSquared;
             float yawRadians = GrimMath.radians(player.yaw);
             float sinResult = player.trigHandler.sin(yawRadians);
             float cosResult = player.trigHandler.cos(yawRadians);
 
-            return new Vector3dm(inputVector.getX() * cosResult - inputVector.getZ() * sinResult,
-                    inputVector.getY(), inputVector.getZ() * cosResult + inputVector.getX() * sinResult);
+            return new Vector3dm(x * cosResult - z * sinResult,
+                    y, z * cosResult + x * sinResult);
         }
 
         return new Vector3dm();

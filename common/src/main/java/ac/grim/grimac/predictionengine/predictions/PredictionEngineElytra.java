@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -82,7 +83,7 @@ public class PredictionEngineElytra extends PredictionEngine {
                     vector[2] *= 0.99f;
 
                     VectorData modified = data.returnNewModified(vector[0], vector[1], vector[2], VectorData.VectorType.InputResult);
-                    modified.input = new Vector3dm(0, 0, 0);
+                    modified.input = new Vec2d(0, 0);
                     results.add(modified);
                 }
             }

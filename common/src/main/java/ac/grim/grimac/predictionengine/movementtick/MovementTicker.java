@@ -93,8 +93,8 @@ public class MovementTicker {
         double horizontalLengthSquared = x * x + z * z;
         if (horizontalLengthSquared < 1E-5F) return false;
 
-        float xxa = (float) player.predictedVelocity.input.getX();
-        float zza = (float) player.predictedVelocity.input.getZ();
+        float xxa = (float) player.predictedVelocity.input.x();
+        float zza = (float) player.predictedVelocity.input.z();
 
         float yawInRadians = player.yaw * (float) (Math.PI / 180.0);
         double sin = player.trigHandler.sin(yawInRadians);
