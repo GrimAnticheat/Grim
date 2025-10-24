@@ -31,7 +31,7 @@ public final class BoundingBoxSize {
             return 0.75f;
         } else if (EntityTypes.PANDA.equals(type)) {
             return 1.3f;
-        } else if (EntityTypes.BAT.equals(type) || EntityTypes.PARROT.equals(type) || EntityTypes.COD.equals(type) || EntityTypes.EVOKER_FANGS.equals(type) || EntityTypes.TROPICAL_FISH.equals(type) || EntityTypes.FROG.equals(type)) {
+        } else if (EntityTypes.BAT.equals(type) || EntityTypes.PARROT.equals(type) || EntityTypes.COD.equals(type) || EntityTypes.EVOKER_FANGS.equals(type) || EntityTypes.TROPICAL_FISH.equals(type) || EntityTypes.FROG.equals(type) || EntityTypes.COPPER_GOLEM.equals(type)) {
             return 0.5f;
         } else if (EntityTypes.ARMADILLO.equals(type) || EntityTypes.BEE.equals(type) || EntityTypes.PUFFERFISH.equals(type) || EntityTypes.SALMON.equals(type) || EntityTypes.SNOW_GOLEM.equals(type) || EntityTypes.CAVE_SPIDER.equals(type)) {
             return 0.7f;
@@ -405,6 +405,8 @@ public final class BoundingBoxSize {
             return 1.8F;
         } else if (EntityTypes.FIREWORK_ROCKET.equals(type)) {
             return 0.25F;
+        } else if (EntityTypes.COPPER_GOLEM.equals(type)) {
+            return 1.0F;
         }
         return 1.95f;
     }
