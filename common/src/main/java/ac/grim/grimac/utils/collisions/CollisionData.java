@@ -1018,6 +1018,10 @@ public enum CollisionData implements CollisionFactory {
         }
     }, StateTypes.DRIED_GHAST),
 
+    COPPER_GOLEM_STATUE((player, version, data, x, y, z) -> {
+            return new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 14.0, 13.0);
+        }, BlockTags.COPPER_GOLEM_STATUES.getStates().toArray(new StateType[0])),
+
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
