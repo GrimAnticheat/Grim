@@ -1019,8 +1019,12 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.DRIED_GHAST),
 
     COPPER_GOLEM_STATUE((player, version, data, x, y, z) -> {
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
             return new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 14.0, 13.0);
-        }, BlockTags.COPPER_GOLEM_STATUES.getStates().toArray(new StateType[0])),
+        } else { // ViaVersion maps to copper block <1.21.9
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+    }, BlockTags.COPPER_GOLEM_STATUES.getStates().toArray(new StateType[0])),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
