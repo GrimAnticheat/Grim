@@ -8,7 +8,6 @@ import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
