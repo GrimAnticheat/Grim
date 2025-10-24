@@ -1019,12 +1019,26 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.DRIED_GHAST),
 
     COPPER_GOLEM_STATUE((player, version, data, x, y, z) -> {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
-            return new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 14.0, 13.0);
-        } else { // ViaVersion maps to copper block <1.21.9
+        // ViaVersion maps to copper block <1.21.9
+        if (version.isOlderThan(ClientVersion.V_1_21_9)) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
+        return new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 14.0, 13.0);
     }, BlockTags.COPPER_GOLEM_STATUES.getStates().toArray(new StateType[0])),
+
+    WOODEN_SHELF((player, version, data, x, y, z) -> {
+        // ViaVersion maps to planks <1.21.9
+        if (version.isOlderThan(ClientVersion.V_1_21_9)) {
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+        return switch (data.getFacing()) {
+            case NORTH -> new HexCollisionBox(0.0D, 0.0D, 11.0D, 16.0D, 16.0D, 16.0D);
+            case SOUTH -> new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 5.0D);
+            case WEST -> new HexCollisionBox(11.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+            case EAST -> new HexCollisionBox(0.0D, 0.0D, 0.0D, 5.0D, 16.0D, 16.0D);
+            default -> NoCollisionBox.INSTANCE;
+        };
+    }, BlockTags.WOODEN_SHELVES.getStates().toArray(new StateType[0])),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
