@@ -34,7 +34,6 @@ public class WrongBreak extends Check implements BlockBreakCheck {
 
     // The client sometimes sends a wierd cancel packet
     private boolean shouldExempt(final WrappedBlockState block, int yPos) {
-        // lastLastBlock is always null when this happens, and lastBlock isn't
         if (lastLastBlockIsSet || !lastBlockIsSet)
             return false;
 
@@ -56,19 +55,19 @@ public class WrongBreak extends Check implements BlockBreakCheck {
             lastBlockWasInstantBreak = getBlockDamage(player, blockBreak.block) >= 1;
             lastCancelledBlockIsSet = false;
 
-            // State transfer: lastBlock becomes lastLastBlock
             lastLastBlockIsSet = lastBlockIsSet;
 
-            // Update lastBlock to the current position
-            lastBlockIsSet = true; lastBlockX = x; lastBlockY = y; lastBlockZ = z;
+            lastBlockIsSet = true;
+            lastBlockX = x;
+            lastBlockY = y;
+            lastBlockZ = z;
         } else if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            // Equivalent to `!pos.equals(lastBlock)` but for primitives and handles the "null" (not set) case.
-            boolean notEqualsLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
+            boolean notLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
 
-            if (!shouldExempt(blockBreak.block, y) && notEqualsLastBlock) {
+            if (!shouldExempt(blockBreak.block, y) && notLastBlock) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
-                boolean equalsLastCancelled = lastCancelledBlockIsSet && x == lastCancelledBlockX && y == lastCancelledBlockY && z == lastCancelledBlockZ;
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && equalsLastCancelled)) {
+                boolean isLastCancelled = lastCancelledBlockIsSet && x == lastCancelledBlockX && y == lastCancelledBlockY && z == lastCancelledBlockZ;
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && isLastCancelled)) {
                     String lastBlockStr = lastBlockIsSet ? MessageUtil.toUnlabeledString(lastBlockX, lastBlockY, lastBlockZ) : "null";
                     if (flagAndAlert("action=CANCELLED_DIGGING" + ", last=" + lastBlockStr + ", pos=" + MessageUtil.toUnlabeledString(x, y, z))) {
                         if (shouldModifyPackets()) {
@@ -78,15 +77,18 @@ public class WrongBreak extends Check implements BlockBreakCheck {
                 }
             }
 
-            lastCancelledBlockIsSet = true; lastCancelledBlockX = x; lastCancelledBlockY = y; lastCancelledBlockZ = z;
+            lastCancelledBlockIsSet = true;
+            lastCancelledBlockX = x;
+            lastCancelledBlockY = y;
+            lastCancelledBlockZ = z;
 
             lastLastBlockIsSet = lastBlockIsSet = false;
         } else if (blockBreak.action == DiggingAction.FINISHED_DIGGING) {
-            boolean notEqualsLastCancelled = !lastCancelledBlockIsSet || x != lastCancelledBlockX || y != lastCancelledBlockY || z != lastCancelledBlockZ;
-            boolean notEqualsLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
+            boolean notLastCancelled = !lastCancelledBlockIsSet || x != lastCancelledBlockX || y != lastCancelledBlockY || z != lastCancelledBlockZ;
+            boolean notLastBlock = !lastBlockIsSet || x != lastBlockX || y != lastBlockY || z != lastBlockZ;
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
-            if (notEqualsLastCancelled && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && notEqualsLastBlock) {
+            if (notLastCancelled && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && notLastBlock) {
                 String lastBlockStr = lastBlockIsSet ? MessageUtil.toUnlabeledString(lastBlockX, lastBlockY, lastBlockZ) : "null";
                 if (flagAndAlert("action=FINISHED_DIGGING" + ", last=" + lastBlockStr + ", pos=" + MessageUtil.toUnlabeledString(x, y, z))) {
                     if (shouldModifyPackets()) {

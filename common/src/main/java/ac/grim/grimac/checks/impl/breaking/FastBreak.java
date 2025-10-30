@@ -37,7 +37,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
     }
 
     // The block the player is currently breaking, represented by primitives for performance.
-    // The boolean flag `targetBlockIsSet` explicitly tracks the `null` state of the original ImmutableVector3i.
+    // `targetBlockIsSet` tracks nullness of the position, since primitives can't be null
     private boolean targetBlockIsSet;
     private int targetBlockX, targetBlockY, targetBlockZ;
 
@@ -71,7 +71,10 @@ public class FastBreak extends Check implements BlockBreakCheck {
             WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
             startBreak = System.currentTimeMillis() - (!targetBlockIsSet ? 50 : 0); // ???
-            targetBlockIsSet = true; targetBlockX = blockBreak.x; targetBlockY = blockBreak.y; targetBlockZ = blockBreak.z;
+            targetBlockIsSet = true;
+            targetBlockX = blockBreak.x;
+            targetBlockY = blockBreak.y;
+            targetBlockZ = blockBreak.z;
 
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
