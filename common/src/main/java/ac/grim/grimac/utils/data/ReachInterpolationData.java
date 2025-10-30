@@ -40,7 +40,7 @@ public class ReachInterpolationData {
     private int cancelledLerpInterpolationStepsLowBound = Integer.MAX_VALUE;
 
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, final double x, final double y, final double z, PacketEntity entity) {
-        final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+        final boolean unreliableTicking = !player.inVehicle() && player.canSkipTicks();
 
         this.startingLocation = startingLocation;
         this.targetLocation = new SimpleCollisionBox(x, y, z, x, y, z, false);
@@ -49,7 +49,7 @@ public class ReachInterpolationData {
 
         // 1.9 -> 1.8 precision loss in packets
         // (ViaVersion is doing some stuff that makes this code difficult)
-        if (!isPointNine && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
             targetLocation.expand(0.03125);
         }
 
@@ -65,7 +65,8 @@ public class ReachInterpolationData {
             interpolationSteps = 1;
         }
 
-        if (isPointNine) interpolationStepsHighBound = getInterpolationSteps();
+        // If the player doesn't tick reliably, their interpolation is anywhere between min and max steps.
+        if (unreliableTicking) interpolationStepsHighBound = getInterpolationSteps();
     }
 
     // While riding entities, there is no interpolation.
