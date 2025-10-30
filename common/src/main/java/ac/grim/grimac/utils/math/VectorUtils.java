@@ -40,7 +40,6 @@ public class VectorUtils {
         double x = GrimMath.clamp(toClampX, -3.0E7D, 3.0E7D);
         double y = GrimMath.clamp(toClampY, -2.0E7D, 2.0E7D);
         double z = GrimMath.clamp(toClampZ, -3.0E7D, 3.0E7D);
-
         return new Vector3d(x, y, z);
     }
 }

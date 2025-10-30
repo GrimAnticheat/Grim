@@ -33,7 +33,7 @@ public class MainSupportingBlockPosFinder {
     }
 
     private static class BestBlockHolder {
-        Vector3i pos = null;
+        Vector3i pos;
         double distanceSquared = Double.MAX_VALUE;
     }
 

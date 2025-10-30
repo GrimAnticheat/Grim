@@ -108,7 +108,6 @@ public final class PredictionEngineRideableUtils {
             vectorData.vectorY = jumpVelocity;
             if (forwardInput > 0.0F) {
                 vectorData.vectorX += -0.4F * f2 * player.vehicleData.horseJump;
-                vectorData.vectorY += 0.0D;
                 vectorData.vectorZ += 0.4F * f3 * player.vehicleData.horseJump;
             }
         }

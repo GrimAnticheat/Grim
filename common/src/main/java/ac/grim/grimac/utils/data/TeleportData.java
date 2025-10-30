@@ -18,7 +18,7 @@ public class TeleportData {
     private final double velocityX;
     private final double velocityY;
     private final double velocityZ;
-    private @NotNull final RelativeFlag flags;
+    private final @NotNull RelativeFlag flags;
     @Setter
     private int transaction;
     @Setter

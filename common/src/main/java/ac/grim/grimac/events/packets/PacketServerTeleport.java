@@ -2,11 +2,9 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.RotationData;
 import ac.grim.grimac.utils.data.VehicleData;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -19,8 +17,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
-
-import javax.swing.text.Position;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -53,9 +49,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.yaw = yaw;
                 player.pitch = pitch;
 
-                player.x = posX;
-                player.y = posY;
-                player.z = posZ;
+                player.lastX = posX;
+                player.lastY = posY;
+                player.lastZ = posZ;
                 player.lastYaw = yaw;
                 player.lastPitch = pitch;
 
