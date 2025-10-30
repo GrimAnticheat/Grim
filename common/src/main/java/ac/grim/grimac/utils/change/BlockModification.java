@@ -16,8 +16,8 @@ public record BlockModification(
     @Override
     public @NotNull String toString() {
         return String.format(
-                "BlockModification{location=%s, old=%s, new=%s, tick=%d, cause=%s}",
-                "X: " + x + ", Y: " + y + ", Z: " + z, oldBlockContents, newBlockContents, tick, cause
+                "BlockModification{x=%d, y=%d, z=%d, old=%s, new=%s, tick=%d, cause=%s}",
+                x, y, z, oldBlockContents, newBlockContents, tick, cause
         );
     }
 

@@ -20,7 +20,6 @@ public class ReachUtils {
     public static @NotNull Pair<@Nullable Vector3dm, @Nullable BlockFace> calculateIntercept(@NotNull SimpleCollisionBox self,
                                                                                              double originX, double originY, double originZ,
                                                                                              double endX, double endY, double endZ) {
-        // Call the new primitive-based helper methods
         Vector3dm minX = getIntermediateWithXValue(originX, originY, originZ, endX, endY, endZ, self.minX);
         Vector3dm maxX = getIntermediateWithXValue(originX, originY, originZ, endX, endY, endZ, self.maxX);
         Vector3dm minY = getIntermediateWithYValue(originX, originY, originZ, endX, endY, endZ, self.minY);
