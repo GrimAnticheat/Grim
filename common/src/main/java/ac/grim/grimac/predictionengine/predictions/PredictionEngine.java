@@ -626,11 +626,11 @@ public class PredictionEngine {
         final double uncertaintyZ = avgColliding * 0.08;
 
         final double minUncertaintyX = player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal;
-        final double minUncertaintyY = -bonusY + player.uncertaintyHandler.yNegativeUncertainty;
+        final double minUncertaintyY = player.uncertaintyHandler.yNegativeUncertainty - bonusY;
         final double minUncertaintyZ = player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal;
 
         final double maxUncertaintyX = player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal;
-        final double maxUncertaintyY = bonusY + player.uncertaintyHandler.yPositiveUncertainty;
+        final double maxUncertaintyY = player.uncertaintyHandler.yPositiveUncertainty + bonusY;
         final double maxUncertaintyZ = player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal;
 
         double minVecX = vector.vectorX + (minUncertaintyX - uncertaintyX);
