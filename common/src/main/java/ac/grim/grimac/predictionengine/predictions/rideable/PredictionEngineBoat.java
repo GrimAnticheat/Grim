@@ -182,14 +182,14 @@ public class PredictionEngineBoat extends PredictionEngine {
 
                 // TODO (Mutation) (Confirm if Correct)
                 // It seems possible for applyStuckSpeed = 0, and 1 to add the same vector to the set twice
-                // since we're mutating data.vectorX, Y, Z which is very likely inorrect but I don't know enough to say for certain
+                // since we're mutating data.vectorX, Y, Z which is very likely incorrect but I don't know enough to say for certain
                 data.vectorX = data.vectorX + player.trigHandler.sin(GrimMath.radians(-player.yaw)) * f;
                 data.vectorZ = data.vectorZ + (double) (player.trigHandler.cos(GrimMath.radians(player.yaw)) * f);
 
                 if (applyStuckSpeed != 0) {
-                    data.vectorX = data.vectorX * player.stuckSpeedMultiplier.getX();
-                    data.vectorY = data.vectorY * player.stuckSpeedMultiplier.getY();
-                    data.vectorZ = data.vectorZ * player.stuckSpeedMultiplier.getZ();
+                    data.vectorX *= player.stuckSpeedMultiplier.getX();
+                    data.vectorY *= player.stuckSpeedMultiplier.getY();
+                    data.vectorZ *= player.stuckSpeedMultiplier.getZ();
                 }
                 vectors.add(data);
             }

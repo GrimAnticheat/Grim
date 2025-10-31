@@ -948,15 +948,15 @@ public class PredictionEngine {
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
-    public Vector3dm getMovementResultFromInput(GrimPlayer player, double x, double y, double z, float f, float f2) {
-        float f2InRadians = GrimMath.radians(f2);
+    public Vector3dm getMovementResultFromInput(GrimPlayer player, double x, double y, double z, float speed, float yaw) {
+        float f2InRadians = GrimMath.radians(yaw);
         float f3 = player.trigHandler.sin(f2InRadians);
         float f4 = player.trigHandler.cos(f2InRadians);
 
         double xResult = x * f4 - z * f3;
         double zResult = z * f4 + x * f3;
 
-        return new Vector3dm(xResult * f, 0, zResult * f);
+        return new Vector3dm(xResult * speed, 0, zResult * speed);
     }
 
     public Vector3dm handleOnClimbable(double x, double y, double z, GrimPlayer player) {

@@ -19,7 +19,7 @@ public class PredictionEngineElytra extends PredictionEngine {
                                                   double lookX, double lookY, double lookZ) {
         float pitchRadians = GrimMath.radians(player.pitch);
         double horizontalSqrt = Math.sqrt(lookX * lookX + lookZ * lookZ);
-        double horizontalLength = GrimMath.length(vectorArr[0], 0, vectorArr[1]);
+        double horizontalLength = GrimMath.length(vectorArr[0], 0, vectorArr[2]);
         double length = GrimMath.length(lookX, lookY, lookZ);
 
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
