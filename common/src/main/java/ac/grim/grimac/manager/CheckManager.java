@@ -24,10 +24,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.Post;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.NoSlow;
-import ac.grim.grimac.checks.impl.movement.PredictionRunner;
-import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
-import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
+import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.packetorder.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -127,6 +124,7 @@ public class CheckManager {
                 .put(PacketOrderO.class, new PacketOrderO(player))
                 .put(PacketOrderP.class, new PacketOrderP(player))
                 .put(SprintA.class, new SprintA(player))
+                .put(FakeLag.class, new FakeLag(player))
                 .put(VehicleA.class, new VehicleA(player))
                 .put(VehicleB.class, new VehicleB(player))
                 .put(VehicleD.class, new VehicleD(player))
