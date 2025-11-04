@@ -364,12 +364,15 @@ public class GrimPlayer implements GrimUser {
         // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
         for (VectorData data : new HashSet<>(possibleMovements)) {
             for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
+                final double x = data.vectorX;
+                final double y = data.vectorY;
+                final double z = data.vectorZ;
                 if (direction.getModX() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setX(direction.getModX()), VectorData.VectorType.SlimePistonBounce));
+                    possibleMovements.add(data.returnNewModified(direction.getModX(), y, z, VectorData.VectorType.SlimePistonBounce));
                 } else if (direction.getModY() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setY(direction.getModY()), VectorData.VectorType.SlimePistonBounce));
+                    possibleMovements.add(data.returnNewModified(x, direction.getModY(), z, VectorData.VectorType.SlimePistonBounce));
                 } else if (direction.getModZ() != 0) {
-                    possibleMovements.add(data.returnNewModified(data.vector.clone().setZ(direction.getModZ()), VectorData.VectorType.SlimePistonBounce));
+                    possibleMovements.add(data.returnNewModified(x, y, direction.getModZ(), VectorData.VectorType.SlimePistonBounce));
                 }
             }
         }
@@ -796,7 +799,10 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean isInWaterOrRain() {
-        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
+        return compensatedWorld.isRaining
+                || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f),
+                (block, x, y, z) -> Materials.isWater(CompensatedWorld.blockVersion, block)
+        );
     }
 
     @Contract(pure = true)
@@ -925,12 +931,12 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    public void resyncPosition(Vector3i pos) {
-        this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    public void resyncPosition(final int x, final int y, final int z) {
+        this.resyncHandler.resync(x, y, z, x, y, z);
     }
 
-    public void resyncPosition(Vector3i pos, int sequenceID) {
-        this.resyncHandler.resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    public void resyncPosition(final int x, final int y, final int z, final int sequenceID) {
+        this.resyncHandler.resyncPosition(x, y, z, sequenceID);
     }
 
     public void resyncPositions(SimpleCollisionBox box) {

@@ -20,8 +20,8 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
     private int lastTick;
     private boolean didLastFlag;
     // Initialize to non-null values to prevent NPE when checking for blockType properties and if position equals old position
-    private @NotNull Vector3i lastBreakLoc = new Vector3i();
-    private @NotNull StateType lastBlockType = StateTypes.AIR;
+    private int lastX, lastY, lastZ;
+    private float lastHardness, lastBlastResistance;
 
     public AirLiquidBreak(GrimPlayer player) {
         super(player);
@@ -40,15 +40,20 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
         // I am explicitly making this patch as narrow and specific as possible to potentially discover other blocks that exhibit similar behaviour
         int newTick = GrimAPI.INSTANCE.getTickManager().currentTick;
         if (lastTick == newTick
-                && lastBreakLoc.equals(blockBreak.position)
+                && lastX == blockBreak.x
+                && lastY == blockBreak.y
+                && lastZ == blockBreak.z
                 && !didLastFlag
-                && lastBlockType.getHardness() == 0.0F
-                && lastBlockType.getBlastResistance() == 0.0F
+                && lastHardness == 0.0F
+                && lastBlastResistance == 0.0F
                 && block == StateTypes.WATER
         ) return;
         lastTick = newTick;
-        lastBreakLoc = blockBreak.position;
-        lastBlockType = block;
+        lastX = blockBreak.x;
+        lastY = blockBreak.y;
+        lastZ = blockBreak.z;
+        lastHardness = block.getHardness();
+        lastBlastResistance = block.getBlastResistance();
 
         // the block does not have a hitbox
         boolean invalid = (block == StateTypes.LIGHT && !(player.inventory.getHeldItem().is(ItemTypes.LIGHT) || player.inventory.getOffHand().is(ItemTypes.LIGHT)))

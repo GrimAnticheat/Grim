@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.math;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
@@ -232,5 +234,39 @@ public class GrimMath {
     @Contract(pure = true)
     public static double square(double num) {
         return num * num;
+    }
+
+    public static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {
+        return GrimMath.square(x1 - x2) + GrimMath.square(y1 - y2) + GrimMath.square(z1 - z2);
+    }
+
+    private static final ServerVersion serverVersion = PacketEvents.getAPI().getServerManager().getVersion();
+
+    public static long getSerializedPosition(int x, int y, int z) {
+        // 1.17 adds support for negative values
+        if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_17)) {
+            long lx = x & 0x3FFFFFF;
+            long ly = y & 0xFFF;
+            long lz = z & 0x3FFFFFF;
+
+            return lx << 38 | lz << 12 | ly;
+        // 1.14 method for this is storing X Z Y
+        } else if (serverVersion.isNewerThanOrEquals(ServerVersion.V_1_14)) {
+            return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+        }
+        // 1.13 and below store X Y Z
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
+    }
+
+    public static double lengthSquared(double x, double z) {
+        return GrimMath.square(x) + GrimMath.square(z);
+    }
+
+    public static double lengthSquared(double x, double y, double z) {
+        return GrimMath.square(x) + GrimMath.square(y) + GrimMath.square(z);
+    }
+
+    public static double length(double x, double y, double z) {
+        return Math.sqrt(lengthSquared(x, y, z));
     }
 }

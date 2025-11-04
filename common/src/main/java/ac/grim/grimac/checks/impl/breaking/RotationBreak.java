@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.TeleportData;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
@@ -14,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -70,7 +72,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
     }
 
     private boolean didRayTraceHit(BlockBreak blockBreak) {
-        SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
+        SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.x, blockBreak.y, blockBreak.z);
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
 
@@ -111,7 +113,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
                 Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                Vector3dm pointAtDistance = trace.getPointAtDistance(distance);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOriginX(), trace.getOriginY(), trace.getOriginZ(), pointAtDistance.getX(), pointAtDistance.getY(), pointAtDistance.getZ());
 
                 if (intercept.first() != null) return true;
             }

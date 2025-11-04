@@ -568,8 +568,10 @@ public class BlockPlace {
                     // This happens due to the lack of an idle packet on 1.9+ clients
                     // On 1.8 clients this should practically never happen
                     if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
-                        Vector3d entityPos = entity.trackedServerPosition.getPos();
-                        interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+                        final double x = entity.trackedServerPosition.getX();
+                        final double y = entity.trackedServerPosition.getX();
+                        final double z = entity.trackedServerPosition.getX();
+                        interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, x, y, z, entity);
                     }
 
                     if (box.isIntersected(interpBox)) {
@@ -641,9 +643,13 @@ public class BlockPlace {
         Vector3dm look = ReachUtils.getLook(player, player.yaw, player.pitch);
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 3;
-        Vector3dm eyePos = new Vector3dm(player.x, player.y + player.getEyeHeight(), player.z);
-        Vector3dm endReachPos = eyePos.clone().add(new Vector3dm(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
-        Vector3dm intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
+        final double eyeX = player.x;
+        final double eyeY = player.y + player.getEyeHeight();
+        final double eyeZ = player.z;
+        final double endX = eyeX + look.getX() * distance;
+        final double endY = eyeY + look.getY() * distance;
+        final double endZ = eyeZ + look.getZ() * distance;
+        Vector3dm intercept =  ReachUtils.calculateIntercept(box, eyeX, eyeY, eyeZ, endX, endY, endZ).first();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)

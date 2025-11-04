@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class VectorUtils {
-    public static @NotNull Vector3dm cutBoxToVector(@NotNull Vector3dm vectorToCutTo, @NotNull Vector3dm min, @NotNull Vector3dm max) {
-        SimpleCollisionBox box = new SimpleCollisionBox(min, max).sort();
+    public static @NotNull Vector3dm cutBoxToVector(@NotNull Vector3dm vectorToCutTo, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        SimpleCollisionBox box = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ).sort();
         return cutBoxToVector(vectorToCutTo, box);
     }
 
@@ -32,10 +32,14 @@ public class VectorUtils {
     // Clamping stops the player from causing an integer overflow and crashing the netty thread
     @Contract("_ -> new")
     public static @NotNull Vector3d clampVector(@NotNull Vector3d toClamp) {
-        double x = GrimMath.clamp(toClamp.getX(), -3.0E7D, 3.0E7D);
-        double y = GrimMath.clamp(toClamp.getY(), -2.0E7D, 2.0E7D);
-        double z = GrimMath.clamp(toClamp.getZ(), -3.0E7D, 3.0E7D);
+        return clampVector(toClamp.getX(), toClamp.getY(), toClamp.getZ());
+    }
 
+    @Contract("_ -> new")
+    public static @NotNull Vector3d clampVector(double toClampX, double toClampY, double toClampZ) {
+        double x = GrimMath.clamp(toClampX, -3.0E7D, 3.0E7D);
+        double y = GrimMath.clamp(toClampY, -2.0E7D, 2.0E7D);
+        double z = GrimMath.clamp(toClampZ, -3.0E7D, 3.0E7D);
         return new Vector3d(x, y, z);
     }
 }

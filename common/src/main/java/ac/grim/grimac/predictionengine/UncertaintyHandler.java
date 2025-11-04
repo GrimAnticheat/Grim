@@ -264,7 +264,7 @@ public class UncertaintyHandler {
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
-        if ((lastFlyingTicks.hasOccurredSince(5)) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+        if ((lastFlyingTicks.hasOccurredSince(5)) && Math.abs(data.vectorY) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
 
         double pointThree = player.getMovementThreshold();

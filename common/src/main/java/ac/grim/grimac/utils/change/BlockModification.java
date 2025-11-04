@@ -7,15 +7,17 @@ import org.jetbrains.annotations.NotNull;
 public record BlockModification(
         WrappedBlockState oldBlockContents,
         WrappedBlockState newBlockContents,
-        Vector3i location,
+        int x,
+        int y,
+        int z,
         int tick,
         Cause cause
 ) {
     @Override
     public @NotNull String toString() {
         return String.format(
-                "BlockModification{location=%s, old=%s, new=%s, tick=%d, cause=%s}",
-                location, oldBlockContents, newBlockContents, tick, cause
+                "BlockModification{x=%d, y=%d, z=%d, old=%s, new=%s, tick=%d, cause=%s}",
+                x, y, z, oldBlockContents, newBlockContents, tick, cause
         );
     }
 

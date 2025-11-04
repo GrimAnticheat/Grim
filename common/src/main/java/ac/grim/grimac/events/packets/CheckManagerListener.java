@@ -483,7 +483,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.yaw = move.getYaw();
             player.pitch = move.getPitch();
 
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp.getX(), clamp.getY(), clamp.getZ(),
+                    position.getX(), position.getY(), position.getZ(), move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
@@ -532,14 +533,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         player.onPacketCancel();
                     }
 
-                    Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
-
                     // Ends the client prediction introduced in 1.19+
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
                         player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     } else { // The client isn't smart enough to revert changes
-                        player.resyncPosition(packet.getBlockPosition());
-                        player.resyncPosition(facePos);
+                        final Vector3i blockPosition = packet.getBlockPosition();
+                        final int x = blockPosition.getX();
+                        final int y = blockPosition.getY();
+                        final int z = blockPosition.getZ();
+                        player.resyncPosition(x, y ,z);
+                        final BlockFace face = packet.getFace();
+                        player.resyncPosition(x + face.getModX(), y + face.getModY(), z + face.getModZ());
                     }
 
                     // Stop inventory desync from cancelling place
@@ -724,9 +728,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (hasPosition) {
-            Vector3d position = new Vector3d(x, y, z);
-            Vector3d clampVector = VectorUtils.clampVector(position);
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
+            Vector3d clampVector = VectorUtils.clampVector(x, y, z);
+            final PositionUpdate update = new PositionUpdate(player.x, player.y, player.z, x, y ,z, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
             // Stupidity doesn't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
@@ -770,14 +773,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace(), packet.getBlockFaceId(), action, packet.getSequence(), player.compensatedWorld.getBlock(packet.getBlockPosition()));
+        final Vector3i blockPosition = packet.getBlockPosition();
+        final BlockBreak blockBreak = new BlockBreak(player, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), packet.getBlockFace(), packet.getBlockFaceId(), action, packet.getSequence(), player.compensatedWorld.getBlock(packet.getBlockPosition()));
 
         player.checkManager.onBlockBreak(blockBreak);
 
         if (blockBreak.isCancelled()) {
             event.setCancelled(true);
             player.onPacketCancel();
-            player.resyncPosition(blockBreak.position, packet.getSequence());
+            player.resyncPosition(blockBreak.x, blockBreak.y, blockBreak.z, packet.getSequence());
             return;
         }
 
@@ -785,7 +789,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (action == DiggingAction.FINISHED_DIGGING && BREAKABLE.apply(blockBreak.block.getType())) {
             player.compensatedWorld.startPredicting();
-            player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
+            player.compensatedWorld.updateBlock(blockBreak.x, blockBreak.y, blockBreak.z, 0);
             player.compensatedWorld.stopPredicting(packet);
         }
 
@@ -795,11 +799,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Instant breaking, no damage means it is unbreakable by creative players (with swords)
             if (damage >= 1) {
                 player.compensatedWorld.startPredicting();
+                final int x = blockBreak.x;
+                final int y = blockBreak.y;
+                final int z = blockBreak.z;
                 player.blockHistory.add(
                         new BlockModification(
-                                player.compensatedWorld.getBlock(blockBreak.position),
+                                player.compensatedWorld.getBlock(x, y, z),
                                 WrappedBlockState.getByGlobalId(0),
-                                blockBreak.position,
+                                x, y, z,
                                 GrimAPI.INSTANCE.getTickManager().currentTick,
                                 BlockModification.Cause.START_DIGGING
                         )
@@ -807,9 +814,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), blockBreak.block)) {
                     // Vanilla uses a method to grab water flowing, but as you can't break flowing water
                     // We can simply treat all waterlogged blocks or source blocks as source blocks
-                    player.compensatedWorld.updateBlock(blockBreak.position, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
+                    player.compensatedWorld.updateBlock(x, y, z, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion).getGlobalId());
                 } else {
-                    player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
+                    player.compensatedWorld.updateBlock(x, y, z, 0);
                 }
                 player.compensatedWorld.stopPredicting(packet);
             }

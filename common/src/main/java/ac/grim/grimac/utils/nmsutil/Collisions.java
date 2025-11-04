@@ -15,6 +15,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
+import ac.grim.grimac.utils.function.BlockStateAtPosPredicate;
+import ac.grim.grimac.utils.function.Int3Consumer;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
@@ -42,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 @UtilityClass
@@ -145,7 +148,7 @@ public final class Collisions {
 
                     for (float stepHeight : stepHeights) {
                         Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), startingOffsetBox, stepCollisions, order);
-                        if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
+                        if (getHorizontalDistanceSqr(vec3d2.getX(), vec3d2.getZ()) > getHorizontalDistanceSqr(collisionResult.getX(), collisionResult.getZ())) {
                             final double d = player.boundingBox.minY - startingOffsetBox.minY;
                             collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
                             break;
@@ -159,13 +162,13 @@ public final class Collisions {
                         Vector3dm stepUpBugFix = collideBoundingBoxLegacy(new Vector3dm(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), desiredMovementCollisionBoxes, order);
                         if (stepUpBugFix.getY() < stepUpHeight) {
                             Vector3dm stepUpBugFixResult = collideBoundingBoxLegacy(new Vector3dm(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), desiredMovementCollisionBoxes, order).add(stepUpBugFix);
-                            if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
+                            if (getHorizontalDistanceSqr(stepUpBugFixResult.getX(), stepUpBugFixResult.getZ()) > getHorizontalDistanceSqr(regularStepUp.getX(), regularStepUp.getZ())) {
                                 regularStepUp = stepUpBugFixResult;
                             }
                         }
                     }
 
-                    if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
+                    if (getHorizontalDistanceSqr(regularStepUp.getX(), regularStepUp.getZ()) > getHorizontalDistanceSqr(collisionResult.getX(), collisionResult.getZ())) {
                         collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector3dm(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), desiredMovementCollisionBoxes, order));
                     }
                 }
@@ -385,8 +388,8 @@ public final class Collisions {
         return !getCollisionBoxes(player, playerBB, null, true);
     }
 
-    public static double getHorizontalDistanceSqr(Vector3dm vector) {
-        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+    public static double getHorizontalDistanceSqr(double x, double z) {
+        return x * x + z * z;
     }
 
     public static Vector3dm maybeBackOffFromEdge(Vector3dm vec3, GrimPlayer player, boolean overrideVersion) {
@@ -517,17 +520,17 @@ public final class Collisions {
                 if (blockAbove.getType().isAir()) {
                     for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                         if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
+                            vector.setY(Math.max(-0.9D, vector.vectorY - 0.03D));
                         } else {
-                            vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
+                            vector.setY(Math.min(1.8D, vector.vectorY + 0.1D));
                         }
                     }
                 } else {
                     for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                         if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
+                            vector.setY(Math.max(-0.3D, vector.vectorY - 0.03D));
                         } else {
-                            vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
+                            vector.setY(Math.min(0.7D, vector.vectorY + 0.06D));
                         }
                     }
                 }
@@ -742,8 +745,13 @@ public final class Collisions {
         return box.isFullBlock();
     }
 
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<WrappedBlockState> searchingFor) {
+        return hasMaterial(player, checkBox, (state, x, y, z) -> searchingFor.test(state));
+    }
+
+
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3d>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, BlockStateAtPosPredicate searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -797,7 +805,7 @@ public final class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                            if (searchingFor.test(data, x, y, z))
                                 return true;
                         }
                     }
@@ -808,7 +816,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull Consumer<@NotNull Vector3d> searchingFor) {
+    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull Int3Consumer searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
@@ -876,7 +884,7 @@ public final class Collisions {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                                 if (collisionBox.isIntersected(checkBox)) {
-                                    searchingFor.accept(new Vector3d(x, y, z));
+                                    searchingFor.accept(x, y, z);
                                 }
                             }
                         }

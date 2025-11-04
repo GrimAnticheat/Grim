@@ -59,13 +59,16 @@ public class AirLiquidPlace extends BlockPlaceCheck {
         if (player.gamemode == GameMode.CREATIVE) return;
 
         Vector3i blockPos = place.position;
-        StateType placeAgainst = player.compensatedWorld.getBlockType(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        final int x = blockPos.getX();
+        final int y = blockPos.getY();
+        final int z = blockPos.getZ();
+        StateType placeAgainst = player.compensatedWorld.getBlockType(x, y, z);
 
         int currentTick = GrimAPI.INSTANCE.getTickManager().currentTick;
         // this is actual more lenient than we need to be, We can check up to 1 ticks for all changes at location sand up to 0 ticks for first change
         // But for such tiny differences in legitness it's not worth it.
         Iterable<BlockModification> blockModifications = player.blockHistory.getRecentModifications((blockModification) -> currentTick - blockModification.tick() < 2
-                && blockPos.equals(blockModification.location())
+                && x == blockModification.x() && y == blockModification.y() && z == blockModification.z()
                 && (blockModification.cause() == BlockModification.Cause.START_DIGGING || blockModification.cause() == BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION));
 
         // Check if old block from instant breaking in same tick as the current placement was valid

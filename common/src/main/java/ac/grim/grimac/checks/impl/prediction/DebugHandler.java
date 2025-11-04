@@ -42,24 +42,26 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
         double offset = predictionComplete.getOffset();
 
         if (listeners.isEmpty() && !outputToConsole) return;
-        if (player.predictedVelocity.vector.lengthSquared() == 0 && offset == 0) return;
+
+        final double predictedX = player.predictedVelocity.vectorX;
+        final double predictedY = player.predictedVelocity.vectorY;
+        final double predictedZ = player.predictedVelocity.vectorZ;
+        if (predictedX == 0.0 && predictedY == 0.0 && predictedZ == 0.0 && offset == 0) return;
 
         String color = pickColor(offset, offset);
-
-        Vector3dm predicted = player.predictedVelocity.vector;
         Vector3dm actually = player.actualMovement;
 
-        String xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
-        String yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
-        String zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
+        String xColor = pickColor(Math.abs(predictedX - actually.getX()), offset);
+        String yColor = pickColor(Math.abs(predictedY - actually.getY()), offset);
+        String zColor = pickColor(Math.abs(predictedZ - actually.getZ()), offset);
 
         Component p = Component.empty()
                 .append(P_PREFIX.color(NamedTextColor.NAMES.value(color)))
-                .append(Component.text(predicted.getX()).color(NamedTextColor.NAMES.value(xColor)))
+                .append(Component.text(predictedX).color(NamedTextColor.NAMES.value(xColor)))
                 .append(Component.space())
-                .append(Component.text(predicted.getY()).color(NamedTextColor.NAMES.value(yColor)))
+                .append(Component.text(predictedY).color(NamedTextColor.NAMES.value(yColor)))
                 .append(Component.space())
-                .append(Component.text(predicted.getZ()).color(NamedTextColor.NAMES.value(zColor)));
+                .append(Component.text(predictedZ).color(NamedTextColor.NAMES.value(zColor)));
 
         Component a = Component.empty()
                 .append(A_PREFIX.color(NamedTextColor.NAMES.value(color)))

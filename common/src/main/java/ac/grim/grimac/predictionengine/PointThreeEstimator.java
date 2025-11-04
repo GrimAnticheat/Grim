@@ -268,22 +268,21 @@ public class PointThreeEstimator {
         isNearFluid = false;
 
         // Check for flowing water
-        Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
-            final WrappedBlockState state = pair.first();
+        Collisions.hasMaterial(player, pointThreeBox, (state, x, y, z) -> {
             final StateType stateType = state.getType();
             if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
             if (BlockTags.TRAPDOORS.contains(stateType)) {
-                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pair.second().getX(), pair.second().getY(), pair.second().getZ(), state);
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, x, y, z, state);
             }
 
             if (stateType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                 isNearBubbleColumn = true;
             }
 
-            if (Materials.isWater(player.getClientVersion(), pair.first()) || pair.first().getType() == StateTypes.LAVA) {
+            if (Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA) {
                 isNearFluid = true;
             }
 
@@ -365,7 +364,7 @@ public class PointThreeEstimator {
 
             // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
             // A bit hacky... is there a better way?  I'm unsure...
-            boolean likelyStepSkip = player.isPointThree() && (data.vector.getY() > -0.08 && data.vector.getY() < 0.06) && couldStep;
+            boolean likelyStepSkip = player.isPointThree() && (data.vectorY > -0.08 && data.vectorY < 0.06) && couldStep;
 
             // We need to do hypot calculations for all 3 axis
             // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
@@ -411,7 +410,7 @@ public class PointThreeEstimator {
             wasAlwaysCertain = false;
             // Head hitters return the vector to 0, and then apply gravity to it.
             // Not much room for abuse for this, so keep it lenient
-            return -Math.max(0, vector.vector.getY()) - 0.1 - fluidAddition;
+            return -Math.max(0, vector.vectorY) - 0.1 - fluidAddition;
         } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
             wasAlwaysCertain = false;
             // This shouldn't be needed but stuck speed can desync very easily with 0.03...
@@ -425,7 +424,7 @@ public class PointThreeEstimator {
         double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.003 : 0.005;
 
         // This should likely be refactored, but it works well.
-        double yVel = vector.vector.getY();
+        double yVel = vector.vectorY;
         double maxYTraveled = 0;
         boolean first = true;
         do {
@@ -452,7 +451,7 @@ public class PointThreeEstimator {
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;
-        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold()); // Account for uncertainty, don't stop until we simulate past uncertainty point
+        } while (Math.abs(maxYTraveled + vector.vectorY) < player.getMovementThreshold()); // Account for uncertainty, don't stop until we simulate past uncertainty point
 
         if (maxYTraveled != 0) {
             wasAlwaysCertain = false;

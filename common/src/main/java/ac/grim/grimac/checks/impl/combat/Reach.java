@@ -144,7 +144,10 @@ public class Reach extends Check implements PacketCheck {
         } else {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
             if (reachEntity.type == EntityTypes.END_CRYSTAL) {
-                targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
+                final double x = reachEntity.trackedServerPosition.getX();
+                final double y = reachEntity.trackedServerPosition.getX();
+                final double z = reachEntity.trackedServerPosition.getX();
+                targetBox = new SimpleCollisionBox(x - 1, y, z - 1, x + 1, y + 2, z + 1);
             }
             return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
         }
@@ -182,7 +185,10 @@ public class Reach extends Check implements PacketCheck {
         SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
         if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
-            targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
+            final double x = reachEntity.trackedServerPosition.getX();
+            final double y = reachEntity.trackedServerPosition.getX();
+            final double z = reachEntity.trackedServerPosition.getX();
+            targetBox = new SimpleCollisionBox(x - 1, y, z - 1, x + 1, y + 2, z + 1);
         }
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
@@ -225,21 +231,27 @@ public class Reach extends Check implements PacketCheck {
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
+
+        final double eyePosX = from.getX();
+        final double eyePosZ = from.getZ();
+
         for (Vector3dm lookVec : possibleLookDirs) {
             for (double eye : possibleEyeHeights) {
-                eyePos.setY(from.getY() + eye);
-                Vector3dm endReachPos = eyePos.clone().add(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance);
+                final double eyePosY = from.getY() + eye;
 
-                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
+                final double endX = eyePosX + lookVec.getX() * distance;
+                final double endY = eyePosY + lookVec.getY() * distance;
+                final double endZ = eyePosZ + lookVec.getZ() * distance;
 
-                if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePosX, eyePosY, eyePosZ, endX, endY, endZ).first();
+
+                if (ReachUtils.isVecInside(targetBox, eyePosX, eyePosY, eyePosZ)) {
                     minDistance = 0;
                     break;
                 }
 
                 if (intercept != null) {
-                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                    minDistance = Math.min(intercept.distance(eyePosX, eyePosY, eyePosZ), minDistance);
                 }
             }
         }

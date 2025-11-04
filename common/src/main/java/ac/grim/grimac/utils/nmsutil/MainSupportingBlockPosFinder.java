@@ -3,14 +3,12 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.google.common.util.concurrent.AtomicDouble;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 @UtilityClass
 public class MainSupportingBlockPosFinder {
@@ -34,27 +32,33 @@ public class MainSupportingBlockPosFinder {
         return new MainSupportingBlockData(null, true);
     }
 
+    private static class BestBlockHolder {
+        Vector3i pos;
+        double distanceSquared = Double.MAX_VALUE;
+    }
+
+    // Yes we could make this way more efficient with bit packing with 0 object allocations
+    // No I'm not making this code less readable unless we need to
     private @Nullable Vector3i findSupportingBlock(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox searchBox) {
-        Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
+        final double playerX = player.x;
+        final double playerY = player.y;
+        final double playerZ = player.z;
 
-        AtomicReference<Vector3i> bestBlockPos = new AtomicReference<>();
-        AtomicDouble blockPosDistance = new AtomicDouble(Double.MAX_VALUE);
+        final BestBlockHolder bestBlock = new BestBlockHolder();
 
-        Collisions.forEachCollisionBox(player, searchBox, pos -> {
-            Vector3i blockPos = pos.toVector3i();
-            Vector3d blockPosAsVector3d = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
-            double distance = playerPos.distanceSquared(blockPosAsVector3d);
+        Collisions.forEachCollisionBox(player, searchBox, (blockPosX, blockPosY, blockPosZ) -> {
+            double distanceSquared = GrimMath.distanceSquared(playerX, playerY, playerZ, blockPosX + 0.5, blockPosY + 0.5, blockPosZ + 0.5);
 
-            if (distance < blockPosDistance.get() || distance == blockPosDistance.get() && (bestBlockPos.get() == null || firstHasPriorityOverSecond(blockPos, bestBlockPos.get()))) {
-                bestBlockPos.set(blockPos);
-                blockPosDistance.set(distance);
+            if (distanceSquared < bestBlock.distanceSquared || distanceSquared == bestBlock.distanceSquared && (bestBlock.pos == null || firstHasPriorityOverSecond(blockPosX, blockPosY, blockPosZ, bestBlock.pos))) {
+                bestBlock.pos = new Vector3i(blockPosX, blockPosY, blockPosZ);
+                bestBlock.distanceSquared = distanceSquared;
             }
         });
 
-        return bestBlockPos.get();
+        return bestBlock.pos;
     }
 
-    private boolean firstHasPriorityOverSecond(@NotNull Vector3i first, @NotNull Vector3i second) {
+    private boolean firstHasPriorityOverSecond(int x, int y, int z, @NotNull Vector3i second) {
         // Order of loop is X, Y, and Z
         // We prioritize lowest Y axis, then lowest X axis, then lowest Z axis
         // Ties among the X and Z positions are broken by the order of looping being X
@@ -67,10 +71,10 @@ public class MainSupportingBlockPosFinder {
         // X 0 0
         // 0 0 X
         // But the upper left would win here because of prioritizing negative X and negative Z
-        if (first.getY() < second.getY()) return true;
+        if (y < second.getY()) return true;
 
-        double sumX = second.getX() - first.getX();
-        double sumY = second.getZ() - first.getZ();
+        double sumX = second.getX() - x;
+        double sumY = second.getZ() - z;
 
         double horizontalSumTotal = sumX + sumY;
         if (horizontalSumTotal == 0) {

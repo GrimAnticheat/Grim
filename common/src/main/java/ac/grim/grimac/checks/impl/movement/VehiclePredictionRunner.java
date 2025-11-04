@@ -15,6 +15,8 @@ public class VehiclePredictionRunner extends Check implements VehicleCheck {
     public void process(final VehiclePositionUpdate vehicleUpdate) {
         // Vehicle onGround = false always
         // We don't do vehicle setbacks because vehicle netcode sucks.
-        player.movementCheckRunner.processAndCheckMovementPacket(new PositionUpdate(vehicleUpdate.from(), vehicleUpdate.to(), false, null, null, vehicleUpdate.isTeleport()));
+        player.movementCheckRunner.processAndCheckMovementPacket(new PositionUpdate(
+                vehicleUpdate.fromX(), vehicleUpdate.fromY(), vehicleUpdate.fromZ(), vehicleUpdate.toX(), vehicleUpdate.toY(), vehicleUpdate.toZ(),
+                false, null, null, vehicleUpdate.isTeleport()));
     }
 }

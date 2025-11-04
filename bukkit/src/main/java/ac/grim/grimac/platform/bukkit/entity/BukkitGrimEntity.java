@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class BukkitGrimEntity implements GrimEntity {
 
-    protected static final boolean CAN_USE_DIRECT_GETTERS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_20_1) && PaperUtils.PAPER;
+    protected static final boolean CAN_USE_DIRECT_GETTERS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_1) && PaperUtils.PAPER;
 
     private final Entity entity;
     private BukkitPlatformWorld bukkitPlatformWorld;

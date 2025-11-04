@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BlockPrediction;
-import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -55,6 +54,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -83,13 +83,15 @@ public class CompensatedWorld {
     // The owning list is so that this info can be removed when the final list is processed
     private final Long2ObjectOpenHashMap<BlockPrediction> originalServerBlocks = new Long2ObjectOpenHashMap<>();
     // Blocks the client changed while placing or breaking blocks
-    private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
+    private List<Vector3i> currentlyChangedBlocks = new ArrayList<>();
     private final Int2ObjectMap<List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new Int2ObjectOpenHashMap<>();
-    private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<UnAckedAction, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
     public boolean isRaining = false;
 
     private final boolean noNegativeBlocks;
+
+    private record UnAckedAction(int x, int y, int z, DiggingAction action) {}
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -114,15 +116,15 @@ public class CompensatedWorld {
         }
     }
 
-    public void handleBlockBreakAck(Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
-        if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new Pair<>(blockPos, action))) {
+    public void handleBlockBreakAck(final int x, final int y, final int z, int blockState, DiggingAction action, boolean accepted) {
+        if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new UnAckedAction(x, y, z, action))) {
             player.sendTransaction(); // This packet actually matters
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Vector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
-                handleAck(blockPos, blockState, playerPos);
+                Vector3d playerPos = unackedActions.remove(new UnAckedAction(x, y, z, action));
+                handleAck(x, y, z, blockState, playerPos);
             });
         } else {
-            unackedActions.remove(new Pair<>(blockPos, action));
+            unackedActions.remove(new UnAckedAction(x, y, z, action));
         }
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -135,34 +137,38 @@ public class CompensatedWorld {
     private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
-            BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
+            final int x = vector3i.getX();
+            final int y = vector3i.getY();
+            final int z = vector3i.getZ();
+            long serializedPosition = GrimMath.getSerializedPosition(x, y, z);
+            BlockPrediction predictionData = originalServerBlocks.get(serializedPosition);
 
             // We are the last to care about this prediction, remove it to stop memory leak
             // Block changes are allowed to execute out of order, because it actually doesn't matter
             if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) {
-                originalServerBlocks.remove(vector3i.getSerializedPosition());
-                handleAck(vector3i, predictionData.getOriginalBlockId(), predictionData.getPlayerPosition());
+                originalServerBlocks.remove(serializedPosition);
+                handleAck(x, y, z, predictionData.getOriginalBlockId(), predictionData.getPlayerPosition());
             }
         }));
     }
 
-    private void handleAck(Vector3i vector3i, int originalBlockId, Vector3d playerPosition) {
+    private void handleAck(final int x, final int y, final int z, int originalBlockId, Vector3d playerPosition) {
         // If we need to change the world block state
-        if (getBlock(vector3i).getGlobalId() != originalBlockId) {
+        if (getBlock(x, y , z).getGlobalId() != originalBlockId) {
             player.blockHistory.add(
                     new BlockModification(
-                            getBlock(vector3i),
+                            getBlock(x, y ,z),
                             WrappedBlockState.getByGlobalId(originalBlockId),
-                            vector3i,
+                            x, y, z,
                             GrimAPI.INSTANCE.getTickManager().currentTick,
                             BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION
                     )
             );
-            updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalBlockId);
+            updateBlock(x, y, z, originalBlockId);
             WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
 
             // The player will teleport themselves if they get stuck in the reverted block
-            if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+            if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z).isIntersected(player.boundingBox)) {
                 player.lastX = player.x;
                 player.lastY = player.y;
                 player.lastZ = player.z;
@@ -177,7 +183,11 @@ public class CompensatedWorld {
     public void handleBlockBreakPrediction(WrapperPlayClientPlayerDigging digging) {
         // 1.14.4 intentional and correct, do not change it to 1.14
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) {
-            unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getAction()), new Vector3d(player.x, player.y, player.z));
+            Vector3i blockPosition = digging.getBlockPosition();
+            final int x = blockPosition.getX();
+            final int y = blockPosition.getY();
+            final int z = blockPosition.getZ();
+            unackedActions.put(new UnAckedAction(x, y, z, digging.getAction()), new Vector3d(player.x, player.y, player.z));
         }
     }
 
@@ -188,7 +198,7 @@ public class CompensatedWorld {
         if (this.currentlyChangedBlocks.isEmpty()) return; // Nothing to change
 
         List<Vector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
-        this.currentlyChangedBlocks = new LinkedList<>(); // Reset variable without changing original
+        this.currentlyChangedBlocks = new ArrayList<>(); // Reset variable without changing original
 
         // We don't need to simulate any packets, it is native to the version we are on
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
@@ -263,12 +273,13 @@ public class CompensatedWorld {
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
-        Vector3i asVector = new Vector3i(x, y, z);
-        BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
+        long serializedPosition = GrimMath.getSerializedPosition(x, y, z);
+        BlockPrediction prediction = originalServerBlocks.get(serializedPosition);
 
         if (isCurrentlyPredicting) {
+            Vector3i asVector = new Vector3i(x , y, z);
             if (prediction == null) {
-                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                originalServerBlocks.put(serializedPosition, new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(x, y, z).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
             }
@@ -626,7 +637,7 @@ public class CompensatedWorld {
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
+        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data) || data.getType() == StateTypes.LAVA);
     }
 
     public double getLavaFluidLevelAt(int x, int y, int z) {
@@ -648,7 +659,7 @@ public class CompensatedWorld {
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
+        return Collisions.hasMaterial(player, var0, data -> data.getType() == StateTypes.LAVA);
     }
 
     public double getWaterFluidLevelAt(double x, double y, double z) {

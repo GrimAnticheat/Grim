@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -146,7 +147,7 @@ public class PredictionEngineBoat extends PredictionEngine {
 
         for (VectorData data : possibleVectors) {
             // TODO: is this correct?
-            data.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
+            data.input = new Vec2d(player.vehicleData.vehicleForward, player.vehicleData.vehicleHorizontal);
 
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
@@ -155,14 +156,41 @@ public class PredictionEngineBoat extends PredictionEngine {
                 // so if a player tries to move in both directions, a packet will
                 // show that the player is staying, but the boat will move anyway
                 if (player.vehicleData.vehicleForward == 0) {
-                    Vector3dm vector = data.vector.clone();
-                    controlBoat(player, vector, true);
-                    if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);
-                    vectors.add(data.returnNewModified(vector, VectorData.VectorType.InputResult));
+                    float f = 0.035F;
+                    double x = data.vectorX + player.trigHandler.sin(GrimMath.radians(-player.yaw)) * f;
+                    double y = data.vectorY;
+                    double z = data.vectorZ + (double) (player.trigHandler.cos(GrimMath.radians(player.yaw)) * f);
+                    if (applyStuckSpeed != 0) {
+                        x *= player.stuckSpeedMultiplier.getX();
+                        y *= player.stuckSpeedMultiplier.getY();
+                        z *= player.stuckSpeedMultiplier.getZ();
+                    }
+                    vectors.add(data.returnNewModified(x, y, z, VectorData.VectorType.InputResult));
                 }
 
-                controlBoat(player, data.vector, false);
-                if (applyStuckSpeed != 0) data.vector.multiply(player.stuckSpeedMultiplier);
+                float f;
+                if (player.vehicleData.vehicleHorizontal != 0) {
+                    f = 0.005F;
+                    if (player.vehicleData.vehicleForward > 0.1) {
+                        f += 0.04F;
+                    } else if (player.vehicleData.vehicleForward < -0.01) {
+                        f -= 0.005F;
+                    }
+                } else {
+                    f = 0.0F;
+                }
+
+                // TODO (Mutation) (Confirm if Correct)
+                // It seems possible for applyStuckSpeed = 0, and 1 to add the same vector to the set twice
+                // since we're mutating data.vectorX, Y, Z which is very likely incorrect but I don't know enough to say for certain
+                data.vectorX = data.vectorX + player.trigHandler.sin(GrimMath.radians(-player.yaw)) * f;
+                data.vectorZ = data.vectorZ + (double) (player.trigHandler.cos(GrimMath.radians(player.yaw)) * f);
+
+                if (applyStuckSpeed != 0) {
+                    data.vectorX *= player.stuckSpeedMultiplier.getX();
+                    data.vectorY *= player.stuckSpeedMultiplier.getY();
+                    data.vectorZ *= player.stuckSpeedMultiplier.getZ();
+                }
                 vectors.add(data);
             }
         }
@@ -176,7 +204,7 @@ public class PredictionEngineBoat extends PredictionEngine {
         addFluidPushingToStartingVectors(player, vectors);
 
         for (VectorData data : vectors) {
-            floatBoat(player, data.vector);
+            floatBoat(player, data);
         }
 
         return vectors;
@@ -197,7 +225,7 @@ public class PredictionEngineBoat extends PredictionEngine {
         return false;
     }
 
-    private void floatBoat(GrimPlayer player, Vector3dm vector) {
+    private void floatBoat(GrimPlayer player, VectorData vector) {
         double d1 = player.hasGravity ? -0.04f : 0;
         double d2 = 0.0D;
         float invFriction = 0.05F;
@@ -208,7 +236,7 @@ public class PredictionEngineBoat extends PredictionEngine {
             player.lastY = getWaterLevelAbove(player) - 0.5625F + 0.101D;
             player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             player.actualMovement = new Vector3dm(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-            vector.setY(0);
+            vector.vectorY = 0;
 
             player.vehicleData.lastYd = 0.0D;
             player.vehicleData.status = BoatEntityStatus.IN_WATER;
@@ -229,12 +257,12 @@ public class PredictionEngineBoat extends PredictionEngine {
                 player.vehicleData.landFriction /= 2.0F;
             }
 
-            vector.setX(vector.getX() * invFriction);
-            vector.setY(vector.getY() + d1);
-            vector.setZ(vector.getZ() * invFriction);
+            vector.vectorX *= invFriction;
+            vector.vectorY += d1;
+            vector.vectorZ *= invFriction;
 
             if (d2 > 0.0D) {
-                double yVel = vector.getY();
+                double yVel = vector.vectorY;
                 vector.setY((yVel + d2 * 0.06153846016296973D) * 0.75D);
             }
         }
@@ -271,23 +299,5 @@ public class PredictionEngineBoat extends PredictionEngine {
         }
 
         return (float) (l + 1);
-    }
-
-    private void controlBoat(GrimPlayer player, Vector3dm vector, boolean intermediate) {
-        float f = 0.0F;
-        if (player.vehicleData.vehicleHorizontal != 0 && (!intermediate && player.vehicleData.vehicleForward == 0)) {
-            f += 0.005F;
-        }
-
-        //player.boatData.yRot += player.boatData.deltaRotation;
-        if (intermediate || player.vehicleData.vehicleForward > 0.1) {
-            f += 0.04F;
-        }
-
-        if (intermediate || player.vehicleData.vehicleForward < -0.01) {
-            f -= 0.005F;
-        }
-
-        vector.add(new Vector3dm(player.trigHandler.sin(GrimMath.radians(-player.yaw)) * f, 0, (double) (player.trigHandler.cos(GrimMath.radians(player.yaw)) * f)));
     }
 }

@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BlockBreak {
-    public final Vector3i position;
+    public final int x;
+    public final int y;
+    public final int z;
     public final BlockFace face;
     public final int faceId;
     public final DiggingAction action;
@@ -24,9 +26,11 @@ public final class BlockBreak {
     @Getter
     private boolean cancelled;
 
-    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, WrappedBlockState block) {
+    public BlockBreak(GrimPlayer player, final int x, final int y, final int z, BlockFace face, int faceId, DiggingAction action, int sequence, WrappedBlockState block) {
         this.player = player;
-        this.position = position;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.face = face;
         this.faceId = faceId;
         this.action = action;
@@ -39,12 +43,12 @@ public final class BlockBreak {
     }
 
     public SimpleCollisionBox getCombinedBox() {
-        CollisionBox placedOn = HitboxData.getBlockHitbox(player, player.inventory.getHeldItem().getType().getPlacedType(), player.getClientVersion(), block, true, position.x, position.y, position.z);
+        CollisionBox placedOn = HitboxData.getBlockHitbox(player, player.inventory.getHeldItem().getType().getPlacedType(), player.getClientVersion(), block, true, x, y, z);
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         placedOn.downCast(boxes);
 
-        SimpleCollisionBox combined = new SimpleCollisionBox(position.x, position.y, position.z);
+        SimpleCollisionBox combined = new SimpleCollisionBox(x, y, z);
         for (SimpleCollisionBox box : boxes) {
             double minX = Math.max(box.minX, combined.minX);
             double minY = Math.max(box.minY, combined.minY);

@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.math.Vec2d;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -10,15 +12,33 @@ public class VectorData {
     public final VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
-    public Vector3dm vector;
-    public @MonotonicNonNull Vector3dm input;
+    public double vectorX, vectorY, vectorZ;
+    public @MonotonicNonNull Vec2d input;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector3dm vector, VectorData lastVector, VectorType vectorType) {
-        this.vector = vector;
+        this(vector.getX(), vector.getY(), vector.getZ(), lastVector, vectorType);
+    }
+
+    public void setX(double x) {
+        this.vectorX = x;
+    }
+
+    public void setY(double y) {
+        this.vectorY = y;
+    }
+
+    public void setZ(double z) {
+        this.vectorZ = z;
+    }
+
+    public VectorData(final double x, final double y, final double z, VectorData lastVector, VectorType vectorType) {
+        this.vectorX = x;
+        this.vectorY = y;
+        this.vectorZ = z;
         this.lastVector = lastVector;
         this.vectorType = vectorType;
 
@@ -42,17 +62,27 @@ public class VectorData {
     }
 
     public VectorData(Vector3dm vector, VectorType vectorType) {
-        this.vector = vector;
+        this(vector.getX(), vector.getY(), vector.getZ(), vectorType);
+    }
+
+    public VectorData(final double x, final double y, final double z, VectorType vectorType) {
+        this.vectorX = x;
+        this.vectorY = y;
+        this.vectorZ = z;
         this.vectorType = vectorType;
         addVectorType(vectorType);
     }
 
     public VectorData returnNewModified(VectorType type) {
-        return new VectorData(vector, this, type);
+        return new VectorData(this.vectorX, this.vectorY, this.vectorZ, this, type);
     }
 
     public VectorData returnNewModified(Vector3dm newVec, VectorType type) {
         return new VectorData(newVec, this, type);
+    }
+
+    public VectorData returnNewModified(final double x, final double y, final double z, VectorType type) {
+        return new VectorData(x, y, z, this, type);
     }
 
     @Override
@@ -60,12 +90,12 @@ public class VectorData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VectorData that = (VectorData) o;
-        return isKnockback == that.isKnockback && firstBreadKb == that.firstBreadKb && isExplosion == that.isExplosion && firstBreadExplosion == that.firstBreadExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && isAttackSlow == that.isAttackSlow && vectorType == that.vectorType && Objects.equals(lastVector, that.lastVector) && Objects.equals(preUncertainty, that.preUncertainty) && Objects.equals(vector, that.vector);
+        return isKnockback == that.isKnockback && firstBreadKb == that.firstBreadKb && isExplosion == that.isExplosion && firstBreadExplosion == that.firstBreadExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && isAttackSlow == that.isAttackSlow && vectorType == that.vectorType && Objects.equals(lastVector, that.lastVector) && Objects.equals(preUncertainty, that.preUncertainty) && vectorX == that.vectorX && vectorY == that.vectorY && vectorZ == that.vectorZ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(vectorType, lastVector, preUncertainty, vector, isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow);
+        return Objects.hash(vectorType, lastVector, preUncertainty, vectorX, vectorY, vectorZ, isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow);
     }
 
     public void addVectorType(VectorType type) {
@@ -88,7 +118,7 @@ public class VectorData {
     public String toString() {
         return "VectorData{" +
                 "pointThree=" + isZeroPointZeroThree +
-                ", vector=" + vector +
+                ", vector=" + MessageUtil.toUnlabeledString(vectorX, vectorY, vectorZ) +
                 '}';
     }
 

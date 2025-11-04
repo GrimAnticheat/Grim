@@ -56,7 +56,7 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public SimpleCollisionBox(Vector3i pos) {
-        this(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+        this(pos.getX(), pos.getY(), pos.getZ());
     }
 
     // If you want to set a full block from a point
@@ -412,16 +412,16 @@ public class SimpleCollisionBox implements CollisionBox {
     // Copied from hawk lol
     // I would like to point out that this is magic to me and I have not attempted to understand this code
     public Vector3dm intersectsRay(Ray ray, float minDist, float maxDist) {
-        Vector3dm invDir = new Vector3dm(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
+        Vector3dm invDir = new Vector3dm(1f / ray.getDirX(), 1f / ray.getDirY(), 1f / ray.getDirZ());
 
         boolean signDirX = invDir.getX() < 0;
         boolean signDirY = invDir.getY() < 0;
         boolean signDirZ = invDir.getZ() < 0;
 
-        double tmin = ((signDirX ? maxX : minX) - ray.getOrigin().getX()) * invDir.getX();
-        double tmax = ((signDirX ? minX : maxX) - ray.getOrigin().getX()) * invDir.getX();
-        double tymin = ((signDirY ? maxY : minY) - ray.getOrigin().getY()) * invDir.getY();
-        double tymax = ((signDirY ? minY : maxY) - ray.getOrigin().getY()) * invDir.getY();
+        double tmin = ((signDirX ? maxX : minX) - ray.getOriginX()) * invDir.getX();
+        double tmax = ((signDirX ? minX : maxX) - ray.getOriginX()) * invDir.getX();
+        double tymin = ((signDirY ? maxY : minY) - ray.getOriginY()) * invDir.getY();
+        double tymax = ((signDirY ? minY : maxY) - ray.getOriginY()) * invDir.getY();
 
         if (tmin > tymax || tymin > tmax) {
             return null;
@@ -430,8 +430,8 @@ public class SimpleCollisionBox implements CollisionBox {
         if (tymin > tmin) tmin = tymin;
         if (tymax < tmax) tmax = tymax;
 
-        double tzmin = ((signDirZ ? maxZ : minZ) - ray.getOrigin().getZ()) * invDir.getZ();
-        double tzmax = ((signDirZ ? minZ : maxZ) - ray.getOrigin().getZ()) * invDir.getZ();
+        double tzmin = ((signDirZ ? maxZ : minZ) - ray.getOriginZ()) * invDir.getZ();
+        double tzmax = ((signDirZ ? minZ : maxZ) - ray.getOriginZ()) * invDir.getZ();
 
         if ((tmin > tzmax) || (tzmin > tmax)) {
             return null;

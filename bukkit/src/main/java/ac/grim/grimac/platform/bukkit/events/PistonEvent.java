@@ -5,9 +5,8 @@ import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.TrackedPosition;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -28,10 +27,11 @@ public class PistonEvent implements Listener {
     private static final double MAX_VERTICAL_DISTANCE = 64.0;
 
     // accuracy isn't that important, it's close enough and performant
-    private static boolean isCloseEnough(Vector3i vectorA, Vector3d vectorB) {
-        return Math.abs(vectorA.getX() - vectorB.getX()) <= MAX_HORIZONTAL_DISTANCE
-                && Math.abs(vectorA.getY() - vectorB.getY()) <= MAX_VERTICAL_DISTANCE
-                && Math.abs(vectorA.getZ() - vectorB.getZ()) <= MAX_HORIZONTAL_DISTANCE;
+    private static boolean isCloseEnough(final int aX, final int aY, final int aZ,
+                                         final double bX, final double bY, final double bZ) {
+        return Math.abs(aX - bX) <= MAX_HORIZONTAL_DISTANCE
+                && Math.abs(aY - bY) <= MAX_VERTICAL_DISTANCE
+                && Math.abs(aZ - bZ) <= MAX_HORIZONTAL_DISTANCE;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -71,10 +71,13 @@ public class PistonEvent implements Listener {
         final int chunkX = event.getBlock().getX() >> 4;
         final int chunkZ = event.getBlock().getZ() >> 4;
         final BlockFace blockFace = BukkitConversionUtils.fromBukkitFace(event.getDirection());
-        final Vector3i sourcePos = new Vector3i(piston.getX(), piston.getY(), piston.getZ());
+        final int sourceX = piston.getX();
+        final int sourceY = piston.getY();
+        final int sourceZ = piston.getZ();
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+            TrackedPosition position = player.compensatedEntities.self.trackedServerPosition;
+            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourceX, sourceY, sourceZ, position.getX(), position.getY(), position.getZ())) {
                 final int lastTrans = player.lastTransactionSent.get();
                 PistonData data = new PistonData(blockFace, boxes, lastTrans, true, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
@@ -127,12 +130,16 @@ public class PistonEvent implements Listener {
             }
         }
 
-        final int chunkX = event.getBlock().getX() >> 4;
-        final int chunkZ = event.getBlock().getZ() >> 4;
-        Vector3i sourcePos = new Vector3i(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+        final Block block = event.getBlock();
+        final int chunkX = block.getX() >> 4;
+        final int chunkZ = block.getZ() >> 4;
+        final int sourceX = block.getX();
+        final int sourceY = block.getY();
+        final int sourceZ = block.getZ();
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+            TrackedPosition position = player.compensatedEntities.self.trackedServerPosition;
+            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourceX, sourceY, sourceZ, position.getX(), position.getY(), position.getZ())) {
                 int lastTrans = player.lastTransactionSent.get();
                 PistonData data = new PistonData(face, boxes, lastTrans, false, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));

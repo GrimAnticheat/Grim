@@ -73,12 +73,14 @@ public class PacketEntity extends TypedPacketEntity {
         this.uuid = uuid;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
-        this.trackedServerPosition.setPos(new Vector3d(x, y, z));
+        this.trackedServerPosition.setPos(x, y, z);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
-            trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
+            trackedServerPosition.setPos(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d);
         }
-        final Vector3d pos = trackedServerPosition.getPos();
-        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false), trackedServerPosition, this);
+        final double xPos = trackedServerPosition.getX();
+        final double yPos = trackedServerPosition.getY();
+        final double zPos = trackedServerPosition.getZ();
+        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(xPos, yPos, zPos, xPos, yPos, zPos, false), xPos, yPos, zPos, this);
     }
 
     protected void trackAttribute(ValuedAttribute valuedAttribute) {
@@ -129,25 +131,31 @@ public class PacketEntity extends TypedPacketEntity {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
                 final double scale = trackedServerPosition.getScale();
-                Vector3d vec3d;
+                final double x;
+                final double y;
+                final double z;
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
-                    vec3d = trackedServerPosition.withDelta(TrackedPosition.pack(relX, scale), TrackedPosition.pack(relY, scale), TrackedPosition.pack(relZ, scale));
+                    x = trackedServerPosition.withDeltaX(TrackedPosition.pack(relX, scale));
+                    y = trackedServerPosition.withDeltaY(TrackedPosition.pack(relY, scale));
+                    z = trackedServerPosition.withDeltaZ(TrackedPosition.pack(relZ, scale));
                 } else {
-                    vec3d = trackedServerPosition.withDeltaLegacy(TrackedPosition.packLegacy(relX, scale), TrackedPosition.packLegacy(relY, scale), TrackedPosition.packLegacy(relZ, scale));
+                    x = trackedServerPosition.withDeltaLegacyX(TrackedPosition.packLegacy(relX, scale));
+                    y = trackedServerPosition.withDeltaLegacyY(TrackedPosition.packLegacy(relY, scale));
+                    z = trackedServerPosition.withDeltaLegacyZ(TrackedPosition.packLegacy(relZ, scale));
                 }
-                trackedServerPosition.setPos(vec3d);
+                trackedServerPosition.setPos(x, y, z);
             } else {
-                trackedServerPosition.setPos(new Vector3d(relX, relY, relZ));
+                trackedServerPosition.setPos(relX, relY, relZ);
                 // ViaVersion desync's here for teleports
                 // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
                 // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                    trackedServerPosition.setPos(new Vector3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
+                    trackedServerPosition.setPos(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d);
                 }
             }
         }
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition.getX(), trackedServerPosition.getY(), trackedServerPosition.getZ(), this);
 
         // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
         // https://bugs.mojang.com/browse/MC-255263
@@ -208,7 +216,7 @@ public class PacketEntity extends TypedPacketEntity {
     public void setPositionRaw(GrimPlayer player, SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
-        this.trackedServerPosition.setPos(new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
+        this.trackedServerPosition.setPos((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
         // This disables interpolation
         this.newPacketLocation = new ReachInterpolationData(player, box, this);
     }

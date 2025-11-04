@@ -17,13 +17,15 @@ import org.jetbrains.annotations.Nullable;
 public class ReachUtils {
     // Copied from 1.8... I couldn't figure out 1.14+. "Enterprise" java code is unreadable!
     @Contract("_, _, _ -> new")
-    public static @NotNull Pair<@Nullable Vector3dm, @Nullable BlockFace> calculateIntercept(@NotNull SimpleCollisionBox self, @NotNull Vector3dm origin, @NotNull Vector3dm end) {
-        Vector3dm minX = getIntermediateWithXValue(origin, end, self.minX);
-        Vector3dm maxX = getIntermediateWithXValue(origin, end, self.maxX);
-        Vector3dm minY = getIntermediateWithYValue(origin, end, self.minY);
-        Vector3dm maxY = getIntermediateWithYValue(origin, end, self.maxY);
-        Vector3dm minZ = getIntermediateWithZValue(origin, end, self.minZ);
-        Vector3dm maxZ = getIntermediateWithZValue(origin, end, self.maxZ);
+    public static @NotNull Pair<@Nullable Vector3dm, @Nullable BlockFace> calculateIntercept(@NotNull SimpleCollisionBox self,
+                                                                                             double originX, double originY, double originZ,
+                                                                                             double endX, double endY, double endZ) {
+        Vector3dm minX = getIntermediateWithXValue(originX, originY, originZ, endX, endY, endZ, self.minX);
+        Vector3dm maxX = getIntermediateWithXValue(originX, originY, originZ, endX, endY, endZ, self.maxX);
+        Vector3dm minY = getIntermediateWithYValue(originX, originY, originZ, endX, endY, endZ, self.minY);
+        Vector3dm maxY = getIntermediateWithYValue(originX, originY, originZ, endX, endY, endZ, self.maxY);
+        Vector3dm minZ = getIntermediateWithZValue(originX, originY, originZ, endX, endY, endZ, self.minZ);
+        Vector3dm maxZ = getIntermediateWithZValue(originX, originY, originZ, endX, endY, endZ, self.maxZ);
 
         if (!isVecInYZ(self, minX)) minX = null;
         if (!isVecInYZ(self, maxX)) maxX = null;
@@ -40,27 +42,27 @@ public class ReachUtils {
             bestFace = BlockFace.WEST;
         }
 
-        if (maxX != null && (best == null || origin.distanceSquared(maxX) < origin.distanceSquared(best))) {
+        if (maxX != null && (best == null || maxX.distanceSquared(originX, originY, originZ) < best.distanceSquared(originX, originY, originZ))) {
             best = maxX;
             bestFace = BlockFace.EAST;
         }
 
-        if (minY != null && (best == null || origin.distanceSquared(minY) < origin.distanceSquared(best))) {
+        if (minY != null && (best == null || minY.distanceSquared(originX, originY, originZ) < best.distanceSquared(originX, originY, originZ))) {
             best = minY;
             bestFace = BlockFace.DOWN;
         }
 
-        if (maxY != null && (best == null || origin.distanceSquared(maxY) < origin.distanceSquared(best))) {
+        if (maxY != null && (best == null || maxY.distanceSquared(originX, originY, originZ) < best.distanceSquared(originX, originY, originZ))) {
             best = maxY;
             bestFace = BlockFace.UP;
         }
 
-        if (minZ != null && (best == null || origin.distanceSquared(minZ) < origin.distanceSquared(best))) {
+        if (minZ != null && (best == null || minZ.distanceSquared(originX, originY, originZ) < best.distanceSquared(originX, originY, originZ))) {
             best = minZ;
             bestFace = BlockFace.NORTH;
         }
 
-        if (maxZ != null && (best == null || origin.distanceSquared(maxZ) < origin.distanceSquared(best))) {
+        if (maxZ != null && (best == null || maxZ.distanceSquared(originX, originY, originZ) < best.distanceSquared(originX, originY, originZ))) {
             best = maxZ;
             bestFace = BlockFace.SOUTH;
         }
@@ -72,16 +74,20 @@ public class ReachUtils {
      * Returns a new vector with x value equal to the second parameter, along the line between this vector and the
      * passed in vector, or null if not possible.
      */
-    public static @Nullable Vector3dm getIntermediateWithXValue(@NotNull Vector3dm self, @NotNull Vector3dm other, double x) {
-        double deltaX = other.getX() - self.getX();
-        double deltaY = other.getY() - self.getY();
-        double deltaZ = other.getZ() - self.getZ();
+    public static @Nullable Vector3dm getIntermediateWithXValue(
+            double originX, double originY, double originZ,
+            double endX, double endY, double endZ,
+            double targetX
+    ) {
+        double deltaX = endX - originX;
+        double deltaY = endY - originY;
+        double deltaZ = endZ - originZ;
 
         if (deltaX * deltaX < 1.0000000116860974E-7D) {
             return null;
         } else {
-            double d3 = (x - self.getX()) / deltaX;
-            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(self.getX() + deltaX * d3, self.getY() + deltaY * d3, self.getZ() + deltaZ * d3) : null;
+            double d3 = (targetX - originX) / deltaX;
+            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(originX + deltaX * d3, originY + deltaY * d3, originZ + deltaZ * d3) : null;
         }
     }
 
@@ -89,16 +95,20 @@ public class ReachUtils {
      * Returns a new vector with y value equal to the second parameter, along the line between this vector and the
      * passed in vector, or null if not possible.
      */
-    public static @Nullable Vector3dm getIntermediateWithYValue(@NotNull Vector3dm self, @NotNull Vector3dm other, double y) {
-        double deltaX = other.getX() - self.getX();
-        double deltaY = other.getY() - self.getY();
-        double deltaZ = other.getZ() - self.getZ();
+    public static @Nullable Vector3dm getIntermediateWithYValue(
+            double originX, double originY, double originZ,
+            double endX, double endY, double endZ,
+            double targetY
+    ) {
+        double deltaX = endX - originX;
+        double deltaY = endY - originY;
+        double deltaZ = endZ - originZ;
 
         if (deltaY * deltaY < 1.0000000116860974E-7D) {
             return null;
         } else {
-            double d3 = (y - self.getY()) / deltaY;
-            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(self.getX() + deltaX * d3, self.getY() + deltaY * d3, self.getZ() + deltaZ * d3) : null;
+            double d3 = (targetY - originY) / deltaY;
+            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(originX + deltaX * d3, originY + deltaY * d3, originZ + deltaZ * d3) : null;
         }
     }
 
@@ -106,16 +116,20 @@ public class ReachUtils {
      * Returns a new vector with z value equal to the second parameter, along the line between this vector and the
      * passed in vector, or null if not possible.
      */
-    public static @Nullable Vector3dm getIntermediateWithZValue(@NotNull Vector3dm self, @NotNull Vector3dm other, double z) {
-        double deltaX = other.getX() - self.getX();
-        double deltaY = other.getY() - self.getY();
-        double deltaZ = other.getZ() - self.getZ();
+    public static @Nullable Vector3dm getIntermediateWithZValue(
+            double originX, double originY, double originZ,
+            double endX, double endY, double endZ,
+            double targetZ
+    ) {
+        double deltaX = endX - originX;
+        double deltaY = endY - originY;
+        double deltaZ = endZ - originZ;
 
         if (deltaZ * deltaZ < 1.0000000116860974E-7D) {
             return null;
         } else {
-            double d3 = (z - self.getZ()) / deltaZ;
-            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(self.getX() + deltaX * d3, self.getY() + deltaY * d3, self.getZ() + deltaZ * d3) : null;
+            double d3 = (targetZ - originZ) / deltaZ;
+            return d3 >= 0.0D && d3 <= 1.0D ? new Vector3dm(originX + deltaX * d3, originY + deltaY * d3, originZ + deltaZ * d3) : null;
         }
     }
 
@@ -165,8 +179,8 @@ public class ReachUtils {
         }
     }
 
-    public static boolean isVecInside(@NotNull SimpleCollisionBox self, @NotNull Vector3dm vec) {
-        return vec.getX() > self.minX && vec.getX() < self.maxX && (vec.getY() > self.minY && vec.getY() < self.maxY && vec.getZ() > self.minZ && vec.getZ() < self.maxZ);
+    public static boolean isVecInside(@NotNull SimpleCollisionBox self, double x, double y, double z) {
+        return x > self.minX && x < self.maxX && y > self.minY && y < self.maxY && z > self.minZ && z < self.maxZ;
     }
 
     public static double getMinReachToBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox targetBox) {

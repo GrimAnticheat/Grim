@@ -30,6 +30,14 @@ public class MessageUtil {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
+    public @NotNull String toUnlabeledString(int x, int y, int z) {
+        return x + ", " + y + ", " + z;
+    }
+
+    public @NotNull String toUnlabeledString(double x, double y, double z) {
+        return x + ", " + y + ", " + z;
+    }
+
     public @NotNull String toUnlabledString(@Nullable Vector3f vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }

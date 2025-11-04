@@ -112,10 +112,10 @@ public class RotationPlace extends BlockPlaceCheck {
         for (double d : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 // x, y, z are correct for the block placement even after post tick because of code elsewhere
-                Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
                 // xRot and yRot are a tick behind
-                Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
+                Ray trace = new Ray(player, player.x, player.y + d, player.z, lookDir.getX(), lookDir.getY());
+                Vector3dm pointAtDistance = trace.getPointAtDistance(distance);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOriginX(), trace.getOriginY(), trace.getOriginZ(), pointAtDistance.getX(), pointAtDistance.getY(), pointAtDistance.getZ());
 
                 if (intercept.first() != null) return true;
             }
