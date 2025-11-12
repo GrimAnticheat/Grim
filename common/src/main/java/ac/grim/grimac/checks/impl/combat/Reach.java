@@ -95,7 +95,10 @@ public class Reach extends Check implements PacketCheck {
             // TODO: Remove when in front of via
             if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
                 return;
-
+            //Prevents Happy Ghast Reach false on 1.21.6+ servers with ViaBackwards set up
+            if (entity.type == EntityTypes.HAPPY_GHAST && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_6)) {
+                return;
+            }
             if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
                 return;
             if (player.inVehicle()) return;
