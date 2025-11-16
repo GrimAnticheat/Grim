@@ -25,12 +25,8 @@ This project is considered feature-complete for the 2.0 (open-source) branch. If
 ## Downloads
 
 - Latest updates:
-  - **[Modrinth](https://modrinth.com/plugin/grimac)** *(recommended)*
   - GitHub
   artifacts: [Bukkit](https://nightly.link/DieInCalamity/BetterGrim/workflows/gradle-publish/2.0/grimac-bukkit.zip), [Fabric](https://nightly.link/DieInCalamity/BetterGrim/workflows/gradle-publish/2.0/grimac-fabric.zip) *(bleeding edge)*
-- Major releases only:
-  - ~~[Hangar](https://hangar.papermc.io/DieInCalamity/BetterGrim)~~
-  - ~~[SpigotMC](https://www.spigotmc.org/resources/grim-anticheat.99923/)~~
 
 ## Requirements & Installation
 
