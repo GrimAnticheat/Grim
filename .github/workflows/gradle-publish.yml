@@ -8,6 +8,10 @@ on:
                 required: true
                 type: boolean
                 default: false
+            publish-artifacts:
+                description: 'Upload to Modrinth & API? (Uncheck for a dry run)'
+                type: boolean
+                default: true
     push:
         branches:
             - 'main'
@@ -25,14 +29,16 @@ on:
             - '**.kt'
             - '**.kts'
             - '**.toml'
-
 jobs:
     call-build-workflow:
         uses: ./.github/workflows/build-and-publish.yml
         with:
             is-release-build: false
-            release-version-type: alpha
+            release-version-type: alpha # Dev builds are always 'alpha'
             run-build-scan: ${{ github.event.inputs.run-build-scan == 'true' }}
+            publish-artifacts: ${{ github.event.inputs.publish-artifacts != 'false' }}
         secrets:
+            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
             BUILD_UPDATE_URL: ${{ secrets.BUILD_UPDATE_URL }}
