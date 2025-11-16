@@ -8,7 +8,7 @@ on:
                 required: true
                 type: boolean
             release-version-type:
-                description: 'The version type for Modrinth (e.g., release, beta, alpha).'
+                description: 'The version type for the build (e.g., release, beta, alpha).'
                 required: true
                 type: string
             release-changelog:
@@ -20,15 +20,7 @@ on:
                 description: 'Whether to enable Develocity build scan'
                 required: true
                 type: boolean
-            publish-artifacts:
-                description: 'If true, uploads artifacts to Modrinth and other distribution sites.'
-                required: true
-                type: boolean
         secrets:
-            MODRINTH_ID:
-                required: false
-            MODRINTH_TOKEN:
-                required: false
             BUILD_UPDATE_TOKEN:
                 required: true
             BUILD_UPDATE_URL:
@@ -42,8 +34,6 @@ jobs:
             packages: write
 
         env:
-            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
-            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             GRIM_MAIN_BRANCH: ${{ github.event.repository.default_branch }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
 
@@ -83,21 +73,19 @@ jobs:
             - name: Compute version and Build with Gradle
               id: build_with_version
               run: |
-                  # If any command in a pipeline fails, treat the pipeline as failed.
                   set -o pipefail
 
                   BUILD_ARGS="build"
                   if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS -Prelease=true"
                   fi
-                  # Conditionally add the --scan flag
+
                   if [[ "${{ inputs.run-build-scan }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS --scan"
                   fi
 
                   echo "Running: ./gradlew printVersion $BUILD_ARGS"
 
-                  # Use 'tee' to both display the output live and save it to a file for parsing
                   VERSION=$(./gradlew printVersion $BUILD_ARGS | tee build-output.log | grep '^VERSION=' | tail -n1 | cut -d'=' -f2)
 
                   echo "build_version=$VERSION" >> $GITHUB_OUTPUT
@@ -105,15 +93,11 @@ jobs:
                   echo "Build version: $VERSION"
 
             - name: Publish Build Scan URL
-                # Only run this step if a scan was requested
               if: ${{ inputs.run-build-scan == true }}
               run: |
-                  # Search the log file for the build scan URL and extract it
                   SCAN_URL=$(grep -o 'https://gradle.com/s/[^ ]*' build-output.log | head -n 1 || true)
 
                   if [[ -n "$SCAN_URL" ]]; then
-                    echo "Found build scan URL: $SCAN_URL"
-                    # Post a highly visible link to the Job Summary page
                     echo "### Gradle Build Scan" >> $GITHUB_STEP_SUMMARY
                     echo "A public build scan has been published and is available for inspection." >> $GITHUB_STEP_SUMMARY
                     echo "" >> $GITHUB_STEP_SUMMARY
@@ -147,22 +131,18 @@ jobs:
                   config: cliff.toml
                   args: --verbose ${{ github.event.before }}..${{ github.event.after }}
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Prepare Final Changelog
               id: changelog
-                # Add this 'env' block to safely load the changelogs as environment variables
               env:
                   RELEASE_NOTES: ${{ inputs.release-changelog }}
                   DEV_NOTES: ${{ steps.git-cliff.outputs.content }}
               run: |
                   NOTES=""
                   if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
-                    # Use the environment variable for the release changelog.
-                    # The double quotes are critical to preserve newlines!
                     NOTES="$RELEASE_NOTES"
                   else
-                    # Use the environment variable for the dev changelog.
                     NOTES="$DEV_NOTES"
                   fi
 
@@ -170,57 +150,16 @@ jobs:
                     NOTES="* No new code changes in this build."
                   fi
 
-                  # This is the correct way to set a multi-line output variable in Actions
                   {
                     echo "notes<<EOF"
                     echo "$NOTES"
                     echo "EOF"
                   } >> "$GITHUB_OUTPUT"
 
-            - name: Publish Fabric to Modrinth
-              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
-              uses: Kir-Antipov/mc-publish@v3.3
-              with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
-                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
-
-                  files: fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
-                  name: Grim Anticheat (Fabric) ${{ env.BUILD_VERSION }}
-                  version: ${{ env.BUILD_VERSION }}
-                  version-type: ${{ inputs.release-version-type }}
-                  changelog: ${{ steps.changelog.outputs.notes }}
-                  loaders: |
-                      fabric
-                  game-versions: '>=1.21.5 <=1.21.10'
-                  dependencies: 'fabric-api'
-
             #------------------------------------------------------------------
-            #  Publish to Modrinth & API
+            #  Publish Build Info API
             #------------------------------------------------------------------
-            - name: Publish Bukkit to Modrinth
-              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
-              uses: Kir-Antipov/mc-publish@v3.3
-              with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
-                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
-
-                  files: bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
-                  name: Grim Anticheat (Bukkit) ${{ env.BUILD_VERSION }}
-                  version: ${{ env.BUILD_VERSION }}
-                  version-type: ${{ inputs.release-version-type }}
-                  changelog: ${{ steps.changelog.outputs.notes }}
-                  loaders: |
-                    bukkit
-                    spigot
-                    paper
-                    folia
-                    purpur
-                  game-versions: '>=1.7 <=1.21.10'
-
             - name: Publish to API
-              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}
               run: |
                   curl -X POST \
                     -H "Content-Type: application/json" \
