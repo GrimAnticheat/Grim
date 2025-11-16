@@ -125,14 +125,14 @@ jobs:
             - name: Upload Bukkit Artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: grimac-bukkit
+                  name: bettergrim-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: grimac-fabric
+                  name: bettergrim-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
