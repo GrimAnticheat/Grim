@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -46,6 +47,7 @@ public class BadPacketsL extends Check implements PacketCheck {
                 ) && shouldModifyPackets() && packet.getAction() != DiggingAction.RELEASE_USE_ITEM) {
                     event.setCancelled(true);
                     player.onPacketCancel();
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
             }
         }
