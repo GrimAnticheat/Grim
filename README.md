@@ -40,7 +40,7 @@ If you use a proxy such as Velocity or Bungeecord:
 
 ## Resources
 
-- For documentation and examples visit the [Wiki](https://github.com/DieInCalamity/BetterGrim/wiki).
+- For documentation and examples visit the [Wiki](https://github.com/grimanticheat/grim/wiki).
 - For answers to commonly asked questions visit the [FAQ](https://github.com/DieInCalamity/BetterGrim/wiki/FAQ).
 - For community support and project discussion join our [Discord](https://discord.grim.ac).
 
