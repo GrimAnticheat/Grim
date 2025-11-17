@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.StringJoiner;
 
-@CheckData(name = "MultiActionsC", description = "Clicked in inventory while moving")
+@CheckData(name = "MultiActionsC", description = "Clicked in inventory while moving", experimental = true)
 public class MultiActionsC extends Check implements PacketCheck {
 
     public MultiActionsC(GrimPlayer player) {
