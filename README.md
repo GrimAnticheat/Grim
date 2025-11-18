@@ -18,7 +18,7 @@
  <br>
 </div>
 
-BetterGrim is an open source [GrimAC](https://github.com/GrimAnticheat/Grim) fork designed to have checks that original Grim probably will not.
+[BetterGrim](https://github.com/DieInCalamity/BetterGrim) is an open source [GrimAC](https://github.com/GrimAnticheat/Grim) fork designed to have checks that original Grim probably will not.
 It currently supports minecraft versions from 1.8 to 1.21.10. Geyser players are fully exempt from the anticheat to prevent false positives.
 This project is considered feature-complete for the 2.0 (open-source) branch. If you would like a bug fix or enhancement and cannot sponsor the work, pull requests are welcome.
 
