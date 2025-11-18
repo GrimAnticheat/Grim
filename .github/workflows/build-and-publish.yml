@@ -36,7 +36,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: tenki-standard-autoscale
         permissions:
             contents: read
             packages: write
@@ -105,7 +105,7 @@ jobs:
                   echo "Build version: $VERSION"
 
             - name: Publish Build Scan URL
-                # Only run this step if a scan was requested
+              # Only run this step if a scan was requested
               if: ${{ inputs.run-build-scan == true }}
               run: |
                   # Search the log file for the build scan URL and extract it
@@ -151,7 +151,7 @@ jobs:
 
             - name: Prepare Final Changelog
               id: changelog
-                # Add this 'env' block to safely load the changelogs as environment variables
+              # Add this 'env' block to safely load the changelogs as environment variables
               env:
                   RELEASE_NOTES: ${{ inputs.release-changelog }}
                   DEV_NOTES: ${{ steps.git-cliff.outputs.content }}
@@ -181,7 +181,7 @@ jobs:
               if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
                   modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
                   modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
 
@@ -202,7 +202,7 @@ jobs:
               if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
                   modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
                   modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
 
