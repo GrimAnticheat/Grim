@@ -70,7 +70,7 @@ What makes Grim stand out against other anticheats?
 
 * We have a 1:1 replication of the player's possible movements
     * This covers everything from basic walking, swimming, knockback, cobwebs, to bubble columns
-    * It even covers riding entities from boats to pigs to striders
+    * It even covers riding entities from boats to pigs and striders
 * Built upon covering edge cases to confirm accuracy
 * 1.13+ clients on 1.13+ servers, 1.12- clients on 1.13+ servers, 1.13+ clients on 1.12- servers,
   and 1.12- clients on 1.12- servers are all supported regardless of the large technical changes
