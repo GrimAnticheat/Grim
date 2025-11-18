@@ -107,7 +107,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.inVehicle()) {
                     return;
                 }
-                if (sentFlying) post.add(event.getPacketType());
+                if (sentFlying) post.add(event.getPacketType()); // test
             }
         }
     }
