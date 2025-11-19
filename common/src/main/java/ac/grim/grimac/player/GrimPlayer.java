@@ -114,6 +114,7 @@ public class GrimPlayer implements GrimUser {
     public final SyncedTags tagManager;
     // End manager like classes
     public Vector3dm clientVelocity = new Vector3dm();
+    public ClickData clickData;
     private PacketTracker viaPacketTracker;
     public final PacketOrderProcessor packetOrderProcessor = new PacketOrderProcessor(this);
     private long transactionPing = 0;
@@ -288,6 +289,7 @@ public class GrimPlayer implements GrimUser {
         compensatedEntities = new CompensatedEntities(this);
         uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
         pointThreeEstimator = new PointThreeEstimator(this);
+        clickData = new ClickData(this);
 
         if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
             final float scale = (float) compensatedEntities.self.getAttributeValue(Attributes.SCALE);
