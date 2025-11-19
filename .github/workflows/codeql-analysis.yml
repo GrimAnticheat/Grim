@@ -14,12 +14,12 @@ name: "CodeQL"
 on:
   workflow_dispatch:
   push:
-    branches: [ dev ]
+    branches: [dev]
 
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: tenki-standard-autoscale
     permissions:
       actions: read
       contents: read
@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'java-kotlin' ]
+        language: ['java-kotlin']
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
         # Learn more:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
@@ -60,6 +60,7 @@ jobs:
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
+
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 https://git.io/JvXDl
 
@@ -70,6 +71,5 @@ jobs:
       #- run: |
       #   make bootstrap
       #   make release
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

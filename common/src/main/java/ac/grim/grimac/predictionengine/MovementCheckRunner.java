@@ -71,7 +71,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (!invalidVehicle && !data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
                 // We shouldn't simulate movement in unloaded chunks
-                player.getSetbackTeleportUtil().executeForceResyncNoSimulation();
+                player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
             }
         }
 

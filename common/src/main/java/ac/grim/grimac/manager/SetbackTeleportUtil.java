@@ -100,7 +100,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         blockMovementsUntilResync(true, true);
     }
 
-    public void executeForceResyncNoSimulation() {
+    public void executeNonSimulatingForceResync() {
         if (player.gamemode == GameMode.SPECTATOR || player.disableGrim)
             return; // We don't care about spectators, they don't flag
         if (lastKnownGoodPosition == null) return; // Player hasn't spawned yet
@@ -144,8 +144,10 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             vector.setY(vector.getY() - 0.05); // Make the player fall a bit
         } else { // Gliding doesn't have friction, we handle it differently
             PredictionEngineNormal.staticVectorEndOfTick(player, vector); // Lava and normal movement
-            vector.multiply(player.stuckSpeedMultiplier); // Prevent abusing setbacks to move out of blocks like webs
         }
+
+        // Prevent abusing setbacks to move out of blocks like webs
+        vector.multiply(player.stuckSpeedMultiplier);
 
         // stop 1.8 players from stepping onto 1.25 high blocks, because why not?
         new PredictionEngine().applyMovementThreshold(player, new HashSet<>(Collections.singletonList(new VectorData(vector, VectorData.VectorType.BestVelPicked))));
@@ -215,7 +217,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
+        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), RelativeFlag.YAW.or(RelativeFlag.PITCH), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
 
@@ -382,7 +384,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
 
     private boolean isPendingSetback() {
         // Relative setbacks shouldn't count
-        if (requiredSetBack.getTeleportData().isRelativeX() || requiredSetBack.getTeleportData().isRelativeY() || requiredSetBack.getTeleportData().isRelativeZ()) {
+        if (requiredSetBack != null && (requiredSetBack.getTeleportData().isRelativeX() || requiredSetBack.getTeleportData().isRelativeY() || requiredSetBack.getTeleportData().isRelativeZ())) {
             return false;
         }
         // The setback is not complete

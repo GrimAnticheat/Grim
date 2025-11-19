@@ -20,8 +20,6 @@ on:
             - 'release'
             - 'release/**'
         paths:
-            - '.github/workflows/**'
-            - 'buildSrc/**'
             - 'bukkit/**'
             - 'common/**'
             - 'fabric/**'
