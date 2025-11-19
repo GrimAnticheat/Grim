@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 @UtilityClass
@@ -232,5 +233,105 @@ public class GrimMath {
     @Contract(pure = true)
     public static double square(double num) {
         return num * num;
+    }
+
+    // ========== for autoclicker checks ==========
+    
+    public static double getCps(final Collection<? extends Number> data) {
+        return 20.0 / getAverage(data) * 50.0;
+    }
+
+    public static double getAverageLong(final Collection<Long> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
+        }
+        long sum = 0L;
+        for (final Long number : data) {
+            sum += number;
+        }
+        return (double) sum / data.size();
+    }
+
+    public static double getAverageInt(final Collection<Integer> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
+        }
+        int sum = 0;
+        for (final Integer number : data) {
+            sum += number;
+        }
+        return (double) sum / data.size();
+    }
+
+    public static double getStandardDeviationLong(final Collection<Long> data) {
+        final double variance = getVarianceLong(data);
+        return Math.sqrt(variance);
+    }
+
+    public static double getVarianceLong(final Collection<Long> data) {
+        int count = 0;
+        double sum = 0.0;
+        double variance = 0.0;
+        for (final Long number : data) {
+            sum += number;
+            ++count;
+        }
+        final double average = sum / count;
+        for (final Long number : data) {
+            variance += Math.pow(number - average, 2.0);
+        }
+        return variance;
+    }
+
+    public static double getStandardDeviationInt(final Collection<Integer> data) {
+        final double variance = getVarianceInt(data);
+        return Math.sqrt(variance);
+    }
+
+    public static double getVarianceInt(final Collection<Integer> data) {
+        int count = 0;
+        double sum = 0.0;
+        double variance = 0.0;
+        for (final Integer number : data) {
+            sum += number;
+            ++count;
+        }
+        final double average = sum / count;
+        for (final Integer number : data) {
+            variance += Math.pow(number - average, 2.0);
+        }
+        return variance;
+    }
+
+    // also necesary for autoclicker checks
+    public static double getAverage(final Collection<? extends Number> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
+        }
+        double sum = 0.0;
+        for (final Number number : data) {
+            sum += number.doubleValue();
+        }
+        return sum / data.size();
+    }
+
+    public static double getStandardDeviation(final Collection<? extends Number> data) {
+        final double variance = getVariance(data);
+        return Math.sqrt(variance);
+    }
+
+    public static double getVariance(final Collection<? extends Number> data) {
+        int count = 0;
+        double sum = 0.0;
+        double variance = 0.0;
+        for (final Number number : data) {
+            sum += number.doubleValue();
+            ++count;
+        }
+        final double average = sum / count;
+        for (final Number number : data) {
+            variance += Math.pow(number.doubleValue() - average, 2.0);
+        }
+        return variance;
     }
 }
