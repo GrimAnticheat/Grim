@@ -36,7 +36,7 @@ on:
 
 jobs:
     build:
-        runs-on: tenki-standard-autoscale
+        runs-on: ubuntu-latest
         permissions:
             contents: read
             packages: write
