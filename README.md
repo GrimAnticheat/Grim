@@ -11,7 +11,7 @@
   <a href="https://modrinth.com/plugin/grimac#download">
    <img alt="Downloads" src="https://img.shields.io/modrinth/dt/LJNGWSvH?style=flat&logo=modrinth&label=downloads&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Fgrimac%23download">
   </a>&nbsp;&nbsp;
-  <a href="https://discord.grim.ac">
+  <a href="https://discord.gg/b8s9NvdUHT">
    <img alt="Discord" src="https://img.shields.io/discord/811396969670901800?style=flat&label=discord&logo=discord">
   </a>
  </div>
