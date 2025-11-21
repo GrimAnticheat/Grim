@@ -236,7 +236,7 @@ public class GrimMath {
     }
 
     // ========== for autoclicker checks ==========
-    
+
     public static double getCps(final Collection<? extends Number> data) {
         return 20.0 / getAverage(data) * 50.0;
     }

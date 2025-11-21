@@ -110,6 +110,7 @@ NoSlow:
     setbackvl: 5
     # Decay's when the player uses an item AND is slowed by it
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # How much should we multiply total advantage by when the player is legit

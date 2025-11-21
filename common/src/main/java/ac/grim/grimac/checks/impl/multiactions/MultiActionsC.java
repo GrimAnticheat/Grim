@@ -68,11 +68,6 @@ public class MultiActionsC extends Check implements PacketCheck {
             if (player.packetStateData.knownInput.moving()) {
                 verbose.add("input");
             }
-        } else {
-            // Full custom motion detector for all other versions
-            if (isActuallyMoving(player)) {
-                verbose.add("moving");
-            }
         }
 
         return verbose.toString();

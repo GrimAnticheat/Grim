@@ -48,7 +48,7 @@ public class AutoClickerD extends Check implements PacketCheck {
 
         // Only process animation packets (clicks)
         if (event.getPacketType() != PacketType.Play.Client.ANIMATION) return;
-        
+
         // Ignore during mining or recent attacks
         if (digging || player.actionManager.hasAttackedSince(500)) return;
 
@@ -91,10 +91,10 @@ public class AutoClickerD extends Check implements PacketCheck {
                 "type=drag_jitter cps=%.1f dev=%.3f buf=%.1f",
                 cps, stdDev, buffer
             ));
-            
+
             // Soft reset after detection
             buffer *= 0.5;
-            
+
             // Optional: Clear less samples to maintain some history
             if (clickIntervals.size() > sampleSize / 2) {
                 clickIntervals.clear();

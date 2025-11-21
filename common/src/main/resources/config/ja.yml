@@ -112,6 +112,7 @@ NoSlow:
     setbackvl: 5
     # プレイヤーがアイテム使用時に速度低下が発生する場合、この値によりアドバンテージの累積が減少します
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # プレイヤーが違反していない場合、総アドバンテージにどれだけの倍率を掛けるか

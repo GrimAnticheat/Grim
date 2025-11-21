@@ -47,18 +47,18 @@ public class AutoClickerB extends Check implements PacketCheck {
 
         // Only process animation packets (clicks)
         if (event.getPacketType() != PacketType.Play.Client.ANIMATION) return;
-        
+
         // Ignore clicks during mining or recent attacks
         boolean breakingBlock = digging || player.actionManager.hasAttackedSince(500);
         boolean notEnoughCPS = player.clickData.getCps() < minCPS;
-        
+
         if (breakingBlock || notEnoughCPS) {
             return;
         }
 
         int delta = player.totalFlyingPacketsSent - lastClickTick;
         lastClickTick = player.totalFlyingPacketsSent;
-        
+
         // Only add reasonable deltas (between 1 and 20 ticks)
         if (delta >= 1 && delta <= 20) {
             samples.add(delta);
@@ -72,7 +72,7 @@ public class AutoClickerB extends Check implements PacketCheck {
     private void analyzePattern() {
         double deviation = GrimMath.getStandardDeviationInt(samples);
         double deltaDeviation = Math.abs(lastDeviation - deviation);
-        
+
         // 1. Delta Deviation Detection (consistency between samples)
         if (deltaDeviation < deltaDeviationThreshold) {
             deltaDeviationBuffer += (deltaDeviationThreshold - deltaDeviation) * 10;
@@ -92,12 +92,12 @@ public class AutoClickerB extends Check implements PacketCheck {
         // 3. Combine detections and flag
         if (deltaDeviationBuffer > deltaBufferTrigger || deviationBuffer > deviationBufferTrigger) {
             double currentCPS = 1000.0 / (GrimMath.getAverageInt(samples) * 50.0);
-            
+
             flagAndAlert(String.format(
                 "type=consistency cps=%.1f dev=%.3f delta_dev=%.3f dev_buf=%.1f delta_buf=%.1f",
                 currentCPS, deviation, deltaDeviation, deviationBuffer, deltaDeviationBuffer
             ));
-            
+
             // Partial buffer reset after flagging
             if (deltaDeviationBuffer > deltaBufferTrigger) {
                 deltaDeviationBuffer *= 0.5;
@@ -105,7 +105,7 @@ public class AutoClickerB extends Check implements PacketCheck {
             if (deviationBuffer > deviationBufferTrigger) {
                 deviationBuffer *= 0.5;
             }
-            
+
             // Clear samples to avoid repeated detections
             samples.clear();
         }

@@ -106,16 +106,16 @@ public class AutoClickerC extends Check implements PacketCheck {
                 "type=unstable_spike cps=%.1f max=%.1f dev=%.2f dev_buf=%.1f spike_buf=%.1f",
                 avg, max, stdDev, deviationBuffer, spikeBuffer
             ));
-            
+
             // Soft reset buffers after detection
             deviationBuffer *= 0.6;
             spikeBuffer *= 0.6;
-            
+
             // Clear samples to avoid repeated detections on same pattern
             cpsSamples.clear();
             tickDeltas.clear();
         }
-        
+
         // Additional detection: Very high deviation alone
         else if (deviationBuffer > deviationBufferTrigger * 1.5) {
             flagAndAlert(String.format(

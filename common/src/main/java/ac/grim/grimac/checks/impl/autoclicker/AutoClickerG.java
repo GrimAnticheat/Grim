@@ -17,7 +17,7 @@ public class AutoClickerG extends Check implements PacketCheck {
     private EvictingQueue<Long> intervals;
     private EvictingQueue<Integer> burstLengths;
     private EvictingQueue<Double> distributionScores;
-    
+
     private long lastSwingTime = -1L;
     private int currentBurstCount = 0;
     private long burstStartTime = -1L;
@@ -64,13 +64,13 @@ public class AutoClickerG extends Check implements PacketCheck {
 
         if (lastSwingTime != -1L) {
             long interval = now - lastSwingTime;
-            
+
             if (interval >= 20 && interval <= 1000) {
                 intervals.add(interval);
-                
+
                 // Burst clicking analysis
                 analyzeBurstPattern(interval, now);
-                
+
                 // Temporal distribution analysis
                 if (intervals.size() >= 10) {
                     analyzeTemporalDistribution();
@@ -96,11 +96,11 @@ public class AutoClickerG extends Check implements PacketCheck {
             if (currentBurstCount > 0) {
                 long burstDuration = currentTime - burstStartTime;
                 double burstCPS = (currentBurstCount * 1000.0) / Math.max(1, burstDuration);
-                
+
                 if (burstCPS >= minBurstCPS && currentBurstCount >= 3) {
                     burstLengths.add(currentBurstCount);
                 }
-                
+
                 currentBurstCount = 0;
                 burstStartTime = -1L;
             }
@@ -111,17 +111,17 @@ public class AutoClickerG extends Check implements PacketCheck {
         // Measure how uniformly spaced the clicks are over time
         double[] normalizedIntervals = new double[intervals.size()];
         double sum = 0;
-        
+
         for (int i = 0; i < intervals.size(); i++) {
             sum += intervals.get(i);
         }
         double mean = sum / intervals.size();
-        
+
         // Normalize intervals
         for (int i = 0; i < intervals.size(); i++) {
             normalizedIntervals[i] = intervals.get(i) / mean;
         }
-        
+
         // Calculate deviation from randomness
         double distributionScore = calculateDistributionScore(normalizedIntervals);
         distributionScores.add(distributionScore);
@@ -129,25 +129,25 @@ public class AutoClickerG extends Check implements PacketCheck {
 
     private double calculateDistributionScore(double[] normalizedIntervals) {
         // Human clicking is more random. Autoclickers have more predictable patterns.
-        
+
         double runs = 1; // Count "runs" — changes between high/low values
         double lastValue = normalizedIntervals[0];
-        
+
         for (int i = 1; i < normalizedIntervals.length; i++) {
-            if ((normalizedIntervals[i] > 1.0 && lastValue <= 1.0) || 
+            if ((normalizedIntervals[i] > 1.0 && lastValue <= 1.0) ||
                 (normalizedIntervals[i] <= 1.0 && lastValue > 1.0)) {
                 runs++;
             }
             lastValue = normalizedIntervals[i];
         }
-        
+
         // Wald-Wolfowitz runs test for randomness
         double n = normalizedIntervals.length;
         double expectedRuns = (2 * n - 1) / 3.0;
         double variance = (16 * n - 29) / 90.0;
-        
+
         if (variance <= 0) return 0.0;
-        
+
         double zScore = Math.abs((runs - expectedRuns) / Math.sqrt(variance));
         return zScore;
     }
@@ -160,7 +160,7 @@ public class AutoClickerG extends Check implements PacketCheck {
                 burstBuffer += (avgBurstLength - maxAllowedBurstLength) * burstBufferIncrease;
             }
         }
-        
+
         burstBuffer = Math.max(0, burstBuffer - bufferDecrease);
 
         // 2. Temporal distribution anomalies
@@ -170,7 +170,7 @@ public class AutoClickerG extends Check implements PacketCheck {
                 distributionBuffer += (distributionAnomalyThreshold - avgDistributionScore) * distributionBufferIncrease;
             }
         }
-        
+
         distributionBuffer = Math.max(0, distributionBuffer - bufferDecrease);
 
         // 3. Burst frequency detection
@@ -180,25 +180,25 @@ public class AutoClickerG extends Check implements PacketCheck {
                 frequencyBuffer += (burstFrequency - burstFrequencyThreshold) * frequencyBufferIncrease;
             }
         }
-        
+
         frequencyBuffer = Math.max(0, frequencyBuffer - bufferDecrease);
 
         // Combine all detections
         double totalBuffer = burstBuffer + distributionBuffer + frequencyBuffer;
-        
+
         if (totalBuffer > bufferLimit) {
             double currentCPS = 1000.0 / GrimMath.getAverageLong(intervals);
-            
+
             flagAndAlert(String.format(
                 "type=burst_distribution cps=%.1f bursts=%.1f dist=%.1f freq=%.1f total=%.1f",
                 currentCPS, burstBuffer, distributionBuffer, frequencyBuffer, totalBuffer
             ));
-            
+
             // Soft reset
             burstBuffer *= 0.6;
             distributionBuffer *= 0.6;
             frequencyBuffer *= 0.6;
-            
+
             // Clear some samples but keep history
             if (intervals.size() > sampleSize / 2) {
                 intervals.clear();

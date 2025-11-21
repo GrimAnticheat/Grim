@@ -5,6 +5,7 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.autoclicker.*;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
 import ac.grim.grimac.checks.impl.chat.ChatA;
@@ -126,6 +127,13 @@ public class CheckManager {
                 .put(PacketOrderD.class, new PacketOrderD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
 //                .put(PacketOrderP.class, new PacketOrderP(player))
+                .put(AutoClickerA.class,new AutoClickerA(player))
+                .put(AutoClickerB.class,new AutoClickerB(player))
+                .put(AutoClickerC.class,new AutoClickerC(player))
+                .put(AutoClickerD.class,new AutoClickerD(player))
+                .put(AutoClickerE.class,new AutoClickerE(player))
+                .put(AutoClickerF.class,new AutoClickerF(player))
+                .put(AutoClickerG.class,new AutoClickerG(player))
                 .put(SprintA.class, new SprintA(player))
                 .put(VehicleA.class, new VehicleA(player))
                 .put(VehicleB.class, new VehicleB(player))
