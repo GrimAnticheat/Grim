@@ -110,7 +110,8 @@ NoSlow:
     setbackvl: 5
     # Oyuncu bir eşya kullandığında VE onun tarafından yavaşlatıldığında beklenilen zaman
     decay: 0.05
-
+    mitigateTicksNoslow: false
+    
 Knockback:
     # Oyuncu legit olduğunda toplam avantajı ne kadarla çarpmalıyız
     setback-decay-multiplier: 0.999

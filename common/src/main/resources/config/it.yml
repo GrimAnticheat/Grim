@@ -103,6 +103,7 @@ NoSlow:
     setbackvl: 5
     # Decadimento per l'uso scorretto dell'oggetto
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo

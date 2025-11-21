@@ -110,6 +110,7 @@ NoSlow:
     setbackvl: 5
     # Verval treedt op wanneer de speler een voorwerp gebruikt EN erdoor wordt vertraagd
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # Met hoeveel moeten we het totale voordeel vermenigvuldigen als de speler legitiem is?

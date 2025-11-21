@@ -110,6 +110,7 @@ NoSlow:
     setbackvl: 5
     # Scade atunci când jucătorul folosește un item ȘI este încetinit de acesta
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # Cu cât ar trebui să înmulțim avantajul total atunci când jucătorul este legitim

@@ -110,6 +110,7 @@ NoSlow:
     setbackvl: 5
     # Verfall ist, wenn der Spieler einen Gegenstand benutzt UND dadurch verlangsamt wird
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.

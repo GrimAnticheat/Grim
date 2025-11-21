@@ -112,6 +112,7 @@ NoSlow:
     setbackvl: 5
     # Decai quando o jogador usa um item e é efetivamente desacelerado.
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # Por quanto deve-se multiplicar a vantagem desde a última vez que falhou na verificação?

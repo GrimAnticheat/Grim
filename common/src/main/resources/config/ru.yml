@@ -110,7 +110,7 @@ NoSlow:
     setbackvl: 0
     # Распад происходит, когда игрок использует предмет И замедляется им
     decay: 0.05
-
+    mitigateTicksNoslow: false
 Knockback:
     # На сколько мы должны умножить общее преимущество, когда игрок легален.
     setback-decay-multiplier: 0.999

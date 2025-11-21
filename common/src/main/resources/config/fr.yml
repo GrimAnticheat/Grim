@@ -110,6 +110,7 @@ NoSlow:
     setbackvl: 5
     # Décroissance lorsque le joueur utilise un objet ET est ralenti par celui-ci.
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # De combien devons-nous multiplier l'avantage total lorsque le joueur est légitime ?

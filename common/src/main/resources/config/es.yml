@@ -113,7 +113,7 @@ NoSlow:
     setbackvl: 5
     # Decadencia cuando un jugador usa un item Y se ralentiza por el
     decay: 0.05
-
+    mitigateTicksNoslow: false
 Knockback:
     # Por cuanto deberíamos multiplicar la ventaja total cuando el jugador es legítimo
     setback-decay-multiplier: 0.999

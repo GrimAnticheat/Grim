@@ -14,9 +14,11 @@ public class NoSlow extends Check implements PostPredictionCheck {
     // The player sends that they switched items the next tick if they switch from an item that can be used
     // to another item that can be used.  What the fuck mojang.  Affects 1.8 (and most likely 1.7) clients.
     public boolean didSlotChangeLastTick = false;
+    public boolean alternativeNoslowFix;
     public boolean flaggedLastTick = false;
-    private double offsetToFlag;
-    private double bestOffset = 1;
+    double offsetToFlag;
+    double bestOffset = 1;
+    private int buffer;
 
     public NoSlow(GrimPlayer player) {
         super(player);
@@ -27,25 +29,50 @@ public class NoSlow extends Check implements PostPredictionCheck {
         if (!predictionComplete.isChecked()) return;
 
         // If the player was using an item for certain, and their predicted velocity had a flipped item
-        if (player.packetStateData.isSlowedByUsingItem()) {
-            // 1.8 users are not slowed the first tick they use an item, strangely
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
-                didSlotChangeLastTick = false;
-                flaggedLastTick = false;
-            }
-
-            if (bestOffset > offsetToFlag) {
-                if (flaggedLastTick) {
-                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
-                    flagAndAlert();
+        if (alternativeNoslowFix) {
+            if (player.packetStateData.isSlowedByUsingItem() && buffer++ > 1) {
+                // 1.8 users are not slowed the first tick they use an item, strangely
+                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
+                    didSlotChangeLastTick = false;
+                    flaggedLastTick = false;
                 }
-                flaggedLastTick = true;
-            } else {
-                reward();
-                flaggedLastTick = false;
+
+                if (bestOffset > offsetToFlag) {
+                    if (flaggedLastTick) {
+                        GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                        if (buffer > 6) {
+                            flagAndAlert("buffer=" + buffer);
+                        }
+                    }
+                    flaggedLastTick = true;
+                } else {
+                    reward();
+                    flaggedLastTick = true;
+                    buffer = 0;
+                }
             }
+            bestOffset = 1;
         }
-        bestOffset = 1;
+        else {
+            if (player.packetStateData.isSlowedByUsingItem()) {
+                // 1.8 users are not slowed the first tick they use an item, strangely
+                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
+                    didSlotChangeLastTick = false;
+                    flaggedLastTick = false;
+                }
+
+                if (bestOffset > offsetToFlag) {
+                    if (flaggedLastTick) {
+                        flagAndAlertWithSetback();
+                    }
+                    flaggedLastTick = true;
+                } else {
+                    reward();
+                    flaggedLastTick = false;
+                }
+            }
+            bestOffset = 1;
+        }
     }
 
     public void handlePredictionAnalysis(double offset) {
@@ -55,5 +82,6 @@ public class NoSlow extends Check implements PostPredictionCheck {
     @Override
     public void onReload(ConfigManager config) {
         offsetToFlag = config.getDoubleElse(getConfigName() + ".threshold", 0.001);
+        alternativeNoslowFix = config.getBooleanElse(getConfigName() + ".mitigateTicksNoslow", false);
     }
 }

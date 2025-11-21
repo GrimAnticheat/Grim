@@ -114,6 +114,7 @@ NoSlow:
     setbackvl: 5
     # 当玩家使用一个物品并被它减慢时衰减多少VL
     decay: 0.05
+    mitigateTicksNoslow: false
 
 Knockback:
     # 当玩家合法时，我们应该将总优势乘以多少
