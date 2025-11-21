@@ -63,7 +63,8 @@ public class NoSlow extends Check implements PostPredictionCheck {
 
                 if (bestOffset > offsetToFlag) {
                     if (flaggedLastTick) {
-                        flagAndAlertWithSetback();
+                        flagAndAlert();
+                        GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                     }
                     flaggedLastTick = true;
                 } else {
