@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
-@CheckData(name = "ChatA", experimental = true)
+@CheckData(name = "ChatA")
 public class ChatA extends Check implements PacketCheck {
 
     public ChatA(GrimPlayer player) {

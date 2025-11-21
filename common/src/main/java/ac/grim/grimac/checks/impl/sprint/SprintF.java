@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "SprintF", description = "Sprinting while gliding", experimental = true)
+@CheckData(name = "SprintF", description = "Sprinting while gliding")
 public class SprintF extends Check implements PostPredictionCheck {
     public SprintF(GrimPlayer player) {
         super(player);

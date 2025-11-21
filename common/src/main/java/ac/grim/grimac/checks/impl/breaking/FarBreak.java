@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "FarBreak", description = "Breaking blocks too far away", experimental = true)
+@CheckData(name = "FarBreak", description = "Breaking blocks too far away")
 public class FarBreak extends Check implements BlockBreakCheck {
     public FarBreak(GrimPlayer player) {
         super(player);

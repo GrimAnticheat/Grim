@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "MultiActionsA", description = "Attacked while using an item", experimental = true)
+@CheckData(name = "MultiActionsA", description = "Attacked while using an item")
 public class MultiActionsA extends Check implements PacketCheck {
     public MultiActionsA(GrimPlayer player) {
         super(player);
