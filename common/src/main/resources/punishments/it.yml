@@ -10,7 +10,7 @@ Punishments:
   Simulation:
     remove-violations-after: 300
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

@@ -14,7 +14,7 @@ Punishments:
     # Aksi takdirde eşleşecek bir denetimi hariç tutmak için, isminin önüne ünlem işareti koyun
     # Örnek olarak, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

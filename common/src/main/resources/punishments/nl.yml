@@ -14,7 +14,7 @@ Punishments:
     # Om een controle uit te sluiten die anders wel overeen zou komen, zet je een uitroepteken voor de naam.
     # Bijvoorbeeld, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

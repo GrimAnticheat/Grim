@@ -14,7 +14,7 @@ Punishments:
     # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
     # For example, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

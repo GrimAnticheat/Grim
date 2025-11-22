@@ -14,7 +14,7 @@ Punishments:
     # 要关闭掉一个检查就在检查前面加感叹号
     # 例如, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

@@ -14,7 +14,7 @@ Punishments:
     # 一部のチェックを除外するには、名前の前に「!」を付けます
     # 例: !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

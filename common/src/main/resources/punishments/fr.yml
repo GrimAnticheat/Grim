@@ -14,7 +14,7 @@ Punishments:
     # Pour exclure une vérification qui serait sinon correspondante, placez un point d'exclamation devant le nom.
     # Par exemple, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

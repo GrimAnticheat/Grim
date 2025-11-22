@@ -14,7 +14,7 @@ Punishments:
     # Чтобы исключить проверку, которая в противном случае была бы найдена, поставьте восклицательный знак перед именем.
     # Например, !BadPacketsN
     checks:
-      - "Simulation"
+      - "Prediction"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"
