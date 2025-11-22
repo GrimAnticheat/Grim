@@ -298,9 +298,8 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                      "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + " (" +
                              DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
-                             DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ") " +
-                     "VALUES (?, ?, ?, ?) " +
+                     "VALUES (?, ?, ?) " +
                      "ON DUPLICATE KEY UPDATE " +
                              DatabaseConstants.PLAYERS_NAME_COLUMN + " = VALUES(" + DatabaseConstants.PLAYERS_NAME_COLUMN + "), " +
                              DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " = VALUES(" + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ")")
@@ -308,7 +307,6 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             updatePlayer.setBytes(1, DatabaseUtils.uuidToBytes(player.getUniqueId()));
             updatePlayer.setString(2, player.getName());
             updatePlayer.setLong(3, System.currentTimeMillis());
-            updatePlayer.setLong(4, System.currentTimeMillis());
 
             updatePlayer.executeUpdate();
         } catch (SQLException ex) {
