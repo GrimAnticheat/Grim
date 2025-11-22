@@ -284,15 +284,15 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
         try (Connection connection = this.getConnection();
              // Updated SELECT statement with all new joins and column selections
              PreparedStatement updatePlayer = connection.prepareStatement(
-                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + "(" +
+                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + " (" +
                              DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ") " +
                              "VALUES (?, ?, ?, ?) " +
                              "ON CONFLICT(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ") DO UPDATE SET " +
-                             DatabaseConstants.PLAYERS_NAME_COLUMN + " = " + DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
-                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " = " + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ";")
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + " = excluded." + DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " = excluded." + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN)
         ) {
             updatePlayer.setBytes(1, DatabaseUtils.uuidToBytes(player.getUniqueId()));
             updatePlayer.setString(2, player.getName());

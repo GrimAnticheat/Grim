@@ -295,7 +295,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
         try (Connection connection = dataSource.getConnection();
              // Updated SELECT statement with all new joins and column selections
              PreparedStatement updatePlayer = connection.prepareStatement(
-                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + "(" +
+                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + " (" +
                              DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
