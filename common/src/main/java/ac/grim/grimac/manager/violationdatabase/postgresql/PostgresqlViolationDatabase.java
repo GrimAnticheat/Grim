@@ -1,7 +1,6 @@
 package ac.grim.grimac.manager.violationdatabase.postgresql;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.violationdatabase.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -22,12 +21,10 @@ public class PostgresqlViolationDatabase implements ViolationDatabase {
         return "\"" + DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN + "\"";
     }
 
-    private final GrimPlugin plugin;
     private HikariDataSource dataSource;
     private final DatabaseDialect dialect;
 
-    public PostgresqlViolationDatabase(GrimPlugin plugin, String url, String database, String username, String password) {
-        this.plugin = plugin;
+    public PostgresqlViolationDatabase(String url, String database, String username, String password) {
         this.dialect = new PostgresqlDialect();
         setupDataSource(url, database, username, password);
     }

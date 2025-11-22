@@ -217,9 +217,9 @@ history:
     # Ce nume de server să fie inserat pentru comanda history? Util dacă folosești aceeași bază de date pentru mai multe servere
     server-name: Prison
     database:
-        # Folosește SQLITE pentru stocare locală, MYSQL dacă ai bază de date externă. Se actualizează doar la restart server
+        # Folosiți SQLITE pentru stocare locală, folosiți MYSQL sau POSTGRESQL dacă aveți o bază de date externă. Aceasta este actualizată doar la repornirea serverului
         type: SQLITE
-        # Detalii conexiune MySQL
+        # Detalii de conectare la baza de date
         host: localhost
         port: 3306
         database: grim

@@ -221,9 +221,9 @@ history:
     # history 指令中插入的服务器名称？如果多个服务器共用同一数据库则很有用
     server-name: Prison
     database:
-        # 本地存储使用 SQLITE，外部数据库使用 MYSQL。仅在重启服务器后生效
+        # 本地存储使用SQLITE，如有外部数据库请使用MYSQL或POSTGRESQL。此设置仅在服务器重启时更新
         type: SQLITE
-        # MySQL 连接详情
+        # 数据库连接详情
         host: localhost
         port: 3306
         database: grim

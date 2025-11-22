@@ -105,7 +105,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                     break;                          // nothing changed → keep pool
                 }
                 database.disconnect();
-                database = new PostgresqlViolationDatabase(plugin, host, db, user, pwd);
+                database = new PostgresqlViolationDatabase(host, db, user, pwd);
                 try {
                     database.connect();
                     loaded = true;
