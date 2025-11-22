@@ -210,7 +210,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector3dm();
-                player.gamemode = respawn.getGameMode();
+                if (!GrimAPI.INSTANCE.getSpectateManager().isSpectating(player.uuid)) {
+                    player.gamemode = respawn.getGameMode();
+                }  
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
                     player.compensatedWorld.setDimension(respawn.getDimensionType(), event.getUser());
                 }
