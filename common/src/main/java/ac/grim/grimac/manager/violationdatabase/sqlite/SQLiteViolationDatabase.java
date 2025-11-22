@@ -158,7 +158,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
                     "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.PLAYERS_TABLE + "(" +
                             DatabaseConstants.PLAYERS_ID_COLUMN + " " + pkSyntax + ", " +
                             DatabaseConstants.PLAYERS_UUID_COLUMN + " " + uuidType + " NOT NULL UNIQUE, " +
-                            DatabaseConstants.PLAYERS_NAME_COLUMN + " VARCHAR(255) NOT NULL, " +
+                            DatabaseConstants.PLAYERS_NAME_COLUMN + " VARCHAR(32) NOT NULL, " +
                             DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (strftime('%s', 'now') * 1000), " +
                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (strftime('%s', 'now') * 1000)" +
                             ")"
