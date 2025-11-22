@@ -19,6 +19,8 @@ viaversion = "5.5.0"
 # --- General Java Utilities ---
 fastutil = "8.5.15"
 hikaricp = "7.0.2"
+jdbc-mysql = "9.5.0"
+jdbc-postgresql = "42.7.8"
 jetbrains-annotations = "24.1.0"
 netty = "4.1.85.Final"
 snakeyaml = "2.2"
@@ -57,6 +59,8 @@ viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "via
 # --- General Java Utilities ---
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
 hikaricp = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikaricp" }
+jdbc-mysql = { module = "com.mysql:mysql-connector-j", version.ref = "jdbc-mysql" }
+jdbc-postgresql = { module = "org.postgresql:postgresql", version.ref = "jdbc-postgresql" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
