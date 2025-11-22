@@ -385,7 +385,6 @@ public class MySQLViolationDatabase implements ViolationDatabase {
 
     private void createIndexIfNotExists(String tableName, String indexName, String columnName) throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             // Updated SELECT statement with all new joins and column selections
              PreparedStatement check = connection.prepareStatement("SELECT COUNT(1) FROM information_schema.STATISTICS " +
                      "WHERE table_schema = DATABASE() " +
                      "AND table_name = ? " +
