@@ -55,9 +55,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.SERVERS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.SERVERS_TABLE + "_name ON " + DatabaseConstants.SERVERS_TABLE + "(" + DatabaseConstants.SERVERS_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.SERVERS_TABLE,
+                    "idx_" + DatabaseConstants.SERVERS_TABLE + "_name",
+                    DatabaseConstants.SERVERS_STRING_COLUMN);
 
             // 2. Create Lookup Table for Check Names
             connection.prepareStatement(
@@ -66,9 +67,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.CHECK_NAMES_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CHECK_NAMES_TABLE + "_string ON " + DatabaseConstants.CHECK_NAMES_TABLE + "(" + DatabaseConstants.CHECK_NAMES_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.CHECK_NAMES_TABLE,
+                    "idx_" + DatabaseConstants.CHECK_NAMES_TABLE + "_string",
+                    DatabaseConstants.CHECK_NAMES_STRING_COLUMN);
 
             // --- NEW LOOKUP TABLES ---
             // 3. Create Lookup Table for Grim Versions
@@ -78,9 +80,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.GRIM_VERSIONS_TABLE + "_string ON " + DatabaseConstants.GRIM_VERSIONS_TABLE + "(" + DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.GRIM_VERSIONS_TABLE,
+                    "idx_" + DatabaseConstants.GRIM_VERSIONS_TABLE + "_string",
+                    DatabaseConstants.GRIM_VERSIONS_STRING_COLUMN);
 
             // 4. Create Lookup Table for Client Brands
             connection.prepareStatement(
@@ -89,9 +92,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CLIENT_BRANDS_TABLE + "_string ON " + DatabaseConstants.CLIENT_BRANDS_TABLE + "(" + DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.CLIENT_BRANDS_TABLE,
+                    "idx_" + DatabaseConstants.CLIENT_BRANDS_TABLE + "_string",
+                    DatabaseConstants.CLIENT_BRANDS_STRING_COLUMN);
 
             // 5. Create Lookup Table for Client Versions
             connection.prepareStatement(
@@ -100,9 +104,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.CLIENT_VERSIONS_TABLE + "_string ON " + DatabaseConstants.CLIENT_VERSIONS_TABLE + "(" + DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.CLIENT_VERSIONS_TABLE,
+                    "idx_" + DatabaseConstants.CLIENT_VERSIONS_TABLE + "_string",
+                    DatabaseConstants.CLIENT_VERSIONS_STRING_COLUMN);
 
             // 6. Create Lookup Table for Server Versions
             connection.prepareStatement(
@@ -111,9 +116,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN + " VARCHAR(255) NOT NULL UNIQUE" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.SERVER_VERSIONS_TABLE + "_string ON " + DatabaseConstants.SERVER_VERSIONS_TABLE + "(" + DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.SERVER_VERSIONS_TABLE,
+                    "idx_" + DatabaseConstants.SERVER_VERSIONS_TABLE + "_string",
+                    DatabaseConstants.SERVER_VERSIONS_STRING_COLUMN);
             // --- END NEW LOOKUP TABLES ---
 
             // 7. Create Main Violations Table with ALL Foreign Keys and optimized UUID
@@ -140,30 +146,38 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             ).execute();
 
             // 8. Create Indexes for efficient querying on main table (includes new FKs)
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_uuid ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_UUID_COLUMN + ");"
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_created_at ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN + ");"
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_SERVER_ID_COLUMN + ");"
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_check_name_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CHECK_NAME_ID_COLUMN + ");"
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_grim_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN + ");" // NEW
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_brand_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN + ");" // NEW
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN + ");" // NEW
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + ");" // NEW
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_uuid",
+                    DatabaseConstants.VIOLATIONS_UUID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_created_at",
+                    DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_id",
+                    DatabaseConstants.VIOLATIONS_SERVER_ID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_check_name_id",
+                    DatabaseConstants.VIOLATIONS_CHECK_NAME_ID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_grim_version_id",
+                    DatabaseConstants.VIOLATIONS_GRIM_VERSION_ID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_brand_id",
+                    DatabaseConstants.VIOLATIONS_CLIENT_BRAND_ID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_client_version_id",
+                    DatabaseConstants.VIOLATIONS_CLIENT_VERSION_ID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.VIOLATIONS_TABLE,
+                    "idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_version_id",
+                    DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN);
 
             // 9. Create players info table and indexes
             connection.prepareStatement(
@@ -175,12 +189,14 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000)" +
                             ")"
             ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_uuid ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ");"
-            ).execute();
-            connection.prepareStatement(
-                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_name ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_NAME_COLUMN + ");"
-            ).execute();
+            createIndexIfNotExists(
+                    DatabaseConstants.PLAYERS_TABLE,
+                    "idx_" + DatabaseConstants.PLAYERS_TABLE + "_uuid",
+                    DatabaseConstants.PLAYERS_UUID_COLUMN);
+            createIndexIfNotExists(
+                    DatabaseConstants.PLAYERS_TABLE,
+                    "idx_" + DatabaseConstants.PLAYERS_TABLE + "_name",
+                    DatabaseConstants.PLAYERS_NAME_COLUMN);
 
         } catch (SQLException ex) {
             LogUtil.error("Failed to generate violations database:", ex);
@@ -310,7 +326,7 @@ public class MySQLViolationDatabase implements ViolationDatabase {
 
             updatePlayer.executeUpdate();
         } catch (SQLException ex) {
-            LogUtil.error("Failed to fetch logs", ex);
+            LogUtil.error("Failed to update player history", ex);
         }
     }
 
@@ -362,9 +378,32 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                 ));
             }
         } catch (SQLException ex) {
-            LogUtil.error("Failed to count logs", ex);
+            LogUtil.error("Failed to load player history", ex);
         }
         return Optional.empty();
+    }
+
+    private void createIndexIfNotExists(String tableName, String indexName, String columnName) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             // Updated SELECT statement with all new joins and column selections
+             PreparedStatement check = connection.prepareStatement("SELECT COUNT(1) FROM information_schema.STATISTICS " +
+                     "WHERE table_schema = DATABASE() " +
+                     "AND table_name = ? " +
+                     "AND index_name = ?")
+        ) {
+            check.setString(1, tableName);
+            check.setString(2, indexName);
+
+            try (ResultSet result = check.executeQuery()) {
+                if (result.next() && result.getInt(1) == 0) {
+                    connection.prepareStatement(
+                            "CREATE INDEX " + indexName + " ON " + tableName + "(" + columnName + ")"
+                    ).execute();
+                }
+            }
+        } catch (SQLException ex) {
+            LogUtil.error("Failed to create or update index", ex);
+        }
     }
 
     @Override
