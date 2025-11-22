@@ -2,11 +2,7 @@ package ac.grim.grimac.manager.violationdatabase.sqlite;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.manager.violationdatabase.DatabaseConstants;
-import ac.grim.grimac.manager.violationdatabase.DatabaseDialect;
-import ac.grim.grimac.manager.violationdatabase.DatabaseUtils;
-import ac.grim.grimac.manager.violationdatabase.Violation;
-import ac.grim.grimac.manager.violationdatabase.ViolationDatabase;
+import ac.grim.grimac.manager.violationdatabase.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 
@@ -17,6 +13,7 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class SQLiteViolationDatabase implements ViolationDatabase {
@@ -156,6 +153,23 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + ")"
             ).execute();
 
+            // 9. Create players info table and indexes
+            connection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.PLAYERS_TABLE + "(" +
+                            DatabaseConstants.PLAYERS_ID_COLUMN + " " + pkSyntax + ", " +
+                            DatabaseConstants.PLAYERS_UUID_COLUMN + " " + uuidType + " NOT NULL UNIQUE, " +
+                            DatabaseConstants.PLAYERS_NAME_COLUMN + " VARCHAR(255) NOT NULL, " +
+                            DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (strftime('%s', 'now') * 1000), " +
+                            DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (strftime('%s', 'now') * 1000)" +
+                            ")"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_uuid ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ");"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_name ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_NAME_COLUMN + ");"
+            ).execute();
+
         } catch (SQLException ex) {
             LogUtil.error("Failed to generate violations database:", ex);
             throw ex;
@@ -263,6 +277,85 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
             LogUtil.error("Failed to fetch violations:", ex);
         }
         return violations;
+    }
+
+    @Override
+    public void updateHistoryPlayer(GrimPlayer player) {
+        try (Connection connection = this.getConnection();
+             // Updated SELECT statement with all new joins and column selections
+             PreparedStatement updatePlayer = connection.prepareStatement(
+                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + "(" +
+                             DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ") " +
+                             "VALUES (?, ?, ?, ?) " +
+                             "ON CONFLICT(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ") DO UPDATE SET " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + " = " + DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " = " + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + ";")
+        ) {
+            updatePlayer.setBytes(1, DatabaseUtils.uuidToBytes(player.getUniqueId()));
+            updatePlayer.setString(2, player.getName());
+            updatePlayer.setLong(3, System.currentTimeMillis());
+            updatePlayer.setLong(4, System.currentTimeMillis());
+
+            updatePlayer.executeUpdate();
+        } catch (SQLException ex) {
+            LogUtil.error("Failed to fetch logs", ex);
+        }
+    }
+
+    @Override
+    public Optional<HistoryPlayer> getHistoryPlayer(UUID uuid) {
+        return this.getHistoryPlayerByQuery(
+                "WHERE " + DatabaseConstants.PLAYERS_UUID_COLUMN + " = ?",
+                uuid);
+    }
+
+    @Override
+    public Optional<HistoryPlayer> getHistoryPlayer(String playerName) {
+        return this.getHistoryPlayerByQuery(
+                "WHERE LOWER(" + DatabaseConstants.PLAYERS_NAME_COLUMN + ") = LOWER(?)",
+                playerName);
+    }
+
+    private Optional<HistoryPlayer> getHistoryPlayerByQuery(String queryWhere, Object value) {
+        try (Connection connection = this.getConnection();
+             PreparedStatement historyPlayer = connection.prepareStatement(
+                     "SELECT " +
+                             DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN +
+                             " FROM " + DatabaseConstants.PLAYERS_TABLE + " " +
+                             queryWhere
+             )
+        ) {
+            if (value instanceof UUID uuid) {
+                historyPlayer.setBytes(1, DatabaseUtils.uuidToBytes(uuid));
+            } else if (value instanceof String stringValue) {
+                historyPlayer.setString(1, stringValue);
+            } else {
+                historyPlayer.setObject(1, value);
+            }
+
+            ResultSet result = historyPlayer.executeQuery();
+            if (result.next()) {
+                byte[] uuidBytes = result.getBytes(DatabaseConstants.PLAYERS_UUID_COLUMN);
+                String name = result.getString(DatabaseConstants.PLAYERS_NAME_COLUMN);
+                long firstSeen = result.getLong(DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN);
+                long lastSeen = result.getLong(DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN);
+                return Optional.of(new HistoryPlayer(
+                        DatabaseUtils.bytesToUuid(uuidBytes),
+                        name,
+                        firstSeen,
+                        lastSeen
+                ));
+            }
+        } catch (SQLException ex) {
+            LogUtil.error("Failed to count logs", ex);
+        }
+        return Optional.empty();
     }
 
     @Override

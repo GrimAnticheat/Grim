@@ -2,9 +2,9 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
+import ac.grim.grimac.manager.violationdatabase.HistoryPlayer;
 import ac.grim.grimac.manager.violationdatabase.Violation;
 import ac.grim.grimac.manager.violationdatabase.ViolationDatabaseManager;
-import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import org.incendo.cloud.CommandManager;
@@ -13,6 +13,7 @@ import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class GrimHistory implements BuildableCommand {
@@ -56,15 +57,27 @@ public class GrimHistory implements BuildableCommand {
             String logFormat = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("grim-history-entry",
                     "%prefix% &8[&f%server%&8] &bFailed &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% ago&7)");
 
-            OfflinePlatformPlayer targetPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getOfflineFromName(target);
-
             ViolationDatabaseManager violations = GrimAPI.INSTANCE.getViolationDatabaseManager();
-            int logCount = violations.getLogCount(targetPlayer.getUniqueId());
-            List<Violation> logs = violations.getViolations(targetPlayer.getUniqueId(), page, entriesPerPage);
+
+            // loading player from database
+            Optional<HistoryPlayer> optional = violations.getHistoryPlayer(target);
+            if (optional.isEmpty()) {
+                String msg = GrimAPI.INSTANCE.getConfigManager().getConfig()
+                        .getStringElse("grim-history-player-not-found",
+                                "%prefix% &cPlayer was not found.");
+                sender.sendMessage(MessageUtil.miniMessage(msg));
+                return;
+            }
+            HistoryPlayer historyPlayer = optional.get();
+
+            // requesting violation count
+            int logCount = violations.getLogCount(historyPlayer.uuid());
+            // requesting violations
+            List<Violation> logs = violations.getViolations(historyPlayer.uuid(), page, entriesPerPage);
             int maxPages = (int) Math.ceil((float) logCount / entriesPerPage);
 
             sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, header
-                    .replace("%player%", targetPlayer.getName())
+                    .replace("%player%", historyPlayer.username())
                     .replace("%page%", String.valueOf(page))
                     .replace("%maxPages%", String.valueOf(maxPages))
             )));
@@ -72,7 +85,7 @@ public class GrimHistory implements BuildableCommand {
             for (int i = logs.size() - 1; i >= 0; i--) {
                 Violation log = logs.get(i);
                 sender.sendMessage(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(sender, logFormat
-                        .replace("%player%", targetPlayer.getName())
+                        .replace("%player%", historyPlayer.username())
                         .replace("%grim_version%", log.grimVersion())
                         .replace("%client_brand%", log.clientBrand())
                         .replace("%client_version%", log.clientVersion())

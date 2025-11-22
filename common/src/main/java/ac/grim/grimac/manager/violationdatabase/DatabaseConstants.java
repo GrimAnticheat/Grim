@@ -8,6 +8,7 @@ public interface DatabaseConstants {
     String CLIENT_VERSIONS_TABLE = "grim_history_client_versions";
     String SERVER_VERSIONS_TABLE = "grim_history_server_versions";
     String VIOLATIONS_TABLE = "grim_history_violations";
+    String PLAYERS_TABLE = "grim_history_players";
 
     String SERVERS_STRING_COLUMN = "server_name";
     String CHECK_NAMES_STRING_COLUMN = "check_name_string";
@@ -29,4 +30,10 @@ public interface DatabaseConstants {
     String VIOLATIONS_CLIENT_BRAND_ID_COLUMN = "client_brand_id";
     String VIOLATIONS_CLIENT_VERSION_ID_COLUMN = "client_version_id";
     String VIOLATIONS_SERVER_VERSION_ID_COLUMN = "server_version_id";
+
+    String PLAYERS_ID_COLUMN = "id";
+    String PLAYERS_UUID_COLUMN = "uuid";
+    String PLAYERS_NAME_COLUMN = "name";
+    String PLAYERS_LAST_SEEN_COLUMN = "last_seen";
+    String PLAYERS_FIRST_SEEN_COLUMN = "first_seen";
 }

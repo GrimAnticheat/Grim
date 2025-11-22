@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ViolationDatabaseManager implements StartableInitable, ReloadableInitable {
@@ -116,4 +117,15 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
         return database.getViolations(player, page, limit);
     }
 
+    public void updateHistoryPlayer(GrimPlayer player) {
+        this.database.updateHistoryPlayer(player);
+    }
+
+    public Optional<HistoryPlayer> getHistoryPlayer(UUID uuid) {
+        return this.database.getHistoryPlayer(uuid);
+    }
+
+    public Optional<HistoryPlayer> getHistoryPlayer(String playerName) {
+        return this.database.getHistoryPlayer(playerName);
+    }
 }

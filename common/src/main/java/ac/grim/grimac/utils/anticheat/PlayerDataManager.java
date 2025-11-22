@@ -69,6 +69,7 @@ public class PlayerDataManager {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
             GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
+            GrimAPI.INSTANCE.getViolationDatabaseManager().updateHistoryPlayer(player);
         }
     }
 
@@ -78,7 +79,11 @@ public class PlayerDataManager {
 
     public void onDisconnect(User user) {
         GrimPlayer grimPlayer = remove(user);
-        if (grimPlayer != null) GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
+        if (grimPlayer != null) {
+            GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
+            GrimAPI.INSTANCE.getViolationDatabaseManager().updateHistoryPlayer(grimPlayer);
+        }
+
         exemptUsers.remove(user);
 
         UUID uuid = user.getProfile().getUUID();

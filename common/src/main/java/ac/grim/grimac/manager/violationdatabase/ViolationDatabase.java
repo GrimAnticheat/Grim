@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ViolationDatabase {
@@ -15,6 +16,12 @@ public interface ViolationDatabase {
     int getLogCount(UUID player);
 
     List<Violation> getViolations(UUID player, int page, int limit);
+
+    void updateHistoryPlayer(GrimPlayer player);
+
+    Optional<HistoryPlayer> getHistoryPlayer(UUID uuid);
+
+    Optional<HistoryPlayer> getHistoryPlayer(String playerName);
 
     void disconnect();
 
