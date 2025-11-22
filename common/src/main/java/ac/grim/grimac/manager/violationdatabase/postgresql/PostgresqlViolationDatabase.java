@@ -38,6 +38,7 @@ public class PostgresqlViolationDatabase implements ViolationDatabase {
         config.setUsername(username);
         config.setPassword(password);
         config.setMaximumPoolSize(10);
+        config.setAutoCommit(true);
         dataSource = new HikariDataSource(config);
     }
 
