@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &cLe sous‑système d’historique est désact
 grim-history-header: "%prefix% &bAffichage des journaux pour &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bÉchec &f%check% (x&c%vl%&f) &7%verbose% (&bil y a %timeago%&7)"
+grim-history-player-not-exist: "%prefix% &cLe joueur n’a jamais été vu sur ce serveur."
+grim-history-no-log-entries: "%prefix% &cLe joueur n’a aucune entrée de journal."

@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &cHistory subsystem is disabled!"
 grim-history-header: "%prefix% &bShowing logs for &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bFailed &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% ago&7)"
+grim-history-player-not-exist: "%prefix% &cThe player has never been seen on this server."
+grim-history-no-log-entries: "%prefix% &cThe player has no log entries."

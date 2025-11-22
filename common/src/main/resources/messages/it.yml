@@ -65,3 +65,5 @@ grim-history-disabled: "%prefix% &cIl sottosistema cronologia è disabilitato!"
 grim-history-header: "%prefix% &bMostrando log per &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bFallito &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% fa&7)"
+grim-history-player-not-exist: "%prefix% &cIl giocatore non è mai stato visto su questo server."
+grim-history-no-log-entries: "%prefix% &cIl giocatore non ha voci di registro."

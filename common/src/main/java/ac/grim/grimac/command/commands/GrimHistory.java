@@ -63,8 +63,8 @@ public class GrimHistory implements BuildableCommand {
             Optional<HistoryPlayer> optional = violations.getHistoryPlayer(target);
             if (optional.isEmpty()) {
                 String msg = GrimAPI.INSTANCE.getConfigManager().getConfig()
-                        .getStringElse("grim-history-player-not-found",
-                                "%prefix% &cPlayer was not found.");
+                        .getStringElse("grim-history-player-not-exist",
+                                "%prefix% &cThe player has never been seen on this server.");
                 sender.sendMessage(MessageUtil.miniMessage(msg));
                 return;
             }
@@ -72,6 +72,14 @@ public class GrimHistory implements BuildableCommand {
 
             // requesting violation count
             int logCount = violations.getLogCount(historyPlayer.uuid());
+            if (logCount == 0) {
+                String msg = GrimAPI.INSTANCE.getConfigManager().getConfig()
+                        .getStringElse("grim-history-no-log-entries",
+                                "%prefix% &cThe player has no log entries.");
+                sender.sendMessage(MessageUtil.miniMessage(msg));
+                return;
+            }
+
             // requesting violations
             List<Violation> logs = violations.getViolations(historyPlayer.uuid(), page, entriesPerPage);
             int maxPages = (int) Math.ceil((float) logCount / entriesPerPage);

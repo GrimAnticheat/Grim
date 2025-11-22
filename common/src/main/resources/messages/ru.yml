@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &cПодсистема истории откл�
 grim-history-header: "%prefix% &bПоказ журналов для &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bПровалено &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% назад&7)"
+grim-history-player-not-exist: "%prefix% &cИгрок никогда не был замечен на этом сервере."
+grim-history-no-log-entries: "%prefix% &cУ игрока нет записей в журнале."

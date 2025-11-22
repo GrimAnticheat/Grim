@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &c历史子系统已禁用！"
 grim-history-header: "%prefix% &b显示 &f%player% 的日志 (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &b失败 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"
+grim-history-player-not-exist: "%prefix% &c该玩家从未在此服务器出现过。"
+grim-history-no-log-entries: "%prefix% &c该玩家没有任何日志记录。"

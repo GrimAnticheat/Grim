@@ -1,3 +1,4 @@
+# \u00BB ist » (double >>), ANSI und UTF-8 interpretieren dieses Zeichen unterschiedlich, und je nach Kodierung kann sogar ein '?' angezeigt werden.
 prefix: "&bGrim &8\u00BB"
 
 alerts-enabled: "%prefix% &fBenachrichtigungen aktiviert"
@@ -72,3 +73,5 @@ grim-history-disabled: "%prefix% &cDas History‑Subsystem ist deaktiviert!"
 grim-history-header: "%prefix% &bZeige Logs für &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bFehlgeschlagen &f%check% (x&c%vl%&f) &7%verbose% (&bvor %timeago%&7)"
+grim-history-player-not-exist: "%prefix% &cDer Spieler wurde noch nie auf diesem Server gesehen."
+grim-history-no-log-entries: "%prefix% &cDer Spieler hat keine Log-Einträge."

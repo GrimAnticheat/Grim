@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
 grim-history-header: "%prefix% &bKayıtlar gösteriliyor: &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bBaşarısız &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% önce&7)"
+grim-history-player-not-exist: "%prefix% &cOyuncu bu sunucuda hiç görülmemiş."
+grim-history-no-log-entries: "%prefix% &cOyuncunun herhangi bir günlük kaydı yok."

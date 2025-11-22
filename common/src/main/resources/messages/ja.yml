@@ -70,3 +70,5 @@ grim-history-disabled: "%prefix% &c履歴サブシステムは無効です！"
 grim-history-header: "%prefix% &b%player% のログを表示中 (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &b失敗 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"
+grim-history-player-not-exist: "%prefix% &cそのプレイヤーはこのサーバーで一度も確認されていません。"
+grim-history-no-log-entries: "%prefix% &cそのプレイヤーにはログエントリがありません。"

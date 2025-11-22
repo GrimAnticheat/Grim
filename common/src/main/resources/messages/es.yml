@@ -73,3 +73,5 @@ grim-history-disabled: "%prefix% &c¡El subsistema de historial está deshabilit
 grim-history-header: "%prefix% &bMostrando registros de &f%player% (&f%page%&b/&f%maxPages%&f)"
 # Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
 grim-history-entry: "%prefix% &8[&f%server%&8] &bFallido &f%check% (x&c%vl%&f) &7%verbose% (&bhace %timeago%&7)"
+grim-history-player-not-exist: "%prefix% &cEl jugador nunca ha sido visto en este servidor."
+grim-history-no-log-entries: "%prefix% &cEl jugador no tiene entradas de registro."
