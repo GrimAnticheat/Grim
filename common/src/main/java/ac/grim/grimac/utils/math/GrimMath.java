@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.math;
 
+import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
