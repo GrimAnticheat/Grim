@@ -334,4 +334,20 @@ public class GrimMath {
         }
         return variance;
     }
+
+    public static double
+    getPlayerSpeed(GrimPlayer player) {
+        double deltaX = Math.abs(player.x - player.lastX);
+        double deltaY = Math.abs(player.y - player.lastY);
+        double deltaZ = Math.abs(player.z - player.lastZ);
+        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+        double speed = distance / 0.05D;
+
+            speed -= (double) player.fallDistance / 0.05D;
+        return speed;
+    }
+
+    public static int getDistinct(Collection<? extends Number> data) {
+        return (int)data.stream().distinct().count();
+    }
 }
