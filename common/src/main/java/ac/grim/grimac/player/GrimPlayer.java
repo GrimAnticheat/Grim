@@ -143,6 +143,7 @@ public class GrimPlayer implements GrimUser {
     public double lastX;
     public double lastY;
     public double lastZ;
+    public double deltaXZ;
     // mojang uses xRot pitch and yRot for yaw
     public float yaw;
     public float pitch;
