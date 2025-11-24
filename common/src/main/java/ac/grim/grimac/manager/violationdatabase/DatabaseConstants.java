@@ -31,9 +31,7 @@ public interface DatabaseConstants {
     String VIOLATIONS_CLIENT_VERSION_ID_COLUMN = "client_version_id";
     String VIOLATIONS_SERVER_VERSION_ID_COLUMN = "server_version_id";
 
-    String PLAYERS_ID_COLUMN = "id";
     String PLAYERS_UUID_COLUMN = "uuid";
     String PLAYERS_NAME_COLUMN = "name";
     String PLAYERS_LAST_SEEN_COLUMN = "last_seen";
-    String PLAYERS_FIRST_SEEN_COLUMN = "first_seen";
 }

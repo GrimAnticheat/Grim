@@ -182,10 +182,8 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             // 9. Create players info table and indexes
             connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.PLAYERS_TABLE + "(" +
-                            DatabaseConstants.PLAYERS_ID_COLUMN + " " + pkSyntax + ", " +
-                            DatabaseConstants.PLAYERS_UUID_COLUMN + " " + uuidType + " NOT NULL UNIQUE, " +
+                            DatabaseConstants.PLAYERS_UUID_COLUMN + " " + uuidType + " NOT NULL PRIMARY KEY, " +
                             DatabaseConstants.PLAYERS_NAME_COLUMN + " VARCHAR(32) NOT NULL, " +
-                            DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000), " +
                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000)" +
                             ")"
             ).execute();
@@ -350,10 +348,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                      "SELECT " +
                              DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
-                             DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN + ", " +
                              DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN +
                              " FROM " + DatabaseConstants.PLAYERS_TABLE + " " +
-                             queryWhere
+                             queryWhere +
+                             " ORDER BY " + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " DESC"
              )
         ) {
             if (value instanceof UUID uuid) {
@@ -368,12 +366,10 @@ public class MySQLViolationDatabase implements ViolationDatabase {
             if (result.next()) {
                 byte[] uuidBytes = result.getBytes(DatabaseConstants.PLAYERS_UUID_COLUMN);
                 String name = result.getString(DatabaseConstants.PLAYERS_NAME_COLUMN);
-                long firstSeen = result.getLong(DatabaseConstants.PLAYERS_FIRST_SEEN_COLUMN);
                 long lastSeen = result.getLong(DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN);
                 return Optional.of(new HistoryPlayer(
                         DatabaseUtils.bytesToUuid(uuidBytes),
                         name,
-                        firstSeen,
                         lastSeen
                 ));
             }
