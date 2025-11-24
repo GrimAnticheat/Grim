@@ -5,7 +5,7 @@
     "compatibilityLevel": "JAVA_17",
     "mixins": [
         "LevelChunkMixin",
-        "ServerLevelMixin",
+        "LevelMixin",
         "ServerPlayerMixin"
     ],
     "injectors": {
