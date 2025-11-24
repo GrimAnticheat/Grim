@@ -38,7 +38,7 @@ public abstract class AbstractFabricGrimEntity implements GrimEntity {
 
     @Override
     public PlatformWorld getWorld() {
-        return (PlatformWorld) entity.level;
+        return this.entity.level;
     }
 
     @Override
