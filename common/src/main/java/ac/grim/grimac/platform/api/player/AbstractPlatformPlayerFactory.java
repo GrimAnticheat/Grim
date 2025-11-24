@@ -3,11 +3,7 @@ package ac.grim.grimac.platform.api.player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayerFactory {
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
@@ -29,18 +25,6 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         // Create new PlatformPlayer and cache it
         PlatformPlayer platformPlayer = createPlatformPlayer(nativePlayer);
         return cache.addOrGetPlayer(uuid, platformPlayer);
-    }
-
-    @Override
-    public @Nullable PlatformPlayer getFromName(@NotNull String name) {
-        T nativePlayer = getNativePlayer(name);
-        if (nativePlayer == null) {
-            return null;
-        }
-
-        // Create new PlatformPlayer and cache it
-        PlatformPlayer platformPlayer = createPlatformPlayer(nativePlayer);
-        return cache.addOrGetPlayer(platformPlayer.getUniqueId(), platformPlayer);
     }
 
     @SuppressWarnings("unchecked")
@@ -89,8 +73,6 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      */
     protected abstract T getNativePlayer(@NotNull UUID uuid);
 
-    protected abstract T getNativePlayer(@NotNull String name);
-
     /**
      * Creates a PlatformPlayer instance from the native player object.
      *
@@ -113,11 +95,4 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @return a collection of native player objects
      */
     protected abstract Collection<T> getNativeOnlinePlayers();
-
-
-    @Override
-    public abstract OfflinePlatformPlayer getOfflineFromUUID(@NotNull UUID uuid);
-
-    @Override
-    public abstract OfflinePlatformPlayer getOfflineFromName(@NotNull String name);
 }
