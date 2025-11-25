@@ -47,7 +47,7 @@ public class BadPacketsL extends Check implements PacketCheck {
                 ) && shouldModifyPackets() && packet.getAction() != DiggingAction.RELEASE_USE_ITEM) {
                     event.setCancelled(true);
                     player.onPacketCancel();
-                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer); // fix a noslow bypass
                 }
             }
         }

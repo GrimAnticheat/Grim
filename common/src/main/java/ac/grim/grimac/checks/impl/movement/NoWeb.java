@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "NoWeb", description = "suspicious movement in cobwebs", experimental = true, setback = 3)
+@CheckData(name = "NoWeb", description = "suspicious movement in cobwebs", setback = 3)
 public class NoWeb extends Check implements PacketCheck {
     private int bufferXZ;
     private int bufferY;
