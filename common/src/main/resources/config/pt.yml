@@ -223,9 +223,9 @@ history:
     # Qual nome de servidor deve ser inserido no comando history? Útil se você usa o mesmo banco de dados para vários servidores
     server-name: Prison
     database:
-        # Use SQLITE para armazenamento local ou MYSQL para um banco MySQL externo. Atualizado somente ao reiniciar o servidor
+        # Use SQLITE para armazenamento local, use MYSQL ou POSTGRESQL se você tiver um banco de dados externo. Isso só é atualizado ao reiniciar o servidor
         type: SQLITE
-        # Detalhes de conexão MySQL
+        # Detalhes de conexão do banco de dados
         host: localhost
         port: 3306
         database: grim

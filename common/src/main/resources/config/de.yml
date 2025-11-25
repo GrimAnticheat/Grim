@@ -218,9 +218,9 @@ history:
     # Welcher Servername soll für den History‑Befehl eingetragen werden? Nützlich, wenn dieselbe Datenbank für mehrere Server verwendet wird
     server-name: Prison
     database:
-        # SQLITE für lokale Speicherung, MYSQL für eine externe MySQL‑Datenbank. Wird nur nach Serverneustart aktualisiert
+        # SQLITE für lokale Speicherung, MYSQL oder POSTGRESQL für eine externe Datenbank. Wird nur nach Serverneustart aktualisiert
         type: SQLITE
-        # MySQL‑Verbindungsdetails
+        # Datenbank verbindungsdetails
         host: localhost
         port: 3306
         database: grim

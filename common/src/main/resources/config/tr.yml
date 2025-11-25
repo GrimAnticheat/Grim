@@ -218,9 +218,9 @@ history:
     # History komutu için eklenecek sunucu adı nedir? Aynı veritabanını birden fazla sunucuda kullanıyorsanız faydalıdır
     server-name: Prison
     database:
-        # Yerel saklama için SQLITE, harici MySQL veritabanı için MYSQL kullanın. Sadece sunucu yeniden başlatıldığında güncellenir
+        # Yerel depolama için SQLITE kullanın, harici bir veritabanınız varsa MYSQL veya POSTGRESQL kullanın. Bu yalnızca sunucu yeniden başlatıldığında güncellenir
         type: SQLITE
-        # MySQL bağlantı bilgileri
+        # veritabanı bağlantı detayları
         host: localhost
         port: 3306
         database: grim
