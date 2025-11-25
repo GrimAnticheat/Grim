@@ -27,6 +27,7 @@ This project is considered feature-complete for the 2.0 (open-source) branch. If
 - Latest updates:
   - GitHub
   artifacts: [Bukkit](https://nightly.link/DieInCalamity/BetterGrim/workflows/gradle-publish/2.0/bettergrim-bukkit.zip), [Fabric](https://nightly.link/DieInCalamity/BetterGrim/workflows/gradle-publish/2.0/bettergrim-fabric.zip) *(bleeding edge)*
+  - Modrinth: [Modrinth](https://modrinth.com/plugin/bettergrim)
 
 ## Requirements & Installation
 
