@@ -4,20 +4,22 @@ import ac.grim.grimac.platform.api.world.PlatformChunk;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 
 import java.util.UUID;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.storage.ServerLevelData;
 
-@Mixin(ServerLevel.class)
+@Mixin(Level.class)
 @Implements(@Interface(iface = PlatformWorld.class, prefix = "grimac$"))
-abstract class ServerLevelMixin implements LevelAccessor {
-    @Shadow public @Final ServerLevelData serverLevelData;
+abstract class LevelMixin implements LevelAccessor {
+
+    @Shadow
+    public abstract ResourceKey<Level> dimension();
 
     public boolean grimac$isChunkLoaded(int chunkX, int chunkZ) {
         return hasChunk(chunkX, chunkZ);
@@ -30,7 +32,7 @@ abstract class ServerLevelMixin implements LevelAccessor {
     }
 
     public String grimac$getName() {
-        return serverLevelData.getLevelName();
+        return this.dimension().location().toString();
     }
 
     public @Nullable UUID grimac$getUID() {
@@ -42,6 +44,6 @@ abstract class ServerLevelMixin implements LevelAccessor {
     }
 
     public boolean grimac$isLoaded() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getLevel(getLevel().dimension()) != null;
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getLevel(this.dimension()) != null;
     }
 }
