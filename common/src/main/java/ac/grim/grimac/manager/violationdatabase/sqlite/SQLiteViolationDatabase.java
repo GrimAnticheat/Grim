@@ -269,7 +269,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
             fetchLogs.setInt(2, limit);
             fetchLogs.setInt(3, (page - 1) * limit);
 
-            return Violation.fromResultSet(fetchLogs.executeQuery());
+            return Violation.fromResultSet(fetchLogs.executeQuery(), true);
         } catch (SQLException ex) {
             LogUtil.error("Failed to fetch violations:", ex);
         }
@@ -319,8 +319,7 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
              PreparedStatement historyPlayer = connection.prepareStatement(
                      "SELECT " +
                              DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
-                             DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
-                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN +
                              " FROM " + DatabaseConstants.PLAYERS_TABLE + " " +
                              queryWhere +
                              " ORDER BY " + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " DESC"
@@ -338,11 +337,9 @@ public class SQLiteViolationDatabase implements ViolationDatabase {
             if (result.next()) {
                 byte[] uuidBytes = result.getBytes(DatabaseConstants.PLAYERS_UUID_COLUMN);
                 String name = result.getString(DatabaseConstants.PLAYERS_NAME_COLUMN);
-                long lastSeen = result.getLong(DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN);
                 return Optional.of(new HistoryPlayer(
                         DatabaseUtils.bytesToUuid(uuidBytes),
-                        name,
-                        lastSeen
+                        name
                 ));
             }
         } catch (SQLException ex) {

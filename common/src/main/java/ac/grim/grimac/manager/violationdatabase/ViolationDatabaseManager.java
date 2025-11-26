@@ -84,7 +84,7 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                     break;                          // nothing changed → keep pool
                 }
                 database.disconnect();
-                database = new MySQLViolationDatabase(plugin, host, db, user, pwd);
+                database = new MySQLViolationDatabase(host, db, user, pwd);
                 try {
                     database.connect();
                     loaded = true;

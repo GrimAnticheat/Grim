@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class PostgresqlViolationDatabase implements ViolationDatabase {
@@ -162,6 +163,22 @@ public class PostgresqlViolationDatabase implements ViolationDatabase {
                     "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_server_version_id ON " + DatabaseConstants.VIOLATIONS_TABLE + "(" + DatabaseConstants.VIOLATIONS_SERVER_VERSION_ID_COLUMN + ");" // NEW
             ).execute();
 
+
+            // 9. Create players info table and indexes
+            connection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS " + DatabaseConstants.PLAYERS_TABLE + "(" +
+                            DatabaseConstants.PLAYERS_UUID_COLUMN + " " + uuidType + " NOT NULL PRIMARY KEY, " +
+                            DatabaseConstants.PLAYERS_NAME_COLUMN + " VARCHAR(32) NOT NULL, " +
+                            DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " TIMESTAMP NOT NULL DEFAULT NOW()" +
+                            ")"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_uuid ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ");"
+            ).execute();
+            connection.prepareStatement(
+                    "CREATE INDEX IF NOT EXISTS idx_" + DatabaseConstants.PLAYERS_TABLE + "_name ON " + DatabaseConstants.PLAYERS_TABLE + "(" + DatabaseConstants.PLAYERS_NAME_COLUMN + ");"
+            ).execute();
+
         } catch (SQLException ex) {
             LogUtil.error("Failed to generate violations database:", ex);
             throw ex;
@@ -263,11 +280,79 @@ public class PostgresqlViolationDatabase implements ViolationDatabase {
             fetchLogs.setObject(1, uuid);
             fetchLogs.setInt(2, limit);
             fetchLogs.setInt(3, Math.max(0, (page - 1)) * limit); // postgresql is not allowing negative numbers
-            return Violation.fromResultSet(fetchLogs.executeQuery());
+            return Violation.fromResultSet(fetchLogs.executeQuery(), false);
         } catch (SQLException ex) {
             LogUtil.error("Failed to fetch logs", ex);
             return null;
         }
+    }
+
+    @Override
+    public void updateHistoryPlayer(GrimPlayer player) {
+        try (Connection connection = dataSource.getConnection();
+             // Updated SELECT statement with all new joins and column selections
+             PreparedStatement updatePlayer = connection.prepareStatement(
+                     "INSERT INTO " + DatabaseConstants.PLAYERS_TABLE + " (" +
+                             DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + ") " +
+                             "VALUES (?, ?) " +
+                             "ON CONFLICT(" + DatabaseConstants.PLAYERS_UUID_COLUMN + ") DO UPDATE SET " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN + " = EXCLUDED." + DatabaseConstants.PLAYERS_NAME_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " = NOW()")
+        ) {
+            updatePlayer.setObject(1, player.getUniqueId());
+            updatePlayer.setString(2, player.getName());
+
+            updatePlayer.executeUpdate();
+        } catch (SQLException ex) {
+            LogUtil.error("Failed to update player history", ex);
+        }
+    }
+
+    @Override
+    public Optional<HistoryPlayer> getHistoryPlayer(UUID uuid) {
+        return this.getHistoryPlayerByQuery(
+                "WHERE " + DatabaseConstants.PLAYERS_UUID_COLUMN + " = ?",
+                uuid);
+    }
+
+    @Override
+    public Optional<HistoryPlayer> getHistoryPlayer(String playerName) {
+        return this.getHistoryPlayerByQuery(
+                "WHERE LOWER(" + DatabaseConstants.PLAYERS_NAME_COLUMN + ") = LOWER(?)",
+                playerName);
+    }
+
+    private Optional<HistoryPlayer> getHistoryPlayerByQuery(String queryWhere, Object value) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement historyPlayer = connection.prepareStatement(
+                     "SELECT " +
+                             DatabaseConstants.PLAYERS_UUID_COLUMN + ", " +
+                             DatabaseConstants.PLAYERS_NAME_COLUMN +
+                             " FROM " + DatabaseConstants.PLAYERS_TABLE + " " +
+                             queryWhere +
+                             " ORDER BY " + DatabaseConstants.PLAYERS_LAST_SEEN_COLUMN + " DESC"
+             )
+        ) {
+            if (value instanceof String stringValue) {
+                historyPlayer.setString(1, stringValue);
+            } else {
+                historyPlayer.setObject(1, value);
+            }
+
+            ResultSet result = historyPlayer.executeQuery();
+            if (result.next()) {
+                UUID uuid = result.getObject(DatabaseConstants.PLAYERS_UUID_COLUMN, UUID.class);
+                String name = result.getString(DatabaseConstants.PLAYERS_NAME_COLUMN);
+                return Optional.of(new HistoryPlayer(
+                        uuid,
+                        name
+                ));
+            }
+        } catch (SQLException ex) {
+            LogUtil.error("Failed to load player history", ex);
+        }
+        return Optional.empty();
     }
 
     @Override

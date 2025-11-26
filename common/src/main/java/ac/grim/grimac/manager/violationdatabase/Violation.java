@@ -9,12 +9,19 @@ import java.util.UUID;
 public record Violation(String server, UUID uuid, String checkName, String verbose, int vl,
                         long createdAt, String grimVersion, String clientBrand, String clientVersion, String serverVersion) {
 
-    public static List<Violation> fromResultSet(ResultSet resultSet) throws SQLException {
+    public static List<Violation> fromResultSet(ResultSet resultSet, boolean binaryUuid) throws SQLException {
         List<Violation> violations = new ArrayList<>();
         while (resultSet.next()) {
             String server = resultSet.getString(DatabaseConstants.SERVERS_STRING_COLUMN);
-            byte[] uuidBytes = resultSet.getBytes(DatabaseConstants.VIOLATIONS_UUID_COLUMN);
-            UUID uuid = DatabaseUtils.bytesToUuid(uuidBytes);
+
+            UUID uuid;
+            if (binaryUuid) {
+                byte[] uuidBytes = resultSet.getBytes(DatabaseConstants.VIOLATIONS_UUID_COLUMN);
+                uuid = DatabaseUtils.bytesToUuid(uuidBytes);
+            } else {
+                uuid = resultSet.getObject(DatabaseConstants.VIOLATIONS_UUID_COLUMN, UUID.class);
+            }
+
             String checkName = resultSet.getString(DatabaseConstants.CHECK_NAMES_STRING_COLUMN);
             String verbose = resultSet.getString(DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN);
             int vl = resultSet.getInt(DatabaseConstants.VIOLATIONS_VL_COLUMN);
