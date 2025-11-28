@@ -75,9 +75,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             }
         }
 
-        long start = System.nanoTime();
+        long start = player.nano();
         check(data);
-        long length = System.nanoTime() - start;
+        long length = player.nano() - start;
 
         if (!player.disableGrim) {
             predictionNanos = (predictionNanos * 499 / 500d) + (length / 500d);
@@ -352,7 +352,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         boolean clientClaimsRiptide = player.packetStateData.tryingToRiptide;
         if (player.packetStateData.tryingToRiptide) {
-            long currentTime = System.currentTimeMillis();
+            long currentTime = player.now();
             boolean isInWater = player.isInWaterOrRain();
 
             if (currentTime - player.packetStateData.lastRiptide < 450 || !isInWater) {

@@ -24,7 +24,7 @@ public class ActionManager extends Check implements PacketCheck {
             if (action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 player.totalFlyingPacketsSent = 0;
                 attacking = true;
-                lastAttack = System.currentTimeMillis();
+                lastAttack = player.now();
             }
         } else if (isTickPacketIncludingNonMovement(event.getPacketType())) {
             player.totalFlyingPacketsSent++;
@@ -33,6 +33,6 @@ public class ActionManager extends Check implements PacketCheck {
     }
 
     public boolean hasAttackedSince(long time) {
-        return System.currentTimeMillis() - lastAttack < time;
+        return player.now() - lastAttack < time;
     }
 }

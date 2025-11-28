@@ -14,8 +14,8 @@ public class Timer extends Check implements PacketCheck {
     protected long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time
-    protected long knownPlayerClockTime = (long) (System.nanoTime() - 6e10);
-    protected long lastMovementPlayerClock = (long) (System.nanoTime() - 6e10);
+    protected long knownPlayerClockTime = (long) (player.nano() - 6e10);
+    protected long lastMovementPlayerClock = (long) (player.nano() - 6e10);
 
     // How long should the player be able to fall back behind their ping? (nanos)
     // Default: 120 milliseconds
@@ -71,7 +71,7 @@ public class Timer extends Check implements PacketCheck {
     }
 
     public void doCheck(final PacketReceiveEvent event) {
-        if (timerBalanceRealTime > System.nanoTime()) {
+        if (timerBalanceRealTime > player.nano()) {
             if (flagAndAlert()) {
                 // Cancel the packet
                 if (shouldModifyPackets()) {

@@ -495,7 +495,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
-            player.lastBlockPlaceUseItem = System.currentTimeMillis();
+            player.lastBlockPlaceUseItem = player.now();
 
             ItemStack placedWith = player.inventory.getHeldItem();
             if (packet.getHand() == InteractionHand.OFF_HAND) {
@@ -562,7 +562,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
-            player.lastBlockPlaceUseItem = System.currentTimeMillis();
+            player.lastBlockPlaceUseItem = player.now();
         }
 
         // Call the packet checks last as they can modify the contents of the packet
@@ -663,7 +663,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData, PacketReceiveEvent event) {
-        long now = System.currentTimeMillis();
+        long now = player.now();
 
         if (!hasPosition) {
             // This may need to be secured later, although nothing that is very important relies on this
@@ -759,7 +759,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private static void handleDigging(GrimPlayer player, PacketReceiveEvent event) {
-        player.lastBlockBreak = System.currentTimeMillis();
+        player.lastBlockBreak = player.now();
 
         final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
         final DiggingAction action = packet.getAction();

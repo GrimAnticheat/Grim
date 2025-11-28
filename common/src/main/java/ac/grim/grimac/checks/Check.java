@@ -96,7 +96,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
         if (event.isCancelled()) return false;
 
         player.punishmentManager.handleViolation(this);
-        lastViolationTime = System.currentTimeMillis();
+        lastViolationTime = player.now();
         violations++;
         return true;
     }

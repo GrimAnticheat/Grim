@@ -228,7 +228,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // do we need to do this with block breaks too?
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
-            CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
+            CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, player.now());
 
             if (player.packetStateData.lastSlotSelected != slot) {
                 if (player.isResetItemUsageOnSlotChange() && GrimAPI.INSTANCE.getItemResetHandler().getItemUsageHand(player.platformPlayer) == InteractionHand.MAIN_HAND) {

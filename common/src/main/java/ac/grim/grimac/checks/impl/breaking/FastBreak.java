@@ -67,12 +67,12 @@ public class FastBreak extends Check implements BlockBreakCheck {
             //  * can we translate back "up" to server version and run check against server version to avoid loading older registries?
             WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
-            startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
+            startBreak = player.now() - (targetBlockPosition == null ? 50 : 0); // ???
             targetBlockPosition = blockBreak.position;
 
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
-            double breakDelay = System.currentTimeMillis() - lastFinishBreak;
+            double breakDelay = player.now() - lastFinishBreak;
 
             if (breakDelay >= 275) { // Reduce buffer if "close enough"
                 blockDelayBalance *= 0.9;
@@ -91,7 +91,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
         if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockPosition != null) {
             double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
-            double realTime = System.currentTimeMillis() - startBreak;
+            double realTime = player.now() - startBreak;
             double diff = predictedTime - realTime;
 
             clampBalance();
@@ -109,7 +109,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             // also set start time because the breaking netcode is fucked on 1.14.4+
-            lastFinishBreak = startBreak = System.currentTimeMillis();
+            lastFinishBreak = startBreak = player.now();
         }
     }
 

@@ -29,4 +29,10 @@ public class CommonGrimArguments {
      * This setting is opt-in (default: false) and requires a server restart to change.
      */
     public final static SystemArgument<Boolean> USE_CHAT_FAST_BYPASS = FACTORY.create(string("ChatFastBypass", true));
+    /**
+     * If TRUE, and a Debugger is detected attached to the JVM, Grim will use the
+     * DebugGrimPlayer implementation which absorbs breakpoint pauses > 200ms.
+     * Default: false (Safety).
+     */
+    public final static SystemArgument<Boolean> DEBUG_BREAKPOINT_MODE = FACTORY.create(string("DebugBreakpointMode", false));
 }

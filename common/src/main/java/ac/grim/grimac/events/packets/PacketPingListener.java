@@ -72,7 +72,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             if (id <= 0) {
                 if (player.didWeSendThatTrans.remove(id)) {
                     player.packetStateData.lastServerTransWasValid = true;
-                    player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
+                    player.transactionsSent.add(new Pair<>(id, player.nano()));
                     player.lastTransactionSent.getAndIncrement();
                 }
             }
@@ -91,7 +91,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 Short shortID = ((short) id);
                 if (player.didWeSendThatTrans.remove(shortID)) {
                     player.packetStateData.lastServerTransWasValid = true;
-                    player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
+                    player.transactionsSent.add(new Pair<>(shortID, player.nano()));
                     player.lastTransactionSent.getAndIncrement();
                 }
             }

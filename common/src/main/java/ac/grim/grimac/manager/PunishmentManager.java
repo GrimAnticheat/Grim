@@ -177,7 +177,7 @@ public class PunishmentManager implements ConfigReloadable {
     public void handleViolation(Check check) {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
-                long currentTime = System.currentTimeMillis();
+                long currentTime = player.now();
 
                 group.violations.put(currentTime, check);
                 // Remove violations older than the defined time in the config

@@ -23,7 +23,7 @@ public class BadPacketsR extends Check implements PacketCheck {
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (isTransaction(event.getPacketType()) && player.packetStateData.lastTransactionPacketWasValid) {
             long ms = (player.getPlayerClockAtLeast() - clock) / 1000000L;
-            long diff = (System.currentTimeMillis() - lastTransTime);
+            long diff = (player.now() - lastTransTime);
             if (diff > 2000 && ms > 2000) {
                 if (positions == 0 && clock != 0 && player.gamemode != GameMode.SPECTATOR && !player.compensatedEntities.self.isDead) {
                     flag("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
@@ -34,7 +34,7 @@ public class BadPacketsR extends Check implements PacketCheck {
                 player.compensatedWorld.removeInvalidPistonLikeStuff(oldTransId);
                 positions = 0;
                 clock = player.getPlayerClockAtLeast();
-                lastTransTime = System.currentTimeMillis();
+                lastTransTime = player.now();
                 oldTransId = player.lastTransactionSent.get();
             }
         }

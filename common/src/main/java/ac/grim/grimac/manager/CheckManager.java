@@ -75,8 +75,10 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
     private PacketEntityReplication packetEntityReplication = null;
+    private final GrimPlayer player;
 
     public CheckManager(GrimPlayer player) {
+        this.player = player;
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
@@ -294,6 +296,8 @@ public class CheckManager {
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
+        player.processingPacket();
+
         for (PacketCheck check : packetChecks.values()) {
             check.onPacketReceive(packet);
         }
@@ -309,6 +313,8 @@ public class CheckManager {
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
+        player.processingPacket();
+
         for (PacketCheck check : prePredictionChecks.values()) {
             check.onPacketSend(packet);
         }
