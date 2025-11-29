@@ -21,11 +21,6 @@ public abstract class AbstractFabricPlatformServer implements PlatformServer {
         return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(consoleSource);
     }
 
-    @Override
-    public void registerOutgoingPluginChannel(String name) {
-        // Just a placeholder. This will be overwritten from version 1.21.8
-    }
-
     @Nullable
     public GameProfile getProfileByName(String name) {
         return GrimACFabricLoaderPlugin.FABRIC_SERVER.getProfileCache().get(name);
