@@ -17,6 +17,7 @@
   "accessWidener": "grimac.accesswidener",
   "depends": {
     "minecraft": ">=1.17",
-    "fabric-lifecycle-events-v1": "*"
+    "fabric-lifecycle-events-v1": "*",
+    "fabric-networking-api-v1": "*"
   }
 }

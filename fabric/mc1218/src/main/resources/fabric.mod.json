@@ -14,7 +14,7 @@
       "ac.grim.grimac.platform.fabric.mc1218.GrimACFabric1218LoaderPlugin"
     ]
   },
-    "accessWidener": "grimac.accesswidener",
+  "accessWidener": "grimac.accesswidener",
   "depends": {
     "minecraft": ">=1.21.8",
     "fabric-lifecycle-events-v1": "*",
