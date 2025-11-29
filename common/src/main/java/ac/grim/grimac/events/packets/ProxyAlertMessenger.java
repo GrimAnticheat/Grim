@@ -87,8 +87,6 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !ProxyAlertMessenger.canReceiveAlerts())
             return;
 
-        System.out.println("RECEIVED PLUGIN MESSAGE PACKET!");
-
         WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);
 
         if (!wrapper.getChannelName().equals("BungeeCord") && !wrapper.getChannelName().equals("bungeecord:main"))
