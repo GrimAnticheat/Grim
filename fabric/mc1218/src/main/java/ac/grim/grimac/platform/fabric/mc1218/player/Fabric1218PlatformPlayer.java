@@ -1,14 +1,14 @@
-package ac.grim.grimac.platform.fabric.mc12110.player;
+package ac.grim.grimac.platform.fabric.mc1218.player;
 
-import ac.grim.grimac.platform.fabric.mc12110.GrimACFabric12110MessagePayload;
+import ac.grim.grimac.platform.fabric.mc1218.GrimACFabric1218MessagePayload;
 import ac.grim.grimac.platform.fabric.mc1216.player.Fabric1212PlatformPlayer;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
-public class Fabric12110PlatformPlayer extends Fabric1212PlatformPlayer {
+public class Fabric1218PlatformPlayer extends Fabric1212PlatformPlayer {
 
-    public Fabric12110PlatformPlayer(ServerPlayer player) {
+    public Fabric1218PlatformPlayer(ServerPlayer player) {
         super(player);
     }
 
@@ -18,7 +18,7 @@ public class Fabric12110PlatformPlayer extends Fabric1212PlatformPlayer {
             channelName = "bungeecord:main";
         }
 
-        ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(new GrimACFabric12110MessagePayload(
+        ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(new GrimACFabric1218MessagePayload(
                 ResourceLocation.tryParse(channelName),
                 message
         ));

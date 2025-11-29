@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc12110;
+package ac.grim.grimac.platform.fabric.mc1218;
 
 import ac.grim.grimac.platform.fabric.mc1205.Fabric1203PlatformServer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
-public class Fabric12110PlatformServer extends Fabric1203PlatformServer {
+public class Fabric1218PlatformServer extends Fabric1203PlatformServer {
 
     @Override
     public void registerOutgoingPluginChannel(String name) {
@@ -16,6 +16,6 @@ public class Fabric12110PlatformServer extends Fabric1203PlatformServer {
         }
 
         var key = ResourceLocation.tryParse(name);
-        PayloadTypeRegistry.playS2C().register(new CustomPacketPayload.Type<>(key), GrimACFabric12110MessagePayload.codec(key));
+        PayloadTypeRegistry.playS2C().register(new CustomPacketPayload.Type<>(key), GrimACFabric1218MessagePayload.codec(key));
     }
 }

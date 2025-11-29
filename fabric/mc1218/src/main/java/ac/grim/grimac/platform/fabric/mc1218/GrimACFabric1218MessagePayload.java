@@ -1,4 +1,4 @@
-package ac.grim.grimac.platform.fabric.mc12110;
+package ac.grim.grimac.platform.fabric.mc1218;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -6,11 +6,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-public record GrimACFabric12110MessagePayload(ResourceLocation key, byte[] data) implements CustomPacketPayload {
+public record GrimACFabric1218MessagePayload(ResourceLocation key, byte[] data) implements CustomPacketPayload {
 
     private static final int MAX_PAYLOAD_SIZE = 1048576;
 
-    public static StreamCodec<FriendlyByteBuf, GrimACFabric12110MessagePayload> codec(ResourceLocation key) {
+    public static StreamCodec<FriendlyByteBuf, GrimACFabric1218MessagePayload> codec(ResourceLocation key) {
         return CustomPacketPayload.codec(
                 (payload, buffer) -> {
                     // write
@@ -23,9 +23,9 @@ public record GrimACFabric12110MessagePayload(ResourceLocation key, byte[] data)
                         byte[] data = new byte[readableBytes];
                         buffer.readBytes(data);
 
-                        return new GrimACFabric12110MessagePayload(key, data);
+                        return new GrimACFabric1218MessagePayload(key, data);
                     }
-                    return new GrimACFabric12110MessagePayload(key, new byte[0]);
+                    return new GrimACFabric1218MessagePayload(key, new byte[0]);
                 });
     }
 
