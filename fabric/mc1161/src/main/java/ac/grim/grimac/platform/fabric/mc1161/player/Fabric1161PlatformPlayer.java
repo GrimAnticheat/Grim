@@ -5,15 +5,14 @@ import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.utils.math.Location;
-import java.util.concurrent.CompletableFuture;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.concurrent.CompletableFuture;
 
 public class Fabric1161PlatformPlayer extends AbstractFabricPlatformPlayer {
     public Fabric1161PlatformPlayer(ServerPlayer player) {
@@ -46,18 +45,10 @@ public class Fabric1161PlatformPlayer extends AbstractFabricPlatformPlayer {
             channelName = "bungeecord:main";
         }
 
-        ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
-        try {
-            var bytebuf = new FriendlyByteBuf(buffer);
-            bytebuf.writeBytes(byteArray);
-
-            ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(
-                    ResourceLocation.tryParse(channelName),
-                    bytebuf
-            );
-            this.fabricPlayer.connection.send(packet);
-        } finally {
-            buffer.release();
-        }
+        ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(
+                ResourceLocation.tryParse(channelName),
+                new FriendlyByteBuf(Unpooled.wrappedBuffer(byteArray))
+        );
+        this.fabricPlayer.connection.send(packet);
     }
 }
