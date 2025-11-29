@@ -1,0 +1,19 @@
+dependencies {
+    minecraft("com.mojang:minecraft:1.21.10")
+    mappings(loom.officialMojangMappings())
+    compileOnly(project(":fabric:mc1161", configuration = "namedElements"))
+    compileOnly(project(":fabric:mc1171", configuration = "namedElements"))
+    compileOnly(project(":fabric:mc1194", configuration = "namedElements"))
+    compileOnly(project(":fabric:mc1205", configuration = "namedElements"))
+    compileOnly(project(":fabric:mc1216", configuration = "namedElements"))
+
+    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", "0.138.3+1.21.10"))
+    modImplementation(fabricApi.module("fabric-networking-api-v1", "0.138.3+1.21.10"))
+    modImplementation("me.lucko:fabric-permissions-api:0.4.0")
+    include("me.lucko:fabric-permissions-api:0.4.0")
+}
+
+
+tasks.compileJava {
+    options.release.set(21)
+}

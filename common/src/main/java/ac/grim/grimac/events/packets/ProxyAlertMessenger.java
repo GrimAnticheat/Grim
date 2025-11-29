@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -20,12 +21,14 @@ import java.io.*;
 
 // TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
+
     private static boolean usingProxy;
 
     public ProxyAlertMessenger() {
         usingProxy = ProxyAlertMessenger.getBooleanFromFile("spigot.yml", "settings.bungeecord")
                 || ProxyAlertMessenger.getBooleanFromFile("paper.yml", "settings.velocity-support.enabled")
-                || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19) && ProxyAlertMessenger.getBooleanFromFile("config/paper-global.yml", "proxies.velocity.enabled"));
+                || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19) && ProxyAlertMessenger.getBooleanFromFile("config/paper-global.yml", "proxies.velocity.enabled"))
+                || GrimAPI.INSTANCE.getPlatform() == Platform.FABRIC;
 
         if (usingProxy) {
             LogUtil.info("Registering an outgoing plugin channel...");
@@ -83,6 +86,8 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !ProxyAlertMessenger.canReceiveAlerts())
             return;
+
+        System.out.println("RECEIVED PLUGIN MESSAGE PACKET!");
 
         WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);
 

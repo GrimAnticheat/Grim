@@ -7,8 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class FabricPlatformPlugin implements PlatformPlugin {
-    private final @NotNull ModContainer modContainer;
+public record FabricPlatformPlugin(@NotNull ModContainer modContainer) implements PlatformPlugin {
 
     @Contract(pure = true)
     public FabricPlatformPlugin(@NotNull ModContainer modContainer) {
