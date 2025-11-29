@@ -5,6 +5,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 
 public class BukkitPlatformServer implements PlatformServer {
@@ -26,7 +27,7 @@ public class BukkitPlatformServer implements PlatformServer {
     }
 
     @Override
-    public void registerOutgoingPluginChannel(String name) {
+    public void registerOutgoingPluginChannel(@NotNull String name) {
         GrimACBukkitLoaderPlugin.LOADER.getServer().getMessenger().registerOutgoingPluginChannel(GrimACBukkitLoaderPlugin.LOADER, name);
     }
 

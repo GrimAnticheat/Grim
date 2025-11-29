@@ -27,7 +27,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
 
 public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
-
     public static MinecraftServer FABRIC_SERVER;
     public static GrimACFabricLoaderPlugin LOADER;
 

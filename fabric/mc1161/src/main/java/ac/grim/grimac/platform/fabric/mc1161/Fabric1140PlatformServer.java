@@ -4,6 +4,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.minecraft.commands.CommandSourceStack;
+import org.jetbrains.annotations.NotNull;
 
 public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
 
@@ -14,7 +15,7 @@ public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
     }
 
     @Override
-    public void registerOutgoingPluginChannel(String name) {
+    public void registerOutgoingPluginChannel(@NotNull String name) {
         // Just a placeholder. This will be overwritten from version 1.21.8
     }
 

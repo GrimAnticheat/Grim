@@ -12,7 +12,6 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import java.util.List;
 
 public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializer {
-
     @Override
     public void onPreLaunch() {
     }
