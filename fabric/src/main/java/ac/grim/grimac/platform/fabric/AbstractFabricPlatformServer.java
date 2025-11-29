@@ -23,7 +23,7 @@ public abstract class AbstractFabricPlatformServer implements PlatformServer {
 
     @Override
     public void registerOutgoingPluginChannel(String name) {
-        throw new UnsupportedOperationException();
+        // Just a placeholder. This will be overwritten from version 1.21.10
     }
 
     @Nullable

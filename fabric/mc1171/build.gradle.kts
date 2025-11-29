@@ -4,5 +4,6 @@ dependencies {
     compileOnly(project(":fabric:mc1161", configuration = "namedElements"))
 
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", "0.46.1+1.17"))
+    modImplementation(fabricApi.module("fabric-networking-api-v1", "0.46.1+1.17"))
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")
 }

@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
-public class Fabric12110PlatfromServer extends Fabric1203PlatformServer {
+public class Fabric12110PlatformServer extends Fabric1203PlatformServer {
 
     @Override
     public void registerOutgoingPluginChannel(String name) {
@@ -16,6 +16,6 @@ public class Fabric12110PlatfromServer extends Fabric1203PlatformServer {
         }
 
         var key = ResourceLocation.tryParse(name);
-        PayloadTypeRegistry.playS2C().register(new CustomPacketPayload.Type<>(key), GrimACFabric12110MessagePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(new CustomPacketPayload.Type<>(key), GrimACFabric12110MessagePayload.codec(key));
     }
 }
