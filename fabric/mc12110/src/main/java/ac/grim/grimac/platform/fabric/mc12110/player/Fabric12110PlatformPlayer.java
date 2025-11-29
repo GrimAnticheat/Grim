@@ -19,30 +19,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
 
 public class Fabric12110PlatformPlayer extends Fabric1212PlatformPlayer {
+
     public Fabric12110PlatformPlayer(ServerPlayer player) {
         super(player);
-    }
-
-    @Override
-    public Sender getSender() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricPlayer.createCommandSourceStack());
-    }
-
-    @Override
-    public CompletableFuture<Boolean> teleportAsync(Location location) {
-        return FabricFutureUtil.supplySync(() -> {
-            fabricPlayer.teleportTo(
-                    (ServerLevel) location.getWorld(),
-                    location.getX(),
-                    location.getY(),
-                    location.getZ(),
-                    EnumSet.noneOf(Relative.class), // todo change to match paper? Do they do this?
-                    location.getYaw(),
-                    location.getPitch(),
-                    true
-            );
-            return true;
-        });
     }
 
     @Override
