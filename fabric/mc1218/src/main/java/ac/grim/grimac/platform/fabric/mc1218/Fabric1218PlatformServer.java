@@ -6,13 +6,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 public class Fabric1218PlatformServer extends Fabric1203PlatformServer {
 
     @Override
     public void registerOutgoingPluginChannel(@NotNull String name) {
-        if (Objects.equals(name, "BungeeCord")) {
+        if (name.equals("BungeeCord")) {
             name = "bungeecord:main";
         }
 
