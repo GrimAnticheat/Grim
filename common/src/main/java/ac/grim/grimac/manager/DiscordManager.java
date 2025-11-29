@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class DiscordManager implements StartableInitable, ReloadableInitable {
-    private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("https://discord.com/api/webhooks/\\d+/[\\w-]+").asMatchPredicate();
+    private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("https://discord.com/api/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build();
     private static final ConcurrentLinkedDeque<HttpRequest> requests = new ConcurrentLinkedDeque<>();
