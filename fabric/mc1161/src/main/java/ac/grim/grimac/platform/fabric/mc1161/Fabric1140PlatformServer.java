@@ -13,6 +13,11 @@ public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
         GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommands().performCommand(commandSource, command);
     }
 
+    @Override
+    public void registerOutgoingPluginChannel(String name) {
+        // Just a placeholder. This will be overwritten from version 1.21.8
+    }
+
     // TODO (Cross-platform) implement proper bukkit equivalent for getting TPS over time
     @Override
     public double getTPS() {
