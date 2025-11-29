@@ -131,11 +131,6 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     }
 
     @Override
-    public void sendPluginMessage(String channelName, byte[] byteArray) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
         this.inventory.fabricPlayer = (ServerPlayer) nativePlayerObject;
         this.inventory.inventory = ((ServerPlayer) nativePlayerObject).inventory;
