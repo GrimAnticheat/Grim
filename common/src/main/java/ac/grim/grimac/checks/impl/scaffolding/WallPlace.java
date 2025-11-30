@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "WallPlace", description = "Placed a block through a wall", experimental = true)
+@CheckData(name = "WallPlace", description = "Placed a block through a wall")
 public class WallPlace extends BlockPlaceCheck {
     private double flagBuffer = 0;
     private boolean ignorePost = false;
@@ -73,24 +73,24 @@ public class WallPlace extends BlockPlaceCheck {
 
     private boolean hasWallBetweenPlayerAndBlock(BlockPlace place) {
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        
         SimpleCollisionBox targetBox = new SimpleCollisionBox(place.position);
-        
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
 
         for (double eyeHeight : possibleEyeHeights) {
             Vector3d eyePos = new Vector3d(player.x, player.y + eyeHeight, player.z);
-            
             List<Vector3f> lookDirs = getPossibleLookDirections();
             
             for (Vector3f lookDir : lookDirs) {
                 Ray ray = new Ray(player, eyePos.x, eyePos.y, eyePos.z, lookDir.x, lookDir.y);
                 Vector3d endPoint = ray.getPointAtDistance(distance);
                 
-                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endPoint);
+                Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(targetBox, 
+                    new Vector3dm(eyePos.x, eyePos.y, eyePos.z), 
+                    new Vector3dm(endPoint.x, endPoint.y, endPoint.z));
                 
-                if (intercept.first() != null) {
-                    if (hasSolidWallBetween(eyePos, intercept.first(), distance)) {
+                if (intercept.getFirst() != null) {
+                    Vector3dm interceptPoint = intercept.getFirst();
+                    if (hasSolidWallBetween(eyePos, interceptPoint, distance)) {
                         return true;
                     }
                 }
@@ -101,7 +101,11 @@ public class WallPlace extends BlockPlaceCheck {
     }
 
     private boolean hasSolidWallBetween(Vector3d start, Vector3dm end, double maxDistance) {
-        Vector3d direction = new Vector3d(end.x - start.x, end.y - start.y, end.z - start.z);
+        double endX = end.x;
+        double endY = end.y;
+        double endZ = end.z;
+        
+        Vector3d direction = new Vector3d(endX - start.x, endY - start.y, endZ - start.z);
         double actualDistance = Math.min(direction.length(), maxDistance);
         
         if (actualDistance <= 0) return false;
@@ -140,61 +144,129 @@ public class WallPlace extends BlockPlaceCheck {
     private boolean isSolidWallBlock(int x, int y, int z) {
         StateTypes blockType;
         try {
-            blockType = player.compensatedWorld.getStateAt(x, y, z).getType();
+            blockType = player.compensatedWorld.getStateTypeAt(x, y, z);
         } catch (Exception e) {
             return false;
         }
         
         if (blockType == StateTypes.AIR) return false;
-        if (!blockType.isSolid()) return false;
-        if (blockType.isReplaceable()) return false;
         
-        if (isExceptionBlock(blockType)) return false;
+        if (isLiquid(blockType)) return false;
+        if (isNonSolidException(blockType)) return false;
         
-        return true;
+        return isFullSolidBlock(blockType);
     }
 
-    private boolean isExceptionBlock(StateTypes blockType) {
-        String name = blockType.getName().toLowerCase();
-        
-        if (blockType == StateTypes.WATER || blockType == StateTypes.LAVA) {
-            return true;
-        }
-        
-        if (name.contains("plant") || name.contains("sapling") || 
-            name.contains("mushroom") || name.contains("flower")) {
-            return true;
-        }
-        
+    private boolean isLiquid(StateTypes blockType) {
+        return blockType == StateTypes.WATER || blockType == StateTypes.LAVA;
+    }
+
+    private boolean isNonSolidException(StateTypes blockType) {
         return blockType == StateTypes.LADDER ||
                blockType == StateTypes.VINE ||
                blockType == StateTypes.SNOW ||
-               blockType == StateTypes.CARPET ||
-               blockType == StateTypes.TORCH ||
-               blockType == StateTypes.WALL_TORCH ||
-               blockType == StateTypes.REDSTONE_WIRE ||
-               blockType == StateTypes.REDSTONE_TORCH ||
+               isCarpet(blockType) ||
+               isTorch(blockType) ||
+               isRedstoneComponent(blockType) ||
+               isRail(blockType) ||
+               isButton(blockType) ||
+               isPressurePlate(blockType) ||
+               isSign(blockType) ||
+               isBanner(blockType) ||
+               isHead(blockType) ||
+               isGate(blockType) ||
+               isTrapdoor(blockType) ||
+               isDoor(blockType) ||
+               isBed(blockType) ||
+               isCake(blockType) ||
+               isCandle(blockType) ||
+               isPlant(blockType);
+    }
+
+    private boolean isFullSolidBlock(StateTypes blockType) {
+        return blockType == StateTypes.STONE ||
+               blockType == StateTypes.DIRT ||
+               blockType == StateTypes.COBBLESTONE ||
+               blockType == StateTypes.OAK_PLANKS ||
+               blockType == StateTypes.SAND ||
+               blockType == StateTypes.GRAVEL ||
+               blockType == StateTypes.GOLD_ORE ||
+               blockType == StateTypes.IRON_ORE ||
+               blockType == StateTypes.COAL_ORE ||
+               blockType == StateTypes.OAK_LOG ||
+               blockType == StateTypes.GLASS ||
+               !isNonSolidException(blockType);
+    }
+
+    private boolean isCarpet(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("carpet");
+    }
+
+    private boolean isTorch(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("torch");
+    }
+
+    private boolean isRedstoneComponent(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("redstone") ||
                blockType == StateTypes.REPEATER ||
                blockType == StateTypes.COMPARATOR ||
-               blockType == StateTypes.RAIL ||
-               blockType == StateTypes.POWERED_RAIL ||
-               blockType == StateTypes.DETECTOR_RAIL ||
-               blockType == StateTypes.ACTIVATOR_RAIL ||
-               blockType == StateTypes.LEVER ||
-               blockType == StateTypes.STONE_BUTTON ||
-               blockType == StateTypes.OAK_BUTTON ||
-               name.contains("sign") ||
-               name.contains("pressure_plate") ||
-               name.contains("carpet") ||
-               name.contains("banner") ||
-               name.contains("head") ||
-               name.contains("skull") ||
-               name.contains("fence_gate") ||
-               name.contains("trapdoor") ||
-               name.contains("door") ||
-               name.contains("bed") ||
-               name.contains("cake") ||
-               name.contains("candle");
+               blockType == StateTypes.LEVER;
+    }
+
+    private boolean isRail(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("rail");
+    }
+
+    private boolean isButton(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("button");
+    }
+
+    private boolean isPressurePlate(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("pressure_plate");
+    }
+
+    private boolean isSign(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("sign");
+    }
+
+    private boolean isBanner(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("banner");
+    }
+
+    private boolean isHead(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("head") ||
+               blockType.name().toLowerCase().contains("skull");
+    }
+
+    private boolean isGate(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("fence_gate");
+    }
+
+    private boolean isTrapdoor(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("trapdoor");
+    }
+
+    private boolean isDoor(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("door");
+    }
+
+    private boolean isBed(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("bed");
+    }
+
+    private boolean isCake(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("cake");
+    }
+
+    private boolean isCandle(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("candle");
+    }
+
+    private boolean isPlant(StateTypes blockType) {
+        return blockType.name().toLowerCase().contains("plant") ||
+               blockType.name().toLowerCase().contains("sapling") ||
+               blockType.name().toLowerCase().contains("mushroom") ||
+               blockType.name().toLowerCase().contains("flower");
     }
 
     private List<Vector3f> getPossibleLookDirections() {
