@@ -80,7 +80,7 @@ public class CheckManager {
 
     public CheckManager(GrimPlayer player) {
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
-                .put(ExploitC.class, new ExploitB(player))
+                .put(ExploitC.class, new ExploitC(player))
                 .build();
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
