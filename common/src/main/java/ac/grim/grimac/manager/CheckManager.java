@@ -79,9 +79,6 @@ public class CheckManager {
     private PacketEntityReplication packetEntityReplication = null;
 
     public CheckManager(GrimPlayer player) {
-        preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
-                .put(ExploitC.class, new ExploitC(player))
-                .build();
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
@@ -101,6 +98,7 @@ public class CheckManager {
                 .put(ChatD.class, new ChatD(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
+                .put(ExploitC.class, new ExploitC(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
