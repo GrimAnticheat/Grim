@@ -36,6 +36,9 @@ public class DuplicateRotPlace extends BlockPlaceCheck {
 
                 if (xDiff < 0.0001) {
                     flagAndAlert("x=" + xDiff + " xdots=" + xDiffDots + " y=" + deltaY);
+                    if (flagAndAlert("x=" + xDiff + " xdots=" + xDiffDots + " y=" + deltaY) && shouldModifyPackets() && shouldCancel()) {
+                        place.resync();
+                    }
                 } else {
                     reward();
                 }
