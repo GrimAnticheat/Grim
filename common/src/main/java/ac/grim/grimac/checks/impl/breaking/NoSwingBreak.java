@@ -34,7 +34,8 @@ public class NoSwingBreak extends Check implements BlockBreakCheck {
         if (isTickPacket(event.getPacketType())) {
             if (sentBreak && !sentAnimation) {
                 if (flagAndAlert() && shouldModifyPackets()) {
-                    blockBreak.cancel();
+                    event.setCancelled(true);
+                    player.onPacketCancel();
                 }
             }
 
