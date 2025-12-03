@@ -35,7 +35,7 @@ public class NoSwingBreak extends Check implements BlockBreakCheck {
             if (sentBreak && !sentAnimation) {
                 if (flagAndAlert() && shouldModifyPackets()) {
                     blockBreak.cancel();
-                    }
+                }
             }
 
             sentAnimation = sentBreak = false;
