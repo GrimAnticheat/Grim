@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.*;
 
-@CheckData(name = "InvalidD", check = "Invalid", type = "D", experimental = true, description = "Soft ping spoof detection, avoids overflagging")
+@CheckData(name = "InvalidD", experimental = true, description = "Soft ping spoof detection, avoids overflagging")
 public class InvalidD extends Check implements PostPredictionCheck {
 
     private final Deque<Long> pingQueue = new LinkedList<>();
