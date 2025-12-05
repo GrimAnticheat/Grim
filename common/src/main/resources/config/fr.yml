@@ -132,6 +132,14 @@ Explosion:
     threshold: 0.001
     setbackvl: 3
 
+AutoClickerA:
+    max-cps: 20
+    
+AutoClickerB:
+    delta-deviation-threshold: 0.01
+    deviation-threshold: 0.7
+    sample-size: 50
+
 TimerA:
     setbackvl: 10
     # Le nombre de millisecondes que le joueur peut accumuler pour une utilisation ultérieure lorsqu'il prend du retard.
