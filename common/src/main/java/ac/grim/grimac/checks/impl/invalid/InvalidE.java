@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.*;
 
-@CheckData(name = "InvalidE", check = "Invalid", type = "E", experimental = true, description = "Aggressive detection of ping spoof, fake lag and blink abuse")
+@CheckData(name = "InvalidE", experimental = true, description = "Aggressive detection of ping spoof, fake lag and blink abuse")
 public class InvalidE extends Check implements PostPredictionCheck {
 
     private final Deque<Long> pingQueue = new LinkedList<>();
@@ -59,7 +59,6 @@ public class InvalidE extends Check implements PostPredictionCheck {
             long median = calculateMedian(recentDelays);
             double stdDev = calculateStdDev(recentDelays, median);
 
-            // Aggressive detection: high delay or large inconsistency
             boolean abnormalDelay = delay > MAX_ACCEPTABLE_DELAY && delay > median * 1.4;
             boolean inconsistent = stdDev > median * 0.8; // large variation between responses
 
@@ -79,7 +78,6 @@ public class InvalidE extends Check implements PostPredictionCheck {
         long now = System.nanoTime();
         long timeSinceLastPong = now - lastPongTime;
 
-        // Aggressive detection: high delay or large inconsistency
         if (timeSinceLastPong > NANOS_PER_TICK * 25) { // ~1.25 s
             if (now - lastFlagTime > FLAG_COOLDOWN * 2) {
                 flagAndAlertWithSetback(String.format(
