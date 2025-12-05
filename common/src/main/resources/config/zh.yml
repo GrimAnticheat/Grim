@@ -136,6 +136,14 @@ Explosion:
     threshold: 0.001
     setbackvl: 3
 
+AutoClickerA:
+    max-cps: 20
+    
+AutoClickerB:
+    delta-deviation-threshold: 0.01
+    deviation-threshold: 0.7
+    sample-size: 50
+
 TimerA:
     setbackvl: 10
     # 玩家卡顿时可以累积以供以后使用的毫秒数
