@@ -133,6 +133,14 @@ Explosion:
     threshold: 0.001
     setbackvl: 3
 
+AutoClickerA:
+    max-cps: 20
+    
+AutoClickerB:
+    delta-deviation-threshold: 0.01
+    deviation-threshold: 0.7
+    sample-size: 50
+
 TimerA:
     setbackvl: 10
     # プレイヤーがネットワーク遅延やラグの影響で操作がサーバーの予測より遅れている場合、
