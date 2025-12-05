@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "InvalidC", check = "Invalid", type = "C", description = "Detects advanced illegal blocking actions", setback = 1, experimental = false)
+@CheckData(name = "InvalidC", description = "Detects advanced illegal blocking actions", setback = 1, experimental = false)
 public class InvalidC extends Check implements PacketCheck {
 
     private int lastInteractEntity = -1;
