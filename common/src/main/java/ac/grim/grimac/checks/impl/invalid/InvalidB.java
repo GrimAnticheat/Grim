@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "InvalidB", check = "Invalid", type = "B", description = "Invalid action for players", setback = 1, experimental = false)
+@CheckData(name = "InvalidB", description = "Invalid action for players", setback = 1, experimental = false)
 public class InvalidB extends Check implements PacketCheck {
     private long lastUseItem = -1L;
     private long useItem = -1L;
