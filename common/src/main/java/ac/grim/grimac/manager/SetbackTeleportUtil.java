@@ -40,6 +40,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -217,7 +218,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             blockOffsets = true;
         }
 
-        SetBackData data = new SetBackData(new TeleportData(position, new Vector3d(), RelativeFlag.YAW.or(RelativeFlag.PITCH), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
+        SetBackData data = new SetBackData(new TeleportData(position, null, RelativeFlag.YAW.or(RelativeFlag.PITCH), player.lastTransactionSent.get(), 0), player.yaw, player.pitch, clientVel, player.inVehicle(), false);
         sendSetback(data);
     }
 
@@ -269,7 +270,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.yaw % 360, player.pitch % 360), new Vector3d(), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.yaw % 360, player.pitch % 360),
+                    null, data.getTeleportData().getTransaction(), RelativeFlag.YAW.or(RelativeFlag.PITCH), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
@@ -405,7 +407,12 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport);
     }
 
-    public void addSentTeleport(Location position, Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
+    public void addSentTeleport(Location position, @Nullable Vector3d velocity, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
+        // Clients below 1.21.2 do not have this.
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+            velocity = null;
+        }
+
         TeleportData data = new TeleportData(new Vector3d(position.getX(), position.getY(), position.getZ()), velocity, flags, transaction, teleportId);
         pendingTeleports.add(data);
 
@@ -424,7 +431,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             safePosition = safePosition.withZ(safePosition.getZ() + lastKnownGoodPosition.pos.getZ());
         }
 
-        data = new TeleportData(safePosition, velocity, new RelativeFlag(0b11000), transaction, teleportId);
+        data = new TeleportData(safePosition, velocity, RelativeFlag.YAW.or(RelativeFlag.PITCH), transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.yaw, player.pitch, null, false, plugin);
 
         this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, new Vector3dm());

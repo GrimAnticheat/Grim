@@ -25,7 +25,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim va bloca anumite versiuni Forge care includ hackuri Reach integrate (Forge 1.18.2 până la 1.19.3).
@@ -226,9 +226,9 @@ history:
     # Ce nume de server să fie inserat pentru comanda history? Util dacă folosești aceeași bază de date pentru mai multe servere
     server-name: Prison
     database:
-        # Folosește SQLITE pentru stocare locală, MYSQL dacă ai bază de date externă. Se actualizează doar la restart server
+        # Folosiți SQLITE pentru stocare locală, folosiți MYSQL sau POSTGRESQL dacă aveți o bază de date externă. Aceasta este actualizată doar la repornirea serverului
         type: SQLITE
-        # Detalii conexiune MySQL
+        # Detalii de conectare la baza de date
         host: localhost
         port: 3306
         database: grim
