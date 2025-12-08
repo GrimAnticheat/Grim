@@ -38,7 +38,6 @@ public class LatencyUtils {
     }
 
     public void handleNettySyncTransaction(int transaction) {
-        // First pass: collect tasks and mark them for removal
         Iterator<QueuedTask> iterator = transactionMap.iterator();
         while (iterator.hasNext()) {
             QueuedTask queuedTask = iterator.next();
