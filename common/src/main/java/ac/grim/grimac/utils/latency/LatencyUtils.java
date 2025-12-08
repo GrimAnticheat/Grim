@@ -42,12 +42,9 @@ public class LatencyUtils {
         while (iterator.hasNext()) {
             QueuedTask queuedTask = iterator.next();
 
-            // We are at most a tick ahead when running tasks based on transactions, meaning this is too far
-            if (transaction + 1 < queuedTask.transaction)
-                break;
-
-            // This is at most tick ahead of what we want
-            if (transaction == queuedTask.transaction - 1)
+            // Tick ahead of, but we don't break the loop here, cuz ConcurrentLinkedQueue is
+            // weakly consistent, we need to iterate over all to make sure we don't miss anything.
+            if (transaction < queuedTask.transaction)
                 continue;
 
             try {
