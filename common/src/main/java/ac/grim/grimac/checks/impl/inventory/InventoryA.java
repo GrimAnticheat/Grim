@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.multiactions;
+package ac.grim.grimac.checks.impl.inventory;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.StringJoiner;
 
 @CheckData(name = "InventoryA", description = "Clicked in inventory while moving")
-public class MultiActionsC extends Check implements PacketCheck {
-    public MultiActionsC(GrimPlayer player) {
+public class InventoryA extends Check implements PacketCheck {
+    public InventoryA(GrimPlayer player) {
         super(player);
     }
 
