@@ -60,8 +60,8 @@ public class VectorData {
         if (!isKnockback) {
             return false;
         }
-
-        return (firstBreadKb ? player.firstBreadKB : player.likelyKB).isSetback;
+        VelocityData bread = (firstBreadKb ? player.firstBreadKB : player.likelyKB);
+        return bread != null && bread.isSetback;
     }
 
     @Override
