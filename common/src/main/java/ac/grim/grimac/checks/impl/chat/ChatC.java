@@ -47,7 +47,7 @@ public class ChatC extends Check implements PacketCheck {
             return;
         }
 
-        String verbose = MultiActionsC.getVerbose(player);
+        String verbose = InventoryA.getVerbose(player);
         if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
