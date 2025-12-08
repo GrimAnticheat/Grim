@@ -29,6 +29,7 @@ import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
 import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
+import ac.grim.grimac.checks.impl.inventory.*;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.packetorder.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -121,8 +122,8 @@ public class CheckManager {
                 .put(BadPacketsY.class, new BadPacketsY(player))
                 .put(BadPacketsZ.class, new BadPacketsZ(player))
                 .put(MultiActionsA.class, new MultiActionsA(player))
-                .put(MultiActionsC.class, new MultiActionsC(player))
-                .put(MultiActionsD.class, new MultiActionsD(player))
+                .put(InventoryA.class, new InventoryA(player))
+                .put(InventoryB.class, new InventoryB(player))
                 .put(MultiActionsE.class, new MultiActionsE(player))
                 .put(PacketOrderB.class, new PacketOrderB(player))
                 .put(PacketOrderC.class, new PacketOrderC(player))

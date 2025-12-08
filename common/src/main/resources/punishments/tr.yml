@@ -93,6 +93,7 @@ Punishments:
       - "Elytra"
       - "Chat"
       - "Exploit"
+      - "Inventory"
     commands:
       - "10:5 [alert]"
       - "10:5 [log]"
