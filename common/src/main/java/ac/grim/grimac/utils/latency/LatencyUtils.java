@@ -6,11 +6,14 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 
+import java.util.ArrayDeque;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class LatencyUtils {
-    private final ConcurrentLinkedQueue<QueuedTask> transactionMap = new ConcurrentLinkedQueue<>();
+    private final Queue<QueuedTask> transactions = new ArrayDeque<>();
+    private final Queue<QueuedTask> transactionsAsync = new ConcurrentLinkedQueue<>();
     private final GrimPlayer player;
 
     public LatencyUtils(GrimPlayer player) {
@@ -34,21 +37,36 @@ public class LatencyUtils {
             }
             return;
         }
-        transactionMap.add(new QueuedTask(transaction, runnable));
+        queueTask(transaction, runnable, async);
+    }
+
+    private void queueTask(int transaction, Runnable runnable, boolean async) {
+        Queue<QueuedTask> queue = async ? transactionsAsync : transactions;
+        queue.add(new QueuedTask(transaction, runnable));
     }
 
     public void handleNettySyncTransaction(int transaction) {
-        Iterator<QueuedTask> iterator = transactionMap.iterator();
-        while (iterator.hasNext()) {
-            QueuedTask queuedTask = iterator.next();
+        handleQueue(transaction, true, transactions);
+        // ConcurrentLinkedQueue is weakly consistent, we need to iterate over all elements
+        // to make sure we don't miss anything.
+        handleQueue(transaction, false, transactionsAsync);
+    }
 
-            // Tick ahead of, but we don't break the loop here, cuz ConcurrentLinkedQueue is
-            // weakly consistent, we need to iterate over all to make sure we don't miss anything.
-            if (transaction < queuedTask.transaction)
-                continue;
+    private void handleQueue(int transaction, boolean breakOnAhead, Queue<QueuedTask> queue) {
+        Iterator<QueuedTask> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            QueuedTask task = iterator.next();
+
+            // Tick ahead of
+            if (transaction < task.transaction) {
+                if (breakOnAhead && transaction + 1 < task.transaction)
+                    break;
+                else
+                    continue;
+            }
 
             try {
-                queuedTask.runnable.run();
+                task.runnable.run();
             } catch (Exception e) {
                 LogUtil.error("An error has occurred when running transactions for player: " + player.user.getName(), e);
                 // Kick the player SO PEOPLE ACTUALLY REPORT PROBLEMS AND KNOW WHEN THEY HAPPEN
