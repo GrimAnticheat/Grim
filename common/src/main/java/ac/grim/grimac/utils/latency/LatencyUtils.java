@@ -4,15 +4,15 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.collections.FastIteLinkedQueue;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 
-import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class LatencyUtils {
-    private final Queue<QueuedTask> transactions = new ArrayDeque<>();
+    private final Queue<QueuedTask> transactions = new FastIteLinkedQueue<>();
     private final Queue<QueuedTask> transactionsAsync = new ConcurrentLinkedQueue<>();
     private final GrimPlayer player;
 
