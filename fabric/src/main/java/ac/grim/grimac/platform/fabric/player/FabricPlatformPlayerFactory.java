@@ -6,8 +6,8 @@ import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import com.mojang.authlib.GameProfile;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -15,37 +15,37 @@ import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayerEntity> {
+public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<ServerPlayer> {
 
     private final Map<UUID, OfflinePlatformPlayer> offlinePlatformPlayerCache = new HashMap<>();
-    private final Function<ServerPlayerEntity, AbstractFabricPlatformPlayer> getPlayerFunction;
+    private final Function<ServerPlayer, AbstractFabricPlatformPlayer> getPlayerFunction;
     private final Function<Entity, GrimEntity> getEntityFunction;
-    private final Function<ServerPlayerEntity, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
+    private final Function<ServerPlayer, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
 
     @Override
-    protected ServerPlayerEntity getNativePlayer(@NotNull UUID uuid) {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(uuid);
+    protected ServerPlayer getNativePlayer(@NotNull UUID uuid) {
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerList().getPlayer(uuid);
     }
 
     @Override
-    protected ServerPlayerEntity getNativePlayer(@NotNull String name) {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(name);
+    protected ServerPlayer getNativePlayer(@NotNull String name) {
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerList().getPlayerByName(name);
     }
 
     @Override
-    protected AbstractFabricPlatformPlayer createPlatformPlayer(@NotNull ServerPlayerEntity nativePlayer) {
+    protected AbstractFabricPlatformPlayer createPlatformPlayer(@NotNull ServerPlayer nativePlayer) {
         return getPlayerFunction.apply(nativePlayer);
     }
 
     @Override
-    protected UUID getPlayerUUID(@NotNull ServerPlayerEntity nativePlayer) {
-        return nativePlayer.getUuid();
+    protected UUID getPlayerUUID(@NotNull ServerPlayer nativePlayer) {
+        return nativePlayer.getUUID();
     }
 
     @Override
-    protected Collection<ServerPlayerEntity> getNativeOnlinePlayers() {
+    protected Collection<ServerPlayer> getNativeOnlinePlayers() {
         // Get the list of online players from the server
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayerList();
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerList().getPlayers();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
             GameProfile profile = null;
             // Only fetch an online UUID in online mode
             // TODO (cross-platform) add a config option for "offline-mode" servers with online-mode behind a proxy
-            if (GrimACFabricLoaderPlugin.FABRIC_SERVER.isOnlineMode()) {
+            if (GrimACFabricLoaderPlugin.FABRIC_SERVER.usesAuthentication()) {
                 // THIS CAN BLOCK THE CALLING THREAD!
                 profile = GrimACFabricLoaderPlugin.LOADER.getPlatformServer().getProfileByName(name);
             }
@@ -85,11 +85,11 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     }
 
     @Override
-    public void replaceNativePlayer(@NotNull UUID uuid, @NotNull ServerPlayerEntity serverPlayerEntity) {
+    public void replaceNativePlayer(@NotNull UUID uuid, @NotNull ServerPlayer serverPlayerEntity) {
         super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
     }
 
-    public AbstractFabricPlatformInventory getPlatformInventory(ServerPlayerEntity serverPlayerEntity) {
+    public AbstractFabricPlatformInventory getPlatformInventory(ServerPlayer serverPlayerEntity) {
         return getPlayerInventoryFunction.apply(serverPlayerEntity);
     }
 

@@ -1,19 +1,34 @@
-package ac.grim.grimac.utils.via;
+package ac.grim.grimac.utils.viaversion;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.chat.ChatB;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_10to1_11.Protocol1_10To1_11;
 import com.viaversion.viaversion.protocols.v1_9_1to1_9_3.packet.ServerboundPackets1_9_3;
+import lombok.experimental.UtilityClass;
 
 import java.util.UUID;
 
-public class ViaHooks {
-    public static void injectVia() {
-        final var protocol = Via.getManager().getProtocolManager().getProtocol(Protocol1_10To1_11.class);
+@UtilityClass
+class ViaVersionHooks {
+    // this method's only purpose is getting <clinit> called
+    static void load() {}
+
+    static {
+        inject1_11ChatHook();
+    }
+
+    private static void inject1_11ChatHook() {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11)) {
+            return; // not needed
+        }
+
+        final Protocol1_10To1_11 protocol = Via.getManager().getProtocolManager().getProtocol(Protocol1_10To1_11.class);
         if (protocol == null) {
             LogUtil.warn("Failed to inject ViaVersion message hook for 1.11+ clients: Protocol1_10To1_11 isn't registered!");
             return;

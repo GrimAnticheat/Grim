@@ -40,7 +40,7 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
                 task,
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delay,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickCount() + delay,
                 0,
                 false,
                 plugin
@@ -54,7 +54,7 @@ public class FabricGlobalRegionScheduler implements GlobalRegionScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         FabricPlatformScheduler.ScheduledTask scheduledTask = new FabricPlatformScheduler.ScheduledTask(
                 task,
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickCount() + initialDelayTicks,
                 periodTicks,
                 true,
                 plugin

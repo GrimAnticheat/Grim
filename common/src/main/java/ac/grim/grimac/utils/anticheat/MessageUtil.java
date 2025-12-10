@@ -54,22 +54,85 @@ public class MessageUtil {
         return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string, false);
     }
 
+    private static final Pattern UNIFIED_PLACEHOLDER_PATTERN = Pattern.compile("%([a-zA-Z0-9_]+)%");
+
     @Contract("_, _, null, _ -> null; _, _, !null, _ -> !null")
     private @Nullable String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @Nullable String string, boolean removeFormatting) {
         if (string == null) return null;
-        for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
-            string = string.replace(entry.getKey(), entry.getValue());
+
+        // --- OPTIMIZATION 1: THE FAST PATH ---
+        // If the string contains no '%' characters, it's impossible for it to have placeholders.
+        // indexOf() is a JVM intrinsic and is magnitudes faster than even creating a Matcher.
+        if (string.indexOf('%') == -1) {
+            // Since there are no % signs we can skip calling papi or our own replacement code
+            return string;
         }
 
-        if (grimPlayer != null) {
-            for (Map.Entry<String, Function<GrimUser, String>> entry : GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().entrySet()) {
-                String value = entry.getValue().apply(grimPlayer).replace('%', PLACEHOLDER_ESCAPE_CHAR);
-                if (removeFormatting) value = filterDiscordText(value);
-                string = string.replace(entry.getKey(), value);
+        final Matcher matcher = UNIFIED_PLACEHOLDER_PATTERN.matcher(string);
+
+        // If matcher.find() is false, it means '%' existed but not in a valid %...% pattern.
+        // This avoids allocating a StringBuilder unless absolutely necessary.
+        if (!matcher.find()) {
+            return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string);
+        }
+
+        // Get references to the maps once, outside the loop.
+        final Map<String, String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements();
+        final Map<String, Function<GrimUser, String>> variableReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
+        final StringBuilder sb = new StringBuilder(string.length() + 32); // Pre-size with a little extra room
+
+        // --- OPTIMIZATION 2: THE UNIFIED SINGLE-PASS LOOP ---
+        // We use a do-while loop because we already performed the first matcher.find().
+        do {
+            // The full placeholder, e.g., "%tps%" or "%prefix%"
+            final String keyWithPercent = matcher.group(0);
+            String value = null;
+
+            // --- OPTIMIZATION 3: UNIFIED LOOKUP ---
+            // We check the static map first. This is a single, O(1) hash map lookup.
+            String staticValue = staticReplacements.get(keyWithPercent);
+
+            if (staticValue != null) {
+                value = staticValue;
+            } else if (grimPlayer != null) {
+                // If it's not a static placeholder, check if it's a dynamic one.
+                // This is a second, O(1) hash map lookup.
+                final Function<GrimUser, String> func = variableReplacements.get(keyWithPercent);
+                if (func != null) {
+                    // LAZY EVALUATION: We only call the expensive function (like getTPS)
+                    // if we actually found its placeholder in the string.
+                    value = func.apply(grimPlayer);
+                }
             }
-        }
 
-        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
+            // If we found no replacement, `value` will be null.
+            // In that case, we treat the placeholder as literal text by appending the original key.
+            if (value == null) {
+                value = keyWithPercent;
+            }
+
+            // --- OPTIMIZATION 4: CONDITIONAL FORMATTING ---
+            // The check for `removeFormatting` is inside the loop, but it's a simple boolean
+            // check and the cost is negligible compared to the string operations.
+            if (removeFormatting) {
+                // Note: This assumes `filterDiscordText` is reasonably fast.
+                // If it's slow, there are further micro-optimizations, but this is the right place for it.
+                value = filterDiscordText(value);
+            }
+
+            // `appendReplacement` efficiently appends the text between matches and our replacement value.
+            // `Matcher.quoteReplacement` should handle any '$' or '\' in the replacement value.
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(value));
+
+        } while (matcher.find());
+
+        // Append the final part of the string after the last found placeholder.
+        matcher.appendTail(sb);
+
+        // Create the final string from our builder.
+        String grimReplaced = sb.toString();
+
+        return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, grimReplaced).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
     }
 
     public static String filterDiscordText(String message) {

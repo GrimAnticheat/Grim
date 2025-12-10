@@ -46,7 +46,7 @@ public class FabricEntityScheduler implements EntityScheduler {
                         retired.run();
                     }
                 },
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + delayTicks,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickCount() + delayTicks,
                 0,
                 false,
                 plugin
@@ -65,7 +65,7 @@ public class FabricEntityScheduler implements EntityScheduler {
                         retired.run();
                     }
                 },
-                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTicks() + initialDelayTicks,
+                GrimACFabricLoaderPlugin.FABRIC_SERVER.getTickCount() + initialDelayTicks,
                 periodTicks,
                 true,
                 plugin

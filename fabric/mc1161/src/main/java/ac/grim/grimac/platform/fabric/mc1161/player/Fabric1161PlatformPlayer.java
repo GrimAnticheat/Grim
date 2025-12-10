@@ -5,36 +5,25 @@ import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.utils.math.Location;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 public class Fabric1161PlatformPlayer extends AbstractFabricPlatformPlayer {
-    public Fabric1161PlatformPlayer(ServerPlayerEntity player) {
+    public Fabric1161PlatformPlayer(ServerPlayer player) {
         super(player);
     }
 
     @Override
-    public boolean hasPermission(String permission) {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(entity.getCommandSource()).hasPermission(permission);
-    }
-
-    @Override
-    public boolean hasPermission(String s, boolean defaultIfUnset) {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(entity.getCommandSource()).hasPermission(s, defaultIfUnset);
-    }
-
-    @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(entity.getCommandSource());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(entity.createCommandSourceStack());
     }
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
         return FabricFutureUtil.supplySync(() -> {
-            fabricPlayer.teleport(
-                    (ServerWorld) location.getWorld(),
+            fabricPlayer.teleportTo(
+                    (ServerLevel) location.getWorld(),
                     location.getX(),
                     location.getY(),
                     location.getZ(),

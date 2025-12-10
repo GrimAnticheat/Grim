@@ -17,3 +17,6 @@ ij_formatter_on_tag = @formatter:on
 ij_formatter_tags_enabled = false
 ij_smart_tabs = false
 ij_wrap_on_typing = false
+
+[.github/ISSUE_TEMPLATE/*.yml]
+indent_size = 2

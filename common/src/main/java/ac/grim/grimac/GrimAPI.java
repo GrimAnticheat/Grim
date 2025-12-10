@@ -25,7 +25,7 @@ import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
-import ac.grim.grimac.utils.common.GrimArguments;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import lombok.Getter;
 import org.incendo.cloud.CommandManager;
@@ -67,7 +67,7 @@ public final class GrimAPI {
 
     // the order matters
     private static Platform detectPlatform() {
-        Platform override = Platform.getByName(GrimArguments.PLATFORM_OVERRIDE);
+        Platform override = CommonGrimArguments.PLATFORM_OVERRIDE.value();
         if (override != null) return override;
         if (ReflectionUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) return Platform.FOLIA;
         if (ReflectionUtils.hasClass("org.bukkit.Bukkit")) return Platform.BUKKIT;

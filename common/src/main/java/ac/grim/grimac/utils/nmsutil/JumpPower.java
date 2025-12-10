@@ -29,7 +29,11 @@ public class JumpPower {
 
         if (player.isSprinting) {
             float radRotation = GrimMath.radians(player.yaw);
-            vector.add(new Vector3dm(-player.trigHandler.sin(radRotation) * 0.2, 0.0, player.trigHandler.cos(radRotation) * 0.2));
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+                vector.add(-player.trigHandler.sin(radRotation) * 0.2, 0.0, player.trigHandler.cos(radRotation) * 0.2);
+            } else {
+                vector.add(-player.trigHandler.sin(radRotation) * 0.2F, 0.0, player.trigHandler.cos(radRotation) * 0.2F);
+            }
         }
     }
 

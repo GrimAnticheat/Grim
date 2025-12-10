@@ -66,23 +66,35 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public @NotNull Vector3dm add(@NotNull Vector3dm vec) {
-        this.x += vec.x;
-        this.y += vec.y;
-        this.z += vec.z;
+        return add(vec.x, vec.y, vec.z);
+    }
+
+    public @NotNull Vector3dm add(double x, double y, double z) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
         return this;
     }
 
     public @NotNull Vector3dm subtract(@NotNull Vector3dm vec) {
-        this.x -= vec.x;
-        this.y -= vec.y;
-        this.z -= vec.z;
+        return subtract(vec.x, vec.y, vec.z);
+    }
+
+    public @NotNull Vector3dm subtract(double x, double y, double z) {
+        this.x -= x;
+        this.y -= y;
+        this.z -= z;
         return this;
     }
 
     public @NotNull Vector3dm multiply(@NotNull Vector3dm vec) {
-        this.x *= vec.x;
-        this.y *= vec.y;
-        this.z *= vec.z;
+        return multiply(vec.x, vec.y, vec.z);
+    }
+
+    public @NotNull Vector3dm multiply(double x, double y, double z) {
+        this.x *= x;
+        this.y *= y;
+        this.z *= z;
         return this;
     }
 
@@ -109,11 +121,19 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     public double distance(@NotNull Vector3dm o) {
-        return Math.sqrt(GrimMath.square(this.x - o.x) + GrimMath.square(this.y - o.y) + GrimMath.square(this.z - o.z));
+        return Math.sqrt(distanceSquared(o));
     }
 
     public double distanceSquared(@NotNull Vector3dm o) {
-        return GrimMath.square(this.x - o.x) + GrimMath.square(this.y - o.y) + GrimMath.square(this.z - o.z);
+        return distanceSquared(o.x, o.y, o.z);
+    }
+
+    public double distance(double oX, double oY, double oZ) {
+        return Math.sqrt(distanceSquared(oX, oY, oZ));
+    }
+
+    public double distanceSquared(double oX, double oY, double oZ) {
+        return GrimMath.square(this.x - oX) + GrimMath.square(this.y - oY) + GrimMath.square(this.z - oZ);
     }
 
     public @NotNull Vector3dm midpoint(@NotNull Vector3dm other) {

@@ -3,11 +3,10 @@ package ac.grim.grimac.platform.fabric.mc1161.entity;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.utils.math.Location;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.server.world.ServerWorld;
-
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
 
@@ -18,8 +17,8 @@ public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
         return FabricFutureUtil.supplySync(() -> {
-            if (entity.getEntityWorld() instanceof ServerWorld) {
-                entity.teleport(
+            if (entity.getCommandSenderWorld() instanceof ServerLevel) {
+                entity.teleportToWithTicket(
                         location.getX(),
                         location.getY(),
                         location.getZ()
@@ -32,6 +31,6 @@ public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
 
     @Override
     public boolean isDead() {
-        return entity instanceof LivingEntity living ? living.isDead() : entity.removed;
+        return entity instanceof LivingEntity living ? living.isDeadOrDying() : entity.removed;
     }
 }

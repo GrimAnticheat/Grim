@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "PositionBreakB", experimental = true)
+@CheckData(name = "PositionBreakB")
 public class PositionBreakB extends Check implements BlockBreakCheck {
     private final int releaseFace = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 0 : 255;
     private BlockFace lastFace;

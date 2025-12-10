@@ -4,21 +4,17 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import net.kyori.adventure.text.Component;
-//import net.minecraft.network.RegistryByteBuf;
-//import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
+import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-
 public abstract class FabricConversionUtil implements IFabricConversionUtil {
 
     private IFabricConversionUtil fabricConversionUtilSupplier;
 
-    private final Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
+    private final Function<net.minecraft.world.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
 //        if (fabricStack.isEmpty()) {
 //            return ItemStack.EMPTY;
 //        }
@@ -48,32 +44,32 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
 //        }
         throw new UnsupportedOperationException();
     };
-    private final Function<Component, Text> nativeTextMapperFunction = (component) -> {
+    private final Function<Component, net.minecraft.network.chat.Component> nativeTextMapperFunction = (component) -> {
         throw new UnsupportedOperationException();
 //        Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
     };
 //
 
-    public ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    public ItemStack fromFabricItemStack(net.minecraft.world.item.ItemStack fabricStack) {
 //        return itemStackMapperFunction.apply(fabricStack);
         return fabricConversionUtilSupplier.fromFabricItemStack(fabricStack);
     }
 
-    public Text toNativeText(Component component) {
+    public net.minecraft.network.chat.Component toNativeText(Component component) {
 //        return nativeTextMapperFunction.apply(component);
         return fabricConversionUtilSupplier.toNativeText(component);
     }
 
-    public static net.minecraft.world.GameMode toFabricGameMode(GameMode gameMode) {
+    public static GameType toFabricGameMode(GameMode gameMode) {
         return switch (gameMode) {
-            case CREATIVE -> net.minecraft.world.GameMode.CREATIVE;
-            case SURVIVAL -> net.minecraft.world.GameMode.SURVIVAL;
-            case ADVENTURE -> net.minecraft.world.GameMode.ADVENTURE;
-            case SPECTATOR -> net.minecraft.world.GameMode.SPECTATOR;
+            case CREATIVE -> GameType.CREATIVE;
+            case SURVIVAL -> GameType.SURVIVAL;
+            case ADVENTURE -> GameType.ADVENTURE;
+            case SPECTATOR -> GameType.SPECTATOR;
         };
     }
 
-    public static GameMode fromFabricGameMode(net.minecraft.world.GameMode fabricGameMode) {
+    public static GameMode fromFabricGameMode(GameType fabricGameMode) {
         return switch (fabricGameMode) {
             case CREATIVE -> GameMode.CREATIVE;
             case SURVIVAL -> GameMode.SURVIVAL;
@@ -84,7 +80,7 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
     }
 
     @Contract(value = "null -> null; !null -> !null", pure = true)
-    public static @Nullable InteractionHand fromFabricHand(@Nullable Hand hand) {
+    public static @Nullable InteractionHand fromFabricHand(@Nullable net.minecraft.world.InteractionHand hand) {
         return hand == null ? null : switch (hand) {
             case OFF_HAND -> InteractionHand.OFF_HAND;
             case MAIN_HAND -> InteractionHand.MAIN_HAND;

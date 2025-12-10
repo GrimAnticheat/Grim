@@ -34,7 +34,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
         while (iterator.hasNext()) {
             ScheduledTask task = iterator.next();
-            if (server.getTicks() >= task.nextRunTick) {
+            if (server.getTickCount() >= task.nextRunTick) {
                 try {
                     EXECUTING_TASK.set(true);
                     task.task.run();
@@ -45,7 +45,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
                 }
 
                 if (task.isPeriodic) {
-                    task.nextRunTick = server.getTicks() + task.period;
+                    task.nextRunTick = server.getTickCount() + task.period;
                 } else {
                     iterator.remove();
                 }

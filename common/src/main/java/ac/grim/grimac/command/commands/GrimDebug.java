@@ -46,12 +46,19 @@ public class GrimDebug implements BuildableCommand {
         PlayerSelector playerSelector = context.getOrDefault("target", null);
 
         GrimPlayer targetGrimPlayer = parseTarget(sender, playerSelector == null ? sender : playerSelector.getSinglePlayer());
-        if (targetGrimPlayer == null) return;
+        if (targetGrimPlayer == null) {
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "player-not-found", "%prefix% &cPlayer is exempt or offline!"));
+            return;
+        }
 
         if (sender.isConsole()) {
             targetGrimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
         } else if (sender.isPlayer()) {
             GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
+            if (senderGrimPlayer == null) {
+                sender.sendMessage(MessageUtil.getParsedComponent(sender, "sender-not-found", "%prefix% &cYou cannot be exempt to use this command!"));
+                return;
+            }
             targetGrimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
         } else {
             sender.sendMessage(MessageUtil.getParsedComponent(sender,

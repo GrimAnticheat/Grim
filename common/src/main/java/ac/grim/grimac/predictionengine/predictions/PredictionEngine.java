@@ -417,7 +417,7 @@ public class PredictionEngine {
                     data.vector.setZ(data.vector.getZ() * 0.6);
                     data.addVectorType(VectorData.VectorType.AttackSlow);
                 } else {
-                    velocities.add(data.returnNewModified(data.vector.clone().multiply(new Vector3dm(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
+                    velocities.add(data.returnNewModified(data.vector.clone().multiply(0.6, 1, 0.6), VectorData.VectorType.AttackSlow));
                 }
             }
 

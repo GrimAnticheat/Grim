@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraB", description = "Started gliding without jumping", experimental = true)
+@CheckData(name = "ElytraB", description = "Started gliding without jumping")
 public class ElytraB extends Check implements PostPredictionCheck {
     private boolean glide;
     private boolean setback;

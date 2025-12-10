@@ -13,7 +13,7 @@ plugins {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-    mappings("net.fabricmc:yarn:$yarn_mappings")
+    mappings(loom.officialMojangMappings())
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
     modImplementation("me.lucko:fabric-permissions-api:0.3.1")

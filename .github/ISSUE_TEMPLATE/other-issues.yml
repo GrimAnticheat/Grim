@@ -5,7 +5,7 @@ body:
   - type: textarea
     attributes:
       label: Describe the bug and how to replicate it
-      description: A video, or detailed instructions to help replicate the issue would help.
+      description: A video or detailed instructions to help replicate the issue would help.
       placeholder: |
         Step 1. Do this
         Step 2. Then do this
@@ -16,9 +16,8 @@ body:
   - type: textarea
     attributes:
       label: Grim version
-      description: |
-        Provide the git commit or the version in the jar's name.
-      placeholder: A example would be b85c2d0 or grim version 2.3.5, etc
+      description: Provide the version of Grim running on the server. You can run `/grim version` to check.
+      placeholder: Examples include 2.3.73-8ddd7f1, 2.3.72, etc.
     validations:
       required: true
 
@@ -26,27 +25,27 @@ body:
     attributes:
       label: Server version
       description: |
-        Run `/version` on your server to check. Provide both the server type (paper, airplane, etc) & the minecraft version.
+        Run `/version` on your server to check. Provide both the server type (ie Paper, Airplane, etc) & the Minecraft version.
     validations:
       required: true
 
   - type: dropdown
     id: type
     attributes:
-        label: Affected Platform(s)
-        description: Which platforms does this issue affect? If you aren't sure, select both.
-        options:
-            - "Bukkit"
-            - "Fabric"
-        multiple: true
+      label: Affected Platform(s)
+      description: Which platforms does this issue affect? If you aren't sure, select both.
+      options:
+        - "Bukkit"
+        - "Fabric"
+      multiple: true
     validations:
-        required: true
+      required: true
 
   - type: textarea
     attributes:
-      label: Plugins
+      label: Plugins/Mods
       description: |
-        List all plugins or mods running on your server. To list plugins on bukkit, run `/plugins`.
+        List all plugins or mods installed on your server. To list plugins on Bukkit-based servers, run `/plugins`.
         If your server is behind a proxy such as Bungeecord, you should list the proxy's plugins as well.
     validations:
       required: true

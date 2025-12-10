@@ -18,6 +18,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
@@ -70,7 +71,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
             if (!invalidVehicle && !data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
-                player.getSetbackTeleportUtil().executeForceResync();
+                // We shouldn't simulate movement in unloaded chunks
+                player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
             }
         }
 
@@ -106,7 +108,15 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 player.lastWasClimbing = 0; // Vertical movement reset
                 player.canSwimHop = false; // Vertical movement reset
             } else {
-                update.getTeleportData().modifyVector(player, player.clientVelocity);
+                final SetBackData setback = update.getSetback();
+                if (setback == null || setback.getVelocity() == null) {
+                    update.getTeleportData().modifyVector(player, player.clientVelocity);
+                } else {
+                    // Enforce setback velocity?
+                    player.clientVelocity.setX(setback.getVelocity().getX());
+                    player.clientVelocity.setY(setback.getVelocity().getY());
+                    player.clientVelocity.setZ(setback.getVelocity().getZ());
+                }
             }
         }
 
@@ -196,7 +206,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.vehicleData.wasVehicleSwitch = false;
 
             if (riding != null) {
-                Vector3dm pos = new Vector3dm(player.x, player.y, player.z);
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
                 // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
@@ -206,7 +215,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 interTruePositions.expand(-width, 0, -width);
                 interTruePositions.expandMax(0, -height, 0);
 
-                Vector3dm cutTo = VectorUtils.cutBoxToVector(pos, interTruePositions);
+                Vector3dm cutTo = VectorUtils.cutBoxToVector(player.x, player.y, player.z, interTruePositions);
 
                 // Now we need to simulate a tick starting at the most optimal position
                 // The start position is never sent, so we assume the most optimal start position
@@ -567,7 +576,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
-            lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(new Vector3dm(0.6 * 0.91, 1, 0.6 * 0.91)));
+            lastKnownGoodPosition.setVector(lastKnownGoodPosition.getVector().multiply(0.6 * 0.91, 1, 0.6 * 0.91));
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();
         }
 
@@ -599,7 +608,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.riptideSpinAttackTicks = 20;
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.inVehicle() && player.skippedTickInActualMovement;
-        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
+        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.inVehicle() && player.couldSkipTick
+                && player.predictedVelocity.isKnockback()
+                // Don't let setbacks count
+                && !player.predictedVelocity.isSetbackKb(player);
         player.couldSkipTick = false;
 
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03

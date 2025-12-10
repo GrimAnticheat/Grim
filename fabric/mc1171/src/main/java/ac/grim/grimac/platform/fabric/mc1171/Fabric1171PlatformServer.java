@@ -7,12 +7,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-
 public class Fabric1171PlatformServer extends Fabric1140PlatformServer {
-
-    @Override @Nullable
-    public GameProfile getProfileByName(String name) {
-        Optional<GameProfile> gameProfile = GrimACFabricLoaderPlugin.FABRIC_SERVER.getUserCache().findByName(name);
+    @Override
+    public @Nullable GameProfile getProfileByName(String name) {
+        Optional<GameProfile> gameProfile = GrimACFabricLoaderPlugin.FABRIC_SERVER.getProfileCache().get(name);
         return gameProfile.orElse(null);
     }
 }

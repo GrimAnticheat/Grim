@@ -26,9 +26,8 @@ public class FarBreak extends Check implements BlockBreakCheck {
         double min = Double.MAX_VALUE;
         for (double d : player.getPossibleEyeHeights()) {
             SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
-            Vector3dm eyes = new Vector3dm(player.x, player.y + d, player.z);
-            Vector3dm best = VectorUtils.cutBoxToVector(eyes, box);
-            min = Math.min(min, eyes.distanceSquared(best));
+            Vector3dm best = VectorUtils.cutBoxToVector(player.x, player.y + d, player.z, box);
+            min = Math.min(min, best.distanceSquared(player.x, player.y + d, player.z));
         }
 
         // getPickRange() determines this?

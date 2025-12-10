@@ -1,22 +1,22 @@
 package ac.grim.grimac.platform.fabric.mixins;
 
 import ac.grim.grimac.platform.api.world.PlatformChunk;
-import net.minecraft.block.Block;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Implements;
 import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
 
-@Mixin(WorldChunk.class)
+@Mixin(LevelChunk.class)
 @Implements(@Interface(iface = PlatformChunk.class, prefix = "grimac$"))
-abstract class WorldChunkMixin {
+abstract class LevelChunkMixin {
     public int grimac$getBlockID(int x, int y, int z) {
-        WorldChunk chunk = (WorldChunk) (Object) this;
-        return Block.getRawIdFromState(chunk.getBlockState(new BlockPos(
-                chunk.getPos().getStartX() + x,
+        LevelChunk chunk = (LevelChunk) (Object) this;
+        return Block.getId(chunk.getBlockState(new BlockPos(
+                chunk.getPos().getMinBlockX() + x,
                 y,
-                chunk.getPos().getStartZ() + z
+                chunk.getPos().getMinBlockZ() + z
         )));
     }
 }

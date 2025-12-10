@@ -179,9 +179,8 @@ public class ReachUtils {
         if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (double eyes : possibleEyeHeights) {
-            Vector3dm from = new Vector3dm(player.x, player.y + eyes, player.z);
-            Vector3dm closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
-            lowest = Math.min(lowest, closestPoint.distance(from));
+            Vector3dm closestPoint = VectorUtils.cutBoxToVector(player.x, player.y + eyes, player.z, targetBox);
+            lowest = Math.min(lowest, closestPoint.distance(player.x, player.y + eyes, player.z));
         }
 
         return lowest;

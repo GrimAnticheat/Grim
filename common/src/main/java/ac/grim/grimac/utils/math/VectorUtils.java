@@ -15,9 +15,13 @@ public class VectorUtils {
 
     @Contract("_, _ -> new")
     public static @NotNull Vector3dm cutBoxToVector(@NotNull Vector3dm vectorCutTo, @NotNull SimpleCollisionBox box) {
-        return new Vector3dm(GrimMath.clamp(vectorCutTo.getX(), box.minX, box.maxX),
-                GrimMath.clamp(vectorCutTo.getY(), box.minY, box.maxY),
-                GrimMath.clamp(vectorCutTo.getZ(), box.minZ, box.maxZ));
+        return cutBoxToVector(vectorCutTo.getX(), vectorCutTo.getY(), vectorCutTo.getZ(), box);
+    }
+
+    public static @NotNull Vector3dm cutBoxToVector(double x, double y, double z, @NotNull SimpleCollisionBox box) {
+        return new Vector3dm(GrimMath.clamp(x, box.minX, box.maxX),
+                GrimMath.clamp(y, box.minY, box.maxY),
+                GrimMath.clamp(z, box.minZ, box.maxZ));
     }
 
     @Contract("_ -> new")

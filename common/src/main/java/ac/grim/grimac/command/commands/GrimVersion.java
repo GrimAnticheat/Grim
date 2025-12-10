@@ -5,7 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.utils.common.GrimArguments;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.AllArgsConstructor;
@@ -56,7 +56,7 @@ public class GrimVersion implements BuildableCommand {
         try {
             //
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GrimArguments.API_URL + "updates"))
+                    .uri(URI.create(CommonGrimArguments.API_URL.value() + "updates"))
                     .GET()
                     .header("User-Agent", "GrimAC/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion())
                     .header("Content-Type", "application/json")

@@ -28,6 +28,7 @@ public class Materials {
 
     public static final Set<StateType> CHESTS = new HashSet<>();
     public static final Set<StateType> RODS = new HashSet<>();
+    public static final Set<StateType> CHAINS = new HashSet<>();
 
     private static final Set<StateType> COPPER_DOORS = new HashSet<>();
     private static final Set<StateType> COPPER_TRAPDOORS = new HashSet<>();
@@ -129,6 +130,9 @@ public class Materials {
         RODS.addAll(BlockTags.LIGHTNING_RODS.getStates());
         RODS.add(StateTypes.END_ROD);
         RODS.add(StateTypes.LIGHTNING_ROD);
+
+        CHAINS.addAll(BlockTags.CHAINS.getStates());
+        CHAINS.add(StateTypes.CHAIN);
     }
 
     public static boolean isStairs(StateType type) {
@@ -189,6 +193,10 @@ public class Materials {
 
     public static Set<StateType> getRods() {
         return new HashSet<>(RODS);
+    }
+
+    public static Set<StateType> getChains() {
+        return new HashSet<>(CHAINS);
     }
 
     public static boolean isGlassPane(StateType type) {

@@ -56,7 +56,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
                 JumpPower.jumpFromGround(player, jump);
             } else {
-                jump.add(new Vector3dm(0, player.flySpeed * 3, 0));
+                jump.add(0, player.flySpeed * 3, 0);
                 if (!player.wasFlying) {
                     Vector3dm edgeCaseJump = jump.clone();
                     JumpPower.jumpFromGround(player, edgeCaseJump);
