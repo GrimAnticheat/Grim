@@ -13,10 +13,12 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import sun.misc.Unsafe;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +26,19 @@ import java.util.List;
 // Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener {
+
+    // Yes, we need this method because Spigot doesn't have an API to retrieve the configuration like Paper does
+    public static boolean isLateBindEnabled() {
+        File spigotFile = new File("spigot.yml");
+
+        if (!spigotFile.exists()) { // If you are using cb, or a fork that removes the spigot configuration, ignore this
+            return false;
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(spigotFile);
+
+        return config.getBoolean("settings.late-bind", true);
+    }
 
     @Override
     public void start() {
@@ -41,6 +56,10 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
         // if it fails to inject, try to use paper's event
         if (!injectWithReflection() && !PaperUtils.registerTickEndEvent(this, this::tickAllPlayers)) {
             LogUtil.error("Failed to inject into the end of tick event!");
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4) && isLateBindEnabled()) {
+                LogUtil.error("You have the \"late-bind\" option enabled; this option does not work in conjunction with Reach.enable-post-packet=true. Disable it in spigot.yml.");
+            }
         }
     }
 
@@ -62,6 +81,10 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
     }
 
     private boolean injectWithReflection() {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4) && isLateBindEnabled()) {
+            return false;
+        }
+
         // Inject so we can add the final transaction pre-flush event
         try {
             Object connection = SpigotReflectionUtil.getMinecraftServerConnectionInstance();
