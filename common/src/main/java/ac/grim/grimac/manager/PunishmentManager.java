@@ -72,11 +72,13 @@ public class PunishmentManager implements ConfigReloadable {
                                 excluded.add(check);
                             } else {
                                 checksList.add(check);
-                                check.setEnabled(true);
                             }
                         }
                     }
                     for (AbstractCheck check : excluded) checksList.remove(check);
+                }
+                for (AbstractCheck check : checksList) {
+                    check.setEnabled(true);
                 }
 
                 for (String command : commands) {
