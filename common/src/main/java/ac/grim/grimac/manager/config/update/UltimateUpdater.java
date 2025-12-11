@@ -21,11 +21,11 @@ public class UltimateUpdater {
 
     public void updateConfig() throws IOException {
         // --- Setup and Analysis (same as before) ---
-        File dataFolder = new File("/home/user/Desktop/Server/Network/fabric-1.21.7/config/GrimAC/");
+        File dataFolder = new File("/home/user/Desktop/Server/Network/fabric-1.21.10/config/GrimAC/");
         dataFolder.mkdirs();
         File configFile = new File(dataFolder, "config.yml");
         File backupFile = new File(dataFolder, "config.yml.bak");
-        File newDefaultConfigFile = new File("/home/user/Desktop/Server/Network/fabric-1.21.7/config/GrimAC/new-config.yml");
+        File newDefaultConfigFile = new File("/home/user/Desktop/Server/Network/fabric-1.21.10/config/GrimAC/new-config.yml");
 
         // Logic for fresh install...
         if (!configFile.exists()) {
