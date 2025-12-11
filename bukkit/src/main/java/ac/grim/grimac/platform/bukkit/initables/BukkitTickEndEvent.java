@@ -27,17 +27,19 @@ import java.util.List;
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener {
 
-    // Yes, we need this method because Spigot doesn't have an API to retrieve the configuration like Paper does
+    // We need this method because Spigot doesn't have an API to retrieve the configuration
     public static boolean isLateBindEnabled() {
         File spigotFile = new File("spigot.yml");
 
-        if (!spigotFile.exists()) { // If you are using cb, or a fork that removes the spigot configuration, ignore this
+        // If the server is using cb or a fork that removes the Spigot configuration, ignore this
+        if (!spigotFile.exists()) {
             return false;
         }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(spigotFile);
 
-        return config.getBoolean("settings.late-bind", true);
+        // If you found the spigot configuration but not the option (custom fork?), return false
+        return config.getBoolean("settings.late-bind", false);
     }
 
     @Override
