@@ -38,7 +38,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(spigotFile);
 
-        // If you found the spigot configuration but not the option (custom fork?), return false
+        // If the Spigot configuration is found, but not the option (custom fork?), return false
         return config.getBoolean("settings.late-bind", false);
     }
 
