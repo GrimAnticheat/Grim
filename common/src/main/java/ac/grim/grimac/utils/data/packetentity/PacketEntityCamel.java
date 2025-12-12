@@ -18,4 +18,10 @@ public class PacketEntityCamel extends PacketEntityHorse {
         setAttribute(Attributes.MOVEMENT_SPEED, 0.09f);
         setAttribute(Attributes.STEP_HEIGHT, 1.5f);
     }
+
+    @Override
+    public boolean canPlayerJump() {
+        return this.hasSaddle() && this.dashCooldown <= 0; // && this.onGround()
+    }
+
 }

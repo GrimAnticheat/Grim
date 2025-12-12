@@ -79,7 +79,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     break;
                 case START_JUMPING_WITH_HORSE:
                     PacketEntity riding = player.compensatedEntities.self.getRiding();
-                    if (riding instanceof PacketEntityHorse horse) {
+                    if (riding instanceof PacketEntityHorse horse && horse.canPlayerJump()) {
                         int jumpBoost = action.getJumpBoost();
                         if (jumpBoost < 0) jumpBoost = 0;
                         if (jumpBoost >= 90) {

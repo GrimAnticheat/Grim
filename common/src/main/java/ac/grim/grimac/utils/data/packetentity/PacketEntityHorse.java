@@ -58,4 +58,8 @@ public class PacketEntityHorse extends PacketEntityTrackXRot {
         return hasItemInSlot(EquipmentSlot.SADDLE);
     }
 
+    public boolean canPlayerJump() {
+        return this.hasSaddle();
+    }
+
 }
