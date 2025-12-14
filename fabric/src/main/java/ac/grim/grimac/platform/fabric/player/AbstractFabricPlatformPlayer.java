@@ -131,17 +131,6 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     }
 
     @Override
-    public void sendPluginMessage(String channelName, byte[] byteArray) {
-        // You might want to use Fabric's networking system here
-//        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(
-//                Identifier.of(channelName),
-//                new PacketByteBuf(Unpooled.wrappedBuffer(byteArray))
-//        );
-//        fabricPlayer.networkHandler.sendPacket(packet);
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
         this.inventory.fabricPlayer = (ServerPlayer) nativePlayerObject;
         this.inventory.inventory = ((ServerPlayer) nativePlayerObject).inventory;

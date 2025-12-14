@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.api;
 
 import ac.grim.grimac.platform.api.sender.Sender;
+import org.jetbrains.annotations.NotNull;
 
 public interface PlatformServer {
 
@@ -10,7 +11,7 @@ public interface PlatformServer {
 
     Sender getConsoleSender();
 
-    void registerOutgoingPluginChannel(String name);
+    void registerOutgoingPluginChannel(@NotNull String name);
 
     double getTPS();
 }
