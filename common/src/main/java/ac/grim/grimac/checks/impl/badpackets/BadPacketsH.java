@@ -25,6 +25,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM
                 && shouldCancel(new WrapperPlayClientUseItem(event).getSequence())) {
+            GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
             event.setCancelled(true);
             player.onPacketCancel();
         }
@@ -33,6 +34,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(BlockPlace place) {
         if (shouldCancel(place.sequence) && shouldCancel()) {
+            GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
             place.resync();
         }
     }
@@ -42,11 +44,13 @@ public class BadPacketsH extends BlockPlaceCheck {
         switch (blockBreak.action) {
             case START_DIGGING, FINISHED_DIGGING -> {
                 if (shouldCancel(blockBreak.sequence)) {
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                     blockBreak.cancel();
                 }
             }
             case CANCELLED_DIGGING -> { // other actions will be checked by BadPacketsL
                 if (blockBreak.sequence != 0 && flagAndAlert("expected=0, id=" + blockBreak.sequence) && shouldModifyPackets()) {
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                     blockBreak.cancel();
                 }
             }
