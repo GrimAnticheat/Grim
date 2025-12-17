@@ -192,7 +192,7 @@ jobs:
                   changelog: ${{ steps.changelog.outputs.notes }}
                   loaders: |
                       fabric
-                  game-versions: '>=1.21.5 <=1.21.10'
+                  game-versions: '>=1.21.11'
                   dependencies: 'fabric-api'
 
             #------------------------------------------------------------------
@@ -217,7 +217,7 @@ jobs:
                     paper
                     folia
                     purpur
-                  game-versions: '>=1.7 <=1.21.10'
+                  game-versions: '>=1.7 <=1.21.11'
 
             - name: Publish to API
               if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}

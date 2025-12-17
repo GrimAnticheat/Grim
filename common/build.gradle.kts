@@ -6,69 +6,41 @@ plugins {
 }
 
 repositories {
-    if (BuildConfig.mavenLocalOverride) {
-        mavenLocal()
+    // We still call mavenLocal() conditionally at the top for non-exclusive deps (general fallback)
+    if (BuildConfig.mavenLocalOverride) mavenLocal()
+
+    // Grim API & PacketEvents
+    exclusive("https://repo.grim.ac/snapshots") {
+        includeGroup("ac.grim.grimac")
+        includeGroup("com.github.retrooper")
     }
 
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.grim.ac/snapshots") // Grim API
-        }
-        filter {
-            includeGroup("ac.grim.grimac")
-            includeGroup("com.github.retrooper")
-        }
+    // ViaVersion
+    exclusive("https://repo.viaversion.com", { mavenContent { releasesOnly() } }) {
+        includeGroup("com.viaversion")
     }
 
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.viaversion.com") { // ViaVersion
-                mavenContent { releasesOnly() }
-            }
-        }
-        filter {
-            includeGroup("com.viaversion")
-        }
+    // Configuralize
+    exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {
+        includeGroup("github.scarsz")
     }
 
-    exclusiveContent {
-        forRepository {
-            maven("https://nexus.scarsz.me/content/repositories/releases") { // Configuralize
-                mavenContent { releasesOnly() }
-            }
-        }
-        filter {
-            includeGroup("github.scarsz")
-        }
+    // Cumulus
+    exclusive("https://repo.opencollab.dev/maven-releases/", { mavenContent { releasesOnly() } }) {
+        includeGroup("org.geysermc.api")
     }
 
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.opencollab.dev/maven-releases/") { // Cumulus (for Floodgate)
-                mavenContent { releasesOnly() }
-            }
-        }
-        filter {
-            includeGroup("org.geysermc.api")
-        }
-    }
-
-    exclusiveContent {
-        forRepository {
-            maven("https://repo.opencollab.dev/maven-snapshots/") { // Floodgate
-                mavenContent { snapshotsOnly() }
-            }
-        }
-        filter {
-            includeGroup("org.geysermc.floodgate")
-            includeGroup("org.geysermc.cumulus")
-            includeModule("org.geysermc", "common")
-            includeModule("org.geysermc", "geyser-parent")
-        }
+    // Floodgate
+    exclusive("https://repo.opencollab.dev/maven-snapshots/", { mavenContent { snapshotsOnly() } }) {
+        includeGroup("org.geysermc.floodgate")
+        includeGroup("org.geysermc.cumulus")
+        includeModule("org.geysermc", "common")
+        includeModule("org.geysermc", "geyser-parent")
     }
 
     mavenCentral()
 }
+
 
 dependencies {
     if (BuildConfig.shadePE) {
