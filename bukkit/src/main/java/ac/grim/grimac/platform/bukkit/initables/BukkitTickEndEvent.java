@@ -55,8 +55,8 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             PaperUtils.registerTickEndEvent(this, this::tickAllFoliaPlayers);
             return;
         }
-        // if it fails to inject, try to use paper's event
-        if (!injectWithReflection() && !PaperUtils.registerTickEndEvent(this, this::tickAllPlayers)) {
+        // if it fails to register Paper event, try to inject via reflection
+        if (!PaperUtils.registerTickEndEvent(this, this::tickAllPlayers) && !injectWithReflection()) {
             LogUtil.error("Failed to inject into the end of tick event!");
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4) && isLateBindEnabled()) {
@@ -83,13 +83,10 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
     }
 
     private boolean injectWithReflection() {
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4) && isLateBindEnabled()) {
-            return false;
-        }
-
         // Inject so we can add the final transaction pre-flush event
         try {
             Object connection = SpigotReflectionUtil.getMinecraftServerConnectionInstance();
+            if (connection == null) return false;
 
             Field connectionsList = Reflection.getField(connection.getClass(), List.class, 1);
             List<Object> endOfTickObject = (List<Object>) connectionsList.get(connection);
