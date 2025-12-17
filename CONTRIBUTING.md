@@ -14,10 +14,10 @@ make the process go more smoothly.*
   - The plugin must be able to run on Java 17 or higher. Changes that don't support Java 17 at runtime will not be accepted.
 
 - **Non-acceptable pull requests**
-  - Heuristic-based checks will not be accepted; however, basic rate limiting such as blocking attacks based on CPS is acceptable.
   - Checks that can be easily circumvented that don't block packets or fix anything are likely to not be accepted.
   - Checks or features that are too specific to a single environment or minecraft version are likely to not be accepted.
   - Changes that require large or unnecessary dependencies will likely not be accepted.
+  - But, unlike upstream, we accept heuristic-based checks, if they isn't hard to impement.
 
 - **Pull request formatting**
   - Create a new branch for your feature or fix when forking the repository.
