@@ -768,7 +768,8 @@ public class GrimPlayer implements GrimUser {
         return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
                 || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
                 || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND);
+                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
