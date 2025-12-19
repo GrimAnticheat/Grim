@@ -70,20 +70,20 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
                 Boolean lateBindFromConfig = getLateBindFromConfig();
 
                 if (lateBindFromAPI == null && lateBindFromConfig == null) {
-                    LogUtil.warn("Injection failed, but late-bind state could not be determined from API or configuration. Perhaps you are using CraftBukkit or a custom fork?");
+                    LogUtil.error("Injection failed, but late-bind state could not be determined from API or configuration. Perhaps you are using CraftBukkit or a custom fork?");
                 } else if (lateBindFromAPI != null && lateBindFromConfig != null) {
                     if (!lateBindFromAPI.equals(lateBindFromConfig)) {
-                        LogUtil.warn("Injection failed and late-bind values do not match. Detected API=" + lateBindFromAPI + ", spigot.yml=" + lateBindFromConfig + ".");
+                        LogUtil.error("Injection failed and late-bind values do not match. Detected API=" + lateBindFromAPI + ", spigot.yml=" + lateBindFromConfig + ".");
                         return;
                     }
 
                     if (lateBindFromAPI) {
-                        LogUtil.warn("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
+                        LogUtil.error("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
                     }
                 } else {
                     Boolean detectedLateBind = lateBindFromAPI != null ? lateBindFromAPI : lateBindFromConfig;
                     if (detectedLateBind) {
-                        LogUtil.warn("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
+                        LogUtil.error("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
                     }
                 }
             }
