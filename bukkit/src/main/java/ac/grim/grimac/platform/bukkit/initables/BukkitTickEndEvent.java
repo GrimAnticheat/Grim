@@ -13,12 +13,10 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import sun.misc.Unsafe;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +25,7 @@ import java.util.List;
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener {
 
-    private Boolean getLateBindFromAPI() {
+    private Boolean getLateBindState() {
         try {
             Class<?> spigotConfig = Class.forName("org.spigotmc.SpigotConfig");
             Field field = spigotConfig.getDeclaredField("lateBind");
@@ -36,16 +34,6 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
         } catch (Throwable ignored) {
             return null;
         }
-    }
-
-    private Boolean getLateBindFromConfig() {
-        File file = new File("spigot.yml");
-        if (!file.exists()) return null;
-
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        if (!config.contains("settings.late-bind")) return null;
-
-        return config.getBoolean("settings.late-bind");
     }
 
     @Override
@@ -66,25 +54,14 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             LogUtil.error("Failed to inject into the end of tick event!");
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4)) {
-                Boolean lateBindFromAPI = getLateBindFromAPI();
-                Boolean lateBindFromConfig = getLateBindFromConfig();
+                Boolean lateBind = getLateBindState();
+                if (lateBind == null) {
+                    LogUtil.error("Failed to determine the late-bind state. Perhaps you are using CraftBukkit or a custom server fork? Check the fork configuration for a late-bind option.");
+                    return;
+                }
 
-                if (lateBindFromAPI == null && lateBindFromConfig == null) {
-                    LogUtil.error("Injection failed, but late-bind state could not be determined from API or configuration. Perhaps you are using CraftBukkit or a custom fork?");
-                } else if (lateBindFromAPI != null && lateBindFromConfig != null) {
-                    if (!lateBindFromAPI.equals(lateBindFromConfig)) {
-                        LogUtil.error("Injection failed and late-bind values do not match. Detected API=" + lateBindFromAPI + ", spigot.yml=" + lateBindFromConfig + ".");
-                        return;
-                    }
-
-                    if (lateBindFromAPI) {
-                        LogUtil.error("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
-                    }
-                } else {
-                    Boolean detectedLateBind = lateBindFromAPI != null ? lateBindFromAPI : lateBindFromConfig;
-                    if (detectedLateBind) {
-                        LogUtil.error("Injection failed because late-bind is enabled. Disable settings.late-bind in spigot.yml.");
-                    }
+                if (lateBind) {
+                    LogUtil.error("Injection failed because the late-bind option is enabled. Disable it in spigot.yml.");
                 }
             }
         }
