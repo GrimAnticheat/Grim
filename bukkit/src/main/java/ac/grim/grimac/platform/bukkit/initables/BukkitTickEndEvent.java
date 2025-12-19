@@ -56,7 +56,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4)) {
                 Boolean lateBind = getLateBindState();
                 if (lateBind == null) {
-                    LogUtil.error("Failed to determine the late-bind state. Perhaps you are using CraftBukkit or a custom server fork? Check the fork configuration for a late-bind option.");
+                    LogUtil.error("Failed to determine the late-bind state. Perhaps you are using a custom server fork? Check the fork configuration for a late-bind option.");
                 } else if (lateBind) {
                     LogUtil.error("Injection failed because the late-bind option is enabled. Disable it in spigot.yml.");
                 }
