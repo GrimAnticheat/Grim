@@ -3,6 +3,11 @@ name: Reusable Build and Publish
 on:
     workflow_call:
         inputs:
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -36,7 +41,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.runner }
         permissions:
             contents: read
             packages: write

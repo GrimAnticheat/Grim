@@ -12,6 +12,11 @@ on:
                 description: 'Upload to Modrinth & API? (Uncheck for a dry run)'
                 type: boolean
                 default: true
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
     push:
         branches:
             - 'main'
@@ -31,6 +36,7 @@ jobs:
     call-build-workflow:
         uses: ./.github/workflows/build-and-publish.yml
         with:
+            runner: ${{ github.event.inputs.runner }}
             is-release-build: false
             release-version-type: alpha # Dev builds are always 'alpha'
             run-build-scan: ${{ github.event.inputs.run-build-scan == 'true' }}
