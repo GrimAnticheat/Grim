@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 @UtilityClass
@@ -39,5 +40,21 @@ public class ReflectionUtils {
         } catch (ClassNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Finds a field by name, searching up the superclass hierarchy.
+     */
+    public static Field getField(Class<?> clazz, String fieldName) {
+        while (clazz != null) {
+            try {
+                Field field = clazz.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return field;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
     }
 }
