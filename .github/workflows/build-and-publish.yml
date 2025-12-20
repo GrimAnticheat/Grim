@@ -41,7 +41,7 @@ on:
 
 jobs:
     build:
-        runs-on: ${{ inputs.runner }}
+        runs-on: 'ubuntu-latest'
         permissions:
             contents: read
             packages: write
