@@ -41,11 +41,7 @@ on:
 
 jobs:
     build:
-<<<<<<< HEAD
-        runs-on: ubuntu-latest
-=======
         runs-on: ${{ inputs.runner }}
->>>>>>> upstream/2.0
         permissions:
             contents: read
             packages: write
