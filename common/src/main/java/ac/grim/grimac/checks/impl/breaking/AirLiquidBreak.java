@@ -6,9 +6,11 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -29,6 +31,17 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
+        if (player.gamemode == GameMode.SPECTATOR) return;
+        if (player.gamemode == GameMode.CREATIVE) {
+            ItemType heldItem = player.inventory.getHeldItem().getType();
+            if (heldItem.hasAttribute(ItemTypes.ItemAttribute.SWORD)
+                    || heldItem == ItemTypes.MACE
+                    || heldItem == ItemTypes.TRIDENT
+                    || heldItem == ItemTypes.DEBUG_STICK) {
+                return;
+            }
+        }
+
         if (blockBreak.action != DiggingAction.START_DIGGING && blockBreak.action != DiggingAction.FINISHED_DIGGING)
             return;
 
