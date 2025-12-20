@@ -8,6 +8,7 @@ import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
+import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
@@ -26,12 +27,15 @@ import java.util.List;
 public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener {
 
     private Boolean getLateBindState() {
+        Class<?> spigotConfig = ReflectionUtils.getClass("org.spigotmc.SpigotConfig");
+        // ReflectionUtils.getField(class, name) handles the loop and setAccessible
+        Field field = ReflectionUtils.getField(spigotConfig, "lateBind");
+
+        if (field == null) return null;
+
         try {
-            Class<?> spigotConfig = Class.forName("org.spigotmc.SpigotConfig");
-            Field field = spigotConfig.getDeclaredField("lateBind");
-            field.setAccessible(true);
-            return field.getBoolean(null);
-        } catch (Throwable ignored) {
+            return (boolean) field.get(null);
+        } catch (Exception ignored) {
             return null;
         }
     }
