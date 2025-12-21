@@ -380,7 +380,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.latencyUtils.addRealTimeTask(destroyTransaction, () -> {
                 for (int entityId : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(entityId);
-                    player.compensatedDashableEntities.removeEntity(entityId);
+                    player.dashableEntities.removeEntity(entityId);
                     player.fireworks.removeFirework(entityId);
                     player.compensatedEntities.entitiesRemovedThisTick.add(entityId);
                 }
@@ -526,7 +526,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity entity = player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
             if (entity instanceof DashableEntity dashable) {
-                player.compensatedDashableEntities.addEntity(entityID, dashable);
+                player.dashableEntities.addEntity(entityID, dashable);
             }
 
             if (entityMetadata != null) {

@@ -583,7 +583,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 // Track dash cooldown
                 if (!player.inVehicle()) {
-                    player.compensatedDashableEntities.tick();
+                    player.dashableEntities.tick();
                 }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;

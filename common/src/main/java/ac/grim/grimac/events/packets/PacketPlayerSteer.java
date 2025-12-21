@@ -110,7 +110,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // Tick update
             player.compensatedWorld.tickPlayerInPistonPushingArea();
             player.compensatedEntities.tick();
-            player.compensatedDashableEntities.tick();
+            player.dashableEntities.tick();
 
             // Note for the movement check
             player.vehicleData.lastDummy = true;
