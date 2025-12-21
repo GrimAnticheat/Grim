@@ -123,29 +123,24 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), EntityTypes.PAINTING, packetOutEntity.getPosition().toVector3d(), 0, 0f, null, packetOutEntity.getDirection().getHorizontalIndex());
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
-            move.setOnGround(false);
             handleMoveEntity(event, move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true, true);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION) {
             WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
-            move.setOnGround(false);
             handleMoveEntity(event, move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, true);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
             Vector3d pos = move.getPosition();
-            move.setOnGround(false);
             handleMoveEntity(event, move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_POSITION_SYNC) {
             // ENTITY_TELEPORT but without relative flags
             WrapperPlayServerEntityPositionSync move = new WrapperPlayServerEntityPositionSync(event);
             final EntityPositionData values = move.getValues();
             final Vector3d pos = values.getPosition();
-            move.setOnGround(false);
             // TODO this isn't technically correct
             // If the position sync is to a pos > 4096 from the entity pos, client does some special stuff without interpolation
             handleMoveEntity(event, move.getId(), pos.getX(), pos.getY(), pos.getZ(), values.getYaw(), values.getPitch(), false, true);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_ROTATION) { // Affects interpolation
             WrapperPlayServerEntityRotation move = new WrapperPlayServerEntityRotation(event);
-            move.setOnGround(false);
             handleMoveEntity(event, move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
@@ -417,19 +412,16 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (inThisVehicle) break;
         }
 
-        // Better lag compensation if we were affected by this
-        if (wasInVehicle || inThisVehicle) {
-            player.sendTransaction();
-        }
-
-        final boolean mounted = inThisVehicle && !wasInVehicle;
-        if (mounted) {
+        if (inThisVehicle && !wasInVehicle) {
             player.handleMountVehicle(vehicleID);
         }
 
-        final boolean dismounted = !inThisVehicle && wasInVehicle;
-        if (dismounted) {
+        if (!inThisVehicle && wasInVehicle) {
             player.handleDismountVehicle(event);
+        }
+        // Better lag compensation if we were affected by this
+        if (wasInVehicle || inThisVehicle) {
+            player.sendTransaction();
         }
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -449,10 +441,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 if (passenger == null) continue;
                 passenger.mount(vehicle);
             }
-
-            if (mounted) {
-                player.vehicleData.firstRidingTick = true;
-            }
         });
     }
 
@@ -463,10 +451,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         if (didNotSendPreWave) player.sendTransaction();
 
         if (data != null) {
-            if (data.isJumpableEntity()) {
-                event.markForReEncode(true); // mark for re-encode so onGround status = false will be sent
-            }
-
             // Update the tracked server's entity position
             if (isRelative) {
                 // There is a bug where vehicles may start flying due to mojang setting packet position on the client

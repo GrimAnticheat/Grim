@@ -20,11 +20,7 @@ public final class PredictionEngineRideableUtils {
         if (!(player.compensatedEntities.self.getRiding() instanceof JumpableEntity jumpable))
             return possibleVectors;
 
-        boolean lastOnGround = player.lastOnGround;
-        if (player.vehicleData.firstRidingTick) {
-            player.lastOnGround = false;
-        }
-
+        // TODO: onGround can desync if it's first riding tick
         jumpable.executeJump(player, possibleVectors);
 
         // More jumping stuff // TODO the code below probably does not apply to nautilus
@@ -45,8 +41,6 @@ public final class PredictionEngineRideableUtils {
             jumpable.setNextJumpPower(0.0F);
         }
 
-        player.vehicleData.firstRidingTick = false;
-        player.lastOnGround = lastOnGround;
         return possibleVectors;
     }
 

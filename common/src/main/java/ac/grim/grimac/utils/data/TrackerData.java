@@ -11,7 +11,6 @@ public class TrackerData {
     private EntityType entityType;
     private int lastTransactionHung;
     private int legacyPointEightMountedUpon;
-    private final boolean isJumpableEntity;
 
     public TrackerData(double x, double y, double z, float xRot, float yRot, EntityType entityType, int lastTransactionHung) {
         this.x = x;
@@ -21,6 +20,5 @@ public class TrackerData {
         this.yRot = yRot;
         this.entityType = entityType;
         this.lastTransactionHung = lastTransactionHung;
-        this.isJumpableEntity = EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE);
     }
 }
