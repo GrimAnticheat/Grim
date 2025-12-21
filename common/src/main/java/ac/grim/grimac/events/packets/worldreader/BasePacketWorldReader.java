@@ -158,7 +158,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         Vector3i blockPosition = blockChange.getBlockPosition();
         // Don't spam transactions (block changes are sent in batches)
         if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range &&
-                player.lastTransSent + 2 < System.currentTimeMillis())
+                player.lastTransSent + 2 < player.now())
             player.sendTransaction();
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
@@ -172,7 +172,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         final var blocks = multiBlockChange.getBlocks();
         for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : blocks) {
             // Don't send a transaction unless it's within 16 blocks of the player
-            if (Math.abs(blockChange.getX() - player.x) < range && Math.abs(blockChange.getY() - player.y) < range && Math.abs(blockChange.getZ() - player.z) < range && player.lastTransSent + 2 < System.currentTimeMillis()) {
+            if (Math.abs(blockChange.getX() - player.x) < range && Math.abs(blockChange.getY() - player.y) < range && Math.abs(blockChange.getZ() - player.z) < range && player.lastTransSent + 2 < player.now()) {
                 player.sendTransaction();
                 break;
             }

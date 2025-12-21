@@ -19,7 +19,7 @@ public class TimerLimit extends Timer {
     @Override
     public void doCheck(final PacketReceiveEvent event) {
         // 1:1 with Timer minus cancelling the packet
-        if (timerBalanceRealTime > System.nanoTime()) {
+        if (timerBalanceRealTime > player.nano()) {
             // If timer check already flagged, don't flag.
             if (!event.isCancelled()) {
                 if (flagAndAlert() && shouldSetback()) {
@@ -38,8 +38,8 @@ public class TimerLimit extends Timer {
     protected void limitFallBehind() {
         // Limit using transaction ping if over 1000ms (default)
         long playerClock = lastMovementPlayerClock;
-        if (limitAbuseOverPing != -1 && System.nanoTime() - playerClock > limitAbuseOverPing) {
-            playerClock = System.nanoTime() - limitAbuseOverPing;
+        if (limitAbuseOverPing != -1 && player.nano() - playerClock > limitAbuseOverPing) {
+            playerClock = player.nano() - limitAbuseOverPing;
         }
         timerBalanceRealTime = Math.max(timerBalanceRealTime, playerClock - clockDrift);
     }

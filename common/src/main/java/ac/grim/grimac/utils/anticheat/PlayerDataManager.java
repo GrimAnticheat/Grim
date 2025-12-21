@@ -3,6 +3,8 @@ package ac.grim.grimac.utils.anticheat;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
+import ac.grim.grimac.checks.debug.DebugGrimPlayer;
+import ac.grim.grimac.checks.debug.GrimDebugSettings;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -66,9 +68,18 @@ public class PlayerDataManager {
 
     public void addUser(final @NotNull User user) {
         if (shouldCheck(user)) {
-            GrimPlayer player = new GrimPlayer(user);
+            GrimPlayer player = this.createPlayer(user);
             playerDataMap.put(user, player);
             GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
+        }
+    }
+
+    public GrimPlayer createPlayer(User user) {
+        // Simple Global Check
+        if (GrimDebugSettings.shouldEnable()) {
+            return new DebugGrimPlayer(user);
+        } else {
+            return new GrimPlayer(user);
         }
     }
 

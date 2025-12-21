@@ -162,9 +162,9 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         if (isPendingSetback()) return; // Don't spam setbacks
 
         // Only let us full resync once every five seconds to prevent unneeded bukkit load
-        if (System.currentTimeMillis() - lastWorldResync > 5 * 1000) {
+        if (player.now() - lastWorldResync > 5 * 1000) {
             player.resyncPositions(player.boundingBox.copy().expand(1));
-            lastWorldResync = System.currentTimeMillis();
+            lastWorldResync = player.now();
         }
 
         Vector3dm clientVel = lastKnownGoodPosition.vector.clone();

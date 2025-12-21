@@ -31,7 +31,7 @@ public class PacketWorldBorder extends Check implements PacketCheck {
     }
 
     public double getCurrentDiameter() {
-        double d0 = (double) (System.currentTimeMillis() - startTime) / ((double) endTime - startTime);
+        double d0 = (double) (player.now() - startTime) / ((double) endTime - startTime);
         return d0 < 1.0D ? GrimMath.lerp(d0, oldDiameter, newDiameter) : newDiameter;
     }
 
@@ -125,7 +125,7 @@ public class PacketWorldBorder extends Check implements PacketCheck {
     private void setLerp(double oldDiameter, double newDiameter, long length) {
         this.oldDiameter = oldDiameter;
         this.newDiameter = newDiameter;
-        this.startTime = System.currentTimeMillis();
+        this.startTime = player.now();
         this.endTime = this.startTime + length;
     }
 }

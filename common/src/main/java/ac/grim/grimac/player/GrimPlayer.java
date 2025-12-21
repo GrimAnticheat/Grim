@@ -120,13 +120,13 @@ public class GrimPlayer implements GrimUser {
     public long lastTransSent = 0;
     public long lastTransReceived = 0;
     @Getter
-    private long playerClockAtLeast = System.nanoTime();
+    private long playerClockAtLeast;
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
     public int powderSnowFrozenTicks = 0;
     public boolean hasGravity = true;
-    public final long joinTime = System.currentTimeMillis();
+    public final long joinTime;
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
     public Vector3dm actualMovement = new Vector3dm();
@@ -272,6 +272,12 @@ public class GrimPlayer implements GrimUser {
     public boolean lastJumping;
 
     public GrimPlayer(@NotNull User user) {
+        this(user, System.currentTimeMillis(), System.nanoTime());
+    }
+
+    protected GrimPlayer(@NotNull User user, long joinTime, long clockStart) {
+        this.joinTime = joinTime;
+        this.playerClockAtLeast = clockStart;
         this.user = user;
         this.uuid = user.getUUID();
         fireworks = new CompensatedFireworks(this); // Must be before checkmanager
@@ -397,7 +403,7 @@ public class GrimPlayer implements GrimUser {
             // Transactions that we send don't count towards total limit
             if (viaPacketTracker != null) viaPacketTracker.setIntervalPackets(viaPacketTracker.getIntervalPackets() - 1);
 
-            if (skipped > 0 && System.currentTimeMillis() - joinTime > 5000)
+            if (skipped > 0 && now() - joinTime > 5000)
                 checkManager.getCheck(TransactionOrder.class).flagAndAlert("skipped: " + skipped);
 
             do {
@@ -406,14 +412,14 @@ public class GrimPlayer implements GrimUser {
                     break;
 
                 lastTransactionReceived.incrementAndGet();
-                lastTransReceived = System.currentTimeMillis();
-                transactionPing = (System.nanoTime() - data.second());
+                lastTransReceived = now();
+                transactionPing = (this.nano() - data.second());
                 playerClockAtLeast = data.second();
             } while (data.first() != id);
 
             // A transaction means a new tick, so handle any block interactions
-            CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
-            CheckManagerListener.handleQueuedBreaks(this, false, 0, 0, System.currentTimeMillis());
+            CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, now());
+            CheckManagerListener.handleQueuedBreaks(this, false, 0, 0, now());
             latencyUtils.handleNettySyncTransaction(lastTransactionReceived.get());
         }
 
@@ -461,11 +467,11 @@ public class GrimPlayer implements GrimUser {
         if (user.getEncoderState() != ConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
-        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
+        if (disableGrim && (this.nano() - getPlayerClockAtLeast()) > 15e9) {
             return;
         }
 
-        lastTransSent = System.currentTimeMillis();
+        lastTransSent = now();
         short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
         try {
 
@@ -524,15 +530,20 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void pollData() {
+        // Reset the debug timer for the Scheduler Thread.
+        // In Production: This is a no-op (0 cost).
+        // In Debug: This tells the clock "I am starting a new tick, don't freeze time."
+        this.processingPacket();
+
         // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
         //
         // This will only really activate if there's no entities around the player being tracked
         // 80 is a magic value that is roughly every other tick, we don't want to spam too many packets.
-        if (lastTransSent != 0 && lastTransSent + 80 < System.currentTimeMillis()) {
+        if (lastTransSent != 0 && lastTransSent + 80 < now()) {
             sendTransaction(true); // send on netty thread
         }
-        if ((System.nanoTime() - getPlayerClockAtLeast()) > maxTransactionTime * 1e9) {
+        if ((this.nano() - getPlayerClockAtLeast()) > maxTransactionTime * 1e9) {
             timedOut();
         }
 
@@ -990,4 +1001,27 @@ public class GrimPlayer implements GrimUser {
 
         return blockStateId;
     }
+
+    /**
+     * Returns the current high-resolution time in nanoseconds.
+     * In Debug Mode, this will subtract time spent paused at breakpoints.
+     */
+    public long nano() {
+        return System.nanoTime();
+    }
+
+    /**
+     * Returns the current wall-clock time in milliseconds.
+     * In Debug Mode, this will subtract time spent paused at breakpoints.
+     */
+    public long now() {
+        return System.currentTimeMillis();
+    }
+
+    /**
+     * Called immediately when a packet starts processing.
+     * Used by DebugGrimPlayer to differentiate "Lag" (Pre-Packet) from "Breakpoints" (Intra-Packet).
+     * Optimized away (Dead Code Elimination) in production.
+     */
+    public void processingPacket() {}
 }
