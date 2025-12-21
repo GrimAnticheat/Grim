@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-public class GhostBlockDetector extends Check implements PostPredictionCheck { // test
+public class GhostBlockDetector extends Check implements PostPredictionCheck {
 
     public GhostBlockDetector(GrimPlayer player) {
         super(player);
