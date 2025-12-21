@@ -48,6 +48,7 @@ public class UncertaintyHandler {
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
     public boolean lastPacketWasGroundPacket = false;
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
+    public boolean wasSteppingOnSlime = false;
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
     public boolean isSteppingOnHoney = false;
@@ -121,6 +122,7 @@ public class UncertaintyHandler {
         isStepMovement = false;
 
         isSteppingNearShulker = false;
+        wasSteppingOnSlime = isSteppingOnSlime;
         wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
         isSteppingOnSlime = false;
         isSteppingOnBouncyBlock = false;
@@ -252,6 +254,10 @@ public class UncertaintyHandler {
 
     public boolean influencedByBouncyBlock() {
         return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
+    }
+
+    public boolean influencedBySlime() {
+        return isSteppingOnSlime || wasSteppingOnSlime;
     }
 
     public double getVerticalOffset(VectorData data) {

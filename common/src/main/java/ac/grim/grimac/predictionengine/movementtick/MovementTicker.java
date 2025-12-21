@@ -206,9 +206,13 @@ public class MovementTicker {
                     }
                 }
             } else if (BlockTags.BEDS.contains(onBlock) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
-                if (player.clientVelocity.getY() < 0.0) {
-                    player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
-                            (riding != null && !riding.isLivingEntity ? 0.8 : 1.0));
+                if (player.isSneaking) { // Bed blocks use shifting instead of sneaking
+                    player.clientVelocity.setY(0);
+                } else {
+                    if (player.clientVelocity.getY() < 0.0) {
+                        player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
+                                (riding != null && !riding.isLivingEntity ? 0.8 : 1.0));
+                    }
                 }
             } else {
                 player.clientVelocity.setY(0);

@@ -371,9 +371,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.packetStateData.lastRiptide = currentTime;
         }
 
-        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(player.getMovementThreshold()).offset(0, -1, 0);
-        Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
-            WrappedBlockState data = pair.first();
+        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ)
+                .offset(0.0, player.getClientVersion().isOlderThan(ClientVersion.V_1_15) ? -1.0 : -0.2, 0.0);
+        Collisions.forEachCollisionBox(player, steppingOnBB, (data, pos) -> {
             if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
@@ -381,6 +381,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (data.getType() == StateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                    // TODO: is stepping on slime = true?
+//                    player.uncertaintyHandler.isSteppingOnSlime = true;
                     player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
@@ -397,7 +399,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (data.getType() == StateTypes.SCAFFOLDING) {
                 player.uncertaintyHandler.isSteppingNearScaffolding = true;
             }
-            return false;
         });
 
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
