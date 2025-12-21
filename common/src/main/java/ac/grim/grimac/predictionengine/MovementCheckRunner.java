@@ -628,7 +628,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
 
-        player.compensatedCamels.tick();
+        player.compensatedDashableEntities.tick();
 
         player.minAttackSlow = 0;
         player.maxAttackSlow = 0;

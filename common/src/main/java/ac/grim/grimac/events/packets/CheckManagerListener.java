@@ -581,9 +581,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
                 player.packetStateData.didLastMovementIncludePosition = false;
 
-                // Track camel dash cooldown
+                // Track dash cooldown
                 if (!player.inVehicle()) {
-                    player.compensatedCamels.tick();
+                    player.compensatedDashableEntities.tick();
                 }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;

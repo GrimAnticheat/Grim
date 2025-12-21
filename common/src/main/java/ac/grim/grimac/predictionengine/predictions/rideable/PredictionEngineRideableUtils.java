@@ -4,29 +4,20 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.math.Vector3dm;
-import ac.grim.grimac.utils.nmsutil.BlockProperties;
-import ac.grim.grimac.utils.nmsutil.JumpPower;
-import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalInt;
 import java.util.Set;
 
 @UtilityClass
 public final class PredictionEngineRideableUtils {
 
     public static Set<VectorData> handleJumps(GrimPlayer player, Set<VectorData> possibleVectors) {
-        if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityHorse horse))
+        if (!(player.compensatedEntities.self.getRiding() instanceof JumpableEntity jumpable))
             return possibleVectors;
 
         boolean lastOnGround = player.lastOnGround;
@@ -34,102 +25,29 @@ public final class PredictionEngineRideableUtils {
             player.lastOnGround = false;
         }
 
-        if (horse instanceof PacketEntityCamel camel) {
-            handleCamelDash(player, possibleVectors, camel);
-        } else {
-            handleHorseJumping(player, possibleVectors, horse);
-        }
+        jumpable.executeJump(player, possibleVectors);
 
-        // More jumping stuff
+        // More jumping stuff // TODO the code below probably does not apply to nautilus
         boolean legacyJumpingMechanics = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_3);
         boolean onGround = legacyJumpingMechanics
                 ? player.clientControlledVerticalCollision
                 : player.lastOnGround;
         if (onGround) {
             if (legacyJumpingMechanics) {
-                horse.horseJump = 0.0F;
+                jumpable.setJumpPower(0.0F);
             }
 
-            horse.horseJumping = false;
+            jumpable.setJumping(false);
         }
 
-        if (horse.nextHorseJump != 0.0F) {
-            horse.horseJump = horse.nextHorseJump;
-            horse.nextHorseJump = 0.0F;
+        if (jumpable.getNextJumpPower() != 0.0F) {
+            jumpable.setJumpPower(jumpable.getNextJumpPower());
+            jumpable.setNextJumpPower(0.0F);
         }
 
         player.vehicleData.firstRidingTick = false;
         player.lastOnGround = lastOnGround;
         return possibleVectors;
-    }
-
-    private static void handleCamelDash(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityCamel camel) {
-        final boolean wantsToJump = camel.horseJump > 0.0F && !camel.horseJumping && player.lastOnGround;
-        if (!wantsToJump) return;
-
-        final double jumpFactor = camel.getAttributeValue(Attributes.JUMP_STRENGTH) * JumpPower.getPlayerJumpFactor(player);
-
-        double jumpYVelocity;
-
-        final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
-        if (jumpBoost.isPresent()) {
-            jumpYVelocity = jumpFactor + ((jumpBoost.getAsInt() + 1) * 0.1F);
-        } else {
-            jumpYVelocity = jumpFactor;
-        }
-
-        final double multiplier = (double) (22.2222F * camel.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch).multiply(1.0, 0.0, 1.0).normalize().multiply(multiplier).add(0, (double) (1.4285F * camel.horseJump) * jumpYVelocity, 0);
-
-        for (VectorData vectorData : possibleVectors) {
-            vectorData.vector.add(jumpVelocity);
-        }
-
-        camel.horseJumping = true;
-        camel.dashCooldown = 55;
-        camel.horseJump = 0.0F;
-    }
-
-    private static void handleHorseJumping(GrimPlayer player, Set<VectorData> possibleVectors, PacketEntityHorse horse) {
-        // If the player wants to jump on a horse
-        // Listen to Entity Action -> start jump with horse, stop jump with horse
-        final boolean wantsToJump = horse.horseJump > 0.0F && !horse.horseJumping && player.lastOnGround;
-        if (!wantsToJump) return;
-
-        float forwardInput = player.vehicleData.vehicleForward;
-
-        if (forwardInput <= 0.0F) {
-            forwardInput *= 0.25F;
-        }
-
-        double jumpFactor = (float) horse.getAttributeValue(Attributes.JUMP_STRENGTH) * horse.horseJump * JumpPower.getPlayerJumpFactor(player);
-        double jumpVelocity;
-
-        // This doesn't even work because vehicle jump boost has (likely) been
-        // broken ever since vehicle control became client sided
-        //
-        // But plugins can still send this, so support it anyways
-        final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
-        if (jumpBoost.isPresent()) {
-            jumpVelocity = jumpFactor + ((jumpBoost.getAsInt() + 1) * 0.1F);
-        } else {
-            jumpVelocity = jumpFactor;
-        }
-
-        horse.horseJumping = true;
-
-        float yawRadians = GrimMath.radians(player.yaw);
-        float f2 = player.trigHandler.sin(yawRadians);
-        float f3 = player.trigHandler.cos(yawRadians);
-
-        for (VectorData vectorData : possibleVectors) {
-            vectorData.vector.setY(jumpVelocity);
-            if (forwardInput > 0.0F) {
-                vectorData.vector.add(new Vector3dm(-0.4F * f2 * horse.horseJump, 0.0D, 0.4F * f3 * horse.horseJump));
-            }
-        }
-
-        horse.horseJump = 0.0F;
     }
 
     public static List<VectorData> applyInputsToVelocityPossibilities(Vector3dm movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {

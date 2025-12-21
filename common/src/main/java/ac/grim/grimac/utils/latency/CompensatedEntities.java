@@ -411,15 +411,14 @@ public class CompensatedEntities {
                     if (entity instanceof PacketEntityCamel camel) {
                         EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
                         if (entityData != null) {
-                            camel.dashing = (boolean) entityData.getValue();
+                            camel.setDashing((boolean) entityData.getValue());
 
                             // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
                             // !firstTick condition
-                            camel.dashCooldown = camel.dashCooldown == 0 ? 55 : camel.dashCooldown;
+                            camel.setDashCooldown(camel.getDashCooldown() == 0 ? 55 : camel.getDashCooldown());
                         }
                     }
                 }
-
             } else {
                 EntityData<?> horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {

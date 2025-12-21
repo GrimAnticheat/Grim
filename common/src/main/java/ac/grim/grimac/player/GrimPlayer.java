@@ -208,7 +208,7 @@ public class GrimPlayer implements GrimUser {
     public final CompensatedFireworks fireworks;
     public final CompensatedWorld compensatedWorld;
     public final CompensatedEntities compensatedEntities;
-    public final CompensatedCamels compensatedCamels;
+    public final CompensatedDashableEntities compensatedDashableEntities;
     public final CompensatedInventory inventory;
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
@@ -287,7 +287,7 @@ public class GrimPlayer implements GrimUser {
 
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
-        compensatedCamels = new CompensatedCamels();
+        compensatedDashableEntities = new CompensatedDashableEntities();
         uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
         pointThreeEstimator = new PointThreeEstimator(this);
 
