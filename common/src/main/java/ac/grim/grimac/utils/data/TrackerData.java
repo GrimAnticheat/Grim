@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import lombok.Data;
 
 @Data
