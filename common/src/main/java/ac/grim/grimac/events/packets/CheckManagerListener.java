@@ -580,6 +580,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
                 player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
                 player.packetStateData.didLastMovementIncludePosition = false;
+
+                // Track dash cooldown
+                if (!player.inVehicle()) {
+                    player.compensatedDashableEntities.tick();
+                }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;
         }

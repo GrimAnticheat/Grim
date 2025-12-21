@@ -16,7 +16,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         if (!horsePacket.hasSaddle()) return;
 
-        player.speed = horsePacket.getAttributeValue(Attributes.MOVEMENT_SPEED) + getExtraSpeed();
+        player.speed = (float) horsePacket.getAttributeValue(Attributes.MOVEMENT_SPEED) + getExtraSpeed();
 
         // Setup player inputs
         float horizInput = player.vehicleData.vehicleHorizontal * 0.5F;
