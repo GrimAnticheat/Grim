@@ -232,7 +232,7 @@ public class PointThreeEstimator {
 
     public void endOfTickTick() {
         double movementThreshold = player.getMovementThreshold();
-        float collisionBoxThreshold = player.isPointThree() ? 0.06f : 0.0004f;
+        float collisionBoxThreshold = (float) (movementThreshold * 2.f);
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
 
         // Determine the head hitter using the current Y position
