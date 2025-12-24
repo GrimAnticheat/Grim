@@ -54,33 +54,69 @@ public class MessageUtil {
         return replacePlaceholders(player == null ? null : GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId()), player, string, false);
     }
 
+    // NOTE: This pattern intentionally matches standard placeholders (Alphanumeric + Underscore).
+    // Complex PAPI placeholders containing symbols like '<' or '>' (e.g., %img_<id>%) will NOT match.
+    // This is acceptable: complex placeholders are skipped by this loop and handled raw by PAPI later.
     private static final Pattern UNIFIED_PLACEHOLDER_PATTERN = Pattern.compile("%([a-zA-Z0-9_]+)%");
 
+    /**
+     * Replaces placeholders using a hybrid performance strategy: Grim-internal lookups first, then PAPI.
+     * <p>
+     * <b>Strategy:</b>
+     * <ol>
+     *     <li><b>Fast Path:</b> Immediate return if no {@code %} is present.</li>
+     *     <li><b>Grim Lookup:</b> Checks internal maps (O(1)). If found, the value is calculated and (optionally) filtered.</li>
+     *     <li><b>PAPI Fallback:</b> If the placeholder is unknown to Grim, it is left <b>raw</b> (e.g., {@code %player_name%}).
+     *     This allows the external PAPI hook to process it after this method returns.</li>
+     * </ol>
+     *
+     * <b>Discord Formatting (when removeFormatting is true):</b>
+     * <ul>
+     *     <li><b>Standard:</b> Values are fully escaped (e.g., {@code _User_} -> {@code \_User\_}) to prevent accidental formatting.</li>
+     *     <li><b>Code Blocks:</b> If the placeholder is wrapped in backticks (e.g., {@code `%player%`}),
+     *     only backticks/backslashes are escaped. This preserves the raw data look.</li>
+     *     <li><b>Caveat:</b> PAPI results are <b>NOT</b> filtered. If a PAPI placeholder returns an underscore, it may cause formatting issues.</li>
+     * </ul>
+     *
+     * @param grimPlayer       The Grim user instance (nullable).
+     * @param platformPlayer   The Platform player instance (nullable).
+     * @param string           The raw message string.
+     * @param removeFormatting Whether to escape Markdown characters (used for Discord).
+     * @return The processed string with Grim placeholders filled and PAPI placeholders pending.
+     */
     @Contract("_, _, null, _ -> null; _, _, !null, _ -> !null")
     private @Nullable String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @Nullable String string, boolean removeFormatting) {
         if (string == null) return null;
 
-        // OPTIMIZATION 1: THE FAST PATH
+        // --- PHASE 1: FAST PATH ---
+        // JVM Intrinsic: Scanning for a char is significantly faster than initializing a Regex Matcher.
+        // If there is no '%', we can skip all allocation.
         if (string.indexOf('%') == -1) {
             return string;
         }
 
         final Matcher matcher = UNIFIED_PLACEHOLDER_PATTERN.matcher(string);
 
+        // If '%' exists but doesn't form a valid simple placeholder, skip to the PAPI/Legacy handler.
+        // This avoids allocating the StringBuilder below.
         if (!matcher.find()) {
             return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string);
         }
 
         final Map<String, String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements();
         final Map<String, Function<GrimUser, String>> variableReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
+
+        // 32 is a heuristic buffer. It roughly covers the expansion cost of one UUID (36 chars) vs one placeholder (6 chars).
         final StringBuilder sb = new StringBuilder(string.length() + 32);
 
-        // OPTIMIZATION 2: UNIFIED SINGLE-PASS LOOP
+        // --- PHASE 2: THE REPLACEMENT LOOP ---
+        // Used do-while because the first `matcher.find()` was already called above.
         do {
             final String keyWithPercent = matcher.group(0);
             String value = staticReplacements.get(keyWithPercent);
 
-            // OPTIMIZATION 3: UNIFIED LOOKUP
+            // Lazy Evaluation: Only check dynamic placeholders if static failed.
+            // Only run the function (e.g. TPS calc) if the placeholder is actually present.
             if (value == null && grimPlayer != null) {
                 final Function<GrimUser, String> func = variableReplacements.get(keyWithPercent);
                 if (func != null) {
@@ -88,15 +124,35 @@ public class MessageUtil {
                 }
             }
 
-            // OPTIMIZATION 4: CONDITIONAL FORMATTING
+            // --- PHASE 3: HANDLING & FORMATTING ---
             if (value != null) {
-                // If we found a Grim replacement, we apply formatting filters (if requested)
+                // CASE A: Grim Placeholder Found
                 if (removeFormatting) {
-                    value = filterDiscordText(value);
+                    // Check if the user wrapped this placeholder in code blocks (e.g. ` %player% `)
+                    boolean insideCodeBlock = false;
+                    if (matcher.start() > 0 && matcher.end() < string.length()) {
+                        char charBefore = string.charAt(matcher.start() - 1);
+                        char charAfter = string.charAt(matcher.end());
+                        if (charBefore == '`' && charAfter == '`') {
+                            insideCodeBlock = true;
+                        }
+                    }
+
+                    if (insideCodeBlock) {
+                        // Context: Inside Code Block (`...`).
+                        // Action: Escape backticks/backslashes to prevent breaking out. Leave underscores/markdown raw.
+                        value = value.replace("\\", "\\\\").replace("`", "\\`");
+                    } else {
+                        // Context: Standard Text.
+                        // Action: Aggressively escape all Markdown characters.
+                        value = filterDiscordText(value);
+                    }
                 }
             } else {
-                // If no replacement found, keep the original placeholder so PAPI can handle it later.
-                // Do NOT filter this, or we might escape characters (like '_') that break PAPI syntax.
+                // CASE B: Unknown Placeholder (Likely PAPI)
+                // Action: Restore the original key (e.g. "%player_name%") so PAPI can process it later.
+                // CRITICAL: Do NOT run filterDiscordText() here. It would escape the '%' or '_' in the key,
+                // breaking PAPI syntax (e.g., "%player\_name%" is invalid PAPI).
                 value = keyWithPercent;
             }
 
@@ -108,6 +164,7 @@ public class MessageUtil {
 
         String grimReplaced = sb.toString();
 
+        // Final Pass: Hand off to platform-specific handler (PAPI)
         return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, grimReplaced).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
     }
 

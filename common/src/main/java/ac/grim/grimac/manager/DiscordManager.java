@@ -109,13 +109,13 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     @Contract(value = " -> new", pure = true)
     private @NotNull @Unmodifiable List<@NotNull String> getDefaultContents() {
         return List.of(
-                "**Player**: %player%",
-                "**Check**: %check%",
-                "**Violations**: %violations%",
-                "**Client Version**: %version%",
-                "**Brand**: %brand%",
-                "**Ping**: %ping%",
-                "**TPS**: %tps%"
+                "**Player**: `%player%`", // User input (Unsafe chars) -> Code Block
+                "**Brand**: `%brand%`", // Client input (Unsafe chars) -> Code Block
+                "**Check**: %check%", // Internal String -> Plain text
+                "**Violations**: %violations%", // Integer -> Plain text
+                "**Client Version**: %version%", // Standard String (1.8) -> Plain text
+                "**Ping**: %ping%", // Integer -> Plain text
+                "**TPS**: %tps%" // Double -> Plain text
         );
     }
 
