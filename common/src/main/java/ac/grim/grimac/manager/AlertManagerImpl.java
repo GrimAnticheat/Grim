@@ -11,6 +11,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -367,5 +368,33 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
     @Contract(pure = true)
     public boolean hasAlertListeners() {
         return AlertType.NORMAL.hasListeners();
+    }
+
+    @Override
+    public boolean hasAlertsEnabled(Player player) {
+        if (player == null) return false;
+        GrimUser user = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId());
+        return hasAlertsEnabled(user);
+    }
+
+    @Override
+    public void toggleAlerts(Player player) {
+        if (player == null) return;
+        GrimUser user = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId());
+        toggleAlerts(user);
+    }
+
+    @Override
+    public boolean hasVerboseEnabled(Player player) {
+        if (player == null) return false;
+        GrimUser user = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId());
+        return hasVerboseEnabled(user);
+    }
+
+    @Override
+    public void toggleVerbose(Player player) {
+        if (player == null) return;
+        GrimUser user = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player.getUniqueId());
+        toggleVerbose(user);
     }
 }

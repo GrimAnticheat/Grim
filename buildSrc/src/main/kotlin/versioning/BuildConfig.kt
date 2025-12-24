@@ -56,7 +56,7 @@ object BuildConfig {
         _shadePE = resolveBool(project, "shadePE", altKey = "SHADE_PE", default = true)
         _relocate = resolveBool(project, "relocate", altKey = "RELOCATE_JAR", default = true)
         _release = resolveBool(project, "release", default = false)
-        _mavenLocalOverride = resolveBool(project, "mavenLocalOverride", default = false)
+        _mavenLocalOverride = resolveBool(project, "mavenLocalOverride", altKey = "MAVEN_LOCAL_OVERRIDE", default = false)
     }
 
     // Unified resolution logic (System > Gradle > Env)

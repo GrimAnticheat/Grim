@@ -1,8 +1,10 @@
 package ac.grim.grimac.platform.bukkit;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.GrimExternalAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.GrimAbstractAPI;
+import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.events.GrimExtensionManager;
 import ac.grim.grimac.manager.init.Initable;
@@ -132,8 +134,81 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public void registerAPIService() {
-        GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPI.INSTANCE.getExternalAPI(), GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+        final GrimExternalAPI externalAPI = GrimAPI.INSTANCE.getExternalAPI();
+        final EventBus eventBus = externalAPI.getEventBus();
+        final ac.grim.grimac.api.plugin.GrimPlugin context = GrimAPI.INSTANCE.getGrimPlugin();
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimJoinEvent.class, (event) -> {
+            ac.grim.grimac.api.events.GrimJoinEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.GrimJoinEvent(event.getUser());
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        });
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimQuitEvent.class, (event) -> {
+            ac.grim.grimac.api.events.GrimQuitEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.GrimQuitEvent(event.getUser());
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        });
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimReloadEvent.class, (event) -> {
+            ac.grim.grimac.api.events.GrimReloadEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.GrimReloadEvent(event.isSuccess());
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        });
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.FlagEvent.class, (event) -> {
+            ac.grim.grimac.api.events.FlagEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.FlagEvent(
+                            event.getUser(),
+                            event.getCheck(),
+                            event.getVerbose()
+                    );
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+
+            if (bukkitEvent.isCancelled()) {
+                event.setCancelled(true);
+            }
+        });
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CommandExecuteEvent.class, (event) -> {
+            ac.grim.grimac.api.events.CommandExecuteEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.CommandExecuteEvent(
+                            event.getUser(),
+                            event.getCheck(),
+                            event.getVerbose(),
+                            event.getCommand()
+                    );
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+
+            if (bukkitEvent.isCancelled()) {
+                event.setCancelled(true);
+            }
+        });
+
+        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CompletePredictionEvent.class, (event) -> {
+            // Note: New event doesn't have verbose, passing null or check name is standard fallback
+            ac.grim.grimac.api.events.CompletePredictionEvent bukkitEvent =
+                    new ac.grim.grimac.api.events.CompletePredictionEvent(
+                            event.getUser(),
+                            event.getCheck(),
+                            "",
+                            event.getOffset()
+                    );
+
+            Bukkit.getPluginManager().callEvent(bukkitEvent);
+
+            if (bukkitEvent.isCancelled()) {
+                event.setCancelled(true);
+            }
+        });
+
+        GrimAPIProvider.init(externalAPI);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
     }
 
     private PlatformScheduler createScheduler() {
