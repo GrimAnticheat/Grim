@@ -1,13 +1,15 @@
+# Aide sur les webhooks : https://support.discord.com/hc/fr/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+embed-title: "**Grim Alerte**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# %player% et %brand% sont entourés d'accents graves (`) pour éviter que les caractères spéciaux ne cassent le formatage.
 violation-content:
-    - "**Joueur**: %player%"
+    - "**Joueur**: `%player%`"
+    - "**Marque du client**: `%brand%`"
     - "**Vérification**: %check%"
     - "**Violations**: %violations%"
     - "**Version du client**: %version%"
-    - "**Nature du client**: %brand%"
     - "**Latence**: %ping%"
     - "**TPS**: %tps%"

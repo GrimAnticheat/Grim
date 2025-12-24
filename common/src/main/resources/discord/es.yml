@@ -1,25 +1,15 @@
-# Configuraciones del webhook de Discord
-# Si tienes dudas en como usarlos, puedes consultar el artículo de soporte de Discord: https://support.discord.com/hc/es/articles/228383668
-
-# ¿Deberíamos usar webhooks?
+# Ayuda con webhooks: https://support.discord.com/hc/es/articles/228383668
 enabled: false
-
-# La URL del webhook.
 webhook: ""
-
-embed-title: "**Grim Alert**"
-
-# El color del embed que se mandara por este webhook.
+embed-title: "**Grim Alerta**"
 embed-color: "#00FFFF"
-
 include-timestamp: true
-
-# El contenido del embed que se mandara por este webhook.
+# %player% y %brand% están envueltos en acentos graves (`) para evitar que caracteres especiales rompan el formato.
 violation-content:
-    - "**Jugador**: %player%"
+    - "**Jugador**: `%player%`"
+    - "**Marca del cliente**: `%brand%`"
     - "**Comprobación**: %check%"
     - "**Violaciones**: %violations%"
-    - "**Version del cliente**: %version%"
-    - "**Marca del cliente**: %brand%"
+    - "**Versión del cliente**: %version%"
     - "**Latencia**: %ping%"
     - "**TPS**: %tps%"

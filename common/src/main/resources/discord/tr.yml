@@ -1,13 +1,15 @@
+# Webhook yardımı: https://support.discord.com/hc/tr/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+embed-title: "**Grim Uyarı**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# %player% ve %brand% özel karakterlerin biçimlendirmeyi bozmasını önlemek için ters tırnak (`) içine alınmıştır.
 violation-content:
-    - "**Oyuncu**: %player%"
+    - "**Oyuncu**: `%player%`"
+    - "**Client Markası**: `%brand%`"
     - "**Kontrol**: %check%"
     - "**İhlaller**: %violations%"
     - "**Client Versiyonu**: %version%"
-    - "**Kullanılan Client**: %brand%"
     - "**Gecikme**: %ping%"
     - "**TPS**: %tps%"

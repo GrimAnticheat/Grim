@@ -1,14 +1,15 @@
-# Включать ли веб-крючок discord
+# Справка по вебхукам: https://support.discord.com/hc/ru/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+embed-title: "**Grim Оповещение**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# %player% и %brand% обёрнуты в обратные кавычки (`), чтобы спецсимволы не нарушали форматирование.
 violation-content:
-    - "**Игрок**: %player%"
+    - "**Игрок**: `%player%`"
+    - "**Бренд**: `%brand%`"
     - "**Проверка**: %check%"
     - "**Нарушения**: %violations%"
     - "**Версия Клиента**: %version%"
-    - "**Бренд**: %brand%"
     - "**Пинг**: %ping%"
     - "**ТПС**: %tps%"

@@ -1,14 +1,15 @@
-# 是否启用discord webhook
+# Webhook帮助: https://support.discord.com/hc/zh-cn/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+embed-title: "**Grim 警报**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# %player%和%brand%用反引号(`)包裹，防止特殊字符破坏格式。
 violation-content:
-    - "**玩家名**: %player%"
+    - "**玩家名**: `%player%`"
+    - "**客户端品牌**: `%brand%`"
     - "**检查**: %check%"
-    - "**违规率**: %violations%"
+    - "**违规次数**: %violations%"
     - "**游戏版本**: %version%"
-    - "**客户端品牌**: %brand%"
     - "**延迟**: %ping%"
-    - "**服务器卡顿程度**: %tps%"
+    - "**TPS**: %tps%"

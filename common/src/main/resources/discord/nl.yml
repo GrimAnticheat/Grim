@@ -1,13 +1,15 @@
+# Hulp bij webhooks: https://support.discord.com/hc/nl/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+embed-title: "**Grim Waarschuwing**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# %player% en %brand% zijn omgeven door backticks (`) om te voorkomen dat speciale tekens de opmaak verstoren.
 violation-content:
-    - "**Speler**: %player%"
-    - "**Controleer**: %check%"
+    - "**Speler**: `%player%`"
+    - "**Client-merk**: `%brand%`"
+    - "**Controle**: %check%"
     - "**Overtredingen**: %violations%"
     - "**Client-versie**: %version%"
-    - "**Client-merk**: %brand%"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
