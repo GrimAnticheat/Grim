@@ -60,6 +60,8 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckManager {
@@ -75,6 +77,15 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
     private PacketEntityReplication packetEntityReplication = null;
+
+    private final List<PacketCheck> packetChecksValues;
+    private final List<PositionCheck> positionChecksValues;
+    private final List<RotationCheck> rotationChecksValues;
+    private final List<VehicleCheck> vehicleChecksValues;
+    private final List<PacketCheck> prePredictionChecksValues;
+    private final List<BlockBreakCheck> blockBreakChecksValues;
+    private final List<BlockPlaceCheck> blockPlaceChecksValues;
+    private final List<PostPredictionCheck> postPredictionChecksValues;
 
     public CheckManager(GrimPlayer player) {
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -264,6 +275,15 @@ public class CheckManager {
                 .putAll(noneModules)
                 .build();
 
+        packetChecksValues = new ArrayList<>(packetChecks.values());
+        positionChecksValues = new ArrayList<>(positionChecks.values());
+        rotationChecksValues = new ArrayList<>(rotationChecks.values());
+        vehicleChecksValues = new ArrayList<>(vehicleChecks.values());
+        prePredictionChecksValues = new ArrayList<>(prePredictionChecks.values());
+        blockBreakChecksValues = new ArrayList<>(blockBreakChecks.values());
+        blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
+        postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
+
         init();
     }
 
@@ -288,103 +308,103 @@ public class CheckManager {
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
-        for (PacketCheck check : prePredictionChecks.values()) {
+        for (PacketCheck check : prePredictionChecksValues) {
             check.onPacketReceive(packet);
         }
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
-        for (PacketCheck check : packetChecks.values()) {
+        for (PacketCheck check : packetChecksValues) {
             check.onPacketReceive(packet);
         }
-        for (PostPredictionCheck check : postPredictionChecks.values()) {
+        for (PostPredictionCheck check : postPredictionChecksValues) {
             check.onPacketReceive(packet);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onPacketReceive(packet);
         }
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecksValues) {
             check.onPacketReceive(packet);
         }
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        for (PacketCheck check : prePredictionChecks.values()) {
+        for (PacketCheck check : prePredictionChecksValues) {
             check.onPacketSend(packet);
         }
-        for (PacketCheck check : packetChecks.values()) {
+        for (PacketCheck check : packetChecksValues) {
             check.onPacketSend(packet);
         }
-        for (PostPredictionCheck check : postPredictionChecks.values()) {
+        for (PostPredictionCheck check : postPredictionChecksValues) {
             check.onPacketSend(packet);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onPacketSend(packet);
         }
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecksValues) {
             check.onPacketSend(packet);
         }
     }
 
     public void onPositionUpdate(final PositionUpdate position) {
-        for (PositionCheck check : positionChecks.values()) {
+        for (PositionCheck check : positionChecksValues) {
             check.onPositionUpdate(position);
         }
     }
 
     public void onRotationUpdate(final RotationUpdate rotation) {
-        for (RotationCheck check : rotationChecks.values()) {
+        for (RotationCheck check : rotationChecksValues) {
             check.process(rotation);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.process(rotation);
         }
     }
 
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {
-        for (VehicleCheck check : vehicleChecks.values()) {
+        for (VehicleCheck check : vehicleChecksValues) {
             check.process(update);
         }
     }
 
     public void onPredictionFinish(final PredictionComplete complete) {
-        for (PostPredictionCheck check : postPredictionChecks.values()) {
+        for (PostPredictionCheck check : postPredictionChecksValues) {
             check.onPredictionComplete(complete);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onPredictionComplete(complete);
         }
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecksValues) {
             check.onPredictionComplete(complete);
         }
     }
 
     public void onBlockPlace(final BlockPlace place) {
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onBlockPlace(place);
         }
     }
 
     public void onPostFlyingBlockPlace(final BlockPlace place) {
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onPostFlyingBlockPlace(place);
         }
     }
 
     public void onBlockBreak(final BlockBreak blockBreak) {
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecksValues) {
             check.onBlockBreak(blockBreak);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onBlockBreak(blockBreak);
         }
     }
 
     public void onPostFlyingBlockBreak(final BlockBreak blockBreak) {
-        for (BlockBreakCheck check : blockBreakChecks.values()) {
+        for (BlockBreakCheck check : blockBreakChecksValues) {
             check.onPostFlyingBlockBreak(blockBreak);
         }
-        for (BlockPlaceCheck check : blockPlaceChecks.values()) {
+        for (BlockPlaceCheck check : blockPlaceChecksValues) {
             check.onPostFlyingBlockBreak(blockBreak);
         }
     }
