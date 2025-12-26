@@ -174,9 +174,11 @@ public class CompensatedEntities {
         if (entityType == EntityTypes.ITEM) return null;
 
         PacketEntity packetEntity;
-        if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
+        if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_NAUTILUS)) {
+            packetEntity = new PacketEntityNautilus(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
+        } else if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
             packetEntity = new PacketEntityHappyGhast(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
-        } else if (EntityTypes.CAMEL.equals(entityType)) {
+        } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.CAMEL)) {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
@@ -430,6 +432,17 @@ public class CompensatedEntities {
                     // horse.hasSaddle = (info & 0x08) != 0; // 0x08 should be hasChest
                     horse.isRearing = (info & 0x40) != 0;
                 }
+            }
+        }
+
+        if (entity instanceof PacketEntityNautilus nautilus) {
+            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 19);
+            if (entityData != null) {
+                nautilus.setDashing((boolean) entityData.getValue());
+
+                // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
+                // !firstTick condition
+                nautilus.setDashCooldown(nautilus.getDashCooldown() == 0 ? 40 : nautilus.getDashCooldown());
             }
         }
 

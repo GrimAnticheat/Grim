@@ -70,13 +70,17 @@ public class PacketEntityCamel extends PacketEntityHorse implements DashableEnti
         }
 
         final double multiplier = (double) (22.2222F * this.getJumpPower()) * this.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch).multiply(1.0, 0.0, 1.0).normalize().multiply(multiplier).add(0, (double) (1.4285F * this.getJumpPower()) * jumpYVelocity, 0);
+        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch)
+                .multiply(1.0, 0.0, 1.0)
+                .normalize()
+                .multiply(multiplier)
+                .add(0, (double) (1.4285F * this.getJumpPower()) * jumpYVelocity, 0);
 
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.add(jumpVelocity);
         }
 
-        this.setJumping(true);
+        this.setDashing(true);
         this.setDashCooldown(55);
         this.setJumpPower(0.0F);
     }

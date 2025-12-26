@@ -10,13 +10,13 @@ public class CompensatedDashableEntities {
 
     public void tick() {
         if (dashableMap.isEmpty()) return;
-        for (DashableEntity camel : dashableMap.values()) {
-            camel.setDashCooldown(Math.max(0, camel.getDashCooldown() - 1));
+        for (DashableEntity dashable : dashableMap.values()) {
+            dashable.setDashCooldown(Math.max(0, dashable.getDashCooldown() - 1));
         }
     }
 
-    public void addEntity(int entityId, DashableEntity dashableEntity) {
-        dashableMap.put(entityId, dashableEntity);
+    public void addEntity(int entityId, DashableEntity dashable) {
+        dashableMap.put(entityId, dashable);
     }
 
     public void removeEntity(int entityId) {
