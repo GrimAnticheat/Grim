@@ -157,12 +157,12 @@ public class UncertaintyHandler {
             Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
             Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
 
-            Vector3dm diff = minLocation.subtract(new Vector3dm(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            Vector3dm diff = minLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
             fishingRodPullBox.minX = Math.min(0, diff.getX());
             fishingRodPullBox.minY = Math.min(0, diff.getY());
             fishingRodPullBox.minZ = Math.min(0, diff.getZ());
 
-            diff = maxLocation.subtract(new Vector3dm(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            diff = maxLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
             fishingRodPullBox.maxX = Math.max(0, diff.getX());
             fishingRodPullBox.maxY = Math.max(0, diff.getY());
             fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
@@ -211,7 +211,7 @@ public class UncertaintyHandler {
     public double getOffsetHorizontal(VectorData data) {
         double threshold = player.getMovementThreshold();
 
-        boolean newVectorPointThree = player.couldSkipTick && data.isKnockback();
+        boolean newVectorPointThree = player.couldSkipTick && data.isKnockback() && !data.isSetbackKb(player);
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
         boolean either003 = newVectorPointThree || explicit003;
 

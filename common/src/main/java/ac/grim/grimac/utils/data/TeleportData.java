@@ -8,11 +8,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @AllArgsConstructor
 @Getter
 public class TeleportData {
     private final Vector3d location;
+    @Nullable
     private final Vector3d velocity;
     private final RelativeFlag flags;
     @Setter

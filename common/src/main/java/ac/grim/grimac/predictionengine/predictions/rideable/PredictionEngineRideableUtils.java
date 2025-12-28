@@ -59,7 +59,7 @@ public final class PredictionEngineRideableUtils {
         }
 
         final double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch).multiply(new Vector3dm(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector3dm(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0));
+        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch).multiply(1.0, 0.0, 1.0).normalize().multiply(multiplier).add(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0);
 
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.add(jumpVelocity);

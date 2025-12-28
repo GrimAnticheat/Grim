@@ -26,7 +26,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim 将把包含内置攻击距离修改功能的特定 Forge 版本列入黑名单（Forge 1.18.2 至 1.19.3） 可能会导致1.18.2-1.19.3的Forge版本玩家无法进入服务器。
@@ -221,9 +221,9 @@ history:
     # history 指令中插入的服务器名称？如果多个服务器共用同一数据库则很有用
     server-name: Prison
     database:
-        # 本地存储使用 SQLITE，外部数据库使用 MYSQL。仅在重启服务器后生效
+        # 本地存储使用SQLITE，如有外部数据库请使用MYSQL或POSTGRESQL。此设置仅在服务器重启时更新
         type: SQLITE
-        # MySQL 连接详情
+        # 数据库连接详情
         host: localhost
         port: 3306
         database: grim

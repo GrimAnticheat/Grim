@@ -29,7 +29,7 @@ public class FabricPlayerSelectorParser<C> extends AbstractPlayerSelectorParser<
     @Override
     protected CompletableFuture<PlayerSelector> adaptToCommonSelector(CommandContext<C> context, Object platformSpecificSelector) {
         return CompletableFuture.completedFuture(
-                selectorSupplier.apply((org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector) platformSpecificSelector)
+                selectorSupplier.apply((SinglePlayerSelector) platformSpecificSelector)
         );
     }
 }

@@ -20,12 +20,11 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.Getter;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
-
 
 public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
@@ -90,7 +89,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public SenderFactory<ServerCommandSource> getSenderFactory() {
+    public SenderFactory<CommandSourceStack> getSenderFactory() {
         return senderFactory.get();
     }
 

@@ -6,6 +6,8 @@ import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +16,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitGrimEntity implements GrimEntity {
+
+    protected static final boolean CAN_USE_DIRECT_GETTERS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_20_1) && PaperUtils.PAPER;
 
     private final Entity entity;
     private BukkitPlatformWorld bukkitPlatformWorld;
@@ -74,5 +78,27 @@ public class BukkitGrimEntity implements GrimEntity {
                 location.getYaw(),
                 location.getPitch()
         );
+    }
+
+    @Override
+    public double distanceSquared(double oX, double oY, double oZ) {
+        if (CAN_USE_DIRECT_GETTERS) {
+            double x = this.entity.getX();
+            double y = this.entity.getY();
+            double z = this.entity.getZ();
+            double distX = (x - oX) * (x - oX);
+            double distY = (y - oY) * (y - oY);
+            double distZ = (z - oZ) * (z - oZ);
+            return distX + distY + distZ;
+        } else {
+            org.bukkit.Location location = this.entity.getLocation();
+            double x = location.getX();
+            double y = location.getY();
+            double z = location.getZ();
+            double distX = (x - oX) * (x - oX);
+            double distY = (y - oY) * (y - oY);
+            double distZ = (z - oZ) * (z - oZ);
+            return distX + distY + distZ;
+        }
     }
 }

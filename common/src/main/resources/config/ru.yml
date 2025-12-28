@@ -25,7 +25,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
@@ -214,9 +214,9 @@ history:
     # Какое имя сервера вставлять для команды history? Полезно при использовании одной базы для нескольких серверов
     server-name: Prison
     database:
-        # Используйте SQLITE для локального хранения или MYSQL для внешней MySQL‑БД. Изменения применяются после перезапуска сервера
+        # Используйте SQLITE для локального хранения, используйте MYSQL или POSTGRESQL, если у вас есть внешняя база данных. Это обновляется только при перезапуске сервера
         type: SQLITE
-        # Параметры подключения MySQL
+        # анные для подключения к базе данных
         host: localhost
         port: 3306
         database: grim

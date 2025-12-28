@@ -4,33 +4,35 @@ import ac.grim.grimac.platform.api.world.PlatformChunk;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import net.minecraft.block.Block;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.level.ServerWorldProperties;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 
 import java.util.UUID;
 
-@Mixin(ServerWorld.class)
+@Mixin(Level.class)
 @Implements(@Interface(iface = PlatformWorld.class, prefix = "grimac$"))
-abstract class ServerWorldMixin implements WorldAccess {
-    @Shadow public @Final ServerWorldProperties worldProperties;
+abstract class LevelMixin implements LevelAccessor {
+
+    @Shadow
+    public abstract ResourceKey<Level> dimension();
 
     public boolean grimac$isChunkLoaded(int chunkX, int chunkZ) {
-        return isChunkLoaded(chunkX, chunkZ);
+        return hasChunk(chunkX, chunkZ);
     }
 
     public WrappedBlockState grimac$getBlockAt(int x, int y, int z) {
         return WrappedBlockState.getByGlobalId(
-                Block.getRawIdFromState(getBlockState(new BlockPos(x, y, z)))
+                Block.getId(getBlockState(new BlockPos(x, y, z)))
         );
     }
 
     public String grimac$getName() {
-        return worldProperties.getLevelName();
+        return this.dimension().location().toString();
     }
 
     public @Nullable UUID grimac$getUID() {
@@ -42,6 +44,6 @@ abstract class ServerWorldMixin implements WorldAccess {
     }
 
     public boolean grimac$isLoaded() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getWorld(getWorld().getRegistryKey()) != null;
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getLevel(this.dimension()) != null;
     }
 }

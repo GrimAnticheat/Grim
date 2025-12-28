@@ -249,6 +249,12 @@ public enum HitboxData implements HitBoxFactory {
         default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_SIGNS.getStates().toArray(new StateType[0])),
 
+    CEILING_HANGING_SIGNS((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getRotation()) {
+        case 0, 8 -> new HexCollisionBox(1.0, 0.0, 7.0, 15.0, 10.0, 9.0);
+        case 4, 12 -> new HexCollisionBox(7.0, 0.0, 1.0, 9.0, 10.0, 15.0);
+        default -> new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 16.0, 13.0);
+    }, BlockTags.CEILING_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+
     WALL_HANGING_SIGN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getFacing()) {
         case NORTH, SOUTH -> new ComplexCollisionBox(2,
                 new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
@@ -263,7 +269,9 @@ public enum HitboxData implements HitBoxFactory {
             BlockTags.STANDING_SIGNS.getStates().toArray(new StateType[0])),
 
     SAPLING(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
-            BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
+            BlockTags.SAPLINGS.getStates().stream()
+                    .filter(s -> s != StateTypes.AZALEA && s != StateTypes.FLOWERING_AZALEA)
+                    .toArray(StateType[]::new)),
 
     ROOTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
             StateTypes.WARPED_ROOTS, StateTypes.CRIMSON_ROOTS),
@@ -331,7 +339,7 @@ public enum HitboxData implements HitBoxFactory {
             if (data.getSouth() == South.TRUE) boxes.add(new HexCollisionBox(0, 0, 15, 16, 16, 16));
 
             // TODO: when was isUp() added?
-            if (data.getInternalData().containsKey(StateValue.UP) && data.isUp()) {
+            if (data.hasProperty(StateValue.UP) && data.isUp()) {
                 boxes.add(new HexCollisionBox(0, 15, 0, 16, 16, 16));
             }
 

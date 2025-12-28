@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.utils.common.GrimArguments;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.data.Pair;
 
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ public class LatencyUtils {
                 } catch (Exception e) {
                     LogUtil.error("An error has occurred when running transactions for player: " + player.user.getName(), e);
                     // Kick the player SO PEOPLE ACTUALLY REPORT PROBLEMS AND KNOW WHEN THEY HAPPEN
-                    if (GrimArguments.TRANSACTION_KICKS) {
+                    if (CommonGrimArguments.KICK_ON_TRANSACTION_ERRORS.value()) {
                         player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectPacketError())));
                     }
                 }

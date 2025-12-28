@@ -70,7 +70,7 @@ public class PacketOrderB extends Check implements PacketCheck {
             return; // do not set sentAnimation to false
         }
 
-        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE) {
+        if (!isAsync(event.getPacketType())) {
             if (sentAttack && is1_9) {
                 flagAndAlert("post-attack");
             }

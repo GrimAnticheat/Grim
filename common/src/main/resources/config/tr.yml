@@ -25,7 +25,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
@@ -218,9 +218,9 @@ history:
     # History komutu için eklenecek sunucu adı nedir? Aynı veritabanını birden fazla sunucuda kullanıyorsanız faydalıdır
     server-name: Prison
     database:
-        # Yerel saklama için SQLITE, harici MySQL veritabanı için MYSQL kullanın. Sadece sunucu yeniden başlatıldığında güncellenir
+        # Yerel depolama için SQLITE kullanın, harici bir veritabanınız varsa MYSQL veya POSTGRESQL kullanın. Bu yalnızca sunucu yeniden başlatıldığında güncellenir
         type: SQLITE
-        # MySQL bağlantı bilgileri
+        # veritabanı bağlantı detayları
         host: localhost
         port: 3306
         database: grim

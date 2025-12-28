@@ -16,7 +16,7 @@ public class FabricOfflinePlatformPlayer implements OfflinePlatformPlayer {
 
     @Override
     public boolean isOnline() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayer(uniqueId) != null;
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerList().getPlayer(uniqueId) != null;
     }
 
     @Override

@@ -6,7 +6,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 
-
 public class FabricTickEndEvent extends AbstractTickEndEvent {
 
     @Override

@@ -3,6 +3,11 @@ name: Reusable Build and Publish
 on:
     workflow_call:
         inputs:
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -36,7 +41,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.runner }}
         permissions:
             contents: read
             packages: write
@@ -85,7 +90,7 @@ jobs:
               run: |
                   # If any command in a pipeline fails, treat the pipeline as failed.
                   set -o pipefail
-                  
+
                   BUILD_ARGS="build"
                   if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS -Prelease=true"
@@ -94,23 +99,23 @@ jobs:
                   if [[ "${{ inputs.run-build-scan }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS --scan"
                   fi
-                  
+
                   echo "Running: ./gradlew printVersion $BUILD_ARGS"
-                  
+
                   # Use 'tee' to both display the output live and save it to a file for parsing
                   VERSION=$(./gradlew printVersion $BUILD_ARGS | tee build-output.log | grep '^VERSION=' | tail -n1 | cut -d'=' -f2)
-                  
+
                   echo "build_version=$VERSION" >> $GITHUB_OUTPUT
                   echo "BUILD_VERSION=$VERSION" >> $GITHUB_ENV
                   echo "Build version: $VERSION"
 
             - name: Publish Build Scan URL
-                # Only run this step if a scan was requested
+              # Only run this step if a scan was requested
               if: ${{ inputs.run-build-scan == true }}
               run: |
                   # Search the log file for the build scan URL and extract it
                   SCAN_URL=$(grep -o 'https://gradle.com/s/[^ ]*' build-output.log | head -n 1 || true)
-                  
+
                   if [[ -n "$SCAN_URL" ]]; then
                     echo "Found build scan URL: $SCAN_URL"
                     # Post a highly visible link to the Job Summary page
@@ -123,14 +128,14 @@ jobs:
                   fi
 
             - name: Upload Bukkit Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: grimac-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: grimac-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
@@ -151,7 +156,7 @@ jobs:
 
             - name: Prepare Final Changelog
               id: changelog
-                # Add this 'env' block to safely load the changelogs as environment variables
+              # Add this 'env' block to safely load the changelogs as environment variables
               env:
                   RELEASE_NOTES: ${{ inputs.release-changelog }}
                   DEV_NOTES: ${{ steps.git-cliff.outputs.content }}
@@ -165,17 +170,36 @@ jobs:
                     # Use the environment variable for the dev changelog.
                     NOTES="$DEV_NOTES"
                   fi
-                  
+
                   if [ -z "$NOTES" ]; then
                     NOTES="* No new code changes in this build."
                   fi
-                  
+
                   # This is the correct way to set a multi-line output variable in Actions
                   {
                     echo "notes<<EOF"
                     echo "$NOTES"
                     echo "EOF"
                   } >> "$GITHUB_OUTPUT"
+
+            - name: Publish Fabric to Modrinth
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
+              uses: Kir-Antipov/mc-publish@v3.3
+              with:
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
+                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
+
+                  files: fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
+                  name: Grim Anticheat (Fabric) ${{ env.BUILD_VERSION }}
+                  version: ${{ env.BUILD_VERSION }}
+                  version-type: ${{ inputs.release-version-type }}
+                  changelog: ${{ steps.changelog.outputs.notes }}
+                  loaders: |
+                      fabric
+                  game-versions: '>=1.21.11'
+                  dependencies: 'fabric-api'
+
             #------------------------------------------------------------------
             #  Publish to Modrinth & API
             #------------------------------------------------------------------
@@ -183,7 +207,7 @@ jobs:
               if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
                   modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
                   modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
 
@@ -198,25 +222,7 @@ jobs:
                     paper
                     folia
                     purpur
-                  game-versions: '>=1.7 <=1.21.8'
-
-            - name: Publish Fabric to Modrinth
-              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
-              uses: Kir-Antipov/mc-publish@v3.3
-              with:
-                  modrinth-id:    ${{ secrets.MODRINTH_ID }}
-                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
-
-                  files: fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
-                  name: Grim Anticheat (Fabric) ${{ env.BUILD_VERSION }}
-                  version: ${{ env.BUILD_VERSION }}
-                  version-type: ${{ inputs.release-version-type }}
-                  changelog: ${{ steps.changelog.outputs.notes }}
-                  loaders: |
-                      fabric
-                  game-versions: '>=1.16.1 <=1.21.8'
-                  dependencies: 'fabric-api'
+                  game-versions: '>=1.7 <=1.21.11'
 
             - name: Publish to API
               if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}

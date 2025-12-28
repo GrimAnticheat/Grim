@@ -25,4 +25,6 @@ public interface GrimEntity extends GrimIdentity {
     PlatformWorld getWorld();
 
     Location getLocation();
+
+    double distanceSquared(double x, double y, double z);
 }

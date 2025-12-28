@@ -24,11 +24,8 @@ public class ChatB extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
             String message = new WrapperPlayClientChatMessage(event).getMessage();
-            if (message.isEmpty() || !message.trim().equals(message) || message.startsWith("/") && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
-                if (flagAndAlert("message=" + message)) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+            if (checkChatMessage(message)) {
+                event.setCancelled(true);
             }
         }
 
@@ -52,5 +49,16 @@ public class ChatB extends Check implements PacketCheck {
                 }
             }
         }
+    }
+
+    // returns whether the packet should be cancelled
+    public boolean checkChatMessage(String message) {
+        if (message.isEmpty() || !message.trim().equals(message) || message.startsWith("/") && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
+            if (flagAndAlert("message=" + message) && shouldModifyPackets()) {
+                player.onPacketCancel();
+                return true;
+            }
+        }
+        return false;
     }
 }

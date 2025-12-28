@@ -6,6 +6,7 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.init.ReloadableInitable;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.manager.violationdatabase.mysql.MySQLViolationDatabase;
+import ac.grim.grimac.manager.violationdatabase.postgresql.PostgresqlViolationDatabase;
 import ac.grim.grimac.manager.violationdatabase.sqlite.SQLiteViolationDatabase;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -83,6 +84,28 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
                 }
                 database.disconnect();
                 database = new MySQLViolationDatabase(plugin, host, db, user, pwd);
+                try {
+                    database.connect();
+                    loaded = true;
+                } catch (SQLException e) {
+                    LogUtil.error(e);
+                    this.database = NoOpViolationDatabase.INSTANCE;
+                    loaded = false;
+                }
+            }
+
+            case "POSTGRESQL" -> {
+                String host = cfg.getStringElse("history.database.host",     "localhost:3306");
+                String db   = cfg.getStringElse("history.database.database", "grimac");
+                String user = cfg.getStringElse("history.database.username", "root");
+                String pwd  = cfg.getStringElse("history.database.password", "password");
+
+                if (database instanceof PostgresqlViolationDatabase postgresql
+                        && postgresql.sameConfig(host, db, user, pwd)) {
+                    break;                          // nothing changed → keep pool
+                }
+                database.disconnect();
+                database = new PostgresqlViolationDatabase(host, db, user, pwd);
                 try {
                     database.connect();
                     loaded = true;

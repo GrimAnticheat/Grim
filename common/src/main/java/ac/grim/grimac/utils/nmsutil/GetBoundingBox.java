@@ -51,7 +51,17 @@ public class GetBoundingBox {
         double minZ = centerZ - (width / 2f);
         double maxZ = centerZ + (width / 2f);
 
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
+        // it's possible for width and/or height to be negative,
+        // correct the order of min and max
+        return new SimpleCollisionBox(
+                Math.min(minX, maxX),
+                Math.min(minY, maxY),
+                Math.min(minZ, maxZ),
+                Math.max(minX, maxX),
+                Math.max(minY, maxY),
+                Math.max(minZ, maxZ),
+                false
+        );
     }
 
     public static double @NotNull [] getEntityDimensions(GrimPlayer player, @NotNull PacketEntity entity) {
@@ -67,11 +77,20 @@ public class GetBoundingBox {
         double height = dimensions[1];
         double halfDepth = dimensions[2] / 2.0;
 
-        box.minX -= halfWidth;
-        box.minY -= 0; // No downward expansion
-        box.minZ -= halfDepth;
-        box.maxX += halfWidth;
-        box.maxY += height;
-        box.maxZ += halfDepth;
+        double minX = box.minX - halfWidth;
+        double minY = box.minY; // No downward expansion
+        double minZ = box.minZ - halfDepth;
+        double maxX = box.maxX + halfWidth;
+        double maxY = box.maxY + height;
+        double maxZ = box.maxZ + halfDepth;
+
+        // it's possible for width and/or height to be negative,
+        // correct the order of min and max
+        box.minX = Math.min(minX, maxX);
+        box.minY = Math.min(minY, maxY);
+        box.minZ = Math.min(minZ, maxZ);
+        box.maxX = Math.max(minX, maxX);
+        box.maxY = Math.max(minY, maxY);
+        box.maxZ = Math.max(minZ, maxZ);
     }
 }

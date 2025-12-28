@@ -2,6 +2,12 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_10;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_2;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_4;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_5;
+import ac.grim.grimac.predictionengine.blockeffects.impl.BlockEffectsResolverV1_21_6;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -26,27 +32,21 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @UtilityClass
 public final class Collisions {
-    private static final double COLLISION_EPSILON = 1.0E-7;
+    public static final double COLLISION_EPSILON = 1.0E-7;
 
     private static final boolean IS_FOURTEEN = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14); // Optimization for chunks with empty block count
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
@@ -448,9 +448,9 @@ public final class Collisions {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
-        SimpleCollisionBox aABB = player.inVehicle()
-                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-expandAmount)
-                : player.boundingBox.copy().expand(-expandAmount);
+        SimpleCollisionBox aABB = (player.inVehicle()
+                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
+                : player.boundingBox.copy()).expand(-expandAmount);
 
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
@@ -468,13 +468,13 @@ public final class Collisions {
                         continue;
                     }
 
-                    onInsideBlock(player, blockType, block, blockX, blockY, blockZ);
+                    onInsideBlock(player, blockType, block, blockX, blockY, blockZ, true);
                 }
             }
         }
     }
 
-    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
+    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ, boolean magic) {
         if (blockType == StateTypes.COBWEB) {
             if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
                 player.stuckSpeedMultiplier = new Vector3dm(0.5, 0.25, 0.5);
@@ -502,7 +502,7 @@ public final class Collisions {
             player.wasTouchingLava = true;
         }
 
-        if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && magic) {
             WrappedBlockState blockAbove = player.compensatedWorld.getBlock(blockX, blockY + 1, blockZ);
 
             if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat) {
@@ -556,218 +556,65 @@ public final class Collisions {
 
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player) {
-        for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
-            Vector3d from = movement.from();
-            Vector3d to = movement.to().subtract(movement.from());
-            if (movement.axisIndependant() && to.lengthSquared() > 0.0) {
-                for (Axis axis : Collisions.axisStepOrder(to)) {
-                    double value = axis.choose(to.getX(), to.getY(), to.getZ());
-                    if (value != 0.0) {
-                        Vector3d vector = Collisions.relative(from, axis.getPositive(), value);
-                        Collisions.checkInsideBlocks(player, from, vector);
-                        from = vector;
-                    }
-                }
-            } else {
-                Collisions.checkInsideBlocks(player, movement.from(), movement.to());
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+            return;
+        }
+
+        // Reset stuck speed so it can update
+        if (player.stuckSpeedMultiplier.getX() < 0.99) {
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
+        }
+
+        player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        player.finalMovementsThisTick.clear();
+
+        Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+        Vector3d to = new Vector3d(player.x, player.y, player.z);
+
+        ClientVersion clientVersion = player.getClientVersion();
+        if (clientVersion.isOlderThan(ClientVersion.V_1_21_5)) {
+            player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+        } else if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            player.finalMovementsThisTick.addAll(player.movementThisTick);
+            player.movementThisTick.clear();
+
+            if (player.finalMovementsThisTick.isEmpty()) {
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(from, to));
+            } else if (player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to().distanceSquared(to) > 9.9999994E-11F) {
+                player.finalMovementsThisTick.add(new GrimPlayer.Movement(player.finalMovementsThisTick.get(player.finalMovementsThisTick.size() - 1).to(), to));
             }
         }
 
-        player.visitedBlocks.clear();
-    }
+        Collisions.resolveBlockEffects(player);
 
-    public static void checkInsideBlocks(GrimPlayer player, Vector3d from, Vector3d to) {
-        SimpleCollisionBox boundingBox = (player.getClientVersion() == ClientVersion.V_1_21_2 ?
-                player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
+        if (player.stuckSpeedMultiplier.getX() < 0.9) {
+            // Reset fall distance if stuck in block
+            player.fallDistance = 0;
+        }
 
-        for (Vector3i blockPos : Collisions.boxTraverseBlocks(player, from, to, boundingBox)) {
-            WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-            StateType blockType = blockState.getType();
-
-            if (blockType.isAir()) {
-                continue;
-            }
-
-            if (player.visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
-                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
-            }
+        // Flying players are not affected by cobwebs/sweet berry bushes
+        if (player.isFlying) {
+            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
         }
     }
 
-    public static Iterable<Vector3i> boxTraverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d direction = end.subtract(start);
-        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
-        if (direction.lengthSquared() < (double) GrimMath.square(0.99999F)) {
-            return initialBlocks;
+    public static void resolveBlockEffects(GrimPlayer player) {
+        ClientVersion version = player.getClientVersion();
+        BlockEffectsResolver resolver;
+
+        if (version == ClientVersion.V_1_21_2) {
+            resolver = BlockEffectsResolverV1_21_2.INSTANCE; // 1.21.2-1.21.3
+        } else if (version == ClientVersion.V_1_21_4) {
+            resolver = BlockEffectsResolverV1_21_4.INSTANCE; // 1.21.4
+        } else if (version == ClientVersion.V_1_21_5) {
+            resolver = BlockEffectsResolverV1_21_5.INSTANCE; // 1.21.5
+        } else if (version.isNewerThanOrEquals(ClientVersion.V_1_21_6) && version.isOlderThanOrEquals(ClientVersion.V_1_21_7)) {
+            resolver = BlockEffectsResolverV1_21_6.INSTANCE; // 1.21.6-1.21.8
         } else {
-            LongSet alreadyVisited = player.getClientVersion().isOlderThan(ClientVersion.V_1_21_5) ? null : new LongOpenHashSet();
-            Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
-            Vector3d boxMinPosition = boundingBox.min().toVector3d();
-            Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
-            addCollisionsAlongTravel(alreadyVisited, traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
-
-            for (Vector3i blockPos : initialBlocks) {
-                if (alreadyVisited == null || !alreadyVisited.contains(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
-                    traversedBlocks.add(blockPos);
-                }
-            }
-
-            return traversedBlocks;
-        }
-    }
-
-    public static void addCollisionsAlongTravel(LongSet alreadyVisited, Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d direction = end.subtract(start);
-        int currentX = GrimMath.floor(start.x);
-        int currentY = GrimMath.floor(start.y);
-        int currentZ = GrimMath.floor(start.z);
-        int stepX = GrimMath.sign(direction.x);
-        int stepY = GrimMath.sign(direction.y);
-        int stepZ = GrimMath.sign(direction.z);
-        double tMaxX = stepX == 0 ? Double.MAX_VALUE : stepX / direction.x;
-        double tMaxY = stepY == 0 ? Double.MAX_VALUE : stepY / direction.y;
-        double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : stepZ / direction.z;
-        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(start.x) : GrimMath.frac(start.x));
-        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(start.y) : GrimMath.frac(start.y));
-        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(start.z) : GrimMath.frac(start.z));
-        int iterationCount = 0;
-
-        while (tDeltaX <= 1.0 || tDeltaY <= 1.0 || tDeltaZ <= 1.0) {
-            if (tDeltaX < tDeltaY) {
-                if (tDeltaX < tDeltaZ) {
-                    currentX += stepX;
-                    tDeltaX += tMaxX;
-                } else {
-                    currentZ += stepZ;
-                    tDeltaZ += tMaxZ;
-                }
-            } else if (tDeltaY < tDeltaZ) {
-                currentY += stepY;
-                tDeltaY += tMaxY;
-            } else {
-                currentZ += stepZ;
-                tDeltaZ += tMaxZ;
-            }
-
-            if (iterationCount++ > 16) {
-                break;
-            }
-
-            Optional<Vector3d> collisionPoint = clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
-            if (collisionPoint.isPresent()) {
-                Vector3d collisionVec = collisionPoint.get();
-                double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
-                double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);
-                double clampedZ = GrimMath.clamp(collisionVec.z, currentZ + 1.0E-5F, currentZ + 1.0 - 1.0E-5F);
-                int endX = GrimMath.floor(clampedX + boundingBox.getXSize());
-                int endY = GrimMath.floor(clampedY + boundingBox.getYSize());
-                int endZ = GrimMath.floor(clampedZ + boundingBox.getZSize());
-
-                for (int x = currentX; x <= endX; x++) {
-                    for (int y = currentY; y <= endY; y++) {
-                        for (int z = currentZ; z <= endZ; z++) {
-                            if (alreadyVisited == null || alreadyVisited.add(GrimMath.asLong(x, y, z))) {
-                                output.add(new Vector3i(x, y, z));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public static Optional<Vector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Vector3d start, Vector3d end) {
-        double[] minDistance = new double[]{1.0};
-        double deltaX = end.x - start.x;
-        double deltaY = end.y - start.y;
-        double deltaZ = end.z - start.z;
-        Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, start, minDistance, null, deltaX, deltaY, deltaZ);
-        if (direction == null) {
-            return Optional.empty();
-        } else {
-            double distance = minDistance[0];
-            return Optional.of(start.add(distance * deltaX, distance * deltaY, distance * deltaZ));
-        }
-    }
-
-    private static Direction getDirection(
-            double minX,
-            double minY,
-            double minZ,
-            double maxX,
-            double maxY,
-            double maxZ,
-            Vector3d start,
-            double[] minDistance,
-            Direction facing,
-            double deltaX,
-            double deltaY,
-            double deltaZ
-    ) {
-        if (deltaX > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, minX, minY, maxY, minZ, maxZ, Direction.WEST, start.x, start.y, start.z);
-        } else if (deltaX < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, maxX, minY, maxY, minZ, maxZ, Direction.EAST, start.x, start.y, start.z);
+            resolver = BlockEffectsResolverV1_21_10.INSTANCE; // 1.21.10
         }
 
-        if (deltaY > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, minY, minZ, maxZ, minX, maxX, Direction.DOWN, start.y, start.z, start.x);
-        } else if (deltaY < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, maxY, minZ, maxZ, minX, maxX, Direction.UP, start.y, start.z, start.x);
-        }
-
-        if (deltaZ > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, minZ, minX, maxX, minY, maxY, Direction.NORTH, start.z, start.x, start.y);
-        } else if (deltaZ < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, maxZ, minX, maxX, minY, maxY, Direction.SOUTH, start.z, start.x, start.y);
-        }
-
-        return facing;
-    }
-
-    public static Direction clipPoint(
-            double[] minDistance,
-            Direction prevDirection,
-            double distanceSide,
-            double distanceOtherA,
-            double distanceOtherB,
-            double minSide,
-            double minOtherA,
-            double maxOtherA,
-            double minOtherB,
-            double maxOtherB,
-            Direction hitSide,
-            double startSide,
-            double startOtherA,
-            double startOtherB
-    ) {
-        double sideDistance = (minSide - startSide) / distanceSide;
-        double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
-        double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
-        if (sideDistance > 0.0 && sideDistance < minDistance[0] &&
-                minOtherA - COLLISION_EPSILON < otherDistanceA &&
-                otherDistanceA < maxOtherA + COLLISION_EPSILON &&
-                minOtherB - COLLISION_EPSILON < otherDistanceB &&
-                otherDistanceB < maxOtherB + COLLISION_EPSILON) {
-            minDistance[0] = sideDistance;
-            return hitSide;
-        } else {
-            return prevDirection;
-        }
-    }
-
-    public static final ImmutableList<Axis> YXZ_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.X, Collisions.Axis.Z);
-    public static final ImmutableList<Collisions.Axis> YZX_AXIS_ORDER = ImmutableList.of(Collisions.Axis.Y, Collisions.Axis.Z, Collisions.Axis.X);
-
-    public static Iterable<Collisions.Axis> axisStepOrder(Vector3d vector) {
-        return Math.abs(vector.getX()) < Math.abs(vector.getZ()) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
-    }
-
-    public static Vector3d relative(Vector3d curr, Direction direction, double value) {
-        Vector3i vec = direction.getVector();
-        return new Vector3d(
-                curr.x + value * vec.getX(), curr.y + value * vec.getY(), curr.z + value * vec.getZ()
-        );
+        resolver.applyEffectsFromBlocks(player);
     }
 
     private static double getOldDeltaY(GrimPlayer player, double value) {
@@ -1079,7 +926,22 @@ public final class Collisions {
     public enum Axis {
         X {
             @Override
+            public double get(Vector3d vector) {
+                return vector.getX();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getX();
+            }
+
+            @Override
             public double choose(double x, double y, double z) {
+                return x;
+            }
+
+            @Override
+            public int choose(int x, int y, int z) {
                 return x;
             }
 
@@ -1087,10 +949,30 @@ public final class Collisions {
             public Direction getPositive() {
                 return Direction.EAST;
             }
+
+            @Override
+            public Direction getNegative() {
+                return Direction.WEST;
+            }
         },
         Y {
             @Override
+            public double get(Vector3d vector) {
+                return vector.getY();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getY();
+            }
+
+            @Override
             public double choose(double x, double y, double z) {
+                return y;
+            }
+
+            @Override
+            public int choose(int x, int y, int z) {
                 return y;
             }
 
@@ -1098,10 +980,30 @@ public final class Collisions {
             public Direction getPositive() {
                 return Direction.UP;
             }
+
+            @Override
+            public Direction getNegative() {
+                return Direction.DOWN;
+            }
         },
         Z {
             @Override
+            public double get(Vector3d vector) {
+                return vector.getZ();
+            }
+
+            @Override
+            public int get(Vector3i vector) {
+                return vector.getZ();
+            }
+
+            @Override
             public double choose(double x, double y, double z) {
+                return z;
+            }
+
+            @Override
+            public int choose(int x, int y, int z) {
                 return z;
             }
 
@@ -1109,12 +1011,24 @@ public final class Collisions {
             public Direction getPositive() {
                 return Direction.SOUTH;
             }
+
+            @Override
+            public Direction getNegative() {
+                return Direction.NORTH;
+            }
         };
 
+        public abstract double get(Vector3d vector);
+
+        public abstract int get(Vector3i vector);
 
         public abstract double choose(double x, double y, double z);
 
+        public abstract int choose(int x, int y, int z);
+
         public abstract Direction getPositive();
+
+        public abstract Direction getNegative();
 
     }
 }

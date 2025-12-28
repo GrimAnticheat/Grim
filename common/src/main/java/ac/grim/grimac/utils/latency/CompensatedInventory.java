@@ -501,6 +501,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
      * Closes the player's currently open inventory on the client by resetting to the player's inventory.
      */
     private void closeActiveInventory() {
+        isPacketInventoryActive = true;
         openWindowID = 0;
         menu = inventory;
         menu.setCarried(ItemStack.EMPTY); // Reset carried item

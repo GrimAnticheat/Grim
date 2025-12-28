@@ -1,6 +1,5 @@
 package ac.grim.grimac.checks.impl.velocity;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -46,9 +45,6 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
-
             // Detect whether this knockback packet affects the player or if it is useless
             // Mojang sends extra useless knockback packets for no apparent reason
             if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
@@ -68,6 +64,8 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 playerVelocity = velocity.getVelocity();
                 event.markForReEncode(true);
             }
+
+            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
 
             // Wrap velocity between two transactions
             player.sendTransaction();

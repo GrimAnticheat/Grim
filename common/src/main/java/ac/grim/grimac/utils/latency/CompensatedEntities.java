@@ -287,9 +287,9 @@ public class CompensatedEntities {
             if (sizeObject != null) {
                 Object value = sizeObject.getValue();
                 if (value instanceof Integer) {
-                    sizeable.size = Math.max((int) value, 1);
+                    sizeable.size = (int) value;
                 } else if (value instanceof Byte) {
-                    sizeable.size = Math.max((byte) value, 1);
+                    sizeable.size = (byte) value;
                 }
             }
         }

@@ -20,16 +20,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class DiscordManager implements StartableInitable, ReloadableInitable {
-    private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("https://discord.com/api/webhooks/\\d+/[\\w-]+").asMatchPredicate();
+    private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("^https://discord\\.com/api(?:/v\\d+)?/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?$").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build();
     private static final ConcurrentLinkedDeque<HttpRequest> requests = new ConcurrentLinkedDeque<>();

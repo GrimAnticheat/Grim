@@ -74,7 +74,7 @@ public class PistonEvent implements Listener {
         final Vector3i sourcePos = new Vector3i(piston.getX(), piston.getY(), piston.getZ());
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+            if (isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos()) && player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) {
                 final int lastTrans = player.lastTransactionSent.get();
                 PistonData data = new PistonData(blockFace, boxes, lastTrans, true, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
@@ -132,7 +132,7 @@ public class PistonEvent implements Listener {
         Vector3i sourcePos = new Vector3i(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ) && isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos())) {
+            if (isCloseEnough(sourcePos, player.compensatedEntities.self.trackedServerPosition.getPos()) && player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) {
                 int lastTrans = player.lastTransactionSent.get();
                 PistonData data = new PistonData(face, boxes, lastTrans, false, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));

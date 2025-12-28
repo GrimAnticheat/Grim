@@ -1,6 +1,6 @@
 dependencies {
     minecraft("com.mojang:minecraft:1.19.4")
-    mappings("net.fabricmc:yarn:1.19.4+build.2:v2")
+    mappings(loom.officialMojangMappings())
     compileOnly(project(":fabric:mc1161", configuration = "namedElements"))
     compileOnly(project(":fabric:mc1171", configuration = "namedElements"))
 

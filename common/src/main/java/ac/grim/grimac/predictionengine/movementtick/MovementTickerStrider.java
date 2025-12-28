@@ -30,7 +30,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
             if (isAbove(player) && player.compensatedWorld.getLavaFluidLevelAt((int) Math.floor(player.x), (int) Math.floor(player.y + 1), (int) Math.floor(player.z)) == 0) {
                 player.onGround = true;
             } else {
-                player.clientVelocity.multiply(0.5).add(new Vector3dm(0, 0.05, 0));
+                player.clientVelocity.multiply(0.5).add(0, 0.05, 0);
             }
         }
     }

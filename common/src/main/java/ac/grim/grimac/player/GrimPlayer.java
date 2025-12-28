@@ -39,7 +39,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -756,23 +756,25 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean canGlide() {
-        // Servers older than 1.21.2 don't have this component
+        // don't check the client/server version, this is relevant for all
+        final ItemStack chestPlate = inventory.getChestplate();
+        if (chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage() - 1)
+            return true;
+
+        // if the server or client doesn't support glider components return false
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
-                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
-            final ItemStack chestPlate = inventory.getChestplate();
-            return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage() - 1;
-        }
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) return false;
 
         // PacketEvents mappings are wrong
-        // TODO https://github.com/retrooper/packetevents/pull/1125
         return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
                 || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
                 || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND);
+                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
-        if (!stack.hasComponent(ComponentTypes.GLIDER) || stack.getDamageValue() >= (stack.getMaxDamage() - 1)) {
+        if (!stack.hasComponent(ComponentTypes.GLIDER) || (stack.canBeDepleted() && stack.getDamageValue() >= (stack.getMaxDamage() - 1))) {
             return false;
         }
 
@@ -943,14 +945,24 @@ public class GrimPlayer implements GrimUser {
         if (this.movementThisTick.size() >= 100) {
             GrimPlayer.Movement movement1 = this.movementThisTick.removeFirst();
             GrimPlayer.Movement movement2 = this.movementThisTick.removeFirst();
-            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to(), false);
+            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to());
             this.movementThisTick.addFirst(movement3);
         }
 
         this.movementThisTick.add(movement);
     }
 
-    public record Movement(Vector3d from, Vector3d to, boolean axisIndependant) {}
+    public record Movement(Vector3d from, Vector3d to, Vector3d axisDependentOriginalMovement) {
+
+        public Movement(Vector3d from, Vector3d to) {
+            this(from, to, null);
+        }
+
+        public boolean axisIndependant() {
+            return axisDependentOriginalMovement != null;
+        }
+
+    }
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {

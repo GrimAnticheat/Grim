@@ -27,7 +27,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
@@ -227,9 +227,9 @@ history:
     # history コマンドで挿入されるサーバー名は？ 複数サーバーで同じデータベースを使用する場合に便利
     server-name: Prison
     database:
-        # ローカル保存には SQLITE、外部 MySQL データベースには MYSQL を使用します。サーバー再起動時にのみ反映
+        # ローカルストレージにはSQLITEを使用し、外部データベースがある場合はMYSQLまたはPOSTGRESQLを使用してください。これはサーバー再起動時にのみ更新されます
         type: SQLITE
-        # MySQL 接続情報
+        # データベース接続の詳細
         host: localhost
         port: 3306
         database: grim

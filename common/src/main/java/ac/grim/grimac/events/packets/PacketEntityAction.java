@@ -44,7 +44,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     break;
                 case START_FLYING_WITH_ELYTRA:
                     if (player.onGround || player.lastOnGround) {
-                        player.getSetbackTeleportUtil().executeForceResync();
+                        player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
 
                         if (player.platformPlayer != null) {
                             // Client ignores sneaking, use it to resync
@@ -66,7 +66,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         player.pointThreeEstimator.updatePlayerGliding();
                     } else {
                         // A client is flying with a ghost elytra, resync
-                        player.getSetbackTeleportUtil().executeForceResync();
+                        player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
                         if (player.platformPlayer != null) {
                             // Client ignores sneaking, use it to resync
                             player.platformPlayer.setSneaking(!player.platformPlayer.isSneaking());

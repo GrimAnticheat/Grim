@@ -177,10 +177,11 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                 if (legacy) { // 1.8.8
                     resetItemUsage = player -> {
                         try {
+                            method.invoke(getHandle.invoke(player));
+
                             // in 1.8 we need to resync item usage manually,
                             // only do so if the player is using an item
                             if (isUsingItem.test(player)) player.updateInventory();
-                            method.invoke(getHandle.invoke(player));
                         } catch (IllegalAccessException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }

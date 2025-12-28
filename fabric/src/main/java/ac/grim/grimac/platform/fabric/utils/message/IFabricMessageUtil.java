@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.fabric.utils.message;
 
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 
 public interface IFabricMessageUtil {
-    Text textLiteral(String message);
-    void sendMessage(ServerCommandSource target, Text message, boolean overlay);
+    Component textLiteral(String message);
+    void sendMessage(CommandSourceStack target, Component message, boolean overlay);
 }

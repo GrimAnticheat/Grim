@@ -1,10 +1,13 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
+import ac.grim.grimac.predictionengine.blockeffects.BlockCollisions;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.AbstractIterator;
@@ -448,6 +451,10 @@ public class SimpleCollisionBox implements CollisionBox {
         return new Vector3dm(minX, minY, minZ);
     }
 
+    public Vector3d getCenter() {
+        return new Vector3d(GrimMath.lerp(0.5, this.minX, this.maxX), GrimMath.lerp(0.5, this.minY, this.maxY), GrimMath.lerp(0.5, this.minZ, this.maxZ));
+    }
+
     public DoubleList getYPointPositions() {
         return create(minX, minY, minZ, maxX, maxY, maxZ);
     }
@@ -509,6 +516,37 @@ public class SimpleCollisionBox implements CollisionBox {
         return maxZ - minZ;
     }
 
+    public SimpleCollisionBox move(Vector3d vector) {
+        return this.move(vector.x, vector.y, vector.z);
+    }
+
+    public SimpleCollisionBox move(double x, double y, double z) {
+        return new SimpleCollisionBox(this.minX + x, this.minY + y, this.minZ + z, this.maxX + x, this.maxY + y, this.maxZ + z);
+    }
+
+    public boolean intersects(SimpleCollisionBox collisionBox) {
+        return this.intersects(collisionBox.minX, collisionBox.minY, collisionBox.minZ, collisionBox.maxX, collisionBox.maxY, collisionBox.maxZ);
+    }
+
+    public boolean intersects(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        return this.minX < maxX && this.maxX > minX && this.minY < maxY && this.maxY > minY && this.minZ < maxZ && this.maxZ > minZ;
+    }
+
+    public boolean intersects(Vector3d min, Vector3d max) {
+        return this.intersects(
+                Math.min(min.x, max.x),
+                Math.min(min.y, max.y),
+                Math.min(min.z, max.z),
+                Math.max(min.x, max.x),
+                Math.max(min.y, max.y),
+                Math.max(min.z, max.z)
+        );
+    }
+
+    public boolean intersects(Vector3i blockPos) {
+        return this.intersects(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1);
+    }
+
     public static Iterable<Vector3i> betweenClosed(SimpleCollisionBox box) {
         Vector3i startBlockPos = containing(box.minX, box.minY, box.minZ);
         Vector3i endBlockPos = containing(box.maxX, box.maxY, box.maxZ);
@@ -549,6 +587,95 @@ public class SimpleCollisionBox implements CollisionBox {
                     int zOffset = yOffset / yRange;
                     this.index++;
                     return new Vector3i(xStart + xOffset, yStart + yOffsetMod, zStart + zOffset);
+                }
+            }
+        };
+    }
+
+    public static Iterable<Vector3i> betweenCornersInDirection(SimpleCollisionBox boundingBox, Vector3d directionVector) {
+        Vector3d min = boundingBox.min().toVector3d();
+        int minX = GrimMath.floor(min.x);
+        int minY = GrimMath.floor(min.y);
+        int minZ = GrimMath.floor(min.z);
+        Vector3d max = boundingBox.max().toVector3d();
+        int maxX = GrimMath.floor(max.x);
+        int maxY = GrimMath.floor(max.y);
+        int maxZ = GrimMath.floor(max.z);
+        return betweenCornersInDirection(minX, minY, minZ, maxX, maxY, maxZ, directionVector);
+    }
+
+    public static Iterable<Vector3i> betweenCornersInDirection(Vector3i min, Vector3i max, Vector3d directionVector) {
+        return betweenCornersInDirection(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), directionVector);
+    }
+
+    public static Iterable<Vector3i> betweenCornersInDirection(int x1, int y1, int z1, int x2, int y2, int z2, Vector3d directionVector) {
+        int minX = Math.min(x1, x2);
+        int minY = Math.min(y1, y2);
+        int minZ = Math.min(z1, z2);
+        int maxX = Math.max(x1, x2);
+        int maxY = Math.max(y1, y2);
+        int maxZ = Math.max(z1, z2);
+
+        int sizeX = maxX - minX;
+        int sizeY = maxY - minY;
+        int sizeZ = maxZ - minZ;
+
+        int startX = directionVector.x >= 0.0 ? minX : maxX;
+        int startY = directionVector.y >= 0.0 ? minY : maxY;
+        int startZ = directionVector.z >= 0.0 ? minZ : maxZ;
+
+        List<Collisions.Axis> axisOrder = BlockCollisions.axisStepOrder(directionVector);
+        Collisions.Axis primaryAxis = axisOrder.get(0);
+        Collisions.Axis secondaryAxis = axisOrder.get(1);
+        Collisions.Axis tertiaryAxis = axisOrder.get(2);
+
+        Direction primaryDirection = primaryAxis.get(directionVector) >= 0.0 ? primaryAxis.getPositive() : primaryAxis.getNegative();
+        Direction secondaryDirection = secondaryAxis.get(directionVector) >= 0.0 ? secondaryAxis.getPositive() : secondaryAxis.getNegative();
+        Direction tertiaryDirection = tertiaryAxis.get(directionVector) >= 0.0 ? tertiaryAxis.getPositive() : tertiaryAxis.getNegative();
+
+        int primaryCount = primaryAxis.choose(sizeX, sizeY, sizeZ);
+        int secondaryCount = secondaryAxis.choose(sizeX, sizeY, sizeZ);
+        int tertiaryCount = tertiaryAxis.choose(sizeX, sizeY, sizeZ);
+
+        return () -> new AbstractIterator<>() {
+            private int firstIndex;
+            private int secondIndex;
+            private int thirdIndex;
+            private boolean end;
+            private final int firstDirX = primaryDirection.getVector().getX();
+            private final int firstDirY = primaryDirection.getVector().getY();
+            private final int firstDirZ = primaryDirection.getVector().getZ();
+            private final int secondDirX = secondaryDirection.getVector().getX();
+            private final int secondDirY = secondaryDirection.getVector().getY();
+            private final int secondDirZ = secondaryDirection.getVector().getZ();
+            private final int thirdDirX = tertiaryDirection.getVector().getX();
+            private final int thirdDirY = tertiaryDirection.getVector().getY();
+            private final int thirdDirZ = tertiaryDirection.getVector().getZ();
+
+            protected Vector3i computeNext() {
+                if (this.end) {
+                    return this.endOfData();
+                } else {
+                    Vector3i cursor = new Vector3i(
+                            startX + this.firstDirX * this.firstIndex + this.secondDirX * this.secondIndex + this.thirdDirX * this.thirdIndex,
+                            startY + this.firstDirY * this.firstIndex + this.secondDirY * this.secondIndex + this.thirdDirY * this.thirdIndex,
+                            startZ + this.firstDirZ * this.firstIndex + this.secondDirZ * this.secondIndex + this.thirdDirZ * this.thirdIndex
+                    );
+
+                    if (this.thirdIndex < tertiaryCount) {
+                        this.thirdIndex++;
+                    } else if (this.secondIndex < secondaryCount) {
+                        this.secondIndex++;
+                        this.thirdIndex = 0;
+                    } else if (this.firstIndex < primaryCount) {
+                        this.firstIndex++;
+                        this.thirdIndex = 0;
+                        this.secondIndex = 0;
+                    } else {
+                        this.end = true;
+                    }
+
+                    return cursor;
                 }
             }
         };

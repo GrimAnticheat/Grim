@@ -63,7 +63,7 @@ public class FluidTypeFlowing {
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
-                    vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector3dm(0.0D, -6.0D, 0.0D));
+                    vec3d = normalizeVectorWithoutNaN(vec3d).add(0.0D, -6.0D, 0.0D);
                     break;
                 }
             }

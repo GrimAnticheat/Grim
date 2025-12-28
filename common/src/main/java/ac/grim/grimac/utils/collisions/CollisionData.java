@@ -22,7 +22,7 @@ import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -35,6 +35,7 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Axis;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Part;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
@@ -272,7 +273,7 @@ public enum CollisionData implements CollisionFactory {
             StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM,
             StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM, StateTypes.BEETROOTS, StateTypes.POTATOES,
             StateTypes.WHEAT, StateTypes.CARROTS, StateTypes.NETHER_WART, StateTypes.MOVING_PISTON, StateTypes.AIR, StateTypes.CAVE_AIR,
-            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER, StateTypes.FIRE, StateTypes.SOUL_FIRE),
+            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER, StateTypes.BUBBLE_COLUMN, StateTypes.FIRE, StateTypes.SOUL_FIRE),
 
     KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
@@ -378,7 +379,7 @@ public enum CollisionData implements CollisionFactory {
                 new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 7.0D, 11.0D),
                 new HexCollisionBox(6.0D, 7.0D, 6.0D, 10.0D, 9.0D, 10.0D));
 
-    }, StateTypes.LANTERN, StateTypes.SOUL_LANTERN),
+    }, BlockTags.LANTERNS.getStates().toArray(new StateType[0])),
 
 
     LECTERN((player, version, data, x, y, z) -> {
@@ -516,7 +517,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
-    }, StateTypes.CHAIN),
+    }, Materials.getChains().toArray(new StateType[0])),
 
     CHORUS_PLANT(new DynamicChorusPlant(), StateTypes.CHORUS_PLANT),
 
@@ -552,7 +553,7 @@ public enum CollisionData implements CollisionFactory {
 
     STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new StateType[0])),
 
-    CHEST(new DynamicChest(), StateTypes.CHEST, StateTypes.TRAPPED_CHEST),
+    CHEST(new DynamicChest(), Materials.getChests().toArray(new StateType[0])),
 
     ENDER_CHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
             0.9375F, 0.875F, 0.9375F, false),
@@ -643,7 +644,9 @@ public enum CollisionData implements CollisionFactory {
 
         ComplexCollisionBox baseBox = new ComplexCollisionBox(3, new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
 
-        switch (data.getFacing()) {
+        BlockFace facing = data.getPart() == Part.HEAD ? data.getFacing() : data.getFacing().getOppositeFace();
+
+        switch (facing) {
             case NORTH:
                 baseBox.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 3.0D, 3.0D));
                 baseBox.add(new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 3.0D, 3.0D));
@@ -675,7 +678,7 @@ public enum CollisionData implements CollisionFactory {
             0.625, 0.625, 0.625, false),
             StateTypes.STRUCTURE_VOID),
 
-    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
+    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), Materials.getRods().toArray(new StateType[0])),
 
     CAULDRON((player, version, data, x, y, z) -> {
         if (version.isNewerThan(ClientVersion.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
@@ -813,7 +816,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.TRIPWIRE_HOOK),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
-            StateTypes.TORCH, StateTypes.REDSTONE_TORCH),
+            StateTypes.TORCH, StateTypes.REDSTONE_TORCH, StateTypes.COPPER_TORCH),
 
     WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
@@ -822,7 +825,7 @@ public enum CollisionData implements CollisionFactory {
         case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
         // 1.13 separates wall and normal torches, 1.12 does not
         default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
+    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH, StateTypes.COPPER_WALL_TORCH),
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {
@@ -1018,6 +1021,30 @@ public enum CollisionData implements CollisionFactory {
         }
     }, StateTypes.DRIED_GHAST),
 
+    SHELF((player, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_21_9)) {
+            // ViaVersion replacement block (planks)
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+
+        return switch (data.getFacing()) {
+            case NORTH -> new ComplexCollisionBox(3, new HexCollisionBox(0, 12, 11, 16, 16, 13), new HexCollisionBox(0, 0, 13, 16, 16, 16), new HexCollisionBox(0, 0, 11, 16, 4, 13));
+            case SOUTH -> new ComplexCollisionBox(3, new HexCollisionBox(0, 12, 3, 16, 16, 5), new HexCollisionBox(0, 0, 0, 16, 16, 3), new HexCollisionBox(0, 0, 3, 16, 4, 5));
+            case WEST -> new ComplexCollisionBox(3, new HexCollisionBox(11, 12, 0, 13, 16, 16), new HexCollisionBox(13, 0, 0, 16, 16, 16), new HexCollisionBox(11, 0, 0, 13, 4, 16));
+            case EAST -> new ComplexCollisionBox(3, new HexCollisionBox(3, 12, 0, 5, 16, 16), new HexCollisionBox(0, 0, 0, 3, 16, 16), new HexCollisionBox(3, 0, 0, 5, 4, 16));
+            default -> throw new IllegalStateException("Unexpected value: " + data.getFacing());
+        };
+    }, BlockTags.WOODEN_SHELVES.getStates().toArray(new StateType[0])),
+
+    COPPER_GOLEM_STATUE((player, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.V_1_21_9)) {
+            // ViaVersion replacement block (copper block)
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        }
+
+        return new HexCollisionBox(3, 0, 3, 13, 14, 13);
+    }, BlockTags.COPPER_GOLEM_STATUES.getStates().toArray(new StateType[0])),
+
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
@@ -1049,7 +1076,7 @@ public enum CollisionData implements CollisionFactory {
         this.materials = mList.toArray(new StateType[0]);
     }
 
-    private static CollisionBox getAmethystBox(ClientVersion version, com.github.retrooper.packetevents.protocol.world.BlockFace facing, int param_0, int param_1) {
+    private static CollisionBox getAmethystBox(ClientVersion version, BlockFace facing, int param_0, int param_1) {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
             return NoCollisionBox.INSTANCE;
 
@@ -1146,7 +1173,11 @@ public enum CollisionData implements CollisionFactory {
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || state == StateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING
+                || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE
+                || state == StateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state)
+                || BlockTags.COPPER_GOLEM_STATUES.contains(state)
+                ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?

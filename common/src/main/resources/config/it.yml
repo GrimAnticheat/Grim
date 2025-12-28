@@ -26,7 +26,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
@@ -196,9 +196,9 @@ history:
     # Quale nome server deve essere inserito per il comando history? Utile se usi lo stesso database per più server
     server-name: Prison
     database:
-        # Usa SQLITE per l’archiviazione locale, MYSQL se hai un database MySQL esterno. Aggiornato solo al riavvio del server
+        # Usa SQLITE per l'archiviazione locale, usa MYSQL o POSTGRESQL se hai un database esterno. Questo viene aggiornato solo al riavvio del server
         type: SQLITE
-        # Dettagli di connessione MySQL
+        # Dettagli di connessione al database
         host: localhost
         port: 3306
         database: grim

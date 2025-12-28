@@ -10,12 +10,11 @@ import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentS
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.text.Text;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public class Fabric1205ConversionUtil implements IFabricConversionUtil {
-    public ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    public ItemStack fromFabricItemStack(net.minecraft.world.item.ItemStack fabricStack) {
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -24,13 +23,13 @@ public class Fabric1205ConversionUtil implements IFabricConversionUtil {
         ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
         try {
             // Obtain the DynamicRegistryManager (you need to provide this from your context)
-            DynamicRegistryManager registryManager = GrimACFabricLoaderPlugin.FABRIC_SERVER.getRegistryManager(); // Replace with actual method to get registry manager
+            RegistryAccess registryManager = GrimACFabricLoaderPlugin.FABRIC_SERVER.registryAccess(); // Replace with actual method to get registry manager
 
             // Create a RegistryByteBuf
-            RegistryByteBuf registryByteBuf = new RegistryByteBuf(buffer, registryManager);
+            RegistryFriendlyByteBuf registryByteBuf = new RegistryFriendlyByteBuf(buffer, registryManager);
 
             // Encode the ItemStack using the appropriate PacketCodec
-            net.minecraft.item.ItemStack.PACKET_CODEC.encode(registryByteBuf, fabricStack);
+            net.minecraft.world.item.ItemStack.STREAM_CODEC.encode(registryByteBuf, fabricStack);
 
             // Create a PacketWrapper to read the ItemStack back (if needed)
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buffer);
@@ -46,7 +45,7 @@ public class Fabric1205ConversionUtil implements IFabricConversionUtil {
     }
 
     // TODO proper registry support?
-    public Text toNativeText(Component component) {
-        return Text.Serialization.fromJsonTree(GsonComponentSerializer.gson().serializeToTree(component), DynamicRegistryManager.EMPTY);
+    public net.minecraft.network.chat.Component toNativeText(Component component) {
+        return net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component), RegistryAccess.EMPTY);
     }
 }

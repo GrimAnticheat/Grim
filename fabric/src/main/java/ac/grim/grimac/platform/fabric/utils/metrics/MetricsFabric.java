@@ -86,7 +86,7 @@ public class MetricsFabric implements Metrics {
 
     private void appendPlatformData(JsonObjectBuilder builder) {
         builder.appendField("playerAmount", getPlayerAmount());
-        builder.appendField("onlineMode", GrimACFabricLoaderPlugin.FABRIC_SERVER.isOnlineMode() ? 0 : 1);
+        builder.appendField("onlineMode", GrimACFabricLoaderPlugin.FABRIC_SERVER.usesAuthentication() ? 0 : 1);
         builder.appendField("bukkitVersion", GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString());
         builder.appendField("bukkitName", "Fabric");
         builder.appendField("javaVersion", System.getProperty("java.version"));
@@ -102,7 +102,7 @@ public class MetricsFabric implements Metrics {
 
     private int getPlayerAmount() {
         if (GrimACFabricLoaderPlugin.FABRIC_SERVER.isRunning()) {
-            return GrimACFabricLoaderPlugin.FABRIC_SERVER.getCurrentPlayerCount();
+            return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerCount();
         } else {
             return 0;
         }
