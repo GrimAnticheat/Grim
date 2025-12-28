@@ -743,7 +743,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3d>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3i>> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -797,7 +797,7 @@ public final class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                            if (searchingFor.test(new Pair<>(data, new Vector3i(x, y, z))))
                                 return true;
                         }
                     }
