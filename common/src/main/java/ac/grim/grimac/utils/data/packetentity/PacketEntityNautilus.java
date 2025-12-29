@@ -95,7 +95,7 @@ public class PacketEntityNautilus extends PacketEntity implements JumpableEntity
         final boolean wantsToJump = this.getJumpPower() > 0.0F && !this.isJumping();
         if (!wantsToJump) return;
 
-        float pitch = player.vehicleData.playerPitch, yaw = player.vehicleData.playerYaw;
+        final float pitch = player.vehicleData.playerPitch, yaw = player.vehicleData.playerYaw;
         final double multiplier = this.getAttributeValue(Attributes.MOVEMENT_SPEED) * BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
         Vector3dm jumpVelocity = ReachUtils.getLook(player, yaw, pitch)
                 .multiply((player.wasTouchingWater ? 1.2F : 0.5F) * this.getJumpPower() * multiplier);

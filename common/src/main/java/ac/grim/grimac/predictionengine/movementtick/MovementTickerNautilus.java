@@ -1,9 +1,12 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineNautilusLava;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineNautilusNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineNautilusWater;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 
 public class MovementTickerNautilus extends MovementTickerLivingVehicle {
@@ -38,8 +41,18 @@ public class MovementTickerNautilus extends MovementTickerLivingVehicle {
     }
 
     @Override
+    public void doNormalMove(float blockFriction) {
+        new PredictionEngineNautilusNormal(this.movementInput).guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player);
+    }
+
+    @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
         new PredictionEngineNautilusWater(this.movementInput, 0.9).guessBestMovement(getRiddenSpeed(player), player);
+    }
+
+    @Override
+    public void doLavaMove() {
+        new PredictionEngineNautilusLava(movementInput).guessBestMovement(0.02F, player);
     }
 
     public float getRiddenSpeed(GrimPlayer player) {
