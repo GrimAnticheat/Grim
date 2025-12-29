@@ -720,6 +720,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasLook) {
             player.yaw = yaw;
             player.pitch = pitch;
+            player.vehicleData.playerPitch = pitch;
+            player.vehicleData.playerYaw = yaw;
 
             float deltaXRot = player.yaw - player.lastYaw;
             float deltaYRot = player.pitch - player.lastPitch;

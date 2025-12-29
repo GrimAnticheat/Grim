@@ -20,5 +20,7 @@ public class VehicleData {
     public float vehicleForward = 0f;
     public boolean lastDummy = false;
     public boolean wasVehicleSwitch = false;
+    public float playerPitch = 0f;
+    public float playerYaw = 0f;
     public final ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
 }
