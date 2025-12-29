@@ -890,6 +890,11 @@ public final class Collisions {
         WrappedBlockState blockState = player.compensatedWorld.getBlock(x, y, z);
         StateType blockMaterial = blockState.getType();
 
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) &&
+                player.isGliding && BlockTags.CAN_GLIDE_THROUGH.contains(blockMaterial)) {
+            return false;
+        }
+
         // ViaVersion replacement block -> glow berry vines (cave vines) -> fern
         if (blockMaterial == StateTypes.CAVE_VINES || blockMaterial == StateTypes.CAVE_VINES_PLANT) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17);
