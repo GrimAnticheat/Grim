@@ -99,7 +99,7 @@ public class PacketEntityNautilus extends PacketEntity implements JumpableEntity
         // That causes this code to work only half the time because we don't have the player's look angle.
         // Thanks, Mojang!
         final double multiplier = this.getAttributeValue(Attributes.MOVEMENT_SPEED) * BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
-        Vector3dm jumpVelocity = ReachUtils.getLook(player, player.yaw, player.pitch * 2F)
+        Vector3dm jumpVelocity = ReachUtils.getLook(player, calculateRiderYRot(player.yaw, player.lastYaw), player.pitch * 2F)
                 .multiply((player.wasTouchingWater ? 1.2F : 0.5F) * this.getJumpPower() * multiplier);
 
         for (VectorData vectorData : possibleVectors) {
@@ -109,6 +109,11 @@ public class PacketEntityNautilus extends PacketEntity implements JumpableEntity
         this.setDashing(true);
         this.setDashCooldown(40);
         this.setJumpPower(0.0F);
+    }
+
+    // best effort to reverse calculations made in Nautilus code to extract player yRot, not exactly accurate
+    private float calculateRiderYRot(float yRot, float lastYRot) {
+        return (2.0F * yRot) - lastYRot;
     }
 
 }

@@ -483,7 +483,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.yaw = move.getYaw();
             player.pitch = move.getPitch();
 
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), move.isOnGround(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
