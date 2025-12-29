@@ -399,6 +399,8 @@ public final class BoundingBoxSize {
             return 1.77f;
         } else if (type == EntityTypes.BOGGED) {
             return 1.99f;
+        } else if (type == EntityTypes.PARCHED) {
+            return 1.99f;
         } else if (type == EntityTypes.WIND_CHARGE) {
             return 0.3125f;
         } else if (type == EntityTypes.ARMOR_STAND) {
