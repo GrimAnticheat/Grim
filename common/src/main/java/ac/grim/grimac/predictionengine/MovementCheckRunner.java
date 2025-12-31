@@ -18,6 +18,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
@@ -107,7 +108,15 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 player.lastWasClimbing = 0; // Vertical movement reset
                 player.canSwimHop = false; // Vertical movement reset
             } else {
-                update.getTeleportData().modifyVector(player, player.clientVelocity);
+                final SetBackData setback = update.getSetback();
+                if (setback == null || setback.getVelocity() == null) {
+                    update.getTeleportData().modifyVector(player, player.clientVelocity);
+                } else {
+                    // Enforce setback velocity?
+                    player.clientVelocity.setX(setback.getVelocity().getX());
+                    player.clientVelocity.setY(setback.getVelocity().getY());
+                    player.clientVelocity.setZ(setback.getVelocity().getZ());
+                }
             }
         }
 
@@ -599,7 +608,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.riptideSpinAttackTicks = 20;
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.inVehicle() && player.skippedTickInActualMovement;
-        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
+        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.inVehicle() && player.couldSkipTick
+                && player.predictedVelocity.isKnockback()
+                // Don't let setbacks count
+                && !player.predictedVelocity.isSetbackKb(player);
         player.couldSkipTick = false;
 
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03

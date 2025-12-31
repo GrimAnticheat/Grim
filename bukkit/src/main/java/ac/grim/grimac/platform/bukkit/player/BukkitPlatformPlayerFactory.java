@@ -8,7 +8,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -53,5 +55,15 @@ public class BukkitPlatformPlayerFactory extends AbstractPlatformPlayerFactory<P
     public OfflinePlatformPlayer getOfflineFromName(@NotNull String name) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
         return new BukkitOfflinePlatformPlayer(offlinePlayer);
+    }
+
+    @Override
+    public Collection<OfflinePlatformPlayer> getOfflinePlayers() {
+        OfflinePlayer[] offlinePlayers = Bukkit.getOfflinePlayers();
+        BukkitOfflinePlatformPlayer[] offlinePlatformPlayers = new BukkitOfflinePlatformPlayer[offlinePlayers.length];
+        for (int i = 0; i < offlinePlayers.length; i++) {
+            offlinePlatformPlayers[i] = new BukkitOfflinePlatformPlayer(offlinePlayers[i]);
+        }
+        return Arrays.asList(offlinePlatformPlayers);
     }
 }

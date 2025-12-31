@@ -240,6 +240,7 @@ public class GrimPlayer implements GrimUser {
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
+    public final CompensatedCameraEntity cameraEntity;
     @Getter @Setter private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
@@ -283,6 +284,10 @@ public class GrimPlayer implements GrimUser {
         fireworks = new CompensatedFireworks(this); // Must be before checkmanager
         inventory = new CompensatedInventory(this);
 
+        compensatedWorld = new CompensatedWorld(this);
+        compensatedEntities = new CompensatedEntities(this);
+        cameraEntity = new CompensatedCameraEntity(this);
+
         lastInstanceManager = new LastInstanceManager(this);
         actionManager = new ActionManager(this);
         checkManager = new CheckManager(this);
@@ -290,8 +295,6 @@ public class GrimPlayer implements GrimUser {
         this.tagManager = new SyncedTags(this); // must be after this.user = user
         movementCheckRunner = new MovementCheckRunner(this);
 
-        compensatedWorld = new CompensatedWorld(this);
-        compensatedEntities = new CompensatedEntities(this);
         uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
         pointThreeEstimator = new PointThreeEstimator(this);
 
@@ -766,23 +769,25 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean canGlide() {
-        // Servers older than 1.21.2 don't have this component
+        // don't check the client/server version, this is relevant for all
+        final ItemStack chestPlate = inventory.getChestplate();
+        if (chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage() - 1)
+            return true;
+
+        // if the server or client doesn't support glider components return false
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
-                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
-            final ItemStack chestPlate = inventory.getChestplate();
-            return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage() - 1;
-        }
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) return false;
 
         // PacketEvents mappings are wrong
-        // TODO https://github.com/retrooper/packetevents/pull/1125
         return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
                 || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
                 || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND);
+                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
-        if (!stack.hasComponent(ComponentTypes.GLIDER) || stack.getDamageValue() >= (stack.getMaxDamage() - 1)) {
+        if (!stack.hasComponent(ComponentTypes.GLIDER) || (stack.canBeDepleted() && stack.getDamageValue() >= (stack.getMaxDamage() - 1))) {
             return false;
         }
 

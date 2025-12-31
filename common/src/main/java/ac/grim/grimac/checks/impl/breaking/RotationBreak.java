@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -34,7 +33,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR)
+        if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
@@ -50,7 +49,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onPostFlyingBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR)
+        if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses

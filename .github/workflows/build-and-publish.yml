@@ -3,6 +3,11 @@ name: Reusable Build and Publish
 on:
     workflow_call:
         inputs:
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -36,7 +41,7 @@ on:
 
 jobs:
     build:
-        runs-on: tenki-standard-autoscale
+        runs-on: ${{ inputs.runner }}
         permissions:
             contents: read
             packages: write
@@ -123,14 +128,14 @@ jobs:
                   fi
 
             - name: Upload Bukkit Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: grimac-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: grimac-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
@@ -192,7 +197,7 @@ jobs:
                   changelog: ${{ steps.changelog.outputs.notes }}
                   loaders: |
                       fabric
-                  game-versions: '>=1.21.5 <=1.21.10'
+                  game-versions: '>=1.21.11'
                   dependencies: 'fabric-api'
 
             #------------------------------------------------------------------
@@ -217,7 +222,7 @@ jobs:
                     paper
                     folia
                     purpur
-                  game-versions: '>=1.7 <=1.21.10'
+                  game-versions: '>=1.7 <=1.21.11'
 
             - name: Publish to API
               if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}

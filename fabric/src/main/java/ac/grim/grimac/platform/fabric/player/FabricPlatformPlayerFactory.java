@@ -8,6 +8,7 @@ import com.mojang.authlib.GameProfile;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.storage.PlayerDataStorage;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     private final Map<UUID, OfflinePlatformPlayer> offlinePlatformPlayerCache = new HashMap<>();
     private final Function<ServerPlayer, AbstractFabricPlatformPlayer> getPlayerFunction;
     private final Function<Entity, GrimEntity> getEntityFunction;
-    private final Function<ServerPlayer, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
+    private final Function<AbstractFabricPlatformPlayer, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
 
     @Override
     protected ServerPlayer getNativePlayer(@NotNull UUID uuid) {
@@ -50,7 +51,18 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
 
     @Override
     public OfflinePlatformPlayer getOfflineFromUUID(@NotNull UUID uuid) {
-        return null;
+        OfflinePlatformPlayer result = this.getFromUUID(uuid);
+        if (result == null) {
+            result = this.offlinePlatformPlayerCache.get(uuid);
+            if (result == null) {
+                result = new FabricOfflinePlatformPlayer(uuid, "");
+                this.offlinePlatformPlayerCache.put(uuid, result);
+            }
+        } else {
+            this.offlinePlatformPlayerCache.remove(uuid);
+        }
+
+        return result;
     }
 
     @Override
@@ -78,6 +90,25 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
         return result;
     }
 
+    @Override
+    public Collection<OfflinePlatformPlayer> getOfflinePlayers() {
+        PlayerDataStorage storage = GrimACFabricLoaderPlugin.FABRIC_SERVER.playerDataStorage;
+        String[] files = storage.playerDir.list((dir, name) -> name.endsWith(".dat"));
+        Set<OfflinePlatformPlayer> players = new HashSet<>();
+
+        for (String file : files) {
+            try {
+                players.add(this.getOfflineFromUUID(UUID.fromString(file.substring(0, file.length() - 4))));
+            } catch (IllegalArgumentException ex) {
+                // ignore invalid fires in directory
+            }
+        }
+
+        players.addAll(this.getOnlinePlayers());
+
+        return players;
+    }
+
     public OfflinePlatformPlayer getOfflinePlayer(GameProfile profile) {
         OfflinePlatformPlayer player = new FabricOfflinePlatformPlayer(profile.getId(), profile.getName());
         this.offlinePlatformPlayerCache.put(profile.getId(), player);
@@ -89,7 +120,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
         super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
     }
 
-    public AbstractFabricPlatformInventory getPlatformInventory(ServerPlayer serverPlayerEntity) {
+    public AbstractFabricPlatformInventory getPlatformInventory(AbstractFabricPlatformPlayer serverPlayerEntity) {
         return getPlayerInventoryFunction.apply(serverPlayerEntity);
     }
 

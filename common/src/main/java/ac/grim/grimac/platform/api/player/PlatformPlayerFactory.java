@@ -8,6 +8,8 @@ public interface PlatformPlayerFactory {
 
     OfflinePlatformPlayer getOfflineFromName(String name);
 
+    Collection<OfflinePlatformPlayer> getOfflinePlayers();
+
     PlatformPlayer getFromName(String name);
 
     PlatformPlayer getFromUUID(UUID uuid);

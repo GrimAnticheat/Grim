@@ -19,8 +19,7 @@ public interface GrimExtensionResolver {
      * Attempts to resolve the given context object into a GrimPlugin.
      *
      * @param context The context object to resolve (e.g., a Bukkit Plugin, a Plugin Class, a Fabric Mod).
-     * @return An Optional containing the resolved GrimPlugin if this resolver supports the context type,
-     *         otherwise an empty Optional.
+     * @return A GrimPlugin if this resolver supports the context type, otherwise null.
      */
     @Nullable GrimPlugin resolve(@NotNull Object context);
 

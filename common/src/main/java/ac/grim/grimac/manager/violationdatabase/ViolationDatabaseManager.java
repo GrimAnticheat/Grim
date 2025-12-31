@@ -73,10 +73,11 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
             }
 
             case "MYSQL" -> {
-                String host = cfg.getStringElse("history.database.host",     "localhost:3306");
-                String db   = cfg.getStringElse("history.database.database", "grimac");
+                int port = cfg.getIntElse("history.database.port", 3306);
+                String host = cfg.getStringElse("history.database.host", "localhost") + ":" + port;
+                String db = cfg.getStringElse("history.database.database", "grimac");
                 String user = cfg.getStringElse("history.database.username", "root");
-                String pwd  = cfg.getStringElse("history.database.password", "password");
+                String pwd = cfg.getStringElse("history.database.password", "password");
 
                 if (database instanceof MySQLViolationDatabase mysql
                         && mysql.sameConfig(host, db, user, pwd)) {
@@ -95,7 +96,8 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
             }
 
             case "POSTGRESQL" -> {
-                String host = cfg.getStringElse("history.database.host",     "localhost:3306");
+                int port = cfg.getIntElse("history.database.port", 3306);
+                String host = cfg.getStringElse("history.database.host", "localhost") + ":" + port;
                 String db   = cfg.getStringElse("history.database.database", "grimac");
                 String user = cfg.getStringElse("history.database.username", "root");
                 String pwd  = cfg.getStringElse("history.database.password", "password");
@@ -138,5 +140,4 @@ public class ViolationDatabaseManager implements StartableInitable, ReloadableIn
     public List<Violation> getViolations(UUID player, int page, int limit) {
         return database.getViolations(player, page, limit);
     }
-
 }
