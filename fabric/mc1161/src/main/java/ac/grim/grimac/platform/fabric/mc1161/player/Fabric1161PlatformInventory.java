@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1161.player;
 
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformInventory;
+import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,7 +11,7 @@ import net.minecraft.world.inventory.MenuType;
 import org.jetbrains.annotations.Nullable;
 
 public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory {
-    public Fabric1161PlatformInventory(ServerPlayer player) {
+    public Fabric1161PlatformInventory(AbstractFabricPlatformPlayer player) {
         super(player);
     }
 
@@ -23,7 +24,7 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
     // And is slated to be replaced by packet based behaviour, this should do for now
     @Override
     public String getOpenInventoryKey() {
-        AbstractContainerMenu handler = fabricPlayer.containerMenu;
+        AbstractContainerMenu handler = fabricPlatformPlayer.getNative().containerMenu;
         MenuType<?> type = getSafeType(handler);
 
         // Handle null types (player crafting and creative)
@@ -69,7 +70,7 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
     }
 
     protected boolean isPlayerCreative() {
-        return fabricPlayer.isCreative();
+        return fabricPlatformPlayer.getNative().isCreative();
     }
 
     protected @Nullable MenuType<?> getSafeType(AbstractContainerMenu handler) {

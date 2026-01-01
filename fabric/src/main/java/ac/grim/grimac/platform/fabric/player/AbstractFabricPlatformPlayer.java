@@ -20,14 +20,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEntity implements PlatformPlayer {
-    protected ServerPlayer fabricPlayer;
+    protected volatile ServerPlayer fabricPlayer;
     protected final AbstractFabricPlatformInventory inventory;
     private final @Nullable User user;
 
     public AbstractFabricPlatformPlayer(ServerPlayer player) {
         super(player);
         this.fabricPlayer = player;
-        this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(player);
+        this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(this);
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
             Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(fabricPlayer.getUUID());
             this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
@@ -143,8 +143,6 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
-        this.inventory.fabricPlayer = (ServerPlayer) nativePlayerObject;
-        this.inventory.inventory = ((ServerPlayer) nativePlayerObject).inventory;
         this.fabricPlayer = (ServerPlayer) nativePlayerObject;
     }
 

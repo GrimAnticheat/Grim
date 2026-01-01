@@ -21,7 +21,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
     private final Map<UUID, OfflinePlatformPlayer> offlinePlatformPlayerCache = new HashMap<>();
     private final Function<ServerPlayer, AbstractFabricPlatformPlayer> getPlayerFunction;
     private final Function<Entity, GrimEntity> getEntityFunction;
-    private final Function<ServerPlayer, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
+    private final Function<AbstractFabricPlatformPlayer, AbstractFabricPlatformInventory> getPlayerInventoryFunction;
 
     @Override
     protected ServerPlayer getNativePlayer(@NotNull UUID uuid) {
@@ -120,7 +120,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
         super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
     }
 
-    public AbstractFabricPlatformInventory getPlatformInventory(ServerPlayer serverPlayerEntity) {
+    public AbstractFabricPlatformInventory getPlatformInventory(AbstractFabricPlatformPlayer serverPlayerEntity) {
         return getPlayerInventoryFunction.apply(serverPlayerEntity);
     }
 
