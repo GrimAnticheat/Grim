@@ -47,6 +47,13 @@ max-transaction-time: 60
 # Nu activa dacă nu ești sigur ce faci.
 disable-pong-cancelling: false
 
+# Ar trebui dezactivat handler-ul implicit de resincronizare a blocurilor?
+# Implicit, Grim citește blocurile din lumea serverului și le trimite clientului pentru a repara desincronizarea.
+# Dacă utilizați plugin-uri care creează blocuri false bazate pe pachete (care nu există în lumea serverului),
+# ar trebui să setați acest lucru pe true pentru a preveni ca Grim să le suprascrie cu aer/blocuri reale.
+# Acest lucru forțează utilizarea unui handler "NoOp" (Fără Operațiune), cu excepția cazului în care unul personalizat este furnizat prin API.
+disable-default-resync-handler: false
+
 # Ar trebui să fie anulat pachetul de mișcare duplicat?
 # Mojang a reparat această problemă în 1.21. A fost încercarea lor de a rezolva „bucket desync”. https://bugs.mojang.com/browse/MC-12363
 # Această setare se aplică doar clienților 1.17-1.20.5 pe servere 1.8.

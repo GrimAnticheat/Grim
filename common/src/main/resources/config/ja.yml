@@ -49,6 +49,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# デフォルトのブロック再同期ハンドラーを無効にしますか？
+# デフォルトでは、Grimはサーバーワールドからブロックを読み取り、非同期（Desync）を修正するためにクライアントに送信します。
+# パケットベースの偽のブロック（サーバーワールドには存在しない）を作成するプラグインを使用している場合、
+# Grimがそれらを空気や実際のブロックで上書きしないように、これを true に設定する必要があります。
+# これにより、API経由でカスタムハンドラーが提供されない限り、"NoOp"（何もしない）ハンドラーの使用が強制されます。
+disable-default-resync-handler: false
+
 # 重複した移動パケットをキャンセルしますか？
 # 1.21でこの問題は修正されました。重複パケットの問題は、Mojangが「バケツの同期ズレ」を修正しようとしたことに起因するものでした。 https://bugs.mojang.com/browse/MC-12363
 # この設定は、V1.17-1.20.5クライアントが、V1.8サーバーに接続している際にのみ適用されます。

@@ -48,6 +48,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# O manipulador padrão de ressincronização de blocos deve ser desativado?
+# Por padrão, o Grim lê blocos do mundo do servidor e os envia ao cliente para corrigir a dessincronização.
+# Se você usa plugins que criam blocos falsos baseados em pacotes (que não existem no mundo do servidor),
+# você deve definir isso como true para evitar que o Grim os sobrescreva com ar/blocos reais.
+# Isso força o uso de um manipulador "NoOp" (Sem Operação), a menos que um personalizado seja fornecido via API.
+disable-default-resync-handler: false
+
 # Deve-se cancelar o pacote de movimento duplicado?
 # A Mojang arrumou esse erro na 1.21, sendo sua tentativa de concertar a dessincronização do balde. https://bugs.mojang.com/browse/MC-12363
 # Isso só se aplica à clientes da 1.17-1.20.5 em servidores da 1.8.

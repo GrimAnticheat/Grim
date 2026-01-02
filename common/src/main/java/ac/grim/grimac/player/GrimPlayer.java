@@ -14,6 +14,7 @@ import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
+import ac.grim.grimac.manager.player.handlers.NoOpResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
@@ -243,7 +244,7 @@ public class GrimPlayer implements GrimUser {
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
     public final CompensatedCameraEntity cameraEntity;
-    @Getter @Setter private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
+    @Getter @Setter private ResyncHandler resyncHandler = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-default-resync-handler", false) ? NoOpResyncHandler.INSTANCE : new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
     // start config
@@ -900,6 +901,30 @@ public class GrimPlayer implements GrimUser {
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
+
+        boolean shouldDisableResync = config.getBooleanElse("disable-default-resync-handler", false);
+        Class<?> currentHandlerClass = this.resyncHandler.getClass();
+
+        // Check if the current handler is EXACTLY one of our internal types.
+        // If someone extended DefaultResyncHandler, .getClass() will not match,
+        // so we will skip this block and preserve their custom handler.
+        boolean isInternalHandler = currentHandlerClass == DefaultResyncHandler.class
+                || currentHandlerClass == NoOpResyncHandler.class;
+
+        if (isInternalHandler) {
+            if (shouldDisableResync) {
+                // Config says disable, but we aren't using NoOp yet? Switch to NoOp.
+                if (currentHandlerClass != NoOpResyncHandler.class) {
+                    this.resyncHandler = NoOpResyncHandler.INSTANCE;
+                }
+            } else {
+                // Config says enable, but we are using NoOp? Switch to Default.
+                if (currentHandlerClass != DefaultResyncHandler.class) {
+                    this.resyncHandler = new DefaultResyncHandler(this);
+                }
+            }
+        }
+
         resetItemUsageOnAttack = config.getBooleanElse("reset-item-usage-on-attack", true);
         resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
