@@ -47,6 +47,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# Moet de standaard block resynchronization handler worden uitgeschakeld?
+# Standaard leest Grim blokken van de serverwereld en stuurt ze naar de client om desync op te lossen.
+# Als je plugins gebruikt die neppe packet-based blokken maken (die niet in de serverwereld bestaan),
+# moet je dit op true zetten om te voorkomen dat Grim ze overschrijft met lucht/echte blokken.
+# Dit forceert het gebruik van een "NoOp" (No Operation) handler tenzij er een aangepaste via de API wordt geleverd.
+disable-default-resync-handler: false
+
 # Moet het dubbele bewegingspakket worden geannuleerd?
 # Mojang heeft dit probleem opgelost in 1.21. Dit was hun poging om de "bucket desync" op te lossen. https://bugs.mojang.com/browse/MC-12363
 # Deze instelling geldt alleen voor 1.17-1.20.5 clients op 1.8 servers

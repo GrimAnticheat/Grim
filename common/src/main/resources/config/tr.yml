@@ -47,6 +47,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# Varsayılan blok yeniden senkronizasyon işleyicisi devre dışı bırakılsın mı?
+# Varsayılan olarak Grim, blokları sunucu dünyasından okur ve senkronizasyon bozukluğunu düzeltmek için istemciye gönderir.
+# Paket tabanlı sahte bloklar (sunucu dünyasında var olmayan) oluşturan eklentiler kullanıyorsanız,
+# Grim'in bunları hava/gerçek bloklarla üzerine yazmasını önlemek için bunu true olarak ayarlamalısınız.
+# Bu, API aracılığıyla özel bir tane sağlanmadıkça bir "NoOp" (İşlemsiz) işleyicisinin kullanılmasını zorlar.
+disable-default-resync-handler: false
+
 # Kopya hareket paketinin iptal edilip edilmemesi gerektiği
 # Mojang bu sorunu 1.21'de çözdü. Bu, "kova senkronizasyonu" sorununu düzeltme girişimiydi. https://bugs.mojang.com/browse/MC-12363
 # Bu ayar yalnızca 1.17-1.20.5 istemcileri için 1.8 sunucularında geçerlidir.

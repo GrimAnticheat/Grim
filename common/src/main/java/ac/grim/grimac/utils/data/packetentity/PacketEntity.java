@@ -147,8 +147,6 @@ public class PacketEntity extends TypedPacketEntity {
             }
         }
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
-
         // TODO make config option to rewrite Rots to PosRots instead of expanding to handle this false
         // https://bugs.mojang.com/browse/MC-255263
         if (!hasPos &&
@@ -156,7 +154,16 @@ public class PacketEntity extends TypedPacketEntity {
                 (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_9) && player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4)) ||
                 (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4))
         ) {
-            newPacketLocation.cancelLerp();
+            this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(
+                    trackedServerPosition.getPos().getX(),
+                    trackedServerPosition.getPos().getY(),
+                    trackedServerPosition.getPos().getZ(),
+                    trackedServerPosition.getPos().getX(),
+                    trackedServerPosition.getPos().getY(),
+                    trackedServerPosition.getPos().getZ()
+            ), trackedServerPosition, this);
+        } else {
+            this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
         }
 
         // In versions < 1.16.2 when the client receives non-relative teleport for an entity

@@ -47,6 +47,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# Sollte der Standard-Handler für die Block-Resynchronisierung deaktiviert werden?
+# Standardmäßig liest Grim Blöcke aus der Serverwelt und sendet sie an den Client, um Desyncs zu beheben.
+# Wenn Sie Plugins verwenden, die gefälschte paketbasierte Blöcke erstellen (die in der Serverwelt nicht existieren),
+# sollten Sie dies auf true setzen, um zu verhindern, dass Grim sie mit Luft/echten Blöcken überschreibt.
+# Dies erzwingt die Verwendung eines "NoOp" (No Operation) Handlers, es sei denn, über die API wird ein eigener bereitgestellt.
+disable-default-resync-handler: false
+
 # Should the duplicate movement packet be cancelled?
 # Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
