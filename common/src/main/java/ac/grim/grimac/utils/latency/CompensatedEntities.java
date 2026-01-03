@@ -55,7 +55,7 @@ public class CompensatedEntities {
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
         this.self = new PacketEntitySelf(player);
-        this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+        this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, false, EntityTypes.PLAYER, player.lastTransactionSent.get());
     }
 
     public int getPacketEntityID(PacketEntity entity) {
@@ -413,11 +413,17 @@ public class CompensatedEntities {
                     if (entity instanceof PacketEntityCamel camel) {
                         EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
                         if (entityData != null) {
+                            System.out.println("camel metadata handle: " + entityData.getValue() + " " + ((boolean) entityData.getValue()) + " id: " + entityID);
                             camel.setDashing((boolean) entityData.getValue());
 
                             // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
                             // !firstTick condition
                             camel.setDashCooldown(camel.getDashCooldown() == 0 ? 55 : camel.getDashCooldown());
+                        } else {
+                            System.out.println("update for: "  + entityID);
+                            for (EntityData<?> watchableObject : watchableObjects) {
+                                System.out.println(watchableObject.getIndex() + " " + watchableObject.getValue());
+                            }
                         }
                     }
                 }
