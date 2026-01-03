@@ -99,7 +99,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
     }
 
     @Override
-    public boolean canPlayerJump() {
+    public boolean canPlayerJump(GrimPlayer player) {
         return this.hasSaddle();
     }
 

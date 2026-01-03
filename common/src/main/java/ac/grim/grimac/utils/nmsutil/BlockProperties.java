@@ -33,7 +33,7 @@ public class BlockProperties {
                 return (float) (player.speed * 0.1f);
             }
 
-            if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider strider) {
+            if (riding instanceof PacketEntityStrider strider) {
                 // Unsure which version the speed changed in
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
                     return (float) player.speed * 0.1f;

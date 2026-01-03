@@ -61,7 +61,7 @@ public class PacketEntityNautilus extends PacketEntity implements JumpableEntity
     }
 
     @Override
-    public boolean canPlayerJump() {
+    public boolean canPlayerJump(GrimPlayer player) {
         return this.hasSaddle() && this.dashCooldown <= 0;
     }
 

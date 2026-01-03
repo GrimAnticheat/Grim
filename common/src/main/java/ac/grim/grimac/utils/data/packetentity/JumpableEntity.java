@@ -19,7 +19,7 @@ public interface JumpableEntity {
 
     void setNextJumpPower(float nextJumpPower);
 
-    boolean canPlayerJump();
+    boolean canPlayerJump(GrimPlayer player);
 
     boolean hasSaddle();
 

@@ -29,8 +29,8 @@ public class PacketEntityCamel extends PacketEntityHorse implements DashableEnti
     }
 
     @Override
-    public boolean canPlayerJump() {
-        return this.hasSaddle() && this.dashCooldown <= 0; // && this.onGround()
+    public boolean canPlayerJump(GrimPlayer player) {
+        return this.hasSaddle() && this.dashCooldown <= 0 && player.lastOnGround; // not ideal, but good enough
     }
 
     @Override
