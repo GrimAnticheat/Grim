@@ -486,7 +486,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 data.setY(deltaY);
                 data.setZ(deltaZ);
             }
-            data.setOnGround(onGround);
             if (yaw != null) {
                 data.setXRot(yaw);
                 data.setYRot(pitch);
@@ -524,7 +523,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             player.sendTransaction();
         }
 
-        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, false, type, player.lastTransactionSent.get()));
+        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity entity = player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
