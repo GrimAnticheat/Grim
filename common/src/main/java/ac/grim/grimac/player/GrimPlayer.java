@@ -87,6 +87,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Everything in this class should be sync'd to the anticheat thread.
@@ -503,11 +504,17 @@ public class GrimPlayer implements GrimUser {
                 : isSneaking ? 1.54f : 1.62f;
     }
 
+    private final AtomicBoolean hasDisconnected = new AtomicBoolean(false);
+
     public void timedOut() {
         disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectTimeout())));
     }
 
     public void disconnect(Component reason) {
+        if (!hasDisconnected.compareAndSet(false, true)) {
+            return;
+        }
+
         String textReason;
         if (reason instanceof TranslatableComponent translatableComponent) {
             textReason = translatableComponent.key();
