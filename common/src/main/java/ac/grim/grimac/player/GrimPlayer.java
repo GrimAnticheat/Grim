@@ -504,30 +504,29 @@ public class GrimPlayer implements GrimUser {
                 : isSneaking ? 1.54f : 1.62f;
     }
 
-    private final AtomicBoolean hasDisconnected = new AtomicBoolean(false);
-
     public void timedOut() {
         disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectTimeout())));
     }
 
     public void disconnect(Component reason) {
-        if (!hasDisconnected.compareAndSet(false, true)) {
-            return;
-        }
-
         String textReason;
         if (reason instanceof TranslatableComponent translatableComponent) {
             textReason = translatableComponent.key();
         } else {
             textReason = LegacyComponentSerializer.legacySection().serialize(reason);
         }
+
         LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + MessageUtil.stripColor(textReason));
-        try {
-            user.sendPacket(new WrapperPlayServerDisconnect(reason));
-        } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
-            LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
-        }
-        user.closeConnection();
+        runSafely(() -> {
+            try {
+                user.sendPacket(new WrapperPlayServerDisconnect(reason));
+            } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
+                LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
+            }
+
+            user.closeConnection();
+        });
+
         if (platformPlayer != null) {
             GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
                     () -> platformPlayer.kickPlayer(textReason), null, 1);
