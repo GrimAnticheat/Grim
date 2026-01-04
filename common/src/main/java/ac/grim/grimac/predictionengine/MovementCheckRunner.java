@@ -16,6 +16,7 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableUtils;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -629,6 +630,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
+
+        PredictionEngineRideableUtils.applyPendingJumps(player);
 
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));

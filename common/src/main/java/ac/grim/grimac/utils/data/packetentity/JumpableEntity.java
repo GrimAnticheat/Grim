@@ -15,10 +15,6 @@ public interface JumpableEntity {
 
     void setJumpPower(float jumpPower);
 
-    float getNextJumpPower();
-
-    void setNextJumpPower(float nextJumpPower);
-
     boolean canPlayerJump(GrimPlayer player);
 
     boolean hasSaddle();

@@ -26,7 +26,6 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
     public boolean isTame = false;
 
     private boolean horseJumping = false;
-    private float nextHorseJump = 0;
     private float horseJump = 0;
 
     public PacketEntityHorse(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z, float xRot) {
@@ -86,16 +85,6 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
     @Override
     public void setJumpPower(float jumpPower) {
         this.horseJump = jumpPower;
-    }
-
-    @Override
-    public float getNextJumpPower() {
-        return this.nextHorseJump;
-    }
-
-    @Override
-    public void setNextJumpPower(float nextJumpPower) {
-        this.nextHorseJump = nextJumpPower;
     }
 
     @Override

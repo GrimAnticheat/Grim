@@ -17,7 +17,6 @@ import java.util.UUID;
 public class PacketEntityNautilus extends PacketEntity implements JumpableEntity, DashableEntity {
 
     private boolean jumping = false;
-    private float nextJumpPower = 0;
     private float jumpPower = 0;
 
     private boolean dashing = false;
@@ -48,16 +47,6 @@ public class PacketEntityNautilus extends PacketEntity implements JumpableEntity
     @Override
     public void setJumpPower(float jumpPower) {
         this.jumpPower = jumpPower;
-    }
-
-    @Override
-    public float getNextJumpPower() {
-        return this.nextJumpPower;
-    }
-
-    @Override
-    public void setNextJumpPower(float nextJumpPower) {
-        this.nextJumpPower = nextJumpPower;
     }
 
     @Override

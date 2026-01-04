@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions.rideable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.math.Vector3dm;
@@ -34,11 +35,6 @@ public final class PredictionEngineRideableUtils {
             }
 
             jumpable.setJumping(false);
-        }
-
-        if (jumpable.getNextJumpPower() != 0.0F) {
-            jumpable.setJumpPower(jumpable.getNextJumpPower());
-            jumpable.setNextJumpPower(0.0F);
         }
 
         return possibleVectors;
@@ -77,4 +73,21 @@ public final class PredictionEngineRideableUtils {
 
         return returnVectors;
     }
+
+    public static void applyPendingJumps(GrimPlayer player) {
+        Pair<Integer, JumpableEntity> pendingJump;
+        while ((pendingJump = player.vehicleData.pendingJumps.poll()) != null) {
+            JumpableEntity jumpable = pendingJump.second();
+            if (jumpable.canPlayerJump(player)) {
+                int jumpBoost = pendingJump.first();
+                if (jumpBoost < 0) jumpBoost = 0;
+                if (jumpBoost >= 90) {
+                    jumpable.setJumpPower(1);
+                } else {
+                    jumpable.setJumpPower(0.4F + 0.4F * jumpBoost / 90.0F);
+                }
+            }
+        }
+    }
+
 }
