@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,10 +25,10 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
     public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_10();
 
     @Override
-    public void applyEffectsFromBlocks(GrimPlayer player) {
+    public void applyEffectsFromBlocks(GrimPlayer player, List<GrimPlayer.Movement> movements) {
         LongSet visitedBlocks = player.visitedBlocks;
 
-        for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
+        for (GrimPlayer.Movement movement : movements) {
             Vector3d from = movement.from();
             Vector3d to = movement.to().subtract(movement.from());
 

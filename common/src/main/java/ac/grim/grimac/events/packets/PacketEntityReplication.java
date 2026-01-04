@@ -152,13 +152,15 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         // 1.19.3+
         else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_UPDATE) {
             WrapperPlayServerPlayerInfoUpdate info = new WrapperPlayServerPlayerInfoUpdate(event);
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : info.getEntries()) {
-                    final UserProfile gameProfile = entry.getGameProfile();
-                    final UUID uuid = gameProfile.getUUID();
-                    player.compensatedEntities.profiles.put(uuid, gameProfile);
-                }
-            });
+            if (info.getActions().contains(WrapperPlayServerPlayerInfoUpdate.Action.ADD_PLAYER)) {
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : info.getEntries()) {
+                        final UserProfile gameProfile = entry.getGameProfile();
+                        final UUID uuid = gameProfile.getUUID();
+                        player.compensatedEntities.profiles.put(uuid, gameProfile);
+                    }
+                });
+            }
         } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_REMOVE) {
             WrapperPlayServerPlayerInfoRemove remove = new WrapperPlayServerPlayerInfoRemove(event);
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> remove.getProfileIds().forEach(player.compensatedEntities.profiles::remove));

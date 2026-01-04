@@ -585,7 +585,7 @@ public final class Collisions {
             }
         }
 
-        Collisions.resolveBlockEffects(player);
+        Collisions.resolveBlockEffects(player, player.finalMovementsThisTick);
 
         if (player.stuckSpeedMultiplier.getX() < 0.9) {
             // Reset fall distance if stuck in block
@@ -598,7 +598,11 @@ public final class Collisions {
         }
     }
 
-    public static void resolveBlockEffects(GrimPlayer player) {
+    public static void resolveBlockEffects(GrimPlayer player, Vector3d from, Vector3d to) {
+        Collisions.resolveBlockEffects(player, List.of(new GrimPlayer.Movement(from, to)));
+    }
+
+    public static void resolveBlockEffects(GrimPlayer player, List<GrimPlayer.Movement> movements) {
         ClientVersion version = player.getClientVersion();
         BlockEffectsResolver resolver;
 
@@ -614,7 +618,7 @@ public final class Collisions {
             resolver = BlockEffectsResolverV1_21_10.INSTANCE; // 1.21.10
         }
 
-        resolver.applyEffectsFromBlocks(player);
+        resolver.applyEffectsFromBlocks(player, movements);
     }
 
     private static double getOldDeltaY(GrimPlayer player, double value) {

@@ -14,6 +14,7 @@ import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
+import ac.grim.grimac.manager.player.handlers.NoOpResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
@@ -240,7 +241,8 @@ public class GrimPlayer implements GrimUser {
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
-    @Getter @Setter private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
+    public final CompensatedCameraEntity cameraEntity;
+    @Getter @Setter private ResyncHandler resyncHandler = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-default-resync-handler", false) ? NoOpResyncHandler.INSTANCE : new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
     // start config
@@ -277,6 +279,10 @@ public class GrimPlayer implements GrimUser {
         fireworks = new CompensatedFireworks(this); // Must be before checkmanager
         inventory = new CompensatedInventory(this);
 
+        compensatedWorld = new CompensatedWorld(this);
+        compensatedEntities = new CompensatedEntities(this);
+        cameraEntity = new CompensatedCameraEntity(this);
+
         lastInstanceManager = new LastInstanceManager(this);
         actionManager = new ActionManager(this);
         checkManager = new CheckManager(this);
@@ -284,8 +290,6 @@ public class GrimPlayer implements GrimUser {
         this.tagManager = new SyncedTags(this); // must be after this.user = user
         movementCheckRunner = new MovementCheckRunner(this);
 
-        compensatedWorld = new CompensatedWorld(this);
-        compensatedEntities = new CompensatedEntities(this);
         uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
         pointThreeEstimator = new PointThreeEstimator(this);
 
@@ -894,6 +898,30 @@ public class GrimPlayer implements GrimUser {
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
+
+        boolean shouldDisableResync = config.getBooleanElse("disable-default-resync-handler", false);
+        Class<?> currentHandlerClass = this.resyncHandler.getClass();
+
+        // Check if the current handler is EXACTLY one of our internal types.
+        // If someone extended DefaultResyncHandler, .getClass() will not match,
+        // so we will skip this block and preserve their custom handler.
+        boolean isInternalHandler = currentHandlerClass == DefaultResyncHandler.class
+                || currentHandlerClass == NoOpResyncHandler.class;
+
+        if (isInternalHandler) {
+            if (shouldDisableResync) {
+                // Config says disable, but we aren't using NoOp yet? Switch to NoOp.
+                if (currentHandlerClass != NoOpResyncHandler.class) {
+                    this.resyncHandler = NoOpResyncHandler.INSTANCE;
+                }
+            } else {
+                // Config says enable, but we are using NoOp? Switch to Default.
+                if (currentHandlerClass != DefaultResyncHandler.class) {
+                    this.resyncHandler = new DefaultResyncHandler(this);
+                }
+            }
+        }
+
         resetItemUsageOnAttack = config.getBooleanElse("reset-item-usage-on-attack", true);
         resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
