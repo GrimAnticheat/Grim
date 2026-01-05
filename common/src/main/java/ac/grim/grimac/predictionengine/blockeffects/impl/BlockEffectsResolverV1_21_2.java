@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,13 +24,13 @@ public class BlockEffectsResolverV1_21_2 implements BlockEffectsResolver {
     public static BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_2();
 
     @Override
-    public void applyEffectsFromBlocks(GrimPlayer player) {
+    public void applyEffectsFromBlocks(GrimPlayer player, List<GrimPlayer.Movement> movements) {
         LongSet visitedBlocks = player.visitedBlocks;
         SimpleCollisionBox boundingBox = (player.inVehicle()
                 ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
                 : player.boundingBox.copy()).expand(-1.0E-5F);
 
-        for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
+        for (GrimPlayer.Movement movement : movements) {
             Vector3d from = movement.from();
             Vector3d to = movement.to();
 
