@@ -527,6 +527,10 @@ public enum HitboxData implements HitBoxFactory {
 
     CAVE_VINES(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT),
 
+    MUSHROOM(new HexCollisionBox(5, 0, 5, 11, 6, 11), StateTypes.BROWN_MUSHROOM, StateTypes.RED_MUSHROOM),
+
+    FUNGUS(new HexCollisionBox(4, 0, 4, 12, 9, 12), StateTypes.CRIMSON_FUNGUS, StateTypes.WARPED_FUNGUS),
+
     // Then your enum entries become:
     TWISTING_VINES_BLOCK((player, item, version, data, isTargetBlock, x, y, z) ->
             getVineCollisionBox(version, false, true), StateTypes.TWISTING_VINES),
