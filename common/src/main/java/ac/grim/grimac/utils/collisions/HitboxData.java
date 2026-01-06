@@ -37,6 +37,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static ac.grim.grimac.utils.lists.ArrayUtils.combine;
+
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData implements HitBoxFactory {
     VINE((player, item, version, data, isTargetBlock, x, y, z) -> {
@@ -485,7 +487,25 @@ public enum HitboxData implements HitBoxFactory {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
     }, StateTypes.SWEET_BERRY_BUSH),
 
-    CORAL_FAN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D), BlockTags.CORALS.getStates().toArray(new StateType[0])),
+    CORAL_PLANTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D),
+            combine(BlockTags.CORAL_PLANTS.getStates(),
+                    StateTypes.DEAD_TUBE_CORAL, StateTypes.DEAD_BRAIN_CORAL, StateTypes.DEAD_BUBBLE_CORAL, StateTypes.DEAD_FIRE_CORAL, StateTypes.DEAD_HORN_CORAL
+            )
+    ),
+
+    CORAL_FAN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D),
+            StateTypes.TUBE_CORAL_FAN, StateTypes.BRAIN_CORAL_FAN, StateTypes.BUBBLE_CORAL_FAN, StateTypes.FIRE_CORAL_FAN, StateTypes.HORN_CORAL_FAN,
+            StateTypes.DEAD_TUBE_CORAL_FAN, StateTypes.DEAD_BRAIN_CORAL_FAN, StateTypes.DEAD_BUBBLE_CORAL_FAN, StateTypes.DEAD_FIRE_CORAL_FAN, StateTypes.DEAD_HORN_CORAL_FAN),
+
+    CORAL_WALL_FAN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getFacing()) {
+        case NORTH -> new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
+        case SOUTH -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
+        case WEST -> new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+        case EAST -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D);
+        default -> throw new UnsupportedOperationException();
+    }, combine(BlockTags.WALL_CORALS.getStates(),
+            StateTypes.DEAD_TUBE_CORAL_WALL_FAN, StateTypes.DEAD_BRAIN_CORAL_WALL_FAN, StateTypes.DEAD_BUBBLE_CORAL_WALL_FAN, StateTypes.DEAD_FIRE_CORAL_WALL_FAN, StateTypes.DEAD_HORN_CORAL_WALL_FAN)
+    ),
 
     TORCHFLOWER_CROP((player, item, version, data, isTargetBlock, x, y, z) -> {
         if (data.getAge() == 0) {
