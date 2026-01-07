@@ -24,7 +24,7 @@ public final class PredictionEngineRideableUtils {
         // TODO: onGround can desync if it's first riding tick
         jumpable.executeJump(player, possibleVectors);
 
-        // More jumping stuff // TODO the code below probably does not apply to nautilus
+        // More jumping stuff
         boolean legacyJumpingMechanics = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_3);
         boolean onGround = legacyJumpingMechanics
                 ? player.clientControlledVerticalCollision
