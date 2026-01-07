@@ -155,11 +155,11 @@ public class Reach extends Check implements PacketCheck {
             CheckResult result = checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), itemInHand, true);
             return result.isFlag(); // If they flagged
         } else {
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            if (reachEntity.type == EntityTypes.END_CRYSTAL) {
-                targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
-            }
-            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+            SimpleCollisionBox targetBox = getTargetBox(reachEntity);
+
+            double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastMovementIncludePosition);
+
+            return ReachUtils.getMinReachToBox(player, targetBox) > maxReach;
         }
     }
 
@@ -193,29 +193,9 @@ public class Reach extends Check implements PacketCheck {
 
     @NotNull
     private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, ItemStack itemInHand, boolean isPrediction) {
-        SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+        SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
-        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
-            targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
-        }
-
-        // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
-        // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ||
-                player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)) {
-            targetBox.expand(getHitboxMargin(itemInHand));
-        }
-
-        targetBox.expand(threshold);
-
-        // This is better than adding to the reach, as 0.03 can cause a player to miss their target
-        // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-        //
-        // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-        // However, on 1.21.2+ we do know if they had 0.03 movement
-        if (!player.packetStateData.didLastLastMovementIncludePosition || player.canSkipTicks())
-            targetBox.expand(player.getMovementThreshold());
-
+        double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastLastMovementIncludePosition);
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
@@ -236,9 +216,10 @@ public class Reach extends Check implements PacketCheck {
             }
         }
 
-        final double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
+
+
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
         for (Vector3dm lookVec : possibleLookDirs) {
@@ -275,17 +256,51 @@ public class Reach extends Check implements PacketCheck {
         return NONE;
     }
 
-    private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
-
-    private float getHitboxMargin(ItemStack itemInHand) {
-        if (player.getClientVersion() == ClientVersion.V_1_8) return 0.1f;
-        // TODO: ViaVersion support https://github.com/ViaVersion/ViaVersion/pull/4733
-        if (!ATTACK_RANGE_COMPONENT_EXISTS || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_11))
-            return 0f;
-
-        ItemAttackRange attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
-        return attackRange == null ? 0f : attackRange.getHitboxMargin();
+    private SimpleCollisionBox getTargetBox(PacketEntity reachEntity) {
+        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+            return new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
+        }
+        return reachEntity.getPossibleCollisionBoxes();
     }
+
+    private double applyReachModifiers(SimpleCollisionBox targetBox, ItemStack itemInHand, boolean giveMovementThreshold) {
+        double maxReach;
+        double hitboxMargin = threshold;
+
+        ItemAttackRange attackRange = null;
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
+            // TODO: ViaVersion support https://github.com/ViaVersion/ViaVersion/pull/4733
+            attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
+        }
+
+        if (attackRange != null) {
+            maxReach = attackRange.getMaxRange();
+            hitboxMargin += attackRange.getHitboxMargin();
+        } else {
+            maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                hitboxMargin += 0.1f;
+            }
+        }
+
+        // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+        // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+        //
+        // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+        // However, on 1.21.2+ we do know if they had 0.03 movement
+        if (giveMovementThreshold || player.canSkipTicks()) {
+            hitboxMargin += player.getMovementThreshold();
+        }
+
+        targetBox.expand(hitboxMargin);
+
+        return maxReach;
+    }
+
+    private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
 
     @Override
     public void onReload(ConfigManager config) {

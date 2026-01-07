@@ -170,13 +170,8 @@ public class ReachUtils {
     }
 
     public static double getMinReachToBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox targetBox) {
-        boolean giveMovementThresholdLenience = !player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks();
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
-            targetBox.expand(0.1);
-
         double lowest = Double.MAX_VALUE;
 
-        if (giveMovementThresholdLenience) targetBox.expand(player.getMovementThreshold());
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (double eyes : possibleEyeHeights) {
             Vector3dm closestPoint = VectorUtils.cutBoxToVector(player.x, player.y + eyes, player.z, targetBox);
