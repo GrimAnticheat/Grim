@@ -3,24 +3,99 @@ package ac.grim.grimac.manager.config;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.config.source.ConfigLoader;
+import ac.grim.grimac.api.config.source.ConfigSource;
+import ac.grim.grimac.api.config.source.SourceHandler;
+import ac.grim.grimac.api.config.source.impl.FileConfigSource;
+import ac.grim.grimac.api.config.source.impl.MemoryConfigSource;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import github.scarsz.configuralize.DynamicConfig;
 import github.scarsz.configuralize.Language;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
+public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable, ConfigLoader {
 
     private final DynamicConfig config;
     private boolean initialized = false;
 
+    // Registry of logic handlers
+    private final Map<Class<?>, SourceHandler<?>> handlers = new HashMap<>();
+
+    // Registry of sources (stored for reloads)
+    private final List<ConfigSource> registeredSources = new ArrayList<>();
+    private final Set<String> loadedIds = new HashSet<>();
+
     public ConfigManagerFileImpl() {
         config = new DynamicConfig();
+
+        this.registerHandler(FileConfigSource.class, (source, loader) -> {
+            loader.loadFile(source.getId(), source.getFile(), source.getResourceOwner());
+        });
+
+        // 2. Register Logic: How to handle Memory/Maps
+        this.registerHandler(MemoryConfigSource.class, (source, loader) -> {
+            loader.loadMap(source.getId(), source.getValues());
+        });
+
+        // 3. Register Standard Configs using the new system
+        // Note: These are now treated exactly the same as external platform configs
+        this.registerSource(ConfigSource.file("config", getConfigFile("config.yml"), GrimAPI.class));
+        this.registerSource(ConfigSource.file("messages", getConfigFile("messages.yml"), GrimAPI.class));
+        this.registerSource(ConfigSource.file("discord", getConfigFile("discord.yml"), GrimAPI.class));
+        this.registerSource(ConfigSource.file("punishments", getConfigFile("punishments.yml"), GrimAPI.class));
+    }
+
+    @Override
+    public void registerSource(@NotNull ConfigSource source) {
+        if (!registeredSources.contains(source)) {
+            registeredSources.add(source);
+        }
+        // Process immediately
+        runHandler(source);
+    }
+
+    @Override
+    public <T extends ConfigSource> void registerHandler(@NotNull Class<T> type, @NotNull SourceHandler<T> handler) {
+        handlers.put(type, handler);
+    }
+
+    @Override
+    public void loadFile(@NotNull String id, @NotNull File file, @NotNull Class<?> resourceOwner) {
+        // SAFETY GUARD: Only add the source definition ONCE.
+        // config.loadAll() will handle refreshing the content during reload.
+        if (loadedIds.contains(id)) return;
+
+        loadedIds.add(id);
+        config.addSource(resourceOwner, id, file);
+    }
+
+    @Override
+    public void loadMap(@NotNull String id, @NotNull Map<String, Object> values) {
+        // Runtime values need to be re-applied every time
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            config.setRuntimeValue(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void runHandler(ConfigSource source) {
+        SourceHandler handler = handlers.get(source.getClass());
+        if (handler != null) {
+            handler.handle(source, this);
+        } else {
+            LogUtil.warn("No handler registered for config type: " + source.getClass().getName());
+        }
     }
 
     private File getConfigFile(String path) {
@@ -32,10 +107,10 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         GrimAPI.INSTANCE.getGrimPlugin().getDataFolder().mkdirs();
         if (!initialized) {
             initialized = true;
-            config.addSource(GrimAPI.class, "config", getConfigFile("config.yml"));
-            config.addSource(GrimAPI.class, "messages", getConfigFile("messages.yml"));
-            config.addSource(GrimAPI.class, "discord", getConfigFile("discord.yml"));
-            config.addSource(GrimAPI.class, "punishments", getConfigFile("punishments.yml"));
+        }
+
+        for (ConfigSource source : registeredSources) {
+            runHandler(source);
         }
 
         String languageCode = System.getProperty("user.language").toUpperCase();
