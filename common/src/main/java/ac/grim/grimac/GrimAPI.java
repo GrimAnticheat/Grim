@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 
 @Getter
-public final class GrimAPI {
+public final class GrimAPI { // test
     public static final GrimAPI INSTANCE = new GrimAPI();
 
     @Getter
