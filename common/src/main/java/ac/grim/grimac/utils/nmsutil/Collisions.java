@@ -16,7 +16,6 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -215,17 +214,11 @@ public final class Collisions {
         // Don't add to border unless the player is colliding with it and is near it
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
             PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
-            double centerX = border.getCenterX();
-            double centerZ = border.getCenterZ();
 
-            // For some reason, the game limits the border to 29999984 blocks wide
-            double size = border.getCurrentDiameter() / 2;
-            double absoluteMaxSize = border.getAbsoluteMaxSize();
-
-            double minX = Math.floor(GrimMath.clamp(centerX - size, -absoluteMaxSize, absoluteMaxSize));
-            double minZ = Math.floor(GrimMath.clamp(centerZ - size, -absoluteMaxSize, absoluteMaxSize));
-            double maxX = Math.ceil(GrimMath.clamp(centerX + size, -absoluteMaxSize, absoluteMaxSize));
-            double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -absoluteMaxSize, absoluteMaxSize));
+            double minX = Math.floor(border.getMinX());
+            double minZ = Math.floor(border.getMinZ());
+            double maxX = Math.ceil(border.getMaxX());
+            double maxZ = Math.ceil(border.getMaxZ());
 
             // If the player is fully within the worldborder
             double toMinX = player.lastX - minX;
@@ -747,7 +740,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3d>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3i>> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -801,7 +794,7 @@ public final class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                            if (searchingFor.test(new Pair<>(data, new Vector3i(x, y, z))))
                                 return true;
                         }
                     }
@@ -893,6 +886,11 @@ public final class Collisions {
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
         WrappedBlockState blockState = player.compensatedWorld.getBlock(x, y, z);
         StateType blockMaterial = blockState.getType();
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) &&
+                player.isGliding && BlockTags.CAN_GLIDE_THROUGH.contains(blockMaterial)) {
+            return false;
+        }
 
         // ViaVersion replacement block -> glow berry vines (cave vines) -> fern
         if (blockMaterial == StateTypes.CAVE_VINES || blockMaterial == StateTypes.CAVE_VINES_PLANT) {

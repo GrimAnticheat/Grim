@@ -45,6 +45,8 @@ public final class BoundingBoxSize {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.3964844f : 1.4f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.375f : 1.5f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_NAUTILUS)) {
+            return 0.875f;
         } else if (type == EntityTypes.HAPPY_GHAST) {
             return 4.0f;
         } else if (type == EntityTypes.CHICKEN || type == EntityTypes.ENDERMITE || type == EntityTypes.SILVERFISH || type == EntityTypes.VEX || type == EntityTypes.TADPOLE) {
@@ -116,7 +118,7 @@ public final class BoundingBoxSize {
             return 0.35f;
         } else if (type == EntityTypes.SNIFFER) {
             return 1.9f;
-        } else if (type == EntityTypes.CAMEL) {
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
             return 1.7f;
         } else if (type == EntityTypes.WIND_CHARGE) {
             return 0.3125f;
@@ -261,6 +263,8 @@ public final class BoundingBoxSize {
             // WHY DOES VIAVERSION OFFSET BOATS? THIS MAKES IT HARD TO SUPPORT, EVEN IF WE INTERPOLATE RIGHT.
             // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.NAUTILUS)) {
+            return 0.95F;
         } else if (type == EntityTypes.HAPPY_GHAST) {
             return 4.0f;
         } else if (type == EntityTypes.CAT) {
@@ -389,11 +393,13 @@ public final class BoundingBoxSize {
             return 0.3f;
         } else if (type == EntityTypes.SNIFFER) {
             return 1.75f;
-        } else if (type == EntityTypes.CAMEL) {
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
             return 2.375f;
         } else if (type == EntityTypes.BREEZE) {
             return 1.77f;
         } else if (type == EntityTypes.BOGGED) {
+            return 1.99f;
+        } else if (type == EntityTypes.PARCHED) {
             return 1.99f;
         } else if (type == EntityTypes.WIND_CHARGE) {
             return 0.3125f;
@@ -417,7 +423,7 @@ public final class BoundingBoxSize {
         if (type == EntityTypes.HAPPY_GHAST) return 0.2375f;
         if (type == EntityTypes.DOLPHIN) return 0.65f;
         if (type == EntityTypes.ARMADILLO) return 0.6f;
-        if (type == EntityTypes.CAMEL) return 0.45f;
+        if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) return 0.45f;
         return 0.5f;
     }
 }

@@ -21,6 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -232,7 +233,7 @@ public class PointThreeEstimator {
 
     public void endOfTickTick() {
         double movementThreshold = player.getMovementThreshold();
-        float collisionBoxThreshold = player.isPointThree() ? 0.06f : 0.0004f;
+        float collisionBoxThreshold = (float) (movementThreshold * 2.f);
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
 
         // Determine the head hitter using the current Y position
@@ -271,12 +272,13 @@ public class PointThreeEstimator {
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             final WrappedBlockState state = pair.first();
             final StateType stateType = state.getType();
+            final Vector3i pos = pair.second();
             if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
             if (BlockTags.TRAPDOORS.contains(stateType)) {
-                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pair.second().getX(), pair.second().getY(), pair.second().getZ(), state);
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pos.getX(), pos.getY(), pos.getZ(), state);
             }
 
             if (stateType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
@@ -285,6 +287,15 @@ public class PointThreeEstimator {
 
             if (Materials.isWater(player.getClientVersion(), pair.first()) || pair.first().getType() == StateTypes.LAVA) {
                 isNearFluid = true;
+            }
+
+            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, pos.getX(), pos.getY(), pos.getZ());
+            if (fluidVector.getX() != 0 || fluidVector.getZ() != 0) {
+                isNearHorizontalFlowingLiquid = true;
+            }
+
+            if (fluidVector.getY() != 0) {
+                isNearVerticalFlowingLiquid = true;
             }
 
             return false;

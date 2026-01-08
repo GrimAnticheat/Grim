@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.packetentity.DashableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
@@ -379,10 +380,11 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             final int destroyTransaction = player.lastTransactionSent.get() + 1;
             player.latencyUtils.addRealTimeTask(destroyTransaction, () -> {
-                for (int integer : destroyEntityIds) {
-                    player.compensatedEntities.removeEntity(integer);
-                    player.fireworks.removeFirework(integer);
-                    player.compensatedEntities.entitiesRemovedThisTick.add(integer);
+                for (int entityId : destroyEntityIds) {
+                    player.compensatedEntities.removeEntity(entityId);
+                    player.dashableEntities.removeEntity(entityId);
+                    player.fireworks.removeFirework(entityId);
+                    player.compensatedEntities.entitiesRemovedThisTick.add(entityId);
                 }
             });
 
@@ -524,7 +526,11 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
+            PacketEntity entity = player.compensatedEntities.addEntity(entityID, uuid, type, position, xRot, extraData);
+            if (entity instanceof DashableEntity dashable) {
+                player.dashableEntities.addEntity(entityID, dashable);
+            }
+
             if (entityMetadata != null) {
                 player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
             }

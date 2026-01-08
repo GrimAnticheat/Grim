@@ -4,7 +4,6 @@ import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformInventory;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.MenuType;

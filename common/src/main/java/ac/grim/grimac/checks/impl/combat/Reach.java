@@ -26,13 +26,19 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemAttackRange;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -55,7 +61,7 @@ public class Reach extends Check implements PacketCheck {
     private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
-    private final Int2ObjectMap<Vector3d> playerAttackQueue = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<InteractionData> playerAttackQueue = new Int2ObjectOpenHashMap<>();
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -104,12 +110,16 @@ public class Reach extends Check implements PacketCheck {
             if (player.inVehicle()) return;
             if (entity.riding != null) return;
 
+            InteractionHand hand = action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK ?
+                    InteractionHand.MAIN_HAND : action.getHand(); // attacks can be only performed with the main hand
+            ItemStack itemInHand = player.inventory.getItemInHand(hand);
+
             boolean tooManyAttacks = playerAttackQueue.size() > 10;
             if (!tooManyAttacks) {
-                playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
+                playerAttackQueue.put(action.getEntityId(), new InteractionData(new Vector3d(player.x, player.y, player.z), itemInHand)); // Queue for next tick for very precise check
             }
 
-            boolean knownInvalid = isKnownInvalid(entity);
+            boolean knownInvalid = isKnownInvalid(entity, itemInHand);
 
             if ((shouldModifyPackets() && cancelImpossibleHits && knownInvalid) || tooManyAttacks) {
                 event.setCancelled(true);
@@ -131,7 +141,7 @@ public class Reach extends Check implements PacketCheck {
     // than this method.  If this method flags, the other method WILL flag.
     //
     // Meaning that the other check should be the only one that flags.
-    private boolean isKnownInvalid(PacketEntity reachEntity) {
+    private boolean isKnownInvalid(PacketEntity reachEntity, ItemStack itemInHand) {
         // If the entity doesn't exist, or if it is exempt, or if it is dead
         if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
@@ -142,23 +152,24 @@ public class Reach extends Check implements PacketCheck {
 
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
-            CheckResult result = checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true);
+            CheckResult result = checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), itemInHand, true);
             return result.isFlag(); // If they flagged
         } else {
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            if (reachEntity.type == EntityTypes.END_CRYSTAL) {
-                targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
-            }
-            return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+            SimpleCollisionBox targetBox = getTargetBox(reachEntity);
+
+            double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastMovementIncludePosition);
+
+            return ReachUtils.getMinReachToBox(player, targetBox) > maxReach;
         }
     }
 
     private void tickBetterReachCheckWithAngle() {
-        for (Int2ObjectMap.Entry<Vector3d> attack : playerAttackQueue.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<InteractionData> attack : playerAttackQueue.int2ObjectEntrySet()) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getIntKey());
             if (reachEntity == null) continue;
 
-            CheckResult result = checkReach(reachEntity, attack.getValue(), false);
+            InteractionData interactionData = attack.getValue();
+            CheckResult result = checkReach(reachEntity, interactionData.vector(), interactionData.itemInHand(), false);
             switch (result.type()) {
                 case REACH -> {
                     String added = ", type=" + reachEntity.type.getName().getKey();
@@ -181,29 +192,10 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @NotNull
-    private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
-        SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+    private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, ItemStack itemInHand, boolean isPrediction) {
+        SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
-        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
-            targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
-        }
-
-        // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
-        // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-            targetBox.expand(0.1f);
-        }
-
-        targetBox.expand(threshold);
-
-        // This is better than adding to the reach, as 0.03 can cause a player to miss their target
-        // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-        //
-        // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-        // However, on 1.21.2+ we do know if they had 0.03 movement
-        if (!player.packetStateData.didLastLastMovementIncludePosition || player.canSkipTicks())
-            targetBox.expand(player.getMovementThreshold());
-
+        double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastLastMovementIncludePosition);
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
@@ -224,9 +216,10 @@ public class Reach extends Check implements PacketCheck {
             }
         }
 
-        final double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
+
+
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
         for (Vector3dm lookVec : possibleLookDirs) {
@@ -263,6 +256,52 @@ public class Reach extends Check implements PacketCheck {
         return NONE;
     }
 
+    private SimpleCollisionBox getTargetBox(PacketEntity reachEntity) {
+        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+            return new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
+        }
+        return reachEntity.getPossibleCollisionBoxes();
+    }
+
+    private double applyReachModifiers(SimpleCollisionBox targetBox, ItemStack itemInHand, boolean giveMovementThreshold) {
+        double maxReach;
+        double hitboxMargin = threshold;
+
+        ItemAttackRange attackRange = null;
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
+            // TODO: ViaVersion support https://github.com/ViaVersion/ViaVersion/pull/4733
+            attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
+        }
+
+        if (attackRange != null) {
+            maxReach = attackRange.getMaxRange();
+            hitboxMargin += attackRange.getHitboxMargin();
+        } else {
+            maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                hitboxMargin += 0.1f;
+            }
+        }
+
+        // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+        // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+        //
+        // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+        // However, on 1.21.2+ we do know if they had 0.03 movement
+        if (giveMovementThreshold || player.canSkipTicks()) {
+            hitboxMargin += player.getMovementThreshold();
+        }
+
+        targetBox.expand(hitboxMargin);
+
+        return maxReach;
+    }
+
+    private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
+
     @Override
     public void onReload(ConfigManager config) {
         this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
@@ -278,4 +317,8 @@ public class Reach extends Check implements PacketCheck {
             return type != ResultType.NONE;
         }
     }
+
+    private record InteractionData(Vector3d vector, ItemStack itemInHand) {
+    }
+
 }

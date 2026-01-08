@@ -483,7 +483,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.yaw = move.getYaw();
             player.pitch = move.getPitch();
 
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), move.isOnGround(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
@@ -580,6 +580,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
                 player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
                 player.packetStateData.didLastMovementIncludePosition = false;
+
+                // Track dash cooldown
+                if (!player.inVehicle()) {
+                    player.dashableEntities.tick();
+                }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;
         }
@@ -715,6 +720,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasLook) {
             player.yaw = yaw;
             player.pitch = pitch;
+            player.vehicleData.playerPitch = pitch;
+            player.vehicleData.playerYaw = yaw;
 
             float deltaXRot = player.yaw - player.lastYaw;
             float deltaYRot = player.pitch - player.lastPitch;

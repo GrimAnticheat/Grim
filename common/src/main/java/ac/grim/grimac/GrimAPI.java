@@ -2,8 +2,8 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.events.GrimExtensionManager;
-import ac.grim.grimac.events.OptimizedEventBus;
+import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
+import ac.grim.grimac.internal.event.OptimizedEventBus;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
 import ac.grim.grimac.manager.InitManager;

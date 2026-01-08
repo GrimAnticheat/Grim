@@ -38,6 +38,7 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
         }
 
         this.movementInput = new Vector3dm(sideways, upAndDown, forward).multiply(3.9F * happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED));
+        if (this.movementInput.lengthSquared() > 1) this.movementInput.normalize();
     }
 
     @Override

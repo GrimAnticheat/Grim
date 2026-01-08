@@ -3,11 +3,11 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
-import ac.grim.grimac.utils.math.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
+import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.math.Vec2;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -98,7 +98,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
         if (player.packetStateData.receivedSteerVehicle && riding != null) {
             // Horse and boat have first passenger in control
             // If the player is the first passenger, disregard this attempt to have the server control the entity
-            if ((riding.isBoat || riding.isHappyGhast || (riding instanceof PacketEntityHorse horse && horse.hasSaddle())) &&
+            if ((riding.isBoat || riding.isHappyGhast || (riding instanceof JumpableEntity jumpable && jumpable.hasSaddle())) &&
                     riding.passengers.get(0) == player.compensatedEntities.self &&
                     // Although if the player has server controlled entities
                     player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
@@ -110,6 +110,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // Tick update
             player.compensatedWorld.tickPlayerInPistonPushingArea();
             player.compensatedEntities.tick();
+            player.dashableEntities.tick();
 
             // Note for the movement check
             player.vehicleData.lastDummy = true;
