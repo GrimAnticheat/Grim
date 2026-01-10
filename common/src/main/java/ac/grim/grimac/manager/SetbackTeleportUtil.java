@@ -173,12 +173,14 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         VelocityData futureExplosion = player.checkManager.getExplosionHandler().getFutureExplosion();
 
         // Velocity sets
-        if (futureKb.first() != null) {
+        // Don't let player reuse setback velocity
+        if (futureKb.first() != null && !futureKb.first().isSetback) {
             clientVel = futureKb.second();
         }
 
         // Explosion adds
-        if (futureExplosion != null && (futureKb.first() == null || futureKb.first().transaction < futureExplosion.transaction)) {
+        if (futureExplosion != null && (futureKb.first() == null
+                || (futureKb.first().transaction < futureExplosion.transaction && !futureKb.first().isSetback))) {
             clientVel.add(futureExplosion.vector);
         }
 
