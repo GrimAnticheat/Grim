@@ -50,6 +50,13 @@ max-transaction-time: 60
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
 
+# 是否应禁用默认的方块重新同步处理程序？
+# 默认情况下，Grim 会从服务器世界读取方块并将它们发送给客户端以修复不同步问题。
+# 如果您使用通过数据包创建虚假方块（在服务器世界中不存在）的插件，
+# 您应将其设置为 true，以防止 Grim用空气/真实方块覆盖它们。
+# 除非通过 API 提供了自定义处理程序，否则这将强制使用 "NoOp"（无操作）处理程序。
+disable-default-resync-handler: false
+
 # 是否对重复的移动数据包进行撤销?
 # 这可以修复 "bucket desync". https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
 # 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家

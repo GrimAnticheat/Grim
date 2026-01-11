@@ -121,10 +121,13 @@ public class DefaultResyncHandler implements ResyncHandler {
 
             final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(x & 15, y, z & 15);
 
-            player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
-                player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
-            }
+            player.runSafely(() -> {
+                player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
+                    player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
+                }
+            });
+
         });
     }
 

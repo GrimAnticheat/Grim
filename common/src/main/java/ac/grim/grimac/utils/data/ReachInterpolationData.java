@@ -37,7 +37,6 @@ public class ReachInterpolationData {
     private int interpolationStepsHighBound = 0;
     private int interpolationSteps = 1;
     private boolean expandNonRelative = false;
-    private int cancelledLerpInterpolationStepsLowBound = Integer.MAX_VALUE;
 
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
         final boolean unreliableTicking = !player.inVehicle() && player.canSkipTicks();
@@ -141,7 +140,7 @@ public class ReachInterpolationData {
     public SimpleCollisionBox getPossibleLocationCombined() {
         int interpSteps = getInterpolationSteps();
 
-        int interpolationStepsLowBound = Math.min(this.interpolationStepsLowBound, this.cancelledLerpInterpolationStepsLowBound);
+//        int interpolationStepsLowBound = Math.min(this.interpolationStepsLowBound, this.cancelledLerpInterpolationStepsLowBound); // Temp test
 
 
         double stepMinX = (targetLocation.minX - startingLocation.minX) / (double) interpSteps;
@@ -226,9 +225,5 @@ public class ReachInterpolationData {
 
     public void expandNonRelative() {
         expandNonRelative = true;
-    }
-
-    public void cancelLerp() {
-        cancelledLerpInterpolationStepsLowBound = interpolationStepsLowBound;
     }
 }

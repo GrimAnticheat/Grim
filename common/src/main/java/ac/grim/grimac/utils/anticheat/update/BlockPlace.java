@@ -112,71 +112,81 @@ public class BlockPlace {
     }
 
     private boolean canBeReplaced(StateType heldItem, WrappedBlockState state, BlockFace face) {
-        // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
-        boolean baseReplaceable = state.getType() != heldItem && state.getType().isReplaceable();
+        StateType currentType = state.getType();
 
-        if (BlockTags.CANDLES.contains(state.getType())) {
-            return heldItem == state.getType() && state.getCandles() < 4 && !isSecondaryUse();
-        }
-        if (state.getType() == StateTypes.SEA_PICKLE) {
-            return heldItem == state.getType() && state.getPickles() < 4 && !isSecondaryUse();
-        }
-        if (state.getType() == StateTypes.TURTLE_EGG) {
-            return heldItem == state.getType() && state.getEggs() < 4 && !isSecondaryUse();
-        }
-        // Glow lichen can be replaced if it has an open face, or the player is placing something
-        if (state.getType() == StateTypes.GLOW_LICHEN) {
-            if (heldItem != StateTypes.GLOW_LICHEN) {
-                return true;
-            }
-            if (!state.isUp()) return true;
-            if (!state.isDown()) return true;
-            if (state.getNorth() == North.FALSE) return true;
-            if (state.getSouth() == South.FALSE) return true;
-            if (state.getEast() == East.FALSE) return true;
-            return state.getWest() == West.FALSE;
-        }
-        if (state.getType() == StateTypes.SCAFFOLDING) {
-            return heldItem == StateTypes.SCAFFOLDING;
-        }
-        if (BlockTags.SLABS.contains(state.getType())) {
-            if (state.getTypeData() == Type.DOUBLE || state.getType() != heldItem) return false;
+        // Checks are ordered by approximate frequency (Slabs/Snow/Vines first)
+        // to minimize comparisons for common blocks.
+
+        if (BlockTags.SLABS.contains(currentType)) {
+            Type typeData = state.getTypeData();
+            if (typeData == Type.DOUBLE || currentType != heldItem) return false;
 
             // Here vanilla refers from
             // Set check can replace -> get block -> call block canBeReplaced -> check can replace boolean (default true)
             // uh... what?  I'm unsure what Mojang is doing here.  I think they just made a stupid mistake.
             // as this code is quite old.
-            boolean flag = getClickedLocation().getY() > 0.5D;
-            BlockFace clickedFace = getFace();
-            if (state.getTypeData() == Type.BOTTOM) {
-                return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
-            } else {
-                return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
-            }
-        }
-        if (state.getType() == StateTypes.SNOW) {
-            int layers = state.getLayers();
-            if (heldItem == state.getType() && layers < 8) { // We index at 1 (less than 8 layers)
-                return face == BlockFace.UP;
-            } else {
-                return layers == 1; // index at 1, (1 layer)
-            }
-        }
-        if (state.getType() == StateTypes.VINE) {
-            if (baseReplaceable) return true;
-            if (heldItem != state.getType()) return false;
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp())
-                return true;
-            if (state.getNorth() == North.FALSE) return true;
-            if (state.getSouth() == South.FALSE) return true;
-            if (state.getEast() == East.FALSE) return true;
-            return state.getWest() == West.FALSE;
-        }
-        if (state.getType() == StateTypes.LADDER && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
-            return true;
-        }
+            boolean isHighClick = getClickedLocation().getY() > 0.5D;
 
-        return baseReplaceable;
+            if (typeData == Type.BOTTOM) {
+                return getFace() == BlockFace.UP || (isHighClick && isFaceHorizontal());
+            } else {
+                return getFace() == BlockFace.DOWN || (!isHighClick && isFaceHorizontal());
+            }
+        }
+        else if (currentType == StateTypes.SNOW) {
+            int layers = state.getLayers();
+            if (heldItem == currentType && layers < 8) { // We index at 1 (less than 8 layers)
+                return face == BlockFace.UP;
+            }
+            return layers == 1; // index at 1, (1 layer)
+        }
+        else if (currentType == StateTypes.VINE) {
+            boolean baseReplaceable = currentType != heldItem && currentType.isReplaceable();
+            if (baseReplaceable) return true;
+            if (heldItem != currentType) return false;
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp()) {
+                return true;
+            }
+
+            return state.getNorth() == North.FALSE ||
+                    state.getSouth() == South.FALSE ||
+                    state.getEast() == East.FALSE ||
+                    state.getWest() == West.FALSE;
+        }
+        else if (currentType == StateTypes.LADDER) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
+                return true;
+            }
+            return currentType != heldItem && currentType.isReplaceable();
+        }
+        // Glow lichen can be replaced if it has an open face, or the player is placing something
+        // Sculk Vein shares the exact same placement logic
+        else if (currentType == StateTypes.GLOW_LICHEN || currentType == StateTypes.SCULK_VEIN) {
+            return heldItem != currentType ||
+                    !state.isUp() ||
+                    !state.isDown() ||
+                    state.getNorth() == North.FALSE ||
+                    state.getSouth() == South.FALSE ||
+                    state.getEast() == East.FALSE ||
+                    state.getWest() == West.FALSE;
+        }
+        else if (currentType == StateTypes.SCAFFOLDING) {
+            return heldItem == StateTypes.SCAFFOLDING;
+        }
+        else if (BlockTags.CANDLES.contains(currentType)) {
+            return heldItem == currentType && state.getCandles() < 4 && !isSecondaryUse();
+        }
+        else if (currentType == StateTypes.SEA_PICKLE) {
+            return heldItem == currentType && state.getPickles() < 4 && !isSecondaryUse();
+        }
+        else if (currentType == StateTypes.TURTLE_EGG) {
+            return heldItem == currentType && state.getEggs() < 4 && !isSecondaryUse();
+        }
+        // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
+        else {
+            return currentType != heldItem && currentType.isReplaceable();
+        }
     }
 
     public boolean isFaceFullCenter(BlockFace facing) {

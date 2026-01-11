@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.fabric;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.events.GrimExtensionManager;
+import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.manager.*;
 import ac.grim.grimac.platform.api.sender.Sender;

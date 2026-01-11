@@ -6,7 +6,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsC", description = "Interacted with self")
@@ -17,15 +16,13 @@ public class BadPacketsC extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            if (player.gamemode == GameMode.SPECTATOR) return;
-            if (new WrapperPlayClientInteractEntity(event).getEntityId() == player.entityID) {
-                // Instant ban
-                if (flagAndAlert() && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            }
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
+                && player.cameraEntity.isSelf()
+                && new WrapperPlayClientInteractEntity(event).getEntityId() == player.entityID
+                && flagAndAlert() && shouldModifyPackets() // Instant ban
+        ) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 }

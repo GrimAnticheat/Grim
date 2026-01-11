@@ -2,7 +2,7 @@ package ac.grim.grimac.platform.fabric.resolver;
 
 import ac.grim.grimac.api.plugin.BasicGrimPlugin;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.events.GrimExtensionManager;
+import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
 import ac.grim.grimac.platform.fabric.utils.message.JULoggerFactory;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.*;
