@@ -12,7 +12,7 @@ cloud-processors-requirements = "1.0.0-rc.1"
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
 grim-api = "1.2.3.1"
-packetevents = "2.11.2+a28fb76-SNAPSHOT"
+packetevents = "2.11.2+254a38e-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.5.0"
 
