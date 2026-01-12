@@ -512,6 +512,17 @@ public class GrimPlayer implements GrimUser {
     private final AtomicBoolean hasDisconnected = new AtomicBoolean(false);
 
     public void timedOut() {
+        boolean isChannelOpen = com.github.retrooper.packetevents.netty.channel.ChannelHelper.isOpen(user.getChannel());
+        long timeSinceLastPacket = System.nanoTime() - getPlayerClockAtLeast();
+
+        LogUtil.warn(
+                "[DIAGNOSTIC] timedOut() called for " + user.getName() +
+                        " | Channel Open: " + isChannelOpen +
+                        " | Time Delta (ns): " + timeSinceLastPacket +
+                        " | Instance Hash: " + System.identityHashCode(this) +
+                        " | Thread: " + Thread.currentThread().getName()
+        );
+
         disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(this, GrimAPI.INSTANCE.getConfigManager().getDisconnectTimeout())));
     }
 
@@ -533,10 +544,10 @@ public class GrimPlayer implements GrimUser {
             LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
-        if (platformPlayer != null) {
-            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> platformPlayer.kickPlayer(textReason), null, 1);
-        }
+//        if (platformPlayer != null) {
+//            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
+//                    () -> platformPlayer.kickPlayer(textReason), null, 1);
+//        }
     }
 
     public void pollData() {
@@ -552,7 +563,15 @@ public class GrimPlayer implements GrimUser {
             timedOut();
         }
 
-        if (!GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user)) {
+        long pStart = System.nanoTime();
+        boolean shouldCheck = GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user);
+        long pDur = System.nanoTime() - pStart;
+
+        if (pDur > 5_000_000) { // 5ms for a single permission check is huge
+            ac.grim.grimac.utils.anticheat.LogUtil.warn("[DIAGNOSTIC] Slow Perm Check for " + getName() + ": " + (pDur / 1_000_000) + "ms");
+        }
+
+        if (!shouldCheck) {
             GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
         }
 
