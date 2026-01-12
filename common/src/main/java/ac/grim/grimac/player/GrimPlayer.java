@@ -121,10 +121,10 @@ public class GrimPlayer implements GrimUser {
     private PacketTracker viaPacketTracker;
     public final PacketOrderProcessor packetOrderProcessor = new PacketOrderProcessor(this);
     private long transactionPing = 0;
-    public long lastTransSent = 0;
-    public long lastTransReceived = 0;
+    public volatile long lastTransSent = 0;
+    public volatile long lastTransReceived = 0;
     @Getter
-    private long playerClockAtLeast = System.nanoTime();
+    private volatile long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
@@ -512,6 +512,8 @@ public class GrimPlayer implements GrimUser {
     private final AtomicBoolean hasDisconnected = new AtomicBoolean(false);
 
     public void timedOut() {
+        if (hasDisconnected.get()) return;
+
         boolean isChannelOpen = com.github.retrooper.packetevents.netty.channel.ChannelHelper.isOpen(user.getChannel());
         long timeSinceLastPacket = System.nanoTime() - getPlayerClockAtLeast();
 
@@ -544,48 +546,58 @@ public class GrimPlayer implements GrimUser {
             LogUtil.warn("Failed to send disconnect packet to disconnect " + user.getProfile().getName() + "! Disconnecting anyways.");
         }
         user.closeConnection();
-//        if (platformPlayer != null) {
-//            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
-//                    () -> platformPlayer.kickPlayer(textReason), null, 1);
-//        }
     }
 
     public void pollData() {
-        // Send a transaction at least once a tick, for timer and post check purposes
-        // Don't be the first to send the transaction, or we will stack overflow
-        //
-        // This will only really activate if there's no entities around the player being tracked
-        // 80 is a magic value that is roughly every other tick, we don't want to spam too many packets.
-        if (lastTransSent != 0 && lastTransSent + 80 < System.currentTimeMillis()) {
-            sendTransaction(true); // send on netty thread
+        // 2. FIX: Allow starting if 0
+        if (lastTransSent == 0 || lastTransSent + 80 < System.currentTimeMillis()) {
+            sendTransaction(true);
         }
+
+        // --- DEBUG: GRANULAR STOPWATCH ---
+        long start = System.nanoTime();
+
+        // Step 1: Timeout Calc
         if ((System.nanoTime() - getPlayerClockAtLeast()) > maxTransactionTime * 1e9) {
             timedOut();
         }
+        long t1 = System.nanoTime(); // Mark T1
 
-        long pStart = System.nanoTime();
+        // Step 2: Permission Check (Suspected Slow Point)
         boolean shouldCheck = GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user);
-        long pDur = System.nanoTime() - pStart;
-
-        if (pDur > 5_000_000) { // 5ms for a single permission check is huge
-            ac.grim.grimac.utils.anticheat.LogUtil.warn("[DIAGNOSTIC] Slow Perm Check for " + getName() + ": " + (pDur / 1_000_000) + "ms");
-        }
+        long t2 = System.nanoTime(); // Mark T2
 
         if (!shouldCheck) {
             GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
         }
 
+        // Step 3: ViaVersion Lookup
         if (viaPacketTracker == null && ViaVersionUtil.isAvailable && uuid != null) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
             viaPacketTracker = connection != null ? connection.getPacketTracker() : null;
             this.viaUserConnection = connection;
         }
+        long t3 = System.nanoTime(); // Mark T3
 
+        // Step 4: Platform Init / Perm Update
         if (uuid != null && this.platformPlayer == null) {
             this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
             updatePermissions();
         }
+        long end = System.nanoTime(); // Mark End
+
+        // 3. DEBUG: Report Specific Slow Steps (> 1ms)
+        // If the whole thing took > 5ms, investigate.
+        if ((end - start) > 5_000_000) {
+            LogUtil.warn("[SLOW POLL] " + getName() + " Total: " + ((end - start) / 1000) + "us");
+
+            if ((t1 - start) > 500_000) LogUtil.warn("   -> Timeout Calc: " + ((t1 - start)/1000) + "us");
+            if ((t2 - t1) > 500_000)    LogUtil.warn("   -> Perms/ShouldCheck: " + ((t2 - t1)/1000) + "us");
+            if ((t3 - t2) > 500_000)    LogUtil.warn("   -> ViaVersion: " + ((t3 - t2)/1000) + "us");
+            if ((end - t3) > 500_000)   LogUtil.warn("   -> Platform/UpdatePerms: " + ((end - t3)/1000) + "us");
+        }
     }
+
 
     public void updateVelocityMovementSkipping() {
         if (!couldSkipTick) {

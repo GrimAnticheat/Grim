@@ -14,16 +14,23 @@ public class ClientVersionSetter implements Tickable {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             count++;
-            // Check for closed channels here to see if ghosts exist in the map
-            if (!com.github.retrooper.packetevents.netty.channel.ChannelHelper.isOpen(player.user.getChannel())) {
-                 LogUtil.warn("[DIAGNOSTIC] Found GHOST in tick loop: " + player.getName());
-            }
 
-            player.pollData();
+            // 1. SAFETY: Isolation. Don't let one player crash the loop.
+            try {
+                // Optional: Fast fail if channel closed (prevents some NPEs)
+                if (player.user == null || !ChannelHelper.isOpen(player.user.getChannel())) {
+                    continue;
+                }
+
+                player.pollData();
+            } catch (Throwable t) {
+                // 2. DEBUG: This will catch the "Uncaught Exception" if that theory is correct
+                LogUtil.error("[CRITICAL] Error ticking specific player: " + player.getName(), t);
+            }
         }
 
         long duration = System.nanoTime() - start;
-        if (duration > 40_000_000) { // Log if iteration takes > 40ms
+        if (duration > 40_000_000) {
             LogUtil.warn("[DIAGNOSTIC] ClientVersionSetter took " + (duration / 1_000_000) + "ms for " + count + " players.");
         }
     }
