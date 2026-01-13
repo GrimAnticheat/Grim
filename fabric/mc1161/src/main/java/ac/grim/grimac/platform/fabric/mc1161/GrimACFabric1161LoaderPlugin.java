@@ -36,8 +36,7 @@ public class GrimACFabric1161LoaderPlugin extends GrimACFabricLoaderPlugin {
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil
     ) {
-        super(
-            new FabricParserDescriptorFactory(new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)),
+        super(() -> new FabricParserDescriptorFactory(new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)),
             playerFactory,
             platformServer,
             fabricMessageUtil,

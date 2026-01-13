@@ -16,7 +16,7 @@ public class Fabric1203PlatformServer extends Fabric1190PlatformServer {
     // Return type changed from int -> void in 1.20.3
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().reverse(sender);
+        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().unwrap(sender);
         GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommands().performPrefixedCommand(commandSource, command);
     }
 }

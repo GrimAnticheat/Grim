@@ -9,7 +9,7 @@ public class Fabric1140PlatformServer extends AbstractFabricPlatformServer {
 
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().reverse(sender);
+        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().unwrap(sender);
         GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommands().performCommand(commandSource, command);
     }
 

@@ -6,6 +6,8 @@ import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
+import static ac.grim.grimac.platform.fabric.sender.FabricSenderFactory.HAS_PERMISSIONS_API;
+
 public class FabricPermissionRegistrationManager implements PermissionRegistrationManager {
 
     private final FabricSenderFactory fabricSenderFactory = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory();
@@ -26,6 +28,7 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
     @Override
     public void registerPermission(String name, PermissionDefaultValue defaultValue) {
         fabricSenderFactory.registerPermissionDefault(name, defaultValue);
-        Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.createCommandSourceStack(), name);
+        if (HAS_PERMISSIONS_API)
+            Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.createCommandSourceStack(), name);
     }
 }

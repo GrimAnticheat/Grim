@@ -8,7 +8,7 @@ import net.minecraft.commands.CommandSourceStack;
 public class Fabric1190PlatformServer extends Fabric1171PlatformServer {
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().reverse(sender);
+        CommandSourceStack commandSource = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().unwrap(sender);
         GrimACFabricLoaderPlugin.FABRIC_SERVER.getCommands().performPrefixedCommand(commandSource, command);
     }
 }
