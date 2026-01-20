@@ -16,7 +16,7 @@ public class Fabric1161PlatformPlayer extends AbstractFabricPlatformPlayer {
 
     @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(entity.createCommandSourceStack());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().wrap(entity.createCommandSourceStack());
     }
 
     @Override

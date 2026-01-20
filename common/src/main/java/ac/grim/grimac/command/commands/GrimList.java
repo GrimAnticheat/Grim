@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimIdentity;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.CommandUtils;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
@@ -28,7 +29,7 @@ public class GrimList implements BuildableCommand {
     // Mainly for debugging purposes. Useful for seeing which players are exempt or not.
 
     @Override
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         commandManager.command(commandManager.commandBuilder("grim", "grimac")
                 .literal("list")
                 .permission("grim.list")

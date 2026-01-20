@@ -65,6 +65,7 @@ dependencies {
 
     api(libs.grim.api)
     api(libs.grim.internal)
+    compileOnly(libs.grim.internal.shims)
 
     compileOnly(libs.geyser.base.api) {
         isTransitive = false // messes with guava otherwise

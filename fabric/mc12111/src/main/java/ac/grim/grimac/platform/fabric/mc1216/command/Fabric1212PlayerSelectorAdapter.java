@@ -14,6 +14,6 @@ public class Fabric1212PlayerSelectorAdapter extends Fabric1161PlayerSelectorAda
     // 1.21.2 .getCommandSource() moves from entity to player
     @Override
     public Sender getSinglePlayer() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().map(fabricSelector.single().createCommandSourceStack());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().wrap(fabricSelector.single().createCommandSourceStack());
     }
 }

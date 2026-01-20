@@ -55,7 +55,7 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
             // SHULKER_BOX -> SHULKER_BOX
             // CRAFTIING -> CRAFTING
 
-            ResourceLocation registryKey = this.getScreenID(type);
+            ResourceLocation registryKey = (ResourceLocation) this.getScreenID(type);
             if (registryKey != null) {
                 return registryKey.getPath();
             }
@@ -64,7 +64,9 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
         }
     }
 
-    protected ResourceLocation getScreenID(MenuType<?> type) {
+    // returns Identifier in > 1.21.11, and ResourceLocation in 1.21.10-, which both map to class_2960
+    // Compiler doesn't know that though and throws a fit, thus we make it return Object and cast to class_2960
+    protected Object getScreenID(MenuType<?> type) {
         return Registry.MENU.getKey(type);
     }
 

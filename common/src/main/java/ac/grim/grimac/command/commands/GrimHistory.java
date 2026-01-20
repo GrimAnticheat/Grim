@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.manager.violationdatabase.Violation;
 import ac.grim.grimac.manager.violationdatabase.ViolationDatabaseManager;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -18,12 +19,12 @@ import java.util.concurrent.TimeUnit;
 public class GrimHistory implements BuildableCommand {
 
     @Override
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("history", "hist")
                         .permission("grim.help")
-                        .required("target", StringParser.stringParser(), GrimAPI.INSTANCE.getCommandAdapter().onlinePlayerSuggestions())
+                        .required("target", StringParser.stringParser(), adapter.onlinePlayerSuggestions())
                         .optional("page", IntegerParser.integerParser())
                         .permission("grim.history")
                         .handler(this::handleHistory)

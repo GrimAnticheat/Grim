@@ -3,6 +3,7 @@ package ac.grim.grimac.command.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
@@ -16,12 +17,12 @@ import java.util.Objects;
 
 public class GrimProfile implements BuildableCommand {
     @Override
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("profile")
                         .permission("grim.profile")
-                        .required("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
+                        .required("target", adapter.singlePlayerSelectorParser())
                         .handler(this::handleProfile)
         );
     }

@@ -3,6 +3,7 @@ package ac.grim.grimac.command.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -19,21 +20,21 @@ import org.jetbrains.annotations.Nullable;
 
 public class GrimDebug implements BuildableCommand {
 
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         Command.Builder<Sender> grimCommand = commandManager.commandBuilder("grim", "grimac");
 
         // Register "debug" subcommand
         Command.Builder<Sender> debugCommand = grimCommand
                 .literal("debug", Description.of("Toggle debug output for a player"))
                 .permission("grim.debug")
-                .optional("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
+                .optional("target", adapter.singlePlayerSelectorParser())
                 .handler(this::handleDebug);
 
         // Register "consoledebug" subcommand
         Command.Builder<Sender> consoleDebugCommand = grimCommand
                 .literal("consoledebug", Description.of("Toggle console debug output for a player"))
                 .permission("grim.consoledebug")
-                .required("target", GrimAPI.INSTANCE.getCommandAdapter().singlePlayerSelectorParser())
+                .required("target", adapter.singlePlayerSelectorParser())
                 .handler(this::handleConsoleDebug);
 
         // Register command

@@ -1,17 +1,15 @@
 package ac.grim.grimac.platform.api;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import org.incendo.cloud.CommandManager;
 import org.jetbrains.annotations.NotNull;
 
 public interface PlatformLoader {
@@ -19,13 +17,11 @@ public interface PlatformLoader {
 
     PlatformPlayerFactory getPlatformPlayerFactory();
 
-    CommandAdapter getCommandAdapter();
-
     PacketEventsAPI<?> getPacketEvents();
 
-    CommandManager<Sender> getCommandManager();
-
     ItemResetHandler getItemResetHandler();
+
+    CommandService getCommandService();
 
     SenderFactory<?> getSenderFactory();
 

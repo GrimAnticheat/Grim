@@ -16,7 +16,7 @@ dependencies {
     mappings(loom.officialMojangMappings())
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
-    modImplementation("me.lucko:fabric-permissions-api:0.3.1")
+    modCompileOnly("me.lucko:fabric-permissions-api:0.3.1")
 
     modImplementation(libs.cloud.fabric)
     modImplementation(libs.fabric.loader)

@@ -20,7 +20,7 @@ public class GrimACFabric1200LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
     public GrimACFabric1200LoaderPlugin() {
         super(
-                new FabricParserDescriptorFactory(
+                () -> new FabricParserDescriptorFactory(
                         new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)
                 ),
                 new FabricPlatformPlayerFactory(
