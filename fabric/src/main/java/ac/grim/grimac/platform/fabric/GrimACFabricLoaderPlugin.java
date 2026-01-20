@@ -69,8 +69,9 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
         this.fabricMessageUtil = fabricMessageUtil;
         this.fabricConversionUtil = fabricConversionUtil;
 
+        FabricResolverRegistrar resolverRegistrar = new FabricResolverRegistrar();
         GrimExtensionManager extensionManager = GrimAPI.INSTANCE.getExtensionManager();
-        new FabricResolverRegistrar(extensionManager).registerAll();
+        resolverRegistrar.registerAll(extensionManager);
         plugin = extensionManager.getPlugin("GrimAC");
     }
 
@@ -152,11 +153,6 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
 
     public FabricSenderFactory getFabricSenderFactory() {
         return senderFactory.get();
-    }
-
-    @Override
-    public CommandAdapter getCommandAdapter() {
-        return commandAdapter.get();
     }
 
     @Override

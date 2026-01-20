@@ -204,6 +204,7 @@ public class CompensatedEntities {
                 || EntityTypes.LIGHTNING_BOLT.equals(entityType)
                 || EntityTypes.EXPERIENCE_BOTTLE.equals(entityType)
                 || EntityTypes.EXPERIENCE_ORB.equals(entityType)
+                || EntityTypes.EVOKER_FANGS.equals(entityType)
         ) {
             packetEntity = new PacketEntityUnHittable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.ARMOR_STAND.equals(entityType)) {

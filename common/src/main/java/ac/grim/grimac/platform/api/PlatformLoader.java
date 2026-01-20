@@ -4,7 +4,6 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -17,8 +16,6 @@ public interface PlatformLoader {
     PlatformScheduler getScheduler();
 
     PlatformPlayerFactory getPlatformPlayerFactory();
-
-    CommandAdapter getCommandAdapter();
 
     PacketEventsAPI<?> getPacketEvents();
 

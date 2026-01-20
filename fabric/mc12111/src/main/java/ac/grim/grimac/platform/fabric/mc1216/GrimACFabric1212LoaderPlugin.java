@@ -31,7 +31,7 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
                             ? Fabric1215PlatformInventory::new : Fabric1193PlatformInventory::new
                 ),
                 PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_21_10) ?
-                        new Fabric1211PlatformServer() : new Fabric1203PlatformServer(),
+                        new Fabric12111PlatformServer() : new Fabric1203PlatformServer(),
                 new Fabric1200MessageUtil(),
                 PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_21_5)
                         ? new Fabric1216ConversionUtil() : new Fabric1205ConversionUtil()

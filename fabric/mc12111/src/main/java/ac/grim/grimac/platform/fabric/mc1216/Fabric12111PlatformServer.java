@@ -6,7 +6,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
 
-public class Fabric1211PlatformServer extends Fabric1203PlatformServer {
+public class Fabric12111PlatformServer extends Fabric1203PlatformServer {
 
     @Override
     public int getOperatorPermissionLevel() {

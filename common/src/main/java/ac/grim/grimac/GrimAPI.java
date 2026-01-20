@@ -18,7 +18,6 @@ import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
@@ -98,10 +97,6 @@ public final class GrimAPI { // test
 
     public PlatformPlayerFactory getPlatformPlayerFactory() {
         return loader.getPlatformPlayerFactory();
-    }
-
-    public CommandAdapter getCommandAdapter() {
-        return loader.getCommandAdapter();
     }
 
     public GrimPlugin getGrimPlugin() {

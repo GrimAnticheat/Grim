@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public final class FabricResolverRegistrar {
 
-    private final GrimExtensionManager extensionManager;
-
     // Cache to ensure we only create one GrimPlugin wrapper per Fabric ModContainer.
     private final Map<ModContainer, GrimPlugin> modContainerCache = new ConcurrentHashMap<>();
     private final Map<Class<?>, GrimPlugin> classCache = new ConcurrentHashMap<>();
@@ -41,7 +39,7 @@ public final class FabricResolverRegistrar {
     /**
      * Registers all the Fabric-specific resolvers in order of performance (fastest to slowest).
      */
-    public void registerAll() {
+    public void registerAll(GrimExtensionManager extensionManager) {
         extensionManager.setFailureHandler(this::createFailureException);
         extensionManager.registerResolver(this::resolveModContainer);
         extensionManager.registerResolver(this::resolveStringId);

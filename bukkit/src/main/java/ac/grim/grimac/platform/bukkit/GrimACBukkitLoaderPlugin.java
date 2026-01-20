@@ -8,7 +8,6 @@ import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.command.CloudCommandService;
 import ac.grim.grimac.internal.platform.bukkit.resolver.BukkitResolverRegistrar;
-import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
 import ac.grim.grimac.manager.init.start.StartableInitable;
@@ -63,9 +62,9 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.simple(BukkitSenderFactory::new);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
     private final LazyHolder<CommandService> commandService = LazyHolder.simple(this::createCommandService);
+    private final CloudCommandAdapter commandAdapter = new BukkitParserDescriptorFactory();
 
     @Getter private final PlatformPlayerFactory platformPlayerFactory = new BukkitPlatformPlayerFactory();
-    @Getter private final CloudCommandAdapter commandAdapter = new BukkitParserDescriptorFactory();
     @Getter private final PlatformPluginManager pluginManager = new BukkitPlatformPluginManager();
     @Getter private final GrimPlugin plugin;
     @Getter private final PlatformServer platformServer = new BukkitPlatformServer();
@@ -73,9 +72,8 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Getter private final BukkitPermissionRegistrationManager permissionManager = new BukkitPermissionRegistrationManager();
 
     public GrimACBukkitLoaderPlugin() {
-        GrimExtensionManager extensionManager = GrimAPI.INSTANCE.getExtensionManager();
-        BukkitResolverRegistrar registrar = new BukkitResolverRegistrar(extensionManager);
-        registrar.registerAll();
+        BukkitResolverRegistrar registrar = new BukkitResolverRegistrar();
+        registrar.registerAll(GrimAPI.INSTANCE.getExtensionManager());
         this.plugin = registrar.resolvePlugin(this);
     }
 
