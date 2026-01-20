@@ -23,7 +23,7 @@ public class Fabric1161PlayerSelectorAdapter implements PlayerSelector {
 
     @Override
     public Sender getSinglePlayer() {
-        return ((FabricSenderFactory) GrimAPI.INSTANCE.getSenderFactory()).map(fabricSelector.single().createCommandSourceStack());
+        return ((FabricSenderFactory) GrimAPI.INSTANCE.getSenderFactory()).wrap(fabricSelector.single().createCommandSourceStack());
     }
 
     @Override

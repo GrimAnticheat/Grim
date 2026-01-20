@@ -197,7 +197,7 @@ jobs:
                   changelog: ${{ steps.changelog.outputs.notes }}
                   loaders: |
                       fabric
-                  game-versions: '>=1.21.11'
+                  game-versions: '>=1.16.1'
                   dependencies: 'fabric-api'
 
             #------------------------------------------------------------------

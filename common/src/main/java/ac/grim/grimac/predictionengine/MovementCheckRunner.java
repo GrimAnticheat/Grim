@@ -10,11 +10,13 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerCamel;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHappyGhast;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
+import ac.grim.grimac.predictionengine.movementtick.MovementTickerNautilus;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineBoat;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableUtils;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -24,6 +26,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
@@ -508,6 +511,9 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 PlayerBaseTick.doBaseTick(player);
                 // Speed doesn't affect anything with boat movement
                 new PredictionEngineBoat(player).guessBestMovement(0.1f, player);
+            } else if (riding instanceof PacketEntityNautilus) {
+                PlayerBaseTick.doBaseTick(player);
+                new MovementTickerNautilus(player).livingEntityAIStep();
             } else if (riding instanceof PacketEntityCamel) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerCamel(player).livingEntityAIStep();
@@ -625,14 +631,12 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
 
+        PredictionEngineRideableUtils.applyPendingJumps(player);
+
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
-        if (player.onGround) { // if vehicle is on ground, this gets set
-            player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
-            player.vehicleData.nextHorseJump = 0;
-        }
 
-        player.vehicleData.camelDashCooldown = Math.max(0, player.vehicleData.camelDashCooldown - 1);
+        player.dashableEntities.tick();
 
         player.minAttackSlow = 0;
         player.maxAttackSlow = 0;

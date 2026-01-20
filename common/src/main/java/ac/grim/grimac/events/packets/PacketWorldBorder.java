@@ -3,9 +3,15 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.worldborder.BorderExtent;
+import ac.grim.grimac.utils.worldborder.RealTimeMovingBorderExtent;
+import ac.grim.grimac.utils.worldborder.StaticBorderExtent;
+import ac.grim.grimac.utils.worldborder.TickBasedMovingBorderExtent;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerInitializeWorldBorder;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorder;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorderCenter;
@@ -19,20 +25,38 @@ public class PacketWorldBorder extends Check implements PacketCheck {
     private double centerX;
     @Getter
     private double centerZ;
-    private double oldDiameter;
-    private double newDiameter;
     @Getter
     private double absoluteMaxSize;
-    private long startTime = 1;
-    private long endTime = 1;
+    @Getter
+    private BorderExtent extent;
 
     public PacketWorldBorder(GrimPlayer playerData) {
         super(playerData);
+        this.extent = new StaticBorderExtent(5.999997E7);
     }
 
     public double getCurrentDiameter() {
-        double d0 = (double) (System.currentTimeMillis() - startTime) / ((double) endTime - startTime);
-        return d0 < 1.0D ? GrimMath.lerp(d0, oldDiameter, newDiameter) : newDiameter;
+        return extent.size();
+    }
+
+    public double getMinX() {
+        return extent.getMinX(centerX, absoluteMaxSize);
+    }
+
+    public double getMaxX() {
+        return extent.getMaxX(centerX, absoluteMaxSize);
+    }
+
+    public double getMinZ() {
+        return extent.getMinZ(centerZ, absoluteMaxSize);
+    }
+
+    public double getMaxZ() {
+        return extent.getMaxZ(centerZ, absoluteMaxSize);
+    }
+
+    public void tickBorder() {
+        extent = extent.tick();
     }
 
     @Override
@@ -117,15 +141,28 @@ public class PacketWorldBorder extends Check implements PacketCheck {
 
     @Contract(mutates = "this")
     private void setSize(double size) {
-        oldDiameter = size;
-        newDiameter = size;
+        this.extent = new StaticBorderExtent(size);
     }
 
     @Contract(mutates = "this")
-    private void setLerp(double oldDiameter, double newDiameter, long length) {
-        this.oldDiameter = oldDiameter;
-        this.newDiameter = newDiameter;
-        this.startTime = System.currentTimeMillis();
-        this.endTime = this.startTime + length;
+    private void setLerp(double oldDiameter, double newDiameter, long speed) {
+        if (speed <= 0 || oldDiameter == newDiameter) {
+            this.extent = new StaticBorderExtent(newDiameter);
+        } else {
+            this.extent = createMovingExtent(oldDiameter, newDiameter, speed);
+        }
     }
+
+    private static final boolean SERVER_TICK_BASED = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
+
+    private BorderExtent createMovingExtent(double from, double to, long speed) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)) { // tick-based
+            long durationTicks = SERVER_TICK_BASED ? speed : (speed / 50);
+            return new TickBasedMovingBorderExtent(from, to, durationTicks);
+        } else { // real-time based
+            long durationMs = SERVER_TICK_BASED ? (speed * 50) : speed;
+            return new RealTimeMovingBorderExtent(from, to, durationMs);
+        }
+    }
+
 }

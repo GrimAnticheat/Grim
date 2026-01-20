@@ -1,5 +1,6 @@
 package ac.grim.grimac.command.commands;
 
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import net.kyori.adventure.text.Component;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GrimPerf {
 
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         Command.Builder<Sender> grimCommand = commandManager.commandBuilder("grim", "grimac");
 
         Command.Builder<Sender> configuredBuilder = grimCommand

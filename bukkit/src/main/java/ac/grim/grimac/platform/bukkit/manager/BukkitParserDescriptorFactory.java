@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.CommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.bukkit.command.BukkitPlayerSelectorParser;
 import org.bukkit.Bukkit;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class BukkitParserDescriptorFactory implements CommandAdapter {
+public class BukkitParserDescriptorFactory implements CloudCommandAdapter {
 
     // Parser is kept as a field because its stateless
     private final BukkitPlayerSelectorParser<Sender> bukkitPlayerSelectorParser = new BukkitPlayerSelectorParser<>();

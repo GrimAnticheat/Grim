@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.manager;
 
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.CommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
-public class FabricParserDescriptorFactory implements CommandAdapter {
+public class FabricParserDescriptorFactory implements CloudCommandAdapter {
 
     private final FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser;
 

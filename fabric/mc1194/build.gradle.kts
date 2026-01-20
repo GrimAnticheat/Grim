@@ -5,7 +5,7 @@ dependencies {
     compileOnly(project(":fabric:mc1171", configuration = "namedElements"))
 
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", "0.87.2+1.19.4"))
-    modImplementation("me.lucko:fabric-permissions-api:0.3.1")
+    modCompileOnly("me.lucko:fabric-permissions-api:0.3.1")
 }
 
 tasks.compileJava {

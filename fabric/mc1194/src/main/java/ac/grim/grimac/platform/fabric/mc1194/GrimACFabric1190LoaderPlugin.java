@@ -15,15 +15,16 @@ import ac.grim.grimac.platform.fabric.mc1161.util.convert.Fabric1140ConversionUt
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
+import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
+
 
 public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
 
     public GrimACFabric1190LoaderPlugin() {
         this(
-            new FabricParserDescriptorFactory(
+                () -> new FabricParserDescriptorFactory(
                     new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)
             ),
             new FabricPlatformPlayerFactory(
@@ -39,7 +40,7 @@ public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
     }
 
     protected GrimACFabric1190LoaderPlugin(
-            CommandAdapter parserDescriptorFactory,
+            LazyHolder<CommandAdapter> parserDescriptorFactory,
             FabricPlatformPlayerFactory platformPlayerFactory,
             AbstractFabricPlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,

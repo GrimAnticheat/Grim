@@ -73,3 +73,5 @@ nb-configuration.xml
 ##############################
 run/
 fabric/run/
+
+.ignored/

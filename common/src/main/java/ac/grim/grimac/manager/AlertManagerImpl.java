@@ -11,6 +11,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -153,6 +154,30 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
     @Override
     public void setBrandsEnabled(@NotNull GrimUser player, boolean enabled, boolean silent) {
         setPlayerStateAndNotify(requirePlatformPlayerFromUser(player), enabled, silent, AlertType.BRAND);
+    }
+
+    @Override
+    public boolean hasAlertsEnabled(Player player) {
+        if (player == null) return false;
+        return hasAlertsEnabled(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
+    }
+
+    @Override
+    public void toggleAlerts(Player player) {
+        if (player == null) return;
+        toggleAlerts(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
+    }
+
+    @Override
+    public boolean hasVerboseEnabled(Player player) {
+        if (player == null) return false;
+        return hasVerboseEnabled(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
+    }
+
+    @Override
+    public void toggleVerbose(Player player) {
+        if (player == null) return;
+        toggleVerbose(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
     }
 
     public void handlePlayerQuit(@Nullable PlatformPlayer platformPlayer) {

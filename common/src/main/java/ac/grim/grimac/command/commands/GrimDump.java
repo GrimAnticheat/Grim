@@ -3,6 +3,7 @@ package ac.grim.grimac.command.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.PlatformPlugin;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.PropertiesUtil;
@@ -29,7 +30,7 @@ public class GrimDump implements BuildableCommand {
     private String link = null; // these links should not expire for a while
 
     @Override
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("dump", Description.of("Generate a debug dump"))

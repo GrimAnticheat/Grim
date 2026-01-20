@@ -73,6 +73,8 @@ import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyCompon
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
@@ -210,6 +212,7 @@ public class GrimPlayer implements GrimUser {
     public final CompensatedFireworks fireworks;
     public final CompensatedWorld compensatedWorld;
     public final CompensatedEntities compensatedEntities;
+    public final CompensatedDashableEntities dashableEntities;
     public final CompensatedInventory inventory;
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
@@ -235,6 +238,7 @@ public class GrimPlayer implements GrimUser {
     public long lastBlockBreak = 0;
     public final AtomicInteger cancelledPackets = new AtomicInteger(0);
     public MainSupportingBlockData mainSupportingBlockData = new MainSupportingBlockData(null, false);
+    public final Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public final double[][] possibleEyeHeights = new double[3][];
     public int totalFlyingPacketsSent;
@@ -282,6 +286,7 @@ public class GrimPlayer implements GrimUser {
 
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
+        dashableEntities = new CompensatedDashableEntities();
         cameraEntity = new CompensatedCameraEntity(this);
 
         lastInstanceManager = new LastInstanceManager(this);
@@ -718,8 +723,9 @@ public class GrimPlayer implements GrimUser {
                         EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) ||
                         data.getEntityType() == EntityTypes.PIG ||
                         data.getEntityType() == EntityTypes.STRIDER ||
-                        data.getEntityType() == EntityTypes.CAMEL ||
-                        data.getEntityType() == EntityTypes.HAPPY_GHAST) {
+                        EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.CAMEL) ||
+                        data.getEntityType() == EntityTypes.HAPPY_GHAST ||
+                        EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_NAUTILUS)) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));

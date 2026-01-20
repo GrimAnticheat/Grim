@@ -8,10 +8,12 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.EntityTypeTags;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.MainSupportingBlockPosFinder;
@@ -438,6 +440,7 @@ public class MovementTicker {
                 player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
             }
 
+            floatInWaterWhileRidden();
         } else {
             if (player.wasTouchingLava && !player.isFlying && !(lavaLevel > 0 && canStandOnLava())) {
                 player.friction = 0.5F; // Not vanilla, just useful for other grim stuff
@@ -482,6 +485,17 @@ public class MovementTicker {
         }
 
         Collisions.applyEffectsFromBlocks(player);
+    }
+
+    private void floatInWaterWhileRidden() {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_11) || !player.inVehicle()) return;
+
+        PacketEntity vehicle = player.getVehicle();
+        boolean canFloatWhileRidden = EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type);
+        double fluidHeight = player.fluidHeight.getDouble(FluidTag.WATER);
+        if (canFloatWhileRidden && player.inVehicle() && fluidHeight > 0.4) {
+            player.clientVelocity.add(0.0, 0.04F, 0.0);
+        }
     }
 
     public boolean canStandOnLava() {
