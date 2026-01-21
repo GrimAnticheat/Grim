@@ -160,6 +160,7 @@ public class GrimPlayer implements GrimUser {
     // The client updates sprinting attribute at end of each tick
     // Don't false if the server update's the player's sprinting status
     public boolean lastSprintingForSpeed;
+    public SprintingState camelSprintingState = SprintingState.STOPPED;
     public boolean isFlying;
     public boolean canFly;
     public boolean wasFlying;

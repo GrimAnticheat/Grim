@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.elytra.ElytraA;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -35,9 +36,11 @@ public class PacketEntityAction extends PacketListenerAbstract {
             switch (action.getAction()) {
                 case START_SPRINTING:
                     player.isSprinting = true;
+                    player.camelSprintingState =  SprintingState.STARTED;
                     break;
                 case STOP_SPRINTING:
                     player.isSprinting = false;
+                    player.camelSprintingState =  SprintingState.STOPPED;
                     break;
                 case START_SNEAKING:
                     player.isSneaking = true;
