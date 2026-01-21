@@ -90,8 +90,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             player.lastSprinting = isSprinting;
                             if(!isSprinting) {
                                 player.camelSprintingState = SprintingState.STOPPING;
-                            } else
+                            } else {
                                 player.camelSprintingState = SprintingState.STARTED; // Not sure if this is needed but just in case...
+                            }
                             // Protect this due to players being able to get the server to spam this packet a lot
                             if (player.isGliding != isGliding) {
                                 player.pointThreeEstimator.updatePlayerGliding();
