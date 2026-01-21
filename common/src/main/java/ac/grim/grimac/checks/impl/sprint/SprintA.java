@@ -20,7 +20,7 @@ public class SprintA extends Check implements PacketCheck {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Players can sprint if they're able to fly (MCP)
             // Players can also sprint if they are on a camel, regardless of their hunger level
-            if (player.canFly || player.getVehicleType() == EntityTypes.CAMEL) return;
+            if (player.canFly || EntityTypes.isTypeInstanceOf(player.getVehicleType(), EntityTypes.CAMEL)) return;
 
             if (player.food < 6.0F && player.isSprinting) {
                 if (flagAndAlert("hunger=" + player.food)) {
