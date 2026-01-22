@@ -88,7 +88,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
-                            if(!isSprinting) {
+                            if (!isSprinting) {
                                 player.camelSprintingState = SprintingState.STOPPING;
                             }
                             // Protect this due to players being able to get the server to spam this packet a lot

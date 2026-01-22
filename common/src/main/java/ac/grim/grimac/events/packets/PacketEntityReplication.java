@@ -104,9 +104,9 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
         }
 
-        if(player.camelSprintingState == SprintingState.STOPPING) {
+        if (player.camelSprintingState == SprintingState.STOPPING) {
             player.camelSprintingState = SprintingState.STOPPED;
-        } else if(player.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
+        } else if (player.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
             player.camelSprintingState = SprintingState.STARTED;
         }
     }
