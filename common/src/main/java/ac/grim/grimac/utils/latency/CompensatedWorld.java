@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
@@ -63,7 +64,7 @@ import java.util.Map;
 import java.util.Set;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
-public class CompensatedWorld {
+public class CompensatedWorld implements PacketWorld{
     public static final ClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
     private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
@@ -458,6 +459,25 @@ public class CompensatedWorld {
         }
 
         return airData;
+    }
+
+    @Override
+    public int getBlockStateId(int x, int y, int z) { // Logic copied from getBlock
+        if (noNegativeBlocks && y < 0) return -1;
+
+        try {
+            Column column = getChunk(x >> 4, z >> 4);
+
+            y -= minHeight;
+            if (column == null || y < 0 || (y >> 4) >= column.chunks().length) return -2;
+
+            BaseChunk chunk = column.chunks()[y >> 4];
+            if (chunk != null) {
+                return chunk.getBlockId(x & 0xF, y & 0xF, z & 0xF);
+            }
+        } catch (Exception ignored) {
+        }
+        return -3;
     }
 
     // Not direct power into a block
