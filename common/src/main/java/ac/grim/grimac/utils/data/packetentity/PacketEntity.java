@@ -155,7 +155,7 @@ public class PacketEntity extends TypedPacketEntity {
                 // 1.21.5 -> 1.21.8 (regression)
                 ((player.getClientVersion().isOlderThan(ClientVersion.V_1_21_9) && player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4)) ||
                         // 1.15 -> 1.20.1 (Old bug)
-                        (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4)))
+                        (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_16_4)))
         ) {
             // Apply Freeze Fix (Start = Box, Target = Box)
             this.newPacketLocation = new ReachInterpolationData(
