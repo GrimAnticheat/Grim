@@ -618,6 +618,7 @@ public class CompensatedWorld implements PacketWorld{
         return chunks.get(chunkPosition);
     }
 
+    @Override
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         return chunks.containsKey(chunkPosition);
