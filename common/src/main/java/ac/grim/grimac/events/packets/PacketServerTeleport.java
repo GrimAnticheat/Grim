@@ -113,6 +113,11 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 }
             }
 
+            // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
+                pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
+            }
+
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
             event.getTasksAfterSend().add(player::sendTransaction);
