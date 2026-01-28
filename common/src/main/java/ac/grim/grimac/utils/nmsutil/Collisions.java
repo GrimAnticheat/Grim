@@ -805,7 +805,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull BiConsumer<WrappedBlockState, Vector3d> searchingFor) {
+    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull BiConsumer<WrappedBlockState, Vector3i> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
@@ -873,7 +873,7 @@ public final class Collisions {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                                 if (collisionBox.isIntersected(checkBox)) {
-                                    searchingFor.accept(data, new Vector3d(x, y, z));
+                                    searchingFor.accept(data, new Vector3i(x, y, z));
                                 }
                             }
                         }
