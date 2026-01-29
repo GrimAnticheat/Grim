@@ -41,6 +41,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.viaversion.viaversion.api.Via;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -158,7 +159,6 @@ public class Reach extends Check implements PacketCheck {
             SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
             double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastMovementIncludePosition);
-
             return ReachUtils.getMinReachToBox(player, targetBox) > maxReach;
         }
     }
@@ -219,7 +219,6 @@ public class Reach extends Check implements PacketCheck {
         // +3 would be 3 + 3 = 6, which is the pre-1.20.5 behaviour, preventing "Missed Hitbox"
         final double distance = maxReach + 3;
 
-
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
         for (Vector3dm lookVec : possibleLookDirs) {
@@ -263,6 +262,9 @@ public class Reach extends Check implements PacketCheck {
         return reachEntity.getPossibleCollisionBoxes();
     }
 
+    private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
+    private static final boolean USE_1_8_HITBOX_MARGIN = PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8);
+
     private double applyReachModifiers(SimpleCollisionBox targetBox, ItemStack itemInHand, boolean giveMovementThreshold) {
         double maxReach;
         double hitboxMargin = threshold;
@@ -270,8 +272,11 @@ public class Reach extends Check implements PacketCheck {
         ItemAttackRange attackRange = null;
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
-            // TODO: ViaVersion support https://github.com/ViaVersion/ViaVersion/pull/4733
             attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && USE_1_8_HITBOX_MARGIN) {
+            if (Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin()) {
+                attackRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
+            }
         }
 
         if (attackRange != null) {
@@ -299,8 +304,6 @@ public class Reach extends Check implements PacketCheck {
 
         return maxReach;
     }
-
-    private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
 
     @Override
     public void onReload(ConfigManager config) {
