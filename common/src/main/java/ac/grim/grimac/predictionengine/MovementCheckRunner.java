@@ -375,6 +375,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         }
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ)
+                .expand(player.getMovementThreshold())
                 .offset(0.0, player.getClientVersion().isOlderThan(ClientVersion.V_1_15) ? -1.0 : -0.2, 0.0);
         Collisions.forEachCollisionBox(player, steppingOnBB, (data, pos) -> {
             if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
