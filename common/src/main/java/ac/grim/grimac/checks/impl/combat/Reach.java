@@ -274,7 +274,9 @@ public class Reach extends Check implements PacketCheck {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
             attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
         } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && USE_1_8_HITBOX_MARGIN) {
-            if (Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin()) {
+            boolean itemExists = itemInHand != ItemStack.EMPTY;
+            boolean useLegacyHitboxMargin = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
+            if (itemExists && useLegacyHitboxMargin) {
                 attackRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
             }
         }
