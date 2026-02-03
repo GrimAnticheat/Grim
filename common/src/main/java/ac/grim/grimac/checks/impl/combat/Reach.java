@@ -26,6 +26,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -273,7 +274,7 @@ public class Reach extends Check implements PacketCheck {
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
             attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
-        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && USE_1_8_HITBOX_MARGIN) {
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && USE_1_8_HITBOX_MARGIN && ViaVersionUtil.isAvailable) {
             boolean itemExists = itemInHand != ItemStack.EMPTY;
             boolean useLegacyHitboxMargin = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
             if (itemExists && useLegacyHitboxMargin) {
