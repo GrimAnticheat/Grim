@@ -1,0 +1,237 @@
+# GrimAC główna konfiguracja
+# Kod źródłowy: https://github.com/MWHunter/Grim
+# Prawa autorskie 2025 DefineOutside i współautorzy, licencjonowane na podstawie GPLv3.
+# Zmodyfikowane pliki binarne, albo pluginy z skopiowanym kodem grim, muszą być prywatne,
+# lub z pełnym kodem źródłowym dostępnym dla kupujących bez dodatkowych kosztów.
+
+alerts:
+    # Czy oprócz wysyłania alertów do graczy, powinny być one również wysyłane na konsolę?
+    print-to-console: true
+    # Określa, czy i w jaki sposób alerty są udostępniane pomiędzy serwerami połączonymi z Twoim serwerem proxy. 
+    # Jeśli korzystasz z Velocity, musisz włączyć opcję „bungee-plugin-message-channel” w konfiguracji Velocity.
+    proxy:
+        # Czy alerty powinny być wysyłane do innych serwerów podłączonych do Twojego serwera proxy?
+        send: false
+        # Czy alerty otrzymywane z innych serwerów powinny być przekazywane temu serwerowi?
+        receive: false
+
+verbose:
+    print-to-console: false
+
+check-for-updates: true
+
+client-brand:
+    # Oznacza to, że nie będzie transmitować swojej marki operatorom, jeśli marka będzie pasować do następujących wyrażeń regularnych.
+    ignored-clients:
+        - "^vanilla$"
+        - "^fabric$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
+        - "^Feather Fabric$"
+        - "^labymod$"
+    # Grim umieści na czarnej liście konkretne wersje Forge, które zawierają wbudowane modyfikacje Reach (Forge 1.18.2 do 1.19.3).
+    # Ustawienie tej opcji na fałsz umożliwi tym klientom połączenie się z serwerem. Wyłączasz tę opcję na własne ryzyko.
+    disconnect-blacklisted-forge-versions: true
+
+spectators:
+    # Ukryj wszystkich widzów z uprawnieniem grim.spectator, niezależnie od tego, czy są oni faktycznie aktywnymi widzami
+    hide-regardless: false
+    # Spowoduje, że widzowie będą ukryci tylko w tych światach, a pozostawienie pustego pola umożliwi dostęp do wszystkich światów
+    allowed-worlds:
+        - ""
+
+# Ile czasu powinni mieć gracze, zanim ich wyrzucimy za przekroczenie limitu czasu? Domyślnie = 60 sekund
+max-transaction-time: 60
+
+# Włącz tę opcję, aby uniemożliwić Grimowi anulowanie komunikatów Pong otrzymanych od graczy.
+# Może to poprawić kompatybilność z innymi programami antycheatowymi. Może to powodować problemy z limiterami pakietów.
+# Nie włączaj tej opcji, jeśli nie masz pewności, co robisz.
+disable-pong-cancelling: false
+
+# Czy domyślna procedura obsługi resynchronizacji bloków powinna zostać wyłączona?
+# Domyślnie Grim odczytuje bloki ze świata serwera i wysyła je do klienta w celu naprawy desynchronizacji.
+# Jeśli używasz wtyczek, które tworzą fałszywe bloki oparte na pakietach (które nie istnieją w świecie serwera),
+# powinieneś ustawić tę opcję na true, aby uniemożliwić Grimowi nadpisywanie ich blokami air/real.
+# Wymusza to użycie procedury obsługi „NoOp” (No Operation), chyba że zostanie ona udostępniona za pośrednictwem API.
+disable-default-resync-handler: false
+
+# Czy zduplikowany pakiet ruchu powinien zostać anulowany?
+# Mojang naprawił ten problem w wersji 1.21. To była ich próba naprawienia „desynchronizacji kontenera”. https://bugs.mojang.com/browse/MC-12363
+# To ustawienie dotyczy tylko klientów 1.17-1.20.5 na serwerach 1.8.
+cancel-duplicate-packet: true
+
+# Czy ignorować rotację w zduplikowanych pakietach
+ignore-duplicate-packet-rotation: false
+
+Simulation:
+    # O ile powinniśmy pomnożyć całkowitą przewagę, gdy gracz gra zgodnie z zasadami?
+    # Tak wygląda domyślna konfiguracja (oś x = sekundy, oś y = 1/1000 bloku): https://www.desmos.com/calculator/d4ufgxrxer
+    setback-decay-multiplier: 0.999
+    # Jak duże odchylenie od ruchu gracza powinno skutkować naruszeniem?
+    # Mierzone w blokach od możliwego ruchu.
+    # Uwzględniamy Optifine, przełączając tablice trygonometryczne, ale zmniejszenie tej wartości do 0.001 zmniejszy
+    # liczbę fałszywych alarmów spowodowanych przez FastMath, jeśli ta kompensacja nie zadziała...
+    threshold: 0.001
+    # Jak duże naruszenie w jednym ticku spowoduje natychmiastowe cofnięcie gracza?
+    # -1 aby wyłączyć
+    immediate-setback-threshold: 0.1
+    # Jak dużą całkowitą przewagę (we wszystkich tickach) trzeba osiągnąć, zanim zaczniemy cofać gracza?
+    # -1 aby wyłączyć
+    max-advantage: 1
+    # Po 50 sekundach z domyślną konfiguracją, przewaga gracza spadnie z 4 bloków do 1 bloku.
+    # Ma to na celu zapobieżenie gromadzeniu zbyt wielu naruszeń, których gracz nie mógłby później wyzerować.
+    # Domyślny sufit przewagi (oś x = sekundy, oś y = 1/1000 bloku): https://www.desmos.com/calculator/4lovswdarj
+    max-ceiling: 4
+    # Próg poziomu naruszeń wymagany do cofnięcia.
+    # 1 dla starego zachowania.
+    setback-violation-threshold: 1
+
+# Sprawdza, czy gracz wszedł w blok podczas ruchu.
+Phase:
+    setbackvl: 1 # Wchodzenie w bloki może umożliwiać wspinanie się po ścianach, dodatkowo ta kontrola jest względnie stabilna.
+    decay: 0.005
+
+AirLiquidPlace:
+    cancelvl: 0
+
+FabricatedPlace:
+    cancelvl: 5
+
+FarPlace:
+    cancelvl: 5
+
+PositionPlace:
+    cancelvl: 5
+
+RotationPlace:
+    cancelvl: 5
+
+# Oparta na predykcji kontrola NoSlow.
+# Grim uwzględnia tutaj problematyczny kod sieciowy... trudno o fałszywe alarmy nawet przy spamowaniu prawym przyciskiem i przyciskiem offhand.
+# Znacznie stabilniejsza niż w innych antycheatach, ale prosimy zgłaszać wszelkie fałszywe alarmy... Naprawiłem tu mnóstwo problemów z kodem sieciowym.
+NoSlow:
+    # Jakie odchylenie jest uznawane za "oszukiwanie"?
+    # Domyślnie jest niższe niż w innych kontrolach.
+    # Konsekwentnie wykrywa odchylenia o 0.03-0.2 przy włączonym NoSlow.
+    threshold: 0.001
+    # Szybkie cofnięcie przy pierwszym użyciu przedmiotu, aby usunąć przewagę dawaną przez NoSlow.
+    setbackvl: 5
+    # Spadek naruszeń, gdy gracz używa przedmiotu I jest przez niego spowalniany.
+    decay: 0.05
+
+Knockback:
+    # O ile powinniśmy pomnożyć całkowitą przewagę, gdy gracz gra zgodnie z zasadami?
+    setback-decay-multiplier: 0.999
+    # Jak duże odchylenie od prędkości nadanej graczowi (velocity) powinno skutkować naruszeniem?
+    # Mierzone w blokach od możliwej prędkości.
+    threshold: 0.001
+    # Jak duże naruszenie w jednym ticku spowoduje natychmiastowe cofnięcie gracza?
+    # -1 aby wyłączyć
+    immediate-setback-threshold: 0.1
+    # Jak dużą całkowitą przewagę (we wszystkich tickach) trzeba osiągnąć, zanim zaczniemy cofać gracza?
+    # -1 aby wyłączyć
+    max-advantage: 1
+    # Ma to na celu zapobieżenie gromadzeniu zbyt wielu naruszeń, których gracz nie mógłby później wyzerować.
+    max-ceiling: 4
+
+Explosion:
+    threshold: 0.001
+    setbackvl: 3
+
+TimerA:
+    setbackvl: 10
+    # Liczba milisekund, które gracz może zgromadzić do późniejszego wykorzystania, gdy się opóźni.
+    # Może potencjalnie umożliwić obejścia fast use/fast heal/fast bow z wersji 1.8, jeśli ustawione zbyt wysoko. 120 ms wydaje się dobrym kompromisem.
+    drift: 120
+
+# Ta kontrola ogranicza nadużywanie balansu z checku TimerA, zapobiegając zbytniemu opóźnieniu ruchu gracza względem czasu rzeczywistego.
+TimerLimit:
+    # Ping, przy którym kontrola zacznie ograniczać balans timera, aby zapobiec nadużyciom.
+    # Może powodować pewne cofnięcia u uczciwych graczy, ale tylko jeśli mają ping powyżej tego progu.
+    # -1 aby wyłączyć
+    ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+    # Liczba milisekund straconych podczas ruchu, zanim zaczniemy wykrywać naruszenia.
+    drift: 1200
+
+# Ta sama metoda wykrywania co w TimerA, ale dla pojazdów.
+VehicleTimer:
+    # Celuje w timer 1.005
+    setbackvl: 10
+
+PacketOrderI:
+    # Włącz, jeśli gracze są oznaczani za używanie modów do animacji z 1.7.
+    exempt-placing-while-digging: false
+
+Reach:
+    # O ile powinniśmy zwiększyć hitboxy? 0.0005 powinno wykrywać zasięg 3.0005+.
+    #
+    # Wymuszone zwiększenie o 0.03 występuje w wersjach 1.9-1.18.1 (z wyjątkiem 1.18.2) lub w niektórych kombinacjach klient/serwer
+    # ze względu na zmiany i ograniczenia protokołu. Ta kontrola jest najskuteczniejsza dla klientów 1.7/1.8 na serwerach 1.8.
+    threshold: 0.0005
+    # Czy powinniśmy anulować trafienia, które wiemy, że są niemożliwe?
+    # Trafienia w przedziale 3.00-3.03 mogą przejść, ale nadal będą wykrywane z powodu ograniczeń kolejności pakietów.
+    block-impossible-hits: true
+    # Spowoduje to wysłanie dodatkowego pakietu na końcu każdego ticka, aby zwiększyć prawdopodobieństwo wykrycia oszustw.
+    # Ta metoda wstrzykuje się w listę połączeń serwera, aby wysłać końcowy pakiet tuż przed wysłaniem (flushem) danych przez serwer.
+    # Włączenie tego zwiększy użycie pasma dla wszystkich graczy.
+    # Nie wpłynie to negatywnie na ogólną wydajność serwera.
+    # Włączenie tego pozwoli wykryć więcej oszukujących graczy.
+    # Pozostawienie tego wyłączonym nadal będzie wykrywać oszustów i nie spowoduje fałszywych alarmów.
+    # Jeśli nie jesteś serwerem skoncentrowanym na PvP w wersji 1.8, ten dodatkowy pakiet nie jest zalecany.
+    enable-post-packet: false
+
+exploit:
+    # Można uzyskać duże prędkości podczas sprintu i skoku z elytrą. To ustawienie zapobiega temu exploitowi, gdy jest ustawione na false.
+    # Mojang zepsuł kod sieciowy, powodując, że start lotu elytrą jest obsługiwany przez klienta, a koniec przez serwer.
+    # Elytry mają poziome tarcie 0.99, więc ciągłe dodawanie poziomej prędkości 0.2 skutkuje bardzo dużymi prędkościami.
+    allow-sprint-jumping-when-using-elytra: true
+    # Ta opcja łagodzi efekt stawiania bloków na tzw. ghostblockach poprzez resynchronizację gracza, gdy to nastąpi.
+    allow-building-on-ghostblocks: true
+    # To ustawienie, zależne od powyższej wartości logicznej, określa dystans do sprawdzania ghostblocków.
+    # Jego prawidłowy zakres jest ograniczony od 2 do 4.
+    distance-to-check-if-ghostblocks: 2
+
+# Włącz logowanie pluginów, które wstrzyknęły się do netty podczas dołączania gracza, w celu debugowania problemów z kompatybilnością.
+debug-pipeline-on-join: false
+
+# Włącza eksperymentalne checki.
+experimental-checks: false
+
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
+reset-item-usage-on-item-use: true
+
+# Grim czasami anuluje nielegalne pakiety, np. przy użyciu timera. Po anulowaniu X pakietów na sekundę, kiedy powinniśmy
+# po prostu wyrzucić gracza? Jest to wymagane, ponieważ niektóre limitery pakietów nie liczą pakietów anulowanych przez Grima.
+packet-spam-threshold: 100
+# Włącz to, aby wydrukować stack trace, gdy gracz zostanie wyrzucony z powodu przekroczenia packet-spam-threshold.
+debug-packet-cancel: false
+
+# Grim jest w stanie egzekwować, że gracz, który nie jest w stanie lotu, nie może mieć więcej niż X milisekund pingu.
+# Wynika to z faktu, że Grim obecnie nie sprawdza latających graczy.
+# Aby wyłączyć, użyj -1.
+max-ping-out-of-flying: 1000
+
+# Maksymalny ping, przy którym boost z fajerwerka jest usuwany graczowi.
+# Zapobiega to sytuacji, w której gracze z wysokim opóźnieniem mogą używać jednego boostu z fajerwerka z elytrą w nieskończoność.
+max-ping-firework-boost: 1000
+
+history:
+    enabled: true
+    # Ile wpisów powinno być pokazywanych na każdej stronie w /grim history <player>
+    entries-per-page: 15
+    # Jaka powinna być wstawiona nazwa serwera dla komendy history? Jest to przydatne, jeśli używasz tej samej bazy danych dla wielu serwerów.
+    server-name: Prison
+    database:
+        # Użyj SQLITE dla lokalnego przechowywania, użyj MYSQL lub POSTGRESQL, jeśli masz zewnętrzną bazę danych. To jest aktualizowane tylko przy restarcie serwera.
+        type: SQLITE
+        # Szczegóły połączenia z bazą danych
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
+config-version: 9
