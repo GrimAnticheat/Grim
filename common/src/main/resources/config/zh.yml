@@ -41,13 +41,13 @@ spectators:
         - ""
 
 # 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
-# 踢出原因为: disconnect.timeout
+# 默认踢出原因为: disconnect.timeout
 # 玩家超时踢出时间（默认 = 60 秒）
 max-transaction-time: 60
 
-# Enable this to stop Grim cancelling pongs received from players.
-# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
-# Do not enable this if you are not sure what you are doing.
+# 启用此选项可阻止 Grim 取消玩家发送的 pong 信息。 
+# 这可能会提高与其他反作弊软件（如果您正在将 Grim 与其他反作弊一起启用的话）的兼容性。但可能会导致数据包限制器出现问题。 
+# 如果您不确定自己在做什么，请不要启用此功能。
 disable-pong-cancelling: false
 
 # 是否应禁用默认的方块重新同步处理程序？
