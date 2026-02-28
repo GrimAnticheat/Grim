@@ -28,6 +28,10 @@ public final class PredictionMovementCheck extends Check {
             return;
         }
 
+        if (data.isMovementUnconfirmed()) {
+            return;
+        }
+
 
         long now = System.nanoTime();
         long packetAgeNanos = now - data.getLastRawMovementPacketAt();
@@ -47,7 +51,7 @@ public final class PredictionMovementCheck extends Check {
         boolean badVertical = deltaY < result.getMinVertical() || deltaY > result.getMaxVertical();
 
         if (badHorizontal || badVertical) {
-            double score = 0.0D;
+            double score = Math.max(0.0D, data.getShadowDeviation() - plugin.getConfig().getDouble("prediction.shadow-deviation-threshold", 0.15D));
             if (badHorizontal) {
                 score += horizontal - result.getMaxHorizontal();
             }

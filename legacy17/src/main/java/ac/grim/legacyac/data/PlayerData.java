@@ -49,6 +49,16 @@ public final class PlayerData {
     private short transactionActionCounter;
     private long lastTransactionRttNanos;
     private long lastTransTime;
+    private long lastKeepAliveTime;
+    private boolean movementUnconfirmed;
+    private boolean shadowInitialized;
+    private double shadowX;
+    private double shadowY;
+    private double shadowZ;
+    private double shadowMotionX;
+    private double shadowMotionY;
+    private double shadowMotionZ;
+    private double shadowDeviation;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -373,6 +383,61 @@ public final class PlayerData {
 
     public long getLastTransTime() {
         return lastTransTime;
+    }
+
+    public void acknowledgeKeepAlive(long nowMillis) {
+        this.lastKeepAliveTime = nowMillis;
+    }
+
+    public boolean hasRecentTransactionAck(long maxAgeMillis) {
+        return lastTransTime != 0L && System.currentTimeMillis() - lastTransTime <= maxAgeMillis;
+    }
+
+    public boolean hasRecentKeepAliveAck(long maxAgeMillis) {
+        return lastKeepAliveTime != 0L && System.currentTimeMillis() - lastKeepAliveTime <= maxAgeMillis;
+    }
+
+    public boolean isMovementUnconfirmed() {
+        return movementUnconfirmed;
+    }
+
+    public void setMovementUnconfirmed(boolean movementUnconfirmed) {
+        this.movementUnconfirmed = movementUnconfirmed;
+    }
+
+    public void updateShadowPosition(double x, double y, double z, boolean onGround) {
+        if (!shadowInitialized) {
+            shadowInitialized = true;
+            shadowX = x;
+            shadowY = y;
+            shadowZ = z;
+            shadowMotionX = 0.0D;
+            shadowMotionY = 0.0D;
+            shadowMotionZ = 0.0D;
+            shadowDeviation = 0.0D;
+            return;
+        }
+
+        double friction = onGround ? (0.91D * 0.60D) : 0.91D;
+        double expectedX = shadowX + (shadowMotionX * friction);
+        double expectedY = shadowY + ((shadowMotionY - 0.08D) * 0.98D);
+        double expectedZ = shadowZ + (shadowMotionZ * friction);
+
+        double diffX = x - expectedX;
+        double diffY = y - expectedY;
+        double diffZ = z - expectedZ;
+        shadowDeviation = Math.sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
+
+        shadowMotionX = x - shadowX;
+        shadowMotionY = y - shadowY;
+        shadowMotionZ = z - shadowZ;
+        shadowX = x;
+        shadowY = y;
+        shadowZ = z;
+    }
+
+    public double getShadowDeviation() {
+        return shadowDeviation;
     }
 
 }

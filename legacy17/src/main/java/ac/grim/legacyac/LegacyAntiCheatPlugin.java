@@ -4,6 +4,7 @@ import ac.grim.legacyac.check.CheckManager;
 import ac.grim.legacyac.command.LegacyCommand;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.NetworkTapManager;
+import ac.grim.legacyac.network.ProtocolLibBridgeManager;
 import ac.grim.legacyac.network.TransactionSyncManager;
 import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
@@ -17,6 +18,7 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private AlertManager alertManager;
     private CheckManager checkManager;
     private NetworkTapManager networkTapManager;
+    private ProtocolLibBridgeManager protocolLibBridgeManager;
     private TransactionSyncManager transactionSyncManager;
     private int tickTaskId = -1;
 
@@ -26,8 +28,12 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         alertManager = new AlertManager(this);
         checkManager = new CheckManager(this);
         getServer().getPluginManager().registerEvents(checkManager, this);
-        networkTapManager = new NetworkTapManager(this);
-        getServer().getPluginManager().registerEvents(networkTapManager, this);
+        protocolLibBridgeManager = new ProtocolLibBridgeManager(this);
+        boolean protocolActive = protocolLibBridgeManager.start();
+        if (!protocolActive) {
+            networkTapManager = new NetworkTapManager(this);
+            getServer().getPluginManager().registerEvents(networkTapManager, this);
+        }
         getCommand("glac").setExecutor(new LegacyCommand(this));
         transactionSyncManager = new TransactionSyncManager(this);
         transactionSyncManager.start();
@@ -49,6 +55,9 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         }
         if (networkTapManager != null) {
             networkTapManager.shutdown();
+        }
+        if (protocolLibBridgeManager != null) {
+            protocolLibBridgeManager.stop();
         }
         if (transactionSyncManager != null) {
             transactionSyncManager.stop();

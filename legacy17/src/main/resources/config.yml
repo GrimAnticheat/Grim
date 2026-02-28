@@ -2,15 +2,20 @@
 # 1.7.10 focused baseline checks inspired by Grim architecture ideas.
 violation-decay-per-second: 0.08
 
+protocollib:
+  enabled: true
+
 netty:
   inject-on-join: true
 
 prediction:
   max-packet-age-nanos: 120000000
+  shadow-deviation-threshold: 0.15
 
 transaction:
   enabled: true
   interval-ticks: 20
+  max-ack-age-ms: 4000
 
 # Grace windows for avoiding false positives after normal server-side corrections.
 exempt:

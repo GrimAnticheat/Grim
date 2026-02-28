@@ -1,9 +1,11 @@
 name: GrimLegacyAC
 main: ac.grim.legacyac.LegacyAntiCheatPlugin
-version: 0.8.0
+version: 0.9.0
 author: GrimLegacy Team
 website: https://grim.ac
 description: Legacy anti-cheat inspired by Grim design ideas, for 1.7.10 servers
+softdepend:
+  - ProtocolLib
 commands:
   glac:
     description: GrimLegacyAC main command
