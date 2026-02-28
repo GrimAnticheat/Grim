@@ -61,7 +61,7 @@ public final class ProtocolLibBridgeManager {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
-                PlayerData data = plugin.getPlayerData(player);
+                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
@@ -98,7 +98,7 @@ public final class ProtocolLibBridgeManager {
             PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PlayerData data = plugin.getPlayerData(event.getPlayer());
+                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
