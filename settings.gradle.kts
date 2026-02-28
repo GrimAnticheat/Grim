@@ -69,3 +69,5 @@ include(":fabric:mc1171")
 include(":fabric:mc1194")
 include(":fabric:mc1205")
 include(":fabric:mc12111")
+
+include("legacy17")
