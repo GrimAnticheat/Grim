@@ -9,11 +9,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.7.10-R0.1-SNAPSHOT")
+    // 引用 libs 目录下的所有 jar 文件
+    compileOnly(files("libs/spigot-server-1.7.10-R0.1-SNAPSHOT.jar"))
+    compileOnly(files("libs/ProtocolLib1.7.jar"))
     compileOnly("io.netty:netty-all:4.0.23.Final")
-    compileOnly("com.comphenix.protocol:ProtocolLib:3.7.0")
 }
-
 java {
     withSourcesJar()
 }
