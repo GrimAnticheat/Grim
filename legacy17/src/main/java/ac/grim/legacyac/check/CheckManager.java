@@ -56,6 +56,8 @@ public final class CheckManager implements Listener {
     private final List<FastUseCheck> fastUseChecks = new ArrayList<FastUseCheck>();
     private final List<InventoryMoveCheck> inventoryMoveChecks = new ArrayList<InventoryMoveCheck>();
     private final List<PredictionMovementCheck> predictionChecks = new ArrayList<PredictionMovementCheck>();
+    private long lastTickAtNanos;
+    private double currentTps = 20.0D;
 
     public CheckManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
@@ -83,10 +85,24 @@ public final class CheckManager implements Listener {
     }
 
     public void tick() {
+        long now = System.nanoTime();
+        if (lastTickAtNanos != 0L) {
+            double elapsed = (now - lastTickAtNanos) / 1000000000.0D;
+            if (elapsed > 0.0D) {
+                double measured = Math.min(20.0D, 1.0D / elapsed);
+                currentTps = (currentTps * 0.8D) + (measured * 0.2D);
+            }
+        }
+        lastTickAtNanos = now;
+
         double decay = plugin.getConfig().getDouble("violation-decay-per-second", 0.08D);
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             plugin.getPlayerData(player).decayViolations(decay);
         }
+    }
+
+    public double getCurrentTps() {
+        return currentTps;
     }
 
     @EventHandler
@@ -110,6 +126,10 @@ public final class CheckManager implements Listener {
         Player player = event.getPlayer();
         PlayerData data = plugin.getPlayerData(player);
         data.handleMove(player, event.getFrom(), to, player.isOnGround());
+
+        if (data.isTeleportSyncPending()) {
+            return;
+        }
 
         for (SpeedCheck check : speedChecks) {
             check.onMove(event, data);

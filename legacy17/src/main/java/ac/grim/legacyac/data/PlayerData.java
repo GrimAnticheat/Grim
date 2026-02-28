@@ -53,6 +53,8 @@ public final class PlayerData {
     private final Map<Short, Long> pendingTransactions = new ConcurrentHashMap<Short, Long>();
     private short transactionActionCounter;
     private long lastTransactionRttNanos;
+    private long lastTransactionRttSampleNanos;
+    private long transactionRttJitterNanos;
     private long lastTransTime;
     private long lastKeepAliveTime;
     private boolean movementUnconfirmed;
@@ -65,6 +67,11 @@ public final class PlayerData {
     private double shadowMotionZ;
     private double shadowDeviation;
     private final LinkedList<HitboxFrame> hitboxHistory = new LinkedList<HitboxFrame>();
+    private final LinkedList<Double> recentDeltaY = new LinkedList<Double>();
+    private boolean teleportSyncPending;
+    private double pendingTeleportX;
+    private double pendingTeleportY;
+    private double pendingTeleportZ;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -108,6 +115,11 @@ public final class PlayerData {
         double width = 0.6D;
         double height = player.isSneaking() ? 1.65D : 1.8D;
         recordCurrentHitbox(to.getX(), to.getY(), to.getZ(), width, height);
+
+        recentDeltaY.addLast(Double.valueOf(lastDeltaY));
+        if (recentDeltaY.size() > 10) {
+            recentDeltaY.removeFirst();
+        }
 
         if (velocityTicksRemaining > 0) {
             if (lastDeltaXZ > observedVelocityXZ) {
@@ -391,6 +403,10 @@ public final class PlayerData {
         Long sent = pendingTransactions.remove(Short.valueOf(actionId));
         if (sent != null) {
             lastTransactionRttNanos = recvAtNanos - sent.longValue();
+            if (lastTransactionRttSampleNanos != 0L) {
+                transactionRttJitterNanos = Math.abs(lastTransactionRttNanos - lastTransactionRttSampleNanos);
+            }
+            lastTransactionRttSampleNanos = lastTransactionRttNanos;
             lastTransTime = System.currentTimeMillis();
         }
     }
@@ -421,6 +437,79 @@ public final class PlayerData {
 
     public void setMovementUnconfirmed(boolean movementUnconfirmed) {
         this.movementUnconfirmed = movementUnconfirmed;
+    }
+
+
+    public long getTransactionRttJitterNanos() {
+        return transactionRttJitterNanos;
+    }
+
+    public void clearPendingTransactions() {
+        pendingTransactions.clear();
+    }
+
+    public double scaleBuffer(String check, double factor) {
+        double next = getBuffer(check) * factor;
+        if (next <= 0.0001D) {
+            buffers.remove(check);
+            return 0.0D;
+        }
+        buffers.put(check, next);
+        return next;
+    }
+
+    public void beginTeleportSync(double x, double y, double z) {
+        teleportSyncPending = true;
+        pendingTeleportX = x;
+        pendingTeleportY = y;
+        pendingTeleportZ = z;
+        movementUnconfirmed = true;
+        lastTeleportAt = System.currentTimeMillis();
+    }
+
+    public void tryConfirmTeleportSync(double x, double y, double z) {
+        if (!teleportSyncPending) {
+            return;
+        }
+        double dx = Math.abs(x - pendingTeleportX);
+        double dy = Math.abs(y - pendingTeleportY);
+        double dz = Math.abs(z - pendingTeleportZ);
+        if (dx > 0.03125D || dy > 0.03125D || dz > 0.03125D) {
+            return;
+        }
+        if (hasRecentTransactionAck(2000L)) {
+            teleportSyncPending = false;
+            movementUnconfirmed = false;
+        }
+    }
+
+    public boolean isTeleportSyncPending() {
+        return teleportSyncPending;
+    }
+
+    public boolean isParabolaAnomalous(double minAvgError, int minSamples) {
+        if (recentDeltaY.size() < minSamples) {
+            return false;
+        }
+
+        double totalError = 0.0D;
+        int compared = 0;
+        Double previous = null;
+        for (Double current : recentDeltaY) {
+            if (previous != null) {
+                double expected = (previous.doubleValue() - 0.08D) * 0.98D;
+                totalError += Math.abs(current.doubleValue() - expected);
+                compared++;
+            }
+            previous = current;
+        }
+
+        if (compared == 0) {
+            return false;
+        }
+
+        double averageError = totalError / compared;
+        return averageError >= minAvgError;
     }
 
     public void updateShadowPosition(double x, double y, double z, boolean onGround) {

@@ -78,7 +78,10 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     }
 
     public void removePlayerData(Player player) {
-        playerDataMap.remove(player.getUniqueId());
+        PlayerData removed = playerDataMap.remove(player.getUniqueId());
+        if (removed != null) {
+            removed.clearPendingTransactions();
+        }
     }
 
     public AlertManager alerts() {

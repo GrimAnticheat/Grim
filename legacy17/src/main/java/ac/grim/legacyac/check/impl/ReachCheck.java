@@ -38,14 +38,18 @@ public final class ReachCheck extends Check {
             return;
         }
 
-        AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(victim), plugin.getConfig().getDouble("checks.Reach.max-distance", 3.35D), 400L);
+        double maxReach = plugin.getConfig().getDouble("checks.Reach.max-distance", 3.35D) + getAdaptiveReachBonus(data);
+        AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(victim), maxReach, 400L);
         if (!eval.isLegal()) {
-            double add = Math.max(0.2D, eval.getDirectDistance() - plugin.getConfig().getDouble("checks.Reach.max-distance", 3.35D));
-            double buffer = increaseBuffer(data, add);
+            double add = Math.max(0.2D, eval.getDirectDistance() - maxReach);
+            double buffer = slideAndAddScore(data, add, plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.2D)) {
                 flag(attacker, data, add, "ray-miss dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance()));
                 event.setCancelled(true);
             }
+        }
+        if (eval.isLegal()) {
+            coolDownScore(data);
         }
         data.setLastAttackAt(System.currentTimeMillis());
     }
@@ -54,16 +58,26 @@ public final class ReachCheck extends Check {
         if (!isEnabled() || isExempt(attacker, attackerData)) {
             return new AttackEvaluation(true, 0.0D, 0L);
         }
-        double maxReach = plugin.getConfig().getDouble("checks.Reach.max-distance", 3.35D);
+        double maxReach = plugin.getConfig().getDouble("checks.Reach.max-distance", 3.35D) + getAdaptiveReachBonus(attackerData);
         AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(target), maxReach, backtrackMillis);
         if (!eval.isLegal()) {
             double add = Math.max(0.2D, eval.getDirectDistance() - maxReach);
-            double buffer = increaseBuffer(attackerData, add);
+            double buffer = slideAndAddScore(attackerData, add, plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.2D)) {
                 flag(attacker, attackerData, add, "packet-ray-miss dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance()));
             }
         }
+        if (eval.isLegal()) {
+            coolDownScore(attackerData);
+        }
         return eval;
+    }
+
+    private double getAdaptiveReachBonus(PlayerData data) {
+        if (!isLagging(data)) {
+            return 0.0D;
+        }
+        return plugin.getConfig().getDouble("adaptive-lag.reach-extra-distance", 0.15D);
     }
 
     private AttackEvaluation evaluate(Player attacker, PlayerData targetData, double maxReach, long backtrackMillis) {

@@ -41,6 +41,7 @@ public final class ProtocolLibBridgeManager {
             registerMovementListener();
             registerAckListener();
             registerUseEntityListener();
+            registerServerPositionListener();
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
@@ -90,12 +91,15 @@ public final class ProtocolLibBridgeManager {
                 double x = packet.getDoubles().read(0);
                 double y = packet.getDoubles().read(1);
                 double z = packet.getDoubles().read(2);
+                if (type == PacketType.Play.Client.POSITION_LOOK) {
+                    data.tryConfirmTeleportSync(x, y, z);
+                }
                 boolean onGround = packet.getBooleans().size() > 0 && packet.getBooleans().read(0);
                 data.updateShadowPosition(x, y, z, onGround);
 
                 long maxAckAge = plugin.getConfig().getLong("transaction.max-ack-age-ms", 4000L);
                 boolean confirmed = data.hasRecentTransactionAck(maxAckAge) || data.hasRecentKeepAliveAck(maxAckAge);
-                data.setMovementUnconfirmed(!confirmed);
+                data.setMovementUnconfirmed(data.isTeleportSyncPending() || !confirmed);
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -124,6 +128,23 @@ public final class ProtocolLibBridgeManager {
                     }
                 }
                 plugin.checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
+            }
+        };
+        protocolManager.addPacketListener(adapter);
+        listeners.add(adapter);
+    }
+
+
+    private void registerServerPositionListener() {
+        PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.POSITION) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getDoubles().size() < 3) {
+                    return;
+                }
+                PlayerData data = plugin.getPlayerData(event.getPlayer());
+                data.beginTeleportSync(packet.getDoubles().read(0), packet.getDoubles().read(1), packet.getDoubles().read(2));
             }
         };
         protocolManager.addPacketListener(adapter);

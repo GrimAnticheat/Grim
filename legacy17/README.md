@@ -18,6 +18,9 @@
 - Transaction RTT 同步（主动发 `PacketPlayOutTransaction`，监听 `PacketPlayInTransaction` 精确计算往返时延）
 - 影子模拟器（Shadow Engine）：`ExpectedPos = LastPos + Motion * Friction`，并将偏差融合进 Prediction 判定
 - Prediction 静止门控：位移趋近于 0 时跳过物理模拟，降低每 Tick 计算量
+- 启发式滑动窗口评分：异常时累加偏差，正常时缓慢衰减，降低瞬时网络抖动误报
+- 自适应延迟门控：RTT 抖动或低 TPS 时自动放宽 Reach/Speed 判定阈值
+- Teleport Sync 冻结：收到服务端 POSITION 后冻结移动模拟，直到客户端回传并确认交易包
 - Combat 空间判定：UseEntity + AABB RayTrace + 400ms Backtrack 历史盒子
 - 每玩家状态缓存（位移、旋转变化、空中/落地 tick、CPS 窗口、移动频率窗口、速度响应窗口）
 - 每检测独立 `buffer` 与 `VL`，减少瞬时误报
@@ -25,7 +28,7 @@
 - 加入 join/teleport/velocity 保护窗口，减少回弹与受击后误报
 - 支持检测级自动处罚命令（`punish-vl` + `punish-commands`）
 - `/glac profile <player>`
-- `/glac debug <player>` 切换攻击调试输出（控制台输出 `Ray-Distance` 与 `Box-Time-Offset`）
+- `/glac debug <player>` 切换调试证据输出（如 Reach 偏差、RTT、Buffer、Tick 等结构化信息）
 
 ## 构建
 

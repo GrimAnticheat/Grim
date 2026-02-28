@@ -52,13 +52,22 @@ public final class SpeedCheck extends Check {
             max += (speed.getAmplifier() + 1) * 0.055D;
         }
 
+        if (isLagging(data)) {
+            max *= plugin.getConfig().getDouble("adaptive-lag.speed-tolerance-multiplier", 1.15D);
+        }
+
         if (horizontal > max) {
-            double buffer = increaseBuffer(data, horizontal - max);
+            double deviation = horizontal - max;
+            double weight = plugin.getConfig().getDouble("checks.Speed.window-weight", 1.0D);
+            double buffer = slideAndAddScore(data, deviation, weight);
             if (buffer > plugin.getConfig().getDouble("checks.Speed.buffer", 0.24D)) {
-                flag(player, data, horizontal - max, "h=" + format(horizontal) + " max=" + format(max));
+                flag(player, data, deviation, "h=" + format(horizontal) + " max=" + format(max));
             }
-        } else if (player.isOnGround() && from.getY() == to.getY()) {
-            data.setLastSafeLocation(to.clone());
+        } else {
+            coolDownScore(data);
+            if (player.isOnGround() && from.getY() == to.getY()) {
+                data.setLastSafeLocation(to.clone());
+            }
         }
     }
 

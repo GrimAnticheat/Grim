@@ -58,12 +58,40 @@ public abstract class Check {
         return data.addBuffer(name, amount);
     }
 
+
+    protected double slideAndAddScore(PlayerData data, double deviation, double weight) {
+        double decay = plugin.getConfig().getDouble("heuristics.window-decay", 0.95D);
+        data.scaleBuffer(name, decay);
+        return increaseBuffer(data, Math.max(0.0D, deviation) * weight);
+    }
+
+    protected void coolDownScore(PlayerData data) {
+        double decay = plugin.getConfig().getDouble("heuristics.window-decay", 0.95D);
+        data.scaleBuffer(name, decay);
+    }
+
+    protected boolean isLagging(PlayerData data) {
+        double jitterMs = data.getTransactionRttJitterNanos() / 1000000.0D;
+        double jitterThreshold = plugin.getConfig().getDouble("adaptive-lag.jitter-threshold-ms", 50.0D);
+        double tps = plugin.checks().getCurrentTps();
+        double minTps = plugin.getConfig().getDouble("adaptive-lag.min-tps", 18.0D);
+        return jitterMs >= jitterThreshold || tps < minTps;
+    }
+
     protected void flag(Player player, PlayerData data, double amount, String detail) {
         if (!isEnabled() || isExempt(player, data)) {
             return;
         }
 
         double vl = data.addViolation(name, amount);
+        if (data.isDebugEnabled()) {
+            String evidence = "[" + name + "] P:" + String.format(Locale.ROOT, "%.2f", amount)
+                + ", RTT:" + String.format(Locale.ROOT, "%.0fms", data.getLastTransactionRttNanos() / 1000000.0D)
+                + ", Tick:" + data.getMoveWindow()
+                + ", Buffer:" + String.format(Locale.ROOT, "%.2f", data.getBuffer(name))
+                + ", Detail:" + detail;
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " " + evidence);
+        }
         plugin.alerts().alert(player, name, vl, detail);
 
         if (vl >= getMaxViolation() && plugin.getConfig().getBoolean("checks." + name + ".setback", true) && data.getLastSafeLocation() != null) {

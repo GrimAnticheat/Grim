@@ -33,12 +33,21 @@ public final class FlyCheck extends Check {
             return;
         }
 
-        if (data.getAirTicks() > plugin.getConfig().getInt("checks.Fly.air-ticks-threshold", 10)
-            && Math.abs(data.getLastDeltaY()) < plugin.getConfig().getDouble("checks.Fly.max-dy", 0.02D)) {
-            double buffer = increaseBuffer(data, 1.0D);
+        boolean suspiciousHover = data.getAirTicks() > plugin.getConfig().getInt("checks.Fly.air-ticks-threshold", 10)
+            && Math.abs(data.getLastDeltaY()) < plugin.getConfig().getDouble("checks.Fly.max-dy", 0.02D);
+        boolean parabolaBroken = data.isParabolaAnomalous(
+            plugin.getConfig().getDouble("checks.Fly.parabola-error-threshold", 0.03D),
+            plugin.getConfig().getInt("checks.Fly.parabola-min-samples", 6)
+        ) && data.getShadowDeviation() > plugin.getConfig().getDouble("checks.Fly.shadow-min-deviation", 0.12D);
+
+        if (suspiciousHover || parabolaBroken) {
+            double deviation = suspiciousHover ? 1.0D : 0.8D;
+            double buffer = slideAndAddScore(data, deviation, plugin.getConfig().getDouble("checks.Fly.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Fly.buffer", 2.0D)) {
-                flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " dy=" + String.format(Locale.ROOT, "%.4f", data.getLastDeltaY()));
+                flag(player, data, deviation, "airTicks=" + data.getAirTicks() + " dy=" + String.format(Locale.ROOT, "%.4f", data.getLastDeltaY()));
             }
+        } else {
+            coolDownScore(data);
         }
     }
 }
