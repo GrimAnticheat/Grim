@@ -109,7 +109,7 @@ public final class CheckManager implements Listener {
 
         Player player = event.getPlayer();
         PlayerData data = plugin.getPlayerData(player);
-        data.handleMove(event.getFrom(), to, player.isOnGround());
+        data.handleMove(player, event.getFrom(), to, player.isOnGround());
 
         for (SpeedCheck check : speedChecks) {
             check.onMove(event, data);
@@ -156,6 +156,10 @@ public final class CheckManager implements Listener {
 
         final Player target = (Player) targetEntity;
         final PlayerData attackerData = plugin.getPlayerData(attacker);
+        PlayerData targetData = plugin.getPlayerData(target);
+        double[] targetBox = plugin.resolveEntityBox(target);
+        Location targetLoc = target.getLocation();
+        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1]);
         final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
         final ReachCheck.AttackEvaluation reachEval;
         if (reachChecks.isEmpty()) {

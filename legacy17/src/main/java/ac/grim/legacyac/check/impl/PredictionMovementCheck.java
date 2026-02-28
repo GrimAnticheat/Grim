@@ -48,6 +48,12 @@ public final class PredictionMovementCheck extends Check {
         double horizontal = data.getLastDeltaXZ();
         double deltaY = data.getLastDeltaY();
 
+        double minMovingHorizontal = plugin.getConfig().getDouble("prediction.min-moving-horizontal", 0.005D);
+        double minMovingVertical = plugin.getConfig().getDouble("prediction.min-moving-vertical", 0.005D);
+        if (horizontal < minMovingHorizontal && Math.abs(deltaY) < minMovingVertical) {
+            return;
+        }
+
         boolean badHorizontal = horizontal > result.getMaxHorizontal();
         boolean badVertical = deltaY < result.getMinVertical() || deltaY > result.getMaxVertical();
 

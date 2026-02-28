@@ -15,6 +15,8 @@ netty:
 prediction:
   max-packet-age-nanos: 120000000
   shadow-deviation-threshold: 0.15
+  min-moving-horizontal: 0.005
+  min-moving-vertical: 0.005
 
 transaction:
   enabled: true

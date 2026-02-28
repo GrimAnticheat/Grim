@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public final class PlayerData {
@@ -74,7 +75,7 @@ public final class PlayerData {
         return uuid;
     }
 
-    public void handleMove(Location from, Location to, boolean onGround) {
+    public void handleMove(Player player, Location from, Location to, boolean onGround) {
         double dx = to.getX() - from.getX();
         double dz = to.getZ() - from.getZ();
         lastDeltaXZ = Math.sqrt(dx * dx + dz * dz);
@@ -104,7 +105,9 @@ public final class PlayerData {
         }
         moveWindow++;
 
-        recordCurrentHitbox(to.getX(), to.getY(), to.getZ());
+        double width = 0.6D;
+        double height = player.isSneaking() ? 1.65D : 1.8D;
+        recordCurrentHitbox(to.getX(), to.getY(), to.getZ(), width, height);
 
         if (velocityTicksRemaining > 0) {
             if (lastDeltaXZ > observedVelocityXZ) {
@@ -456,11 +459,14 @@ public final class PlayerData {
     }
 
     public void recordCurrentHitbox(double x, double y, double z) {
+        recordCurrentHitbox(x, y, z, 0.6D, 1.8D);
+    }
+
+    public void recordCurrentHitbox(double x, double y, double z, double width, double height) {
         double expand = 0.1D;
-        double width = 0.3D + expand;
-        double height = 1.8D;
+        double halfWidth = (width * 0.5D) + expand;
         long now = System.currentTimeMillis();
-        hitboxHistory.addFirst(new HitboxFrame(now, x - width, y, z - width, x + width, y + height, z + width));
+        hitboxHistory.addFirst(new HitboxFrame(now, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
 
         while (!hitboxHistory.isEmpty() && now - hitboxHistory.getLast().getTimestampMillis() > 400L) {
             hitboxHistory.removeLast();

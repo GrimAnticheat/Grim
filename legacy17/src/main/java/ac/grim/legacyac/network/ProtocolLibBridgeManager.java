@@ -2,6 +2,7 @@ package ac.grim.legacyac.network;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.combat.EntityBoxCache;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -10,13 +11,16 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import java.util.ArrayList;
 import java.util.List;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 public final class ProtocolLibBridgeManager {
     private final LegacyAntiCheatPlugin plugin;
     private final List<PacketListener> listeners = new ArrayList<PacketListener>();
+    private final EntityBoxCache entityBoxCache = new EntityBoxCache();
     private ProtocolManager protocolManager;
 
     public ProtocolLibBridgeManager(LegacyAntiCheatPlugin plugin) {
@@ -42,6 +46,11 @@ public final class ProtocolLibBridgeManager {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
             return false;
         }
+    }
+
+
+    public double[] resolveEntityBox(Entity entity) {
+        return entityBoxCache.getSize(entity);
     }
 
     public void stop() {
@@ -98,10 +107,22 @@ public final class ProtocolLibBridgeManager {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
+                if (packet.getEntityUseActions().size() > 0) {
+                    EnumWrappers.EntityUseAction action = packet.getEntityUseActions().read(0);
+                    if (action != EnumWrappers.EntityUseAction.ATTACK) {
+                        return;
+                    }
+                }
                 if (packet.getIntegers().size() <= 0) {
                     return;
                 }
                 int entityId = packet.getIntegers().read(0);
+                for (Entity entity : event.getPlayer().getWorld().getEntities()) {
+                    if (entity.getEntityId() == entityId) {
+                        entityBoxCache.getSize(entity);
+                        break;
+                    }
+                }
                 plugin.checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
             }
         };

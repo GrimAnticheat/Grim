@@ -4,12 +4,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Zombie;
 
 public final class EntityBoxCache {
     private final Map<EntityType, double[]> cache = new ConcurrentHashMap<EntityType, double[]>();
 
     public double[] getSize(Entity entity) {
         EntityType type = entity.getType();
+
+        if (type == EntityType.ZOMBIE && entity instanceof Zombie) {
+            Zombie zombie = (Zombie) entity;
+            if (zombie.isBaby()) {
+                return new double[] { 0.3D, 0.975D };
+            }
+        }
+
         double[] found = cache.get(type);
         if (found != null) {
             return found;
@@ -41,4 +50,5 @@ public final class EntityBoxCache {
         cache.put(type, size);
         return size;
     }
+
 }

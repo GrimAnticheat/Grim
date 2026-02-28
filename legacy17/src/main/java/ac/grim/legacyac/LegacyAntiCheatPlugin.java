@@ -10,6 +10,7 @@ import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -87,4 +88,12 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     public CheckManager checks() {
         return checkManager;
     }
+
+    public double[] resolveEntityBox(Entity entity) {
+        if (protocolLibBridgeManager != null) {
+            return protocolLibBridgeManager.resolveEntityBox(entity);
+        }
+        return new double[] {0.6D, 1.8D};
+    }
 }
+
