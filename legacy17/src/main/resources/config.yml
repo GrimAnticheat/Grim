@@ -1,0 +1,163 @@
+# GrimLegacyAC default config
+# 1.7.10 focused baseline checks inspired by Grim architecture ideas.
+violation-decay-per-second: 0.08
+
+protocollib:
+  enabled: true
+
+netty:
+  inject-on-join: true
+
+prediction:
+  max-packet-age-nanos: 120000000
+  shadow-deviation-threshold: 0.15
+
+transaction:
+  enabled: true
+  interval-ticks: 20
+  max-ack-age-ms: 4000
+
+# Grace windows for avoiding false positives after normal server-side corrections.
+exempt:
+  join-grace-ms: 2500
+  teleport-grace-ms: 1000
+  velocity-grace-ms: 900
+
+checks:
+  Speed:
+    enabled: true
+    max-vl: 12.0
+    setback: true
+    buffer: 0.24
+    punish-vl: 30
+    punish-commands:
+      - "kick %player% Speed cheat (%check% VL:%vl%)"
+  Fly:
+    enabled: true
+    max-vl: 10.0
+    setback: true
+    air-ticks-threshold: 10
+    max-dy: 0.02
+    buffer: 2.0
+    punish-vl: 26
+    punish-commands:
+      - "kick %player% Fly cheat (%check% VL:%vl%)"
+  Phase:
+    enabled: true
+    max-vl: 6.0
+    setback: true
+    buffer: 1.5
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% Phase cheat (%check% VL:%vl%)"
+  Reach:
+    enabled: true
+    max-vl: 8.0
+    max-distance: 3.35
+    setback: false
+    buffer: 0.2
+    punish-vl: 22
+    punish-commands:
+      - "kick %player% Reach cheat (%check% VL:%vl%)"
+  AutoClicker:
+    enabled: true
+    max-vl: 10.0
+    max-cps: 17
+    setback: false
+    buffer: 1.5
+    punish-vl: 25
+    punish-commands:
+      - "kick %player% AutoClicker (%check% VL:%vl%)"
+  NoFall:
+    enabled: true
+    max-vl: 6.0
+    setback: false
+    min-air-ticks: 6
+    buffer: 1.5
+    punish-vl: 16
+    punish-commands:
+      - "kick %player% NoFall cheat (%check% VL:%vl%)"
+  KillAura:
+    enabled: true
+    max-vl: 7.0
+    setback: false
+    snap-threshold: 75.0
+    buffer: 2.0
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% KillAura cheat (%check% VL:%vl%)"
+  Timer:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-moves-per-second: 26
+    buffer: 2.0
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% Timer cheat (%check% VL:%vl%)"
+  Velocity:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    window-ticks: 8
+    min-expected-xz: 0.12
+    min-response-ratio-xz: 0.35
+    min-response-ratio-y: 0.20
+    buffer: 1.5
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% Velocity cheat (%check% VL:%vl%)"
+  Jesus:
+    enabled: true
+    max-vl: 8.0
+    setback: true
+    max-water-speed: 0.18
+    buffer: 0.25
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% Jesus cheat (%check% VL:%vl%)"
+  FastPlace:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-place-per-second: 14
+    buffer: 1.5
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% FastPlace cheat (%check% VL:%vl%)"
+  FastBreak:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-break-per-second: 12
+    buffer: 1.5
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% FastBreak cheat (%check% VL:%vl%)"
+  FastUse:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-consume-per-second: 2
+    buffer: 1.0
+    punish-vl: 14
+    punish-commands:
+      - "kick %player% FastUse cheat (%check% VL:%vl%)"
+  InventoryMove:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-move: 0.12
+    buffer: 0.2
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% InventoryMove cheat (%check% VL:%vl%)"
+
+  Prediction:
+    enabled: true
+    max-vl: 10.0
+    setback: true
+    buffer: 0.3
+    punish-vl: 25
+    punish-commands:
+      - "kick %player% Prediction cheat (%check% VL:%vl%)"
