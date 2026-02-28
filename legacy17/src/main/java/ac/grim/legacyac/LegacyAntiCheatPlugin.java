@@ -3,6 +3,7 @@ package ac.grim.legacyac;
 import ac.grim.legacyac.check.CheckManager;
 import ac.grim.legacyac.command.LegacyCommand;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.NetworkTapManager;
 import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<UUID, PlayerData>();
     private AlertManager alertManager;
     private CheckManager checkManager;
+    private NetworkTapManager networkTapManager;
     private int tickTaskId = -1;
 
     @Override
@@ -22,6 +24,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         alertManager = new AlertManager(this);
         checkManager = new CheckManager(this);
         getServer().getPluginManager().registerEvents(checkManager, this);
+        networkTapManager = new NetworkTapManager(this);
+        getServer().getPluginManager().registerEvents(networkTapManager, this);
         getCommand("glac").setExecutor(new LegacyCommand(this));
 
         tickTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -38,6 +42,9 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     public void onDisable() {
         if (tickTaskId != -1) {
             getServer().getScheduler().cancelTask(tickTaskId);
+        }
+        if (networkTapManager != null) {
+            networkTapManager.shutdown();
         }
         playerDataMap.clear();
     }

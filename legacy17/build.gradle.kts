@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.7.10-R0.1-SNAPSHOT")
+    compileOnly("io.netty:netty-all:4.0.23.Final")
 }
 
 java {

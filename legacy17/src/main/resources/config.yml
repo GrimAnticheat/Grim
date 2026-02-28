@@ -2,6 +2,12 @@
 # 1.7.10 focused baseline checks inspired by Grim architecture ideas.
 violation-decay-per-second: 0.08
 
+netty:
+  inject-on-join: true
+
+prediction:
+  max-packet-age-nanos: 120000000
+
 # Grace windows for avoiding false positives after normal server-side corrections.
 exempt:
   join-grace-ms: 2500

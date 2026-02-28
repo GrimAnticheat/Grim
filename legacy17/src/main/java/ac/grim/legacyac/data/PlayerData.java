@@ -41,6 +41,9 @@ public final class PlayerData {
     private double expectedVelocityY;
     private double observedVelocityXZ;
     private double observedVelocityY;
+    private long lastRawMovementPacketAt;
+    private long lastServerPositionSyncAt;
+    private int rawMovementPacketCounter;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -314,4 +317,29 @@ public final class PlayerData {
     public float getLastPitchDelta() {
         return lastPitchDelta;
     }
+
+    public long getLastRawMovementPacketAt() {
+        return lastRawMovementPacketAt;
+    }
+
+    public void setLastRawMovementPacketAt(long lastRawMovementPacketAt) {
+        this.lastRawMovementPacketAt = lastRawMovementPacketAt;
+    }
+
+    public long getLastServerPositionSyncAt() {
+        return lastServerPositionSyncAt;
+    }
+
+    public void setLastServerPositionSyncAt(long lastServerPositionSyncAt) {
+        this.lastServerPositionSyncAt = lastServerPositionSyncAt;
+    }
+
+    public int getRawMovementPacketCounter() {
+        return rawMovementPacketCounter;
+    }
+
+    public void incrementRawMovementPacketCounter() {
+        this.rawMovementPacketCounter++;
+    }
+
 }

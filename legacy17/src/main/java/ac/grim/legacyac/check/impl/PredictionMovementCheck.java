@@ -28,6 +28,14 @@ public final class PredictionMovementCheck extends Check {
             return;
         }
 
+
+        long now = System.nanoTime();
+        long packetAgeNanos = now - data.getLastRawMovementPacketAt();
+        long maxPacketAgeNanos = plugin.getConfig().getLong("prediction.max-packet-age-nanos", 120000000L);
+        if (data.getLastRawMovementPacketAt() != 0L && packetAgeNanos > maxPacketAgeNanos) {
+            return;
+        }
+
         Material feet = event.getTo().getBlock().getType();
         Material below = event.getTo().clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
         PredictionResult result = LegacyPredictionEngine.predict(player, feet, below, data.getLastDeltaY());
