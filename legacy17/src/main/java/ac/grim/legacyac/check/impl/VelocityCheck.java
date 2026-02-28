@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
+import java.util.Locale;
 
 public final class VelocityCheck extends Check {
     public VelocityCheck(LegacyAntiCheatPlugin plugin) {
@@ -61,8 +62,8 @@ public final class VelocityCheck extends Check {
             double buffer = increaseBuffer(data, 1.0D);
             if (buffer > plugin.getConfig().getDouble("checks.Velocity.buffer", 1.5D)) {
                 flag(player, data, 1.0D,
-                    "expXZ=" + String.format("%.3f", expectedXZ) + " obsXZ=" + String.format("%.3f", observedXZ)
-                        + " expY=" + String.format("%.3f", expectedY) + " obsY=" + String.format("%.3f", observedY));
+                    "expXZ=" + String.format(Locale.ROOT, "%.3f", expectedXZ) + " obsXZ=" + String.format(Locale.ROOT, "%.3f", observedXZ)
+                        + " expY=" + String.format(Locale.ROOT, "%.3f", expectedY) + " obsY=" + String.format(Locale.ROOT, "%.3f", observedY));
             }
         }
 

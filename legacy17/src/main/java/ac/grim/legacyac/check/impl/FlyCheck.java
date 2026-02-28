@@ -6,6 +6,7 @@ import ac.grim.legacyac.data.PlayerData;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import java.util.Locale;
 
 public final class FlyCheck extends Check {
     public FlyCheck(LegacyAntiCheatPlugin plugin) {
@@ -36,7 +37,7 @@ public final class FlyCheck extends Check {
             && Math.abs(data.getLastDeltaY()) < plugin.getConfig().getDouble("checks.Fly.max-dy", 0.02D)) {
             double buffer = increaseBuffer(data, 1.0D);
             if (buffer > plugin.getConfig().getDouble("checks.Fly.buffer", 2.0D)) {
-                flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " dy=" + String.format("%.4f", data.getLastDeltaY()));
+                flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " dy=" + String.format(Locale.ROOT, "%.4f", data.getLastDeltaY()));
             }
         }
     }

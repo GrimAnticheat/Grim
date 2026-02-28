@@ -5,6 +5,7 @@ import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import java.util.Locale;
 
 public final class NoFallCheck extends Check {
     public NoFallCheck(LegacyAntiCheatPlugin plugin) {
@@ -26,7 +27,7 @@ public final class NoFallCheck extends Check {
         if (data.getAirTicks() <= plugin.getConfig().getInt("checks.NoFall.min-air-ticks", 6)) {
             double buffer = increaseBuffer(data, 1.0D);
             if (buffer > plugin.getConfig().getDouble("checks.NoFall.buffer", 1.5D)) {
-                flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " damage=" + String.format("%.2f", event.getDamage()));
+                flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " damage=" + String.format(Locale.ROOT, "%.2f", event.getDamage()));
             }
         }
     }

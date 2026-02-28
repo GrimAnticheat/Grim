@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import java.util.Locale;
 
 public final class LegacyCommand implements CommandExecutor {
     private static final String[] CHECKS = new String[] {"Speed", "Fly", "Phase", "Reach", "AutoClicker", "NoFall", "KillAura", "Timer", "Velocity", "Jesus", "FastPlace", "FastBreak", "FastUse", "InventoryMove", "Prediction"};
@@ -42,6 +43,24 @@ public final class LegacyCommand implements CommandExecutor {
             sender.sendMessage((enabled ? ChatColor.GREEN : ChatColor.YELLOW) + "Alerts " + (enabled ? "enabled" : "disabled") + ".");
             return true;
         }
+
+        if ("debug".equalsIgnoreCase(args[0])) {
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Usage: /glac debug <player>");
+                return true;
+            }
+            Player target = Bukkit.getPlayerExact(args[1]);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Player not found.");
+                return true;
+            }
+            PlayerData data = plugin.getPlayerData(target);
+            data.setDebugEnabled(!data.isDebugEnabled());
+            sender.sendMessage((data.isDebugEnabled() ? ChatColor.GREEN : ChatColor.YELLOW)
+                + "Debug for " + target.getName() + " " + (data.isDebugEnabled() ? "enabled" : "disabled") + ".");
+            return true;
+        }
+
         if ("profile".equalsIgnoreCase(args[0])) {
             if (args.length < 2) {
                 sender.sendMessage(ChatColor.RED + "Usage: /glac profile <player>");
@@ -56,16 +75,16 @@ public final class LegacyCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "[GLAC] " + ChatColor.GRAY + target.getName() + " VL profile");
             for (String check : CHECKS) {
                 sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.YELLOW + check + ChatColor.GRAY + ": "
-                    + String.format("%.2f", data.getViolation(check)));
+                    + String.format(Locale.ROOT, "%.2f", data.getViolation(check)));
             }
             sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + "RTT" + ChatColor.GRAY + ": "
-                + String.format("%.2fms", data.getLastTransactionRttNanos() / 1000000.0D));
+                + String.format(Locale.ROOT, "%.2fms", data.getLastTransactionRttNanos() / 1000000.0D));
             sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + "lastTransTime" + ChatColor.GRAY + ": "
                 + data.getLastTransTime());
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /glac <alerts|reload|info|profile>");
+        sender.sendMessage(ChatColor.RED + "Usage: /glac <alerts|reload|info|profile|debug>");
         return true;
     }
 }

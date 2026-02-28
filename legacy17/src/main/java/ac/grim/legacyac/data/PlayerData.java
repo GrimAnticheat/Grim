@@ -1,8 +1,11 @@
 package ac.grim.legacyac.data;
 
+import ac.grim.legacyac.combat.HitboxFrame;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
@@ -30,6 +33,7 @@ public final class PlayerData {
     private int useWindow;
     private long useWindowStart;
     private boolean inventoryOpen;
+    private boolean debugEnabled;
     private Location lastSafeLocation;
     private double lastDeltaXZ;
     private double lastDeltaY;
@@ -59,6 +63,7 @@ public final class PlayerData {
     private double shadowMotionY;
     private double shadowMotionZ;
     private double shadowDeviation;
+    private final LinkedList<HitboxFrame> hitboxHistory = new LinkedList<HitboxFrame>();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -98,6 +103,8 @@ public final class PlayerData {
             moveWindow = 0;
         }
         moveWindow++;
+
+        recordCurrentHitbox(to.getX(), to.getY(), to.getZ());
 
         if (velocityTicksRemaining > 0) {
             if (lastDeltaXZ > observedVelocityXZ) {
@@ -305,6 +312,14 @@ public final class PlayerData {
         return inventoryOpen;
     }
 
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public void setDebugEnabled(boolean debugEnabled) {
+        this.debugEnabled = debugEnabled;
+    }
+
     public void setInventoryOpen(boolean inventoryOpen) {
         this.inventoryOpen = inventoryOpen;
     }
@@ -438,6 +453,29 @@ public final class PlayerData {
 
     public double getShadowDeviation() {
         return shadowDeviation;
+    }
+
+    public void recordCurrentHitbox(double x, double y, double z) {
+        double expand = 0.1D;
+        double width = 0.3D + expand;
+        double height = 1.8D;
+        long now = System.currentTimeMillis();
+        hitboxHistory.addFirst(new HitboxFrame(now, x - width, y, z - width, x + width, y + height, z + width));
+
+        while (!hitboxHistory.isEmpty() && now - hitboxHistory.getLast().getTimestampMillis() > 400L) {
+            hitboxHistory.removeLast();
+        }
+    }
+
+    public List<HitboxFrame> getHitboxHistorySnapshot(long maxAgeMillis) {
+        long now = System.currentTimeMillis();
+        LinkedList<HitboxFrame> copy = new LinkedList<HitboxFrame>();
+        for (HitboxFrame frame : hitboxHistory) {
+            if (now - frame.getTimestampMillis() <= maxAgeMillis) {
+                copy.add(frame);
+            }
+        }
+        return copy;
     }
 
 }

@@ -20,6 +20,7 @@ import ac.grim.legacyac.data.PlayerData;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,6 +37,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
+import java.util.Locale;
 
 public final class CheckManager implements Listener {
     private final LegacyAntiCheatPlugin plugin;
@@ -137,6 +139,45 @@ public final class CheckManager implements Listener {
         if (player.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
             data.setLastSafeLocation(to.clone());
         }
+    }
+
+
+    public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId) {
+        Entity targetEntity = null;
+        for (Entity entity : attacker.getWorld().getEntities()) {
+            if (entity.getEntityId() == targetEntityId) {
+                targetEntity = entity;
+                break;
+            }
+        }
+        if (!(targetEntity instanceof Player)) {
+            return;
+        }
+
+        final Player target = (Player) targetEntity;
+        final PlayerData attackerData = plugin.getPlayerData(attacker);
+        final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
+        final ReachCheck.AttackEvaluation reachEval;
+        if (reachChecks.isEmpty()) {
+            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L);
+        } else {
+            reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow);
+        }
+
+        if (attackerData.isDebugEnabled()) {
+            plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " -> " + target.getName()
+                + " Ray-Distance: " + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
+                + ", Box-Time-Offset: " + reachEval.getBoxTimeOffsetMs() + "ms");
+        }
+
+        plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+            @Override
+            public void run() {
+                for (KillAuraCheck check : killAuraChecks) {
+                    check.onUseEntityAttack(attacker, target, attackerData, reachEval.isLegal());
+                }
+            }
+        });
     }
 
     @EventHandler(ignoreCancelled = true)

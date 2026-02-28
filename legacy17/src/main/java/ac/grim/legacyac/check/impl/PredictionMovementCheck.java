@@ -8,6 +8,7 @@ import ac.grim.legacyac.prediction.PredictionResult;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import java.util.Locale;
 
 public final class PredictionMovementCheck extends Check {
     public PredictionMovementCheck(LegacyAntiCheatPlugin plugin) {
@@ -61,9 +62,9 @@ public final class PredictionMovementCheck extends Check {
 
             double buffer = increaseBuffer(data, score);
             if (buffer > plugin.getConfig().getDouble("checks.Prediction.buffer", 0.3D)) {
-                flag(player, data, score, "h=" + String.format("%.3f", horizontal) + "/" + String.format("%.3f", result.getMaxHorizontal())
-                    + " y=" + String.format("%.3f", deltaY) + " range=" + String.format("%.3f", result.getMinVertical()) + ".."
-                    + String.format("%.3f", result.getMaxVertical()));
+                flag(player, data, score, "h=" + String.format(Locale.ROOT, "%.3f", horizontal) + "/" + String.format(Locale.ROOT, "%.3f", result.getMaxHorizontal())
+                    + " y=" + String.format(Locale.ROOT, "%.3f", deltaY) + " range=" + String.format(Locale.ROOT, "%.3f", result.getMinVertical()) + ".."
+                    + String.format(Locale.ROOT, "%.3f", result.getMaxVertical()));
             }
         }
     }

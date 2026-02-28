@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import java.util.Locale;
 
 public final class JesusCheck extends Check {
     public JesusCheck(LegacyAntiCheatPlugin plugin) {
@@ -36,7 +37,7 @@ public final class JesusCheck extends Check {
         if (data.getLastDeltaXZ() > maxWaterSpeed && Math.abs(data.getLastDeltaY()) < 0.02D) {
             double buffer = increaseBuffer(data, data.getLastDeltaXZ() - maxWaterSpeed);
             if (buffer > plugin.getConfig().getDouble("checks.Jesus.buffer", 0.25D)) {
-                flag(player, data, 1.0D, "waterXZ=" + String.format("%.3f", data.getLastDeltaXZ()));
+                flag(player, data, 1.0D, "waterXZ=" + String.format(Locale.ROOT, "%.3f", data.getLastDeltaXZ()));
             }
         }
     }

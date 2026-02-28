@@ -9,7 +9,7 @@ softdepend:
 commands:
   glac:
     description: GrimLegacyAC main command
-    usage: /glac <alerts|reload|info|profile>
+    usage: /glac <alerts|reload|info|profile|debug>
     permission: grimlegacy.command
 permissions:
   grimlegacy.alerts:

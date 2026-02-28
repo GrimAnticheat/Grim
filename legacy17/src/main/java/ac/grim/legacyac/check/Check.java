@@ -4,6 +4,7 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
 import java.util.List;
 import org.bukkit.entity.Player;
+import java.util.Locale;
 
 public abstract class Check {
     protected final LegacyAntiCheatPlugin plugin;
@@ -82,7 +83,7 @@ public abstract class Check {
         for (String command : commands) {
             String parsed = command.replace("%player%", player.getName())
                 .replace("%check%", name)
-                .replace("%vl%", String.format("%.2f", vl));
+                .replace("%vl%", String.format(Locale.ROOT, "%.2f", vl));
             plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), parsed);
         }
         data.markPunishExecuted(name);

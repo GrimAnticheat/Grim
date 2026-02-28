@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import java.util.Locale;
 
 public final class SpeedCheck extends Check {
     public SpeedCheck(LegacyAntiCheatPlugin plugin) {
@@ -71,6 +72,6 @@ public final class SpeedCheck extends Check {
     }
 
     private String format(double value) {
-        return String.format("%.3f", value);
+        return String.format(Locale.ROOT, "%.3f", value);
     }
 }

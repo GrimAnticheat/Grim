@@ -36,6 +36,7 @@ public final class ProtocolLibBridgeManager {
             protocolManager = ProtocolLibrary.getProtocolManager();
             registerMovementListener();
             registerAckListener();
+            registerUseEntityListener();
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
@@ -61,7 +62,7 @@ public final class ProtocolLibBridgeManager {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
-                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
+                PlayerData data = plugin.getPlayerData(player);
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
@@ -92,13 +93,29 @@ public final class ProtocolLibBridgeManager {
         listeners.add(adapter);
     }
 
+    private void registerUseEntityListener() {
+        PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.USE_ENTITY) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getIntegers().size() <= 0) {
+                    return;
+                }
+                int entityId = packet.getIntegers().read(0);
+                plugin.checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
+            }
+        };
+        protocolManager.addPacketListener(adapter);
+        listeners.add(adapter);
+    }
+
     private void registerAckListener() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
             PacketType.Play.Client.TRANSACTION,
             PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
+                PlayerData data = plugin.getPlayerData(event.getPlayer());
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 

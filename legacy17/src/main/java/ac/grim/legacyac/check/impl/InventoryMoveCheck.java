@@ -5,6 +5,7 @@ import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import java.util.Locale;
 
 public final class InventoryMoveCheck extends Check {
     public InventoryMoveCheck(LegacyAntiCheatPlugin plugin) {
@@ -25,7 +26,7 @@ public final class InventoryMoveCheck extends Check {
         if (data.getLastDeltaXZ() > maxMove) {
             double buffer = increaseBuffer(data, data.getLastDeltaXZ() - maxMove);
             if (buffer > plugin.getConfig().getDouble("checks.InventoryMove.buffer", 0.2D)) {
-                flag(player, data, 0.8D, "xz=" + String.format("%.3f", data.getLastDeltaXZ()));
+                flag(player, data, 0.8D, "xz=" + String.format(Locale.ROOT, "%.3f", data.getLastDeltaXZ()));
             }
         }
     }

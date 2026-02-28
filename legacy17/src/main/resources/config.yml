@@ -2,6 +2,10 @@
 # 1.7.10 focused baseline checks inspired by Grim architecture ideas.
 violation-decay-per-second: 0.08
 
+alerts:
+  console: true
+  require-subscription: false
+
 protocollib:
   enabled: true
 
@@ -16,6 +20,9 @@ transaction:
   enabled: true
   interval-ticks: 20
   max-ack-age-ms: 4000
+
+combat:
+  backtrack-window-ms: 400
 
 # Grace windows for avoiding false positives after normal server-side corrections.
 exempt:

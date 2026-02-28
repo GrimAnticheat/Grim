@@ -17,12 +17,14 @@
 - Netty pipeline 注入（作为 ProtocolLib 不可用时的回退方案）
 - Transaction RTT 同步（主动发 `PacketPlayOutTransaction`，监听 `PacketPlayInTransaction` 精确计算往返时延）
 - 影子模拟器（Shadow Engine）：`ExpectedPos = LastPos + Motion * Friction`，并将偏差融合进 Prediction 判定
+- Combat 空间判定：UseEntity + AABB RayTrace + 400ms Backtrack 历史盒子
 - 每玩家状态缓存（位移、旋转变化、空中/落地 tick、CPS 窗口、移动频率窗口、速度响应窗口）
 - 每检测独立 `buffer` 与 `VL`，减少瞬时误报
 - 全局 `violation-decay-per-second` 衰减机制（每秒任务）
 - 加入 join/teleport/velocity 保护窗口，减少回弹与受击后误报
 - 支持检测级自动处罚命令（`punish-vl` + `punish-commands`）
-- `/glac profile <player>` 快速查看各检测 VL
+- `/glac profile <player>`
+- `/glac debug <player>` 快速查看各检测 VL
 
 ## 构建
 
@@ -38,6 +40,7 @@
 - `/glac alerts`
 - `/glac reload`
 - `/glac profile <player>`
+- `/glac debug <player>`
 
 ## 权限
 
