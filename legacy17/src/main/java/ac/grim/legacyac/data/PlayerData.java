@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -44,6 +45,10 @@ public final class PlayerData {
     private long lastRawMovementPacketAt;
     private long lastServerPositionSyncAt;
     private int rawMovementPacketCounter;
+    private final Map<Short, Long> pendingTransactions = new ConcurrentHashMap<Short, Long>();
+    private short transactionActionCounter;
+    private long lastTransactionRttNanos;
+    private long lastTransTime;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -340,6 +345,34 @@ public final class PlayerData {
 
     public void incrementRawMovementPacketCounter() {
         this.rawMovementPacketCounter++;
+    }
+
+    public short nextTransactionActionId() {
+        transactionActionCounter++;
+        if (transactionActionCounter <= 0) {
+            transactionActionCounter = 1;
+        }
+        return transactionActionCounter;
+    }
+
+    public void markTransactionSent(short actionId, long sentAtNanos) {
+        pendingTransactions.put(Short.valueOf(actionId), Long.valueOf(sentAtNanos));
+    }
+
+    public void acknowledgeTransaction(short actionId, long recvAtNanos) {
+        Long sent = pendingTransactions.remove(Short.valueOf(actionId));
+        if (sent != null) {
+            lastTransactionRttNanos = recvAtNanos - sent.longValue();
+            lastTransTime = System.currentTimeMillis();
+        }
+    }
+
+    public long getLastTransactionRttNanos() {
+        return lastTransactionRttNanos;
+    }
+
+    public long getLastTransTime() {
+        return lastTransTime;
     }
 
 }

@@ -83,6 +83,14 @@ public final class PacketPipelineInjector {
         if (packetName.startsWith("PacketPlayInFlying") || packetName.equals("PacketPlayInPosition") || packetName.equals("PacketPlayInLook")) {
             data.setLastRawMovementPacketAt(System.nanoTime());
             data.incrementRawMovementPacketCounter();
+            return;
+        }
+
+        if (packetName.equals("PacketPlayInTransaction")) {
+            Short actionId = readTransactionActionId(packet);
+            if (actionId != null) {
+                data.acknowledgeTransaction(actionId.shortValue(), System.nanoTime());
+            }
         }
     }
 
@@ -91,6 +99,34 @@ public final class PacketPipelineInjector {
         if (packetName.equals("PacketPlayOutPosition")) {
             data.setLastServerPositionSyncAt(System.nanoTime());
         }
+    }
+
+
+    private Short readTransactionActionId(Object packet) {
+        try {
+            Field byName = findField(packet.getClass(), "b");
+            Object value = byName.get(packet);
+            if (value instanceof Short) {
+                return (Short) value;
+            }
+            if (value instanceof Integer) {
+                return Short.valueOf(((Integer) value).shortValue());
+            }
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            for (Field field : packet.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == short.class || type == Short.class) {
+                    return Short.valueOf(field.getShort(packet));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+
+        return null;
     }
 
     private Channel resolveChannel(Player player) throws Exception {

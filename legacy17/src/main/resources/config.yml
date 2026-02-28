@@ -8,6 +8,10 @@ netty:
 prediction:
   max-packet-age-nanos: 120000000
 
+transaction:
+  enabled: true
+  interval-ticks: 20
+
 # Grace windows for avoiding false positives after normal server-side corrections.
 exempt:
   join-grace-ms: 2500

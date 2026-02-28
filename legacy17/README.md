@@ -14,6 +14,7 @@
 ## 架构特性（相对上一版加强）
 
 - Netty pipeline 注入（玩家进服后注入 ChannelDuplexHandler，优先捕获原始移动包）
+- Transaction RTT 同步（主动发 `PacketPlayOutTransaction`，监听 `PacketPlayInTransaction` 精确计算往返时延）
 - 每玩家状态缓存（位移、旋转变化、空中/落地 tick、CPS 窗口、移动频率窗口、速度响应窗口）
 - 每检测独立 `buffer` 与 `VL`，减少瞬时误报
 - 全局 `violation-decay-per-second` 衰减机制（每秒任务）

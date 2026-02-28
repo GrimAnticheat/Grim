@@ -58,6 +58,10 @@ public final class LegacyCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.YELLOW + check + ChatColor.GRAY + ": "
                     + String.format("%.2f", data.getViolation(check)));
             }
+            sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + "RTT" + ChatColor.GRAY + ": "
+                + String.format("%.2fms", data.getLastTransactionRttNanos() / 1000000.0D));
+            sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + "lastTransTime" + ChatColor.GRAY + ": "
+                + data.getLastTransTime());
             return true;
         }
 

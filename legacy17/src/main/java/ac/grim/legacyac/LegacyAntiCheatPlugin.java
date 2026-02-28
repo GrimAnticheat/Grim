@@ -4,6 +4,7 @@ import ac.grim.legacyac.check.CheckManager;
 import ac.grim.legacyac.command.LegacyCommand;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.NetworkTapManager;
+import ac.grim.legacyac.network.TransactionSyncManager;
 import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private AlertManager alertManager;
     private CheckManager checkManager;
     private NetworkTapManager networkTapManager;
+    private TransactionSyncManager transactionSyncManager;
     private int tickTaskId = -1;
 
     @Override
@@ -27,6 +29,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         networkTapManager = new NetworkTapManager(this);
         getServer().getPluginManager().registerEvents(networkTapManager, this);
         getCommand("glac").setExecutor(new LegacyCommand(this));
+        transactionSyncManager = new TransactionSyncManager(this);
+        transactionSyncManager.start();
 
         tickTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
@@ -45,6 +49,9 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         }
         if (networkTapManager != null) {
             networkTapManager.shutdown();
+        }
+        if (transactionSyncManager != null) {
+            transactionSyncManager.stop();
         }
         playerDataMap.clear();
     }
