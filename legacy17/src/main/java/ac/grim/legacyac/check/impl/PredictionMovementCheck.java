@@ -3,12 +3,12 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.prediction.LegacyPredictionEngine;
 import ac.grim.legacyac.prediction.PredictionResult;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
 import java.util.Locale;
 
 public final class PredictionMovementCheck extends Check {
@@ -16,19 +16,15 @@ public final class PredictionMovementCheck extends Check {
         super(plugin, "Prediction");
     }
 
-    public void onMove(PlayerMoveEvent event, PlayerData data) {
+    public void onMovementFrame(Player player, MovementFrame frame, Location to, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Player player = event.getPlayer();
         if (isExempt(player, data) || player.isFlying() || player.getVehicle() != null) {
             return;
         }
 
-        if (event.getTo() == null) {
-            return;
-        }
 
         // Don't check during teleport synchronization
         if (data.isMovementUnconfirmed()) {
@@ -57,7 +53,6 @@ public final class PredictionMovementCheck extends Check {
         }
 
         // Get blocks at feet and below
-        Location to = event.getTo();
         Material feet = to.getBlock().getType();
         Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
 
@@ -67,7 +62,7 @@ public final class PredictionMovementCheck extends Check {
         PredictionResult result = LegacyPredictionEngine.predict(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                player.isOnGround());
+                data.wasOnGround());
 
         // Check horizontal: is it exceeding maximum predicted horizontal?
         boolean badHorizontal = horizontal > result.getMaxHorizontal();

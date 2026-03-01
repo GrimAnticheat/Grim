@@ -80,6 +80,15 @@ public final class PlayerData {
     private double pendingTeleportY;
     private double pendingTeleportZ;
     private int lastAttackTargetId;
+    private boolean movementFrameInitialized;
+    private double lastFrameX;
+    private double lastFrameY;
+    private double lastFrameZ;
+    private float lastFrameYaw;
+    private float lastFramePitch;
+    private long lastMovementFrameAtNanos;
+    private boolean previousOnGround;
+    private boolean currentOnGround;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -119,6 +128,9 @@ public final class PlayerData {
         lastYaw = to.getYaw();
         lastPitch = to.getPitch();
 
+        previousOnGround = currentOnGround;
+        currentOnGround = onGround;
+
         if (onGround) {
             groundTicks++;
             airTicks = 0;
@@ -153,6 +165,44 @@ public final class PlayerData {
             }
             velocityTicksRemaining--;
         }
+    }
+
+    public boolean isMovementFrameInitialized() {
+        return movementFrameInitialized;
+    }
+
+    public void setMovementFrame(double x, double y, double z, float yaw, float pitch, long timestampNanos) {
+        this.movementFrameInitialized = true;
+        this.lastFrameX = x;
+        this.lastFrameY = y;
+        this.lastFrameZ = z;
+        this.lastFrameYaw = yaw;
+        this.lastFramePitch = pitch;
+        this.lastMovementFrameAtNanos = timestampNanos;
+    }
+
+    public double getLastFrameX() {
+        return lastFrameX;
+    }
+
+    public double getLastFrameY() {
+        return lastFrameY;
+    }
+
+    public double getLastFrameZ() {
+        return lastFrameZ;
+    }
+
+    public float getLastFrameYaw() {
+        return lastFrameYaw;
+    }
+
+    public float getLastFramePitch() {
+        return lastFramePitch;
+    }
+
+    public long getLastMovementFrameAtNanos() {
+        return lastMovementFrameAtNanos;
     }
 
     public int incrementPlaceWindow() {
@@ -434,6 +484,14 @@ public final class PlayerData {
         return prevSprinting;
     }
 
+    public boolean wasOnGround() {
+        return previousOnGround;
+    }
+
+    public boolean isOnGroundNow() {
+        return currentOnGround;
+    }
+
     public float getPrevPitch() {
         return prevPitch;
     }
@@ -539,6 +597,7 @@ public final class PlayerData {
         pendingTeleportZ = z;
         movementUnconfirmed = true;
         lastTeleportAt = System.currentTimeMillis();
+        movementFrameInitialized = false;
     }
 
     public void tryConfirmTeleportSync(double x, double y, double z) {

@@ -3,11 +3,11 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import java.util.Locale;
@@ -25,18 +25,11 @@ public final class SpeedCheck extends Check {
         super(plugin, "Speed");
     }
 
-    public void onMove(PlayerMoveEvent event, PlayerData data) {
+    public void onMovementFrame(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        if (to == null) {
-            return;
-        }
-
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }
@@ -46,6 +39,8 @@ public final class SpeedCheck extends Check {
 
         double horizontal = data.getLastDeltaXZ();
         double deltaY = data.getLastDeltaY();
+        boolean onGround = frame.isOnGround();
+        boolean wasOnGround = data.wasOnGround();
 
         // ---- Calculate physics-based max speed ----
 
@@ -54,14 +49,14 @@ public final class SpeedCheck extends Check {
         Material belowType = belowBlock.getType();
         double slipperiness = getBlockSlipperiness(belowType);
         double friction;
-        if (player.isOnGround()) {
+        if (onGround) {
             friction = slipperiness * 0.91D;
         } else {
             friction = 0.91D;
         }
 
         // Sprint-jump detection: need to know if jumping BEFORE sprint state check
-        boolean isJumping = deltaY > 0.1D && data.getGroundTicks() > 0;
+        boolean isJumping = deltaY > 0.1D && !onGround && wasOnGround;
 
         // Determine sprint state — on jump tick, also check previous tick's sprint
         // because 1.7.10 packet ordering can desync sprint and jump by 1 tick
@@ -86,7 +81,7 @@ public final class SpeedCheck extends Check {
         }
 
         double acceleration;
-        if (player.isOnGround()) {
+        if (onGround) {
             double frictionCubed = friction * friction * friction;
             acceleration = attributeSpeed * (0.16277136D / frictionCubed);
         } else {
@@ -103,7 +98,7 @@ public final class SpeedCheck extends Check {
         // When landing (transitioning from air to ground), the velocity was previously under
         // air friction (0.91) but now uses ground friction (0.546). This transition takes
         // 2-3 ticks to settle. Use air friction for burst during this window.
-        if (player.isOnGround() && data.getGroundTicks() <= 3) {
+        if (onGround && data.getGroundTicks() <= 3) {
             double airBurst = data.getPrevDeltaXZ() * 0.91D + acceleration;
             burstMax = Math.max(burstMax, airBurst);
         }
@@ -173,7 +168,7 @@ public final class SpeedCheck extends Check {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " Speed h="
                 + fmt(horizontal) + " max=" + fmt(max) + " prev=" + fmt(data.getPrevDeltaXZ())
                 + " accel=" + fmt(acceleration) + " steady=" + fmt(steadyStateMax)
-                + " burst=" + fmt(burstMax) + " onGround=" + player.isOnGround()
+                + " burst=" + fmt(burstMax) + " onGround=" + onGround
                 + " sprint=" + sprinting + " jump=" + isJumping);
         }
 
@@ -188,7 +183,7 @@ public final class SpeedCheck extends Check {
             }
         } else {
             coolDownScore(data);
-            if (player.isOnGround() && from.getY() == to.getY()) {
+            if (onGround && from.getY() == to.getY()) {
                 data.setLastSafeLocation(to.clone());
             }
         }
