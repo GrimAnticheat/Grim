@@ -27,6 +27,11 @@ pipeline:
   bukkit-fallback: true
   bukkit-fallback-stale-nanos: 150000000
 
+pipeline:
+  packet-first: true
+  bukkit-fallback: true
+  bukkit-fallback-stale-nanos: 150000000
+
 exempt:
   join-grace-ms: 2500
   teleport-grace-ms: 1000

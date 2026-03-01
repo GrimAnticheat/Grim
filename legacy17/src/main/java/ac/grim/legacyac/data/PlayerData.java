@@ -87,6 +87,8 @@ public final class PlayerData {
     private float lastFrameYaw;
     private float lastFramePitch;
     private long lastMovementFrameAtNanos;
+    private boolean previousOnGround;
+    private boolean currentOnGround;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -125,6 +127,9 @@ public final class PlayerData {
         prevPitch = lastPitch;
         lastYaw = to.getYaw();
         lastPitch = to.getPitch();
+
+        previousOnGround = currentOnGround;
+        currentOnGround = onGround;
 
         if (onGround) {
             groundTicks++;
@@ -477,6 +482,14 @@ public final class PlayerData {
 
     public boolean wasSprinting() {
         return prevSprinting;
+    }
+
+    public boolean wasOnGround() {
+        return previousOnGround;
+    }
+
+    public boolean isOnGroundNow() {
+        return currentOnGround;
     }
 
     public float getPrevPitch() {

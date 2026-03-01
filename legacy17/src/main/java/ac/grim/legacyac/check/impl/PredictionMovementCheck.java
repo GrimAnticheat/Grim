@@ -62,7 +62,7 @@ public final class PredictionMovementCheck extends Check {
         PredictionResult result = LegacyPredictionEngine.predict(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                player.isOnGround());
+                data.wasOnGround());
 
         // Check horizontal: is it exceeding maximum predicted horizontal?
         boolean badHorizontal = horizontal > result.getMaxHorizontal();
