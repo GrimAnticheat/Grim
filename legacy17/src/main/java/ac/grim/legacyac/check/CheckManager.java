@@ -133,11 +133,21 @@ public final class CheckManager implements Listener {
         boolean packetActive = plugin.isPacketPipelineActive();
         boolean bukkitFallback = plugin.getConfig().getBoolean("pipeline.bukkit-fallback", true);
 
-        if (packetFirst && packetActive && !bukkitFallback) {
-            return;
+        if (packetFirst && packetActive) {
+            if (!bukkitFallback) {
+                return;
+            }
+            PlayerData fallbackData = plugin.getPlayerData(player);
+            long nowNanos = System.nanoTime();
+            long frameAgeNanos = nowNanos - fallbackData.getLastMovementFrameAtNanos();
+            long staleThresholdNanos = plugin.getConfig().getLong("pipeline.bukkit-fallback-stale-nanos", 150000000L);
+            if (fallbackData.getLastMovementFrameAtNanos() != 0L && frameAgeNanos <= staleThresholdNanos) {
+                return;
+            }
         }
 
         PlayerData data = plugin.getPlayerData(player);
+        data.setMovementFrame(to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), System.nanoTime());
         data.handleMove(player, event.getFrom(), to, player.isOnGround());
 
         if (data.isTeleportSyncPending()) {
@@ -185,8 +195,16 @@ public final class CheckManager implements Listener {
 
     public void onMovementFrame(Player player, MovementFrame frame) {
         PlayerData data = plugin.getPlayerData(player);
-        Location from = player.getLocation().clone();
+
+        Location from;
+        if (data.isMovementFrameInitialized()) {
+            from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(), data.getLastFrameYaw(), data.getLastFramePitch());
+        } else {
+            from = player.getLocation().clone();
+        }
+
         Location to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch());
+        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
 
         executeMovementPipeline(player, data, frame, from, to);
     }
