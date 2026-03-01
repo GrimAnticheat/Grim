@@ -116,7 +116,7 @@ public final class ProtocolLibBridgeManager {
                 data.setMovementUnconfirmed(data.isTeleportSyncPending() || !confirmed);
 
                 MovementFrame.Source source = toSource(type);
-                MovementFrame frame = new MovementFrame(System.nanoTime(), x, y, z, yaw, pitch, onGround, source);
+                MovementFrame frame = new MovementFrame(System.nanoTime(), x, y, z, yaw, pitch, onGround, hasPosition, hasLook, source);
                 ((LegacyAntiCheatPlugin) plugin).movementFrames().dispatch(player, frame);
             }
         };

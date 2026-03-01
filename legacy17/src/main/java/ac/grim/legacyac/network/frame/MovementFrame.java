@@ -16,9 +16,11 @@ public final class MovementFrame {
     private final float yaw;
     private final float pitch;
     private final boolean onGround;
+    private final boolean hasPosition;
+    private final boolean hasLook;
     private final Source source;
 
-    public MovementFrame(long timestampNanos, double x, double y, double z, float yaw, float pitch, boolean onGround, Source source) {
+    public MovementFrame(long timestampNanos, double x, double y, double z, float yaw, float pitch, boolean onGround, boolean hasPosition, boolean hasLook, Source source) {
         this.timestampNanos = timestampNanos;
         this.x = x;
         this.y = y;
@@ -26,6 +28,8 @@ public final class MovementFrame {
         this.yaw = yaw;
         this.pitch = pitch;
         this.onGround = onGround;
+        this.hasPosition = hasPosition;
+        this.hasLook = hasLook;
         this.source = source;
     }
 
@@ -55,6 +59,14 @@ public final class MovementFrame {
 
     public boolean isOnGround() {
         return onGround;
+    }
+
+    public boolean hasPosition() {
+        return hasPosition;
+    }
+
+    public boolean hasLook() {
+        return hasLook;
     }
 
     public Source getSource() {

@@ -158,7 +158,7 @@ public final class CheckManager implements Listener {
         }
 
         for (SpeedCheck check : speedChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
             check.onMovementFrame(player, frame, event.getFrom(), to, data);
         }
         for (FlyCheck check : flyChecks) {
@@ -168,7 +168,7 @@ public final class CheckManager implements Listener {
             check.onMove(event, data);
         }
         for (TimerCheck check : timerChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
             check.onMovementFrame(player, frame, data);
         }
         for (VelocityCheck check : velocityChecks) {
@@ -181,7 +181,7 @@ public final class CheckManager implements Listener {
             check.onMove(event, data);
         }
         for (PredictionMovementCheck check : predictionChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
             check.onMovementFrame(player, frame, to, data);
         }
         for (NoSlowCheck check : noSlowChecks) {
@@ -194,6 +194,11 @@ public final class CheckManager implements Listener {
     }
 
     public void onMovementFrame(Player player, MovementFrame frame) {
+        if (!frame.hasPosition()) {
+            PlayerData data = plugin.getPlayerData(player);
+            data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
+            return;
+        }
         PlayerData data = plugin.getPlayerData(player);
 
         Location from;
