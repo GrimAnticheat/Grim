@@ -12,6 +12,10 @@ protocollib:
 netty:
   inject-on-join: true
 
+pipeline:
+  packet-first: true
+  bukkit-fallback: true
+
 exempt:
   join-grace-ms: 2500
   teleport-grace-ms: 1000
