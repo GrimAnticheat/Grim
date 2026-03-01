@@ -18,6 +18,7 @@ import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.VelocityCheck;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
@@ -127,6 +128,14 @@ public final class CheckManager implements Listener {
         }
 
         Player player = event.getPlayer();
+        boolean packetFirst = plugin.getConfig().getBoolean("pipeline.packet-first", true);
+        boolean packetActive = plugin.isPacketPipelineActive();
+        boolean bukkitFallback = plugin.getConfig().getBoolean("pipeline.bukkit-fallback", true);
+
+        if (packetFirst && packetActive && !bukkitFallback) {
+            return;
+        }
+
         PlayerData data = plugin.getPlayerData(player);
         data.handleMove(player, event.getFrom(), to, player.isOnGround());
 
@@ -138,7 +147,8 @@ public final class CheckManager implements Listener {
         }
 
         for (SpeedCheck check : speedChecks) {
-            check.onMove(event, data);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            check.onMovementFrame(player, frame, event.getFrom(), to, data);
         }
         for (FlyCheck check : flyChecks) {
             check.onMove(event, data);
@@ -147,7 +157,8 @@ public final class CheckManager implements Listener {
             check.onMove(event, data);
         }
         for (TimerCheck check : timerChecks) {
-            check.onMove(event, data);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            check.onMovementFrame(player, frame, data);
         }
         for (VelocityCheck check : velocityChecks) {
             check.onMove(event, data);
@@ -159,7 +170,8 @@ public final class CheckManager implements Listener {
             check.onMove(event, data);
         }
         for (PredictionMovementCheck check : predictionChecks) {
-            check.onMove(event, data);
+            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), MovementFrame.Source.BUKKIT_MOVE_EVENT);
+            check.onMovementFrame(player, frame, to, data);
         }
         for (NoSlowCheck check : noSlowChecks) {
             check.onMove(event, data);
@@ -167,6 +179,52 @@ public final class CheckManager implements Listener {
 
         if (player.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
             data.setLastSafeLocation(to.clone());
+        }
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame) {
+        PlayerData data = plugin.getPlayerData(player);
+        Location from = player.getLocation().clone();
+        Location to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch());
+
+        executeMovementPipeline(player, data, frame, from, to);
+    }
+
+    private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from, Location to) {
+        data.handleMove(player, from, to, frame.isOnGround());
+
+        if (data.isTeleportSyncPending()) {
+            if (data.isDebugEnabled()) {
+                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleportSyncPending=true");
+            }
+            return;
+        }
+
+        runPreChecks(player, frame, data);
+        runPredictionChecks(player, frame, to, data);
+        runPostChecks(player, frame, from, to, data);
+
+        if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
+            data.setLastSafeLocation(to.clone());
+        }
+    }
+
+
+    private void runPreChecks(Player player, MovementFrame frame, PlayerData data) {
+        for (TimerCheck check : timerChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
+    }
+
+    private void runPredictionChecks(Player player, MovementFrame frame, Location to, PlayerData data) {
+        for (PredictionMovementCheck check : predictionChecks) {
+            check.onMovementFrame(player, frame, to, data);
+        }
+    }
+
+    private void runPostChecks(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
+        for (SpeedCheck check : speedChecks) {
+            check.onMovementFrame(player, frame, from, to, data);
         }
     }
 

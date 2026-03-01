@@ -6,6 +6,7 @@ import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.NetworkTapManager;
 import ac.grim.legacyac.network.ProtocolLibBridgeManager;
 import ac.grim.legacyac.network.TransactionSyncManager;
+import ac.grim.legacyac.network.frame.MovementFrameDispatcher;
 import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +22,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private NetworkTapManager networkTapManager;
     private ProtocolLibBridgeManager protocolLibBridgeManager;
     private TransactionSyncManager transactionSyncManager;
+    private MovementFrameDispatcher movementFrameDispatcher;
+    private boolean packetPipelineActive;
     private int tickTaskId = -1;
 
     @Override
@@ -31,6 +34,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(checkManager, this);
         protocolLibBridgeManager = new ProtocolLibBridgeManager(this);
         boolean protocolActive = protocolLibBridgeManager.start();
+        packetPipelineActive = protocolActive;
+        movementFrameDispatcher = new MovementFrameDispatcher(this);
         if (!protocolActive) {
             networkTapManager = new NetworkTapManager(this);
             getServer().getPluginManager().registerEvents(networkTapManager, this);
@@ -98,5 +103,12 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         }
         return new double[] {0.6D, 1.8D};
     }
-}
 
+    public MovementFrameDispatcher movementFrames() {
+        return movementFrameDispatcher;
+    }
+
+    public boolean isPacketPipelineActive() {
+        return packetPipelineActive;
+    }
+}

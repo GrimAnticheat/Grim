@@ -3,6 +3,7 @@ package ac.grim.legacyac.network;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.combat.EntityBoxCache;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -80,31 +81,59 @@ public final class ProtocolLibBridgeManager {
                 data.setLastRawMovementPacketAt(System.nanoTime());
                 data.incrementRawMovementPacketCounter();
 
-                boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
-                if (!hasPosition) {
-                    return;
+                final boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
+                final boolean hasLook = type == PacketType.Play.Client.LOOK || type == PacketType.Play.Client.POSITION_LOOK;
+
+                double x = player.getLocation().getX();
+                double y = player.getLocation().getY();
+                double z = player.getLocation().getZ();
+                if (hasPosition) {
+                    if (packet.getDoubles().size() < 3) {
+                        return;
+                    }
+                    x = packet.getDoubles().read(0);
+                    y = packet.getDoubles().read(1);
+                    z = packet.getDoubles().read(2);
                 }
 
-                if (packet.getDoubles().size() < 3) {
-                    return;
+                float yaw = player.getLocation().getYaw();
+                float pitch = player.getLocation().getPitch();
+                if (hasLook && packet.getFloat().size() >= 2) {
+                    yaw = packet.getFloat().read(0);
+                    pitch = packet.getFloat().read(1);
                 }
 
-                double x = packet.getDoubles().read(0);
-                double y = packet.getDoubles().read(1);
-                double z = packet.getDoubles().read(2);
-                if (type == PacketType.Play.Client.POSITION_LOOK) {
+                if (hasPosition) {
                     data.tryConfirmTeleportSync(x, y, z);
                 }
+
                 boolean onGround = packet.getBooleans().size() > 0 && packet.getBooleans().read(0);
                 data.updateShadowPosition(x, y, z, onGround);
 
                 long maxAckAge = plugin.getConfig().getLong("transaction.max-ack-age-ms", 4000L);
                 boolean confirmed = data.hasRecentTransactionAck(maxAckAge) || data.hasRecentKeepAliveAck(maxAckAge);
                 data.setMovementUnconfirmed(data.isTeleportSyncPending() || !confirmed);
+
+                MovementFrame.Source source = toSource(type);
+                MovementFrame frame = new MovementFrame(System.nanoTime(), x, y, z, yaw, pitch, onGround, source);
+                ((LegacyAntiCheatPlugin) plugin).movementFrames().dispatch(player, frame);
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
+    }
+
+    private MovementFrame.Source toSource(PacketType type) {
+        if (type == PacketType.Play.Client.FLYING) {
+            return MovementFrame.Source.PACKET_FLYING;
+        }
+        if (type == PacketType.Play.Client.POSITION) {
+            return MovementFrame.Source.PACKET_POSITION;
+        }
+        if (type == PacketType.Play.Client.LOOK) {
+            return MovementFrame.Source.PACKET_LOOK;
+        }
+        return MovementFrame.Source.PACKET_POSITION_LOOK;
     }
 
     private void registerUseEntityListener() {
