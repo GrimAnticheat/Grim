@@ -1,13 +1,14 @@
 package ac.grim.legacyac.network;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
-import ac.grim.legacyac.data.PlayerData;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
@@ -16,6 +17,7 @@ public final class PacketPipelineInjector {
     private static final String HANDLER_PREFIX = "glac_legacy_tap_";
     private final LegacyAntiCheatPlugin plugin;
     private final Map<UUID, String> injectedHandlers = new ConcurrentHashMap<UUID, String>();
+    private final Set<String> reflectionWarnings = java.util.Collections.synchronizedSet(new HashSet<String>());
 
     public PacketPipelineInjector(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
@@ -34,17 +36,16 @@ public final class PacketPipelineInjector {
                 return true;
             }
 
-            final PlayerData data = plugin.getPlayerData(player);
             channel.pipeline().addBefore("packet_handler", handlerName, new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                    onPacketReceive(data, msg);
+                    onPacketReceive(player, msg);
                     super.channelRead(ctx, msg);
                 }
 
                 @Override
                 public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                    onPacketSend(data, msg);
+                    onPacketSend(player, msg);
                     super.write(ctx, msg, promise);
                 }
             });
@@ -78,26 +79,71 @@ public final class PacketPipelineInjector {
         injectedHandlers.clear();
     }
 
-    private void onPacketReceive(PlayerData data, Object packet) {
+    private void onPacketReceive(Player player, Object packet) {
         String packetName = packet.getClass().getSimpleName();
         if (packetName.startsWith("PacketPlayInFlying") || packetName.equals("PacketPlayInPosition") || packetName.equals("PacketPlayInLook")) {
-            data.setLastRawMovementPacketAt(System.nanoTime());
-            data.incrementRawMovementPacketCounter();
+            plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientMovement(player, packetName, System.nanoTime()));
             return;
         }
 
         if (packetName.equals("PacketPlayInTransaction")) {
             Short actionId = readTransactionActionId(packet);
             if (actionId != null) {
-                data.acknowledgeTransaction(actionId.shortValue(), System.nanoTime());
+                plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientTransactionAck(player, actionId.shortValue(), System.nanoTime()));
             }
+            return;
+        }
+
+        if (packetName.equals("PacketPlayInUseEntity")) {
+            Integer entityId = readIntegerField(packet, "a");
+            Object action = readFieldValue(packet, "action");
+            if (action == null) {
+                action = readFieldValue(packet, "c");
+            }
+            boolean attack = action == null || "ATTACK".equals(String.valueOf(action));
+            if (entityId != null) {
+                plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientUseEntity(player, entityId.intValue(), attack, System.nanoTime()));
+            } else {
+                warnReflectionFailureOnce(packetName, "entityId");
+            }
+            return;
+        }
+
+        if (packetName.equals("PacketPlayInKeepAlive")) {
+            Integer keepAlive = readIntegerField(packet, "a");
+            if (keepAlive == null) {
+                warnReflectionFailureOnce(packetName, "id");
+            }
+            plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientKeepAlive(player,
+                keepAlive == null ? null : Long.valueOf(keepAlive.longValue()), System.nanoTime()));
         }
     }
 
-    private void onPacketSend(PlayerData data, Object packet) {
+    private void onPacketSend(Player player, Object packet) {
         String packetName = packet.getClass().getSimpleName();
         if (packetName.equals("PacketPlayOutPosition")) {
-            data.setLastServerPositionSyncAt(System.nanoTime());
+            Double x = readDoubleField(packet, "a");
+            Double y = readDoubleField(packet, "b");
+            Double z = readDoubleField(packet, "c");
+            if (x != null && y != null && z != null) {
+                plugin.checks().onInternalPacketEvent(InternalPacketEvent.serverPosition(player, x.doubleValue(), y.doubleValue(), z.doubleValue(), System.nanoTime()));
+            } else {
+                warnReflectionFailureOnce(packetName, "x/y/z");
+            }
+            return;
+        }
+
+        if (packetName.equals("PacketPlayOutEntityVelocity")) {
+            Integer entityId = readIntegerField(packet, "a");
+            Integer velX = readIntegerField(packet, "b");
+            Integer velY = readIntegerField(packet, "c");
+            Integer velZ = readIntegerField(packet, "d");
+            if (entityId != null && velX != null && velY != null && velZ != null) {
+                plugin.checks().onInternalPacketEvent(
+                    InternalPacketEvent.serverEntityVelocity(player, entityId.intValue(), velX.intValue(), velY.intValue(), velZ.intValue(), System.nanoTime()));
+            } else {
+                warnReflectionFailureOnce(packetName, "entityId/velocity");
+            }
         }
     }
 
@@ -127,6 +173,73 @@ public final class PacketPipelineInjector {
         }
 
         return null;
+    }
+
+    private Integer readIntegerField(Object packet, String preferredName) {
+        Object value = readFieldValue(packet, preferredName);
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        if (value instanceof Short) {
+            return Integer.valueOf(((Short) value).intValue());
+        }
+        if (value instanceof Byte) {
+            return Integer.valueOf(((Byte) value).intValue());
+        }
+        if (value instanceof Long) {
+            return Integer.valueOf(((Long) value).intValue());
+        }
+        try {
+            for (Field field : packet.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == int.class || type == Integer.class) {
+                    return Integer.valueOf(field.getInt(packet));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private Double readDoubleField(Object packet, String preferredName) {
+        Object value = readFieldValue(packet, preferredName);
+        if (value instanceof Double) {
+            return (Double) value;
+        }
+        if (value instanceof Float) {
+            return Double.valueOf(((Float) value).doubleValue());
+        }
+        try {
+            for (Field field : packet.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == double.class || type == Double.class) {
+                    return Double.valueOf(field.getDouble(packet));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private Object readFieldValue(Object packet, String fieldName) {
+        try {
+            Field field = findField(packet.getClass(), fieldName);
+            return field.get(packet);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private void warnReflectionFailureOnce(String packetName, String target) {
+        if (!plugin.getConfig().getBoolean("netty.strict-reflection", false)) {
+            return;
+        }
+        String key = packetName + ":" + target;
+        if (reflectionWarnings.add(key)) {
+            plugin.getLogger().warning("[GLAC] Netty reflection failed for " + packetName + " field(s) " + target + ", degraded packet parsing.");
+        }
     }
 
     private Channel resolveChannel(Player player) throws Exception {
