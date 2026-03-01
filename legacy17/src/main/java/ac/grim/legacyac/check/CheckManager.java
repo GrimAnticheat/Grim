@@ -18,6 +18,7 @@ import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.VelocityCheck;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.InternalPacketEvent;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import java.util.ArrayList;
 import java.util.List;
@@ -246,6 +247,80 @@ public final class CheckManager implements Listener {
         }
     }
 
+
+
+    public void onInternalPacketEvent(InternalPacketEvent event) {
+        Player player = event.getPlayer();
+        if (player == null) {
+            return;
+        }
+        PlayerData data = plugin.getPlayerData(player);
+
+        if (event.getType() == InternalPacketEvent.Type.CLIENT_MOVEMENT) {
+            data.setLastRawMovementPacketAt(event.getCreatedAtNanos());
+            data.incrementRawMovementPacketCounter();
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.CLIENT_TRANSACTION_ACK) {
+            Short actionId = event.getTransactionActionId();
+            if (actionId != null) {
+                data.acknowledgeTransaction(actionId.shortValue(), event.getCreatedAtNanos());
+            }
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.CLIENT_KEEP_ALIVE) {
+            data.acknowledgeKeepAlive(System.currentTimeMillis());
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.SERVER_POSITION) {
+            data.setLastServerPositionSyncAt(event.getCreatedAtNanos());
+            Double x = event.getX();
+            Double y = event.getY();
+            Double z = event.getZ();
+            if (x != null && y != null && z != null) {
+                data.beginTeleportSync(x.doubleValue(), y.doubleValue(), z.doubleValue());
+            }
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.CLIENT_USE_ENTITY) {
+            if (event.isAttackAction() && event.getEntityId() != null) {
+                onUseEntityAttackPacket(player, event.getEntityId().intValue());
+            }
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.SERVER_ENTITY_VELOCITY) {
+            Integer entityId = event.getEntityId();
+            if (entityId == null || entityId.intValue() != player.getEntityId()) {
+                return;
+            }
+            Integer vx = event.getVelocityX();
+            Integer vy = event.getVelocityY();
+            Integer vz = event.getVelocityZ();
+            if (vx == null || vy == null || vz == null) {
+                return;
+            }
+            final double dx = vx.intValue() / 8000.0D;
+            final double dy = vy.intValue() / 8000.0D;
+            final double dz = vz.intValue() / 8000.0D;
+            final Player scheduled = player;
+            plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    if (!scheduled.isOnline()) {
+                        return;
+                    }
+                    org.bukkit.util.Vector vector = new org.bukkit.util.Vector(dx, dy, dz);
+                    org.bukkit.event.player.PlayerVelocityEvent bukkitEvent = new org.bukkit.event.player.PlayerVelocityEvent(scheduled, vector);
+                    onVelocity(bukkitEvent);
+                }
+            });
+        }
+    }
 
     public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId) {
         Entity targetEntity = null;

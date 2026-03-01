@@ -11,6 +11,11 @@ protocollib:
 
 netty:
   inject-on-join: true
+  strict-reflection: false
+
+pipeline:
+  packet-first: true
+  bukkit-fallback: true
 
 pipeline:
   packet-first: true

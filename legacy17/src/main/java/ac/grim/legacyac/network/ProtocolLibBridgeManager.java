@@ -1,9 +1,10 @@
 package ac.grim.legacyac.network;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
-import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.combat.EntityBoxCache;
+import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import ac.grim.legacyac.network.InternalPacketEvent;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -78,8 +79,8 @@ public final class ProtocolLibBridgeManager {
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
-                data.setLastRawMovementPacketAt(System.nanoTime());
-                data.incrementRawMovementPacketCounter();
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                    InternalPacketEvent.clientMovement(player, type.name(), System.nanoTime()));
 
                 final boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
                 final boolean hasLook = type == PacketType.Play.Client.LOOK || type == PacketType.Play.Client.POSITION_LOOK;
@@ -157,7 +158,7 @@ public final class ProtocolLibBridgeManager {
                         break;
                     }
                 }
-                ((LegacyAntiCheatPlugin) plugin).checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(InternalPacketEvent.clientUseEntity(event.getPlayer(), entityId, true, System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -173,8 +174,8 @@ public final class ProtocolLibBridgeManager {
                 if (packet.getDoubles().size() < 3) {
                     return;
                 }
-                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
-                data.beginTeleportSync(packet.getDoubles().read(0), packet.getDoubles().read(1), packet.getDoubles().read(2));
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                    InternalPacketEvent.serverPosition(event.getPlayer(), packet.getDoubles().read(0), packet.getDoubles().read(1), packet.getDoubles().read(2), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -196,21 +197,8 @@ public final class ProtocolLibBridgeManager {
                 int vx = packet.getIntegers().read(1);
                 int vy = packet.getIntegers().read(2);
                 int vz = packet.getIntegers().read(3);
-                final double dx = vx / 8000.0D;
-                final double dy = vy / 8000.0D;
-                final double dz = vz / 8000.0D;
-                
-                final org.bukkit.entity.Player player = event.getPlayer();
-                
-                plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!player.isOnline()) return;
-                        org.bukkit.util.Vector vector = new org.bukkit.util.Vector(dx, dy, dz);
-                        org.bukkit.event.player.PlayerVelocityEvent bukkitEvent = new org.bukkit.event.player.PlayerVelocityEvent(player, vector);
-                        ((LegacyAntiCheatPlugin) plugin).checks().onVelocity(bukkitEvent);
-                    }
-                });
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                    InternalPacketEvent.serverEntityVelocity(event.getPlayer(), entityId, vx, vy, vz, System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -223,20 +211,25 @@ public final class ProtocolLibBridgeManager {
             PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
                 if (type == PacketType.Play.Client.TRANSACTION) {
                     if (packet.getShorts().size() > 0) {
                         short actionId = packet.getShorts().read(0);
-                        data.acknowledgeTransaction(actionId, System.nanoTime());
+                        ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                            InternalPacketEvent.clientTransactionAck(event.getPlayer(), actionId, System.nanoTime()));
                     }
                     return;
                 }
 
                 if (type == PacketType.Play.Client.KEEP_ALIVE) {
-                    data.acknowledgeKeepAlive(System.currentTimeMillis());
+                    Long keepAliveId = null;
+                    if (packet.getIntegers().size() > 0) {
+                        keepAliveId = Long.valueOf(packet.getIntegers().read(0).longValue());
+                    }
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientKeepAlive(event.getPlayer(), keepAliveId, System.nanoTime()));
                 }
             }
         };
