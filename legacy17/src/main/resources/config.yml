@@ -11,6 +11,7 @@ protocollib:
 
 netty:
   inject-on-join: true
+  strict-reflection: false
 
 pipeline:
   packet-first: true
