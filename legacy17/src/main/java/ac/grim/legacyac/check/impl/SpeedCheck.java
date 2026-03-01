@@ -3,11 +3,11 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import java.util.Locale;
@@ -25,18 +25,11 @@ public final class SpeedCheck extends Check {
         super(plugin, "Speed");
     }
 
-    public void onMove(PlayerMoveEvent event, PlayerData data) {
+    public void onMovementFrame(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        if (to == null) {
-            return;
-        }
-
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }
