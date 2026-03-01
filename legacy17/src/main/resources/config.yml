@@ -12,11 +12,17 @@ protocollib:
 netty:
   inject-on-join: true
 
+exempt:
+  join-grace-ms: 2500
+  teleport-grace-ms: 1000
+  velocity-grace-ms: 400
+
 prediction:
   max-packet-age-nanos: 120000000
   shadow-deviation-threshold: 0.15
-  min-moving-horizontal: 0.005
-  min-moving-vertical: 0.005
+  min-moving-horizontal: 0.03
+  min-moving-vertical: 0.03
+  lag-tolerance: 0.08
 
 transaction:
   enabled: true
@@ -35,18 +41,15 @@ adaptive-lag:
   reach-extra-distance: 0.15
   speed-tolerance-multiplier: 1.15
 
-# Grace windows for avoiding false positives after normal server-side corrections.
-exempt:
-  join-grace-ms: 2500
-  teleport-grace-ms: 1000
-  velocity-grace-ms: 900
+
+
 
 checks:
   Speed:
     enabled: true
     max-vl: 12.0
     setback: true
-    buffer: 0.24
+    buffer: 0.35
     window-weight: 1.0
     punish-vl: 30
     punish-commands:
@@ -76,9 +79,9 @@ checks:
   Reach:
     enabled: true
     max-vl: 8.0
-    max-distance: 3.35
+    Ray-Distance: 3.1
     setback: false
-    buffer: 0.2
+    buffer: 0.5
     window-weight: 1.0
     punish-vl: 22
     punish-commands:
@@ -107,6 +110,7 @@ checks:
     setback: false
     snap-threshold: 75.0
     buffer: 2.0
+    multi-target-buffer: 3.0
     punish-vl: 20
     punish-commands:
       - "kick %player% KillAura cheat (%check% VL:%vl%)"
@@ -124,10 +128,11 @@ checks:
     max-vl: 8.0
     setback: false
     window-ticks: 8
-    min-expected-xz: 0.12
-    min-response-ratio-xz: 0.35
-    min-response-ratio-y: 0.20
-    buffer: 1.5
+    min-expected-xz: 0.08
+    min-response-ratio-xz: 0.40
+    min-response-ratio-y: 0.25
+    buffer: 1.2
+    window-weight: 1.0
     punish-vl: 20
     punish-commands:
       - "kick %player% Velocity cheat (%check% VL:%vl%)"
@@ -182,7 +187,19 @@ checks:
     enabled: true
     max-vl: 10.0
     setback: true
-    buffer: 0.3
+    buffer: 1.2
+    window-weight: 1.0
     punish-vl: 25
     punish-commands:
       - "kick %player% Prediction cheat (%check% VL:%vl%)"
+
+  NoSlow:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    slow-factor: 0.2
+    buffer: 0.4
+    window-weight: 1.0
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% NoSlow cheat (%check% VL:%vl%)"

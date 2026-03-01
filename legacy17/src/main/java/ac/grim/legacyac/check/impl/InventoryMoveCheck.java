@@ -22,6 +22,11 @@ public final class InventoryMoveCheck extends Check {
             return;
         }
 
+        // 1.5s delay to avoid false positives right after opening inventory
+        if (System.currentTimeMillis() - data.getInventoryOpenAt() < 1500L) {
+            return;
+        }
+
         double maxMove = plugin.getConfig().getDouble("checks.InventoryMove.max-move", 0.12D);
         if (data.getLastDeltaXZ() > maxMove) {
             double buffer = increaseBuffer(data, data.getLastDeltaXZ() - maxMove);

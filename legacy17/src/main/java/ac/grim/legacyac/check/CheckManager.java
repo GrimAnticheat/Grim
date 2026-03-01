@@ -10,6 +10,7 @@ import ac.grim.legacyac.check.impl.InventoryMoveCheck;
 import ac.grim.legacyac.check.impl.JesusCheck;
 import ac.grim.legacyac.check.impl.KillAuraCheck;
 import ac.grim.legacyac.check.impl.NoFallCheck;
+import ac.grim.legacyac.check.impl.NoSlowCheck;
 import ac.grim.legacyac.check.impl.PhaseCheck;
 import ac.grim.legacyac.check.impl.PredictionMovementCheck;
 import ac.grim.legacyac.check.impl.ReachCheck;
@@ -56,6 +57,7 @@ public final class CheckManager implements Listener {
     private final List<FastUseCheck> fastUseChecks = new ArrayList<FastUseCheck>();
     private final List<InventoryMoveCheck> inventoryMoveChecks = new ArrayList<InventoryMoveCheck>();
     private final List<PredictionMovementCheck> predictionChecks = new ArrayList<PredictionMovementCheck>();
+    private final List<NoSlowCheck> noSlowChecks = new ArrayList<NoSlowCheck>();
     private long lastTickAtNanos;
     private double currentTps = 20.0D;
 
@@ -76,12 +78,13 @@ public final class CheckManager implements Listener {
         fastUseChecks.add(new FastUseCheck(plugin));
         inventoryMoveChecks.add(new InventoryMoveCheck(plugin));
         predictionChecks.add(new PredictionMovementCheck(plugin));
+        noSlowChecks.add(new NoSlowCheck(plugin));
     }
 
     public int getCheckCount() {
         return speedChecks.size() + flyChecks.size() + phaseChecks.size() + reachChecks.size() + autoClickerChecks.size() + noFallChecks.size()
             + killAuraChecks.size() + timerChecks.size() + velocityChecks.size() + jesusChecks.size() + fastPlaceChecks.size() + fastBreakChecks.size()
-            + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size();
+            + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size();
     }
 
     public void tick() {
@@ -128,6 +131,9 @@ public final class CheckManager implements Listener {
         data.handleMove(player, event.getFrom(), to, player.isOnGround());
 
         if (data.isTeleportSyncPending()) {
+            if (data.isDebugEnabled()) {
+                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleportSyncPending=true");
+            }
             return;
         }
 
@@ -153,6 +159,9 @@ public final class CheckManager implements Listener {
             check.onMove(event, data);
         }
         for (PredictionMovementCheck check : predictionChecks) {
+            check.onMove(event, data);
+        }
+        for (NoSlowCheck check : noSlowChecks) {
             check.onMove(event, data);
         }
 
@@ -189,8 +198,10 @@ public final class CheckManager implements Listener {
         }
 
         if (attackerData.isDebugEnabled()) {
+            double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
             plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " -> " + target.getName()
                 + " Ray-Distance: " + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
+                + ", Config: " + String.format(Locale.ROOT, "%.2f", baseReach)
                 + ", Box-Time-Offset: " + reachEval.getBoxTimeOffsetMs() + "ms");
         }
 
@@ -274,6 +285,10 @@ public final class CheckManager implements Listener {
     public void onVelocity(PlayerVelocityEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setLastVelocityAt(System.currentTimeMillis());
+        // Store the actual XZ magnitude so speed check can account for it
+        org.bukkit.util.Vector vel = event.getVelocity();
+        double xzMagnitude = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
+        data.setLastVelocityXZ(xzMagnitude);
         for (VelocityCheck check : velocityChecks) {
             check.onVelocity(event, data);
         }

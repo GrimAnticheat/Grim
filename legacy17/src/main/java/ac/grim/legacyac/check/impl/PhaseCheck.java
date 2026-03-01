@@ -42,6 +42,25 @@ public final class PhaseCheck extends Check {
     }
 
     private boolean isSolid(Material material) {
-        return material.isSolid() && material != Material.WATER && material != Material.LAVA && material != Material.WEB;
+        if (!material.isSolid()) {
+            return false;
+        }
+        // Exempt blocks that are technically "solid" but have partial hitboxes
+        // or that players can overlap with in normal gameplay
+        String name = material.name();
+        if (name.contains("SIGN") || name.contains("STEP") || name.contains("SLAB")
+            || name.contains("STAIR") || name.contains("FENCE") || name.contains("GATE")
+            || name.contains("DOOR") || name.contains("PISTON") || name.contains("CHEST")
+            || name.contains("ANVIL") || name.contains("SKULL") || name.contains("HEAD")
+            || name.contains("FLOWER_POT") || name.contains("BREWING")
+            || name.contains("ENCHANT") || name.contains("CAULDRON")
+            || name.contains("BED") || name.contains("CAKE")
+            || name.contains("TRAP") || name.contains("COBBLE_WALL")
+            || name.contains("CARPET") || name.contains("SNOW")
+            || name.contains("DAYLIGHT") || name.contains("HOPPER")
+            || name.contains("DRAGON_EGG") || name.contains("ENDER_PORTAL_FRAME")) {
+            return false;
+        }
+        return material != Material.WATER && material != Material.LAVA && material != Material.WEB;
     }
 }

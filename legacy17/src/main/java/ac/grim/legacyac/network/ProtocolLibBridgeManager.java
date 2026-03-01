@@ -42,6 +42,7 @@ public final class ProtocolLibBridgeManager {
             registerAckListener();
             registerUseEntityListener();
             registerServerPositionListener();
+            registerVelocityListener();
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
@@ -72,7 +73,7 @@ public final class ProtocolLibBridgeManager {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
-                PlayerData data = plugin.getPlayerData(player);
+                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
@@ -127,7 +128,7 @@ public final class ProtocolLibBridgeManager {
                         break;
                     }
                 }
-                plugin.checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
+                ((LegacyAntiCheatPlugin) plugin).checks().onUseEntityAttackPacket(event.getPlayer(), entityId);
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -143,8 +144,44 @@ public final class ProtocolLibBridgeManager {
                 if (packet.getDoubles().size() < 3) {
                     return;
                 }
-                PlayerData data = plugin.getPlayerData(event.getPlayer());
+                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
                 data.beginTeleportSync(packet.getDoubles().read(0), packet.getDoubles().read(1), packet.getDoubles().read(2));
+            }
+        };
+        protocolManager.addPacketListener(adapter);
+        listeners.add(adapter);
+    }
+
+    private void registerVelocityListener() {
+        PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.ENTITY_VELOCITY) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getIntegers().size() < 4) return;
+                
+                int entityId = packet.getIntegers().read(0);
+                if (entityId != event.getPlayer().getEntityId()) {
+                    return;
+                }
+                
+                int vx = packet.getIntegers().read(1);
+                int vy = packet.getIntegers().read(2);
+                int vz = packet.getIntegers().read(3);
+                final double dx = vx / 8000.0D;
+                final double dy = vy / 8000.0D;
+                final double dz = vz / 8000.0D;
+                
+                final org.bukkit.entity.Player player = event.getPlayer();
+                
+                plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!player.isOnline()) return;
+                        org.bukkit.util.Vector vector = new org.bukkit.util.Vector(dx, dy, dz);
+                        org.bukkit.event.player.PlayerVelocityEvent bukkitEvent = new org.bukkit.event.player.PlayerVelocityEvent(player, vector);
+                        ((LegacyAntiCheatPlugin) plugin).checks().onVelocity(bukkitEvent);
+                    }
+                });
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -157,7 +194,7 @@ public final class ProtocolLibBridgeManager {
             PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PlayerData data = plugin.getPlayerData(event.getPlayer());
+                PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 

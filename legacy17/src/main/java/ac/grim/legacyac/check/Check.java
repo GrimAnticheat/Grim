@@ -28,18 +28,20 @@ public abstract class Check {
     }
 
     protected boolean isExempt(Player player, PlayerData data) {
-        return isExempt(player, data, false);
+        return isExempt(player, data, true); // Default: ignore velocity grace for movement checks
     }
 
     protected boolean isExempt(Player player, PlayerData data, boolean ignoreVelocityGrace) {
-        if (player.hasPermission("grimlegacy.bypass")) {
+        // Bot soft-compat: skip all checks for bot players
+        String nameLower = player.getName().toLowerCase(java.util.Locale.ROOT);
+        if (nameLower.startsWith("[bot]") || nameLower.startsWith("nodebuff") || nameLower.contains("gapple")) {
             return true;
         }
 
         long now = System.currentTimeMillis();
         int joinGrace = plugin.getConfig().getInt("exempt.join-grace-ms", 2500);
         int teleportGrace = plugin.getConfig().getInt("exempt.teleport-grace-ms", 1000);
-        int velocityGrace = plugin.getConfig().getInt("exempt.velocity-grace-ms", 900);
+        int velocityGrace = plugin.getConfig().getInt("exempt.velocity-grace-ms", 400);
 
         if (now - data.getJoinAt() < joinGrace) {
             return true;
@@ -102,6 +104,10 @@ public abstract class Check {
     }
 
     private void runPunishments(Player player, PlayerData data, double vl) {
+        // OP players are checked but never punished
+        if (player.hasPermission("grimlegacy.bypass")) {
+            return;
+        }
         double punishVl = plugin.getConfig().getDouble("checks." + name + ".punish-vl", -1.0D);
         if (punishVl <= 0.0D || vl < punishVl || data.hasExecutedPunish(name)) {
             return;

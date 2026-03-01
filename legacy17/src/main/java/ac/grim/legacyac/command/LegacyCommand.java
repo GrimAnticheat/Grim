@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import java.util.Locale;
 
 public final class LegacyCommand implements CommandExecutor {
-    private static final String[] CHECKS = new String[] {"Speed", "Fly", "Phase", "Reach", "AutoClicker", "NoFall", "KillAura", "Timer", "Velocity", "Jesus", "FastPlace", "FastBreak", "FastUse", "InventoryMove", "Prediction"};
+    private static final String[] CHECKS = new String[] {"Speed", "Fly", "Phase", "Reach", "AutoClicker", "NoFall", "KillAura", "Timer", "Velocity", "Jesus", "FastPlace", "FastBreak", "FastUse", "InventoryMove", "Prediction", "NoSlow"};
     private final LegacyAntiCheatPlugin plugin;
 
     public LegacyCommand(LegacyAntiCheatPlugin plugin) {

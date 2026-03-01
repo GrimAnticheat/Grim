@@ -23,6 +23,7 @@ public final class PlayerData {
     private long lastAttackAt;
     private long lastTeleportAt;
     private long lastVelocityAt;
+    private double lastVelocityXZ;
     private int clickWindow;
     private long clickWindowStart;
     private int moveWindow;
@@ -34,14 +35,20 @@ public final class PlayerData {
     private int useWindow;
     private long useWindowStart;
     private boolean inventoryOpen;
+    private long inventoryOpenAt;
     private boolean debugEnabled;
+    private boolean prevSprinting;
     private Location lastSafeLocation;
     private double lastDeltaXZ;
     private double lastDeltaY;
+    private double prevDeltaXZ;
+    private double prevDeltaY;
     private float lastYaw;
     private float lastPitch;
     private float lastYawDelta;
     private float lastPitchDelta;
+    private float prevYaw;
+    private float prevPitch;
     private int velocityTicksRemaining;
     private double expectedVelocityXZ;
     private double expectedVelocityY;
@@ -72,6 +79,7 @@ public final class PlayerData {
     private double pendingTeleportX;
     private double pendingTeleportY;
     private double pendingTeleportZ;
+    private int lastAttackTargetId;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -82,11 +90,23 @@ public final class PlayerData {
         return uuid;
     }
 
+
+    public int getLastAttackTargetId() {
+        return lastAttackTargetId;
+    }
+
+    public void setLastAttackTargetId(int id) {
+        this.lastAttackTargetId = id;
+    }
+
     public void handleMove(Player player, Location from, Location to, boolean onGround) {
         double dx = to.getX() - from.getX();
         double dz = to.getZ() - from.getZ();
+        prevDeltaXZ = lastDeltaXZ;
+        prevDeltaY = lastDeltaY;
         lastDeltaXZ = Math.sqrt(dx * dx + dz * dz);
         lastDeltaY = to.getY() - from.getY();
+        prevSprinting = player.isSprinting();
 
         float yawDelta = Math.abs(to.getYaw() - lastYaw);
         if (yawDelta > 180.0F) {
@@ -94,6 +114,8 @@ public final class PlayerData {
         }
         lastYawDelta = yawDelta;
         lastPitchDelta = Math.abs(to.getPitch() - lastPitch);
+        prevYaw = lastYaw;
+        prevPitch = lastPitch;
         lastYaw = to.getYaw();
         lastPitch = to.getPitch();
 
@@ -163,9 +185,14 @@ public final class PlayerData {
         return useWindow;
     }
 
+    private double expectedVelX;
+    private double expectedVelZ;
+
     public void armVelocityWindow(Vector velocity, int ticks) {
         double vx = velocity.getX();
         double vz = velocity.getZ();
+        expectedVelX = vx;
+        expectedVelZ = vz;
         expectedVelocityXZ = Math.sqrt(vx * vx + vz * vz);
         expectedVelocityY = Math.abs(velocity.getY());
         observedVelocityXZ = 0.0D;
@@ -178,16 +205,21 @@ public final class PlayerData {
     }
 
     public boolean hasCompletedVelocityWindow() {
-        return velocityTicksRemaining == 0 && (expectedVelocityXZ > 0.0D || expectedVelocityY > 0.0D);
+        return velocityTicksRemaining <= 0 && (expectedVelocityXZ > 0.0D || expectedVelocityY > 0.0D);
     }
 
     public void clearVelocityWindow() {
         velocityTicksRemaining = 0;
         expectedVelocityXZ = 0.0D;
         expectedVelocityY = 0.0D;
+        expectedVelX = 0.0D;
+        expectedVelZ = 0.0D;
         observedVelocityXZ = 0.0D;
         observedVelocityY = 0.0D;
     }
+
+    public double getExpectedVelX() { return expectedVelX; }
+    public double getExpectedVelZ() { return expectedVelZ; }
 
     public double getExpectedVelocityXZ() {
         return expectedVelocityXZ;
@@ -206,7 +238,7 @@ public final class PlayerData {
     }
 
     public void decayViolations(double amount) {
-        for (Iterator<Map.Entry<String, Double>> iterator = violations.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<String, Double>> iterator = violations.entrySet().iterator(); iterator.hasNext();) {
             Map.Entry<String, Double> entry = iterator.next();
             double next = entry.getValue().doubleValue() - amount;
             if (next <= 0.0D) {
@@ -216,7 +248,7 @@ public final class PlayerData {
             }
         }
 
-        for (Iterator<Map.Entry<String, Double>> iterator = buffers.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<String, Double>> iterator = buffers.entrySet().iterator(); iterator.hasNext();) {
             Map.Entry<String, Double> entry = iterator.next();
             double next = entry.getValue().doubleValue() - (amount * 0.5D);
             if (next <= 0.0D) {
@@ -303,6 +335,14 @@ public final class PlayerData {
         this.lastVelocityAt = lastVelocityAt;
     }
 
+    public double getLastVelocityXZ() {
+        return lastVelocityXZ;
+    }
+
+    public void setLastVelocityXZ(double lastVelocityXZ) {
+        this.lastVelocityXZ = lastVelocityXZ;
+    }
+
     public int getClickWindow() {
         return clickWindow;
     }
@@ -336,7 +376,14 @@ public final class PlayerData {
     }
 
     public void setInventoryOpen(boolean inventoryOpen) {
+        if (inventoryOpen && !this.inventoryOpen) {
+            this.inventoryOpenAt = System.currentTimeMillis();
+        }
         this.inventoryOpen = inventoryOpen;
+    }
+
+    public long getInventoryOpenAt() {
+        return inventoryOpenAt;
     }
 
     public Location getLastSafeLocation() {
@@ -355,12 +402,40 @@ public final class PlayerData {
         return lastDeltaY;
     }
 
+    public double getPrevDeltaXZ() {
+        return prevDeltaXZ;
+    }
+
+    public double getPrevDeltaY() {
+        return prevDeltaY;
+    }
+
     public float getLastYawDelta() {
         return lastYawDelta;
     }
 
     public float getLastPitchDelta() {
         return lastPitchDelta;
+    }
+
+    public float getLastYaw() {
+        return lastYaw;
+    }
+
+    public float getLastPitch() {
+        return lastPitch;
+    }
+
+    public float getPrevYaw() {
+        return prevYaw;
+    }
+
+    public boolean wasSprinting() {
+        return prevSprinting;
+    }
+
+    public float getPrevPitch() {
+        return prevPitch;
     }
 
     public long getLastRawMovementPacketAt() {
@@ -439,7 +514,6 @@ public final class PlayerData {
         this.movementUnconfirmed = movementUnconfirmed;
     }
 
-
     public long getTransactionRttJitterNanos() {
         return transactionRttJitterNanos;
     }
@@ -484,6 +558,14 @@ public final class PlayerData {
     }
 
     public boolean isTeleportSyncPending() {
+        if (teleportSyncPending) {
+            // Safety: auto-clear if stuck for too long (e.g. transaction ack failed)
+            long elapsed = System.currentTimeMillis() - lastTeleportAt;
+            if (elapsed > 1500L) {
+                teleportSyncPending = false;
+                movementUnconfirmed = false;
+            }
+        }
         return teleportSyncPending;
     }
 
@@ -552,10 +634,13 @@ public final class PlayerData {
     }
 
     public void recordCurrentHitbox(double x, double y, double z, double width, double height) {
-        double expand = 0.1D;
-        double halfWidth = (width * 0.5D) + expand;
+        // 1.7/1.8 clients get an extra 0.1 hitbox expansion (vanilla behavior, same as
+        // Grim)
+        double hitboxExpand = 0.1D;
+        double halfWidth = (width * 0.5D) + hitboxExpand;
         long now = System.currentTimeMillis();
-        hitboxHistory.addFirst(new HitboxFrame(now, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
+        hitboxHistory.addFirst(
+                new HitboxFrame(now, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
 
         while (!hitboxHistory.isEmpty() && now - hitboxHistory.getLast().getTimestampMillis() > 400L) {
             hitboxHistory.removeLast();
