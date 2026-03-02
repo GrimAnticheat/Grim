@@ -3,14 +3,18 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.MovementFrameCheck;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.MovementFrame;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
+import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
+
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
-public class Timer extends Check implements PacketCheck {
+public class Timer extends Check implements PacketCheck, MovementFrameCheck {
     protected long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time
@@ -62,7 +66,19 @@ public class Timer extends Check implements PacketCheck {
             hasGottenMovementAfterTransaction = false;
         }
 
-        if (!shouldCountPacketForTimer(event.getPacketType())) return;
+        if (isFlying(event.getPacketType()) || !shouldCountPacketForTimer(event.getPacketType())) return;
+
+        countPacketForTimer(event);
+    }
+
+    @Override
+    public void onMovementFrame(final MovementFrame frame) {
+        if (!shouldCountPacketForTimer(frame.source())) return;
+
+        countPacketForTimer(frame.event());
+    }
+
+    protected void countPacketForTimer(final PacketReceiveEvent event) {
 
         hasGottenMovementAfterTransaction = true;
         timerBalanceRealTime += 50e6;

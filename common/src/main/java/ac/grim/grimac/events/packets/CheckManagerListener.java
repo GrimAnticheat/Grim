@@ -717,6 +717,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.packetPlayerOnGround = onGround;
         }
 
+        RotationUpdate rotationUpdate = null;
         if (hasLook) {
             player.yaw = yaw;
             player.pitch = pitch;
@@ -726,14 +727,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             float deltaXRot = player.yaw - player.lastYaw;
             float deltaYRot = player.pitch - player.lastPitch;
 
-            final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastYaw, player.lastPitch), new HeadRotation(player.yaw, player.pitch), deltaXRot, deltaYRot);
-            player.checkManager.onRotationUpdate(update);
+            rotationUpdate = new RotationUpdate(new HeadRotation(player.lastYaw, player.lastPitch), new HeadRotation(player.yaw, player.pitch), deltaXRot, deltaYRot);
         }
 
+        PositionUpdate positionUpdate = null;
         if (hasPosition) {
             Vector3d position = new Vector3d(x, y, z);
             Vector3d clampVector = VectorUtils.clampVector(position);
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
+            positionUpdate = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
             // Stupidity doesn't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
@@ -749,11 +750,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.y = clampVector.getY();
                 player.z = clampVector.getZ();
 
-                player.checkManager.onPositionUpdate(update);
-            } else if (update.isTeleport()) { // Mojang doesn't use their own exit vehicle field to leave vehicles, manually call the setback handler
-                player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update, true));
+            } else if (positionUpdate.isTeleport()) { // Mojang doesn't use their own exit vehicle field to leave vehicles, manually call the setback handler
+                player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, positionUpdate, true));
             }
         }
+
+        player.checkManager.onMovementFrame(new MovementFrame(event.getPacketType(), hasPosition, hasLook, positionUpdate, rotationUpdate, event));
 
         player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
         player.packetStateData.didLastMovementIncludePosition = hasPosition;
