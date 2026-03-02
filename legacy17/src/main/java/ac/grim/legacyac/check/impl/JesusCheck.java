@@ -3,6 +3,7 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -15,11 +16,15 @@ public final class JesusCheck extends Check {
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getPlayer().getLocation().getX(), event.getPlayer().getLocation().getY(), event.getPlayer().getLocation().getZ(), event.getPlayer().getLocation().getYaw(), event.getPlayer().getLocation().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        onMovementFrame(event.getPlayer(), frame, data);
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Player player = event.getPlayer();
         if (isExempt(player, data) || player.isFlying() || player.getVehicle() != null) {
             return;
         }

@@ -3,6 +3,7 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -25,11 +26,18 @@ public final class NoSlowCheck extends Check {
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
+        if (event.getTo() == null) {
+            return;
+        }
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        onMovementFrame(event.getPlayer(), frame, data);
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }

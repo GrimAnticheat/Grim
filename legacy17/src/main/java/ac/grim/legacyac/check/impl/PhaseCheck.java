@@ -3,6 +3,7 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,15 +16,18 @@ public final class PhaseCheck extends Check {
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
+        if (event.getTo() == null) {
+            return;
+        }
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        onMovementFrame(event.getPlayer(), frame, event.getTo(), data);
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame, Location to, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Location to = event.getTo();
-        if (to == null) {
-            return;
-        }
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }
@@ -45,8 +49,6 @@ public final class PhaseCheck extends Check {
         if (!material.isSolid()) {
             return false;
         }
-        // Exempt blocks that are technically "solid" but have partial hitboxes
-        // or that players can overlap with in normal gameplay
         String name = material.name();
         if (name.contains("SIGN") || name.contains("STEP") || name.contains("SLAB")
             || name.contains("STAIR") || name.contains("FENCE") || name.contains("GATE")
