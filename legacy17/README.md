@@ -1,44 +1,73 @@
-# GrimLegacyAC (experimental)
+# GrimLegacyAC (legacy17)
 
-这是一个为 **Spigot 1.7.10** 设计的独立反作弊插件模块，借鉴 Grim 的「玩家状态建模 + 多检查协同 + 缓冲/衰减」思路，使用事件层实现。
+> **一句话 / One sentence:**
+> GrimLegacyAC（legacy17）是一个面向 Spigot 1.7.10 的模块化反作弊插件，基于数据驱动的玩家状态建模与延迟补偿来检测并拦截移动、战斗与交互作弊。  
+> GrimLegacyAC (legacy17) is a modular anti-cheat plugin for Spigot 1.7.10 that uses data-driven player-state modeling and latency compensation to detect and block movement, combat, and interaction cheats.
 
-## 当前实现的检测
+## 简介 | Overview
 
-- Movement: Speed / Fly / Phase / Timer / Jesus / InventoryMove / Prediction
-- Combat: Reach / KillAura / AutoClicker / Velocity
-- World/Interact: FastPlace / FastBreak / FastUse
-- Misc: NoFall
+GrimLegacyAC 是 Grim 思路在 1.7.10 环境下的独立实现版本，重点是：
 
-> 说明：由于 1.7.10 环境与协议差异，无法 1:1 复刻 Grim 全部现代检测，但已按 Grim 的模块化思路扩展到多类别检测，并可继续迭代。
+- 多检查协同（Movement / Combat / World / Misc）
+- 交易包与 KeepAlive 延迟感知
+- 回溯命中盒（Backtrack hitbox）与射线判定
+- 缓冲（Buffer）与违规值（VL）累计/衰减
+- 调试证据输出与自动处罚命令
 
-## 架构特性（相对上一版加强）
+---
 
-- ProtocolLib 包监听（优先监听 POSITION / POSITION_LOOK / LOOK / FLYING / TRANSACTION / KEEP_ALIVE）
-- Netty pipeline 注入（作为 ProtocolLib 不可用时的回退方案）
-- Transaction RTT 同步（主动发 `PacketPlayOutTransaction`，监听 `PacketPlayInTransaction` 精确计算往返时延）
-- 影子模拟器（Shadow Engine）：`ExpectedPos = LastPos + Motion * Friction`，并将偏差融合进 Prediction 判定
-- Prediction 静止门控：位移趋近于 0 时跳过物理模拟，降低每 Tick 计算量
-- 启发式滑动窗口评分：异常时累加偏差，正常时缓慢衰减，降低瞬时网络抖动误报
-- 自适应延迟门控：RTT 抖动或低 TPS 时自动放宽 Reach/Speed 判定阈值
-- Teleport Sync 冻结：收到服务端 POSITION 后冻结移动模拟，直到客户端回传并确认交易包
-- Combat 空间判定：UseEntity + AABB RayTrace + 400ms Backtrack 历史盒子
-- 每玩家状态缓存（位移、旋转变化、空中/落地 tick、CPS 窗口、移动频率窗口、速度响应窗口）
-- 每检测独立 `buffer` 与 `VL`，减少瞬时误报
-- 全局 `violation-decay-per-second` 衰减机制（每秒任务）
-- 加入 join/teleport/velocity 保护窗口，减少回弹与受击后误报
-- 支持检测级自动处罚命令（`punish-vl` + `punish-commands`）
-- `/glac profile <player>`
-- `/glac debug <player>` 切换调试证据输出（如 Reach 偏差、RTT、Buffer、Tick 等结构化信息）
+## 功能列表 | Features
 
-## 构建
+### Movement
+- Speed
+- Fly
+- Phase
+- Timer
+- Jesus
+- InventoryMove
+- Prediction
+
+### Combat
+- Reach
+- KillAura
+- AutoClicker
+- Velocity
+
+### World / Interact
+- FastPlace
+- FastBreak
+- FastUse
+
+### Misc
+- NoFall
+
+---
+
+## 架构特性 | Architecture Highlights
+
+- ProtocolLib 包监听（POSITION / LOOK / FLYING / TRANSACTION / KEEP_ALIVE）
+- Netty pipeline 注入（ProtocolLib 不可用时回退）
+- Transaction RTT 同步（发出并确认交易包，估算往返延迟）
+- Shadow Prediction（ExpectedPos = LastPos + Motion × Friction）
+- 自适应延迟门控（高 jitter / 低 TPS 时动态放宽阈值）
+- Teleport Sync 冻结机制（防止传送阶段误报）
+- Reach 射线 + 历史 hitbox 回溯判定（默认 400ms）
+
+---
+
+## 构建 | Build
 
 ```bash
 ./gradlew :legacy17:build
 ```
 
-产物在 `legacy17/build/libs/` 下。
+构建产物位于：
 
-## 命令
+- `legacy17/build/libs/`
+
+---
+
+## 命令 | Commands
 
 - `/glac info`
 - `/glac alerts`
@@ -46,8 +75,30 @@
 - `/glac profile <player>`
 - `/glac debug <player>`
 
-## 权限
+---
+
+## 权限 | Permissions
 
 - `grimlegacy.command`
 - `grimlegacy.alerts`
 - `grimlegacy.bypass`
+
+---
+
+## 配置提示 | Config Tips
+
+重点配置路径（`legacy17/src/main/resources/config.yml`）：
+
+- `transaction.*`：交易包同步频率与 ACK 时效
+- `combat.backtrack-window-ms`：回溯命中盒时间窗口
+- `adaptive-lag.*`：高延迟自适应阈值
+- `checks.<CheckName>.*`：每个检测的开关、buffer、setback、处罚
+
+建议先开启 `/glac debug <player>` 在测试服观察证据日志，再调整阈值上线。
+
+---
+
+## 兼容说明 | Compatibility
+
+- 目标平台：**Spigot 1.7.10**
+- 属于实验性模块，建议在测试环境先验证参数后再用于生产服。
