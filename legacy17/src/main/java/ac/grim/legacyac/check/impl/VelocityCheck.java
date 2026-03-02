@@ -3,6 +3,7 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
@@ -24,11 +25,10 @@ public final class VelocityCheck extends Check {
             return;
         }
 
-        // Only arm the window if the knockback is significant enough to measure
         double xz = Math.sqrt(velocity.getX() * velocity.getX() + velocity.getZ() * velocity.getZ());
         double minExpectedXZ = plugin.getConfig().getDouble("checks.Velocity.min-expected-xz", 0.08D);
         if (xz < minExpectedXZ && Math.abs(velocity.getY()) < 0.05D) {
-            return; // Too small to reliably detect
+            return;
         }
 
         int ticks = plugin.getConfig().getInt("checks.Velocity.window-ticks", 8);
@@ -36,21 +36,26 @@ public final class VelocityCheck extends Check {
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
+        if (event.getTo() == null) {
+            return;
+        }
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        onMovementFrame(event.getPlayer(), frame, data);
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }
 
-        // Still waiting for the velocity window to expire
         if (data.hasPendingVelocityWindow()) {
             return;
         }
 
-        // No completed velocity window → nothing to check
         if (!data.hasCompletedVelocityWindow()) {
             return;
         }
@@ -71,13 +76,6 @@ public final class VelocityCheck extends Check {
 
         double minRatioXZ = plugin.getConfig().getDouble("checks.Velocity.min-response-ratio-xz", 0.40D);
         double minRatioY = plugin.getConfig().getDouble("checks.Velocity.min-response-ratio-y", 0.25D);
-
-        // Vanilla combat mechanics: when a player attacks while sprinting, their
-        // own motion is multiplied by 0.6 (NMS EntityLiving.attackTargetEntityWithCurrentItem).
-        // Combined with opposing movement input (~0.1 blocks/t), a legit player doing
-        // W-tap/sprint-reset can reduce observed KB to roughly expectedXZ * 0.6 - 0.1.
-        // For expected=0.85 this gives ~0.41 ratio. We use 0.25 as the floor to still
-        // catch real anti-KB (21% velocity → ratio 0.21 which is below 0.25).
         boolean inCombat = (System.currentTimeMillis() - data.getLastAttackAt()) < 500L;
         if (inCombat) {
             minRatioXZ = Math.min(minRatioXZ, 0.25D);
@@ -105,7 +103,6 @@ public final class VelocityCheck extends Check {
             double deviation = 1.0D - Math.min(xzRatio, yRatio);
             double weight = plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D);
             double buffer = slideAndAddScore(data, deviation, weight);
-            
             if (buffer > plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D)) {
                 flag(player, data, deviation,
                     "expXZ=" + fmt(expectedXZ) + " obsXZ=" + fmt(observedXZ)

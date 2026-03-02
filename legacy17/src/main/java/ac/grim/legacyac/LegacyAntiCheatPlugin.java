@@ -52,6 +52,7 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         }, 20L, 20L);
 
         getLogger().info("GrimLegacyAC enabled with " + checkManager.getCheckCount() + " checks.");
+        getLogger().info("当前启用的移动检查执行路径: " + checkManager.describeMovementExecutionPath());
     }
 
     @Override

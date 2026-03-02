@@ -3,6 +3,8 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -14,22 +16,26 @@ public final class FlyCheck extends Check {
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
+        if (event.getTo() == null) {
+            return;
+        }
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        onMovementFrame(event.getPlayer(), frame, event.getTo(), data);
+    }
+
+    public void onMovementFrame(Player player, MovementFrame frame, Location to, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
 
-        Player player = event.getPlayer();
         if (isExempt(player, data)) {
             return;
         }
         if (player.isFlying() || player.getAllowFlight() || player.getVehicle() != null) {
             return;
         }
-        if (event.getTo() == null) {
-            return;
-        }
 
-        if (player.isOnGround() || event.getTo().getBlock().getType() == Material.WATER || event.getTo().getBlock().getType() == Material.LAVA) {
+        if (frame.isOnGround() || to.getBlock().getType() == Material.WATER || to.getBlock().getType() == Material.LAVA) {
             return;
         }
 

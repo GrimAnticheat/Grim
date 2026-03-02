@@ -146,51 +146,11 @@ public final class CheckManager implements Listener {
             }
         }
 
+        long now = System.nanoTime();
+        MovementFrame frame = new MovementFrame(now, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
         PlayerData data = plugin.getPlayerData(player);
-        data.setMovementFrame(to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), System.nanoTime());
-        data.handleMove(player, event.getFrom(), to, player.isOnGround());
-
-        if (data.isTeleportSyncPending()) {
-            if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleportSyncPending=true");
-            }
-            return;
-        }
-
-        for (SpeedCheck check : speedChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
-            check.onMovementFrame(player, frame, event.getFrom(), to, data);
-        }
-        for (FlyCheck check : flyChecks) {
-            check.onMove(event, data);
-        }
-        for (PhaseCheck check : phaseChecks) {
-            check.onMove(event, data);
-        }
-        for (TimerCheck check : timerChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
-            check.onMovementFrame(player, frame, data);
-        }
-        for (VelocityCheck check : velocityChecks) {
-            check.onMove(event, data);
-        }
-        for (JesusCheck check : jesusChecks) {
-            check.onMove(event, data);
-        }
-        for (InventoryMoveCheck check : inventoryMoveChecks) {
-            check.onMove(event, data);
-        }
-        for (PredictionMovementCheck check : predictionChecks) {
-            MovementFrame frame = new MovementFrame(System.nanoTime(), to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
-            check.onMovementFrame(player, frame, to, data);
-        }
-        for (NoSlowCheck check : noSlowChecks) {
-            check.onMove(event, data);
-        }
-
-        if (player.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
-            data.setLastSafeLocation(to.clone());
-        }
+        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
+        executeMovementPipeline(player, data, frame, event.getFrom(), to);
     }
 
     public void onMovementFrame(Player player, MovementFrame frame) {
@@ -238,6 +198,12 @@ public final class CheckManager implements Listener {
         for (TimerCheck check : timerChecks) {
             check.onMovementFrame(player, frame, data);
         }
+        for (InventoryMoveCheck check : inventoryMoveChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
+        for (NoSlowCheck check : noSlowChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
     }
 
     private void runPredictionChecks(Player player, MovementFrame frame, Location to, PlayerData data) {
@@ -250,9 +216,35 @@ public final class CheckManager implements Listener {
         for (SpeedCheck check : speedChecks) {
             check.onMovementFrame(player, frame, from, to, data);
         }
+        for (FlyCheck check : flyChecks) {
+            check.onMovementFrame(player, frame, to, data);
+        }
+        for (PhaseCheck check : phaseChecks) {
+            check.onMovementFrame(player, frame, to, data);
+        }
+        for (VelocityCheck check : velocityChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
+        for (JesusCheck check : jesusChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
     }
 
 
+
+
+    public String describeMovementExecutionPath() {
+        boolean packetFirst = plugin.getConfig().getBoolean("pipeline.packet-first", true);
+        boolean packetActive = plugin.isPacketPipelineActive();
+        boolean bukkitFallback = plugin.getConfig().getBoolean("pipeline.bukkit-fallback", true);
+        if (packetFirst && packetActive) {
+            if (bukkitFallback) {
+                return "PACKET_FIRST_WITH_STALE_BUKKIT_FALLBACK";
+            }
+            return "PACKET_ONLY";
+        }
+        return "BUKKIT_MOVE_EVENT";
+    }
 
     public void onInternalPacketEvent(InternalPacketEvent event) {
         Player player = event.getPlayer();
