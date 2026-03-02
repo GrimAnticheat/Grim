@@ -84,6 +84,7 @@ public class CheckManager {
     private final List<RotationCheck> rotationChecksValues;
     private final List<VehicleCheck> vehicleChecksValues;
     private final List<PacketCheck> prePredictionChecksValues;
+    private final List<MovementFrameCheck> movementFrameChecksValues;
     private final List<BlockBreakCheck> blockBreakChecksValues;
     private final List<BlockPlaceCheck> blockPlaceChecksValues;
     private final List<PostPredictionCheck> postPredictionChecksValues;
@@ -282,6 +283,12 @@ public class CheckManager {
         rotationChecksValues = new ArrayList<>(rotationChecks.values());
         vehicleChecksValues = new ArrayList<>(vehicleChecks.values());
         prePredictionChecksValues = new ArrayList<>(prePredictionChecks.values());
+        movementFrameChecksValues = new ArrayList<>();
+        for (PacketCheck check : prePredictionChecksValues) {
+            if (check instanceof MovementFrameCheck movementFrameCheck) {
+                movementFrameChecksValues.add(movementFrameCheck);
+            }
+        }
         blockBreakChecksValues = new ArrayList<>(blockBreakChecks.values());
         blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
         postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
@@ -366,6 +373,20 @@ public class CheckManager {
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {
         for (VehicleCheck check : vehicleChecksValues) {
             check.process(update);
+        }
+    }
+
+    public void onMovementFrame(final MovementFrame movementFrame) {
+        for (MovementFrameCheck check : movementFrameChecksValues) {
+            check.onMovementFrame(movementFrame);
+        }
+
+        if (movementFrame.hasLook() && movementFrame.rotationUpdate() != null) {
+            onRotationUpdate(movementFrame.rotationUpdate());
+        }
+
+        if (movementFrame.hasPosition() && movementFrame.positionUpdate() != null) {
+            onPositionUpdate(movementFrame.positionUpdate());
         }
     }
 
