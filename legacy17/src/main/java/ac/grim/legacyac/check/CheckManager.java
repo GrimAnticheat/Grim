@@ -16,7 +16,7 @@ import ac.grim.legacyac.check.impl.PredictionMovementCheck;
 import ac.grim.legacyac.check.impl.ReachCheck;
 import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
-import ac.grim.legacyac.check.impl.VelocityCheck;
+import ac.grim.legacyac.check.impl.KnockbackHandlerLegacy;
 import ac.grim.legacyac.combat.EntityIdIndex;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.InternalPacketEvent;
@@ -58,7 +58,7 @@ public final class CheckManager implements Listener {
     private final List<NoFallCheck> noFallChecks = new ArrayList<NoFallCheck>();
     private final List<KillAuraCheck> killAuraChecks = new ArrayList<KillAuraCheck>();
     private final List<TimerCheck> timerChecks = new ArrayList<TimerCheck>();
-    private final List<VelocityCheck> velocityChecks = new ArrayList<VelocityCheck>();
+    private final List<KnockbackHandlerLegacy> knockbackChecks = new ArrayList<KnockbackHandlerLegacy>();
     private final List<JesusCheck> jesusChecks = new ArrayList<JesusCheck>();
     private final List<FastPlaceCheck> fastPlaceChecks = new ArrayList<FastPlaceCheck>();
     private final List<FastBreakCheck> fastBreakChecks = new ArrayList<FastBreakCheck>();
@@ -80,7 +80,7 @@ public final class CheckManager implements Listener {
         noFallChecks.add(new NoFallCheck(plugin));
         killAuraChecks.add(new KillAuraCheck(plugin));
         timerChecks.add(new TimerCheck(plugin));
-        velocityChecks.add(new VelocityCheck(plugin));
+        knockbackChecks.add(new KnockbackHandlerLegacy(plugin));
         jesusChecks.add(new JesusCheck(plugin));
         fastPlaceChecks.add(new FastPlaceCheck(plugin));
         fastBreakChecks.add(new FastBreakCheck(plugin));
@@ -98,7 +98,7 @@ public final class CheckManager implements Listener {
 
     public int getCheckCount() {
         return speedChecks.size() + flyChecks.size() + phaseChecks.size() + reachChecks.size() + autoClickerChecks.size() + noFallChecks.size()
-            + killAuraChecks.size() + timerChecks.size() + velocityChecks.size() + jesusChecks.size() + fastPlaceChecks.size() + fastBreakChecks.size()
+            + killAuraChecks.size() + timerChecks.size() + knockbackChecks.size() + jesusChecks.size() + fastPlaceChecks.size() + fastBreakChecks.size()
             + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size();
     }
 
@@ -215,6 +215,7 @@ public final class CheckManager implements Listener {
 
         runPreChecks(player, frame, data);
         runPredictionChecks(player, frame, to, data);
+        data.updateKnockbackStages();
         runPostChecks(player, frame, from, to, data);
 
         if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
@@ -255,7 +256,7 @@ public final class CheckManager implements Listener {
         for (PhaseCheck check : phaseChecks) {
             check.onMovementFrame(player, frame, to, data);
         }
-        for (VelocityCheck check : velocityChecks) {
+        for (KnockbackHandlerLegacy check : knockbackChecks) {
             check.onMovementFrame(player, frame, data);
         }
         for (JesusCheck check : jesusChecks) {
@@ -325,30 +326,15 @@ public final class CheckManager implements Listener {
 
         if (event.getType() == InternalPacketEvent.Type.SERVER_ENTITY_VELOCITY) {
             Integer entityId = event.getEntityId();
-            if (entityId == null || entityId.intValue() != player.getEntityId()) {
-                return;
-            }
             Integer vx = event.getVelocityX();
             Integer vy = event.getVelocityY();
             Integer vz = event.getVelocityZ();
-            if (vx == null || vy == null || vz == null) {
+            if (entityId == null || vx == null || vy == null || vz == null) {
                 return;
             }
-            final double dx = vx.intValue() / 8000.0D;
-            final double dy = vy.intValue() / 8000.0D;
-            final double dz = vz.intValue() / 8000.0D;
-            final Player scheduled = player;
-            plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    if (!scheduled.isOnline()) {
-                        return;
-                    }
-                    org.bukkit.util.Vector vector = new org.bukkit.util.Vector(dx, dy, dz);
-                    org.bukkit.event.player.PlayerVelocityEvent bukkitEvent = new org.bukkit.event.player.PlayerVelocityEvent(scheduled, vector);
-                    onVelocity(bukkitEvent);
-                }
-            });
+            for (KnockbackHandlerLegacy check : knockbackChecks) {
+                check.onVelocityPacket(player, data, entityId.intValue(), vx.intValue(), vy.intValue(), vz.intValue(), event.getCreatedAtNanos());
+            }
         }
     }
 
@@ -504,9 +490,6 @@ public final class CheckManager implements Listener {
         org.bukkit.util.Vector vel = event.getVelocity();
         double xzMagnitude = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
         data.setLastVelocityXZ(xzMagnitude);
-        for (VelocityCheck check : velocityChecks) {
-            check.onVelocity(event, data);
-        }
     }
 
     @EventHandler(ignoreCancelled = true)

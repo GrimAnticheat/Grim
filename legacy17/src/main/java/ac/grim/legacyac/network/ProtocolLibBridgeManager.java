@@ -198,16 +198,7 @@ public final class ProtocolLibBridgeManager {
                 int vy = packet.getIntegers().read(2);
                 int vz = packet.getIntegers().read(3);
                 LegacyAntiCheatPlugin antiCheatPlugin = (LegacyAntiCheatPlugin) plugin;
-                PlayerData data = antiCheatPlugin.getPlayerData(event.getPlayer());
                 long sentAtNanos = System.nanoTime();
-                short preTxId = 0;
-                short postTxId = 0;
-                if (antiCheatPlugin.transactionSync() != null) {
-                    preTxId = antiCheatPlugin.transactionSync().sendTransactionNow(event.getPlayer());
-                    postTxId = antiCheatPlugin.transactionSync().sendTransactionNow(event.getPlayer());
-                }
-                long txWindowMaxMs = antiCheatPlugin.getConfig().getLong("checks.Velocity.tx-window-max-ms", 500L);
-                data.startVelocitySample(sentAtNanos, preTxId, postTxId, vx / 8000.0D, vy / 8000.0D, vz / 8000.0D, txWindowMaxMs);
                 antiCheatPlugin.checks().onInternalPacketEvent(
                     InternalPacketEvent.serverEntityVelocity(event.getPlayer(), entityId, vx, vy, vz, sentAtNanos));
             }
