@@ -227,6 +227,10 @@ checks:
     max-vl: 8.0
     setback: false
     slow-factor: 0.2
+    min-using-ticks: 2
+    min-consecutive-violation-ticks: 2
+    slot-switch-grace-ticks: 2
+    prediction-min-deviation-threshold: 0.035
     buffer: 0.4
     window-weight: 1.0
     punish-vl: 18
