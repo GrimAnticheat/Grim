@@ -208,8 +208,10 @@ public final class PacketPipelineInjector {
             Integer velY = readIntegerField(packet, "c");
             Integer velZ = readIntegerField(packet, "d");
             if (entityId != null && velX != null && velY != null && velZ != null) {
-                plugin.checks().onInternalPacketEvent(
-                    InternalPacketEvent.serverEntityVelocity(player, entityId.intValue(), velX.intValue(), velY.intValue(), velZ.intValue(), System.nanoTime()));
+                if (entityId.intValue() == player.getEntityId()) {
+                    plugin.checks().onInternalPacketEvent(
+                        InternalPacketEvent.serverEntityVelocity(player, entityId.intValue(), velX.intValue(), velY.intValue(), velZ.intValue(), System.nanoTime()));
+                }
             } else {
                 warnReflectionFailureOnce(packetName, "entityId/velocity");
             }

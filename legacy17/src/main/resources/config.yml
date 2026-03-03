@@ -153,6 +153,23 @@ checks:
     punish-vl: 20
     punish-commands:
       - "kick %player% Timer cheat (%check% VL:%vl%)"
+  Knockback:
+    enabled: true
+    max-vl: 8.0
+    setback: true
+    threshold: 0.001
+    max-advantage: 1.0
+    immediate-setback-threshold: 0.10
+    setback-decay-multiplier: 0.999
+    max-ceiling: 4.0
+    tx-window-max-ms: 500
+    delayed-window-ticks: 3
+    min-samples: 2
+    window-ticks: 8
+    buffer: 1.2
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% Knockback cheat (%check% VL:%vl%)"
   Velocity:
     enabled: true
     max-vl: 8.0

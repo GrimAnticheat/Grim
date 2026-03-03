@@ -66,7 +66,14 @@ public final class PlayerData {
     private int rawMovementPacketCounter;
     private final Map<Short, Long> pendingTransactions = new ConcurrentHashMap<Short, Long>();
     private final LinkedList<VelocitySample> velocitySamples = new LinkedList<VelocitySample>();
+    private final LinkedList<KnockbackSample> knockbackSamples = new LinkedList<KnockbackSample>();
     private static final int VELOCITY_SAMPLE_LIMIT = 12;
+    private static final int KNOCKBACK_SAMPLE_LIMIT = 12;
+    private KnockbackSample firstBreadKB;
+    private KnockbackSample likelyKB;
+    private double knockbackOffset;
+    private short knockbackTransactionId;
+    private boolean knockbackSetbackLike;
     private short transactionActionCounter;
     private long lastTransactionRttNanos;
     private long lastTransactionRttSampleNanos;
@@ -756,7 +763,11 @@ public final class PlayerData {
         for (VelocitySample sample : velocitySamples) {
             sample.handleAck(actionId, recvAtNanos);
         }
+        for (KnockbackSample sample : knockbackSamples) {
+            sample.handleAck(actionId);
+        }
         pruneVelocitySamples();
+        pruneKnockbackSamples();
     }
 
     public void startVelocitySample(long sentAtNanos, short preTxId, short postTxId, double vx, double vy, double vz, long txWindowMaxMs) {
@@ -794,6 +805,205 @@ public final class PlayerData {
 
     private VelocitySample getCurrentVelocitySampleUnsafe() {
         return velocitySamples.isEmpty() ? null : velocitySamples.getLast();
+    }
+
+
+    public void startKnockbackSample(long sentAtNanos, int entityId, short preTxId, short postTxId,
+                                     double vx, double vy, double vz, boolean setbackLike, long txWindowMaxMs) {
+        KnockbackSample sample = new KnockbackSample(sentAtNanos, entityId, preTxId, postTxId, vx, vy, vz, setbackLike, txWindowMaxMs);
+        knockbackSamples.addLast(sample);
+        while (knockbackSamples.size() > KNOCKBACK_SAMPLE_LIMIT) {
+            knockbackSamples.removeFirst();
+        }
+        firstBreadKB = null;
+        likelyKB = null;
+        knockbackTransactionId = postTxId;
+        knockbackSetbackLike = setbackLike;
+    }
+
+    public void updateKnockbackStages() {
+        firstBreadKB = null;
+        likelyKB = null;
+        for (KnockbackSample sample : knockbackSamples) {
+            if (sample.isCompleted()) {
+                continue;
+            }
+            if (sample.isFirstBread()) {
+                firstBreadKB = sample;
+            }
+            if (sample.isLikely()) {
+                likelyKB = sample;
+            }
+            if (likelyKB != null) {
+                break;
+            }
+        }
+    }
+
+    public void updateKnockbackOffset(double offset) {
+        if (firstBreadKB != null) {
+            firstBreadKB.observe(offset);
+        }
+        if (likelyKB != null) {
+            likelyKB.observe(offset);
+        }
+        double bestOffset = offset;
+        if (likelyKB != null) {
+            bestOffset = Math.min(bestOffset, likelyKB.getOffset());
+        }
+        if (firstBreadKB != null) {
+            bestOffset = Math.min(bestOffset, firstBreadKB.getOffset());
+        }
+        if (bestOffset < knockbackOffset || knockbackOffset == 0.0D) {
+            knockbackOffset = Math.max(0.0D, bestOffset);
+        }
+    }
+
+    public void recordKnockbackObservedMotion(double observedHorizontal, double responseThreshold, int delayedWindowTicks) {
+        if (likelyKB != null) {
+            likelyKB.recordObservedMotion(observedHorizontal, responseThreshold, delayedWindowTicks);
+        }
+        if (firstBreadKB != null) {
+            firstBreadKB.recordObservedMotion(observedHorizontal, responseThreshold, delayedWindowTicks);
+        }
+    }
+
+    public void completeCurrentKnockbackSample() {
+        if (likelyKB != null) {
+            likelyKB.markCompleted();
+        } else if (firstBreadKB != null) {
+            firstBreadKB.markCompleted();
+        }
+        pruneKnockbackSamples();
+        firstBreadKB = null;
+        likelyKB = null;
+    }
+
+    public void pruneKnockbackSamples() {
+        Iterator<KnockbackSample> iterator = knockbackSamples.iterator();
+        while (iterator.hasNext()) {
+            KnockbackSample sample = iterator.next();
+            if (sample.isExpired() || sample.isCompleted()) {
+                iterator.remove();
+            }
+        }
+        while (knockbackSamples.size() > KNOCKBACK_SAMPLE_LIMIT) {
+            knockbackSamples.removeFirst();
+        }
+    }
+
+    public KnockbackSample getFirstBreadKB() {
+        updateKnockbackStages();
+        return firstBreadKB;
+    }
+
+    public KnockbackSample getLikelyKB() {
+        updateKnockbackStages();
+        return likelyKB;
+    }
+
+    public double getKnockbackOffset() {
+        return knockbackOffset;
+    }
+
+    public void setKnockbackOffset(double knockbackOffset) {
+        this.knockbackOffset = knockbackOffset;
+    }
+
+    public void addKnockbackScore(double amount) {
+        this.knockbackOffset += Math.max(0.0D, amount);
+    }
+
+    public void decayKnockbackScore(double multiplier) {
+        this.knockbackOffset *= Math.max(0.0D, Math.min(1.0D, multiplier));
+    }
+
+    public short getKnockbackTransactionId() {
+        return knockbackTransactionId;
+    }
+
+    public boolean isKnockbackSetbackLike() {
+        return knockbackSetbackLike;
+    }
+
+    public static final class KnockbackSample {
+        private final long expiresAtNanos;
+        private final int entityId;
+        private final short preTransactionId;
+        private final short postTransactionId;
+        private final double vx;
+        private final double vy;
+        private final double vz;
+        private final boolean setbackLike;
+        private boolean preAck;
+        private boolean postAck;
+        private boolean completed;
+        private boolean delayedPattern;
+        private double offset = Double.MAX_VALUE;
+        private int ticksObserved;
+        private int initialSilentTicks;
+        private double maxObservedHorizontal;
+
+        private KnockbackSample(long sentAtNanos, int entityId, short preTransactionId, short postTransactionId,
+                                double vx, double vy, double vz, boolean setbackLike, long txWindowMaxMs) {
+            this.entityId = entityId;
+            this.preTransactionId = preTransactionId;
+            this.postTransactionId = postTransactionId;
+            this.vx = vx;
+            this.vy = vy;
+            this.vz = vz;
+            this.setbackLike = setbackLike;
+            this.expiresAtNanos = sentAtNanos + (Math.max(150L, txWindowMaxMs) * 1000000L);
+        }
+
+        private void handleAck(short actionId) {
+            if (actionId == preTransactionId) {
+                preAck = true;
+            }
+            if (actionId == postTransactionId) {
+                postAck = true;
+            }
+        }
+
+        private void observe(double currentOffset) {
+            if (!preAck || postAck) {
+                return;
+            }
+            ticksObserved++;
+            if (currentOffset < offset) {
+                offset = currentOffset;
+            }
+        }
+
+        private void recordObservedMotion(double observedHorizontal, double responseThreshold, int delayedTicks) {
+            if (!preAck || postAck) {
+                return;
+            }
+            if (observedHorizontal > maxObservedHorizontal) {
+                maxObservedHorizontal = observedHorizontal;
+            }
+            if (ticksObserved <= Math.max(1, delayedTicks) && observedHorizontal < responseThreshold) {
+                initialSilentTicks++;
+            }
+            if (initialSilentTicks >= 1 && ticksObserved > Math.max(1, delayedTicks)
+                && observedHorizontal >= responseThreshold * 1.8D) {
+                delayedPattern = true;
+            }
+        }
+
+        private boolean isExpired() { return System.nanoTime() > expiresAtNanos; }
+        private boolean isCompleted() { return completed || postAck; }
+        private boolean isFirstBread() { return preAck && !postAck; }
+        private boolean isLikely() { return preAck && postAck; }
+        private void markCompleted() { this.completed = true; }
+        public int getEntityId() { return entityId; }
+        public short getPreTransactionId() { return preTransactionId; }
+        public short getPostTransactionId() { return postTransactionId; }
+        public boolean isSetbackLike() { return setbackLike; }
+        public double getOffset() { return offset == Double.MAX_VALUE ? 0.0D : offset; }
+        public int getTicksObserved() { return ticksObserved; }
+        public boolean isDelayedPattern() { return delayedPattern; }
+        public double horizontalMagnitude() { return Math.sqrt((vx * vx) + (vz * vz)); }
     }
 
     public static final class VelocitySample {
