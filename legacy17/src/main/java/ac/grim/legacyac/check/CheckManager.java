@@ -159,7 +159,7 @@ public final class CheckManager implements Listener {
         PlayerData data = plugin.getPlayerData(player);
 
         if (!frame.hasPosition()) {
-            data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
+            runTimingChecks(player, frame, data);
             return;
         }
 
@@ -202,13 +202,17 @@ public final class CheckManager implements Listener {
 
 
     private void runPreChecks(Player player, MovementFrame frame, PlayerData data) {
-        for (TimerCheck check : timerChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
+        runTimingChecks(player, frame, data);
         for (InventoryMoveCheck check : inventoryMoveChecks) {
             check.onMovementFrame(player, frame, data);
         }
         for (NoSlowCheck check : noSlowChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
+    }
+
+    private void runTimingChecks(Player player, MovementFrame frame, PlayerData data) {
+        for (TimerCheck check : timerChecks) {
             check.onMovementFrame(player, frame, data);
         }
     }
