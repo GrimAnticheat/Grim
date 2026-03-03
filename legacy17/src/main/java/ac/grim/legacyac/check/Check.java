@@ -77,7 +77,21 @@ public abstract class Check {
         double jitterThreshold = plugin.getConfig().getDouble("adaptive-lag.jitter-threshold-ms", 50.0D);
         double tps = plugin.checks().getCurrentTps();
         double minTps = plugin.getConfig().getDouble("adaptive-lag.min-tps", 18.0D);
-        return jitterMs >= jitterThreshold || tps < minTps;
+        boolean networkLag = jitterMs >= jitterThreshold || tps < minTps;
+        return networkLag && data.getMovementStateSnapshot().isFullyAligned();
+    }
+
+
+    protected void logAdaptiveLagComparison(Player player, PlayerData data, String checkName, double baseLimit, double finalLimit, String note) {
+        if (!plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
+            return;
+        }
+        plugin.getLogger().info("[GLAC-LAG-COMPARE] player=" + player.getName()
+            + " check=" + checkName
+            + " pending=" + data.getPendingWorldChangesCount()
+            + " base=" + String.format(Locale.ROOT, "%.4f", baseLimit)
+            + " final=" + String.format(Locale.ROOT, "%.4f", finalLimit)
+            + " note=" + note);
     }
 
     protected void flag(Player player, PlayerData data, double amount, String detail) {

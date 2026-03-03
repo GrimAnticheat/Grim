@@ -41,6 +41,7 @@ public final class SpeedCheck extends Check {
         double deltaY = data.getLastDeltaY();
         boolean onGround = frame.isOnGround();
         boolean wasOnGround = data.wasOnGround();
+        PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
 
         // ---- Calculate physics-based max speed ----
 
@@ -133,10 +134,15 @@ public final class SpeedCheck extends Check {
         // Network/timing tolerance
         max += 0.01D;
 
-        // Lag tolerance
-        if (isLagging(data)) {
-            max *= plugin.getConfig().getDouble("adaptive-lag.speed-tolerance-multiplier", 1.15D);
+        // Adaptive lag: prioritize state alignment, only add small tolerance once aligned
+        double baseMax = max;
+        if (isLagging(data) && state.isFullyAligned()) {
+            max += plugin.getConfig().getDouble("adaptive-lag.speed-small-margin", 0.03D);
         }
+        if (!state.isFullyAligned()) {
+            max += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
+        }
+        logAdaptiveLagComparison(player, data, getName(), baseMax, max, "speed-state-aligned=" + state.isFullyAligned());
 
         // Knockback tolerance — knockback creates an instantaneous velocity injection that
         // the burst model (prev*friction+accel) cannot account for because prev was pre-knockback.
@@ -169,7 +175,8 @@ public final class SpeedCheck extends Check {
                 + fmt(horizontal) + " max=" + fmt(max) + " prev=" + fmt(data.getPrevDeltaXZ())
                 + " accel=" + fmt(acceleration) + " steady=" + fmt(steadyStateMax)
                 + " burst=" + fmt(burstMax) + " onGround=" + onGround
-                + " sprint=" + sprinting + " jump=" + isJumping);
+                + " sprint=" + sprinting + " jump=" + isJumping
+                + " pending=" + state.getPendingChanges());
         }
 
         // ---- Check and flag ----

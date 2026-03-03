@@ -4,6 +4,7 @@ import ac.grim.legacyac.combat.HitboxFrame;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 import java.util.UUID;
@@ -89,6 +90,8 @@ public final class PlayerData {
     private long lastMovementFrameAtNanos;
     private boolean previousOnGround;
     private boolean currentOnGround;
+    private final LinkedList<PendingWorldChange> pendingWorldChanges = new LinkedList<PendingWorldChange>();
+    private final MovementStateSnapshot movementStateSnapshot = new MovementStateSnapshot();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -109,6 +112,7 @@ public final class PlayerData {
     }
 
     public void handleMove(Player player, Location from, Location to, boolean onGround) {
+        applyPendingWorldChanges();
         double dx = to.getX() - from.getX();
         double dz = to.getZ() - from.getZ();
         prevDeltaXZ = lastDeltaXZ;
@@ -164,6 +168,23 @@ public final class PlayerData {
                 observedVelocityY = absY;
             }
             velocityTicksRemaining--;
+        }
+
+        movementStateSnapshot.updateFrom(this, System.currentTimeMillis());
+    }
+
+    private void applyPendingWorldChanges() {
+        long now = System.currentTimeMillis();
+        Iterator<PendingWorldChange> iterator = pendingWorldChanges.iterator();
+        while (iterator.hasNext()) {
+            PendingWorldChange change = iterator.next();
+            if (change.getEffectiveAtMillis() > now) {
+                continue;
+            }
+            if (change.getType() == PendingWorldChangeType.TELEPORT) {
+                movementUnconfirmed = false;
+            }
+            iterator.remove();
         }
     }
 
@@ -541,6 +562,7 @@ public final class PlayerData {
             }
             lastTransactionRttSampleNanos = lastTransactionRttNanos;
             lastTransTime = System.currentTimeMillis();
+            movementStateSnapshot.updateFrom(this, lastTransTime);
         }
     }
 
@@ -598,6 +620,7 @@ public final class PlayerData {
         movementUnconfirmed = true;
         lastTeleportAt = System.currentTimeMillis();
         movementFrameInitialized = false;
+        enqueuePendingWorldChange(PendingWorldChangeType.TELEPORT, "server-position-sync");
     }
 
     public void tryConfirmTeleportSync(double x, double y, double z) {
@@ -612,7 +635,7 @@ public final class PlayerData {
         }
         if (hasRecentTransactionAck(2000L)) {
             teleportSyncPending = false;
-            movementUnconfirmed = false;
+            // Keep movementUnconfirmed until the client-side effective delay has passed.
         }
     }
 
@@ -626,6 +649,144 @@ public final class PlayerData {
             }
         }
         return teleportSyncPending;
+    }
+
+    public void recordPendingVelocityChange() {
+        enqueuePendingWorldChange(PendingWorldChangeType.VELOCITY, "entity-velocity");
+    }
+
+    public void recordPendingBlockChange(String reason) {
+        enqueuePendingWorldChange(PendingWorldChangeType.BLOCK_CHANGE, reason);
+    }
+
+    private void enqueuePendingWorldChange(PendingWorldChangeType type, String reason) {
+        long now = System.currentTimeMillis();
+        long effectiveAt = now + estimateOneWayDelayMillis();
+        pendingWorldChanges.add(new PendingWorldChange(type, now, effectiveAt, reason));
+        while (pendingWorldChanges.size() > 32) {
+            pendingWorldChanges.removeFirst();
+        }
+        movementStateSnapshot.updateFrom(this, now);
+    }
+
+    private long estimateOneWayDelayMillis() {
+        long rttNanos = lastTransactionRttNanos > 0L ? lastTransactionRttNanos : lastTransactionRttSampleNanos;
+        long jitterNanos = transactionRttJitterNanos;
+        if (rttNanos <= 0L) {
+            return 80L;
+        }
+        long estimate = (rttNanos / 2L) + Math.min(jitterNanos, rttNanos / 3L);
+        long millis = estimate / 1000000L;
+        if (millis < 30L) {
+            return 30L;
+        }
+        if (millis > 350L) {
+            return 350L;
+        }
+        return millis;
+    }
+
+    public MovementStateSnapshot getMovementStateSnapshot() {
+        movementStateSnapshot.updateFrom(this, System.currentTimeMillis());
+        return movementStateSnapshot;
+    }
+
+    public int getPendingWorldChangesCount() {
+        applyPendingWorldChanges();
+        return pendingWorldChanges.size();
+    }
+
+    public List<String> getPendingWorldChangeDebugSnapshot() {
+        applyPendingWorldChanges();
+        List<String> snapshot = new ArrayList<String>();
+        for (PendingWorldChange change : pendingWorldChanges) {
+            snapshot.add(change.getType().name() + "@" + change.getEffectiveAtMillis() + ":" + change.getReason());
+        }
+        return snapshot;
+    }
+
+    private int countPendingChanges(PendingWorldChangeType type, long nowMillis) {
+        int count = 0;
+        for (PendingWorldChange change : pendingWorldChanges) {
+            if (change.getType() == type && change.getEffectiveAtMillis() > nowMillis) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static final class MovementStateSnapshot {
+        private boolean teleportAligned;
+        private boolean velocityAligned;
+        private boolean blockAligned;
+        private int pendingChanges;
+
+        private void updateFrom(PlayerData data, long nowMillis) {
+            data.applyPendingWorldChanges();
+            int pendingTeleport = data.countPendingChanges(PendingWorldChangeType.TELEPORT, nowMillis);
+            int pendingVelocity = data.countPendingChanges(PendingWorldChangeType.VELOCITY, nowMillis);
+            int pendingBlock = data.countPendingChanges(PendingWorldChangeType.BLOCK_CHANGE, nowMillis);
+            this.teleportAligned = pendingTeleport == 0 && !data.teleportSyncPending;
+            this.velocityAligned = pendingVelocity == 0;
+            this.blockAligned = pendingBlock == 0;
+            this.pendingChanges = pendingTeleport + pendingVelocity + pendingBlock;
+        }
+
+        public boolean isTeleportAligned() {
+            return teleportAligned;
+        }
+
+        public boolean isVelocityAligned() {
+            return velocityAligned;
+        }
+
+        public boolean isBlockAligned() {
+            return blockAligned;
+        }
+
+        public boolean isFullyAligned() {
+            return teleportAligned && velocityAligned && blockAligned;
+        }
+
+        public int getPendingChanges() {
+            return pendingChanges;
+        }
+    }
+
+    private static final class PendingWorldChange {
+        private final PendingWorldChangeType type;
+        private final long createdAtMillis;
+        private final long effectiveAtMillis;
+        private final String reason;
+
+        private PendingWorldChange(PendingWorldChangeType type, long createdAtMillis, long effectiveAtMillis, String reason) {
+            this.type = type;
+            this.createdAtMillis = createdAtMillis;
+            this.effectiveAtMillis = effectiveAtMillis;
+            this.reason = reason;
+        }
+
+        public PendingWorldChangeType getType() {
+            return type;
+        }
+
+        public long getCreatedAtMillis() {
+            return createdAtMillis;
+        }
+
+        public long getEffectiveAtMillis() {
+            return effectiveAtMillis;
+        }
+
+        public String getReason() {
+            return reason;
+        }
+    }
+
+    private enum PendingWorldChangeType {
+        TELEPORT,
+        VELOCITY,
+        BLOCK_CHANGE
     }
 
     public boolean isParabolaAnomalous(double minAvgError, int minSamples) {
