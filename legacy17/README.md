@@ -89,6 +89,9 @@ GrimLegacyAC 是 Grim 思路在 1.7.10 环境下的独立实现版本，重点�
 
 重点配置路径（`legacy17/src/main/resources/config.yml`）：
 
+- `pipeline.packet-first`：优先使用包级事件作为数据源
+- `pipeline.bukkit-fallback`：包级数据不可用时允许回退到 Bukkit 事件
+- `pipeline.bukkit-fallback-stale-nanos`：包级数据超过该时间窗口视为过期并触发回退
 - `transaction.*`：交易包同步频率与 ACK 时效
 - `combat.backtrack-window-ms`：回溯命中盒时间窗口
 - `adaptive-lag.*`：高延迟自适应阈值

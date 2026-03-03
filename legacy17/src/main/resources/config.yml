@@ -13,20 +13,7 @@ netty:
   inject-on-join: true
   strict-reflection: false
 
-pipeline:
-  packet-first: true
-  bukkit-fallback: true
-
-pipeline:
-  packet-first: true
-  bukkit-fallback: true
-  bukkit-fallback-stale-nanos: 150000000
-
-pipeline:
-  packet-first: true
-  bukkit-fallback: true
-  bukkit-fallback-stale-nanos: 150000000
-
+# packet-first 优先使用包级事件；当其数据过期或缺失时，按 stale 窗口回退到 Bukkit 事件。
 pipeline:
   packet-first: true
   bukkit-fallback: true
