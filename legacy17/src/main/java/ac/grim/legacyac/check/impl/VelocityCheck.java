@@ -4,11 +4,11 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import java.util.Locale;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
-import java.util.Locale;
 
 public final class VelocityCheck extends Check {
     public VelocityCheck(LegacyAntiCheatPlugin plugin) {
@@ -31,6 +31,7 @@ public final class VelocityCheck extends Check {
             return;
         }
 
+        // Legacy fallback path compatibility; new logic uses tx-confirmed VelocitySample.
         int ticks = plugin.getConfig().getInt("checks.Velocity.window-ticks", 8);
         data.armVelocityWindow(velocity, ticks);
     }
@@ -44,141 +45,78 @@ public final class VelocityCheck extends Check {
     }
 
     public void onMovementFrame(Player player, MovementFrame frame, PlayerData data) {
-        if (!isEnabled()) {
+        if (!isEnabled() || isExempt(player, data)) {
             return;
         }
 
-        if (isExempt(player, data)) {
+        PlayerData.VelocitySample sample = data.getCurrentVelocitySample();
+        if (sample == null) {
             return;
         }
 
-        if (data.hasPendingVelocityWindow()) {
+        double expectedXZ = Math.sqrt(sample.getVx() * sample.getVx() + sample.getVz() * sample.getVz());
+        double expectedY = Math.abs(sample.getVy());
+        double observedXZ = data.getLastDeltaXZ();
+        double observedY = Math.abs(data.getLastDeltaY());
+        double offset = Math.abs(observedXZ - expectedXZ) + Math.abs(observedY - expectedY);
+
+        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_PRE_ACK) && !sample.hasFlag(PlayerData.VelocitySample.FLAG_POST_ACK)) {
+            sample.observeTick(offset);
+            double responseThreshold = Math.max(0.03D, expectedXZ * 0.20D);
+            int delayedKbTicks = plugin.getConfig().getInt("checks.Velocity.delayed-kb-ticks",
+                plugin.getConfig().getInt("checks.Velocity.window-ticks", 3));
+            sample.recordObservedMotion(observedXZ, responseThreshold, delayedKbTicks);
+        }
+
+        double minScoreToFlag = plugin.getConfig().getDouble("checks.Velocity.min-score-to-flag",
+            plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D));
+        int minSamples = plugin.getConfig().getInt("checks.Velocity.min-samples", 2);
+
+        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_FIRST_CONFIRMED) && sample.getTicksObserved() == 1) {
+            double firstStageScore = Math.max(0.0D, sample.getMinOffset() - 0.03D);
+            if (firstStageScore > 0.0D) {
+                slideAndAddScore(data, firstStageScore, 0.7D);
+            }
+        }
+
+        if (!sample.hasFlag(PlayerData.VelocitySample.FLAG_LIKELY_CONFIRMED)) {
             return;
         }
 
-        if (!data.hasCompletedVelocityWindow()) {
+        if (sample.getTicksObserved() < minSamples) {
             return;
         }
 
-        double expectedXZ = data.getExpectedVelocityXZ();
-        double observedXZ = data.getObservedVelocityXZ();
-        double expectedY = data.getExpectedVelocityY();
-        double observedY = data.getObservedVelocityY();
+        double likelyStageScore = Math.max(0.0D, sample.getMinOffset() - 0.025D);
+        double buffer = slideAndAddScore(data, likelyStageScore, plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D));
 
-        double xzRatio = expectedXZ > 0.01D ? (observedXZ / expectedXZ) : 1.0D;
-        double yRatio = expectedY > 0.01D ? (observedY / expectedY) : 1.0D;
+        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_DELAYED_KB_PATTERN)) {
+            buffer = slideAndAddScore(data, 0.35D, 1.0D);
+            if (data.isDebugEnabled()) {
+                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
+                    + " Velocity DELAYED_KB_PATTERN silentTicks=" + sample.getInitialSilentTicks()
+                    + " maxObsXZ=" + fmt(sample.getMaxObservedHorizontal()));
+            }
+        }
 
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                + " Velocity expXZ=" + fmt(expectedXZ) + " obsXZ=" + fmt(observedXZ)
-                + " expY=" + fmt(expectedY) + " obsY=" + fmt(observedY));
+                + " Velocity txWindow pre=" + sample.getPreTxId()
+                + " post=" + sample.getPostTxId()
+                + " ticks=" + sample.getTicksObserved()
+                + " minOffset=" + fmt(sample.getMinOffset())
+                + " score=" + fmt(likelyStageScore)
+                + " flags=" + sample.getStateFlags());
         }
 
-        double minRatioXZ = plugin.getConfig().getDouble("checks.Velocity.min-response-ratio-xz", 0.40D);
-        double minRatioY = plugin.getConfig().getDouble("checks.Velocity.min-response-ratio-y", 0.25D);
-        boolean inCombat = (System.currentTimeMillis() - data.getLastAttackAt()) < 500L;
-        if (inCombat) {
-            minRatioXZ = Math.min(minRatioXZ, 0.25D);
+        if (buffer > minScoreToFlag) {
+            flag(player, data, likelyStageScore,
+                "preTx=" + sample.getPreTxId()
+                    + " postTx=" + sample.getPostTxId()
+                    + " minOffset=" + fmt(sample.getMinOffset())
+                    + " ticks=" + sample.getTicksObserved()
+                    + " flags=" + sample.getStateFlags());
         }
-
-        boolean failXZ = expectedXZ >= 0.08D && observedXZ < expectedXZ * minRatioXZ;
-        boolean failY = expectedY > 0.04D && observedY < expectedY * minRatioY;
-
-        if (failXZ || failY) {
-            org.bukkit.Location loc = player.getLocation();
-            if (isInLiquidOrWeb(loc)) {
-                failXZ = false;
-                failY = false;
-            } else {
-                if (failXZ && isCollidingWithWall(loc, data.getExpectedVelX(), data.getExpectedVelZ())) {
-                    failXZ = false;
-                }
-                if (failY && isCollidingWithCeiling(loc)) {
-                    failY = false;
-                }
-            }
-        }
-
-        if (failXZ || failY) {
-            double deviation = 1.0D - Math.min(xzRatio, yRatio);
-            double weight = plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D);
-            double buffer = slideAndAddScore(data, deviation, weight);
-            if (buffer > plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D)) {
-                flag(player, data, deviation,
-                    "expXZ=" + fmt(expectedXZ) + " obsXZ=" + fmt(observedXZ)
-                        + " expY=" + fmt(expectedY) + " obsY=" + fmt(observedY));
-            }
-        } else {
-            coolDownScore(data);
-        }
-
-        data.clearVelocityWindow();
-    }
-
-    private boolean isCollidingWithWall(org.bukkit.Location loc, double expectedX, double expectedZ) {
-        org.bukkit.World world = loc.getWorld();
-        double nextX = loc.getX() + expectedX;
-        double nextZ = loc.getZ() + expectedZ;
-
-        int minX = org.bukkit.util.NumberConversions.floor(nextX - 0.3);
-        int maxX = org.bukkit.util.NumberConversions.floor(nextX + 0.3);
-        int minZ = org.bukkit.util.NumberConversions.floor(nextZ - 0.3);
-        int maxZ = org.bukkit.util.NumberConversions.floor(nextZ + 0.3);
-        int minY = org.bukkit.util.NumberConversions.floor(loc.getY());
-        int maxY = org.bukkit.util.NumberConversions.floor(loc.getY() + 1.8);
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                for (int y = minY; y <= maxY; y++) {
-                    if (world.getBlockAt(x, y, z).getType().isSolid()) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean isCollidingWithCeiling(org.bukkit.Location loc) {
-        int minX = org.bukkit.util.NumberConversions.floor(loc.getX() - 0.3);
-        int maxX = org.bukkit.util.NumberConversions.floor(loc.getX() + 0.3);
-        int minZ = org.bukkit.util.NumberConversions.floor(loc.getZ() - 0.3);
-        int maxZ = org.bukkit.util.NumberConversions.floor(loc.getZ() + 0.3);
-        int headY = org.bukkit.util.NumberConversions.floor(loc.getY() + 1.8 + 0.5);
-
-        org.bukkit.World world = loc.getWorld();
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                if (world.getBlockAt(x, headY, z).getType().isSolid()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean isInLiquidOrWeb(org.bukkit.Location loc) {
-        int minX = org.bukkit.util.NumberConversions.floor(loc.getX() - 0.3);
-        int maxX = org.bukkit.util.NumberConversions.floor(loc.getX() + 0.3);
-        int minZ = org.bukkit.util.NumberConversions.floor(loc.getZ() - 0.3);
-        int maxZ = org.bukkit.util.NumberConversions.floor(loc.getZ() + 0.3);
-        int minY = org.bukkit.util.NumberConversions.floor(loc.getY());
-        int maxY = org.bukkit.util.NumberConversions.floor(loc.getY() + 1.8);
-
-        org.bukkit.World world = loc.getWorld();
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                for (int y = minY; y <= maxY; y++) {
-                    org.bukkit.Material type = world.getBlockAt(x, y, z).getType();
-                    if (type == org.bukkit.Material.WATER || type == org.bukkit.Material.STATIONARY_WATER
-                        || type == org.bukkit.Material.LAVA || type == org.bukkit.Material.STATIONARY_LAVA
-                        || type == org.bukkit.Material.WEB) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     private String fmt(double value) {

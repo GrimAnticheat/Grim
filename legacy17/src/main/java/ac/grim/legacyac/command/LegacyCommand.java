@@ -87,6 +87,17 @@ public final class LegacyCommand implements CommandExecutor {
                 + String.format(Locale.ROOT, "%.4f", data.getDetectionOffsetP95()));
             sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.LIGHT_PURPLE + "trigger chain" + ChatColor.GRAY + ": "
                 + data.getRecentTriggerChain(8));
+            PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
+            if (velocitySample != null) {
+                sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.BLUE + "VelocityTX" + ChatColor.GRAY + ": "
+                    + "pre=" + velocitySample.getPreTxId()
+                    + ", post=" + velocitySample.getPostTxId()
+                    + ", ticks=" + velocitySample.getTicksObserved()
+                    + ", minOffset=" + String.format(Locale.ROOT, "%.4f", velocitySample.getMinOffset())
+                    + ", flags=" + velocitySample.getStateFlags());
+            }
+            sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.BLUE + "VelocitySamples" + ChatColor.GRAY + ": "
+                + data.getVelocitySampleQueueSize());
             return true;
         }
 
@@ -119,6 +130,23 @@ public final class LegacyCommand implements CommandExecutor {
         appendField(builder, "p95Offset", String.format(Locale.ROOT, "%.6f", data.getDetectionOffsetP95()), false);
         builder.append(',');
         appendField(builder, "triggerChain", data.getRecentTriggerChain(12));
+        builder.append(',');
+        PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
+        builder.append("\"velocity\":{");
+        appendField(builder, "queueSize", String.valueOf(data.getVelocitySampleQueueSize()), false);
+        if (velocitySample != null) {
+            builder.append(',');
+            appendField(builder, "preTxId", String.valueOf(velocitySample.getPreTxId()), false);
+            builder.append(',');
+            appendField(builder, "postTxId", String.valueOf(velocitySample.getPostTxId()), false);
+            builder.append(',');
+            appendField(builder, "ticksObserved", String.valueOf(velocitySample.getTicksObserved()), false);
+            builder.append(',');
+            appendField(builder, "minOffset", String.format(Locale.ROOT, "%.6f", velocitySample.getMinOffset()), false);
+            builder.append(',');
+            appendField(builder, "stateFlags", String.valueOf(velocitySample.getStateFlags()), false);
+        }
+        builder.append('}');
         builder.append(',');
         builder.append("\"evidence\":[");
         List<DetectionEvidence> evidenceList = data.getDetectionEvidenceSnapshot();

@@ -61,6 +61,8 @@ public final class PlayerData {
     private long lastServerPositionSyncAt;
     private int rawMovementPacketCounter;
     private final Map<Short, Long> pendingTransactions = new ConcurrentHashMap<Short, Long>();
+    private final LinkedList<VelocitySample> velocitySamples = new LinkedList<VelocitySample>();
+    private static final int VELOCITY_SAMPLE_LIMIT = 12;
     private short transactionActionCounter;
     private long lastTransactionRttNanos;
     private long lastTransactionRttSampleNanos;
@@ -635,6 +637,149 @@ public final class PlayerData {
             lastTransTime = System.currentTimeMillis();
             movementStateSnapshot.updateFrom(this, lastTransTime);
         }
+        onVelocityTransactionAck(actionId, recvAtNanos);
+    }
+
+    private void onVelocityTransactionAck(short actionId, long recvAtNanos) {
+        for (VelocitySample sample : velocitySamples) {
+            sample.handleAck(actionId, recvAtNanos);
+        }
+        pruneVelocitySamples();
+    }
+
+    public void startVelocitySample(long sentAtNanos, short preTxId, short postTxId, double vx, double vy, double vz, long txWindowMaxMs) {
+        VelocitySample sample = new VelocitySample(sentAtNanos, preTxId, postTxId, vx, vy, vz, txWindowMaxMs);
+        velocitySamples.addLast(sample);
+        while (velocitySamples.size() > VELOCITY_SAMPLE_LIMIT) {
+            velocitySamples.removeFirst();
+        }
+    }
+
+    public VelocitySample getCurrentVelocitySample() {
+        pruneVelocitySamples();
+        return velocitySamples.isEmpty() ? null : velocitySamples.getLast();
+    }
+
+    public int getVelocitySampleQueueSize() {
+        pruneVelocitySamples();
+        return velocitySamples.size();
+    }
+
+    private void pruneVelocitySamples() {
+        Iterator<VelocitySample> iterator = velocitySamples.iterator();
+        while (iterator.hasNext()) {
+            VelocitySample sample = iterator.next();
+            if (sample.isExpired() || sample.isCompleted()) {
+                if (sample != getCurrentVelocitySampleUnsafe()) {
+                    iterator.remove();
+                }
+            }
+        }
+        while (velocitySamples.size() > VELOCITY_SAMPLE_LIMIT) {
+            velocitySamples.removeFirst();
+        }
+    }
+
+    private VelocitySample getCurrentVelocitySampleUnsafe() {
+        return velocitySamples.isEmpty() ? null : velocitySamples.getLast();
+    }
+
+    public static final class VelocitySample {
+        public static final int FLAG_PRE_ACK = 1;
+        public static final int FLAG_POST_ACK = 1 << 1;
+        public static final int FLAG_FIRST_CONFIRMED = 1 << 2;
+        public static final int FLAG_LIKELY_CONFIRMED = 1 << 3;
+        public static final int FLAG_DELAYED_KB_PATTERN = 1 << 4;
+
+        private final long sentAtNanos;
+        private final short preTxId;
+        private final short postTxId;
+        private final double vx;
+        private final double vy;
+        private final double vz;
+        private final long expiresAtNanos;
+        private int stateFlags;
+        private double minOffset = Double.MAX_VALUE;
+        private int ticksObserved;
+        private int ticksSincePreAck;
+        private int initialSilentTicks;
+        private double maxObservedHorizontal;
+
+        private VelocitySample(long sentAtNanos, short preTxId, short postTxId, double vx, double vy, double vz, long txWindowMaxMs) {
+            this.sentAtNanos = sentAtNanos;
+            this.preTxId = preTxId;
+            this.postTxId = postTxId;
+            this.vx = vx;
+            this.vy = vy;
+            this.vz = vz;
+            this.expiresAtNanos = sentAtNanos + (Math.max(150L, txWindowMaxMs) * 1000000L);
+        }
+
+        private void handleAck(short actionId, long recvAtNanos) {
+            if (actionId == preTxId) {
+                stateFlags |= FLAG_PRE_ACK;
+            }
+            if (actionId == postTxId) {
+                stateFlags |= FLAG_POST_ACK;
+            }
+            if ((stateFlags & FLAG_PRE_ACK) != 0 && (stateFlags & FLAG_POST_ACK) != 0) {
+                stateFlags |= FLAG_LIKELY_CONFIRMED;
+            }
+        }
+
+        public void observeTick(double offset) {
+            if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0) {
+                return;
+            }
+            ticksObserved++;
+            ticksSincePreAck++;
+            if (offset < minOffset) {
+                minOffset = offset;
+            }
+            if ((stateFlags & FLAG_FIRST_CONFIRMED) == 0) {
+                stateFlags |= FLAG_FIRST_CONFIRMED;
+            }
+        }
+
+
+        public void recordObservedMotion(double observedHorizontal, double responseThreshold, int delayedKbTicks) {
+            if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0) {
+                return;
+            }
+            if (observedHorizontal > maxObservedHorizontal) {
+                maxObservedHorizontal = observedHorizontal;
+            }
+            if (ticksObserved <= Math.max(1, delayedKbTicks) && observedHorizontal < responseThreshold) {
+                initialSilentTicks++;
+            }
+            if (initialSilentTicks >= 1 && ticksObserved > Math.max(1, delayedKbTicks)
+                && observedHorizontal >= responseThreshold * 1.8D) {
+                stateFlags |= FLAG_DELAYED_KB_PATTERN;
+            }
+        }
+
+        public boolean isExpired() {
+            return System.nanoTime() > expiresAtNanos;
+        }
+
+        public boolean isCompleted() {
+            return (stateFlags & FLAG_POST_ACK) != 0;
+        }
+
+        public long getSentAtNanos() { return sentAtNanos; }
+        public short getPreTxId() { return preTxId; }
+        public short getPostTxId() { return postTxId; }
+        public double getVx() { return vx; }
+        public double getVy() { return vy; }
+        public double getVz() { return vz; }
+        public double getMinOffset() { return minOffset == Double.MAX_VALUE ? 0.0D : minOffset; }
+        public int getTicksObserved() { return ticksObserved; }
+        public int getTicksSincePreAck() { return ticksSincePreAck; }
+        public int getStateFlags() { return stateFlags; }
+        public int getInitialSilentTicks() { return initialSilentTicks; }
+        public double getMaxObservedHorizontal() { return maxObservedHorizontal; }
+        public boolean hasFlag(int flag) { return (stateFlags & flag) != 0; }
+        public void addFlag(int flag) { stateFlags |= flag; }
     }
 
     public long getLastTransactionRttNanos() {
