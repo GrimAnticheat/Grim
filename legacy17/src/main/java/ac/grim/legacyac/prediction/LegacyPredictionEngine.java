@@ -6,6 +6,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Prediction engine that replicates Minecraft 1.7.10 client movement physics.
@@ -24,8 +26,6 @@ import org.bukkit.potion.PotionEffectType;
  * and minimum possible speeds for each axis direction.
  */
 public final class LegacyPredictionEngine {
-    // Minecraft movement threshold for 1.7/1.8
-    private static final double MOVEMENT_THRESHOLD = 0.005D;
     // Base gravity in vanilla (blocks/tick²)
     private static final double GRAVITY = 0.08D;
     // Y velocity drag multiplier
@@ -49,6 +49,34 @@ public final class LegacyPredictionEngine {
      */
     public static PredictionResult predict(Player player, Material feetBlock, Material belowBlock,
             double lastDeltaY, double lastDeltaXZ, boolean onGround) {
+        List<CandidateVelocity> candidates = generateResolvedCandidates(player, feetBlock, belowBlock,
+                lastDeltaY, lastDeltaXZ, onGround);
+
+        double maxHorizontal = 0.0D;
+        double minVertical = Double.POSITIVE_INFINITY;
+        double maxVertical = Double.NEGATIVE_INFINITY;
+        for (CandidateVelocity candidate : candidates) {
+            double horizontal = candidate.getHorizontalMagnitude();
+            if (horizontal > maxHorizontal) {
+                maxHorizontal = horizontal;
+            }
+            if (candidate.getMotionY() < minVertical) {
+                minVertical = candidate.getMotionY();
+            }
+            if (candidate.getMotionY() > maxVertical) {
+                maxVertical = candidate.getMotionY();
+            }
+        }
+
+        maxHorizontal += 0.01D;
+        minVertical -= 0.01D;
+        maxVertical += 0.01D;
+
+        return new PredictionResult(maxHorizontal, minVertical, maxVertical);
+    }
+
+    public static List<CandidateVelocity> generateResolvedCandidates(Player player, Material feetBlock,
+            Material belowBlock, double lastDeltaY, double lastDeltaXZ, boolean onGround) {
         // ========== HORIZONTAL PREDICTION ==========
 
         // Step 1: Determine block friction
@@ -90,56 +118,8 @@ public final class LegacyPredictionEngine {
             acceleration = airAccel;
         }
 
-        // Step 3: Compute max possible horizontal speed this tick
-        // Previous horizontal velocity is carried forward: oldHorizontalVel * friction
-        // Then input acceleration is added: up to sqrt(2) * acceleration for diagonal
-        // But the actual carried velocity's direction is unknown, so we compute the
-        // max.
-        //
-        // maxHorizontal = lastDeltaXZ * friction + acceleration * sqrt(2)
-        // The sqrt(2) factor accounts for diagonal input (both forward and strafe
-        // pressed)
-        // But normalized input is capped at length 1.0 before scaling by 0.98
-        // So actual max input multiplier is min(1.0, sqrt(2)) * 0.98 = 0.98
         double carriedHorizontal = lastDeltaXZ * friction;
-        double maxInputAccel = acceleration * 0.98D; // 0.98 is the input scale
-        double predictedMaxHorizontal = carriedHorizontal + maxInputAccel;
-
-        // Extra tolerances for edge cases:
-        // Jump sprint boost: +0.2 * speed component when sprint-jumping
-        if (onGround && player.isSprinting()) {
-            // Sprint jump gives a horizontal boost of ~0.2 * baseSpeed direction
-            predictedMaxHorizontal += 0.2D;
-        }
-
-        // Ice and slime blocks have higher friction, so velocity carries more
-        if (isIce(belowBlock) || isIce(feetBlock)) {
-            // Already handled by slipperiness, but add tolerance for multi-tick
-            // accumulation
-            predictedMaxHorizontal += 0.04D;
-        }
-
-        // Soul sand slows movement
-        if (feetBlock == Material.SOUL_SAND) {
-            predictedMaxHorizontal *= 0.4D;
-        }
-
-        // Web drastically reduces speed
-        if (feetBlock == Material.WEB || belowBlock == Material.WEB) {
-            predictedMaxHorizontal = Math.min(predictedMaxHorizontal, 0.05D);
-        }
-
-        // Liquid movement
-        if (isLiquid(feetBlock) || isLiquid(belowBlock)) {
-            // Water/lava use different movement model, allow more tolerance
-            predictedMaxHorizontal = Math.max(predictedMaxHorizontal, 0.14D);
-        }
-
-        // Movement threshold: if below 0.005, it's zeroed → add tolerance
-        predictedMaxHorizontal += MOVEMENT_THRESHOLD;
-
-        // General tolerance for network jitter, collision sliding, etc.
-        predictedMaxHorizontal += 0.01D;
+        double inputAccel = acceleration * 0.98D;
 
         // ========== VERTICAL PREDICTION ==========
 
@@ -147,8 +127,8 @@ public final class LegacyPredictionEngine {
         // newVelY = (oldVelY - gravity) * 0.98
         // But player might jump, take knockback, etc.
 
-        double predictedMinY;
-        double predictedMaxY;
+        double baselineY;
+        double jumpY;
 
         if (onGround) {
             // Player can stand still (deltaY ≈ 0), walk off an edge (deltaY goes negative),
@@ -160,12 +140,12 @@ public final class LegacyPredictionEngine {
                 jumpVel += (jumpBoost.getAmplifier() + 1) * 0.1D;
             }
 
-            predictedMinY = -0.0784000015258789D; // one tick of gravity from standstill: (0 - 0.08) * 0.98
-            predictedMaxY = jumpVel + 0.1D; // jump velocity + tolerance
+            baselineY = -0.0784000015258789D;
+            jumpY = jumpVel;
 
             // Slime blocks were added in 1.8 — check by name for compatibility
             if (belowBlock.name().equals("SLIME_BLOCK")) {
-                predictedMaxY = Math.max(predictedMaxY, Math.abs(lastDeltaY) + 0.1D);
+                jumpY = Math.max(jumpY, Math.abs(lastDeltaY));
             }
         } else {
             // In-air Y prediction
@@ -181,27 +161,55 @@ public final class LegacyPredictionEngine {
             Location loc = player.getLocation();
             Block locBlock = loc.getBlock();
             if (locBlock.getType() == Material.LADDER || locBlock.getType() == Material.VINE) {
-                // Climbing: velocity clamped to [-0.15, 0.2]
-                predictedMinY = -0.16D;
-                predictedMaxY = 0.22D;
+                baselineY = -0.16D;
+                jumpY = 0.22D;
             } else if (isLiquid(feetBlock) || isLiquid(belowBlock)) {
-                // In liquid: different physics
-                predictedMinY = Math.min(expectedY - tolerance, -0.08D);
-                predictedMaxY = Math.max(expectedY + tolerance, 0.5D);
+                baselineY = Math.min(expectedY - tolerance, -0.08D);
+                jumpY = Math.max(expectedY + tolerance, 0.5D);
             } else {
-                predictedMinY = expectedY - tolerance;
-                predictedMaxY = expectedY + tolerance;
+                baselineY = expectedY;
+                jumpY = expectedY + tolerance;
 
                 // Collision with ground: Y can be 0 or very small
                 if (expectedY < 0) {
-                    predictedMinY = Math.min(predictedMinY, -0.5D);
-                    // Could land on ground and reset
-                    predictedMaxY = Math.max(predictedMaxY, 0.0D);
+                    baselineY = Math.max(expectedY, -0.5D);
+                    jumpY = Math.max(jumpY, 0.0D);
                 }
             }
         }
 
-        return new PredictionResult(predictedMaxHorizontal, predictedMinY, predictedMaxY);
+        List<CandidateVelocity> candidates = new ArrayList<CandidateVelocity>();
+        double[] inputFactors = new double[] { 0.0D, 0.5D, -0.5D, 1.0D, -1.0D };
+        double[] verticalCandidates = onGround ? new double[] { 0.0D, baselineY, jumpY }
+                : new double[] { baselineY, jumpY, baselineY - 0.05D };
+        for (double inputX : inputFactors) {
+            for (double inputZ : inputFactors) {
+                if (Math.abs(inputX) == 1.0D && Math.abs(inputZ) == 1.0D) {
+                    inputX *= 0.7071067811865476D;
+                    inputZ *= 0.7071067811865476D;
+                }
+
+                double motionX = (carriedHorizontal * inputX) + (inputAccel * inputX);
+                double motionZ = (carriedHorizontal * inputZ) + (inputAccel * inputZ);
+
+                if (onGround && player.isSprinting()) {
+                    motionX += 0.2D * inputX;
+                    motionZ += 0.2D * inputZ;
+                }
+
+                if (isIce(belowBlock) || isIce(feetBlock)) {
+                    motionX += 0.02D * inputX;
+                    motionZ += 0.02D * inputZ;
+                }
+
+                for (double candidateY : verticalCandidates) {
+                    String profile = "ix=" + inputX + ",iz=" + inputZ + ",y=" + candidateY;
+                    CandidateVelocity candidate = new CandidateVelocity(profile, motionX, candidateY, motionZ);
+                    candidates.add(CollisionResolver.resolve(player, feetBlock, belowBlock, candidate, onGround));
+                }
+            }
+        }
+        return candidates;
     }
 
     /**
