@@ -52,6 +52,7 @@ transaction:
 
 combat:
   backtrack-window-ms: 400
+  reach-teleport-grace-ms: 350
 
 heuristics:
   window-decay: 0.95
@@ -111,6 +112,7 @@ checks:
     setback: false
     buffer: 0.5
     window-weight: 1.0
+    strafe-sync-extra-margin: 0.05
     punish-vl: 22
     punish-commands:
       - "kick %player% Reach cheat (%check% VL:%vl%)"

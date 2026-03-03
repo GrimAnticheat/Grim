@@ -21,11 +21,13 @@ public final class ReachCheck extends Check {
         private final boolean legal;
         private final double directDistance;
         private final long boxTimeOffsetMs;
+        private final boolean teleportMarkerHit;
 
-        public AttackEvaluation(boolean legal, double directDistance, long boxTimeOffsetMs) {
+        public AttackEvaluation(boolean legal, double directDistance, long boxTimeOffsetMs, boolean teleportMarkerHit) {
             this.legal = legal;
             this.directDistance = directDistance;
             this.boxTimeOffsetMs = boxTimeOffsetMs;
+            this.teleportMarkerHit = teleportMarkerHit;
         }
 
         public boolean isLegal() {
@@ -39,6 +41,10 @@ public final class ReachCheck extends Check {
         public long getBoxTimeOffsetMs() {
             return boxTimeOffsetMs;
         }
+
+        public boolean isTeleportMarkerHit() {
+            return teleportMarkerHit;
+        }
     }
 
     public void onAttack(EntityDamageByEntityEvent event, Player attacker, Player victim, PlayerData data) {
@@ -47,19 +53,29 @@ public final class ReachCheck extends Check {
         }
 
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
-        double bonus = getAdaptiveReachBonus(data);
+        long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
+        double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
+        PlayerData victimData = plugin.getPlayerData(victim);
+        boolean recentTeleportOrPearl = System.currentTimeMillis() - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
+        double bonus = getAdaptiveReachBonus(data) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(victim), maxReach, 400L);
+        AttackEvaluation eval = evaluate(attacker, victimData, maxReach, 400L, strafeSyncMargin);
         if (!eval.isLegal()) {
             double add = Math.max(0.15D, eval.getDirectDistance() - maxReach);
             recordEvidence(data, add, "REACH_EVENT");
             double buffer = slideAndAddScore(data, add,
                     plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.5D)) {
-                flag(attacker, data, add, "ray-dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance())
-                        + " max=" + String.format(Locale.ROOT, "%.3f", baseReach)
-                        + (bonus > 0 ? "+" + String.format(Locale.ROOT, "%.2f", bonus) + "(lag)" : ""));
-                event.setCancelled(true);
+                if (recentTeleportOrPearl || eval.isTeleportMarkerHit()) {
+                    plugin.alerts().alert(attacker, getName(), data.getViolation(getName()),
+                            "teleport-grace-only dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance())
+                                    + " max=" + String.format(Locale.ROOT, "%.3f", maxReach));
+                } else {
+                    flag(attacker, data, add, "ray-dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance())
+                            + " max=" + String.format(Locale.ROOT, "%.3f", baseReach)
+                            + (bonus > 0 ? "+" + String.format(Locale.ROOT, "%.2f", bonus) + "(comp)" : ""));
+                    event.setCancelled(true);
+                }
             }
         }
         if (eval.isLegal()) {
@@ -71,22 +87,32 @@ public final class ReachCheck extends Check {
     public AttackEvaluation onUseEntityAttack(Player attacker, Player target, PlayerData attackerData,
             long backtrackMillis) {
         if (!isEnabled() || isExempt(attacker, attackerData)) {
-            return new AttackEvaluation(true, 0.0D, 0L);
+            return new AttackEvaluation(true, 0.0D, 0L, false);
         }
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
-        double bonus = getAdaptiveReachBonus(attackerData);
+        long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
+        double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
+        PlayerData targetData = plugin.getPlayerData(target);
+        boolean recentTeleportOrPearl = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
+        double bonus = getAdaptiveReachBonus(attackerData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(target), maxReach, backtrackMillis);
+        AttackEvaluation eval = evaluate(attacker, targetData, maxReach, backtrackMillis, strafeSyncMargin);
         if (!eval.isLegal()) {
             double add = Math.max(0.15D, eval.getDirectDistance() - maxReach);
             recordEvidence(attackerData, add, "REACH_PACKET");
             double buffer = slideAndAddScore(attackerData, add,
                     plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.5D)) {
-                flag(attacker, attackerData, add,
-                        "pkt-ray-dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance()) + " max="
-                                + String.format(Locale.ROOT, "%.3f", baseReach)
-                                + (bonus > 0 ? "+" + String.format(Locale.ROOT, "%.2f", bonus) + "(lag)" : ""));
+                if (recentTeleportOrPearl || eval.isTeleportMarkerHit()) {
+                    plugin.alerts().alert(attacker, getName(), attackerData.getViolation(getName()),
+                            "pkt-teleport-grace-only dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance())
+                                    + " max=" + String.format(Locale.ROOT, "%.3f", maxReach));
+                } else {
+                    flag(attacker, attackerData, add,
+                            "pkt-ray-dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance()) + " max="
+                                    + String.format(Locale.ROOT, "%.3f", baseReach)
+                                    + (bonus > 0 ? "+" + String.format(Locale.ROOT, "%.2f", bonus) + "(comp)" : ""));
+                }
             }
         }
         if (eval.isLegal()) {
@@ -125,12 +151,12 @@ public final class ReachCheck extends Check {
      * 3. Properly accounts for the 1.7/1.8 hitbox expansion (+0.1)
      * 4. Checks if the player's eye is inside the target hitbox (distance=0)
      */
-    private AttackEvaluation evaluate(Player attacker, PlayerData targetData, double maxReach, long backtrackMillis) {
+    private AttackEvaluation evaluate(Player attacker, PlayerData targetData, double maxReach, long backtrackMillis, double strafeSyncMargin) {
         Location eyeLoc = attacker.getEyeLocation();
         Vector origin = eyeLoc.toVector();
         Vector primaryDir = eyeLoc.getDirection();
         if (primaryDir.lengthSquared() < 1.0E-9D) {
-            return new AttackEvaluation(false, 999.0D, -1L);
+            return new AttackEvaluation(false, 999.0D, -1L, false);
         }
         primaryDir = primaryDir.normalize();
 
@@ -146,19 +172,28 @@ public final class ReachCheck extends Check {
             altDir = altDir.normalize();
         }
 
+        // Horizontal sync-compensation rays to account for strafe desync during target teleport settling.
+        Vector strafeDir = new Vector(primaryDir.getZ(), 0.0D, -primaryDir.getX());
+        if (strafeDir.lengthSquared() > 1.0E-9D) {
+            strafeDir = strafeDir.normalize();
+        }
+        Vector syncLeftDir = primaryDir.clone().add(strafeDir.clone().multiply(strafeSyncMargin)).normalize();
+        Vector syncRightDir = primaryDir.clone().subtract(strafeDir.clone().multiply(strafeSyncMargin)).normalize();
+
         // The maximum ray length for intersection checking should be generous
         // to detect "missed hitbox" (Grim uses maxReach + 3)
         double rayLength = maxReach + 3.0D;
 
         double closestIntersection = Double.MAX_VALUE;
         long hitOffset = -1L;
+        boolean markerHit = false;
         long now = System.currentTimeMillis();
 
         List<HitboxFrame> frames = targetData.getHitboxHistorySnapshot(backtrackMillis);
         for (HitboxFrame frame : frames) {
             // Check if the player's eye is inside the hitbox
             if (RayTraceUtil.isVecInside(origin, frame)) {
-                return new AttackEvaluation(true, 0.0D, now - frame.getTimestampMillis());
+                return new AttackEvaluation(true, 0.0D, now - frame.getTimestampMillis(), frame.isTeleportMarker());
             }
 
             // Try primary direction
@@ -166,6 +201,7 @@ public final class ReachCheck extends Check {
             if (dist < closestIntersection) {
                 closestIntersection = dist;
                 hitOffset = now - frame.getTimestampMillis();
+                markerHit = frame.isTeleportMarker();
             }
 
             // Try alternate direction (last tick's look)
@@ -173,17 +209,36 @@ public final class ReachCheck extends Check {
             if (altDist < closestIntersection) {
                 closestIntersection = altDist;
                 hitOffset = now - frame.getTimestampMillis();
+                markerHit = frame.isTeleportMarker();
+            }
+
+            double syncLeftDist = RayTraceUtil.intersectionDistance(origin, syncLeftDir, rayLength, frame);
+            if (syncLeftDist < closestIntersection) {
+                closestIntersection = syncLeftDist;
+                hitOffset = now - frame.getTimestampMillis();
+                markerHit = frame.isTeleportMarker();
+            }
+
+            double syncRightDist = RayTraceUtil.intersectionDistance(origin, syncRightDir, rayLength, frame);
+            if (syncRightDist < closestIntersection) {
+                closestIntersection = syncRightDist;
+                hitOffset = now - frame.getTimestampMillis();
+                markerHit = frame.isTeleportMarker();
+            }
+
+            if (dist < Double.MAX_VALUE || altDist < Double.MAX_VALUE) {
+                markerHit = markerHit || frame.isTeleportMarker();
             }
         }
 
         // If we found an intersection within reach, it's legal
         if (closestIntersection <= maxReach) {
-            return new AttackEvaluation(true, closestIntersection, hitOffset);
+            return new AttackEvaluation(true, closestIntersection, hitOffset, markerHit);
         }
 
         // If we found an intersection at all (just beyond reach), report the distance
         if (closestIntersection < Double.MAX_VALUE) {
-            return new AttackEvaluation(false, closestIntersection, hitOffset);
+            return new AttackEvaluation(false, closestIntersection, hitOffset, markerHit);
         }
 
         // No intersection found at all → hitbox miss
@@ -204,10 +259,10 @@ public final class ReachCheck extends Check {
         // If center distance is within reach, the attack is likely legitimate
         // but hitbox timing just didn't line up — don't flag
         if (closestCenter <= maxReach + 0.5D) {
-            return new AttackEvaluation(true, closestCenter, hitOffset);
+            return new AttackEvaluation(true, closestCenter, hitOffset, markerHit);
         }
 
-        return new AttackEvaluation(false, closestCenter, hitOffset);
+        return new AttackEvaluation(false, closestCenter, hitOffset, markerHit);
     }
 
     /**

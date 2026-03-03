@@ -26,6 +26,7 @@ public final class PlayerData {
     private long joinAt;
     private long lastAttackAt;
     private long lastTeleportAt;
+    private long lastTeleportOrPearlAt;
     private long lastVelocityAt;
     private double lastVelocityXZ;
     private int clickWindow;
@@ -177,7 +178,8 @@ public final class PlayerData {
 
         double width = 0.6D;
         double height = player.isSneaking() ? 1.65D : 1.8D;
-        recordCurrentHitbox(to.getX(), to.getY(), to.getZ(), width, height);
+        boolean teleportMarker = System.currentTimeMillis() - lastTeleportOrPearlAt <= 400L;
+        recordCurrentHitbox(to.getX(), to.getY(), to.getZ(), width, height, teleportMarker);
 
         recentDeltaY.addLast(Double.valueOf(lastDeltaY));
         if (recentDeltaY.size() > 10) {
@@ -423,7 +425,16 @@ public final class PlayerData {
 
     public void setLastTeleportAt(long lastTeleportAt) {
         this.lastTeleportAt = lastTeleportAt;
+        this.lastTeleportOrPearlAt = lastTeleportAt;
         predictionContext.markTeleport();
+    }
+
+    public long getLastTeleportOrPearlAt() {
+        return lastTeleportOrPearlAt;
+    }
+
+    public void setLastTeleportOrPearlAt(long lastTeleportOrPearlAt) {
+        this.lastTeleportOrPearlAt = lastTeleportOrPearlAt;
     }
 
     public long getLastVelocityAt() {
@@ -932,6 +943,7 @@ public final class PlayerData {
         pendingTeleportZ = z;
         movementUnconfirmed = true;
         lastTeleportAt = System.currentTimeMillis();
+        lastTeleportOrPearlAt = lastTeleportAt;
         movementFrameInitialized = false;
         enqueuePendingWorldChange(PendingWorldChangeType.TELEPORT, "server-position-sync");
     }
@@ -1232,17 +1244,21 @@ public final class PlayerData {
     }
 
     public void recordCurrentHitbox(double x, double y, double z) {
-        recordCurrentHitbox(x, y, z, 0.6D, 1.8D);
+        recordCurrentHitbox(x, y, z, 0.6D, 1.8D, false);
     }
 
     public void recordCurrentHitbox(double x, double y, double z, double width, double height) {
+        recordCurrentHitbox(x, y, z, width, height, false);
+    }
+
+    public void recordCurrentHitbox(double x, double y, double z, double width, double height, boolean teleportMarker) {
         // 1.7/1.8 clients get an extra 0.1 hitbox expansion (vanilla behavior, same as
         // Grim)
         double hitboxExpand = 0.1D;
         double halfWidth = (width * 0.5D) + hitboxExpand;
         long now = System.currentTimeMillis();
         hitboxHistory.addFirst(
-                new HitboxFrame(now, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
+                new HitboxFrame(now, teleportMarker, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
 
         while (!hitboxHistory.isEmpty() && now - hitboxHistory.getLast().getTimestampMillis() > 400L) {
             hitboxHistory.removeLast();
