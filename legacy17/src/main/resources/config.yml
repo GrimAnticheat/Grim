@@ -75,6 +75,8 @@ checks:
     setback: true
     buffer: 0.35
     window-weight: 1.0
+    diagonal-extra-margin: 0.012
+    direction-smoothing-ticks: 2
     punish-vl: 30
     punish-commands:
       - "kick %player% Speed cheat (%check% VL:%vl%)"

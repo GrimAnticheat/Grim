@@ -46,6 +46,8 @@ public final class PlayerData {
     private double lastDeltaXZ;
     private double lastDeltaY;
     private double prevDeltaXZ;
+    private double prevPrevDeltaXZ;
+    private double prevPrevPrevDeltaXZ;
     private double prevDeltaY;
     private float lastYaw;
     private float lastPitch;
@@ -132,6 +134,8 @@ public final class PlayerData {
         applyPendingWorldChanges();
         double dx = to.getX() - from.getX();
         double dz = to.getZ() - from.getZ();
+        prevPrevPrevDeltaXZ = prevPrevDeltaXZ;
+        prevPrevDeltaXZ = prevDeltaXZ;
         prevDeltaXZ = lastDeltaXZ;
         prevDeltaY = lastDeltaY;
         lastDeltaXZ = Math.sqrt(dx * dx + dz * dz);
@@ -633,6 +637,14 @@ public final class PlayerData {
 
     public double getPrevDeltaXZ() {
         return prevDeltaXZ;
+    }
+
+    public double getPrevPrevDeltaXZ() {
+        return prevPrevDeltaXZ;
+    }
+
+    public double getPrevPrevPrevDeltaXZ() {
+        return prevPrevPrevDeltaXZ;
     }
 
     public double getPrevDeltaY() {
