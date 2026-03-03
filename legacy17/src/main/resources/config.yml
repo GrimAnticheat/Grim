@@ -97,6 +97,8 @@ checks:
     max-vl: 6.0
     setback: true
     buffer: 1.5
+    min-overlap-ratio: 0.08
+    min-consecutive-ticks: 2
     punish-vl: 18
     punish-commands:
       - "kick %player% Phase cheat (%check% VL:%vl%)"
