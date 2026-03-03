@@ -17,6 +17,7 @@ import ac.grim.legacyac.check.impl.ReachCheck;
 import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.VelocityCheck;
+import ac.grim.legacyac.combat.EntityIdIndex;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.InternalPacketEvent;
 import ac.grim.legacyac.network.frame.MovementFrame;
@@ -31,6 +32,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -44,6 +46,7 @@ import java.util.Locale;
 
 public final class CheckManager implements Listener {
     private final LegacyAntiCheatPlugin plugin;
+    private final EntityIdIndex entityIdIndex;
     private final List<SpeedCheck> speedChecks = new ArrayList<SpeedCheck>();
     private final List<FlyCheck> flyChecks = new ArrayList<FlyCheck>();
     private final List<PhaseCheck> phaseChecks = new ArrayList<PhaseCheck>();
@@ -65,6 +68,7 @@ public final class CheckManager implements Listener {
 
     public CheckManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
+        this.entityIdIndex = new EntityIdIndex(plugin.getLogger());
         speedChecks.add(new SpeedCheck(plugin));
         flyChecks.add(new FlyCheck(plugin));
         phaseChecks.add(new PhaseCheck(plugin));
@@ -81,6 +85,12 @@ public final class CheckManager implements Listener {
         inventoryMoveChecks.add(new InventoryMoveCheck(plugin));
         predictionChecks.add(new PredictionMovementCheck(plugin));
         noSlowChecks.add(new NoSlowCheck(plugin));
+
+        for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                entityIdIndex.put(entity);
+            }
+        }
     }
 
     public int getCheckCount() {
@@ -114,11 +124,18 @@ public final class CheckManager implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setJoinAt(System.currentTimeMillis());
+        entityIdIndex.put(event.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        entityIdIndex.remove(event.getPlayer());
         plugin.removePlayerData(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        entityIdIndex.remove(event.getEntity());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -331,11 +348,15 @@ public final class CheckManager implements Listener {
     }
 
     public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId) {
-        Entity targetEntity = null;
-        for (Entity entity : attacker.getWorld().getEntities()) {
-            if (entity.getEntityId() == targetEntityId) {
-                targetEntity = entity;
-                break;
+        Entity targetEntity = entityIdIndex.get(targetEntityId);
+        if (targetEntity == null) {
+            entityIdIndex.recordFallbackScan();
+            for (Entity entity : attacker.getWorld().getEntities()) {
+                if (entity.getEntityId() == targetEntityId) {
+                    targetEntity = entity;
+                    entityIdIndex.put(entity);
+                    break;
+                }
             }
         }
         if (!(targetEntity instanceof Player)) {
