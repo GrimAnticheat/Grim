@@ -131,6 +131,8 @@ public final class LegacyCommand implements CommandExecutor {
         builder.append(',');
         appendField(builder, "triggerChain", data.getRecentTriggerChain(12));
         builder.append(',');
+        appendField(builder, "scenario", data.getScenarioTag());
+        builder.append(',');
         PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
         builder.append("\"velocity\":{");
         appendField(builder, "queueSize", String.valueOf(data.getVelocitySampleQueueSize()), false);

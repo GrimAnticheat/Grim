@@ -445,6 +445,10 @@ public final class PlayerData {
         return predictionContext;
     }
 
+    public String getScenarioTag() {
+        return predictionContext.getScenarioTag();
+    }
+
     public double getPredictionMinDeviation() {
         return predictionMinDeviation;
     }
@@ -1126,6 +1130,34 @@ public final class PlayerData {
         public void markRodPull() { recentRodPullTicks = RECENT_TICK_WINDOW; }
         public void markTeleport() { recentTeleportTicks = RECENT_TICK_WINDOW; }
         public void markHighFall() { recentHighFallTicks = RECENT_TICK_WINDOW; }
+
+        public String getScenarioTag() {
+            if (recentRodPullTicks > 0 && recentVelocityTicks > 0) {
+                return "rod_double_pull";
+            }
+            if (recentRodPullTicks > 0) {
+                return "rod_pull";
+            }
+            if (recentTeleportTicks > 0) {
+                return "pearl_displacement";
+            }
+            if (recentHighFallTicks > 0) {
+                return "high_fall_landing";
+            }
+            if (inLiquid && recentVelocityTicks > 0) {
+                return "liquid_hit";
+            }
+            if (inLiquid) {
+                return "liquid_movement";
+            }
+            if (stuckEdge) {
+                return "edge_stuck";
+            }
+            if (recentVelocityTicks > 0) {
+                return "velocity_window";
+            }
+            return "normal";
+        }
 
         private static boolean hasAdjacentDrop(Location location) {
             int baseY = location.getBlockY() - 1;
