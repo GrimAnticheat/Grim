@@ -39,9 +39,15 @@ public final class SpeedCheck extends Check {
 
         double horizontal = data.getLastDeltaXZ();
         double deltaY = data.getLastDeltaY();
+        double deltaX = to.getX() - from.getX();
+        double deltaZ = to.getZ() - from.getZ();
         boolean onGround = frame.isOnGround();
         boolean wasOnGround = data.wasOnGround();
         PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
+
+        double directionDeviation = computeDirectionDeviation(deltaX, deltaZ, to.getYaw());
+        boolean diagonalInput = isDiagonalMovement(deltaX, deltaZ);
+        boolean directionStable = directionDeviation >= 20.0D && directionDeviation <= 70.0D;
 
         // ---- Calculate physics-based max speed ----
 
@@ -96,6 +102,10 @@ public final class SpeedCheck extends Check {
         // Note: data.getLastDeltaXZ() is the CURRENT tick's value,
         // getPrevDeltaXZ() is the PREVIOUS tick's value which represents carried velocity
         double burstMax = data.getPrevDeltaXZ() * friction + acceleration;
+        int smoothingTicks = Math.max(1, plugin.getConfig().getInt("checks.Speed.direction-smoothing-ticks", 2));
+        if (smoothingTicks > 1 && diagonalInput && directionStable && isJumping) {
+            burstMax = smoothedBurstMax(data, friction, acceleration, smoothingTicks);
+        }
         // When landing (transitioning from air to ground), the velocity was previously under
         // air friction (0.91) but now uses ground friction (0.546). This transition takes
         // 2-3 ticks to settle. Use air friction for burst during this window.
@@ -128,6 +138,12 @@ public final class SpeedCheck extends Check {
             max = Math.max(max, burstMax + 0.04D);
         }
 
+        if (diagonalInput && directionStable) {
+            double diagonalExtra = plugin.getConfig().getDouble("checks.Speed.diagonal-extra-margin", 0.012D);
+            double diagonalMax = burstMax + Math.max(0.0D, diagonalExtra);
+            max = Math.max(max, diagonalMax);
+        }
+
         // Movement threshold tolerance
         max += 0.005D;
 
@@ -142,7 +158,9 @@ public final class SpeedCheck extends Check {
         if (!state.isFullyAligned()) {
             max += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
         }
-        logAdaptiveLagComparison(player, data, getName(), baseMax, max, "speed-state-aligned=" + state.isFullyAligned());
+        logAdaptiveLagComparison(player, data, getName(), baseMax, max,
+            "speed-state-aligned=" + state.isFullyAligned()
+                + ",speed-direction-stable=" + directionStable);
 
         // Knockback tolerance — knockback creates an instantaneous velocity injection that
         // the burst model (prev*friction+accel) cannot account for because prev was pre-knockback.
@@ -176,6 +194,8 @@ public final class SpeedCheck extends Check {
                 + " accel=" + fmt(acceleration) + " steady=" + fmt(steadyStateMax)
                 + " burst=" + fmt(burstMax) + " onGround=" + onGround
                 + " sprint=" + sprinting + " jump=" + isJumping
+                + " dirDev=" + fmt(directionDeviation) + " diag=" + diagonalInput
+                + " dirStable=" + directionStable
                 + " pending=" + state.getPendingChanges());
         }
 
@@ -224,5 +244,49 @@ public final class SpeedCheck extends Check {
 
     private String fmt(double value) {
         return String.format(Locale.ROOT, "%.4f", value);
+    }
+
+    private static boolean isDiagonalMovement(double deltaX, double deltaZ) {
+        double absX = Math.abs(deltaX);
+        double absZ = Math.abs(deltaZ);
+        return absX > 0.02D && absZ > 0.02D;
+    }
+
+    private static double computeDirectionDeviation(double deltaX, double deltaZ, float yaw) {
+        double horizontal = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+        if (horizontal < 1.0E-5D) {
+            return 0.0D;
+        }
+        double movementAngle = Math.toDegrees(Math.atan2(-deltaX, deltaZ));
+        double facingAngle = normalizeAngle(yaw);
+        double diff = Math.abs(movementAngle - facingAngle);
+        if (diff > 180.0D) {
+            diff = 360.0D - diff;
+        }
+        return diff;
+    }
+
+    private static double normalizeAngle(double angle) {
+        double normalized = angle % 360.0D;
+        if (normalized < 0.0D) {
+            normalized += 360.0D;
+        }
+        return normalized;
+    }
+
+    private static double smoothedBurstMax(PlayerData data, double friction, double acceleration, int smoothingTicks) {
+        int ticks = Math.min(3, Math.max(2, smoothingTicks));
+        double sum = data.getPrevDeltaXZ();
+        int samples = 1;
+        if (ticks >= 2) {
+            sum += data.getPrevPrevDeltaXZ();
+            samples++;
+        }
+        if (ticks >= 3) {
+            sum += data.getPrevPrevPrevDeltaXZ();
+            samples++;
+        }
+        double averagedPrev = sum / samples;
+        return averagedPrev * friction + acceleration;
     }
 }
