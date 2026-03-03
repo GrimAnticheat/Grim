@@ -2,6 +2,7 @@ package ac.grim.legacyac.combat;
 
 public final class HitboxFrame {
     private final long timestampMillis;
+    private final boolean teleportMarker;
     private final double minX;
     private final double minY;
     private final double minZ;
@@ -9,8 +10,9 @@ public final class HitboxFrame {
     private final double maxY;
     private final double maxZ;
 
-    public HitboxFrame(long timestampMillis, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    public HitboxFrame(long timestampMillis, boolean teleportMarker, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         this.timestampMillis = timestampMillis;
+        this.teleportMarker = teleportMarker;
         this.minX = minX;
         this.minY = minY;
         this.minZ = minZ;
@@ -21,6 +23,10 @@ public final class HitboxFrame {
 
     public long getTimestampMillis() {
         return timestampMillis;
+    }
+
+    public boolean isTeleportMarker() {
+        return teleportMarker;
     }
 
     public double getMinX() { return minX; }

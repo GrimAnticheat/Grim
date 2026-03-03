@@ -24,6 +24,7 @@ import ac.grim.legacyac.network.frame.MovementFrame;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -373,11 +374,12 @@ public final class CheckManager implements Listener {
         PlayerData targetData = plugin.getPlayerData(target);
         double[] targetBox = plugin.resolveEntityBox(target);
         Location targetLoc = target.getLocation();
-        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1]);
+        boolean teleportMarker = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= 400L;
+        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1], teleportMarker);
         final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
         final ReachCheck.AttackEvaluation reachEval;
         if (reachChecks.isEmpty()) {
-            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L);
+            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false);
         } else {
             reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow);
         }
@@ -431,6 +433,10 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onClick(PlayerInteractEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        Material inHand = event.getPlayer().getItemInHand() == null ? Material.AIR : event.getPlayer().getItemInHand().getType();
+        if (inHand == Material.ENDER_PEARL) {
+            data.setLastTeleportOrPearlAt(System.currentTimeMillis());
+        }
         for (AutoClickerCheck check : autoClickerChecks) {
             check.onInteract(event, data);
         }
