@@ -1,5 +1,6 @@
 package ac.grim.legacyac.prediction;
 
+import ac.grim.legacyac.data.PlayerData;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -48,9 +49,9 @@ public final class LegacyPredictionEngine {
      *         vertical range
      */
     public static PredictionResult predict(Player player, Material feetBlock, Material belowBlock,
-            double lastDeltaY, double lastDeltaXZ, boolean onGround) {
+            double lastDeltaY, double lastDeltaXZ, boolean onGround, PlayerData.PredictionContext context, int highFallRecoveryTicks) {
         List<CandidateVelocity> candidates = generateResolvedCandidates(player, feetBlock, belowBlock,
-                lastDeltaY, lastDeltaXZ, onGround);
+                lastDeltaY, lastDeltaXZ, onGround, context, highFallRecoveryTicks);
 
         double maxHorizontal = 0.0D;
         double minVertical = Double.POSITIVE_INFINITY;
@@ -76,7 +77,8 @@ public final class LegacyPredictionEngine {
     }
 
     public static List<CandidateVelocity> generateResolvedCandidates(Player player, Material feetBlock,
-            Material belowBlock, double lastDeltaY, double lastDeltaXZ, boolean onGround) {
+            Material belowBlock, double lastDeltaY, double lastDeltaXZ, boolean onGround,
+            PlayerData.PredictionContext context, int highFallRecoveryTicks) {
         // ========== HORIZONTAL PREDICTION ==========
 
         // Step 1: Determine block friction
@@ -120,6 +122,11 @@ public final class LegacyPredictionEngine {
 
         double carriedHorizontal = lastDeltaXZ * friction;
         double inputAccel = acceleration * 0.98D;
+        boolean liquidRestricted = context != null && context.isInLiquid();
+        if (liquidRestricted) {
+            carriedHorizontal *= 0.55D;
+            inputAccel *= 0.55D;
+        }
 
         // ========== VERTICAL PREDICTION ==========
 
@@ -182,6 +189,19 @@ public final class LegacyPredictionEngine {
         double[] inputFactors = new double[] { 0.0D, 0.5D, -0.5D, 1.0D, -1.0D };
         double[] verticalCandidates = onGround ? new double[] { 0.0D, baselineY, jumpY }
                 : new double[] { baselineY, jumpY, baselineY - 0.05D };
+        List<Double> extraVerticalCandidates = new ArrayList<Double>();
+        if (context != null && context.isRecentVelocity()) {
+            extraVerticalCandidates.add(Double.valueOf(lastDeltaY * 0.96D));
+        }
+        if (liquidRestricted) {
+            extraVerticalCandidates.add(Double.valueOf(Math.max(-0.08D, baselineY * 0.85D)));
+        }
+        if (context != null && context.isRecentHighFall()) {
+            int recovery = Math.max(6, Math.min(10, highFallRecoveryTicks));
+            for (int i = 0; i < recovery; i++) {
+                extraVerticalCandidates.add(Double.valueOf(-0.01D * (i + 1)));
+            }
+        }
         for (double inputX : inputFactors) {
             for (double inputZ : inputFactors) {
                 if (Math.abs(inputX) == 1.0D && Math.abs(inputZ) == 1.0D) {
@@ -207,7 +227,20 @@ public final class LegacyPredictionEngine {
                     CandidateVelocity candidate = new CandidateVelocity(profile, motionX, candidateY, motionZ);
                     candidates.add(CollisionResolver.resolve(player, feetBlock, belowBlock, candidate, onGround));
                 }
+                for (Double extraY : extraVerticalCandidates) {
+                    String profile = "ctx-low-weight:ix=" + inputX + ",iz=" + inputZ + ",y=" + extraY.doubleValue();
+                    CandidateVelocity candidate = new CandidateVelocity(profile, motionX, extraY.doubleValue(), motionZ);
+                    candidates.add(CollisionResolver.resolve(player, feetBlock, belowBlock, candidate, onGround));
+                }
             }
+        }
+        if (context != null && context.isRecentVelocity()) {
+            CandidateVelocity inertia = new CandidateVelocity("ctx-hit-inertia", lastDeltaXZ * 0.91D, lastDeltaY, 0.0D);
+            candidates.add(CollisionResolver.resolve(player, feetBlock, belowBlock, inertia, onGround));
+        }
+        if (liquidRestricted) {
+            CandidateVelocity liquid = new CandidateVelocity("ctx-liquid-restricted", lastDeltaXZ * 0.4D, Math.max(-0.08D, baselineY), 0.0D);
+            candidates.add(CollisionResolver.resolve(player, feetBlock, belowBlock, liquid, onGround));
         }
         return candidates;
     }
