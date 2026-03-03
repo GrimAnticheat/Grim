@@ -52,6 +52,7 @@ public final class ReachCheck extends Check {
         AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(victim), maxReach, 400L);
         if (!eval.isLegal()) {
             double add = Math.max(0.15D, eval.getDirectDistance() - maxReach);
+            recordEvidence(data, add, "REACH_EVENT");
             double buffer = slideAndAddScore(data, add,
                     plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.5D)) {
@@ -78,6 +79,7 @@ public final class ReachCheck extends Check {
         AttackEvaluation eval = evaluate(attacker, plugin.getPlayerData(target), maxReach, backtrackMillis);
         if (!eval.isLegal()) {
             double add = Math.max(0.15D, eval.getDirectDistance() - maxReach);
+            recordEvidence(attackerData, add, "REACH_PACKET");
             double buffer = slideAndAddScore(attackerData, add,
                     plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
             if (buffer > plugin.getConfig().getDouble("checks.Reach.buffer", 0.5D)) {

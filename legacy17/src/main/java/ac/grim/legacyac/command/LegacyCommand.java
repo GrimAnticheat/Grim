@@ -2,13 +2,15 @@ package ac.grim.legacyac.command;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.debug.DetectionEvidence;
+import java.util.List;
+import java.util.Locale;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import java.util.Locale;
 
 public final class LegacyCommand implements CommandExecutor {
     private static final String[] CHECKS = new String[] {"Speed", "Fly", "Phase", "Reach", "AutoClicker", "NoFall", "KillAura", "Timer", "Velocity", "Jesus", "FastPlace", "FastBreak", "FastUse", "InventoryMove", "Prediction", "NoSlow"};
@@ -81,10 +83,87 @@ public final class LegacyCommand implements CommandExecutor {
                 + String.format(Locale.ROOT, "%.2fms", data.getLastTransactionRttNanos() / 1000000.0D));
             sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + "lastTransTime" + ChatColor.GRAY + ": "
                 + data.getLastTransTime());
+            sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.LIGHT_PURPLE + "P95 offset" + ChatColor.GRAY + ": "
+                + String.format(Locale.ROOT, "%.4f", data.getDetectionOffsetP95()));
+            sender.sendMessage(ChatColor.DARK_GRAY + " - " + ChatColor.LIGHT_PURPLE + "trigger chain" + ChatColor.GRAY + ": "
+                + data.getRecentTriggerChain(8));
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /glac <alerts|reload|info|profile|debug>");
+        if ("dump".equalsIgnoreCase(args[0])) {
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Usage: /glac dump <player>");
+                return true;
+            }
+            Player target = Bukkit.getPlayerExact(args[1]);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Player not found.");
+                return true;
+            }
+            PlayerData data = plugin.getPlayerData(target);
+            sender.sendMessage(ChatColor.GRAY + toJson(target, data));
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.RED + "Usage: /glac <alerts|reload|info|profile|debug|dump>");
         return true;
+    }
+
+    private String toJson(Player target, PlayerData data) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('{');
+        appendField(builder, "player", target.getName());
+        builder.append(',');
+        appendField(builder, "uuid", target.getUniqueId().toString());
+        builder.append(',');
+        appendField(builder, "p95Offset", String.format(Locale.ROOT, "%.6f", data.getDetectionOffsetP95()), false);
+        builder.append(',');
+        appendField(builder, "triggerChain", data.getRecentTriggerChain(12));
+        builder.append(',');
+        builder.append("\"evidence\":[");
+        List<DetectionEvidence> evidenceList = data.getDetectionEvidenceSnapshot();
+        for (int i = 0; i < evidenceList.size(); i++) {
+            DetectionEvidence evidence = evidenceList.get(i);
+            if (i > 0) {
+                builder.append(',');
+            }
+            builder.append('{');
+            appendField(builder, "ts", String.valueOf(evidence.getTimestampMillis()), false);
+            builder.append(',');
+            appendField(builder, "check", evidence.getCheck());
+            builder.append(',');
+            appendField(builder, "offset", String.format(Locale.ROOT, "%.6f", evidence.getOffset()), false);
+            builder.append(',');
+            appendField(builder, "buffer", String.format(Locale.ROOT, "%.6f", evidence.getBuffer()), false);
+            builder.append(',');
+            appendField(builder, "vl", String.format(Locale.ROOT, "%.6f", evidence.getVl()), false);
+            builder.append(',');
+            appendField(builder, "rtt", String.format(Locale.ROOT, "%.3f", evidence.getRtt()), false);
+            builder.append(',');
+            appendField(builder, "source", evidence.getSource());
+            builder.append(',');
+            appendField(builder, "tick", String.valueOf(evidence.getTick()), false);
+            builder.append('}');
+        }
+        builder.append("]}");
+        return builder.toString();
+    }
+
+    private void appendField(StringBuilder builder, String key, String value) {
+        appendField(builder, key, value, true);
+    }
+
+    private void appendField(StringBuilder builder, String key, String value, boolean quoted) {
+        builder.append('"').append(escapeJson(key)).append('"').append(':');
+        if (quoted) {
+            builder.append('"').append(escapeJson(value)).append('"');
+        } else {
+            builder.append(value);
+        }
+    }
+
+    private String escapeJson(String value) {
+        String escaped = value.replace("\\", "\\\\").replace("\"", "\\\"");
+        return escaped.replace("\n", "\\n").replace("\r", "\\r");
     }
 }

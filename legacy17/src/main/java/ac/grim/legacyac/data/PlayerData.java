@@ -1,6 +1,8 @@
 package ac.grim.legacyac.data;
 
 import ac.grim.legacyac.combat.HitboxFrame;
+import ac.grim.legacyac.debug.DetectionEvidence;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -92,6 +94,11 @@ public final class PlayerData {
     private boolean currentOnGround;
     private final LinkedList<PendingWorldChange> pendingWorldChanges = new LinkedList<PendingWorldChange>();
     private final MovementStateSnapshot movementStateSnapshot = new MovementStateSnapshot();
+    private final LinkedList<DetectionEvidence> detectionEvidenceBuffer = new LinkedList<DetectionEvidence>();
+    private static final int EVIDENCE_BUFFER_LIMIT = 160;
+    private String detectionSource = "UNKNOWN";
+    private int detectionTick;
+
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -432,6 +439,70 @@ public final class PlayerData {
 
     public int getMoveWindow() {
         return moveWindow;
+    }
+
+    public void setDetectionContext(String source, int tick) {
+        this.detectionSource = source == null ? "UNKNOWN" : source;
+        this.detectionTick = tick;
+    }
+
+    public String getDetectionSource() {
+        return detectionSource;
+    }
+
+    public int getDetectionTick() {
+        return detectionTick;
+    }
+
+    public void recordDetectionEvidence(DetectionEvidence evidence) {
+        if (evidence == null) {
+            return;
+        }
+        detectionEvidenceBuffer.addLast(evidence);
+        while (detectionEvidenceBuffer.size() > EVIDENCE_BUFFER_LIMIT) {
+            detectionEvidenceBuffer.removeFirst();
+        }
+    }
+
+    public java.util.List<DetectionEvidence> getDetectionEvidenceSnapshot() {
+        return Collections.unmodifiableList(new ArrayList<DetectionEvidence>(detectionEvidenceBuffer));
+    }
+
+    public double getDetectionOffsetP95() {
+        if (detectionEvidenceBuffer.isEmpty()) {
+            return 0.0D;
+        }
+        java.util.List<Double> offsets = new ArrayList<Double>();
+        for (DetectionEvidence evidence : detectionEvidenceBuffer) {
+            offsets.add(Double.valueOf(Math.max(0.0D, evidence.getOffset())));
+        }
+        Collections.sort(offsets);
+        int index = (int) Math.ceil(offsets.size() * 0.95D) - 1;
+        if (index < 0) {
+            index = 0;
+        }
+        if (index >= offsets.size()) {
+            index = offsets.size() - 1;
+        }
+        return offsets.get(index).doubleValue();
+    }
+
+    public String getRecentTriggerChain(int limit) {
+        if (detectionEvidenceBuffer.isEmpty()) {
+            return "none";
+        }
+        StringBuilder builder = new StringBuilder();
+        int start = Math.max(0, detectionEvidenceBuffer.size() - Math.max(1, limit));
+        for (int i = start; i < detectionEvidenceBuffer.size(); i++) {
+            DetectionEvidence evidence = detectionEvidenceBuffer.get(i);
+            if (builder.length() > 0) {
+                builder.append(" -> ");
+            }
+            builder.append(evidence.getCheck());
+            builder.append('@');
+            builder.append(evidence.getTick());
+        }
+        return builder.toString();
     }
 
     public boolean isInventoryOpen() {
