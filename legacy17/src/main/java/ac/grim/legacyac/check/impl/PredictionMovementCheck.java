@@ -6,8 +6,9 @@ import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.prediction.CandidateVelocity;
 import ac.grim.legacyac.prediction.LegacyPredictionEngine;
+import ac.grim.legacyac.prediction.PredictionEvaluation;
 import ac.grim.legacyac.prediction.PredictionResult;
-import java.util.List;
+import ac.grim.legacyac.prediction.PredictionUncertaintyHandler;
 import java.util.Locale;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -64,27 +65,20 @@ public final class PredictionMovementCheck extends Check {
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
                 data.wasOnGround(), context, highFallRecoveryTicks);
 
-        List<CandidateVelocity> candidates = LegacyPredictionEngine.generateResolvedCandidates(
+        double uncertaintyBudget = resolveContextBudgets(context);
+        PredictionEvaluation evaluation = LegacyPredictionEngine.evaluateBestCandidate(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                data.wasOnGround(), context, highFallRecoveryTicks);
-
-        CandidateVelocity bestCandidate = null;
-        double minDeviation = Double.MAX_VALUE;
-        for (CandidateVelocity candidate : candidates) {
-            double horizontalDeviation = horizontal - candidate.getHorizontalMagnitude();
-            double verticalDeviation = deltaY - candidate.getMotionY();
-            double deviation = Math.sqrt((horizontalDeviation * horizontalDeviation)
-                    + (verticalDeviation * verticalDeviation));
-            if (deviation < minDeviation) {
-                minDeviation = deviation;
-                bestCandidate = candidate;
-            }
-        }
-        if (minDeviation == Double.MAX_VALUE) {
-            minDeviation = 0.0D;
-        }
+                data.wasOnGround(), context, highFallRecoveryTicks,
+                horizontal, deltaY,
+                uncertaintyBudget);
+        CandidateVelocity bestCandidate = evaluation.getBestCandidate();
+        double minDeviation = evaluation.getRawOffset();
         data.setPredictionMinDeviation(minDeviation);
+
+        double reducedOffset = PredictionUncertaintyHandler.reduceOffset(minDeviation, context, plugin);
+        data.setPredictionReducedDeviation(reducedOffset);
+        data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
 
         boolean badHorizontalOld = horizontal > legacyResult.getMaxHorizontal();
         boolean badVerticalOld = deltaY < legacyResult.getMinVertical() || deltaY > legacyResult.getMaxVertical();
@@ -98,8 +92,8 @@ public final class PredictionMovementCheck extends Check {
                     : (deltaY - legacyResult.getMaxVertical());
         }
 
-        double baseAllowance = plugin.getConfig().getDouble("prediction.candidate-base-allowance", 0.025D);
-        double adaptiveAllowance = baseAllowance + resolveContextBudgets(context);
+        double baseAllowance = plugin.getConfig().getDouble("prediction.stage.base-allowance", 0.0D);
+        double adaptiveAllowance = baseAllowance + uncertaintyBudget;
 
         if (!state.isFullyAligned()) {
             adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
@@ -114,7 +108,7 @@ public final class PredictionMovementCheck extends Check {
         logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance,
                 "prediction-state-aligned=" + state.isFullyAligned());
 
-        double newScore = Math.max(0.0D, minDeviation - adaptiveAllowance);
+        double newScore = Math.max(0.0D, reducedOffset - baseAllowance);
         if (minDeviation > 0.0D) {
             recordEvidence(data, minDeviation, "PREDICTION_MODEL");
         }
@@ -140,8 +134,8 @@ public final class PredictionMovementCheck extends Check {
 
         double weight = plugin.getConfig().getDouble("checks.Prediction.window-weight", 1.0D);
         double softBuffer = data.addBuffer(SOFT_BUFFER_KEY, scoreToUse * weight);
-        int hardNeedStreak = plugin.getConfig().getInt("prediction.hard-flag-streak", 3);
-        double softThreshold = plugin.getConfig().getDouble("prediction.soft-buffer-threshold", 0.35D);
+        int hardNeedStreak = plugin.getConfig().getInt("prediction.stage.hard-flag-streak", 3);
+        double softThreshold = plugin.getConfig().getDouble("prediction.stage.soft-buffer-threshold", 0.35D);
 
         if (softBuffer < softThreshold) {
             data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
@@ -163,6 +157,7 @@ public final class PredictionMovementCheck extends Check {
                 + " old=" + fmt(oldScore)
                 + " new=" + fmt(newScore)
                 + " dev=" + fmt(minDeviation)
+                + " reduced=" + fmt(reducedOffset)
                 + " allowance=" + fmt(adaptiveAllowance)
                 + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
                 + " h=" + fmt(horizontal) + "/" + fmt(legacyResult.getMaxHorizontal())
@@ -172,28 +167,7 @@ public final class PredictionMovementCheck extends Check {
     }
 
     private double resolveContextBudgets(PlayerData.PredictionContext context) {
-        double budget = 0.0D;
-        if (context.isInLiquid()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.liquid", 0.03D);
-            budget += plugin.getConfig().getDouble("prediction.liquid-extra-allowance", 0.02D);
-        }
-        if (context.isRecentRodPull()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.rod", 0.04D);
-            budget += plugin.getConfig().getDouble("prediction.rod-extra-allowance", 0.03D);
-        }
-        if (context.isRecentHighFall()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.high-fall-recovery", 0.05D);
-        }
-        if (context.isRecentVelocity()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.velocity", 0.02D);
-        }
-        if (context.isRecentTeleport()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.teleport", 0.02D);
-        }
-        if (context.isStuckEdge()) {
-            budget += plugin.getConfig().getDouble("prediction.budget.stuck-edge", 0.015D);
-        }
-        return budget;
+        return PredictionUncertaintyHandler.resolveBudget(context, plugin);
     }
 
     private static String fmt(double value) {

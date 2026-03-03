@@ -1,6 +1,8 @@
 package ac.grim.legacyac.prediction;
 
 import ac.grim.legacyac.data.PlayerData;
+import java.util.Collections;
+import java.util.Comparator;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -74,6 +76,43 @@ public final class LegacyPredictionEngine {
         maxVertical += 0.01D;
 
         return new PredictionResult(maxHorizontal, minVertical, maxVertical);
+    }
+
+    public static PredictionEvaluation evaluateBestCandidate(Player player, Material feetBlock, Material belowBlock,
+            double lastDeltaY, double lastDeltaXZ, boolean onGround, PlayerData.PredictionContext context,
+            int highFallRecoveryTicks, double observedHorizontal, double observedVertical, double reducedAllowance) {
+        List<CandidateVelocity> candidates = generateResolvedCandidates(player, feetBlock, belowBlock,
+                lastDeltaY, lastDeltaXZ, onGround, context, highFallRecoveryTicks);
+
+        Collections.sort(candidates, new Comparator<CandidateVelocity>() {
+            @Override
+            public int compare(CandidateVelocity left, CandidateVelocity right) {
+                double leftHorizontal = observedHorizontal - left.getHorizontalMagnitude();
+                double leftVertical = observedVertical - left.getMotionY();
+                double leftDeviation = Math.sqrt((leftHorizontal * leftHorizontal) + (leftVertical * leftVertical));
+
+                double rightHorizontal = observedHorizontal - right.getHorizontalMagnitude();
+                double rightVertical = observedVertical - right.getMotionY();
+                double rightDeviation = Math.sqrt((rightHorizontal * rightHorizontal) + (rightVertical * rightVertical));
+
+                int cmp = Double.compare(leftDeviation, rightDeviation);
+                if (cmp != 0) {
+                    return cmp;
+                }
+                return left.getProfile().compareTo(right.getProfile());
+            }
+        });
+
+        CandidateVelocity bestCandidate = candidates.isEmpty() ? null : candidates.get(0);
+        double rawOffset = 0.0D;
+        if (bestCandidate != null) {
+            double horizontalDeviation = observedHorizontal - bestCandidate.getHorizontalMagnitude();
+            double verticalDeviation = observedVertical - bestCandidate.getMotionY();
+            rawOffset = Math.sqrt((horizontalDeviation * horizontalDeviation) + (verticalDeviation * verticalDeviation));
+        }
+
+        double reducedOffset = Math.max(0.0D, rawOffset - Math.max(0.0D, reducedAllowance));
+        return new PredictionEvaluation(candidates, bestCandidate, rawOffset, reducedOffset);
     }
 
     public static List<CandidateVelocity> generateResolvedCandidates(Player player, Material feetBlock,

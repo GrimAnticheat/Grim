@@ -123,7 +123,7 @@ public final class NoSlowCheck extends Check {
 
         if (horizontal > maxSlowedSpeed) {
             double deviation = horizontal - maxSlowedSpeed;
-            double predictionMinDeviation = data.getPredictionMinDeviation();
+            double predictionMinDeviation = data.getPredictionReducedDeviation();
             double predictionThreshold = plugin.getConfig().getDouble("checks.NoSlow.prediction-min-deviation-threshold", 0.035D);
             if (predictionMinDeviation <= predictionThreshold) {
                 coolDownScore(data);

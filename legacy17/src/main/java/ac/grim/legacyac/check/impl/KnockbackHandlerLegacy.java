@@ -49,7 +49,7 @@ public final class KnockbackHandlerLegacy extends Check {
             return;
         }
 
-        double offset = data.getPredictionMinDeviation();
+        double offset = data.getPredictionReducedDeviation();
         if (offset < 0.0D) {
             offset = 0.0D;
         }
