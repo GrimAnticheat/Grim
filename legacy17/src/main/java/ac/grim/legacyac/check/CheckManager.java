@@ -200,6 +200,7 @@ public final class CheckManager implements Listener {
 
     private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from, Location to) {
         data.handleMove(player, from, to, frame.isOnGround());
+        data.setDetectionContext(frame.getSource().name(), data.getMoveWindow());
 
         PlayerData.MovementStateSnapshot snapshot = data.getMovementStateSnapshot();
         if (!snapshot.isTeleportAligned()) {
@@ -366,6 +367,7 @@ public final class CheckManager implements Listener {
 
         final Player target = (Player) targetEntity;
         final PlayerData attackerData = plugin.getPlayerData(attacker);
+        attackerData.setDetectionContext("USE_ENTITY_PACKET", attackerData.getMoveWindow());
         PlayerData targetData = plugin.getPlayerData(target);
         double[] targetBox = plugin.resolveEntityBox(target);
         Location targetLoc = target.getLocation();
@@ -403,6 +405,7 @@ public final class CheckManager implements Listener {
         }
         Player attacker = (Player) event.getDamager();
         PlayerData data = plugin.getPlayerData(attacker);
+        data.setDetectionContext("ENTITY_DAMAGE_EVENT", data.getMoveWindow());
         for (ReachCheck check : reachChecks) {
             check.onAttack(event, attacker, (Player) event.getEntity(), data);
         }

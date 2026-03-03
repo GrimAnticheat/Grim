@@ -182,6 +182,7 @@ public final class SpeedCheck extends Check {
         // ---- Check and flag ----
         if (horizontal > max) {
             double deviation = horizontal - max;
+            recordEvidence(data, deviation, "SPEED_MODEL");
             double weight = plugin.getConfig().getDouble("checks.Speed.window-weight", 1.0D);
             double buffer = slideAndAddScore(data, deviation, weight);
             if (buffer > plugin.getConfig().getDouble("checks.Speed.buffer", 0.35D)) {

@@ -2,6 +2,7 @@ package ac.grim.legacyac.check;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.debug.DetectionEvidence;
 import java.util.List;
 import org.bukkit.entity.Player;
 import java.util.Locale;
@@ -94,12 +95,26 @@ public abstract class Check {
             + " note=" + note);
     }
 
+
+    protected void recordEvidence(PlayerData data, double offset, String sourceOverride) {
+        data.recordDetectionEvidence(new DetectionEvidence(
+            System.currentTimeMillis(),
+            name,
+            offset,
+            data.getBuffer(name),
+            data.getViolation(name),
+            data.getLastTransactionRttNanos() / 1000000.0D,
+            sourceOverride == null ? data.getDetectionSource() : sourceOverride,
+            data.getDetectionTick()));
+    }
+
     protected void flag(Player player, PlayerData data, double amount, String detail) {
         if (!isEnabled() || isExempt(player, data)) {
             return;
         }
 
         double vl = data.addViolation(name, amount);
+        recordEvidence(data, amount, null);
         if (data.isDebugEnabled()) {
             String evidence = "[" + name + "] P:" + String.format(Locale.ROOT, "%.2f", amount)
                 + ", RTT:" + String.format(Locale.ROOT, "%.0fms", data.getLastTransactionRttNanos() / 1000000.0D)

@@ -103,6 +103,9 @@ public final class PredictionMovementCheck extends Check {
         logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance, "prediction-state-aligned=" + state.isFullyAligned());
 
         double newScore = Math.max(0.0D, minDeviation - adaptiveAllowance);
+        if (minDeviation > 0.0D) {
+            recordEvidence(data, minDeviation, "PREDICTION_MODEL");
+        }
 
         boolean enforceCandidateModel = plugin.getConfig().getBoolean("prediction.candidate-enforcement", false);
         double scoreToUse;

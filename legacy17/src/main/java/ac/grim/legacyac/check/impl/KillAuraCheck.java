@@ -42,6 +42,7 @@ public final class KillAuraCheck extends Check {
         // During jumping/fast movement, ray can miss hitbox frames even for legit players
         if (!reachLegal) {
             double buffer = slideAndAddScore(data, 0.8D, 1.0D);
+            recordEvidence(data, 0.8D, "KILLAURA_HITBOX");
             if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
                 flag(attacker, data, 0.8D, "packet attack not intersecting backtrack hitbox");
             }
@@ -64,6 +65,7 @@ public final class KillAuraCheck extends Check {
         if (yawDelta > snapThreshold && pitchDelta < 2.0F && horizontal < 0.08D) {
             double add = severe ? 1.4D : 1.0D;
             double buffer = slideAndAddScore(data, add, 1.0D);
+            recordEvidence(data, add, "KILLAURA_SNAP");
             if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
                 flag(attacker, data, add, "SNAP yaw=" + fmt(yawDelta)
                     + " pitch=" + fmt(pitchDelta));
@@ -83,6 +85,7 @@ public final class KillAuraCheck extends Check {
             && data.getLastAttackTargetId() != target.getEntityId()) {
             double deviation = 0.8D;
             double buffer = slideAndAddScore(data, deviation, 1.0D);
+            recordEvidence(data, deviation, "KILLAURA_MULTI");
             if (buffer > plugin.getConfig().getDouble("checks.KillAura.multi-target-buffer", 3.0D)) {
                 flag(attacker, data, deviation, "MULTI-TARGET switch=" + timeSince + "ms");
             }
