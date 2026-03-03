@@ -109,6 +109,10 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         return movementFrameDispatcher;
     }
 
+
+    public TransactionSyncManager transactionSync() {
+        return transactionSyncManager;
+    }
     public boolean isPacketPipelineActive() {
         return packetPipelineActive;
     }

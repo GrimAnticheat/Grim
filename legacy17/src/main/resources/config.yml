@@ -139,6 +139,11 @@ checks:
     enabled: true
     max-vl: 8.0
     setback: false
+    tx-window-max-ms: 500
+    delayed-kb-ticks: 3
+    min-score-to-flag: 1.2
+    min-samples: 2
+    # legacy compatibility
     window-ticks: 8
     min-expected-xz: 0.08
     min-response-ratio-xz: 0.40

@@ -37,7 +37,11 @@ public final class TransactionSyncManager {
         }
     }
 
-    private void sendTransaction(Player player) {
+    public short sendTransactionNow(Player player) {
+        return sendTransaction(player);
+    }
+
+    private short sendTransaction(Player player) {
         try {
             PlayerData data = plugin.getPlayerData(player);
             short actionId = data.nextTransactionActionId();
@@ -58,13 +62,16 @@ public final class TransactionSyncManager {
                 sendPacket = findMethodByName(connection.getClass(), "sendPacket");
             }
             if (sendPacket == null) {
-                return;
+                return 0;
             }
 
+            long sentAtNanos = System.nanoTime();
             sendPacket.invoke(connection, packet);
-            data.markTransactionSent(actionId, System.nanoTime());
+            data.markTransactionSent(actionId, sentAtNanos);
+            return actionId;
         } catch (Throwable throwable) {
             plugin.getLogger().fine("[GLAC] transaction send failed: " + throwable.getMessage());
+            return 0;
         }
     }
 
