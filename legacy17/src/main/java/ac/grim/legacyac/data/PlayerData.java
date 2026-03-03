@@ -102,6 +102,12 @@ public final class PlayerData {
     private String detectionSource = "UNKNOWN";
     private int detectionTick;
     private final PredictionContext predictionContext = new PredictionContext();
+    private double predictionMinDeviation;
+    private double usingItemConfidence;
+    private int ticksUsingItem;
+    private long lastSlotSwitchAt;
+    private int slotSwitchGraceTicksRemaining;
+    private int noSlowConsecutiveViolationTicks;
 
 
     public PlayerData(UUID uuid) {
@@ -152,6 +158,10 @@ public final class PlayerData {
         } else {
             airTicks++;
             groundTicks = 0;
+        }
+
+        if (slotSwitchGraceTicksRemaining > 0) {
+            slotSwitchGraceTicksRemaining--;
         }
 
         long now = System.currentTimeMillis();
@@ -418,6 +428,63 @@ public final class PlayerData {
 
     public PredictionContext getPredictionContext() {
         return predictionContext;
+    }
+
+    public double getPredictionMinDeviation() {
+        return predictionMinDeviation;
+    }
+
+    public void setPredictionMinDeviation(double predictionMinDeviation) {
+        this.predictionMinDeviation = Math.max(0.0D, predictionMinDeviation);
+    }
+
+    public double getUsingItemConfidence() {
+        return usingItemConfidence;
+    }
+
+    public int getTicksUsingItem() {
+        return ticksUsingItem;
+    }
+
+    public void updateUsingItemSignal(boolean candidateUsingItem) {
+        if (candidateUsingItem) {
+            usingItemConfidence = Math.min(1.0D, usingItemConfidence + 0.5D);
+        } else {
+            usingItemConfidence = Math.max(0.0D, usingItemConfidence - 0.4D);
+        }
+
+        if (usingItemConfidence >= 0.6D) {
+            ticksUsingItem++;
+        } else {
+            ticksUsingItem = 0;
+        }
+    }
+
+    public void resetNoSlowViolationStreak() {
+        noSlowConsecutiveViolationTicks = 0;
+    }
+
+    public int incrementNoSlowViolationStreak() {
+        noSlowConsecutiveViolationTicks++;
+        return noSlowConsecutiveViolationTicks;
+    }
+
+    public void markSlotSwitch() {
+        lastSlotSwitchAt = System.currentTimeMillis();
+    }
+
+    public void startSlotSwitchGrace(int ticks) {
+        if (ticks > slotSwitchGraceTicksRemaining) {
+            slotSwitchGraceTicksRemaining = ticks;
+        }
+    }
+
+    public boolean isInSlotSwitchGrace() {
+        return slotSwitchGraceTicksRemaining > 0;
+    }
+
+    public long getLastSlotSwitchAt() {
+        return lastSlotSwitchAt;
     }
 
     public void recordRodPull() {

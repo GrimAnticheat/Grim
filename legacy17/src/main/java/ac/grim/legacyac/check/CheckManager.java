@@ -37,6 +37,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -459,6 +460,14 @@ public final class CheckManager implements Listener {
         for (FastUseCheck check : fastUseChecks) {
             check.onConsume(event, data);
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.markSlotSwitch();
+        int graceTicks = plugin.getConfig().getInt("checks.NoSlow.slot-switch-grace-ticks", 2);
+        data.startSlotSwitchGrace(graceTicks);
     }
 
     @EventHandler

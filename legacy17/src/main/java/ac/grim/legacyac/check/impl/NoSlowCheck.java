@@ -45,24 +45,25 @@ public final class NoSlowCheck extends Check {
             return;
         }
 
-        // Don't check during jumps — isBlocking() can return stale state on the jump tick
-        if (data.getLastDeltaY() > 0.1D && data.getGroundTicks() > 0) {
+        // isBlocking/isUsingItem are only candidate signals; confidence needs multi-tick confirmation
+        boolean usingItemCandidate = player.isBlocking() || isUsingItem(player);
+        data.updateUsingItemSignal(usingItemCandidate);
+
+        int minUsingTicks = plugin.getConfig().getInt("checks.NoSlow.min-using-ticks", 2);
+        if (data.getTicksUsingItem() < minUsingTicks) {
             coolDownScore(data);
+            data.resetNoSlowViolationStreak();
             return;
         }
 
-        // Don't check right after knockback
+        // Grace windows: decay only, never add score
+        if (isGraceWindow(data)) {
+            coolDownScore(data);
+            data.resetNoSlowViolationStreak();
+            return;
+        }
+
         long timeSinceVelocity = System.currentTimeMillis() - data.getLastVelocityAt();
-        if (timeSinceVelocity < 500L) {
-            coolDownScore(data);
-            return;
-        }
-
-        // Check if the player is blocking (sword) or using an item
-        if (!player.isBlocking() && !isUsingItem(player)) {
-            coolDownScore(data);
-            return;
-        }
 
         double horizontal = data.getLastDeltaXZ();
 
@@ -122,16 +123,53 @@ public final class NoSlowCheck extends Check {
 
         if (horizontal > maxSlowedSpeed) {
             double deviation = horizontal - maxSlowedSpeed;
+            double predictionMinDeviation = data.getPredictionMinDeviation();
+            double predictionThreshold = plugin.getConfig().getDouble("checks.NoSlow.prediction-min-deviation-threshold", 0.035D);
+            if (predictionMinDeviation <= predictionThreshold) {
+                coolDownScore(data);
+                data.resetNoSlowViolationStreak();
+                return;
+            }
+
+            int streak = data.incrementNoSlowViolationStreak();
+            int minViolationTicks = plugin.getConfig().getInt("checks.NoSlow.min-consecutive-violation-ticks", 2);
+            if (streak < minViolationTicks) {
+                coolDownScore(data);
+                return;
+            }
+
             double weight = plugin.getConfig().getDouble("checks.NoSlow.window-weight", 1.0D);
             double buffer = slideAndAddScore(data, deviation, weight);
             if (buffer > plugin.getConfig().getDouble("checks.NoSlow.buffer", 0.4D)) {
                 String action = player.isBlocking() ? "BLOCKING" : "USING_ITEM";
                 flag(player, data, deviation, action + " h=" + fmt(horizontal)
-                    + " max=" + fmt(maxSlowedSpeed));
+                    + " max=" + fmt(maxSlowedSpeed)
+                    + " conf=" + fmt(data.getUsingItemConfidence())
+                    + " useTicks=" + data.getTicksUsingItem()
+                    + " predDev=" + fmt(predictionMinDeviation)
+                    + " streak=" + streak);
             }
         } else {
             coolDownScore(data);
+            data.resetNoSlowViolationStreak();
         }
+    }
+
+    private boolean isGraceWindow(PlayerData data) {
+        if (data.getPredictionContext().isRecentVelocity()) {
+            return true;
+        }
+
+        long timeSinceVelocity = System.currentTimeMillis() - data.getLastVelocityAt();
+        if (timeSinceVelocity < 500L) {
+            return true;
+        }
+
+        if (data.getLastDeltaY() > 0.1D && data.getGroundTicks() > 0) {
+            return true;
+        }
+
+        return data.isInSlotSwitchGrace();
     }
 
     /**

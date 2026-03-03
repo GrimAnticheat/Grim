@@ -81,6 +81,10 @@ public final class PredictionMovementCheck extends Check {
                 bestCandidate = candidate;
             }
         }
+        if (minDeviation == Double.MAX_VALUE) {
+            minDeviation = 0.0D;
+        }
+        data.setPredictionMinDeviation(minDeviation);
 
         boolean badHorizontalOld = horizontal > legacyResult.getMaxHorizontal();
         boolean badVerticalOld = deltaY < legacyResult.getMinVertical() || deltaY > legacyResult.getMaxVertical();
