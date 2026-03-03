@@ -87,7 +87,8 @@ public final class VelocityCheck extends Check {
             return;
         }
 
-        double likelyStageScore = Math.max(0.0D, sample.getMinOffset() - 0.025D);
+        double predictionReduced = data.getPredictionReducedDeviation();
+        double likelyStageScore = Math.max(0.0D, Math.max(sample.getMinOffset(), predictionReduced) - 0.025D);
         double buffer = slideAndAddScore(data, likelyStageScore, plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D));
 
         if (sample.hasFlag(PlayerData.VelocitySample.FLAG_DELAYED_KB_PATTERN)) {

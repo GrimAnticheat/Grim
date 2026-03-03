@@ -113,6 +113,8 @@ public final class PlayerData {
     private int detectionTick;
     private final PredictionContext predictionContext = new PredictionContext();
     private double predictionMinDeviation;
+    private double predictionReducedDeviation;
+    private String predictionBestProfile = "none";
     private double usingItemConfidence;
     private int ticksUsingItem;
     private long lastSlotSwitchAt;
@@ -462,6 +464,22 @@ public final class PlayerData {
 
     public void setPredictionMinDeviation(double predictionMinDeviation) {
         this.predictionMinDeviation = Math.max(0.0D, predictionMinDeviation);
+    }
+
+    public double getPredictionReducedDeviation() {
+        return predictionReducedDeviation;
+    }
+
+    public void setPredictionReducedDeviation(double predictionReducedDeviation) {
+        this.predictionReducedDeviation = Math.max(0.0D, predictionReducedDeviation);
+    }
+
+    public String getPredictionBestProfile() {
+        return predictionBestProfile;
+    }
+
+    public void setPredictionBestProfile(String predictionBestProfile) {
+        this.predictionBestProfile = predictionBestProfile == null ? "none" : predictionBestProfile;
     }
 
     public double getUsingItemConfidence() {
@@ -1300,6 +1318,9 @@ public final class PlayerData {
         private int recentHighFallTicks;
         private boolean inLiquid;
         private boolean stuckEdge;
+        private boolean nearGlitchyBlock;
+        private boolean nearZeroThreeBoundary;
+        private int recentEntityCollisionTicks;
 
         private void tick(Player player, Location to, boolean onGround, double deltaXZ, double deltaY, boolean teleportPending) {
             if (recentVelocityTicks > 0) {
@@ -1314,11 +1335,20 @@ public final class PlayerData {
             if (recentHighFallTicks > 0) {
                 recentHighFallTicks--;
             }
+            if (recentEntityCollisionTicks > 0) {
+                recentEntityCollisionTicks--;
+            }
 
             Material feet = to.getBlock().getType();
             Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
             inLiquid = isLiquid(feet) || isLiquid(below);
             stuckEdge = onGround && deltaXZ < 0.02D && Math.abs(deltaY) < 0.06D && hasAdjacentDrop(to);
+            nearGlitchyBlock = isGlitchy(feet) || isGlitchy(below);
+            nearZeroThreeBoundary = nearPointThree(deltaXZ) || nearPointThree(Math.abs(deltaY));
+
+            if (player.getNearbyEntities(0.6D, 0.8D, 0.6D).size() > 0) {
+                recentEntityCollisionTicks = RECENT_TICK_WINDOW;
+            }
 
             if (teleportPending) {
                 markTeleport();
@@ -1335,6 +1365,9 @@ public final class PlayerData {
         public boolean isStuckEdge() { return stuckEdge; }
         public boolean isRecentTeleport() { return recentTeleportTicks > 0; }
         public boolean isRecentHighFall() { return recentHighFallTicks > 0; }
+        public boolean isNearGlitchyBlock() { return nearGlitchyBlock; }
+        public boolean isNearZeroThreeBoundary() { return nearZeroThreeBoundary; }
+        public boolean isRecentEntityCollision() { return recentEntityCollisionTicks > 0; }
 
         public void markVelocity() { recentVelocityTicks = RECENT_TICK_WINDOW; }
         public void markRodPull() { recentRodPullTicks = RECENT_TICK_WINDOW; }
@@ -1359,6 +1392,12 @@ public final class PlayerData {
             }
             if (inLiquid) {
                 return "liquid_movement";
+            }
+            if (nearGlitchyBlock) {
+                return "near_glitchy_block";
+            }
+            if (nearZeroThreeBoundary) {
+                return "point_three_boundary";
             }
             if (stuckEdge) {
                 return "edge_stuck";
@@ -1386,6 +1425,15 @@ public final class PlayerData {
         private static boolean isLiquid(Material material) {
             return material == Material.WATER || material == Material.STATIONARY_WATER
                     || material == Material.LAVA || material == Material.STATIONARY_LAVA;
+        }
+
+        private static boolean isGlitchy(Material material) {
+            return material == Material.LADDER || material == Material.VINE
+                    || material == Material.WEB || material == Material.SOUL_SAND;
+        }
+
+        private static boolean nearPointThree(double value) {
+            return Math.abs(value - 0.03D) <= 0.005D || Math.abs(value - 0.06D) <= 0.005D;
         }
     }
 
