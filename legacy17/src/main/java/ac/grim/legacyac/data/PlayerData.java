@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -100,6 +101,7 @@ public final class PlayerData {
     private static final int EVIDENCE_BUFFER_LIMIT = 160;
     private String detectionSource = "UNKNOWN";
     private int detectionTick;
+    private final PredictionContext predictionContext = new PredictionContext();
 
 
     public PlayerData(UUID uuid) {
@@ -180,6 +182,7 @@ public final class PlayerData {
         }
 
         movementStateSnapshot.updateFrom(this, System.currentTimeMillis());
+        predictionContext.tick(player, to, onGround, lastDeltaXZ, lastDeltaY, teleportSyncPending);
     }
 
     private void applyPendingWorldChanges() {
@@ -278,6 +281,7 @@ public final class PlayerData {
         observedVelocityXZ = 0.0D;
         observedVelocityY = 0.0D;
         velocityTicksRemaining = ticks;
+        predictionContext.markVelocity();
     }
 
     public boolean hasPendingVelocityWindow() {
@@ -405,14 +409,28 @@ public final class PlayerData {
 
     public void setLastTeleportAt(long lastTeleportAt) {
         this.lastTeleportAt = lastTeleportAt;
+        predictionContext.markTeleport();
     }
 
     public long getLastVelocityAt() {
         return lastVelocityAt;
     }
 
+    public PredictionContext getPredictionContext() {
+        return predictionContext;
+    }
+
+    public void recordRodPull() {
+        predictionContext.markRodPull();
+    }
+
+    public void recordHighFallLanding() {
+        predictionContext.markHighFall();
+    }
+
     public void setLastVelocityAt(long lastVelocityAt) {
         this.lastVelocityAt = lastVelocityAt;
+        predictionContext.markVelocity();
     }
 
     public double getLastVelocityXZ() {
@@ -966,6 +984,75 @@ public final class PlayerData {
 
         public int getPendingChanges() {
             return pendingChanges;
+        }
+    }
+
+    public static final class PredictionContext {
+        private static final int RECENT_TICK_WINDOW = 10;
+        private int recentVelocityTicks;
+        private int recentRodPullTicks;
+        private int recentTeleportTicks;
+        private int recentHighFallTicks;
+        private boolean inLiquid;
+        private boolean stuckEdge;
+
+        private void tick(Player player, Location to, boolean onGround, double deltaXZ, double deltaY, boolean teleportPending) {
+            if (recentVelocityTicks > 0) {
+                recentVelocityTicks--;
+            }
+            if (recentRodPullTicks > 0) {
+                recentRodPullTicks--;
+            }
+            if (recentTeleportTicks > 0) {
+                recentTeleportTicks--;
+            }
+            if (recentHighFallTicks > 0) {
+                recentHighFallTicks--;
+            }
+
+            Material feet = to.getBlock().getType();
+            Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
+            inLiquid = isLiquid(feet) || isLiquid(below);
+            stuckEdge = onGround && deltaXZ < 0.02D && Math.abs(deltaY) < 0.06D && hasAdjacentDrop(to);
+
+            if (teleportPending) {
+                markTeleport();
+            }
+
+            if (onGround && player.getFallDistance() > 3.5F) {
+                markHighFall();
+            }
+        }
+
+        public boolean isRecentVelocity() { return recentVelocityTicks > 0; }
+        public boolean isRecentRodPull() { return recentRodPullTicks > 0; }
+        public boolean isInLiquid() { return inLiquid; }
+        public boolean isStuckEdge() { return stuckEdge; }
+        public boolean isRecentTeleport() { return recentTeleportTicks > 0; }
+        public boolean isRecentHighFall() { return recentHighFallTicks > 0; }
+
+        public void markVelocity() { recentVelocityTicks = RECENT_TICK_WINDOW; }
+        public void markRodPull() { recentRodPullTicks = RECENT_TICK_WINDOW; }
+        public void markTeleport() { recentTeleportTicks = RECENT_TICK_WINDOW; }
+        public void markHighFall() { recentHighFallTicks = RECENT_TICK_WINDOW; }
+
+        private static boolean hasAdjacentDrop(Location location) {
+            int baseY = location.getBlockY() - 1;
+            int baseX = location.getBlockX();
+            int baseZ = location.getBlockZ();
+            return isAirLike(location.getWorld().getBlockAt(baseX + 1, baseY, baseZ).getType())
+                    || isAirLike(location.getWorld().getBlockAt(baseX - 1, baseY, baseZ).getType())
+                    || isAirLike(location.getWorld().getBlockAt(baseX, baseY, baseZ + 1).getType())
+                    || isAirLike(location.getWorld().getBlockAt(baseX, baseY, baseZ - 1).getType());
+        }
+
+        private static boolean isAirLike(Material material) {
+            return material == Material.AIR || isLiquid(material);
+        }
+
+        private static boolean isLiquid(Material material) {
+            return material == Material.WATER || material == Material.STATIONARY_WATER
+                    || material == Material.LAVA || material == Material.STATIONARY_LAVA;
         }
     }
 

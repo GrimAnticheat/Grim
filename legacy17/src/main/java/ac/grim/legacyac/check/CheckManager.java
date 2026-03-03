@@ -37,6 +37,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -414,6 +415,18 @@ public final class CheckManager implements Listener {
         }
     }
 
+
+    @EventHandler(ignoreCancelled = true)
+    public void onFish(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) {
+            return;
+        }
+        if (event.getCaught() instanceof Player) {
+            PlayerData data = plugin.getPlayerData((Player) event.getCaught());
+            data.recordRodPull();
+        }
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onClick(PlayerInteractEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
@@ -488,6 +501,7 @@ public final class CheckManager implements Listener {
         }
         Player player = (Player) event.getEntity();
         PlayerData data = plugin.getPlayerData(player);
+        data.recordHighFallLanding();
         for (NoFallCheck check : noFallChecks) {
             check.onFallDamage(event, player, data);
         }

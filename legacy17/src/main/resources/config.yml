@@ -32,6 +32,18 @@ prediction:
   lag-tolerance: 0.08
   lag-small-tolerance: 0.03
   velocity-pending-tolerance: 0.04
+  recovery-after-high-fall-ticks: 8
+  rod-extra-allowance: 0.03
+  liquid-extra-allowance: 0.02
+  soft-buffer-threshold: 0.35
+  hard-flag-streak: 3
+  budget:
+    liquid: 0.03
+    rod: 0.04
+    high-fall-recovery: 0.05
+    velocity: 0.02
+    teleport: 0.02
+    stuck-edge: 0.015
 
 transaction:
   enabled: true

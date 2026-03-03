@@ -7,13 +7,16 @@ import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.prediction.CandidateVelocity;
 import ac.grim.legacyac.prediction.LegacyPredictionEngine;
 import ac.grim.legacyac.prediction.PredictionResult;
+import java.util.List;
+import java.util.Locale;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import java.util.List;
-import java.util.Locale;
 
 public final class PredictionMovementCheck extends Check {
+    private static final String SOFT_BUFFER_KEY = "Prediction.soft-buffer";
+    private static final String HARD_STREAK_KEY = "Prediction.hard-streak";
+
     public PredictionMovementCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Prediction");
     }
@@ -46,21 +49,25 @@ public final class PredictionMovementCheck extends Check {
         double minMovingVertical = plugin.getConfig().getDouble("prediction.min-moving-vertical", 0.03D);
         if (horizontal < minMovingHorizontal && Math.abs(deltaY) < minMovingVertical) {
             coolDownScore(data);
+            data.scaleBuffer(SOFT_BUFFER_KEY, 0.9D);
+            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
             return;
         }
 
         Material feet = to.getBlock().getType();
         Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
+        PlayerData.PredictionContext context = data.getPredictionContext();
+        int highFallRecoveryTicks = plugin.getConfig().getInt("prediction.recovery-after-high-fall-ticks", 8);
 
         PredictionResult legacyResult = LegacyPredictionEngine.predict(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                data.wasOnGround());
+                data.wasOnGround(), context, highFallRecoveryTicks);
 
         List<CandidateVelocity> candidates = LegacyPredictionEngine.generateResolvedCandidates(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                data.wasOnGround());
+                data.wasOnGround(), context, highFallRecoveryTicks);
 
         CandidateVelocity bestCandidate = null;
         double minDeviation = Double.MAX_VALUE;
@@ -87,8 +94,8 @@ public final class PredictionMovementCheck extends Check {
                     : (deltaY - legacyResult.getMaxVertical());
         }
 
-        double adaptiveAllowance = plugin.getConfig().getDouble("prediction.candidate-base-allowance", 0.025D);
-        double baseAllowance = adaptiveAllowance;
+        double baseAllowance = plugin.getConfig().getDouble("prediction.candidate-base-allowance", 0.025D);
+        double adaptiveAllowance = baseAllowance + resolveContextBudgets(context);
 
         if (!state.isFullyAligned()) {
             adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
@@ -100,7 +107,8 @@ public final class PredictionMovementCheck extends Check {
             adaptiveAllowance += plugin.getConfig().getDouble("prediction.velocity-pending-tolerance", 0.04D);
         }
 
-        logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance, "prediction-state-aligned=" + state.isFullyAligned());
+        logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance,
+                "prediction-state-aligned=" + state.isFullyAligned());
 
         double newScore = Math.max(0.0D, minDeviation - adaptiveAllowance);
         if (minDeviation > 0.0D) {
@@ -108,42 +116,80 @@ public final class PredictionMovementCheck extends Check {
         }
 
         boolean enforceCandidateModel = plugin.getConfig().getBoolean("prediction.candidate-enforcement", false);
-        double scoreToUse;
-        if (enforceCandidateModel) {
-            scoreToUse = newScore;
-        } else {
-            scoreToUse = oldScore;
-            if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                        + " [Prediction-Parallel] oldScore=" + fmt(oldScore)
-                        + " newScore=" + fmt(newScore)
-                        + " minDeviation=" + fmt(minDeviation)
-                        + " allowance=" + fmt(adaptiveAllowance)
-                        + " pending=" + state.getPendingChanges()
-                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
-            }
+        double scoreToUse = enforceCandidateModel ? newScore : oldScore;
+        if (!enforceCandidateModel && data.isDebugEnabled()) {
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
+                    + " [Prediction-Parallel] oldScore=" + fmt(oldScore)
+                    + " newScore=" + fmt(newScore)
+                    + " minDeviation=" + fmt(minDeviation)
+                    + " allowance=" + fmt(adaptiveAllowance)
+                    + " pending=" + state.getPendingChanges()
+                    + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
         }
 
-        if (scoreToUse > 0.0D) {
-            double weight = plugin.getConfig().getDouble("checks.Prediction.window-weight", 1.0D);
-            double buffer = slideAndAddScore(data, scoreToUse, weight);
-
-            double flagThreshold = plugin.getConfig().getDouble("checks.Prediction.buffer", 1.2D);
-            if (buffer > flagThreshold) {
-                String detail = "score=" + fmt(scoreToUse)
-                        + " old=" + fmt(oldScore)
-                        + " new=" + fmt(newScore)
-                        + " dev=" + fmt(minDeviation)
-                        + " allowance=" + fmt(adaptiveAllowance)
-                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
-                        + " h=" + fmt(horizontal) + "/" + fmt(legacyResult.getMaxHorizontal())
-                        + " y=" + fmt(deltaY) + " range=" + fmt(legacyResult.getMinVertical()) + ".."
-                        + fmt(legacyResult.getMaxVertical());
-                flag(player, data, scoreToUse, detail);
-            }
-        } else {
+        if (scoreToUse <= 0.0D) {
             coolDownScore(data);
+            data.scaleBuffer(SOFT_BUFFER_KEY, 0.85D);
+            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
+            return;
         }
+
+        double weight = plugin.getConfig().getDouble("checks.Prediction.window-weight", 1.0D);
+        double softBuffer = data.addBuffer(SOFT_BUFFER_KEY, scoreToUse * weight);
+        int hardNeedStreak = plugin.getConfig().getInt("prediction.hard-flag-streak", 3);
+        double softThreshold = plugin.getConfig().getDouble("prediction.soft-buffer-threshold", 0.35D);
+
+        if (softBuffer < softThreshold) {
+            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
+            return;
+        }
+
+        double hardStreak = data.addBuffer(HARD_STREAK_KEY, 1.0D);
+        if (hardStreak < hardNeedStreak) {
+            return;
+        }
+
+        double buffer = slideAndAddScore(data, scoreToUse, weight);
+        double flagThreshold = plugin.getConfig().getDouble("checks.Prediction.buffer", 1.2D);
+        if (buffer <= flagThreshold) {
+            return;
+        }
+
+        String detail = "score=" + fmt(scoreToUse)
+                + " old=" + fmt(oldScore)
+                + " new=" + fmt(newScore)
+                + " dev=" + fmt(minDeviation)
+                + " allowance=" + fmt(adaptiveAllowance)
+                + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
+                + " h=" + fmt(horizontal) + "/" + fmt(legacyResult.getMaxHorizontal())
+                + " y=" + fmt(deltaY) + " range=" + fmt(legacyResult.getMinVertical()) + ".."
+                + fmt(legacyResult.getMaxVertical());
+        flag(player, data, scoreToUse, detail);
+    }
+
+    private double resolveContextBudgets(PlayerData.PredictionContext context) {
+        double budget = 0.0D;
+        if (context.isInLiquid()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.liquid", 0.03D);
+            budget += plugin.getConfig().getDouble("prediction.liquid-extra-allowance", 0.02D);
+        }
+        if (context.isRecentRodPull()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.rod", 0.04D);
+            budget += plugin.getConfig().getDouble("prediction.rod-extra-allowance", 0.03D);
+        }
+        if (context.isRecentHighFall()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.high-fall-recovery", 0.05D);
+        }
+        if (context.isRecentVelocity()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.velocity", 0.02D);
+        }
+        if (context.isRecentTeleport()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.teleport", 0.02D);
+        }
+        if (context.isStuckEdge()) {
+            budget += plugin.getConfig().getDouble("prediction.budget.stuck-edge", 0.015D);
+        }
+        return budget;
     }
 
     private static String fmt(double value) {
