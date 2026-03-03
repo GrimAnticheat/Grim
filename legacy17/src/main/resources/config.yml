@@ -30,6 +30,8 @@ prediction:
   min-moving-horizontal: 0.03
   min-moving-vertical: 0.03
   lag-tolerance: 0.08
+  lag-small-tolerance: 0.03
+  velocity-pending-tolerance: 0.04
 
 transaction:
   enabled: true
@@ -47,6 +49,9 @@ adaptive-lag:
   min-tps: 18.0
   reach-extra-distance: 0.15
   speed-tolerance-multiplier: 1.15
+  speed-small-margin: 0.03
+  pending-state-margin: 0.06
+  compare-log-enabled: true
 
 
 

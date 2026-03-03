@@ -27,7 +27,8 @@ public final class PredictionMovementCheck extends Check {
             return;
         }
 
-        if (data.isMovementUnconfirmed()) {
+        PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
+        if (!state.isTeleportAligned()) {
             return;
         }
 
@@ -87,24 +88,19 @@ public final class PredictionMovementCheck extends Check {
         }
 
         double adaptiveAllowance = plugin.getConfig().getDouble("prediction.candidate-base-allowance", 0.025D);
+        double baseAllowance = adaptiveAllowance;
 
-        if (isLagging(data)) {
-            adaptiveAllowance += plugin.getConfig().getDouble("prediction.lag-tolerance", 0.08D);
+        if (!state.isFullyAligned()) {
+            adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
+        } else if (isLagging(data)) {
+            adaptiveAllowance += plugin.getConfig().getDouble("prediction.lag-small-tolerance", 0.03D);
         }
 
-        long timeSinceVelocity = System.currentTimeMillis() - data.getLastVelocityAt();
-        if (timeSinceVelocity < 1000L) {
-            double kbXZ = data.getLastVelocityXZ();
-            if (kbXZ > 0.0D) {
-                int ticksSince = (int) (timeSinceVelocity / 50L);
-                double decayedKB = kbXZ;
-                for (int i = 0; i < ticksSince && i < 20; i++) {
-                    decayedKB *= 0.91D;
-                }
-                double previousMomentum = data.getPrevDeltaXZ() * 0.91D;
-                adaptiveAllowance += previousMomentum + decayedKB + 0.3D;
-            }
+        if (!state.isVelocityAligned()) {
+            adaptiveAllowance += plugin.getConfig().getDouble("prediction.velocity-pending-tolerance", 0.04D);
         }
+
+        logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance, "prediction-state-aligned=" + state.isFullyAligned());
 
         double newScore = Math.max(0.0D, minDeviation - adaptiveAllowance);
 
@@ -120,6 +116,7 @@ public final class PredictionMovementCheck extends Check {
                         + " newScore=" + fmt(newScore)
                         + " minDeviation=" + fmt(minDeviation)
                         + " allowance=" + fmt(adaptiveAllowance)
+                        + " pending=" + state.getPendingChanges()
                         + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
             }
         }

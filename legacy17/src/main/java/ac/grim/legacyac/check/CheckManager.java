@@ -201,9 +201,10 @@ public final class CheckManager implements Listener {
     private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from, Location to) {
         data.handleMove(player, from, to, frame.isOnGround());
 
-        if (data.isTeleportSyncPending()) {
+        PlayerData.MovementStateSnapshot snapshot = data.getMovementStateSnapshot();
+        if (!snapshot.isTeleportAligned()) {
             if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleportSyncPending=true");
+                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleport-not-aligned pending=" + snapshot.getPendingChanges());
             }
             return;
         }
@@ -421,6 +422,7 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.recordPendingBlockChange("place:" + event.getBlockPlaced().getType().name());
         for (FastPlaceCheck check : fastPlaceChecks) {
             check.onPlace(event, data);
         }
@@ -429,6 +431,7 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.recordPendingBlockChange("break:" + event.getBlock().getType().name());
         for (FastBreakCheck check : fastBreakChecks) {
             check.onBreak(event, data);
         }
@@ -465,6 +468,7 @@ public final class CheckManager implements Listener {
     public void onVelocity(PlayerVelocityEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setLastVelocityAt(System.currentTimeMillis());
+        data.recordPendingVelocityChange();
         // Store the actual XZ magnitude so speed check can account for it
         org.bukkit.util.Vector vel = event.getVelocity();
         double xzMagnitude = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
