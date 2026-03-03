@@ -148,29 +148,36 @@ public final class CheckManager implements Listener {
 
         long now = System.nanoTime();
         MovementFrame frame = new MovementFrame(now, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
-        PlayerData data = plugin.getPlayerData(player);
-        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
-        executeMovementPipeline(player, data, frame, event.getFrom(), to);
+        consumeMovementFrame(player, frame, event.getFrom(), to);
     }
 
     public void onMovementFrame(Player player, MovementFrame frame) {
+        consumeMovementFrame(player, frame, null, null);
+    }
+
+    private void consumeMovementFrame(Player player, MovementFrame frame, Location explicitFrom, Location explicitTo) {
+        PlayerData data = plugin.getPlayerData(player);
+
         if (!frame.hasPosition()) {
-            PlayerData data = plugin.getPlayerData(player);
             data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
             return;
         }
-        PlayerData data = plugin.getPlayerData(player);
 
-        Location from;
-        if (data.isMovementFrameInitialized()) {
-            from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(), data.getLastFrameYaw(), data.getLastFramePitch());
-        } else {
-            from = player.getLocation().clone();
+        Location from = explicitFrom;
+        if (from == null) {
+            if (data.isMovementFrameInitialized()) {
+                from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(), data.getLastFrameYaw(), data.getLastFramePitch());
+            } else {
+                from = player.getLocation().clone();
+            }
         }
 
-        Location to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch());
-        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
+        Location to = explicitTo;
+        if (to == null) {
+            to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch());
+        }
 
+        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
         executeMovementPipeline(player, data, frame, from, to);
     }
 

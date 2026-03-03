@@ -1,6 +1,8 @@
 package ac.grim.legacyac.network;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
+import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.network.frame.MovementFrame;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -81,8 +83,10 @@ public final class PacketPipelineInjector {
 
     private void onPacketReceive(Player player, Object packet) {
         String packetName = packet.getClass().getSimpleName();
-        if (packetName.startsWith("PacketPlayInFlying") || packetName.equals("PacketPlayInPosition") || packetName.equals("PacketPlayInLook")) {
-            plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientMovement(player, packetName, System.nanoTime()));
+        if (isMovementPacket(packetName)) {
+            long now = System.nanoTime();
+            plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientMovement(player, packetName, now));
+            tryDispatchMovementFrame(player, packet, packetName, now);
             return;
         }
 
@@ -117,6 +121,71 @@ public final class PacketPipelineInjector {
             plugin.checks().onInternalPacketEvent(InternalPacketEvent.clientKeepAlive(player,
                 keepAlive == null ? null : Long.valueOf(keepAlive.longValue()), System.nanoTime()));
         }
+    }
+
+    private boolean isMovementPacket(String packetName) {
+        return packetName.startsWith("PacketPlayInFlying")
+            || packetName.equals("PacketPlayInPosition")
+            || packetName.equals("PacketPlayInLook")
+            || packetName.equals("PacketPlayInPositionLook");
+    }
+
+    private void tryDispatchMovementFrame(Player player, Object packet, String packetName, long nowNanos) {
+        boolean hasPosition = packetName.equals("PacketPlayInPosition") || packetName.equals("PacketPlayInPositionLook");
+        boolean hasLook = packetName.equals("PacketPlayInLook") || packetName.equals("PacketPlayInPositionLook");
+        if (packetName.startsWith("PacketPlayInFlying")) {
+            hasPosition = false;
+            hasLook = false;
+        }
+
+        LocationSnapshot base = LocationSnapshot.from(player);
+        Double x = hasPosition ? readDoubleField(packet, "x", "a") : Double.valueOf(base.x);
+        Double y = hasPosition ? readDoubleField(packet, "y", "b") : Double.valueOf(base.y);
+        Double z = hasPosition ? readDoubleField(packet, "z", "c") : Double.valueOf(base.z);
+
+        Float yaw = hasLook ? readFloatField(packet, "yaw", "d") : Float.valueOf(base.yaw);
+        Float pitch = hasLook ? readFloatField(packet, "pitch", "e") : Float.valueOf(base.pitch);
+        Boolean onGround = readBooleanField(packet, "onGround", "f", "g");
+
+        if ((hasPosition && (x == null || y == null || z == null))
+            || (hasLook && (yaw == null || pitch == null))
+            || onGround == null) {
+            warnReflectionFailureOnce(packetName, "movement-frame");
+            return;
+        }
+
+        PlayerData data = plugin.getPlayerData(player);
+        double frameX = x.doubleValue();
+        double frameY = y.doubleValue();
+        double frameZ = z.doubleValue();
+        float frameYaw = yaw.floatValue();
+        float framePitch = pitch.floatValue();
+
+        if (hasPosition) {
+            data.tryConfirmTeleportSync(frameX, frameY, frameZ);
+        }
+
+        boolean frameOnGround = onGround.booleanValue();
+        data.updateShadowPosition(frameX, frameY, frameZ, frameOnGround);
+        long maxAckAge = plugin.getConfig().getLong("transaction.max-ack-age-ms", 4000L);
+        boolean confirmed = data.hasRecentTransactionAck(maxAckAge) || data.hasRecentKeepAliveAck(maxAckAge);
+        data.setMovementUnconfirmed(data.isTeleportSyncPending() || !confirmed);
+
+        MovementFrame frame = new MovementFrame(nowNanos, frameX, frameY, frameZ, frameYaw, framePitch, frameOnGround, hasPosition, hasLook, toMovementSource(packetName));
+        plugin.movementFrames().dispatch(player, frame);
+    }
+
+    private MovementFrame.Source toMovementSource(String packetName) {
+        if (packetName.startsWith("PacketPlayInFlying")) {
+            return MovementFrame.Source.PACKET_FLYING;
+        }
+        if (packetName.equals("PacketPlayInPosition")) {
+            return MovementFrame.Source.PACKET_POSITION;
+        }
+        if (packetName.equals("PacketPlayInLook")) {
+            return MovementFrame.Source.PACKET_LOOK;
+        }
+        return MovementFrame.Source.PACKET_POSITION_LOOK;
     }
 
     private void onPacketSend(Player player, Object packet) {
@@ -221,6 +290,80 @@ public final class PacketPipelineInjector {
         } catch (Throwable ignored) {
         }
         return null;
+    }
+
+    private Double readDoubleField(Object packet, String... preferredNames) {
+        for (String preferredName : preferredNames) {
+            Double value = readDoubleField(packet, preferredName);
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private Float readFloatField(Object packet, String... preferredNames) {
+        for (String preferredName : preferredNames) {
+            Object value = readFieldValue(packet, preferredName);
+            if (value instanceof Float) {
+                return (Float) value;
+            }
+            if (value instanceof Double) {
+                return Float.valueOf(((Double) value).floatValue());
+            }
+        }
+        try {
+            for (Field field : packet.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == float.class || type == Float.class) {
+                    return Float.valueOf(field.getFloat(packet));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private Boolean readBooleanField(Object packet, String... preferredNames) {
+        for (String preferredName : preferredNames) {
+            Object value = readFieldValue(packet, preferredName);
+            if (value instanceof Boolean) {
+                return (Boolean) value;
+            }
+        }
+        try {
+            for (Field field : packet.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == boolean.class || type == Boolean.class) {
+                    return Boolean.valueOf(field.getBoolean(packet));
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static final class LocationSnapshot {
+        private final double x;
+        private final double y;
+        private final double z;
+        private final float yaw;
+        private final float pitch;
+
+        private LocationSnapshot(double x, double y, double z, float yaw, float pitch) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.yaw = yaw;
+            this.pitch = pitch;
+        }
+
+        private static LocationSnapshot from(Player player) {
+            org.bukkit.Location location = player.getLocation();
+            return new LocationSnapshot(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        }
     }
 
     private Object readFieldValue(Object packet, String fieldName) {
