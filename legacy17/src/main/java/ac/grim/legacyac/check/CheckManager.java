@@ -357,15 +357,27 @@ public final class CheckManager implements Listener {
         final Player target = (Player) targetEntity;
         final PlayerData attackerData = plugin.getPlayerData(attacker);
         attackerData.setDetectionContext("USE_ENTITY_PACKET", attackerData.getMoveWindow());
+        if (attackerData.isTeleportSyncPending()) {
+            if (attackerData.isDebugEnabled()) {
+                plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " attack packet blocked: teleport-sync-pending");
+            }
+            return;
+        }
         PlayerData targetData = plugin.getPlayerData(target);
+        if (!target.isOnline() || target.isDead() || target.getHealth() <= 0.0D || targetData.isTeleportSyncPending()) {
+            return;
+        }
         double[] targetBox = plugin.resolveEntityBox(target);
         Location targetLoc = target.getLocation();
         boolean teleportMarker = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= 400L;
-        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1], teleportMarker);
+        boolean transactionAligned = targetData.hasRecentTransactionAck(2000L);
+        boolean enforceable = transactionAligned && !targetData.isTeleportSyncPending();
+        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1],
+                teleportMarker, transactionAligned, enforceable);
         final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
         final ReachCheck.AttackEvaluation reachEval;
         if (reachChecks.isEmpty()) {
-            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false);
+            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false, true, ReachCheck.ReachEvidenceType.NONE);
         } else {
             reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow);
         }

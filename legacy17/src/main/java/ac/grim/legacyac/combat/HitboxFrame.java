@@ -3,6 +3,8 @@ package ac.grim.legacyac.combat;
 public final class HitboxFrame {
     private final long timestampMillis;
     private final boolean teleportMarker;
+    private final boolean transactionAligned;
+    private final boolean enforceable;
     private final double minX;
     private final double minY;
     private final double minZ;
@@ -10,9 +12,12 @@ public final class HitboxFrame {
     private final double maxY;
     private final double maxZ;
 
-    public HitboxFrame(long timestampMillis, boolean teleportMarker, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    public HitboxFrame(long timestampMillis, boolean teleportMarker, boolean transactionAligned, boolean enforceable,
+            double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         this.timestampMillis = timestampMillis;
         this.teleportMarker = teleportMarker;
+        this.transactionAligned = transactionAligned;
+        this.enforceable = enforceable;
         this.minX = minX;
         this.minY = minY;
         this.minZ = minZ;
@@ -27,6 +32,14 @@ public final class HitboxFrame {
 
     public boolean isTeleportMarker() {
         return teleportMarker;
+    }
+
+    public boolean isTransactionAligned() {
+        return transactionAligned;
+    }
+
+    public boolean isEnforceable() {
+        return enforceable;
     }
 
     public double getMinX() { return minX; }

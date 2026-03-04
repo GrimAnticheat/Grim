@@ -1552,21 +1552,23 @@ public final class PlayerData {
     }
 
     public void recordCurrentHitbox(double x, double y, double z) {
-        recordCurrentHitbox(x, y, z, 0.6D, 1.8D, false);
+        recordCurrentHitbox(x, y, z, 0.6D, 1.8D, false, hasRecentTransactionAck(2000L), true);
     }
 
     public void recordCurrentHitbox(double x, double y, double z, double width, double height) {
-        recordCurrentHitbox(x, y, z, width, height, false);
+        recordCurrentHitbox(x, y, z, width, height, false, hasRecentTransactionAck(2000L), true);
     }
 
     public void recordCurrentHitbox(double x, double y, double z, double width, double height, boolean teleportMarker) {
-        // 1.7/1.8 clients get an extra 0.1 hitbox expansion (vanilla behavior, same as
-        // Grim)
-        double hitboxExpand = 0.1D;
-        double halfWidth = (width * 0.5D) + hitboxExpand;
+        recordCurrentHitbox(x, y, z, width, height, teleportMarker, hasRecentTransactionAck(2000L), !teleportSyncPending);
+    }
+
+    public void recordCurrentHitbox(double x, double y, double z, double width, double height, boolean teleportMarker,
+            boolean transactionAligned, boolean enforceable) {
+        double halfWidth = width * 0.5D;
         long now = System.currentTimeMillis();
-        hitboxHistory.addFirst(
-                new HitboxFrame(now, teleportMarker, x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
+        hitboxHistory.addFirst(new HitboxFrame(now, teleportMarker, transactionAligned, enforceable,
+                x - halfWidth, y, z - halfWidth, x + halfWidth, y + height, z + halfWidth));
 
         while (!hitboxHistory.isEmpty() && now - hitboxHistory.getLast().getTimestampMillis() > 400L) {
             hitboxHistory.removeLast();
