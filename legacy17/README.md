@@ -101,6 +101,11 @@ GrimLegacyAC 是 Grim 思路在 1.7.10 环境下的独立实现版本，重点�
 
 ---
 
+
+## 复刻规划 PRD | Replication PRD
+
+- 进一步复刻 Grim 的产品需求与实施说明见：`legacy17/PRD-grim-replication-zh.md`
+
 ## 兼容说明 | Compatibility
 
 - 目标平台：**Spigot 1.7.10**
