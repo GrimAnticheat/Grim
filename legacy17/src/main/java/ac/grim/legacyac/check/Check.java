@@ -3,13 +3,47 @@ package ac.grim.legacyac.check;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.debug.DetectionEvidence;
+import ac.grim.legacyac.regression.ViolationLedger;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.entity.Player;
 import java.util.Locale;
 
 public abstract class Check {
     protected final LegacyAntiCheatPlugin plugin;
     private final String name;
+
+    // ── Stage map: CheckName → CheckStage (FR-2) ────────────────────────
+    private static final Map<String, CheckStage> STAGE_MAP;
+    static {
+        Map<String, CheckStage> map = new HashMap<String, CheckStage>();
+        // PRE stage — packet-level preprocessing
+        map.put("Timer", CheckStage.PRE);
+        map.put("InventoryMove", CheckStage.PRE);
+        // PREDICTION stage — movement prediction
+        map.put("Prediction", CheckStage.PREDICTION);
+        // POST stage — post-prediction movement checks
+        map.put("Speed", CheckStage.POST);
+        map.put("Fly", CheckStage.POST);
+        map.put("Phase", CheckStage.POST);
+        map.put("NoFall", CheckStage.POST);
+        map.put("Jesus", CheckStage.POST);
+        map.put("NoSlow", CheckStage.POST);
+        map.put("Knockback", CheckStage.POST);
+        map.put("Velocity", CheckStage.POST);
+        // COMBAT stage — attack-event-driven
+        map.put("Reach", CheckStage.COMBAT);
+        map.put("KillAura", CheckStage.COMBAT);
+        // PASSIVE stage — rate-limit / timing
+        map.put("AutoClicker", CheckStage.PASSIVE);
+        map.put("FastPlace", CheckStage.PASSIVE);
+        map.put("FastBreak", CheckStage.PASSIVE);
+        map.put("FastUse", CheckStage.PASSIVE);
+        STAGE_MAP = Collections.unmodifiableMap(map);
+    }
 
     protected Check(LegacyAntiCheatPlugin plugin, String name) {
         this.plugin = plugin;
@@ -18,6 +52,23 @@ public abstract class Check {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * Return the pipeline stage this check belongs to (FR-2).
+     * Subclasses may override for non-standard stage assignments.
+     */
+    public CheckStage getStage() {
+        CheckStage stage = STAGE_MAP.get(name);
+        return stage != null ? stage : CheckStage.FALLBACK;
+    }
+
+    /**
+     * Convenience: get the per-frame tolerance budget from PlayerData (FR-3).
+     * Returns null if no budget has been computed for this frame yet.
+     */
+    protected ToleranceBudgetEngine.BudgetSnapshot getBudget(PlayerData data) {
+        return data.getCurrentBudget();
     }
 
     protected boolean isEnabled() {
@@ -61,7 +112,6 @@ public abstract class Check {
         return data.addBuffer(name, amount);
     }
 
-
     protected double slideAndAddScore(PlayerData data, double deviation, double weight) {
         double decay = plugin.getConfig().getDouble("heuristics.window-decay", 0.95D);
         data.scaleBuffer(name, decay);
@@ -82,30 +132,29 @@ public abstract class Check {
         return networkLag && data.getMovementStateSnapshot().isFullyAligned();
     }
 
-
-    protected void logAdaptiveLagComparison(Player player, PlayerData data, String checkName, double baseLimit, double finalLimit, String note) {
+    protected void logAdaptiveLagComparison(Player player, PlayerData data, String checkName, double baseLimit,
+            double finalLimit, String note) {
         if (!plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
             return;
         }
         plugin.getLogger().info("[GLAC-LAG-COMPARE] player=" + player.getName()
-            + " check=" + checkName
-            + " pending=" + data.getPendingWorldChangesCount()
-            + " base=" + String.format(Locale.ROOT, "%.4f", baseLimit)
-            + " final=" + String.format(Locale.ROOT, "%.4f", finalLimit)
-            + " note=" + note);
+                + " check=" + checkName
+                + " pending=" + data.getPendingWorldChangesCount()
+                + " base=" + String.format(Locale.ROOT, "%.4f", baseLimit)
+                + " final=" + String.format(Locale.ROOT, "%.4f", finalLimit)
+                + " note=" + note);
     }
-
 
     protected void recordEvidence(PlayerData data, double offset, String sourceOverride) {
         data.recordDetectionEvidence(new DetectionEvidence(
-            System.currentTimeMillis(),
-            name,
-            offset,
-            data.getBuffer(name),
-            data.getViolation(name),
-            data.getLastTransactionRttNanos() / 1000000.0D,
-            sourceOverride == null ? data.getDetectionSource() : sourceOverride,
-            data.getDetectionTick()));
+                System.currentTimeMillis(),
+                name,
+                offset,
+                data.getBuffer(name),
+                data.getViolation(name),
+                data.getLastTransactionRttNanos() / 1000000.0D,
+                sourceOverride == null ? data.getDetectionSource() : sourceOverride,
+                data.getDetectionTick()));
     }
 
     protected void flag(Player player, PlayerData data, double amount, String detail) {
@@ -115,17 +164,39 @@ public abstract class Check {
 
         double vl = data.addViolation(name, amount);
         recordEvidence(data, amount, null);
+
+        // ── FR-5 Phase E: Record to ViolationLedger ──────────────────
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        String budgetTag = budget != null ? budget.getScenarioTag() : "no-budget";
+        ViolationLedger ledger = plugin.ledger();
+        if (ledger != null) {
+            ViolationLedger.ViolationEntry entry = new ViolationLedger.ViolationEntry.Builder()
+                    .check(name)
+                    .player(player.getName())
+                    .score(amount)
+                    .buffer(data.getBuffer(name))
+                    .vl(vl)
+                    .rttMs(data.getLastTransactionRttNanos() / 1000000.0D)
+                    .source(data.getDetectionSource())
+                    .detail(detail)
+                    .budgetTag(budgetTag)
+                    .build();
+            ledger.record(name, entry);
+        }
+
         if (data.isDebugEnabled()) {
             String evidence = "[" + name + "] P:" + String.format(Locale.ROOT, "%.2f", amount)
-                + ", RTT:" + String.format(Locale.ROOT, "%.0fms", data.getLastTransactionRttNanos() / 1000000.0D)
-                + ", Tick:" + data.getMoveWindow()
-                + ", Buffer:" + String.format(Locale.ROOT, "%.2f", data.getBuffer(name))
-                + ", Detail:" + detail;
+                    + ", RTT:" + String.format(Locale.ROOT, "%.0fms", data.getLastTransactionRttNanos() / 1000000.0D)
+                    + ", Tick:" + data.getMoveWindow()
+                    + ", Buffer:" + String.format(Locale.ROOT, "%.2f", data.getBuffer(name))
+                    + ", Budget:" + budgetTag
+                    + ", Detail:" + detail;
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " " + evidence);
         }
-        plugin.alerts().alert(player, name, vl, detail);
+        plugin.alerts().alert(player, name, vl, detail + " [budget=" + budgetTag + "]");
 
-        if (vl >= getMaxViolation() && plugin.getConfig().getBoolean("checks." + name + ".setback", true) && data.getLastSafeLocation() != null) {
+        if (vl >= getMaxViolation() && plugin.getConfig().getBoolean("checks." + name + ".setback", true)
+                && data.getLastSafeLocation() != null) {
             player.teleport(data.getLastSafeLocation());
         }
 
@@ -145,8 +216,8 @@ public abstract class Check {
         List<String> commands = plugin.getConfig().getStringList("checks." + name + ".punish-commands");
         for (String command : commands) {
             String parsed = command.replace("%player%", player.getName())
-                .replace("%check%", name)
-                .replace("%vl%", String.format(Locale.ROOT, "%.2f", vl));
+                    .replace("%check%", name)
+                    .replace("%vl%", String.format(Locale.ROOT, "%.2f", vl));
             plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), parsed);
         }
         data.markPunishExecuted(name);

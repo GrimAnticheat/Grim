@@ -19,8 +19,10 @@ import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.KnockbackHandlerLegacy;
 import ac.grim.legacyac.combat.EntityIdIndex;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.data.state.CompensationState;
 import ac.grim.legacyac.network.InternalPacketEvent;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
@@ -68,10 +70,12 @@ public final class CheckManager implements Listener {
     private final List<NoSlowCheck> noSlowChecks = new ArrayList<NoSlowCheck>();
     private long lastTickAtNanos;
     private double currentTps = 20.0D;
+    private final ToleranceBudgetEngine.ConfigProvider budgetConfigProvider;
 
     public CheckManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
         this.entityIdIndex = new EntityIdIndex(plugin.getLogger());
+        this.budgetConfigProvider = ToleranceBudgetEngine.fromBukkitConfig(plugin.getConfig());
         speedChecks.add(new SpeedCheck(plugin));
         flyChecks.add(new FlyCheck(plugin));
         phaseChecks.add(new PhaseCheck(plugin));
@@ -97,9 +101,11 @@ public final class CheckManager implements Listener {
     }
 
     public int getCheckCount() {
-        return speedChecks.size() + flyChecks.size() + phaseChecks.size() + reachChecks.size() + autoClickerChecks.size() + noFallChecks.size()
-            + killAuraChecks.size() + timerChecks.size() + knockbackChecks.size() + jesusChecks.size() + fastPlaceChecks.size() + fastBreakChecks.size()
-            + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size();
+        return speedChecks.size() + flyChecks.size() + phaseChecks.size() + reachChecks.size()
+                + autoClickerChecks.size() + noFallChecks.size()
+                + killAuraChecks.size() + timerChecks.size() + knockbackChecks.size() + jesusChecks.size()
+                + fastPlaceChecks.size() + fastBreakChecks.size()
+                + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size();
     }
 
     public void tick() {
@@ -167,7 +173,8 @@ public final class CheckManager implements Listener {
         }
 
         long now = System.nanoTime();
-        MovementFrame frame = new MovementFrame(now, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(), player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        MovementFrame frame = new MovementFrame(now, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(),
+                player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
         consumeMovementFrame(player, frame, event.getFrom(), to);
     }
 
@@ -186,7 +193,8 @@ public final class CheckManager implements Listener {
         Location from = explicitFrom;
         if (from == null) {
             if (data.isMovementFrameInitialized()) {
-                from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(), data.getLastFrameYaw(), data.getLastFramePitch());
+                from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(),
+                        data.getLastFrameYaw(), data.getLastFramePitch());
             } else {
                 from = player.getLocation().clone();
             }
@@ -194,45 +202,83 @@ public final class CheckManager implements Listener {
 
         Location to = explicitTo;
         if (to == null) {
-            to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch());
+            to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(),
+                    frame.getPitch());
         }
 
-        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(), frame.getTimestampNanos());
+        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(),
+                frame.getTimestampNanos());
         executeMovementPipeline(player, data, frame, from, to);
     }
 
-    private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from, Location to) {
+    private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from,
+            Location to) {
+        long pipelineStart = System.nanoTime();
+        PipelineTrace trace = data.isDebugEnabled() ? new PipelineTrace(pipelineStart, player.getName()) : null;
+
         data.handleMove(player, from, to, frame.isOnGround());
         data.setDetectionContext(frame.getSource().name(), data.getMoveWindow());
 
-        PlayerData.MovementStateSnapshot snapshot = data.getMovementStateSnapshot();
+        // ── FR-3: Compute tolerance budget for this frame ──
+        ToleranceBudgetEngine.BudgetSnapshot budget = ToleranceBudgetEngine.compute(
+                data.network(), data.compensation(), data.environment(), currentTps, budgetConfigProvider);
+        data.setCurrentBudget(budget);
+
+        if (data.isDebugEnabled() && plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
+            plugin.getLogger().info("[GLAC-BUDGET] " + player.getName() + " " + budget.toDebugString());
+        }
+
+        CompensationState.MovementStateSnapshot snapshot = data.compensation().getMovementStateSnapshot();
         if (!snapshot.isTeleportAligned()) {
             if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleport-not-aligned pending=" + snapshot.getPendingChanges());
+                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
+                        + " checks SKIPPED: teleport-not-aligned pending=" + snapshot.getPendingChanges());
             }
-            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned");
+            if (trace != null)
+                trace.addEntry("*", CheckStage.PRE, PipelineTrace.Status.SKIPPED, 0L, "teleport-not-aligned");
+            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned", trace);
+            emitPipelineTrace(trace, pipelineStart);
             return;
         }
 
-        runPacketStatePreprocess(player, frame, data);
-        boolean predictionReady = runMovementPrediction(player, frame, to, data);
+        runPacketStatePreprocess(player, frame, data, trace);
+        boolean predictionReady = runMovementPrediction(player, frame, to, data, trace);
         data.updateKnockbackStages();
 
         if (predictionReady) {
-            runPostPredictionChecks(player, frame, from, to, data);
+            if (trace != null)
+                trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.RAN, 0L, null);
+            runPostPredictionChecks(player, frame, from, to, data, trace);
         } else {
-            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable");
+            if (trace != null)
+                trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.SKIPPED, 0L,
+                        "prediction-unavailable");
+            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable", trace);
         }
 
         if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
             data.setLastSafeLocation(to.clone());
         }
+
+        emitPipelineTrace(trace, pipelineStart);
     }
 
-    private void runPacketStatePreprocess(Player player, MovementFrame frame, PlayerData data) {
+    private void emitPipelineTrace(PipelineTrace trace, long startNanos) {
+        if (trace == null)
+            return;
+        trace.setTotalDurationNanos(System.nanoTime() - startNanos);
+        plugin.getLogger().info(trace.toSummary());
+    }
+
+    private void runPacketStatePreprocess(Player player, MovementFrame frame, PlayerData data, PipelineTrace trace) {
+        long stageStart = System.nanoTime();
         runTimingChecks(player, frame, data);
         for (InventoryMoveCheck check : inventoryMoveChecks) {
             check.onMovementFrame(player, frame, data);
+        }
+        if (trace != null) {
+            trace.addEntry(CheckStage.PRE, "Timer+InventoryMove",
+                    System.nanoTime() - stageStart, true, null);
         }
     }
 
@@ -242,15 +288,24 @@ public final class CheckManager implements Listener {
         }
     }
 
-    private boolean runMovementPrediction(Player player, MovementFrame frame, Location to, PlayerData data) {
+    private boolean runMovementPrediction(Player player, MovementFrame frame, Location to, PlayerData data,
+            PipelineTrace trace) {
+        long stageStart = System.nanoTime();
         data.beginPredictionFrame(frame.getTimestampNanos());
         for (PredictionMovementCheck check : predictionChecks) {
             check.onMovementFrame(player, frame, to, data);
         }
-        return data.hasPredictionForFrame(frame.getTimestampNanos());
+        boolean hasPrediction = data.hasPredictionForFrame(frame.getTimestampNanos());
+        if (trace != null) {
+            trace.addEntry(CheckStage.PREDICTION, "Prediction",
+                    System.nanoTime() - stageStart, hasPrediction, hasPrediction ? null : "no-prediction-frame");
+        }
+        return hasPrediction;
     }
 
-    private void runPostPredictionChecks(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
+    private void runPostPredictionChecks(Player player, MovementFrame frame, Location from, Location to,
+            PlayerData data, PipelineTrace trace) {
+        long stageStart = System.nanoTime();
         for (NoSlowCheck check : noSlowChecks) {
             check.onMovementFrame(player, frame, data);
         }
@@ -269,14 +324,25 @@ public final class CheckManager implements Listener {
         for (JesusCheck check : jesusChecks) {
             check.onMovementFrame(player, frame, data);
         }
+        if (trace != null) {
+            trace.addEntry(CheckStage.POST, "NoSlow+Speed+Fly+Phase+KB+Jesus",
+                    System.nanoTime() - stageStart, true, null);
+        }
     }
 
-    private void runLegacyFallbackChecks(Player player, PlayerData data, Location from, Location to, MovementFrame frame, String reason) {
+    private void runLegacyFallbackChecks(Player player, PlayerData data, Location from, Location to,
+            MovementFrame frame, String reason, PipelineTrace trace) {
         if (!plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true)) {
+            if (trace != null) {
+                trace.addEntry(CheckStage.FALLBACK, "legacy-fallback",
+                        0L, false, "disabled-in-config");
+            }
             return;
         }
+        long stageStart = System.nanoTime();
         if (data.isDebugEnabled()) {
-            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " legacy onMove fallback active: " + reason + " source=" + frame.getSource().name());
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " legacy onMove fallback active: " + reason
+                    + " source=" + frame.getSource().name());
         }
 
         PlayerMoveEvent syntheticEvent = new PlayerMoveEvent(player, from, to);
@@ -294,6 +360,10 @@ public final class CheckManager implements Listener {
         }
         for (JesusCheck check : jesusChecks) {
             check.onMove(syntheticEvent, data);
+        }
+        if (trace != null) {
+            trace.addEntry(CheckStage.FALLBACK, "legacy-fallback(" + reason + ")",
+                    System.nanoTime() - stageStart, true, null);
         }
     }
 
@@ -321,7 +391,8 @@ public final class CheckManager implements Listener {
         sb.append(", Knockback=").append(!knockbackChecks.isEmpty());
         sb.append(", Jesus=").append(!jesusChecks.isEmpty());
         sb.append(", Reach=").append(!reachChecks.isEmpty()).append("(attack-stage)");
-        sb.append(" | legacy-onMove-fallback=").append(plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true));
+        sb.append(" | legacy-onMove-fallback=")
+                .append(plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true));
         return sb.toString();
     }
 
@@ -378,7 +449,8 @@ public final class CheckManager implements Listener {
                 return;
             }
             for (KnockbackHandlerLegacy check : knockbackChecks) {
-                check.onVelocityPacket(player, data, entityId.intValue(), vx.intValue(), vy.intValue(), vz.intValue(), event.getCreatedAtNanos());
+                check.onVelocityPacket(player, data, entityId.intValue(), vx.intValue(), vy.intValue(), vz.intValue(),
+                        event.getCreatedAtNanos());
             }
         }
     }
@@ -404,7 +476,8 @@ public final class CheckManager implements Listener {
         attackerData.setDetectionContext("USE_ENTITY_PACKET", attackerData.getMoveWindow());
         if (attackerData.isTeleportSyncPending()) {
             if (attackerData.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " attack packet blocked: teleport-sync-pending");
+                plugin.getLogger()
+                        .info("[GLAC-DEBUG] " + attacker.getName() + " attack packet blocked: teleport-sync-pending");
             }
             return;
         }
@@ -430,9 +503,9 @@ public final class CheckManager implements Listener {
         if (attackerData.isDebugEnabled()) {
             double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
             plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " -> " + target.getName()
-                + " Ray-Distance: " + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
-                + ", Config: " + String.format(Locale.ROOT, "%.2f", baseReach)
-                + ", Box-Time-Offset: " + reachEval.getBoxTimeOffsetMs() + "ms");
+                    + " Ray-Distance: " + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
+                    + ", Config: " + String.format(Locale.ROOT, "%.2f", baseReach)
+                    + ", Box-Time-Offset: " + reachEval.getBoxTimeOffsetMs() + "ms");
         }
 
         plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
@@ -461,7 +534,6 @@ public final class CheckManager implements Listener {
         }
     }
 
-
     @EventHandler(ignoreCancelled = true)
     public void onFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) {
@@ -476,7 +548,8 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onClick(PlayerInteractEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
-        Material inHand = event.getPlayer().getItemInHand() == null ? Material.AIR : event.getPlayer().getItemInHand().getType();
+        Material inHand = event.getPlayer().getItemInHand() == null ? Material.AIR
+                : event.getPlayer().getItemInHand().getType();
         if (inHand == Material.ENDER_PEARL) {
             data.setLastTeleportOrPearlAt(System.currentTimeMillis());
         }
