@@ -49,6 +49,14 @@ public final class EnforcementState {
         return value == null ? 0.0D : value.doubleValue();
     }
 
+    public void setBuffer(String check, double value) {
+        if (value <= 0.0001D) {
+            buffers.remove(check);
+        } else {
+            buffers.put(check, value);
+        }
+    }
+
     public double scaleBuffer(String check, double factor) {
         double next = getBuffer(check) * factor;
         if (next <= 0.0001D) {

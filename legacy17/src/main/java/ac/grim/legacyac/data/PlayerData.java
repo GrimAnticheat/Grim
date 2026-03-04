@@ -676,6 +676,10 @@ public final class PlayerData {
         return enforcement.getBuffer(check);
     }
 
+    public void setBuffer(String check, double value) {
+        enforcement.setBuffer(check, value);
+    }
+
     public double scaleBuffer(String check, double factor) {
         return enforcement.scaleBuffer(check, factor);
     }

@@ -7,17 +7,25 @@ import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.prediction.CandidateVelocity;
 import ac.grim.legacyac.prediction.LegacyPredictionEngine;
 import ac.grim.legacyac.prediction.PredictionEvaluation;
-import ac.grim.legacyac.prediction.PredictionResult;
 import ac.grim.legacyac.prediction.PredictionUncertaintyHandler;
-import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Locale;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+/**
+ * Prediction check aligned with Grim's OffsetHandler (Simulation check).
+ *
+ * Key design from Grim:
+ * - Compute best-fit candidate offset (Euclidean distance between observed and predicted)
+ * - If offset >= threshold, accumulate into advantageGained
+ * - If advantageGained >= maxAdvantage OR offset >= immediateSetbackThreshold → setback
+ * - If offset < threshold, decay advantageGained by setbackDecayMultiplier
+ * - No dual old/new scoring — only the candidate model
+ */
 public final class PredictionMovementCheck extends Check {
-    private static final String SOFT_BUFFER_KEY = "Prediction.soft-buffer";
-    private static final String HARD_STREAK_KEY = "Prediction.hard-streak";
+    /** Accumulated advantage — mirrors Grim's OffsetHandler.advantageGained */
+    private static final String ADVANTAGE_KEY = "Prediction.advantage";
 
     public PredictionMovementCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Prediction");
@@ -50,9 +58,8 @@ public final class PredictionMovementCheck extends Check {
         double minMovingHorizontal = plugin.getConfig().getDouble("prediction.min-moving-horizontal", 0.03D);
         double minMovingVertical = plugin.getConfig().getDouble("prediction.min-moving-vertical", 0.03D);
         if (horizontal < minMovingHorizontal && Math.abs(deltaY) < minMovingVertical) {
-            coolDownScore(data);
-            data.scaleBuffer(SOFT_BUFFER_KEY, 0.9D);
-            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
+            // Not moving — decay advantage, mark prediction ready
+            decayAdvantage(data);
             data.markPredictionReady(frame.getTimestampNanos());
             return;
         }
@@ -62,12 +69,10 @@ public final class PredictionMovementCheck extends Check {
         PlayerData.PredictionContext context = data.getPredictionContext();
         int highFallRecoveryTicks = plugin.getConfig().getInt("prediction.recovery-after-high-fall-ticks", 8);
 
-        PredictionResult legacyResult = LegacyPredictionEngine.predict(
-                player, feet, below,
-                data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                data.wasOnGround(), context, highFallRecoveryTicks);
+        // ── Uncertainty budget ──
+        double uncertaintyBudget = PredictionUncertaintyHandler.resolveBudget(context, plugin);
 
-        double uncertaintyBudget = resolveContextBudgets(context);
+        // ── Generate candidates and find best fit ──
         PredictionEvaluation evaluation = LegacyPredictionEngine.evaluateBestCandidate(
                 player, feet, below,
                 data.getPrevDeltaY(), data.getPrevDeltaXZ(),
@@ -75,111 +80,95 @@ public final class PredictionMovementCheck extends Check {
                 horizontal, deltaY,
                 uncertaintyBudget);
         CandidateVelocity bestCandidate = evaluation.getBestCandidate();
-        double minDeviation = evaluation.getRawOffset();
-        data.setPredictionMinDeviation(minDeviation);
+        double rawOffset = evaluation.getRawOffset();
 
+        // ── Store deviation data for downstream checks (Speed, etc.) ──
+        data.setPredictionMinDeviation(rawOffset);
         double horizontalDeviation = 0.0D;
         if (bestCandidate != null) {
             horizontalDeviation = Math.max(0.0D, horizontal - bestCandidate.getHorizontalMagnitude());
         }
         data.setPredictionHorizontalDeviation(horizontalDeviation);
-
-        double reducedOffset = PredictionUncertaintyHandler.reduceOffset(minDeviation, context, plugin);
+        double reducedOffset = PredictionUncertaintyHandler.reduceOffset(rawOffset, context, plugin);
         data.setPredictionReducedDeviation(reducedOffset);
-        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context,
-                plugin);
+        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context, plugin);
         data.setPredictionReducedHorizontalDeviation(reducedHorizontalDeviation);
         data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
         data.markPredictionReady(frame.getTimestampNanos());
 
-        boolean badHorizontalOld = horizontal > legacyResult.getMaxHorizontal();
-        boolean badVerticalOld = deltaY < legacyResult.getMinVertical() || deltaY > legacyResult.getMaxVertical();
-        double oldScore = 0.0D;
-        if (badHorizontalOld) {
-            oldScore += (horizontal - legacyResult.getMaxHorizontal());
-        }
-        if (badVerticalOld) {
-            oldScore += (deltaY < legacyResult.getMinVertical())
-                    ? (legacyResult.getMinVertical() - deltaY)
-                    : (deltaY - legacyResult.getMaxVertical());
-        }
+        // ── Grim OffsetHandler pattern ──
+        // Config mirrors Grim's Simulation section
+        double threshold = plugin.getConfig().getDouble("Simulation.threshold", 0.001D);
+        double immediateSetbackThreshold = plugin.getConfig().getDouble("Simulation.immediate-setback-threshold", 0.1D);
+        double maxAdvantage = plugin.getConfig().getDouble("Simulation.max-advantage", 1.0D);
+        double maxCeiling = plugin.getConfig().getDouble("Simulation.max-ceiling", 4.0D);
+        double setbackDecayMultiplier = plugin.getConfig().getDouble("Simulation.setback-decay-multiplier", 0.999D);
 
-        double baseAllowance = plugin.getConfig().getDouble("prediction.stage.base-allowance", 0.0D);
-        double adaptiveAllowance = baseAllowance + uncertaintyBudget;
-
-        // FR-3: Use BudgetSnapshot for tolerance margins
-        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
-        if (budget != null) {
-            adaptiveAllowance += budget.getMovementAllowance();
-        } else {
-            // Fallback: original hardcoded tolerance logic
-            if (!state.isFullyAligned()) {
-                adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
-            } else if (isLagging(data)) {
-                adaptiveAllowance += plugin.getConfig().getDouble("prediction.lag-small-tolerance", 0.03D);
-            }
+        // Apply extra tolerance for non-aligned state or lag
+        double extraTolerance = 0.0D;
+        if (!state.isFullyAligned()) {
+            extraTolerance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
+        } else if (isLagging(data)) {
+            extraTolerance += plugin.getConfig().getDouble("prediction.lag-small-tolerance", 0.03D);
         }
 
-        double newScore = Math.max(0.0D, reducedOffset - baseAllowance);
-        if (minDeviation > 0.0D) {
-            recordEvidence(data, minDeviation, "PREDICTION_MODEL");
-        }
+        // The effective offset after uncertainty reduction and extra tolerance
+        double offset = Math.max(0.0D, reducedOffset - extraTolerance);
 
-        boolean enforceCandidateModel = plugin.getConfig().getBoolean("prediction.candidate-enforcement", false);
-        double scoreToUse = enforceCandidateModel ? newScore : oldScore;
-        if (!enforceCandidateModel && data.isDebugEnabled()) {
+        if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                    + " [Prediction-Parallel] oldScore=" + fmt(oldScore)
-                    + " newScore=" + fmt(newScore)
-                    + " minDeviation=" + fmt(minDeviation)
-                    + " allowance=" + fmt(adaptiveAllowance)
+                    + " [Prediction] rawOffset=" + fmt(rawOffset)
+                    + " reduced=" + fmt(reducedOffset)
+                    + " offset=" + fmt(offset)
+                    + " threshold=" + fmt(threshold)
+                    + " advantage=" + fmt(data.getBuffer(ADVANTAGE_KEY))
+                    + " maxAdv=" + fmt(maxAdvantage)
+                    + " h=" + fmt(horizontal)
+                    + " dY=" + fmt(deltaY)
                     + " pending=" + state.getPendingChanges()
                     + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
         }
 
-        if (scoreToUse <= 0.0D) {
-            coolDownScore(data);
-            data.scaleBuffer(SOFT_BUFFER_KEY, 0.85D);
-            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
-            return;
+        if (offset >= threshold || offset >= immediateSetbackThreshold) {
+            // Accumulate advantage
+            double advantage = data.addBuffer(ADVANTAGE_KEY, offset);
+            advantage = Math.min(advantage, maxCeiling);
+            data.setBuffer(ADVANTAGE_KEY, advantage);
+
+            recordEvidence(data, offset, "PREDICTION_MODEL");
+
+            // Format offset like Grim
+            String humanOffset;
+            if (offset < 0.001D) {
+                humanOffset = String.format(Locale.ROOT, "%.4E", offset).replace("E-0", "E-");
+            } else {
+                humanOffset = String.format(Locale.ROOT, "%6f", offset).replace("0.", ".");
+            }
+
+            if (advantage >= maxAdvantage || offset >= immediateSetbackThreshold) {
+                // Flag and setback
+                String detail = humanOffset
+                        + " adv=" + fmt(advantage)
+                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
+                        + " h=" + fmt(horizontal)
+                        + " dY=" + fmt(deltaY);
+                flag(player, data, offset, detail);
+            } else {
+                // Alert only (accumulating)
+                plugin.alerts().alert(player, getName(), data.getViolation(getName()),
+                        humanOffset + " adv=" + fmt(advantage)
+                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
+            }
+        } else {
+            // No significant offset — decay advantage
+            decayAdvantage(data);
         }
-
-        double weight = plugin.getConfig().getDouble("checks.Prediction.window-weight", 1.0D);
-        double softBuffer = data.addBuffer(SOFT_BUFFER_KEY, scoreToUse * weight);
-        int hardNeedStreak = plugin.getConfig().getInt("prediction.stage.hard-flag-streak", 3);
-        double softThreshold = plugin.getConfig().getDouble("prediction.stage.soft-buffer-threshold", 0.35D);
-
-        if (softBuffer < softThreshold) {
-            data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
-            return;
-        }
-
-        double hardStreak = data.addBuffer(HARD_STREAK_KEY, 1.0D);
-        if (hardStreak < hardNeedStreak) {
-            return;
-        }
-
-        double buffer = slideAndAddScore(data, scoreToUse, weight);
-        double flagThreshold = plugin.getConfig().getDouble("checks.Prediction.buffer", 1.2D);
-        if (buffer <= flagThreshold) {
-            return;
-        }
-
-        String detail = "score=" + fmt(scoreToUse)
-                + " old=" + fmt(oldScore)
-                + " new=" + fmt(newScore)
-                + " dev=" + fmt(minDeviation)
-                + " reduced=" + fmt(reducedOffset)
-                + " allowance=" + fmt(adaptiveAllowance)
-                + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
-                + " h=" + fmt(horizontal) + "/" + fmt(legacyResult.getMaxHorizontal())
-                + " y=" + fmt(deltaY) + " range=" + fmt(legacyResult.getMinVertical()) + ".."
-                + fmt(legacyResult.getMaxVertical());
-        flag(player, data, scoreToUse, detail);
     }
 
-    private double resolveContextBudgets(PlayerData.PredictionContext context) {
-        return PredictionUncertaintyHandler.resolveBudget(context, plugin);
+    private void decayAdvantage(PlayerData data) {
+        double decayMultiplier = plugin.getConfig().getDouble("Simulation.setback-decay-multiplier", 0.999D);
+        data.scaleBuffer(ADVANTAGE_KEY, decayMultiplier);
+        coolDownScore(data);
     }
 
     private static String fmt(double value) {

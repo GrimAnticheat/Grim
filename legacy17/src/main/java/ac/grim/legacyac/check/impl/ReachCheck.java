@@ -16,6 +16,8 @@ import org.bukkit.util.Vector;
 
 public final class ReachCheck extends Check {
     private static final double MOVEMENT_THRESHOLD = 0.03D;
+    /** Grim-style cancel buffer: set to 1 on flag, decays by 0.25 on valid hit */
+    private static final String CANCEL_BUFFER_KEY = "Reach.cancelBuffer";
 
     public ReachCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Reach");
@@ -94,6 +96,9 @@ public final class ReachCheck extends Check {
             handleViolation(null, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
         } else {
             coolDownScore(data);
+            // Grim: cancelBuffer decays by 0.25 on valid hit
+            double cb = Math.max(0.0D, data.getBuffer(CANCEL_BUFFER_KEY) - 0.25D);
+            data.setBuffer(CANCEL_BUFFER_KEY, cb);
         }
         // FR-4: Record CombatEvidence
         recordReachCombatEvidence(attacker, data, victimData, eval, maxReach, "event");
@@ -126,6 +131,8 @@ public final class ReachCheck extends Check {
                     "packet");
         } else {
             coolDownScore(attackerData);
+            double cb = Math.max(0.0D, attackerData.getBuffer(CANCEL_BUFFER_KEY) - 0.25D);
+            attackerData.setBuffer(CANCEL_BUFFER_KEY, cb);
         }
         // FR-4: Record CombatEvidence
         recordReachCombatEvidence(attacker, attackerData, targetData, eval, maxReach, "packet");
@@ -137,29 +144,33 @@ public final class ReachCheck extends Check {
             boolean recentTeleportOrPearl, String source) {
         String evidencePrefix = eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS ? "HITBOX_MISS" : "REACH";
         String evidenceTag = evidencePrefix + "_" + source.toUpperCase(Locale.ROOT);
-        double add = eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS
-                ? plugin.getConfig().getDouble("checks.Reach.hitbox-miss-add", 0.18D)
-                : Math.max(0.15D, eval.getDirectDistance() - maxReach);
 
-        recordEvidence(attackerData, add, evidenceTag);
-        double buffer = slideAndAddScore(attackerData, add,
-                plugin.getConfig().getDouble("checks.Reach.window-weight", 1.0D));
-        if (buffer <= plugin.getConfig().getDouble("checks.Reach.buffer", 0.5D)) {
-            return;
+        // Grim: cancelBuffer = 1 on any violation
+        attackerData.setBuffer(CANCEL_BUFFER_KEY, 1.0D);
+
+        String verbose;
+        if (eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS) {
+            verbose = "type=" + eval.getEvidenceType().name();
+        } else {
+            verbose = String.format(Locale.ROOT, "%.5f", eval.getDirectDistance()) + " blocks";
         }
+
+        recordEvidence(attackerData, eval.getDirectDistance() - maxReach, evidenceTag);
 
         if (!eval.isEnforceableWindow() || recentTeleportOrPearl || eval.isTeleportMarkerHit()) {
             plugin.alerts().alert(attacker, getName(), attackerData.getViolation(getName()),
-                    source + "-teleport-grace-only type=" + eval.getEvidenceType().name()
-                            + " dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance())
+                    source + "-teleport-grace-only " + verbose
                             + " max=" + String.format(Locale.ROOT, "%.3f", maxReach));
             return;
         }
 
         String reason = source + "-" + eval.getEvidenceType().name().toLowerCase(Locale.ROOT)
-                + " dist=" + String.format(Locale.ROOT, "%.3f", eval.getDirectDistance()) + " max="
+                + " " + verbose + " max="
                 + String.format(Locale.ROOT, "%.3f", baseReach)
                 + (bonus > 0 ? "+" + String.format(Locale.ROOT, "%.2f", bonus) + "(comp)" : "");
+        double add = eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS
+                ? plugin.getConfig().getDouble("checks.Reach.hitbox-miss-add", 0.18D)
+                : Math.max(0.15D, eval.getDirectDistance() - maxReach);
         flag(attacker, attackerData, add, reason);
         if (event != null) {
             event.setCancelled(true);
@@ -317,38 +328,55 @@ public final class ReachCheck extends Check {
                     ReachEvidenceType.REACH);
         }
 
-        double closestCenter = Double.MAX_VALUE;
-        boolean closestCenterEnforceable = true;
+        // No ray intersection found at all — this is a HITBOX_MISS.
+        // Grim does not use a center-distance fallback. If the ray misses the
+        // hitbox, it is always flagged. The old +0.5 grace here was too lenient
+        // and let reach cheaters pass.
+        // We compute the minimum reach to box (closest point on AABB surface)
+        // to get a meaningful distance value for the flag message.
+        double minReachToBox = Double.MAX_VALUE;
+        boolean closestBoxEnforceable = true;
         for (HitboxFrame frame : frames) {
-            double cx = (frame.getMinX() + frame.getMaxX()) * 0.5D;
-            double cy = (frame.getMinY() + frame.getMaxY()) * 0.5D;
-            double cz = (frame.getMinZ() + frame.getMaxZ()) * 0.5D;
-            double dist = origin.distance(new Vector(cx, cy, cz));
-            if (dist < closestCenter) {
-                closestCenter = dist;
+            HitboxFrame expanded = expandedFrame(frame, hitboxExpand);
+            double dist = closestPointDistance(origin, expanded);
+            if (dist < minReachToBox) {
+                minReachToBox = dist;
                 markerHit = frame.isTeleportMarker();
                 hitOffset = now - frame.getTimestampMillis();
-                closestCenterEnforceable = frame.isEnforceable();
+                closestBoxEnforceable = frame.isEnforceable();
             }
         }
 
-        if (closestCenter <= maxReach + 0.5D) {
-            return new AttackEvaluation(true, closestCenter, hitOffset, markerHit, closestCenterEnforceable,
-                    ReachEvidenceType.NONE);
-        }
-
-        return new AttackEvaluation(false, closestCenter, hitOffset, markerHit, closestCenterEnforceable,
+        return new AttackEvaluation(false, minReachToBox, hitOffset, markerHit, closestBoxEnforceable,
                 ReachEvidenceType.HITBOX_MISS);
     }
 
     private double resolveHitboxExpand(PlayerData attackerData) {
         double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D);
+        // 1.7.10 clients always get the 0.1 expand (same as Grim's 1.8- branch)
         expand += 0.1D;
+        // Give movement threshold allowance when the attacker is nearly stationary
+        // (Grim: giveMovementThreshold when didLastLastMovementIncludePosition is false)
         if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD
                 && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
             expand += MOVEMENT_THRESHOLD;
         }
         return expand;
+    }
+
+    /**
+     * Compute the distance from a point to the closest point on an AABB surface.
+     * This replaces the old center-distance fallback with a proper min-reach-to-box
+     * computation, matching Grim's ReachUtils.getMinReachToBox approach.
+     */
+    private static double closestPointDistance(Vector point, HitboxFrame box) {
+        double cx = Math.max(box.getMinX(), Math.min(point.getX(), box.getMaxX()));
+        double cy = Math.max(box.getMinY(), Math.min(point.getY(), box.getMaxY()));
+        double cz = Math.max(box.getMinZ(), Math.min(point.getZ(), box.getMaxZ()));
+        double dx = point.getX() - cx;
+        double dy = point.getY() - cy;
+        double dz = point.getZ() - cz;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     private static HitboxFrame expandedFrame(HitboxFrame frame, double expand) {
