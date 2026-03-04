@@ -7,6 +7,9 @@ import ac.grim.legacyac.network.NetworkTapManager;
 import ac.grim.legacyac.network.ProtocolLibBridgeManager;
 import ac.grim.legacyac.network.TransactionSyncManager;
 import ac.grim.legacyac.network.frame.MovementFrameDispatcher;
+import ac.grim.legacyac.regression.RegressionGatekeeper;
+import ac.grim.legacyac.regression.RegressionReport;
+import ac.grim.legacyac.regression.ViolationLedger;
 import ac.grim.legacyac.util.AlertManager;
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +22,7 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<UUID, PlayerData>();
     private AlertManager alertManager;
     private CheckManager checkManager;
+    private ViolationLedger violationLedger;
     private NetworkTapManager networkTapManager;
     private ProtocolLibBridgeManager protocolLibBridgeManager;
     private TransactionSyncManager transactionSyncManager;
@@ -30,6 +34,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         alertManager = new AlertManager(this);
+        violationLedger = new ViolationLedger(
+                getConfig().getInt("regression.window-size", 512));
         checkManager = new CheckManager(this);
         getServer().getPluginManager().registerEvents(checkManager, this);
         protocolLibBridgeManager = new ProtocolLibBridgeManager(this);
@@ -70,6 +76,21 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         if (transactionSyncManager != null) {
             transactionSyncManager.stop();
         }
+        // Phase E: Generate regression report on shutdown
+        if (violationLedger != null) {
+            RegressionReport report = violationLedger.generateReport();
+            getLogger().info(report.toReport());
+
+            // Evaluate gates
+            RegressionGatekeeper gate = new RegressionGatekeeper(
+                    getConfig().getDouble("regression.max-fp-per-check", 0.10D),
+                    getConfig().getDouble("regression.max-fp-overall", 0.05D),
+                    getConfig().getLong("regression.max-trigger-latency-ms", 200L),
+                    getConfig().getLong("regression.min-flags-for-eval", 10L));
+            RegressionGatekeeper.GateResult gateResult = gate.evaluate(report);
+            getLogger().info(gateResult.toReport());
+        }
+
         playerDataMap.clear();
     }
 
@@ -99,21 +120,25 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         return checkManager;
     }
 
+    public ViolationLedger ledger() {
+        return violationLedger;
+    }
+
     public double[] resolveEntityBox(Entity entity) {
         if (protocolLibBridgeManager != null) {
             return protocolLibBridgeManager.resolveEntityBox(entity);
         }
-        return new double[] {0.6D, 1.8D};
+        return new double[] { 0.6D, 1.8D };
     }
 
     public MovementFrameDispatcher movementFrames() {
         return movementFrameDispatcher;
     }
 
-
     public TransactionSyncManager transactionSync() {
         return transactionSyncManager;
     }
+
     public boolean isPacketPipelineActive() {
         return packetPipelineActive;
     }
