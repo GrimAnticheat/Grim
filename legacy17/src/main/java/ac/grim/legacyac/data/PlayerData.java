@@ -75,6 +75,24 @@ public final class PlayerData {
     private int useWindow;
     private long useWindowStart;
 
+    // ── BadPackets state fields ──────────────────────────────────────────
+    private int lastHeldSlot = -1;
+    private int heldSlotChangeCount;
+    private boolean lastSprintActionState;
+    private int sprintActionCount;
+    private boolean lastSneakActionState;
+    private int sneakActionCount;
+    private int consecutiveLookOnlyPackets;
+    private boolean diggingActive;
+
+    // ── Timer state (nanosecond precision) ───────────────────────────────
+    private long timerLastPacketNanos;
+    private double timerBalance;
+
+    // ── Scaffold state ───────────────────────────────────────────────────
+    private long lastBlockPlaceTimeMs;
+    private int sameTickPlaceCount;
+
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
         this.joinAt = System.currentTimeMillis();
@@ -1035,6 +1053,50 @@ public final class PlayerData {
             return delegate.getPendingChanges();
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BadPackets state accessors
+    // ═══════════════════════════════════════════════════════════════════
+
+    public int getLastHeldSlot() { return lastHeldSlot; }
+    public void setLastHeldSlot(int slot) { lastHeldSlot = slot; }
+    public int getHeldSlotChangeCount() { return heldSlotChangeCount; }
+    public void incrementHeldSlotChangeCount() { heldSlotChangeCount++; }
+
+    public boolean getLastSprintActionState() { return lastSprintActionState; }
+    public void setLastSprintActionState(boolean state) { lastSprintActionState = state; }
+    public int getSprintActionCount() { return sprintActionCount; }
+    public void incrementSprintActionCount() { sprintActionCount++; }
+
+    public boolean getLastSneakActionState() { return lastSneakActionState; }
+    public void setLastSneakActionState(boolean state) { lastSneakActionState = state; }
+    public int getSneakActionCount() { return sneakActionCount; }
+    public void incrementSneakActionCount() { sneakActionCount++; }
+
+    public int incrementConsecutiveLookOnlyPackets() { return ++consecutiveLookOnlyPackets; }
+    public void resetConsecutiveLookOnlyPackets() { consecutiveLookOnlyPackets = 0; }
+
+    public boolean isDiggingActive() { return diggingActive; }
+    public void setDiggingActive(boolean val) { diggingActive = val; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Timer state accessors (nanosecond precision)
+    // ═══════════════════════════════════════════════════════════════════
+
+    public long getTimerLastPacketNanos() { return timerLastPacketNanos; }
+    public void setTimerLastPacketNanos(long nanos) { timerLastPacketNanos = nanos; }
+    public double getTimerBalance() { return timerBalance; }
+    public void setTimerBalance(double balance) { timerBalance = balance; }
+    public void resetTimerState() { timerLastPacketNanos = 0L; timerBalance = 0.0; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Scaffold state accessors
+    // ═══════════════════════════════════════════════════════════════════
+
+    public long getLastBlockPlaceTimeMs() { return lastBlockPlaceTimeMs; }
+    public void setLastBlockPlaceTimeMs(long ms) { lastBlockPlaceTimeMs = ms; }
+    public int incrementSameTickPlaceCount() { return ++sameTickPlaceCount; }
+    public void resetSameTickPlaceCount() { sameTickPlaceCount = 0; }
 
     // ═══════════════════════════════════════════════════════════════════
     // KnockbackSample (unchanged inner class)

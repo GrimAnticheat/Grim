@@ -45,6 +45,7 @@ public final class ProtocolLibBridgeManager {
             registerUseEntityListener();
             registerServerPositionListener();
             registerVelocityListener();
+            registerBadPacketsListeners();
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
@@ -79,9 +80,6 @@ public final class ProtocolLibBridgeManager {
                 PacketType type = event.getPacketType();
                 PacketContainer packet = event.getPacket();
 
-                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                    InternalPacketEvent.clientMovement(player, type.name(), System.nanoTime()));
-
                 final boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
                 final boolean hasLook = type == PacketType.Play.Client.LOOK || type == PacketType.Play.Client.POSITION_LOOK;
 
@@ -103,6 +101,11 @@ public final class ProtocolLibBridgeManager {
                     yaw = packet.getFloat().read(0);
                     pitch = packet.getFloat().read(1);
                 }
+
+                // Fire extended movement event for BadPackets checks
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                    InternalPacketEvent.clientMovementEx(player, type.name(), System.nanoTime(),
+                        hasPosition, yaw, pitch));
 
                 if (hasPosition) {
                     data.tryConfirmTeleportSync(x, y, z);
@@ -237,5 +240,87 @@ public final class ProtocolLibBridgeManager {
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
+    }
+
+    /**
+     * Register listeners for BadPackets check packet types:
+     * HELD_ITEM_CHANGE, ENTITY_ACTION, CLIENT_COMMAND (abilities), BLOCK_DIG
+     */
+    private void registerBadPacketsListeners() {
+        // HELD_ITEM_CHANGE — BadPacketsA
+        PacketAdapter heldItemAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
+                PacketType.Play.Client.HELD_ITEM_SLOT) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getIntegers().size() > 0) {
+                    int slot = packet.getIntegers().read(0);
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientHeldItemChange(event.getPlayer(), slot, System.nanoTime()));
+                }
+            }
+        };
+        protocolManager.addPacketListener(heldItemAdapter);
+        listeners.add(heldItemAdapter);
+
+        // ENTITY_ACTION — BadPacketsF, G, Q
+        PacketAdapter entityActionAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
+                PacketType.Play.Client.ENTITY_ACTION) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getIntegers().size() < 3) {
+                    return;
+                }
+                int entityId = packet.getIntegers().read(0);
+                int actionId = packet.getIntegers().read(1);
+                int jumpBoost = packet.getIntegers().read(2);
+                // actionId: 1=START_SNEAK, 2=STOP_SNEAK, 3=STOP_SLEEPING, 4=START_SPRINT, 5=STOP_SPRINT
+                boolean isSprint = (actionId == 4 || actionId == 5);
+                boolean isSneak = (actionId == 1 || actionId == 2);
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                    InternalPacketEvent.clientEntityAction(event.getPlayer(), entityId, actionId, jumpBoost,
+                            isSprint, isSneak, System.nanoTime()));
+            }
+        };
+        protocolManager.addPacketListener(entityActionAdapter);
+        listeners.add(entityActionAdapter);
+
+        // CLIENT_COMMAND / ABILITIES — BadPacketsI
+        try {
+            PacketAdapter abilitiesAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
+                    PacketType.Play.Client.ABILITIES) {
+                @Override
+                public void onPacketReceiving(PacketEvent event) {
+                    PacketContainer packet = event.getPacket();
+                    if (packet.getBooleans().size() > 1) {
+                        // In 1.7, abilities packet has isFlying as the second boolean
+                        boolean claimsFlying = packet.getBooleans().read(1);
+                        ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                            InternalPacketEvent.clientAbilities(event.getPlayer(), claimsFlying, System.nanoTime()));
+                    }
+                }
+            };
+            protocolManager.addPacketListener(abilitiesAdapter);
+            listeners.add(abilitiesAdapter);
+        } catch (Throwable t) {
+            plugin.getLogger().info("[GLAC] Abilities packet listener not available: " + t.getMessage());
+        }
+
+        // BLOCK_DIG — BadPacketsL
+        PacketAdapter blockDigAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
+                PacketType.Play.Client.BLOCK_DIG) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                if (packet.getIntegers().size() > 0) {
+                    int action = packet.getIntegers().read(0);
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientBlockDig(event.getPlayer(), action, System.nanoTime()));
+                }
+            }
+        };
+        protocolManager.addPacketListener(blockDigAdapter);
+        listeners.add(blockDigAdapter);
     }
 }

@@ -42,6 +42,26 @@ public abstract class Check {
         map.put("FastPlace", CheckStage.PASSIVE);
         map.put("FastBreak", CheckStage.PASSIVE);
         map.put("FastUse", CheckStage.PASSIVE);
+        // PRE stage — BadPackets (packet-level validation)
+        map.put("BadPacketsA", CheckStage.PRE);
+        map.put("BadPacketsC", CheckStage.PRE);
+        map.put("BadPacketsD", CheckStage.PRE);
+        map.put("BadPacketsE", CheckStage.PRE);
+        map.put("BadPacketsF", CheckStage.PRE);
+        map.put("BadPacketsG", CheckStage.PRE);
+        map.put("BadPacketsI", CheckStage.PRE);
+        map.put("BadPacketsL", CheckStage.PRE);
+        map.put("BadPacketsO", CheckStage.PRE);
+        map.put("BadPacketsQ", CheckStage.PRE);
+        map.put("CrashA", CheckStage.PRE);
+        // POST stage — GroundSpoof
+        map.put("GroundSpoof", CheckStage.POST);
+        // PASSIVE stage — Scaffold checks
+        map.put("AirLiquidPlace", CheckStage.PASSIVE);
+        map.put("FarPlace", CheckStage.PASSIVE);
+        map.put("RotationPlace", CheckStage.PASSIVE);
+        map.put("MultiPlace", CheckStage.PASSIVE);
+        map.put("PositionPlace", CheckStage.PASSIVE);
         STAGE_MAP = Collections.unmodifiableMap(map);
     }
 
