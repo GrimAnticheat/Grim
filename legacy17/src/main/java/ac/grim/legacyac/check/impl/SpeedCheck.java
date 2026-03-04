@@ -4,21 +4,16 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import java.util.Locale;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
- * Speed check using correct Minecraft 1.7.10 physics-based speed limits.
+ * Speed post-processing layer.
  *
- * Key fix: the sprint-jump horizontal boost (+0.2) is only applied when the
- * player actually transitions from ground to air (deltaY > 0 && wasOnGround),
- * not on every ground tick — the previous version added it always which made
- * the max ~0.50 instead of ~0.29 for normal sprinting.
+ * Main judgement comes from prediction output (candidate input vectors + uncertainty budget).
+ * This check only consumes the net horizontal deviation and applies additional anti-false-positive
+ * gating for view/input consistency before raising alerts.
  */
 public final class SpeedCheck extends Check {
     public SpeedCheck(LegacyAntiCheatPlugin plugin) {
@@ -30,226 +25,91 @@ public final class SpeedCheck extends Check {
             return;
         }
 
-        if (isExempt(player, data)) {
+        if (isExempt(player, data) || player.isFlying() || player.getVehicle() != null) {
             return;
         }
-        if (player.isFlying() || player.getVehicle() != null) {
+
+        PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
+        if (!state.isTeleportAligned()) {
             return;
         }
 
         double horizontal = data.getLastDeltaXZ();
-        double deltaY = data.getLastDeltaY();
         double deltaX = to.getX() - from.getX();
         double deltaZ = to.getZ() - from.getZ();
-        boolean onGround = frame.isOnGround();
-        boolean wasOnGround = data.wasOnGround();
-        PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
 
+        double yawDelta = Math.abs(data.getLastYawDelta());
         double directionDeviation = computeDirectionDeviation(deltaX, deltaZ, to.getYaw());
-        boolean diagonalInput = isDiagonalMovement(deltaX, deltaZ);
-        boolean directionStable = directionDeviation >= 20.0D && directionDeviation <= 70.0D;
+        boolean directionStable = isDirectionStable(yawDelta, directionDeviation, horizontal);
 
-        // ---- Calculate physics-based max speed ----
+        // Speed no longer maintains an independent horizontal/max single-point model.
+        // The candidate predictor already covers forward/strafe combinations, including
+        // sprint-jump and diagonal cases. We only consume prediction net deviations here.
+        double predictionHorizontalDeviation = data.getPredictionHorizontalDeviation();
+        double reducedHorizontalDeviation = data.getPredictionReducedHorizontalDeviation();
 
-        // Determine friction
-        Block belowBlock = to.clone().add(0.0D, -1.0D, 0.0D).getBlock();
-        Material belowType = belowBlock.getType();
-        double slipperiness = getBlockSlipperiness(belowType);
-        double friction;
-        if (onGround) {
-            friction = slipperiness * 0.91D;
-        } else {
-            friction = 0.91D;
-        }
+        double netDeviation = reducedHorizontalDeviation;
+        double baseAllowance = plugin.getConfig().getDouble("checks.Speed.prediction-base-allowance", 0.0D);
+        netDeviation = Math.max(0.0D, netDeviation - baseAllowance);
 
-        // Sprint-jump detection: need to know if jumping BEFORE sprint state check
-        boolean isJumping = deltaY > 0.1D && !onGround && wasOnGround;
-
-        // Determine sprint state — on jump tick, also check previous tick's sprint
-        // because 1.7.10 packet ordering can desync sprint and jump by 1 tick
-        boolean sprinting = player.isSprinting() || (isJumping && data.wasSprinting());
-
-        // Calculate acceleration
-        double attributeSpeed = 0.10000000149011612D; // default movement speed
-        if (sprinting) {
-            attributeSpeed *= 1.3D;
-        }
-
-        // Speed potion
-        PotionEffect speed = getPotion(player, PotionEffectType.SPEED);
-        if (speed != null) {
-            attributeSpeed *= (1.0D + (speed.getAmplifier() + 1) * 0.2D);
-        }
-
-        // Slowness potion
-        PotionEffect slow = getPotion(player, PotionEffectType.SLOW);
-        if (slow != null) {
-            attributeSpeed *= Math.max(0.0D, 1.0D - (slow.getAmplifier() + 1) * 0.15D);
-        }
-
-        double acceleration;
-        if (onGround) {
-            double frictionCubed = friction * friction * friction;
-            acceleration = attributeSpeed * (0.16277136D / frictionCubed);
-        } else {
-            acceleration = sprinting ? 0.026D : 0.02D;
-        }
-
-        // Steady-state max speed: acceleration / (1 - friction)
-        double steadyStateMax = acceleration / (1.0D - friction);
-
-        // burstMax: carried velocity from PREVIOUS tick + new acceleration
-        // Note: data.getLastDeltaXZ() is the CURRENT tick's value,
-        // getPrevDeltaXZ() is the PREVIOUS tick's value which represents carried velocity
-        double burstMax = data.getPrevDeltaXZ() * friction + acceleration;
-        int smoothingTicks = Math.max(1, plugin.getConfig().getInt("checks.Speed.direction-smoothing-ticks", 2));
-        if (smoothingTicks > 1 && diagonalInput && directionStable && isJumping) {
-            burstMax = smoothedBurstMax(data, friction, acceleration, smoothingTicks);
-        }
-        // When landing (transitioning from air to ground), the velocity was previously under
-        // air friction (0.91) but now uses ground friction (0.546). This transition takes
-        // 2-3 ticks to settle. Use air friction for burst during this window.
-        if (onGround && data.getGroundTicks() <= 3) {
-            double airBurst = data.getPrevDeltaXZ() * 0.91D + acceleration;
-            burstMax = Math.max(burstMax, airBurst);
-        }
-        double max = Math.max(steadyStateMax, burstMax);
-
-        // Sprint-jump horizontal boost: ONLY when player is jumping this tick
-        // (transitioning from ground to air with upward Y)
-        if (isJumping && sprinting) {
-            max += 0.2D;
-        }
-
-        // Special blocks
-        Material feetType = to.getBlock().getType();
-        if (feetType == Material.WEB || belowType == Material.WEB) {
-            max = Math.min(max, 0.12D);
-        }
-        if (feetType == Material.SOUL_SAND) {
-            max *= 0.6D;
-        }
-        if (isLiquid(feetType) || isLiquid(belowType)) {
-            max = Math.max(max, 0.16D);
-        }
-
-        // Ice: allow higher steady-state due to accumulated velocity
-        if (isIce(belowType)) {
-            max = Math.max(max, burstMax + 0.04D);
-        }
-
-        if (diagonalInput && directionStable) {
-            double diagonalExtra = plugin.getConfig().getDouble("checks.Speed.diagonal-extra-margin", 0.012D);
-            double diagonalMax = burstMax + Math.max(0.0D, diagonalExtra);
-            max = Math.max(max, diagonalMax);
-        }
-
-        // Movement threshold tolerance
-        max += 0.005D;
-
-        // Network/timing tolerance
-        max += 0.01D;
-
-        // Adaptive lag: prioritize state alignment, only add small tolerance once aligned
-        double baseMax = max;
-        if (isLagging(data) && state.isFullyAligned()) {
-            max += plugin.getConfig().getDouble("adaptive-lag.speed-small-margin", 0.03D);
-        }
         if (!state.isFullyAligned()) {
-            max += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
-        }
-        logAdaptiveLagComparison(player, data, getName(), baseMax, max,
-            "speed-state-aligned=" + state.isFullyAligned()
-                + ",speed-direction-stable=" + directionStable);
-
-        // Knockback tolerance — knockback creates an instantaneous velocity injection that
-        // the burst model (prev*friction+accel) cannot account for because prev was pre-knockback.
-        // Use the ACTUAL stored knockback velocity to calculate expected max speed.
-        long timeSinceVelocity = System.currentTimeMillis() - data.getLastVelocityAt();
-        if (timeSinceVelocity < 1000L) {
-            double kbXZ = data.getLastVelocityXZ();
-            if (kbXZ > 0.0D) {
-                // Knockback applies the velocity directly. Over time it decays via friction.
-                // Calculate what the speed should be after timeSinceVelocity ms of friction decay.
-                // Each tick = 50ms, friction per tick = 0.91 (air) or ~0.546 (ground)
-                int ticksSince = (int) (timeSinceVelocity / 50L);
-                double decayedKB = kbXZ;
-                for (int i = 0; i < ticksSince && i < 20; i++) {
-                    decayedKB *= 0.91D; // conservative: use air friction (slower decay)
-                }
-                // The allowed max should be at least the decayed knockback speed + existing momentum + tolerance
-                // During a tick where the client processes a velocity packet, it can combine the
-                // knockback velocity with its existing momentum and sprint effects.
-                double kbMax = burstMax + decayedKB + 0.3D; 
-                if (kbMax > max) {
-                    max = kbMax;
-                }
-            }
+            netDeviation = Math.max(0.0D, netDeviation
+                    - plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D));
+        } else if (isLagging(data)) {
+            netDeviation = Math.max(0.0D, netDeviation
+                    - plugin.getConfig().getDouble("adaptive-lag.speed-small-margin", 0.03D));
         }
 
-        // Debug: show computed values for debugging
+        if (!directionStable) {
+            netDeviation = Math.max(0.0D, netDeviation
+                    - plugin.getConfig().getDouble("checks.Speed.turning-direction-margin", 0.03D));
+        }
+
         if (data.isDebugEnabled()) {
-            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " Speed h="
-                + fmt(horizontal) + " max=" + fmt(max) + " prev=" + fmt(data.getPrevDeltaXZ())
-                + " accel=" + fmt(acceleration) + " steady=" + fmt(steadyStateMax)
-                + " burst=" + fmt(burstMax) + " onGround=" + onGround
-                + " sprint=" + sprinting + " jump=" + isJumping
-                + " dirDev=" + fmt(directionDeviation) + " diag=" + diagonalInput
-                + " dirStable=" + directionStable
-                + " pending=" + state.getPendingChanges());
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
+                    + " Speed post h=" + fmt(horizontal)
+                    + " predDev=" + fmt(predictionHorizontalDeviation)
+                    + " reduced=" + fmt(reducedHorizontalDeviation)
+                    + " net=" + fmt(netDeviation)
+                    + " yawDelta=" + fmt(yawDelta)
+                    + " dirDev=" + fmt(directionDeviation)
+                    + " dirStable=" + directionStable
+                    + " pending=" + state.getPendingChanges()
+                    + " best=" + data.getPredictionBestProfile());
         }
 
-        // ---- Check and flag ----
-        if (horizontal > max) {
-            double deviation = horizontal - max;
-            recordEvidence(data, deviation, "SPEED_MODEL");
-            double weight = plugin.getConfig().getDouble("checks.Speed.window-weight", 1.0D);
-            double buffer = slideAndAddScore(data, deviation, weight);
-            if (buffer > plugin.getConfig().getDouble("checks.Speed.buffer", 0.35D)) {
-                flag(player, data, deviation, "h=" + fmt(horizontal) + " max=" + fmt(max)
-                    + " spd=" + fmt(attributeSpeed) + " jump=" + isJumping);
-            }
-        } else {
+        if (netDeviation <= 0.0D) {
             coolDownScore(data);
-            if (onGround && from.getY() == to.getY()) {
+            if (frame.isOnGround() && from.getY() == to.getY()) {
                 data.setLastSafeLocation(to.clone());
             }
+            return;
+        }
+
+        recordEvidence(data, netDeviation, "SPEED_POST_PREDICTION");
+        double weight = plugin.getConfig().getDouble("checks.Speed.window-weight", 1.0D);
+        double buffer = slideAndAddScore(data, netDeviation, weight);
+        if (buffer > plugin.getConfig().getDouble("checks.Speed.buffer", 0.35D)) {
+            flag(player, data, netDeviation, "net=" + fmt(netDeviation)
+                    + " predRaw=" + fmt(predictionHorizontalDeviation)
+                    + " predReduced=" + fmt(reducedHorizontalDeviation)
+                    + " dirDev=" + fmt(directionDeviation)
+                    + " yawDelta=" + fmt(yawDelta)
+                    + " best=" + data.getPredictionBestProfile());
         }
     }
 
-    private static double getBlockSlipperiness(Material material) {
-        if (material == Material.ICE || material == Material.PACKED_ICE) {
-            return 0.98D;
+    private boolean isDirectionStable(double yawDelta, double directionDeviation, double horizontal) {
+        if (horizontal < plugin.getConfig().getDouble("checks.Speed.direction-min-horizontal", 0.06D)) {
+            return true;
         }
-        return 0.6D;
-    }
-
-    private static boolean isIce(Material material) {
-        return material == Material.ICE || material == Material.PACKED_ICE;
-    }
-
-    private static boolean isLiquid(Material material) {
-        return material == Material.WATER || material == Material.STATIONARY_WATER
-            || material == Material.LAVA || material == Material.STATIONARY_LAVA;
-    }
-
-    private PotionEffect getPotion(Player player, PotionEffectType type) {
-        for (PotionEffect effect : player.getActivePotionEffects()) {
-            if (effect.getType().equals(type)) {
-                return effect;
-            }
-        }
-        return null;
+        double maxYawDelta = plugin.getConfig().getDouble("checks.Speed.turning-max-yaw-delta", 45.0D);
+        double maxDirectionDeviation = plugin.getConfig().getDouble("checks.Speed.turning-max-direction-deviation", 85.0D);
+        return yawDelta <= maxYawDelta && directionDeviation <= maxDirectionDeviation;
     }
 
     private String fmt(double value) {
         return String.format(Locale.ROOT, "%.4f", value);
-    }
-
-    private static boolean isDiagonalMovement(double deltaX, double deltaZ) {
-        double absX = Math.abs(deltaX);
-        double absZ = Math.abs(deltaZ);
-        return absX > 0.02D && absZ > 0.02D;
     }
 
     private static double computeDirectionDeviation(double deltaX, double deltaZ, float yaw) {
@@ -272,21 +132,5 @@ public final class SpeedCheck extends Check {
             normalized += 360.0D;
         }
         return normalized;
-    }
-
-    private static double smoothedBurstMax(PlayerData data, double friction, double acceleration, int smoothingTicks) {
-        int ticks = Math.min(3, Math.max(2, smoothingTicks));
-        double sum = data.getPrevDeltaXZ();
-        int samples = 1;
-        if (ticks >= 2) {
-            sum += data.getPrevPrevDeltaXZ();
-            samples++;
-        }
-        if (ticks >= 3) {
-            sum += data.getPrevPrevPrevDeltaXZ();
-            samples++;
-        }
-        double averagedPrev = sum / samples;
-        return averagedPrev * friction + acceleration;
     }
 }
