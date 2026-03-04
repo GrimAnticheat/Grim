@@ -3,7 +3,9 @@ package ac.grim.legacyac.check.impl;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Locale;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -31,7 +33,8 @@ public final class VelocityCheck extends Check {
             return;
         }
 
-        // Legacy fallback path compatibility; new logic uses tx-confirmed VelocitySample.
+        // Legacy fallback path compatibility; new logic uses tx-confirmed
+        // VelocitySample.
         int ticks = plugin.getConfig().getInt("checks.Velocity.window-ticks", 8);
         data.armVelocityWindow(velocity, ticks);
     }
@@ -40,7 +43,9 @@ public final class VelocityCheck extends Check {
         if (event.getTo() == null) {
             return;
         }
-        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(),
+                event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(),
+                true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
         onMovementFrame(event.getPlayer(), frame, data);
     }
 
@@ -60,16 +65,24 @@ public final class VelocityCheck extends Check {
         double observedY = Math.abs(data.getLastDeltaY());
         double offset = Math.abs(observedXZ - expectedXZ) + Math.abs(observedY - expectedY);
 
-        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_PRE_ACK) && !sample.hasFlag(PlayerData.VelocitySample.FLAG_POST_ACK)) {
+        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_PRE_ACK)
+                && !sample.hasFlag(PlayerData.VelocitySample.FLAG_POST_ACK)) {
             sample.observeTick(offset);
             double responseThreshold = Math.max(0.03D, expectedXZ * 0.20D);
+
+            // FR-3: Use BudgetSnapshot velocity slack if available
+            ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+            if (budget != null) {
+                responseThreshold += budget.getVelocityResponseSlack();
+            }
+
             int delayedKbTicks = plugin.getConfig().getInt("checks.Velocity.delayed-kb-ticks",
-                plugin.getConfig().getInt("checks.Velocity.window-ticks", 3));
+                    plugin.getConfig().getInt("checks.Velocity.window-ticks", 3));
             sample.recordObservedMotion(observedXZ, responseThreshold, delayedKbTicks);
         }
 
         double minScoreToFlag = plugin.getConfig().getDouble("checks.Velocity.min-score-to-flag",
-            plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D));
+                plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D));
         int minSamples = plugin.getConfig().getInt("checks.Velocity.min-samples", 2);
 
         if (sample.hasFlag(PlayerData.VelocitySample.FLAG_FIRST_CONFIRMED) && sample.getTicksObserved() == 1) {
@@ -89,35 +102,58 @@ public final class VelocityCheck extends Check {
 
         double predictionReduced = data.getPredictionReducedDeviation();
         double likelyStageScore = Math.max(0.0D, Math.max(sample.getMinOffset(), predictionReduced) - 0.025D);
-        double buffer = slideAndAddScore(data, likelyStageScore, plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D));
+        double buffer = slideAndAddScore(data, likelyStageScore,
+                plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D));
 
         if (sample.hasFlag(PlayerData.VelocitySample.FLAG_DELAYED_KB_PATTERN)) {
             buffer = slideAndAddScore(data, 0.35D, 1.0D);
             if (data.isDebugEnabled()) {
                 plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                    + " Velocity DELAYED_KB_PATTERN silentTicks=" + sample.getInitialSilentTicks()
-                    + " maxObsXZ=" + fmt(sample.getMaxObservedHorizontal()));
+                        + " Velocity DELAYED_KB_PATTERN silentTicks=" + sample.getInitialSilentTicks()
+                        + " maxObsXZ=" + fmt(sample.getMaxObservedHorizontal()));
             }
         }
 
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                + " Velocity txWindow pre=" + sample.getPreTxId()
-                + " post=" + sample.getPostTxId()
-                + " ticks=" + sample.getTicksObserved()
-                + " minOffset=" + fmt(sample.getMinOffset())
-                + " score=" + fmt(likelyStageScore)
-                + " flags=" + sample.getStateFlags());
+                    + " Velocity txWindow pre=" + sample.getPreTxId()
+                    + " post=" + sample.getPostTxId()
+                    + " ticks=" + sample.getTicksObserved()
+                    + " minOffset=" + fmt(sample.getMinOffset())
+                    + " score=" + fmt(likelyStageScore)
+                    + " flags=" + sample.getStateFlags());
         }
 
         if (buffer > minScoreToFlag) {
             flag(player, data, likelyStageScore,
-                "preTx=" + sample.getPreTxId()
-                    + " postTx=" + sample.getPostTxId()
-                    + " minOffset=" + fmt(sample.getMinOffset())
-                    + " ticks=" + sample.getTicksObserved()
-                    + " flags=" + sample.getStateFlags());
+                    "preTx=" + sample.getPreTxId()
+                            + " postTx=" + sample.getPostTxId()
+                            + " minOffset=" + fmt(sample.getMinOffset())
+                            + " ticks=" + sample.getTicksObserved()
+                            + " flags=" + sample.getStateFlags());
+
+            // FR-4: Record CombatEvidence for velocity
+            recordVelocityCombatEvidence(player, data, sample, likelyStageScore);
         }
+    }
+
+    /**
+     * FR-4: Build and record a CombatEvidence for Velocity check violations.
+     */
+    private void recordVelocityCombatEvidence(Player player, PlayerData data,
+            PlayerData.VelocitySample sample, double score) {
+        CombatEvidence evidence = CombatEvidence.builder(
+                CombatEvidence.CombatCheckType.VELOCITY, player.getName(), "")
+                .localAttackTime(System.currentTimeMillis())
+                .directDistance(sample.getMinOffset())
+                .scoring(score,
+                        plugin.getConfig().getDouble("checks.Velocity.min-score-to-flag",
+                                plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D)),
+                        true)
+                .detail("preTx=" + sample.getPreTxId() + " postTx=" + sample.getPostTxId()
+                        + " ticks=" + sample.getTicksObserved() + " flags=" + sample.getStateFlags())
+                .build();
+        data.recordCombatEvidence(evidence);
     }
 
     private String fmt(double value) {

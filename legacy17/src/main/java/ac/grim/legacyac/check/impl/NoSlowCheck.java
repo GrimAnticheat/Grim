@@ -4,6 +4,7 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -11,7 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Locale;
 
 /**
- * NoSlow check — detects players that move at full speed while using items (eating, blocking, drinking, drawing bow).
+ * NoSlow check — detects players that move at full speed while using items
+ * (eating, blocking, drinking, drawing bow).
  *
  * In vanilla Minecraft, when a player is using an item:
  * - Their movement speed is multiplied by 0.2 (they move at 20% speed)
@@ -29,7 +31,9 @@ public final class NoSlowCheck extends Check {
         if (event.getTo() == null) {
             return;
         }
-        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(), event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
+        MovementFrame frame = new MovementFrame(System.nanoTime(), event.getTo().getX(), event.getTo().getY(),
+                event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(), event.getPlayer().isOnGround(),
+                true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
         onMovementFrame(event.getPlayer(), frame, data);
     }
 
@@ -49,7 +53,8 @@ public final class NoSlowCheck extends Check {
             return;
         }
 
-        // isBlocking/isUsingItem are only candidate signals; confidence needs multi-tick confirmation
+        // isBlocking/isUsingItem are only candidate signals; confidence needs
+        // multi-tick confirmation
         boolean usingItemCandidate = player.isBlocking() || isUsingItem(player);
         data.updateUsingItemSignal(usingItemCandidate);
 
@@ -73,7 +78,8 @@ public final class NoSlowCheck extends Check {
 
         // Calculate the maximum allowed speed while using an item
         // Normal walking speed * 0.2 = the vanilla slowdown factor
-        // We need to calculate what the actual max speed would be after the 0.2 multiplier
+        // We need to calculate what the actual max speed would be after the 0.2
+        // multiplier
         double baseWalkSpeed = 0.10000000149011612D;
         if (player.isSprinting()) {
             // Note: in vanilla 1.7, you CAN'T sprint while blocking. If they are,
@@ -102,9 +108,16 @@ public final class NoSlowCheck extends Check {
         double maxSlowedSpeed = normalSteadyState * slowFactor;
 
         // Add tolerance
-        maxSlowedSpeed += 0.03D; // network tolerance
-        if (isLagging(data)) {
-            maxSlowedSpeed += 0.05D;
+        // FR-3: Use BudgetSnapshot for tolerance if available
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        if (budget != null) {
+            maxSlowedSpeed += budget.getMovementAllowance();
+        } else {
+            // Fallback: original hardcoded tolerance
+            maxSlowedSpeed += 0.03D; // network tolerance
+            if (isLagging(data)) {
+                maxSlowedSpeed += 0.05D;
+            }
         }
 
         // Knockback tolerance
@@ -128,7 +141,8 @@ public final class NoSlowCheck extends Check {
         if (horizontal > maxSlowedSpeed) {
             double deviation = horizontal - maxSlowedSpeed;
             double predictionMinDeviation = data.getPredictionReducedDeviation();
-            double predictionThreshold = plugin.getConfig().getDouble("checks.NoSlow.prediction-min-deviation-threshold", 0.035D);
+            double predictionThreshold = plugin.getConfig()
+                    .getDouble("checks.NoSlow.prediction-min-deviation-threshold", 0.035D);
             if (predictionMinDeviation <= predictionThreshold) {
                 coolDownScore(data);
                 data.resetNoSlowViolationStreak();
@@ -147,11 +161,11 @@ public final class NoSlowCheck extends Check {
             if (buffer > plugin.getConfig().getDouble("checks.NoSlow.buffer", 0.4D)) {
                 String action = player.isBlocking() ? "BLOCKING" : "USING_ITEM";
                 flag(player, data, deviation, action + " h=" + fmt(horizontal)
-                    + " max=" + fmt(maxSlowedSpeed)
-                    + " conf=" + fmt(data.getUsingItemConfidence())
-                    + " useTicks=" + data.getTicksUsingItem()
-                    + " predDev=" + fmt(predictionMinDeviation)
-                    + " streak=" + streak);
+                        + " max=" + fmt(maxSlowedSpeed)
+                        + " conf=" + fmt(data.getUsingItemConfidence())
+                        + " useTicks=" + data.getTicksUsingItem()
+                        + " predDev=" + fmt(predictionMinDeviation)
+                        + " streak=" + streak);
             }
         } else {
             coolDownScore(data);
@@ -179,7 +193,8 @@ public final class NoSlowCheck extends Check {
     /**
      * Check if the player is using an item (eating, drinking, drawing bow).
      * In 1.7.10, player.isBlocking() covers sword blocking.
-     * For eating/drinking we check if they have food/potion in hand and the item use is active.
+     * For eating/drinking we check if they have food/potion in hand and the item
+     * use is active.
      */
     private boolean isUsingItem(Player player) {
         // In 1.7.10, there's no direct isHandActive() API

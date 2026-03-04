@@ -4,6 +4,7 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Locale;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,8 +12,10 @@ import org.bukkit.entity.Player;
 /**
  * Speed post-processing layer.
  *
- * Main judgement comes from prediction output (candidate input vectors + uncertainty budget).
- * This check only consumes the net horizontal deviation and applies additional anti-false-positive
+ * Main judgement comes from prediction output (candidate input vectors +
+ * uncertainty budget).
+ * This check only consumes the net horizontal deviation and applies additional
+ * anti-false-positive
  * gating for view/input consistency before raising alerts.
  */
 public final class SpeedCheck extends Check {
@@ -48,7 +51,8 @@ public final class SpeedCheck extends Check {
 
         // Speed no longer maintains an independent horizontal/max single-point model.
         // The candidate predictor already covers forward/strafe combinations, including
-        // sprint-jump and diagonal cases. We only consume prediction net deviations here.
+        // sprint-jump and diagonal cases. We only consume prediction net deviations
+        // here.
         double predictionHorizontalDeviation = data.getPredictionHorizontalDeviation();
         double reducedHorizontalDeviation = data.getPredictionReducedHorizontalDeviation();
 
@@ -56,12 +60,19 @@ public final class SpeedCheck extends Check {
         double baseAllowance = plugin.getConfig().getDouble("checks.Speed.prediction-base-allowance", 0.0D);
         netDeviation = Math.max(0.0D, netDeviation - baseAllowance);
 
-        if (!state.isFullyAligned()) {
-            netDeviation = Math.max(0.0D, netDeviation
-                    - plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D));
-        } else if (isLagging(data)) {
-            netDeviation = Math.max(0.0D, netDeviation
-                    - plugin.getConfig().getDouble("adaptive-lag.speed-small-margin", 0.03D));
+        // FR-3: Use BudgetSnapshot for tolerance instead of hardcoded margins
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        if (budget != null) {
+            netDeviation = Math.max(0.0D, netDeviation - budget.getMovementAllowance());
+        } else {
+            // Fallback: original hardcoded tolerance logic
+            if (!state.isFullyAligned()) {
+                netDeviation = Math.max(0.0D, netDeviation
+                        - plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D));
+            } else if (isLagging(data)) {
+                netDeviation = Math.max(0.0D, netDeviation
+                        - plugin.getConfig().getDouble("adaptive-lag.speed-small-margin", 0.03D));
+            }
         }
 
         if (!directionStable) {
@@ -79,7 +90,9 @@ public final class SpeedCheck extends Check {
                     + " dirDev=" + fmt(directionDeviation)
                     + " dirStable=" + directionStable
                     + " pending=" + state.getPendingChanges()
-                    + " best=" + data.getPredictionBestProfile());
+                    + " best=" + data.getPredictionBestProfile()
+                    + (budget != null ? " budget=" + String.format(Locale.ROOT, "%.4f", budget.getMovementAllowance())
+                            + " scenario=" + budget.getScenarioTag() : ""));
         }
 
         if (netDeviation <= 0.0D) {
@@ -108,7 +121,8 @@ public final class SpeedCheck extends Check {
             return true;
         }
         double maxYawDelta = plugin.getConfig().getDouble("checks.Speed.turning-max-yaw-delta", 45.0D);
-        double maxDirectionDeviation = plugin.getConfig().getDouble("checks.Speed.turning-max-direction-deviation", 85.0D);
+        double maxDirectionDeviation = plugin.getConfig().getDouble("checks.Speed.turning-max-direction-deviation",
+                85.0D);
         return yawDelta <= maxYawDelta && directionDeviation <= maxDirectionDeviation;
     }
 

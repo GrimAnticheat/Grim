@@ -9,6 +9,7 @@ import ac.grim.legacyac.prediction.LegacyPredictionEngine;
 import ac.grim.legacyac.prediction.PredictionEvaluation;
 import ac.grim.legacyac.prediction.PredictionResult;
 import ac.grim.legacyac.prediction.PredictionUncertaintyHandler;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Locale;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -85,7 +86,8 @@ public final class PredictionMovementCheck extends Check {
 
         double reducedOffset = PredictionUncertaintyHandler.reduceOffset(minDeviation, context, plugin);
         data.setPredictionReducedDeviation(reducedOffset);
-        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context, plugin);
+        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context,
+                plugin);
         data.setPredictionReducedHorizontalDeviation(reducedHorizontalDeviation);
         data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
         data.markPredictionReady(frame.getTimestampNanos());
@@ -105,18 +107,18 @@ public final class PredictionMovementCheck extends Check {
         double baseAllowance = plugin.getConfig().getDouble("prediction.stage.base-allowance", 0.0D);
         double adaptiveAllowance = baseAllowance + uncertaintyBudget;
 
-        if (!state.isFullyAligned()) {
-            adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
-        } else if (isLagging(data)) {
-            adaptiveAllowance += plugin.getConfig().getDouble("prediction.lag-small-tolerance", 0.03D);
+        // FR-3: Use BudgetSnapshot for tolerance margins
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        if (budget != null) {
+            adaptiveAllowance += budget.getMovementAllowance();
+        } else {
+            // Fallback: original hardcoded tolerance logic
+            if (!state.isFullyAligned()) {
+                adaptiveAllowance += plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D);
+            } else if (isLagging(data)) {
+                adaptiveAllowance += plugin.getConfig().getDouble("prediction.lag-small-tolerance", 0.03D);
+            }
         }
-
-        if (!state.isVelocityAligned()) {
-            adaptiveAllowance += plugin.getConfig().getDouble("prediction.velocity-pending-tolerance", 0.04D);
-        }
-
-        logAdaptiveLagComparison(player, data, getName(), baseAllowance, adaptiveAllowance,
-                "prediction-state-aligned=" + state.isFullyAligned());
 
         double newScore = Math.max(0.0D, reducedOffset - baseAllowance);
         if (minDeviation > 0.0D) {

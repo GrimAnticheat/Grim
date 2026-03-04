@@ -5,6 +5,8 @@ import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.combat.HitboxFrame;
 import ac.grim.legacyac.combat.RayTraceUtil;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.evidence.CombatEvidence;
+import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.List;
 import java.util.Locale;
 import org.bukkit.Location;
@@ -83,15 +85,18 @@ public final class ReachCheck extends Check {
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
-        boolean recentTeleportOrPearl = System.currentTimeMillis() - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
+        boolean recentTeleportOrPearl = System.currentTimeMillis()
+                - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
         double bonus = getAdaptiveReachBonus(data) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
         AttackEvaluation eval = evaluate(attacker, data, victimData, maxReach, 400L, strafeSyncMargin);
         if (!eval.isLegal()) {
-            handleViolation(event, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
+            handleViolation(null, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
         } else {
             coolDownScore(data);
         }
+        // FR-4: Record CombatEvidence
+        recordReachCombatEvidence(attacker, data, victimData, eval, maxReach, "event");
         data.setLastAttackAt(System.currentTimeMillis());
     }
 
@@ -110,15 +115,20 @@ public final class ReachCheck extends Check {
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
-        boolean recentTeleportOrPearl = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
+        boolean recentTeleportOrPearl = System.currentTimeMillis()
+                - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
         double bonus = getAdaptiveReachBonus(attackerData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis, strafeSyncMargin);
+        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis,
+                strafeSyncMargin);
         if (!eval.isLegal()) {
-            handleViolation(null, attacker, attackerData, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "packet");
+            handleViolation(null, attacker, attackerData, eval, maxReach, baseReach, bonus, recentTeleportOrPearl,
+                    "packet");
         } else {
             coolDownScore(attackerData);
         }
+        // FR-4: Record CombatEvidence
+        recordReachCombatEvidence(attacker, attackerData, targetData, eval, maxReach, "packet");
         return eval;
     }
 
@@ -171,6 +181,13 @@ public final class ReachCheck extends Check {
     }
 
     private double getAdaptiveReachBonus(PlayerData data) {
+        // FR-3: Use BudgetSnapshot for reach compensation if available
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        if (budget != null) {
+            return budget.getCombatReachMargin();
+        }
+
+        // Fallback: original hardcoded logic
         double bonus = 0.0D;
         if (isLagging(data)) {
             bonus += plugin.getConfig().getDouble("adaptive-lag.reach-extra-distance", 0.15D);
@@ -183,6 +200,31 @@ public final class ReachCheck extends Check {
         }
 
         return bonus;
+    }
+
+    /**
+     * FR-4: Build and record a standardized CombatEvidence for this attack.
+     */
+    private void recordReachCombatEvidence(Player attacker, PlayerData attackerData, PlayerData targetData,
+            AttackEvaluation eval, double maxReach, String source) {
+        Location eye = attacker.getEyeLocation();
+        CombatEvidence evidence = CombatEvidence.builder(
+                CombatEvidence.CombatCheckType.REACH, attacker.getName(),
+                targetData != null ? "target" : "unknown")
+                .actorPos(eye.getX(), eye.getY(), eye.getZ())
+                .actorLook(eye.getYaw(), eye.getPitch())
+                .localAttackTime(System.currentTimeMillis())
+                .boxTimeOffset(eval.getBoxTimeOffsetMs())
+                .directDistance(eval.getDirectDistance())
+                .closestHitboxDistance(eval.getDirectDistance())
+                .hitboxIntersects(eval.isLegal())
+                .teleportMarkerHit(eval.isTeleportMarkerHit())
+                .enforceableWindow(eval.isEnforceableWindow())
+                .scoring(eval.isLegal() ? 0.0D : Math.max(0.0D, eval.getDirectDistance() - maxReach),
+                        maxReach, !eval.isLegal())
+                .detail(source + "-" + eval.getEvidenceType().name())
+                .build();
+        attackerData.recordCombatEvidence(evidence);
     }
 
     private AttackEvaluation evaluate(Player attacker, PlayerData attackerData, PlayerData targetData, double maxReach,
@@ -302,7 +344,8 @@ public final class ReachCheck extends Check {
     private double resolveHitboxExpand(PlayerData attackerData) {
         double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D);
         expand += 0.1D;
-        if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
+        if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD
+                && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
             expand += MOVEMENT_THRESHOLD;
         }
         return expand;
