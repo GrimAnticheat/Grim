@@ -80,8 +80,11 @@ checks:
     setback: true
     buffer: 0.35
     window-weight: 1.0
-    diagonal-extra-margin: 0.012
-    direction-smoothing-ticks: 2
+    prediction-base-allowance: 0.0
+    direction-min-horizontal: 0.06
+    turning-max-yaw-delta: 45.0
+    turning-max-direction-deviation: 85.0
+    turning-direction-margin: 0.03
     punish-vl: 30
     punish-commands:
       - "kick %player% Speed cheat (%check% VL:%vl%)"

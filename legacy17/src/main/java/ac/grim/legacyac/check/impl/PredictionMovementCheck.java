@@ -76,8 +76,16 @@ public final class PredictionMovementCheck extends Check {
         double minDeviation = evaluation.getRawOffset();
         data.setPredictionMinDeviation(minDeviation);
 
+        double horizontalDeviation = 0.0D;
+        if (bestCandidate != null) {
+            horizontalDeviation = Math.max(0.0D, horizontal - bestCandidate.getHorizontalMagnitude());
+        }
+        data.setPredictionHorizontalDeviation(horizontalDeviation);
+
         double reducedOffset = PredictionUncertaintyHandler.reduceOffset(minDeviation, context, plugin);
         data.setPredictionReducedDeviation(reducedOffset);
+        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context, plugin);
+        data.setPredictionReducedHorizontalDeviation(reducedHorizontalDeviation);
         data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
 
         boolean badHorizontalOld = horizontal > legacyResult.getMaxHorizontal();

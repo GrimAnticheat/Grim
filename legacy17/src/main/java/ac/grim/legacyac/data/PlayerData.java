@@ -114,6 +114,8 @@ public final class PlayerData {
     private final PredictionContext predictionContext = new PredictionContext();
     private double predictionMinDeviation;
     private double predictionReducedDeviation;
+    private double predictionHorizontalDeviation;
+    private double predictionReducedHorizontalDeviation;
     private String predictionBestProfile = "none";
     private double usingItemConfidence;
     private int ticksUsingItem;
@@ -480,6 +482,22 @@ public final class PlayerData {
 
     public void setPredictionBestProfile(String predictionBestProfile) {
         this.predictionBestProfile = predictionBestProfile == null ? "none" : predictionBestProfile;
+    }
+
+    public double getPredictionHorizontalDeviation() {
+        return predictionHorizontalDeviation;
+    }
+
+    public void setPredictionHorizontalDeviation(double predictionHorizontalDeviation) {
+        this.predictionHorizontalDeviation = Math.max(0.0D, predictionHorizontalDeviation);
+    }
+
+    public double getPredictionReducedHorizontalDeviation() {
+        return predictionReducedHorizontalDeviation;
+    }
+
+    public void setPredictionReducedHorizontalDeviation(double predictionReducedHorizontalDeviation) {
+        this.predictionReducedHorizontalDeviation = Math.max(0.0D, predictionReducedHorizontalDeviation);
     }
 
     public double getUsingItemConfidence() {
