@@ -29,6 +29,10 @@ public final class SpeedCheck extends Check {
             return;
         }
 
+        if (!data.hasPredictionForFrame(frame.getTimestampNanos())) {
+            return;
+        }
+
         PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
         if (!state.isTeleportAligned()) {
             return;

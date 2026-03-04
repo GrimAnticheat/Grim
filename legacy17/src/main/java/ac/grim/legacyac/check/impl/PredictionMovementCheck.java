@@ -52,6 +52,7 @@ public final class PredictionMovementCheck extends Check {
             coolDownScore(data);
             data.scaleBuffer(SOFT_BUFFER_KEY, 0.9D);
             data.scaleBuffer(HARD_STREAK_KEY, 0.0D);
+            data.markPredictionReady(frame.getTimestampNanos());
             return;
         }
 
@@ -87,6 +88,7 @@ public final class PredictionMovementCheck extends Check {
         double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context, plugin);
         data.setPredictionReducedHorizontalDeviation(reducedHorizontalDeviation);
         data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
+        data.markPredictionReady(frame.getTimestampNanos());
 
         boolean badHorizontalOld = horizontal > legacyResult.getMaxHorizontal();
         boolean badVerticalOld = deltaY < legacyResult.getMinVertical() || deltaY > legacyResult.getMaxVertical();
