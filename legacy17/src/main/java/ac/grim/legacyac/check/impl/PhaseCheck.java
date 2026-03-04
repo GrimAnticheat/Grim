@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public final class PhaseCheck extends Check {
     private static final String PHASE_STREAK_KEY = "Phase:overlap-streak";
+    private static final String THIN_PHASE_STREAK_KEY = "Phase:thin-overlap-streak";
 
     public PhaseCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Phase");
@@ -46,24 +47,31 @@ public final class PhaseCheck extends Check {
         }
 
         OverlapResult overlap = findMaxOverlap(player, playerBox, playerVolume);
-        if (overlap.maxRatio <= 0.0D) {
+        if (overlap.maxRatio <= 0.0D || overlap.maxVolume <= 0.0D) {
             data.scaleBuffer(PHASE_STREAK_KEY, 0.0D);
+            data.scaleBuffer(THIN_PHASE_STREAK_KEY, 0.0D);
             return;
         }
 
         double minOverlapRatio = plugin.getConfig().getDouble("checks.Phase.min-overlap-ratio", 0.08D);
+        double minOverlapVolume = plugin.getConfig().getDouble("checks.Phase.min-overlap-volume", 0.018D);
         int minConsecutiveTicks = plugin.getConfig().getInt("checks.Phase.min-consecutive-ticks", 2);
-        if (overlap.thinCollision) {
-            minConsecutiveTicks = Math.max(minConsecutiveTicks, 3);
-        }
+        int thinMinConsecutiveTicks = plugin.getConfig().getInt("checks.Phase.thin-min-consecutive-ticks", 4);
 
-        if (overlap.maxRatio < minOverlapRatio) {
+        if (overlap.maxRatio < minOverlapRatio || overlap.maxVolume < minOverlapVolume) {
             data.scaleBuffer(PHASE_STREAK_KEY, 0.0D);
+            data.scaleBuffer(THIN_PHASE_STREAK_KEY, 0.0D);
             return;
         }
 
-        int streak = (int) data.addBuffer(PHASE_STREAK_KEY, 1.0D);
-        if (streak < minConsecutiveTicks) {
+        String streakKey = overlap.thinCollision ? THIN_PHASE_STREAK_KEY : PHASE_STREAK_KEY;
+        int requiredTicks = overlap.thinCollision ? Math.max(thinMinConsecutiveTicks, minConsecutiveTicks) : minConsecutiveTicks;
+        if (!overlap.thinCollision) {
+            data.scaleBuffer(THIN_PHASE_STREAK_KEY, 0.0D);
+        }
+
+        int streak = (int) data.addBuffer(streakKey, 1.0D);
+        if (streak < requiredTicks) {
             return;
         }
 
@@ -71,6 +79,7 @@ public final class PhaseCheck extends Check {
         if (buffer > plugin.getConfig().getDouble("checks.Phase.buffer", 1.5D)) {
             flag(player, data, overlap.maxRatio,
                 "inside=" + overlap.material.name()
+                    + ",volume=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxVolume)
                     + ",ratio=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxRatio)
                     + ",streak=" + streak);
         }
@@ -97,6 +106,7 @@ public final class PhaseCheck extends Check {
         int maxZ = floor(playerBox.getMaxZ());
 
         double maxRatio = 0.0D;
+        double maxVolume = 0.0D;
         Material maxMaterial = Material.AIR;
         boolean thin = false;
 
@@ -105,39 +115,68 @@ public final class PhaseCheck extends Check {
                 for (int z = minZ; z <= maxZ; z++) {
                     Block block = player.getWorld().getBlockAt(x, y, z);
                     List<LegacyBlockBoxResolver.Box> boxes = LegacyBlockBoxResolver.resolve(block);
-                    if (boxes.isEmpty()) {
-                        continue;
-                    }
-                    for (LegacyBlockBoxResolver.Box blockBox : boxes) {
-                        double overlapVolume = playerBox.overlapVolume(blockBox);
+                    if (!boxes.isEmpty()) {
+                        for (LegacyBlockBoxResolver.Box blockBox : boxes) {
+                            double overlapVolume = playerBox.overlapVolume(blockBox);
+                            if (overlapVolume <= 0.0D) {
+                                continue;
+                            }
+                            double ratio = overlapVolume / playerVolume;
+                            if (ratio > maxRatio) {
+                                maxRatio = ratio;
+                                maxVolume = overlapVolume;
+                                maxMaterial = block.getType();
+                                thin = LegacyBlockBoxResolver.isThinCollision(maxMaterial);
+                            }
+                        }
+                    } else if (isSolid(block.getType())) {
+                        LegacyBlockBoxResolver.Box fallback = new LegacyBlockBoxResolver.Box(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D);
+                        double overlapVolume = playerBox.overlapVolume(fallback);
                         if (overlapVolume <= 0.0D) {
                             continue;
                         }
                         double ratio = overlapVolume / playerVolume;
                         if (ratio > maxRatio) {
                             maxRatio = ratio;
+                            maxVolume = overlapVolume;
                             maxMaterial = block.getType();
-                            thin = LegacyBlockBoxResolver.isThinCollision(maxMaterial);
+                            thin = false;
                         }
                     }
                 }
             }
         }
 
-        return new OverlapResult(maxRatio, maxMaterial, thin);
+        return new OverlapResult(maxRatio, maxVolume, maxMaterial, thin);
     }
 
     private int floor(double value) {
         return (int) Math.floor(value);
     }
 
+    // Legacy fallback for unusual servers with custom material mappings.
+    private boolean isSolid(Material material) {
+        if (material.isSolid()) {
+            return true;
+        }
+        String name = material.name();
+        return name.contains("GLASS")
+            || name.contains("FENCE")
+            || name.contains("WALL")
+            || name.contains("STAIRS")
+            || name.contains("SLAB")
+            || name.contains("STEP");
+    }
+
     private static final class OverlapResult {
         private final double maxRatio;
+        private final double maxVolume;
         private final Material material;
         private final boolean thinCollision;
 
-        private OverlapResult(double maxRatio, Material material, boolean thinCollision) {
+        private OverlapResult(double maxRatio, double maxVolume, Material material, boolean thinCollision) {
             this.maxRatio = maxRatio;
+            this.maxVolume = maxVolume;
             this.material = material;
             this.thinCollision = thinCollision;
         }

@@ -60,6 +60,7 @@ public final class LegacyBlockBoxResolver {
         int by = block.getY();
         int bz = block.getZ();
 
+        // Priority path: Grim-like partial collision shapes first.
         if (isPane(type)) {
             boolean north = connectsTo(block, 0, 0, -1, true);
             boolean south = connectsTo(block, 0, 0, 1, true);
@@ -83,7 +84,8 @@ public final class LegacyBlockBoxResolver {
             boolean south = connectsTo(block, 0, 0, 1, false);
             boolean west = connectsTo(block, -1, 0, 0, false);
             boolean east = connectsTo(block, 1, 0, 0, false);
-            addPaneOrFencePostAndArms(boxes, bx, by, bz, north, south, west, east, 1.5D, 0.25D);
+            // 1.7 walls have a narrower center post than fences.
+            addPaneOrFencePostAndArms(boxes, bx, by, bz, north, south, west, east, 1.5D, 0.1875D);
             return boxes;
         }
 
