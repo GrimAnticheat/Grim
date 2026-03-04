@@ -117,6 +117,8 @@ public final class PlayerData {
     private double predictionHorizontalDeviation;
     private double predictionReducedHorizontalDeviation;
     private String predictionBestProfile = "none";
+    private long lastPredictionFrameAtNanos;
+    private boolean predictionFrameValid;
     private double usingItemConfidence;
     private int ticksUsingItem;
     private long lastSlotSwitchAt;
@@ -498,6 +500,25 @@ public final class PlayerData {
 
     public void setPredictionReducedHorizontalDeviation(double predictionReducedHorizontalDeviation) {
         this.predictionReducedHorizontalDeviation = Math.max(0.0D, predictionReducedHorizontalDeviation);
+    }
+
+    public void beginPredictionFrame(long frameTimestampNanos) {
+        this.lastPredictionFrameAtNanos = frameTimestampNanos;
+        this.predictionFrameValid = false;
+        this.predictionMinDeviation = 0.0D;
+        this.predictionReducedDeviation = 0.0D;
+        this.predictionHorizontalDeviation = 0.0D;
+        this.predictionReducedHorizontalDeviation = 0.0D;
+        this.predictionBestProfile = "none";
+    }
+
+    public void markPredictionReady(long frameTimestampNanos) {
+        this.lastPredictionFrameAtNanos = frameTimestampNanos;
+        this.predictionFrameValid = true;
+    }
+
+    public boolean hasPredictionForFrame(long frameTimestampNanos) {
+        return predictionFrameValid && lastPredictionFrameAtNanos == frameTimestampNanos;
     }
 
     public double getUsingItemConfidence() {

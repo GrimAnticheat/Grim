@@ -45,6 +45,10 @@ public final class NoSlowCheck extends Check {
             return;
         }
 
+        if (!data.hasPredictionForFrame(frame.getTimestampNanos())) {
+            return;
+        }
+
         // isBlocking/isUsingItem are only candidate signals; confidence needs multi-tick confirmation
         boolean usingItemCandidate = player.isBlocking() || isUsingItem(player);
         data.updateUsingItemSignal(usingItemCandidate);

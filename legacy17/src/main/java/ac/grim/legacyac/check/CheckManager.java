@@ -210,26 +210,28 @@ public final class CheckManager implements Listener {
             if (data.isDebugEnabled()) {
                 plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " checks SKIPPED: teleport-not-aligned pending=" + snapshot.getPendingChanges());
             }
+            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned");
             return;
         }
 
-        runPreChecks(player, frame, data);
-        runPredictionChecks(player, frame, to, data);
+        runPacketStatePreprocess(player, frame, data);
+        boolean predictionReady = runMovementPrediction(player, frame, to, data);
         data.updateKnockbackStages();
-        runPostChecks(player, frame, from, to, data);
+
+        if (predictionReady) {
+            runPostPredictionChecks(player, frame, from, to, data);
+        } else {
+            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable");
+        }
 
         if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
             data.setLastSafeLocation(to.clone());
         }
     }
 
-
-    private void runPreChecks(Player player, MovementFrame frame, PlayerData data) {
+    private void runPacketStatePreprocess(Player player, MovementFrame frame, PlayerData data) {
         runTimingChecks(player, frame, data);
         for (InventoryMoveCheck check : inventoryMoveChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (NoSlowCheck check : noSlowChecks) {
             check.onMovementFrame(player, frame, data);
         }
     }
@@ -240,13 +242,18 @@ public final class CheckManager implements Listener {
         }
     }
 
-    private void runPredictionChecks(Player player, MovementFrame frame, Location to, PlayerData data) {
+    private boolean runMovementPrediction(Player player, MovementFrame frame, Location to, PlayerData data) {
+        data.beginPredictionFrame(frame.getTimestampNanos());
         for (PredictionMovementCheck check : predictionChecks) {
             check.onMovementFrame(player, frame, to, data);
         }
+        return data.hasPredictionForFrame(frame.getTimestampNanos());
     }
 
-    private void runPostChecks(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
+    private void runPostPredictionChecks(Player player, MovementFrame frame, Location from, Location to, PlayerData data) {
+        for (NoSlowCheck check : noSlowChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
         for (SpeedCheck check : speedChecks) {
             check.onMovementFrame(player, frame, from, to, data);
         }
@@ -264,8 +271,31 @@ public final class CheckManager implements Listener {
         }
     }
 
+    private void runLegacyFallbackChecks(Player player, PlayerData data, Location from, Location to, MovementFrame frame, String reason) {
+        if (!plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true)) {
+            return;
+        }
+        if (data.isDebugEnabled()) {
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " legacy onMove fallback active: " + reason + " source=" + frame.getSource().name());
+        }
 
-
+        PlayerMoveEvent syntheticEvent = new PlayerMoveEvent(player, from, to);
+        for (InventoryMoveCheck check : inventoryMoveChecks) {
+            check.onMove(syntheticEvent, data);
+        }
+        for (NoSlowCheck check : noSlowChecks) {
+            check.onMove(syntheticEvent, data);
+        }
+        for (FlyCheck check : flyChecks) {
+            check.onMove(syntheticEvent, data);
+        }
+        for (PhaseCheck check : phaseChecks) {
+            check.onMove(syntheticEvent, data);
+        }
+        for (JesusCheck check : jesusChecks) {
+            check.onMove(syntheticEvent, data);
+        }
+    }
 
     public String describeMovementExecutionPath() {
         boolean packetFirst = plugin.getConfig().getBoolean("pipeline.packet-first", true);
@@ -278,6 +308,21 @@ public final class CheckManager implements Listener {
             return "PACKET_ONLY";
         }
         return "BUKKIT_MOVE_EVENT";
+    }
+
+    public String describeMovementPipelineTopology() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("preprocess(packet/state): Timer, InventoryMove");
+        sb.append(" | prediction(shared-frame): Prediction");
+        sb.append(" | post-prediction: NoSlow=").append(!noSlowChecks.isEmpty());
+        sb.append(", Speed=").append(!speedChecks.isEmpty());
+        sb.append(", Fly=").append(!flyChecks.isEmpty());
+        sb.append(", Phase=").append(!phaseChecks.isEmpty());
+        sb.append(", Knockback=").append(!knockbackChecks.isEmpty());
+        sb.append(", Jesus=").append(!jesusChecks.isEmpty());
+        sb.append(", Reach=").append(!reachChecks.isEmpty()).append("(attack-stage)");
+        sb.append(" | legacy-onMove-fallback=").append(plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true));
+        return sb.toString();
     }
 
     public void onInternalPacketEvent(InternalPacketEvent event) {

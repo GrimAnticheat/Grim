@@ -43,6 +43,10 @@ public final class KnockbackHandlerLegacy extends Check {
             return;
         }
 
+        if (!data.hasPredictionForFrame(frame.getTimestampNanos())) {
+            return;
+        }
+
         PlayerData.KnockbackSample likely = data.getLikelyKB();
         PlayerData.KnockbackSample firstBread = data.getFirstBreadKB();
         if (likely == null && firstBread == null) {
