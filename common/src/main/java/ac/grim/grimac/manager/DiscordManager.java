@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 public class DiscordManager implements StartableInitable, ReloadableInitable {
     private CompiledDiscordTemplate compiledContent;
+    private char backtickReplacement = '\u02CB';
 
     private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("^https://discord\\.com/api(?:/v\\d+)?/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?$").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
@@ -45,7 +46,6 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private static long rateLimitedUntil;
     private URI url;
     private int embedColor;
-    private String staticContent = "";
     private String embedTitle = "";
     private boolean includeTimestamp;
     private boolean includeVerbose;
@@ -107,11 +107,10 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             for (String string : config.getStringListElse("violation-content", getDefaultContents())) {
                 sb.append(string).append("\n");
             }
-            staticContent = sb.toString();
             includeTimestamp = config.getBooleanElse("include-timestamp", true);
             includeVerbose = config.getBooleanElse("include-verbose", true);
-
-            // Compile once — O(template length), zero allocation at render time
+            String btReplace = config.getStringElse("backtick-replacement-char", "\u02CB");
+            backtickReplacement = (btReplace.isEmpty()) ? '\u02CB' : btReplace.charAt(0);
             compiledContent = CompiledDiscordTemplate.compile(sb.toString());
         } catch (Exception e) {
             LogUtil.error("Failed to load Discord webhook configuration", e);
@@ -121,11 +120,11 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     @Contract(value = " -> new", pure = true)
     private @NotNull @Unmodifiable List<@NotNull String> getDefaultContents() {
         return List.of(
-                "**Player**: %player%",
+                "**Player**: `%player%`",
                 "**Check**: %check%",
                 "**Violations**: %violations%",
                 "**Client Version**: %version%",
-                "**Brand**: %brand%",
+                "**Brand**: `%brand%`",
                 "**Ping**: %ping%",
                 "**TPS**: %tps%"
         );
@@ -136,20 +135,18 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             return;
         }
 
-        Map<String, String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements();
-        Map<String, Function<GrimUser, String>> dynamicReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
+        // Per-alert overlay — avoids polluting the global static map
+        Map<String, String> statics = new HashMap<>(GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements());
+        statics.put("%check%", checkName);
+        statics.put("%violations%", Integer.toString(violations));
 
-        // Inject per-alert values into a temporary overlay (doesn't pollute global maps)
-        Map<String, String> extra = new HashMap<>(staticReplacements);
-        extra.put("%check%", checkName);
-        extra.put("%violations%", Integer.toString(violations));
+        Map<String, Function<GrimUser, String>> dynamics = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
 
-        // Single-pass render with pre-determined escaping — O(output length)
-        String content = compiledContent.render(player, extra, dynamicReplacements);
+        // PAPI resolver: called only for placeholders Grim doesn't recognize
+        Function<String, String> papiResolver = key ->
+                GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(player.platformPlayer, key);
 
-        // PAPI pass (results are NOT escaped — documented limitation)
-        content = GrimAPI.INSTANCE.getMessagePlaceHolderManager()
-                .replacePlaceholders(player.platformPlayer, content);
+        String content = compiledContent.render(player, statics, dynamics, backtickReplacement, papiResolver);
 
         Embed embed = new Embed(content)
                 .color(embedColor)
@@ -164,7 +161,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
         if (includeTimestamp) embed.timestamp(Instant.now());
 
         if (!verbose.isEmpty() && includeVerbose) {
-            embed.addFields(new EmbedField("Verbose", MessageUtil.filterDiscordText(verbose), true));
+            embed.addFields(new EmbedField("Verbose", CompiledDiscordTemplate.escapeMarkdown(verbose), true));
         }
 
         sendWebhookMessage(new WebhookMessage().addEmbeds(embed));

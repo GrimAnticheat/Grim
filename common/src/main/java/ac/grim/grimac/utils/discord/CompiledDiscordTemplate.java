@@ -44,9 +44,7 @@ public record CompiledDiscordTemplate(Segment[] segments) {
     // Identical to the existing pattern
     private static final Pattern PLACEHOLDER = Pattern.compile("%([a-zA-Z0-9_]+)%");
 
-    sealed
-
-    interface Segment permits Literal, Placeholder {
+    sealed interface Segment permits Literal, Placeholder {
     }
 
     record Literal(String text) implements Segment {
@@ -86,46 +84,55 @@ public record CompiledDiscordTemplate(Segment[] segments) {
 
     // ──────────────────── RENDER (once per alert) ────────────────────
     /**
-     * Resolves all known placeholders with context-appropriate escaping.
-     * Unknown placeholders are left raw so PAPI (or similar) can handle them later.
+     * @param player              Grim player (nullable)
+     * @param statics             Static replacements (may include per-alert overrides like %check%)
+     * @param dynamics            Dynamic replacements (lazy functions like %tps%)
+     * @param backtickReplacement Char to substitute for backticks inside code spans (loaded from config)
+     * @param externalResolver    PAPI resolver: key → resolved string, or key unchanged if unresolved (nullable)
      */
     public String render(@Nullable GrimPlayer player,
-                         Map<String, String> staticReplacements,
-                         Map<String, Function<GrimUser, String>> dynamicReplacements) {
-        StringBuilder sb = new StringBuilder(segments.length * 24);
+                         Map<String, String> statics,
+                         Map<String, Function<GrimUser, String>> dynamics,
+                         char backtickReplacement,
+                         @Nullable Function<String, String> externalResolver) {
+        StringBuilder sb = new StringBuilder(segments.length * 32);
         for (Segment seg : segments) {
-            if (seg instanceof Literal l) {
-                sb.append(l.text());
-            } else if (seg instanceof Placeholder p) {
-                // Lazy, prioritized lookup — same semantics as the current code
-                String val = staticReplacements.get(p.key());
+            if (seg instanceof Literal) {
+                sb.append(((Literal) seg).text);
+            } else if (seg instanceof Placeholder) {
+                Placeholder p = (Placeholder) seg;
+
+                // Priority: static → dynamic → external (PAPI)
+                String val = statics.get(p.key);
+
                 if (val == null && player != null) {
-                    Function<GrimUser, String> fn = dynamicReplacements.get(p.key());
+                    Function<GrimUser, String> fn = dynamics.get(p.key);
                     if (fn != null) val = fn.apply(player);
                 }
+
+                if (val == null && externalResolver != null) {
+                    String resolved = externalResolver.apply(p.key);
+                    if (!resolved.equals(p.key)) val = resolved;
+                }
+
                 if (val != null) {
-                    sb.append(escape(val, p.mode()));   // Grim value → escape
+                    sb.append(escape(val, p.mode, backtickReplacement));
                 } else {
-                    sb.append(p.key());                  // unknown → leave raw for PAPI
+                    sb.append(p.key); // truly unresolved — leave raw
                 }
             }
         }
         return sb.toString();
     }
 
-    // ──────────────────── ESCAPE ────────────────────
-    private static String escape(String value, EscapeMode mode) {
-        return switch (mode) {
-            case FULL_MARKDOWN -> escapeMarkdown(value);
-            case CODE_SPAN -> escapeCodeSpan(value);
-            case NONE -> value;
-        };
+    private static String escape(String value, EscapeMode mode, char backtickReplacement) {
+        if (mode == EscapeMode.CODE_SPAN) {
+            return escapeCodeSpan(value, backtickReplacement);
+        }
+        return escapeMarkdown(value);
     }
 
-    /**
-     * Escapes all Discord Markdown metacharacters.
-     * NOTE: Backslash MUST be escaped first to avoid double-escaping.
-     */
+    /** Full Discord Markdown escaping. Backslashes first to prevent double-escaping. */
     public static String escapeMarkdown(String s) {
         if (s == null || s.isEmpty()) return s;
         StringBuilder sb = new StringBuilder(s.length() + 16);
@@ -157,28 +164,25 @@ public record CompiledDiscordTemplate(Segment[] segments) {
     }
 
     /**
-     * Escapes content destined for inside a Discord code span.
-     * <p>
-     * Discord does NOT support backslash escaping inside code spans.
-     * A backtick inside `...` unconditionally closes the span.
-     * The only safe option is to substitute backticks with a
-     * visually-similar Unicode character (modifier letter grave accent).
+     * Code span escaping: Discord ignores backslash escapes inside code spans,
+     * so backticks are replaced with a visually-similar substitute character.
+     * If replacement == '`', this is a no-op (user disabled the feature).
      */
-    public static String escapeCodeSpan(String s) {
-        if (s == null || s.isEmpty()) return s;
-        // U+02CB MODIFIER LETTER GRAVE ACCENT — visually similar to backtick
-        return s.replace('`', '\u02CB');
+    public static String escapeCodeSpan(String s, char replacement) {
+        if (s == null || s.isEmpty() || replacement == '`') return s;
+        return s.replace('`', replacement);
     }
 
     // ──────────────────── STATE MACHINE ────────────────────
 
     /**
-     * Advances the Markdown context through a chunk of literal text.
-     * Handles: single-backtick code spans, triple-backtick code blocks,
-     * and backslash-escaping in NORMAL context.
-     * 1. `text %placeholder% text`          → INLINE_CODE
-     * 2. `a`%placeholder%`b`                → NORMAL       (first ` opens, second ` closes)
-     * 3. \`%placeholder%`                   → NORMAL       (backtick is escaped)
+     * Advances Markdown context through literal text.
+     * Handles: backslash escapes in NORMAL, single-` inline code, triple-` code blocks.
+     *
+     * Edge cases resolved:
+     *   `text %p% text`         → INLINE_CODE (` opens)
+     *   `a`%p%`b`              → NORMAL      (` opens, ` closes before %p%)
+     *   \`%p%`                  → NORMAL      (` is backslash-escaped)
      */
     private static MarkdownContext advanceContext(MarkdownContext ctx, String text) {
         int i = 0;
