@@ -261,8 +261,16 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
 
             if (dig.getAction() == DiggingAction.DROP_ITEM_STACK) {
-                inventory.setHeldItem(null);
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
+                if (dig.getBlockFaceId() == 0
+                        && dig.getBlockPosition().getX() == 0
+                        && dig.getBlockPosition().getY() == 0
+                        && dig.getBlockPosition().getZ() == 0
+                        && dig.getSequence() == 0) {
+                    inventory.setHeldItem(null);
+                    inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
+                } else {
+                    event.setCancelled(true);
+                }
             }
         } else if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
