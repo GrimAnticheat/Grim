@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.manager.init.ReloadableInitable;
 import ac.grim.grimac.manager.init.start.StartableInitable;
@@ -8,6 +9,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.discord.CompiledDiscordTemplate;
 import ac.grim.grimac.utils.webhook.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,14 +23,19 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class DiscordManager implements StartableInitable, ReloadableInitable {
+    private CompiledDiscordTemplate compiledContent;
+
     private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("^https://discord\\.com/api(?:/v\\d+)?/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?$").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build();
@@ -103,6 +110,9 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             staticContent = sb.toString();
             includeTimestamp = config.getBooleanElse("include-timestamp", true);
             includeVerbose = config.getBooleanElse("include-verbose", true);
+
+            // Compile once — O(template length), zero allocation at render time
+            compiledContent = CompiledDiscordTemplate.compile(sb.toString());
         } catch (Exception e) {
             LogUtil.error("Failed to load Discord webhook configuration", e);
         }
@@ -126,10 +136,20 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             return;
         }
 
-        String content = staticContent;
-        content = content.replace("%check%", checkName.replace("_", "\\_")); // just in case any checks are added with an underscore
-        content = content.replace("%violations%", Integer.toString(violations));
-        content = MessageUtil.replacePlaceholders(player, content, true);
+        Map<String, String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements();
+        Map<String, Function<GrimUser, String>> dynamicReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
+
+        // Inject per-alert values into a temporary overlay (doesn't pollute global maps)
+        Map<String, String> extra = new HashMap<>(staticReplacements);
+        extra.put("%check%", checkName);
+        extra.put("%violations%", Integer.toString(violations));
+
+        // Single-pass render with pre-determined escaping — O(output length)
+        String content = compiledContent.render(player, extra, dynamicReplacements);
+
+        // PAPI pass (results are NOT escaped — documented limitation)
+        content = GrimAPI.INSTANCE.getMessagePlaceHolderManager()
+                .replacePlaceholders(player.platformPlayer, content);
 
         Embed embed = new Embed(content)
                 .color(embedColor)
