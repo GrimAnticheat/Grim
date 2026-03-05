@@ -5,6 +5,7 @@ import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.discord.CompiledDiscordTemplate;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
@@ -60,9 +61,9 @@ public class MessageUtil {
     private @Nullable String replacePlaceholders(@Nullable GrimPlayer grimPlayer, @Nullable PlatformPlayer platformPlayer, @Nullable String string, boolean removeFormatting) {
         if (string == null) return null;
 
-        // --- OPTIMIZATION 1: THE FAST PATH ---
-        // If the string contains no '%' characters, it's impossible for it to have placeholders.
-        // indexOf() is a JVM intrinsic and is magnitudes faster than even creating a Matcher.
+        // --- PHASE 1: FAST PATH ---
+        // JVM Intrinsic: Scanning for a char is significantly faster than initializing a Regex Matcher.
+        // If there is no '%', we can skip all allocation.
         if (string.indexOf('%') == -1) {
             // Since there are no % signs we can skip calling papi or our own replacement code
             return string;
@@ -70,8 +71,8 @@ public class MessageUtil {
 
         final Matcher matcher = UNIFIED_PLACEHOLDER_PATTERN.matcher(string);
 
-        // If matcher.find() is false, it means '%' existed but not in a valid %...% pattern.
-        // This avoids allocating a StringBuilder unless absolutely necessary.
+        // If '%' exists but doesn't form a valid simple placeholder, skip to the PAPI/Legacy handler.
+        // This avoids allocating the StringBuilder below.
         if (!matcher.find()) {
             return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, string);
         }
@@ -79,17 +80,17 @@ public class MessageUtil {
         // Get references to the maps once, outside the loop.
         final Map<String, String> staticReplacements = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements();
         final Map<String, Function<GrimUser, String>> variableReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
-        final StringBuilder sb = new StringBuilder(string.length() + 32); // Pre-size with a little extra room
+        // 32 is a heuristic buffer. It roughly covers the expansion cost of one UUID (36 chars) vs one placeholder (6 chars).
+        final StringBuilder sb = new StringBuilder(string.length() + 32);
 
-        // --- OPTIMIZATION 2: THE UNIFIED SINGLE-PASS LOOP ---
-        // We use a do-while loop because we already performed the first matcher.find().
+        // --- PHASE 2: THE REPLACEMENT LOOP ---
+        // Used do-while because the first `matcher.find()` was already called above.
         do {
             // The full placeholder, e.g., "%tps%" or "%prefix%"
             final String keyWithPercent = matcher.group(0);
             String value = null;
 
-            // --- OPTIMIZATION 3: UNIFIED LOOKUP ---
-            // We check the static map first. This is a single, O(1) hash map lookup.
+            // optimization: We check the static map first. This is a single, O(1) hash map lookup.
             String staticValue = staticReplacements.get(keyWithPercent);
 
             if (staticValue != null) {
@@ -109,15 +110,13 @@ public class MessageUtil {
             // In that case, we treat the placeholder as literal text by appending the original key.
             if (value == null) {
                 value = keyWithPercent;
-            }
-
-            // --- OPTIMIZATION 4: CONDITIONAL FORMATTING ---
-            // The check for `removeFormatting` is inside the loop, but it's a simple boolean
+            // yes the check for `removeFormatting` is inside the loop, but it's a simple boolean
             // check and the cost is negligible compared to the string operations.
-            if (removeFormatting) {
-                // Note: This assumes `filterDiscordText` is reasonably fast.
+            // Do NOT escape - this is probably a PAPI key that must remain intact
+            } else if (removeFormatting) {
+                // Note: This assumes `escapeMarkdown` is reasonably fast.
                 // If it's slow, there are further micro-optimizations, but this is the right place for it.
-                value = filterDiscordText(value);
+                value = CompiledDiscordTemplate.escapeMarkdown(value);
             }
 
             // `appendReplacement` efficiently appends the text between matches and our replacement value.
@@ -133,35 +132,6 @@ public class MessageUtil {
         String grimReplaced = sb.toString();
 
         return GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, grimReplaced).replace(PLACEHOLDER_ESCAPE_CHAR, '%');
-    }
-
-    public static String filterDiscordText(String message) {
-        if (message == null || message.isBlank()) return message;
-        final StringBuilder sb = new StringBuilder(message.length());
-        for (int i = 0; i < message.length(); ++i) {
-            final char c = message.charAt(i);
-            // Escape a newline
-            if (c == '\n') {
-                sb.append("\\n");
-            }  // Escape Markdown special characters
-            else if (c == '`' || c == '*' || c == '_' || c == '~' || c == '|') {
-                sb.append('\\').append(c);
-            } else {
-                // Escape "# ", "> ", etc
-                if (c == '#' || c == '>' || c == '-') {
-                    // check if there's a space next
-                    if (((i + 1 < message.length()) && (message.charAt(i + 1) == ' '))
-                            && ((i == 0) || (message.charAt(i - 1) == '\n'))) {
-                        sb.append("\\").append(c);
-                    } else {
-                        sb.append(c);
-                    }
-                } else {
-                    sb.append(c);
-                }
-            }
-        }
-        return sb.toString();
     }
 
     public @NotNull Component replacePlaceholders(@NotNull GrimPlayer player, @NotNull Component component) {
