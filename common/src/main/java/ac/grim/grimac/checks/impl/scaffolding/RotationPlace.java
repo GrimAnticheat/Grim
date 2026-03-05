@@ -33,6 +33,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         if (place.material == StateTypes.SCAFFOLDING) return;
+        if (place.material == StateTypes.FIRE) return;
         if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return;
@@ -49,6 +50,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
         if (place.material == StateTypes.SCAFFOLDING) return;
+        if (place.material == StateTypes.FIRE) return;
         if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return;
