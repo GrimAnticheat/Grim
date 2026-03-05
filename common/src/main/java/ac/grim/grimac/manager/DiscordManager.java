@@ -34,9 +34,6 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class DiscordManager implements StartableInitable, ReloadableInitable {
-    private CompiledDiscordTemplate compiledContent;
-    private char backtickReplacement = '\u02CB';
-
     private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("^https://discord\\.com/api(?:/v\\d+)?/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?$").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build();
@@ -46,6 +43,8 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private static long rateLimitedUntil;
     private URI url;
     private int embedColor;
+    private CompiledDiscordTemplate compiledContent;
+    private char backtickReplacement = '\u02CB';
     private String embedTitle = "";
     private boolean includeTimestamp;
     private boolean includeVerbose;
@@ -75,6 +74,9 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     @Override
     public void reload() {
         try {
+            // Yes all of these fields should technically be volatile so they will be updated correctly on reload for HTTP threads to read
+            // No we're not going to pay for atomic reads in the hot loop however cheap for a one in a billion chance to read an outdated config
+            // When your discord webhook settings are changed (who changes them in prod?) that can be fixed with a restart
             ConfigManager config = GrimAPI.INSTANCE.getConfigManager().getConfig();
             if (!config.getBooleanElse("enabled", false)) {
                 url = null;
