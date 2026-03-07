@@ -46,6 +46,15 @@ public final class PredictionUncertaintyHandler {
         if (context.isNearZeroThreeBoundary()) {
             budget += plugin.getConfig().getDouble("prediction.budget.point-three", 0.020D);
         }
+        if (context.isRecentUnevenGround()) {
+            budget += Math.max(0.04D, plugin.getConfig().getDouble("prediction.budget.uneven-ground", 0.04D));
+        }
+        if (context.isRecentSnowLayerGround()) {
+            budget += Math.max(0.05D, plugin.getConfig().getDouble("prediction.budget.snow-layer", 0.05D));
+        }
+        if (context.isNearPartialGround()) {
+            budget += Math.max(0.03D, plugin.getConfig().getDouble("prediction.budget.partial-ground", 0.03D));
+        }
         if (context.isRecentRodPull()) {
             budget += plugin.getConfig().getDouble("prediction.budget.rod-pull", 0.050D);
         }
@@ -58,6 +67,9 @@ public final class PredictionUncertaintyHandler {
         }
         if (context.isRecentHighFall()) {
             budget += Math.max(0.30D, plugin.getConfig().getDouble("prediction.budget.high-fall-recovery", 0.30D));
+        }
+        if ((context.isRecentUnevenGround() || context.isRecentSnowLayerGround()) && context.getData().getLastDeltaY() < -0.20D) {
+            budget += Math.max(0.08D, plugin.getConfig().getDouble("prediction.budget.uneven-fall", 0.08D));
         }
 
         // Combat awareness: rapid yaw changes and hits increase uncertainty
@@ -77,3 +89,4 @@ public final class PredictionUncertaintyHandler {
         return budget;
     }
 }
+

@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Locale;
 
 /**
- * NoSlow check — detects players that move at full speed while using items
+ * NoSlow check  detects players that move at full speed while using items
  * (eating, blocking, drinking, drawing bow).
  *
  * In vanilla Minecraft, when a player is using an item:
@@ -55,7 +55,7 @@ public final class NoSlowCheck extends Check {
 
         // isBlocking/isUsingItem are only candidate signals; confidence needs
         // multi-tick confirmation
-        boolean usingItemCandidate = player.isBlocking() || isUsingItem(player);
+        boolean usingItemCandidate = player.isBlocking() || isUsingItem(player, data);
         data.updateUsingItemSignal(usingItemCandidate);
 
         int minUsingTicks = plugin.getConfig().getInt("checks.NoSlow.min-using-ticks", 2);
@@ -196,7 +196,7 @@ public final class NoSlowCheck extends Check {
      * For eating/drinking we check if they have food/potion in hand and the item
      * use is active.
      */
-    private boolean isUsingItem(Player player) {
+    private boolean isUsingItem(Player player, PlayerData data) {
         // In 1.7.10, there's no direct isHandActive() API
         // We rely on isBlocking() for swords and check item type for consumables
         ItemStack hand = player.getItemInHand();
@@ -218,3 +218,4 @@ public final class NoSlowCheck extends Check {
         return String.format(Locale.ROOT, "%.4f", value);
     }
 }
+

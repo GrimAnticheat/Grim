@@ -1,43 +1,40 @@
 package ac.grim.legacyac.data.state;
 
+import ac.grim.legacyac.util.collision.LegacyBlockBoxResolver;
+import java.util.LinkedList;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedList;
-
-/**
- * Domain state aggregate for environmental context.
- * Tracks liquids, ladders, glitchy blocks, entity collisions, shadow physics,
- * and the PredictionContext (merged from PlayerData.PredictionContext).
- */
 public final class EnvironmentState {
     private static final int RECENT_TICK_WINDOW = 25;
 
-    // Recent event ticks
     private int recentVelocityTicks;
     private int recentRodPullTicks;
     private int recentTeleportTicks;
     private int recentHighFallTicks;
     private int recentEntityCollisionTicks;
+    private int recentUnevenGroundTicks;
+    private int recentSnowLayerTicks;
+    private int recentPartialGroundTicks;
 
-    // Current environment flags
     private boolean inLiquid;
     private boolean stuckEdge;
     private boolean nearGlitchyBlock;
     private boolean nearZeroThreeBoundary;
+    private boolean unevenGround;
+    private boolean snowLayerGround;
+    private boolean nearPartialGround;
 
-    // Shadow physics (simple prediction model)
     private boolean shadowInitialized;
     private double shadowX, shadowY, shadowZ;
     private double shadowMotionX, shadowMotionY, shadowMotionZ;
     private double prevShadowMotionX, prevShadowMotionY, prevShadowMotionZ;
     private double shadowDeviation;
 
-    // Vertical delta history (for parabola checks)
     private final LinkedList<Double> recentDeltaY = new LinkedList<Double>();
 
-    // Prediction context
     private double predictionMinDeviation;
     private double predictionReducedDeviation;
     private double predictionHorizontalDeviation;
@@ -46,34 +43,24 @@ public final class EnvironmentState {
     private long lastPredictionFrameAtNanos;
     private boolean predictionFrameValid;
 
-    // Grim OffsetHandler lenience: carry offset from flagged tick into next tick as extra tolerance
     private double lastHorizontalOffset;
     private double lastVerticalOffset;
 
-    // Item use tracking
     private double usingItemConfidence;
     private int ticksUsingItem;
     private int noSlowConsecutiveViolationTicks;
     private int speedLevel;
 
-    // ── Tick / Update methods ───────────────────────────────────────────
-
-    /**
-     * Called every movement tick to update environment detection and countdown
-     * timers.
-     */
     public void tick(Player player, Location to, boolean onGround, double deltaXZ, double deltaY,
             boolean teleportPending) {
-        if (recentVelocityTicks > 0)
-            recentVelocityTicks--;
-        if (recentRodPullTicks > 0)
-            recentRodPullTicks--;
-        if (recentTeleportTicks > 0)
-            recentTeleportTicks--;
-        if (recentHighFallTicks > 0)
-            recentHighFallTicks--;
-        if (recentEntityCollisionTicks > 0)
-            recentEntityCollisionTicks--;
+        recentVelocityTicks = Math.max(0, recentVelocityTicks - 1);
+        recentRodPullTicks = Math.max(0, recentRodPullTicks - 1);
+        recentTeleportTicks = Math.max(0, recentTeleportTicks - 1);
+        recentHighFallTicks = Math.max(0, recentHighFallTicks - 1);
+        recentEntityCollisionTicks = Math.max(0, recentEntityCollisionTicks - 1);
+        recentUnevenGroundTicks = Math.max(0, recentUnevenGroundTicks - 1);
+        recentSnowLayerTicks = Math.max(0, recentSnowLayerTicks - 1);
+        recentPartialGroundTicks = Math.max(0, recentPartialGroundTicks - 1);
 
         speedLevel = 0;
         for (org.bukkit.potion.PotionEffect effect : player.getActivePotionEffects()) {
@@ -83,26 +70,46 @@ public final class EnvironmentState {
             }
         }
 
-        Material feet = to.getBlock().getType();
-        Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
+        Block feetBlock = to.getBlock();
+        Block belowBlock = to.clone().add(0.0D, -1.0D, 0.0D).getBlock();
+        Material feet = feetBlock.getType();
+        Material below = belowBlock.getType();
+        byte feetData = feetBlock.getData();
+        byte belowData = belowBlock.getData();
+
         inLiquid = isLiquid(feet) || isLiquid(below);
         stuckEdge = onGround && deltaXZ < 0.02D && Math.abs(deltaY) < 0.06D && hasAdjacentDrop(to);
         nearGlitchyBlock = isGlitchy(feet) || isGlitchy(below);
         nearZeroThreeBoundary = nearPointThree(deltaXZ) || nearPointThree(Math.abs(deltaY));
+        snowLayerGround = isSnowLayer(feet, feetData) || isSnowLayer(below, belowData);
+        nearPartialGround = isPartialGround(feet, feetData) || isPartialGround(below, belowData) || hasPartialNeighbor(to);
+        unevenGround = nearPartialGround || hasUnevenGroundProfile(to);
+
+        if (snowLayerGround) {
+            recentSnowLayerTicks = RECENT_TICK_WINDOW;
+        }
+        if (nearPartialGround) {
+            recentPartialGroundTicks = RECENT_TICK_WINDOW;
+        }
+        if (unevenGround) {
+            recentUnevenGroundTicks = RECENT_TICK_WINDOW;
+        }
 
         if (player.getNearbyEntities(0.6D, 0.8D, 0.6D).size() > 0) {
             recentEntityCollisionTicks = RECENT_TICK_WINDOW;
         }
 
-        if (teleportPending)
+        if (teleportPending) {
             markTeleport();
-        if (onGround && player.getFallDistance() > 3.5F)
+        }
+        if (onGround && player.getFallDistance() > 3.5F) {
             markHighFall();
+        }
 
-        // Update delta Y history
         recentDeltaY.addLast(Double.valueOf(deltaY));
-        if (recentDeltaY.size() > 10)
+        while (recentDeltaY.size() > 10) {
             recentDeltaY.removeFirst();
+        }
     }
 
     public void updateShadowPosition(double x, double y, double z, boolean onGround) {
@@ -120,11 +127,11 @@ public final class EnvironmentState {
             shadowDeviation = 0.0D;
             return;
         }
+
         double friction = onGround ? (0.91D * 0.60D) : 0.91D;
         double expectedX = shadowX + (shadowMotionX * friction);
         double expectedY = shadowY + ((shadowMotionY - 0.08D) * 0.98D);
         double expectedZ = shadowZ + (shadowMotionZ * friction);
-
         double diffX = x - expectedX;
         double diffY = y - expectedY;
         double diffZ = z - expectedZ;
@@ -142,8 +149,6 @@ public final class EnvironmentState {
         shadowZ = z;
     }
 
-    // ── Event markers ──────────────────────────────────────────────────
-
     public void markVelocity() {
         recentVelocityTicks = RECENT_TICK_WINDOW;
     }
@@ -159,8 +164,6 @@ public final class EnvironmentState {
     public void markHighFall() {
         recentHighFallTicks = RECENT_TICK_WINDOW;
     }
-
-    // ── Prediction frame ───────────────────────────────────────────────
 
     public void beginPredictionFrame(long frameTimestampNanos) {
         this.lastPredictionFrameAtNanos = frameTimestampNanos;
@@ -180,8 +183,6 @@ public final class EnvironmentState {
     public boolean hasPredictionForFrame(long frameTimestampNanos) {
         return predictionFrameValid && lastPredictionFrameAtNanos == frameTimestampNanos;
     }
-
-    // ── Item use tracking ──────────────────────────────────────────────
 
     public void updateUsingItemSignal(boolean candidateUsingItem) {
         if (candidateUsingItem) {
@@ -204,11 +205,10 @@ public final class EnvironmentState {
         return ++noSlowConsecutiveViolationTicks;
     }
 
-    // ── Parabola check ─────────────────────────────────────────────────
-
     public boolean isParabolaAnomalous(double minAvgError, int minSamples) {
-        if (recentDeltaY.size() < minSamples)
+        if (recentDeltaY.size() < minSamples) {
             return false;
+        }
         double totalError = 0.0D;
         int compared = 0;
         Double previous = null;
@@ -220,38 +220,28 @@ public final class EnvironmentState {
             }
             previous = current;
         }
-        if (compared == 0)
+        if (compared == 0) {
             return false;
+        }
         return (totalError / compared) >= minAvgError;
     }
 
-    // ── Scenario tag (for debug) ───────────────────────────────────────
-
     public String getScenarioTag() {
-        if (recentRodPullTicks > 0 && recentVelocityTicks > 0)
-            return "rod_double_pull";
-        if (recentRodPullTicks > 0)
-            return "rod_pull";
-        if (recentTeleportTicks > 0)
-            return "pearl_displacement";
-        if (recentHighFallTicks > 0)
-            return "high_fall_landing";
-        if (inLiquid && recentVelocityTicks > 0)
-            return "liquid_hit";
-        if (inLiquid)
-            return "liquid_movement";
-        if (nearGlitchyBlock)
-            return "near_glitchy_block";
-        if (nearZeroThreeBoundary)
-            return "point_three_boundary";
-        if (stuckEdge)
-            return "edge_stuck";
-        if (recentVelocityTicks > 0)
-            return "velocity_window";
+        if (recentRodPullTicks > 0 && recentVelocityTicks > 0) return "rod_double_pull";
+        if (recentRodPullTicks > 0) return "rod_pull";
+        if (recentTeleportTicks > 0) return "pearl_displacement";
+        if (recentHighFallTicks > 0) return "high_fall_landing";
+        if (inLiquid && recentVelocityTicks > 0) return "liquid_hit";
+        if (inLiquid) return "liquid_movement";
+        if (recentSnowLayerTicks > 0) return "snow_layer_ground";
+        if (recentPartialGroundTicks > 0) return "partial_ground";
+        if (recentUnevenGroundTicks > 0) return "uneven_ground";
+        if (nearGlitchyBlock) return "near_glitchy_block";
+        if (nearZeroThreeBoundary) return "point_three_boundary";
+        if (stuckEdge) return "edge_stuck";
+        if (recentVelocityTicks > 0) return "velocity_window";
         return "normal";
     }
-
-    // ── Read interface ──────────────────────────────────────────────────
 
     public boolean isRecentVelocity() {
         return recentVelocityTicks > 0;
@@ -273,6 +263,14 @@ public final class EnvironmentState {
         return recentEntityCollisionTicks > 0;
     }
 
+    public boolean isRecentUnevenGround() {
+        return recentUnevenGroundTicks > 0;
+    }
+
+    public boolean isRecentSnowLayerGround() {
+        return recentSnowLayerTicks > 0;
+    }
+
     public boolean isInLiquid() {
         return inLiquid;
     }
@@ -287,6 +285,10 @@ public final class EnvironmentState {
 
     public boolean isNearZeroThreeBoundary() {
         return nearZeroThreeBoundary;
+    }
+
+    public boolean isNearPartialGround() {
+        return nearPartialGround || recentPartialGroundTicks > 0;
     }
 
     public double getShadowDeviation() {
@@ -326,7 +328,7 @@ public final class EnvironmentState {
     }
 
     public void setPredictionMinDeviation(double val) {
-        this.predictionMinDeviation = Math.max(0.0D, val);
+        predictionMinDeviation = Math.max(0.0D, val);
     }
 
     public double getPredictionReducedDeviation() {
@@ -334,7 +336,7 @@ public final class EnvironmentState {
     }
 
     public void setPredictionReducedDeviation(double val) {
-        this.predictionReducedDeviation = Math.max(0.0D, val);
+        predictionReducedDeviation = Math.max(0.0D, val);
     }
 
     public double getPredictionHorizontalDeviation() {
@@ -342,7 +344,7 @@ public final class EnvironmentState {
     }
 
     public void setPredictionHorizontalDeviation(double val) {
-        this.predictionHorizontalDeviation = Math.max(0.0D, val);
+        predictionHorizontalDeviation = Math.max(0.0D, val);
     }
 
     public double getPredictionReducedHorizontalDeviation() {
@@ -350,7 +352,7 @@ public final class EnvironmentState {
     }
 
     public void setPredictionReducedHorizontalDeviation(double val) {
-        this.predictionReducedHorizontalDeviation = Math.max(0.0D, val);
+        predictionReducedHorizontalDeviation = Math.max(0.0D, val);
     }
 
     public String getPredictionBestProfile() {
@@ -358,20 +360,18 @@ public final class EnvironmentState {
     }
 
     public void setPredictionBestProfile(String val) {
-        this.predictionBestProfile = val == null ? "none" : val;
+        predictionBestProfile = val == null ? "none" : val;
     }
-
-    // ── Grim OffsetHandler lenience (carry offset into next tick) ────
 
     public void giveOffsetLenienceNextTick(double offset) {
         double minimized = Math.min(offset, 1.0D);
-        this.lastHorizontalOffset = minimized;
-        this.lastVerticalOffset = minimized;
+        lastHorizontalOffset = minimized;
+        lastVerticalOffset = minimized;
     }
 
     public void removeOffsetLenience() {
-        this.lastHorizontalOffset = 0.0D;
-        this.lastVerticalOffset = 0.0D;
+        lastHorizontalOffset = 0.0D;
+        lastVerticalOffset = 0.0D;
     }
 
     public double getLastHorizontalOffset() {
@@ -394,8 +394,6 @@ public final class EnvironmentState {
         return speedLevel;
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────
-
     private static boolean hasAdjacentDrop(Location location) {
         int baseY = location.getBlockY() - 1;
         int baseX = location.getBlockX();
@@ -413,6 +411,48 @@ public final class EnvironmentState {
     private static boolean isLiquid(Material material) {
         return material == Material.WATER || material == Material.STATIONARY_WATER
                 || material == Material.LAVA || material == Material.STATIONARY_LAVA;
+    }
+
+    private static boolean isSnowLayer(Material material, byte data) {
+        return material == Material.SNOW && data >= 0;
+    }
+
+    private static boolean isPartialGround(Material material, byte data) {
+        if (material == Material.SNOW || material == Material.SOUL_SAND || material == Material.ENCHANTMENT_TABLE || material == Material.BED_BLOCK) {
+            return true;
+        }
+        String name = material.name();
+        return name.contains("STEP") || name.contains("SLAB") || name.contains("STAIRS") || "CARPET".equals(name);
+    }
+
+    private static boolean hasPartialNeighbor(Location location) {
+        int baseY = location.getBlockY() - 1;
+        int baseX = location.getBlockX();
+        int baseZ = location.getBlockZ();
+        return isPartialGround(location.getWorld().getBlockAt(baseX + 1, baseY, baseZ).getType(), location.getWorld().getBlockAt(baseX + 1, baseY, baseZ).getData())
+                || isPartialGround(location.getWorld().getBlockAt(baseX - 1, baseY, baseZ).getType(), location.getWorld().getBlockAt(baseX - 1, baseY, baseZ).getData())
+                || isPartialGround(location.getWorld().getBlockAt(baseX, baseY, baseZ + 1).getType(), location.getWorld().getBlockAt(baseX, baseY, baseZ + 1).getData())
+                || isPartialGround(location.getWorld().getBlockAt(baseX, baseY, baseZ - 1).getType(), location.getWorld().getBlockAt(baseX, baseY, baseZ - 1).getData());
+    }
+
+    private static boolean hasUnevenGroundProfile(Location location) {
+        int baseY = location.getBlockY() - 1;
+        int baseX = location.getBlockX();
+        int baseZ = location.getBlockZ();
+        double center = getSurfaceHeight(location.getWorld().getBlockAt(baseX, baseY, baseZ));
+        double east = getSurfaceHeight(location.getWorld().getBlockAt(baseX + 1, baseY, baseZ));
+        double west = getSurfaceHeight(location.getWorld().getBlockAt(baseX - 1, baseY, baseZ));
+        double south = getSurfaceHeight(location.getWorld().getBlockAt(baseX, baseY, baseZ + 1));
+        double north = getSurfaceHeight(location.getWorld().getBlockAt(baseX, baseY, baseZ - 1));
+        return Math.abs(center - east) > 1.0E-4D || Math.abs(center - west) > 1.0E-4D
+                || Math.abs(center - south) > 1.0E-4D || Math.abs(center - north) > 1.0E-4D;
+    }
+
+    private static double getSurfaceHeight(Block block) {
+        if (block == null) {
+            return 0.0D;
+        }
+        return LegacyBlockBoxResolver.getTopHeight(block.getType(), block.getData());
     }
 
     private static boolean isGlitchy(Material material) {

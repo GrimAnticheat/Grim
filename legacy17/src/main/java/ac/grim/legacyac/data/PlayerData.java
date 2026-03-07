@@ -10,6 +10,8 @@ import ac.grim.legacyac.data.state.NetworkState;
 import ac.grim.legacyac.debug.DetectionEvidence;
 import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
+import ac.grim.legacyac.world.LegacyBlockState;
+import ac.grim.legacyac.world.LegacyCompensatedWorld;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -22,7 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
- * Per-player data holder — now delegates to 6 domain state aggregates.
+ * Per-player data holder  now delegates to 6 domain state aggregates.
  *
  * <p>
  * All existing public methods are preserved as "forwarding layer" so
@@ -43,8 +45,9 @@ public final class PlayerData {
     private final CompensationState compensation = new CompensationState();
     private final EnvironmentState environment = new EnvironmentState();
     private final EnforcementState enforcement = new EnforcementState();
+    private final LegacyCompensatedWorld compensatedWorld = new LegacyCompensatedWorld();
 
-    // ── Tolerance budget snapshot (FR-3) — set once per frame ───────────
+    // ── Tolerance budget snapshot (FR-3)  set once per frame ───────────
     private ToleranceBudgetEngine.BudgetSnapshot currentBudget;
 
     // ── Combat evidence buffer (FR-4) ──────────────────────────────────
@@ -93,15 +96,26 @@ public final class PlayerData {
     // ── Scaffold state ───────────────────────────────────────────────────
     private long lastBlockPlaceTimeMs;
     private int sameTickPlaceCount;
+    private long lastClientBlockPlacePacketAt;
+    private int lastClientPlaceX;
+    private int lastClientPlaceY;
+    private int lastClientPlaceZ;
+    private int lastClientPlaceFace = -1;
+    private float lastClientCursorX;
+    private float lastClientCursorY;
+    private float lastClientCursorZ;
+    private boolean hasLastClientCursor;
+    private long lastUseItemPacketAt;
+    private boolean usingItemPacketActive;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
         this.joinAt = System.currentTimeMillis();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // Domain accessors — new code should use these
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
+    // Domain accessors  new code should use these
+    // ══════════════════════════════════════════════════════════════════
 
     public MovementState movement() {
         return movement;
@@ -127,9 +141,13 @@ public final class PlayerData {
         return enforcement;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    public LegacyCompensatedWorld world() {
+        return compensatedWorld;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // Tolerance Budget (FR-3)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public void setCurrentBudget(ToleranceBudgetEngine.BudgetSnapshot budget) {
         this.currentBudget = budget;
@@ -139,9 +157,9 @@ public final class PlayerData {
         return currentBudget;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // Combat Evidence (FR-4)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public void recordCombatEvidence(CombatEvidence evidence) {
         if (evidence == null)
@@ -156,9 +174,9 @@ public final class PlayerData {
         return Collections.unmodifiableList(new ArrayList<CombatEvidence>(combatEvidenceBuffer));
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // Forwarding layer — all legacy methods delegate to domain objects
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
+    // Forwarding layer  all legacy methods delegate to domain objects
+    // ══════════════════════════════════════════════════════════════════
 
     public UUID getUuid() {
         return uuid;
@@ -528,6 +546,34 @@ public final class PlayerData {
         compensation.recordPendingBlockChange(reason, network.estimateOneWayDelayMillis());
     }
 
+    public void preloadCompensatedWorld(Player player, int radiusChunks) {
+        compensatedWorld.preloadAround(player, radiusChunks);
+    }
+
+    public void queueCompensatedChunkRefresh(Player player, int chunkX, int chunkZ, String reason) {
+        long delay = network.estimateOneWayDelayMillis();
+        compensatedWorld.queueChunkRefresh(player.getWorld(), chunkX, chunkZ, delay);
+        compensation.recordPendingBlockChange(reason, delay);
+    }
+
+    public void queueCompensatedBlockChange(Player player, int x, int y, int z, Material type, byte data, String reason) {
+        long delay = network.estimateOneWayDelayMillis();
+        compensatedWorld.queueBlockChange(player.getWorld(), x, y, z, type, data, delay);
+        compensation.recordPendingBlockChange(reason, delay);
+    }
+
+    public LegacyBlockState getCompensatedBlockState(Player player, int x, int y, int z) {
+        return compensatedWorld.getBlockState(player.getWorld(), x, y, z);
+    }
+
+    public Material getCompensatedBlockType(Player player, int x, int y, int z) {
+        return compensatedWorld.getBlockType(player.getWorld(), x, y, z);
+    }
+
+    public byte getCompensatedBlockData(Player player, int x, int y, int z) {
+        return compensatedWorld.getBlockData(player.getWorld(), x, y, z);
+    }
+
     public int getPendingWorldChangesCount() {
         return compensation.getPendingWorldChangesCount();
     }
@@ -838,9 +884,9 @@ public final class PlayerData {
         return ++useWindow;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // Velocity / Knockback sample management (kept in PlayerData for now)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     private void onVelocityTransactionAck(short actionId, long recvAtNanos) {
         for (VelocitySample sample : velocitySamples) {
@@ -1000,9 +1046,9 @@ public final class PlayerData {
         return knockbackSetbackLike;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // Inner classes (legacy — kept for API compatibility)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
+    // Inner classes (legacy  kept for API compatibility)
+    // ══════════════════════════════════════════════════════════════════
 
     /**
      * Legacy PredictionContext wrapper that delegates to EnvironmentState.
@@ -1051,6 +1097,18 @@ public final class PlayerData {
         public boolean isNearZeroThreeBoundary() {
             return env.isNearZeroThreeBoundary();
         }
+        public boolean isRecentUnevenGround() {
+            return env.isRecentUnevenGround();
+        }
+
+        public boolean isRecentSnowLayerGround() {
+            return env.isRecentSnowLayerGround();
+        }
+
+        public boolean isNearPartialGround() {
+            return env.isNearPartialGround();
+        }
+
 
         public boolean isRecentEntityCollision() {
             return env.isRecentEntityCollision();
@@ -1113,9 +1171,9 @@ public final class PlayerData {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // BadPackets state accessors
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public int getLastHeldSlot() { return lastHeldSlot; }
     public void setLastHeldSlot(int slot) { lastHeldSlot = slot; }
@@ -1141,9 +1199,9 @@ public final class PlayerData {
     public boolean isDiggingActive() { return diggingActive; }
     public void setDiggingActive(boolean val) { diggingActive = val; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // Timer state accessors (nanosecond precision)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public long getTimerLastPacketNanos() { return timerLastPacketNanos; }
     public void setTimerLastPacketNanos(long nanos) { timerLastPacketNanos = nanos; }
@@ -1151,18 +1209,49 @@ public final class PlayerData {
     public void setTimerBalance(double balance) { timerBalance = balance; }
     public void resetTimerState() { timerLastPacketNanos = 0L; timerBalance = 0.0; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // Scaffold state accessors
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public long getLastBlockPlaceTimeMs() { return lastBlockPlaceTimeMs; }
     public void setLastBlockPlaceTimeMs(long ms) { lastBlockPlaceTimeMs = ms; }
     public int incrementSameTickPlaceCount() { return ++sameTickPlaceCount; }
     public void resetSameTickPlaceCount() { sameTickPlaceCount = 0; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    public void recordClientBlockPlacePacket(int x, int y, int z, int face, float cursorX, float cursorY, float cursorZ) {
+        lastClientBlockPlacePacketAt = System.currentTimeMillis();
+        lastClientPlaceX = x;
+        lastClientPlaceY = y;
+        lastClientPlaceZ = z;
+        lastClientPlaceFace = face;
+        lastClientCursorX = cursorX;
+        lastClientCursorY = cursorY;
+        lastClientCursorZ = cursorZ;
+        hasLastClientCursor = true;
+        lastUseItemPacketAt = lastClientBlockPlacePacketAt;
+        usingItemPacketActive = true;
+    }
+
+    public long getLastClientBlockPlacePacketAt() { return lastClientBlockPlacePacketAt; }
+    public int getLastClientPlaceX() { return lastClientPlaceX; }
+    public int getLastClientPlaceY() { return lastClientPlaceY; }
+    public int getLastClientPlaceZ() { return lastClientPlaceZ; }
+    public int getLastClientPlaceFace() { return lastClientPlaceFace; }
+    public float getLastClientCursorX() { return lastClientCursorX; }
+    public float getLastClientCursorY() { return lastClientCursorY; }
+    public float getLastClientCursorZ() { return lastClientCursorZ; }
+    public boolean hasLastClientCursor() { return hasLastClientCursor; }
+    public void clearLastClientCursor() { hasLastClientCursor = false; }
+    public long getLastUseItemPacketAt() { return lastUseItemPacketAt; }
+    public boolean isUsingItemPacketActive() { return usingItemPacketActive; }
+    public void clearUsingItemPacket() { usingItemPacketActive = false; }
+    public boolean hasRecentUseItemPacket(long maxAgeMillis) {
+        return usingItemPacketActive && System.currentTimeMillis() - lastUseItemPacketAt <= maxAgeMillis;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // KnockbackSample (unchanged inner class)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public static final class KnockbackSample {
         private final long expiresAtNanos;
@@ -1268,9 +1357,9 @@ public final class PlayerData {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
     // VelocitySample (unchanged inner class)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
 
     public static final class VelocitySample {
         public static final int FLAG_PRE_ACK = 1;
@@ -1396,3 +1485,12 @@ public final class PlayerData {
         }
     }
 }
+
+
+
+
+
+
+
+
+

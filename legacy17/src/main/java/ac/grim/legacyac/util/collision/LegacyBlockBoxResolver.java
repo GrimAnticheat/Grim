@@ -1,5 +1,6 @@
 package ac.grim.legacyac.util.collision;
 
+import ac.grim.legacyac.world.LegacyBlockState;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
@@ -7,6 +8,10 @@ import org.bukkit.block.Block;
 
 public final class LegacyBlockBoxResolver {
     private LegacyBlockBoxResolver() {
+    }
+
+    public interface BlockAccess {
+        LegacyBlockState getBlockState(int x, int y, int z);
     }
 
     public static final class Box {
@@ -49,48 +54,56 @@ public final class LegacyBlockBoxResolver {
     }
 
     public static List<Box> resolve(Block block) {
+        if (block == null) {
+            return new ArrayList<Box>();
+        }
+        return resolve(new LegacyBlockState(block.getType(), block.getData()),
+                block.getX(), block.getY(), block.getZ(), new BlockAccess() {
+                    @Override
+                    public LegacyBlockState getBlockState(int x, int y, int z) {
+                        return LegacyBlockState.fromBlock(block.getWorld().getBlockAt(x, y, z));
+                    }
+                });
+    }
+
+    public static List<Box> resolve(LegacyBlockState state, int bx, int by, int bz, BlockAccess access) {
         List<Box> boxes = new ArrayList<Box>();
-        Material type = block.getType();
+        Material type = state == null ? Material.AIR : state.getType();
+        byte data = state == null ? 0 : state.getData();
         if (type == Material.AIR || type == Material.WATER || type == Material.STATIONARY_WATER
-            || type == Material.LAVA || type == Material.STATIONARY_LAVA || type == Material.WEB) {
+                || type == Material.LAVA || type == Material.STATIONARY_LAVA || type == Material.WEB) {
             return boxes;
         }
 
-        int bx = block.getX();
-        int by = block.getY();
-        int bz = block.getZ();
-
-        // Priority path: Grim-like partial collision shapes first.
         if (isPane(type)) {
-            boolean north = connectsTo(block, 0, 0, -1, true);
-            boolean south = connectsTo(block, 0, 0, 1, true);
-            boolean west = connectsTo(block, -1, 0, 0, true);
-            boolean east = connectsTo(block, 1, 0, 0, true);
+            boolean north = connectsTo(access, bx, by, bz - 1, true);
+            boolean south = connectsTo(access, bx, by, bz + 1, true);
+            boolean west = connectsTo(access, bx - 1, by, bz, true);
+            boolean east = connectsTo(access, bx + 1, by, bz, true);
             addPaneOrFencePostAndArms(boxes, bx, by, bz, north, south, west, east, 1.0D, 0.125D);
             return boxes;
         }
 
         if (isFence(type)) {
-            boolean north = connectsTo(block, 0, 0, -1, false);
-            boolean south = connectsTo(block, 0, 0, 1, false);
-            boolean west = connectsTo(block, -1, 0, 0, false);
-            boolean east = connectsTo(block, 1, 0, 0, false);
+            boolean north = connectsTo(access, bx, by, bz - 1, false);
+            boolean south = connectsTo(access, bx, by, bz + 1, false);
+            boolean west = connectsTo(access, bx - 1, by, bz, false);
+            boolean east = connectsTo(access, bx + 1, by, bz, false);
             addPaneOrFencePostAndArms(boxes, bx, by, bz, north, south, west, east, 1.5D, 0.25D);
             return boxes;
         }
 
         if (isCobbleWall(type)) {
-            boolean north = connectsTo(block, 0, 0, -1, false);
-            boolean south = connectsTo(block, 0, 0, 1, false);
-            boolean west = connectsTo(block, -1, 0, 0, false);
-            boolean east = connectsTo(block, 1, 0, 0, false);
-            // 1.7 walls have a narrower center post than fences.
+            boolean north = connectsTo(access, bx, by, bz - 1, false);
+            boolean south = connectsTo(access, bx, by, bz + 1, false);
+            boolean west = connectsTo(access, bx - 1, by, bz, false);
+            boolean east = connectsTo(access, bx + 1, by, bz, false);
             addPaneOrFencePostAndArms(boxes, bx, by, bz, north, south, west, east, 1.5D, 0.1875D);
             return boxes;
         }
 
         if (isSlab(type)) {
-            boolean top = (block.getData() & 0x8) != 0;
+            boolean top = (data & 0x8) != 0;
             if (top) {
                 boxes.add(new Box(bx, by + 0.5D, bz, bx + 1.0D, by + 1.0D, bz + 1.0D));
             } else {
@@ -100,8 +113,8 @@ public final class LegacyBlockBoxResolver {
         }
 
         if (isStairs(type)) {
-            int rawData = block.getData() & 0xFF;
-            int data = rawData & 0x3;
+            int rawData = data & 0xFF;
+            int facing = rawData & 0x3;
             boolean upsideDown = (rawData & 0x4) != 0;
             double yMin = upsideDown ? 0.5D : 0.0D;
             double yMax = upsideDown ? 1.0D : 0.5D;
@@ -109,15 +122,70 @@ public final class LegacyBlockBoxResolver {
             double stepYMax = upsideDown ? 0.5D : 1.0D;
 
             boxes.add(new Box(bx, by + yMin, bz, bx + 1.0D, by + yMax, bz + 1.0D));
-            if (data == 0) {
+            if (facing == 0) {
                 boxes.add(new Box(bx, by + stepYMin, bz + 0.5D, bx + 1.0D, by + stepYMax, bz + 1.0D));
-            } else if (data == 1) {
+            } else if (facing == 1) {
                 boxes.add(new Box(bx, by + stepYMin, bz, bx + 1.0D, by + stepYMax, bz + 0.5D));
-            } else if (data == 2) {
+            } else if (facing == 2) {
                 boxes.add(new Box(bx + 0.5D, by + stepYMin, bz, bx + 1.0D, by + stepYMax, bz + 1.0D));
-            } else if (data == 3) {
+            } else if (facing == 3) {
                 boxes.add(new Box(bx, by + stepYMin, bz, bx + 0.5D, by + stepYMax, bz + 1.0D));
             }
+            return boxes;
+        }
+
+        if (type == Material.SOUL_SAND) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.875D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type == Material.SNOW) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.125D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (isCarpet(type)) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.0625D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type == Material.ENCHANTMENT_TABLE) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.75D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type == Material.BED_BLOCK) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.5625D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type == Material.CACTUS) {
+            boxes.add(new Box(bx + 0.0625D, by, bz + 0.0625D, bx + 0.9375D, by + 1.0D, bz + 0.9375D));
+            return boxes;
+        }
+
+        if (type == Material.CHEST || type == Material.TRAPPED_CHEST || type == Material.ENDER_CHEST) {
+            boxes.add(new Box(bx + 0.0625D, by, bz + 0.0625D, bx + 0.9375D, by + 0.875D, bz + 0.9375D));
+            return boxes;
+        }
+
+        if (type == Material.CAULDRON) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.3125D, bz + 1.0D));
+            boxes.add(new Box(bx, by, bz, bx + 0.125D, by + 1.0D, bz + 1.0D));
+            boxes.add(new Box(bx + 0.875D, by, bz, bx + 1.0D, by + 1.0D, bz + 1.0D));
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 1.0D, bz + 0.125D));
+            boxes.add(new Box(bx, by, bz + 0.875D, bx + 1.0D, by + 1.0D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type == Material.BREWING_STAND) {
+            boxes.add(new Box(bx + 0.4375D, by, bz + 0.4375D, bx + 0.5625D, by + 0.875D, bz + 0.5625D));
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 0.125D, bz + 1.0D));
+            return boxes;
+        }
+
+        if (type.name().contains("DOOR") || type.name().contains("TRAP_DOOR") || type.name().contains("TRAPDOOR")) {
+            boxes.add(new Box(bx, by, bz, bx + 1.0D, by + 1.0D, bz + 1.0D));
             return boxes;
         }
 
@@ -129,6 +197,28 @@ public final class LegacyBlockBoxResolver {
 
     public static boolean isThinCollision(Material material) {
         return isPane(material) || isFence(material) || isCobbleWall(material);
+    }
+
+    public static double getTopHeight(Material material, byte data) {
+        if (isSlab(material)) {
+            return (data & 0x8) != 0 ? 1.0D : 0.5D;
+        }
+        if (material == Material.SOUL_SAND) {
+            return 0.875D;
+        }
+        if (material == Material.SNOW) {
+            return 0.125D;
+        }
+        if (isCarpet(material)) {
+            return 0.0625D;
+        }
+        if (material == Material.ENCHANTMENT_TABLE) {
+            return 0.75D;
+        }
+        if (material == Material.BED_BLOCK) {
+            return 0.5625D;
+        }
+        return 1.0D;
     }
 
     private static void addPaneOrFencePostAndArms(List<Box> boxes, int x, int y, int z,
@@ -152,9 +242,12 @@ public final class LegacyBlockBoxResolver {
         }
     }
 
-    private static boolean connectsTo(Block source, int dx, int dy, int dz, boolean paneMode) {
-        Block relative = source.getRelative(dx, dy, dz);
-        Material type = relative.getType();
+    private static boolean connectsTo(BlockAccess access, int x, int y, int z, boolean paneMode) {
+        if (access == null) {
+            return false;
+        }
+        LegacyBlockState relative = access.getBlockState(x, y, z);
+        Material type = relative == null ? Material.AIR : relative.getType();
         if (type == Material.AIR) {
             return false;
         }
@@ -185,5 +278,9 @@ public final class LegacyBlockBoxResolver {
 
     private static boolean isStairs(Material type) {
         return type.name().contains("STAIRS") || type.name().contains("STAIR");
+    }
+
+    private static boolean isCarpet(Material type) {
+        return "CARPET".equals(type.name());
     }
 }

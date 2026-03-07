@@ -19,9 +19,9 @@ import org.bukkit.entity.Player;
  * Key design from Grim:
  * - Compute best-fit candidate offset (Euclidean distance between observed and predicted)
  * - If offset >= threshold, accumulate into advantageGained
- * - If advantageGained >= maxAdvantage OR offset >= immediateSetbackThreshold → setback
+ * - If advantageGained >= maxAdvantage OR offset >= immediateSetbackThreshold  setback
  * - If offset < threshold, decay advantageGained by setbackDecayMultiplier
- * - No dual old/new scoring — only the candidate model
+ * - No dual old/new scoring only the candidate model
  *
  * Vector-level prediction: When ProtocolLib shadow position tracking is available,
  * we use the actual per-tick motionX/motionZ from packet positions instead of
@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
  * massive false positives in the direction-sampling approach.
  */
 public final class PredictionMovementCheck extends Check {
-    /** Accumulated advantage — mirrors Grim's OffsetHandler.advantageGained */
+    /** Accumulated advantage mirrors Grim's OffsetHandler.advantageGained */
     private static final String ADVANTAGE_KEY = "Prediction.advantage";
 
     public PredictionMovementCheck(LegacyAntiCheatPlugin plugin) {
@@ -63,14 +63,17 @@ public final class PredictionMovementCheck extends Check {
         double minMovingHorizontal = plugin.getConfig().getDouble("prediction.min-moving-horizontal", 0.03D);
         double minMovingVertical = plugin.getConfig().getDouble("prediction.min-moving-vertical", 0.03D);
         if (horizontal < minMovingHorizontal && Math.abs(deltaY) < minMovingVertical) {
-            // Not moving — decay advantage, mark prediction ready
+            // Not moving decay advantage, mark prediction ready
             decayAdvantage(data);
             data.markPredictionReady(frame.getTimestampNanos());
             return;
         }
 
-        Material feet = to.getBlock().getType();
-        Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
+        int blockX = (int) Math.floor(to.getX());
+        int blockY = (int) Math.floor(to.getY());
+        int blockZ = (int) Math.floor(to.getZ());
+        Material feet = data.getCompensatedBlockType(player, blockX, blockY, blockZ);
+        Material below = data.getCompensatedBlockType(player, blockX, blockY - 1, blockZ);
         PlayerData.PredictionContext context = data.getPredictionContext();
         int highFallRecoveryTicks = plugin.getConfig().getInt("prediction.recovery-after-high-fall-ticks", 8);
 
@@ -85,15 +88,15 @@ public final class PredictionMovementCheck extends Check {
         double observedMotionZ = data.getShadowMotionZ();
         double prevMotionX = data.getPrevShadowMotionX();
         double prevMotionZ = data.getPrevShadowMotionZ();
-        boolean hasVectorData = data.isShadowInitialized() 
+        boolean hasVectorData = data.isShadowInitialized()
                 && (Math.abs(observedMotionX) > 1e-10 || Math.abs(observedMotionZ) > 1e-10 || horizontal > 0.001);
 
         // ── Generate candidates and find best fit ──
         PredictionEvaluation evaluation;
         float packetYaw = to.getYaw();
-        
+
         if (hasVectorData) {
-            // Vector-level comparison — the precise approach like Grim
+            // Vector-level comparison the precise approach like Grim
             evaluation = LegacyPredictionEngine.evaluateBestCandidateVector(
                     player, feet, below,
                     data.getPrevDeltaY(), data.getPrevDeltaXZ(),
@@ -157,6 +160,17 @@ public final class PredictionMovementCheck extends Check {
 
         // The effective offset after uncertainty reduction and extra tolerance
         double offset = Math.max(0.0D, reducedOffset - extraTolerance);
+        String bestProfile = bestCandidate == null ? "none" : bestCandidate.getProfile();
+        boolean terrainNoise = context.isRecentUnevenGround() || context.isRecentSnowLayerGround() || context.isNearPartialGround();
+        if (terrainNoise) {
+            if (deltaY < -0.20D) {
+                offset = Math.max(0.0D, offset - 0.08D);
+            }
+            if (bestProfile.contains("wall-x,ceiling") || bestProfile.contains("wall-z,ceiling")
+                    || bestProfile.contains("y=0.33") || bestProfile.contains("y=-0.02")) {
+                offset = Math.max(0.0D, offset - 0.025D);
+            }
+        }
 
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
@@ -169,7 +183,14 @@ public final class PredictionMovementCheck extends Check {
                     + " h=" + fmt(horizontal)
                     + " dY=" + fmt(deltaY)
                     + " pending=" + state.getPendingChanges()
-                    + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
+                    + " best=" + bestProfile);
+        }
+
+        double terrainAlertFloor = terrainNoise ? plugin.getConfig().getDouble("prediction.terrain-alert-floor", 0.075D) : 0.0D;
+        if (terrainNoise && offset < terrainAlertFloor) {
+            decayAdvantage(data);
+            data.removeOffsetLenience();
+            return;
         }
 
         if (offset >= threshold || offset >= immediateSetbackThreshold) {
@@ -195,7 +216,7 @@ public final class PredictionMovementCheck extends Check {
                 // Flag and setback
                 String detail = humanOffset
                         + " adv=" + fmt(advantage)
-                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile())
+                        + " best=" + bestProfile
                         + " h=" + fmt(horizontal)
                         + " dY=" + fmt(deltaY);
                 flag(player, data, offset, detail);
@@ -203,10 +224,10 @@ public final class PredictionMovementCheck extends Check {
                 // Alert only (accumulating)
                 plugin.alerts().alert(player, getName(), data.getViolation(getName()),
                         humanOffset + " adv=" + fmt(advantage)
-                        + " best=" + (bestCandidate == null ? "none" : bestCandidate.getProfile()));
+                        + " best=" + bestProfile);
             }
         } else {
-            // No significant offset — decay advantage
+            // No significant offset decay advantage
             decayAdvantage(data);
         }
 
@@ -233,3 +254,10 @@ public final class PredictionMovementCheck extends Check {
         return String.format(Locale.ROOT, "%.4f", value);
     }
 }
+
+
+
+
+
+
+

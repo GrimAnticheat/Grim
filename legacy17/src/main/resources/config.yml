@@ -13,11 +13,12 @@ netty:
   inject-on-join: true
   strict-reflection: false
 
-# packet-first 优先使用包级事件；当其数据过期或缺失时，按 stale 窗口回退到 Bukkit 事件。
+# packet-first 优先使用包级事件；当其数据过期或缺失时， stale 窗口回退 Bukkit 事件
 pipeline:
   packet-first: true
   bukkit-fallback: true
   bukkit-fallback-stale-nanos: 150000000
+  legacy-onmove-fallback: false
 
 exempt:
   join-grace-ms: 2500
@@ -45,7 +46,7 @@ prediction:
     high-fall-recovery: 0.40
     teleport: 0.15
 
-# Simulation settings — mirrors Grim OffsetHandler pattern
+# Simulation settings  mirrors Grim OffsetHandler pattern
 Simulation:
   threshold: 0.045
   immediate-setback-threshold: 0.30
@@ -132,6 +133,7 @@ checks:
     enabled: true
     max-vl: 10.0
     max-cps: 17
+    max-flat-jitter-ms: 2
     setback: false
     buffer: 1.5
     punish-vl: 25
@@ -153,6 +155,7 @@ checks:
     snap-threshold: 75.0
     buffer: 2.0
     multi-target-buffer: 3.0
+    repeated-rotation-buffer: 2.25
     punish-vl: 20
     punish-commands:
       - "kick %player% KillAura cheat (%check% VL:%vl%)"
@@ -271,3 +274,79 @@ checks:
     punish-vl: 18
     punish-commands:
       - "kick %player% NoSlow cheat (%check% VL:%vl%)"
+    use-packet-max-age-ms: 250
+
+  AimProcessor:
+    enabled: true
+    max-vl: 999.0
+    setback: false
+  AimModulo360:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    buffer: 1.25
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% Aim cheat (%check% VL:%vl%)"
+  AimDuplicateLook:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    buffer: 1.25
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% Aim cheat (%check% VL:%vl%)"
+  RotationBreak:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-reach: 5.2
+    buffer: 1.25
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% RotationBreak (%check% VL:%vl%)"
+  FarBreak:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    max-distance: 5.1
+    buffer: 1.25
+    punish-vl: 20
+    punish-commands:
+      - "kick %player% FarBreak (%check% VL:%vl%)"
+  AirLiquidBreak:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    buffer: 1.0
+    punish-vl: 16
+    punish-commands:
+      - "kick %player% AirLiquidBreak (%check% VL:%vl%)"
+  MultiBreak:
+    enabled: false
+    max-vl: 8.0
+    setback: false
+    max-interval-ms: 25
+    buffer: 1.25
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% MultiBreak (%check% VL:%vl%)"
+  DuplicateRotPlace:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    buffer: 1.25
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% Scaffold (%check% VL:%vl%)"
+  FabricatedPlace:
+    enabled: true
+    max-vl: 8.0
+    setback: false
+    buffer: 1.0
+    punish-vl: 18
+    punish-commands:
+      - "kick %player% Scaffold (%check% VL:%vl%)"
+
+
+

@@ -19,6 +19,9 @@ import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.KnockbackHandlerLegacy;
 import ac.grim.legacyac.check.impl.VelocityCheck;
 import ac.grim.legacyac.check.impl.GroundSpoofCheck;
+import ac.grim.legacyac.check.impl.aim.AimDuplicateLookCheck;
+import ac.grim.legacyac.check.impl.aim.AimModulo360Check;
+import ac.grim.legacyac.check.impl.aim.AimProcessorCheck;
 import ac.grim.legacyac.check.impl.badpackets.BadPacketsA;
 import ac.grim.legacyac.check.impl.badpackets.BadPacketsC;
 import ac.grim.legacyac.check.impl.badpackets.BadPacketsD;
@@ -33,8 +36,14 @@ import ac.grim.legacyac.check.impl.badpackets.CrashA;
 import ac.grim.legacyac.check.impl.scaffold.AirLiquidPlaceCheck;
 import ac.grim.legacyac.check.impl.scaffold.FarPlaceCheck;
 import ac.grim.legacyac.check.impl.scaffold.MultiPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.DuplicateRotPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.FabricatedPlaceCheck;
 import ac.grim.legacyac.check.impl.scaffold.PositionPlaceCheck;
 import ac.grim.legacyac.check.impl.scaffold.RotationPlaceCheck;
+import ac.grim.legacyac.check.impl.breaking.AirLiquidBreakCheck;
+import ac.grim.legacyac.check.impl.breaking.FarBreakCheck;
+import ac.grim.legacyac.check.impl.breaking.MultiBreakCheck;
+import ac.grim.legacyac.check.impl.breaking.RotationBreakCheck;
 import ac.grim.legacyac.combat.EntityIdIndex;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.data.state.CompensationState;
@@ -88,6 +97,9 @@ public final class CheckManager implements Listener {
     private final List<NoSlowCheck> noSlowChecks = new ArrayList<NoSlowCheck>();
     private final List<VelocityCheck> velocityChecks = new ArrayList<VelocityCheck>();
     private final List<GroundSpoofCheck> groundSpoofChecks = new ArrayList<GroundSpoofCheck>();
+    private final List<AimProcessorCheck> aimProcessorChecks = new ArrayList<AimProcessorCheck>();
+    private final List<AimModulo360Check> aimModulo360Checks = new ArrayList<AimModulo360Check>();
+    private final List<AimDuplicateLookCheck> aimDuplicateLookChecks = new ArrayList<AimDuplicateLookCheck>();
     // BadPackets
     private final List<BadPacketsA> badPacketsAChecks = new ArrayList<BadPacketsA>();
     private final List<BadPacketsC> badPacketsCChecks = new ArrayList<BadPacketsC>();
@@ -106,6 +118,12 @@ public final class CheckManager implements Listener {
     private final List<RotationPlaceCheck> rotationPlaceChecks = new ArrayList<RotationPlaceCheck>();
     private final List<MultiPlaceCheck> multiPlaceChecks = new ArrayList<MultiPlaceCheck>();
     private final List<PositionPlaceCheck> positionPlaceChecks = new ArrayList<PositionPlaceCheck>();
+    private final List<DuplicateRotPlaceCheck> duplicateRotPlaceChecks = new ArrayList<DuplicateRotPlaceCheck>();
+    private final List<FabricatedPlaceCheck> fabricatedPlaceChecks = new ArrayList<FabricatedPlaceCheck>();
+    private final List<AirLiquidBreakCheck> airLiquidBreakChecks = new ArrayList<AirLiquidBreakCheck>();
+    private final List<FarBreakCheck> farBreakChecks = new ArrayList<FarBreakCheck>();
+    private final List<RotationBreakCheck> rotationBreakChecks = new ArrayList<RotationBreakCheck>();
+    private final List<MultiBreakCheck> multiBreakChecks = new ArrayList<MultiBreakCheck>();
     private long lastTickAtNanos;
     private double currentTps = 20.0D;
     private final ToleranceBudgetEngine.ConfigProvider budgetConfigProvider;
@@ -132,6 +150,9 @@ public final class CheckManager implements Listener {
         noSlowChecks.add(new NoSlowCheck(plugin));
         velocityChecks.add(new VelocityCheck(plugin));
         groundSpoofChecks.add(new GroundSpoofCheck(plugin));
+        aimProcessorChecks.add(new AimProcessorCheck(plugin));
+        aimModulo360Checks.add(new AimModulo360Check(plugin));
+        aimDuplicateLookChecks.add(new AimDuplicateLookCheck(plugin));
         // BadPackets
         badPacketsAChecks.add(new BadPacketsA(plugin));
         badPacketsCChecks.add(new BadPacketsC(plugin));
@@ -150,6 +171,12 @@ public final class CheckManager implements Listener {
         rotationPlaceChecks.add(new RotationPlaceCheck(plugin));
         multiPlaceChecks.add(new MultiPlaceCheck(plugin));
         positionPlaceChecks.add(new PositionPlaceCheck(plugin));
+        duplicateRotPlaceChecks.add(new DuplicateRotPlaceCheck(plugin));
+        fabricatedPlaceChecks.add(new FabricatedPlaceCheck(plugin));
+        airLiquidBreakChecks.add(new AirLiquidBreakCheck(plugin));
+        farBreakChecks.add(new FarBreakCheck(plugin));
+        rotationBreakChecks.add(new RotationBreakCheck(plugin));
+        multiBreakChecks.add(new MultiBreakCheck(plugin));
 
         for (org.bukkit.World world : plugin.getServer().getWorlds()) {
             for (Entity entity : world.getEntities()) {
@@ -165,6 +192,9 @@ public final class CheckManager implements Listener {
                 + fastPlaceChecks.size() + fastBreakChecks.size()
                 + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size()
                 + velocityChecks.size() + groundSpoofChecks.size()
+                + aimProcessorChecks.size() + aimModulo360Checks.size() + aimDuplicateLookChecks.size()
+                + duplicateRotPlaceChecks.size() + fabricatedPlaceChecks.size()
+                + airLiquidBreakChecks.size() + farBreakChecks.size() + rotationBreakChecks.size() + multiBreakChecks.size()
                 + badPacketsAChecks.size() + badPacketsCChecks.size() + badPacketsDChecks.size()
                 + badPacketsEChecks.size() + badPacketsFChecks.size() + badPacketsGChecks.size()
                 + badPacketsIChecks.size() + badPacketsLChecks.size() + badPacketsOChecks.size()
@@ -198,6 +228,7 @@ public final class CheckManager implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setJoinAt(System.currentTimeMillis());
+        data.preloadCompensatedWorld(event.getPlayer(), 2);
         entityIdIndex.put(event.getPlayer());
     }
 
@@ -282,6 +313,7 @@ public final class CheckManager implements Listener {
         PipelineTrace trace = data.isDebugEnabled() ? new PipelineTrace(pipelineStart, player.getName()) : null;
 
         data.handleMove(player, from, to, frame.isOnGround());
+        data.preloadCompensatedWorld(player, 1);
         data.setDetectionContext(frame.getSource().name(), data.getMoveWindow());
 
         // ── FR-3: Compute tolerance budget for this frame ──
@@ -371,6 +403,15 @@ public final class CheckManager implements Listener {
     private void runPostPredictionChecks(Player player, MovementFrame frame, Location from, Location to,
             PlayerData data, PipelineTrace trace) {
         long stageStart = System.nanoTime();
+        for (AimProcessorCheck check : aimProcessorChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
+        for (AimModulo360Check check : aimModulo360Checks) {
+            check.onMovementFrame(player, frame, data);
+        }
+        for (AimDuplicateLookCheck check : aimDuplicateLookChecks) {
+            check.onMovementFrame(player, frame, data);
+        }
         for (NoSlowCheck check : noSlowChecks) {
             check.onMovementFrame(player, frame, data);
         }
@@ -553,6 +594,7 @@ public final class CheckManager implements Listener {
         if (event.getType() == InternalPacketEvent.Type.CLIENT_HELD_ITEM_CHANGE) {
             Integer slot = event.getSlot();
             if (slot != null) {
+                data.clearUsingItemPacket();
                 for (BadPacketsA check : badPacketsAChecks) {
                     check.onHeldItemChange(player, data, slot.intValue());
                 }
@@ -599,6 +641,9 @@ public final class CheckManager implements Listener {
         if (event.getType() == InternalPacketEvent.Type.CLIENT_BLOCK_DIG) {
             Integer digAction = event.getDigAction();
             if (digAction != null) {
+                if (digAction.intValue() == 5) {
+                    data.clearUsingItemPacket();
+                }
                 for (BadPacketsL check : badPacketsLChecks) {
                     check.onDigAction(player, data, digAction.intValue());
                 }
@@ -713,6 +758,8 @@ public final class CheckManager implements Listener {
     public void onPlace(BlockPlaceEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.recordPendingBlockChange("place:" + event.getBlockPlaced().getType().name());
+        data.queueCompensatedBlockChange(event.getPlayer(), event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(),
+                event.getBlockPlaced().getType(), event.getBlockPlaced().getData(), "event:block-place");
         for (FastPlaceCheck check : fastPlaceChecks) {
             check.onPlace(event, data);
         }
@@ -731,13 +778,33 @@ public final class CheckManager implements Listener {
         for (PositionPlaceCheck check : positionPlaceChecks) {
             check.onPlace(event, data);
         }
+        for (DuplicateRotPlaceCheck check : duplicateRotPlaceChecks) {
+            check.onPlace(event, data);
+        }
+        for (FabricatedPlaceCheck check : fabricatedPlaceChecks) {
+            check.onPlace(event, data);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.recordPendingBlockChange("break:" + event.getBlock().getType().name());
+        data.queueCompensatedBlockChange(event.getPlayer(), event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ(),
+                Material.AIR, (byte) 0, "event:block-break");
         for (FastBreakCheck check : fastBreakChecks) {
+            check.onBreak(event, data);
+        }
+        for (AirLiquidBreakCheck check : airLiquidBreakChecks) {
+            check.onBreak(event, data);
+        }
+        for (FarBreakCheck check : farBreakChecks) {
+            check.onBreak(event, data);
+        }
+        for (RotationBreakCheck check : rotationBreakChecks) {
+            check.onBreak(event, data);
+        }
+        for (MultiBreakCheck check : multiBreakChecks) {
             check.onBreak(event, data);
         }
     }
@@ -745,6 +812,7 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.clearUsingItemPacket();
         for (FastUseCheck check : fastUseChecks) {
             check.onConsume(event, data);
         }
@@ -753,6 +821,7 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onItemHeld(PlayerItemHeldEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.clearUsingItemPacket();
         data.markSlotSwitch();
         int graceTicks = plugin.getConfig().getInt("checks.NoSlow.slot-switch-grace-ticks", 2);
         data.startSlotSwitchGrace(graceTicks);
@@ -805,3 +874,6 @@ public final class CheckManager implements Listener {
         }
     }
 }
+
+
+

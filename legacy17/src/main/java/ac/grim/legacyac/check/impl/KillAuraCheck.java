@@ -9,19 +9,23 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * KillAura detection.
  *
  * Detection methods:
- * 1. Snap detection — large yaw change with minimal pitch change and minimal
+ * 1. Snap detection  large yaw change with minimal pitch change and minimal
  * movement (blatant aura)
- * 2. Packet hitbox miss — USE_ENTITY attack doesn't intersect the backtrack
+ * 2. Packet hitbox miss  USE_ENTITY attack doesn't intersect the backtrack
  * hitbox
  * AND the center distance is beyond reach
- * 3. Multi-hit timing — attacks on multiple targets in rapid succession
+ * 3. Multi-hit timing  attacks on multiple targets in rapid succession
  */
 public final class KillAuraCheck extends Check {
+    private final Map<UUID, RotationPatternState> rotationPatterns = new ConcurrentHashMap<UUID, RotationPatternState>();
     public KillAuraCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "KillAura");
     }
@@ -41,6 +45,7 @@ public final class KillAuraCheck extends Check {
 
         boolean severe = !reachLegal;
         checkAngles(attacker, data, severe);
+        checkRepeatedRotationPattern(attacker, data);
         checkMultiTarget(attacker, data, target);
 
         // Only flag for hitbox miss if reach also says the distance was too far
@@ -59,7 +64,7 @@ public final class KillAuraCheck extends Check {
     }
 
     /**
-     * Detection 1: Snap — large yaw delta with almost no pitch change while barely
+     * Detection 1: Snap  large yaw delta with almost no pitch change while barely
      * moving.
      * Catches blatant killaura that snaps to targets.
      */
@@ -93,9 +98,35 @@ public final class KillAuraCheck extends Check {
     }
 
     /**
-     * Detection 2: Multi-target switch — attacking multiple different targets in
+     * Detection 2: Multi-target switch  attacking multiple different targets in
      * quick succession.
      */
+    private void checkRepeatedRotationPattern(Player attacker, PlayerData data) {
+        RotationPatternState state = rotationPatterns.get(attacker.getUniqueId());
+        if (state == null) {
+            state = new RotationPatternState();
+            RotationPatternState existing = rotationPatterns.putIfAbsent(attacker.getUniqueId(), state);
+            if (existing != null) {
+                state = existing;
+            }
+        }
+        float yawDelta = Math.abs(data.getLastYawDelta());
+        float pitchDelta = Math.abs(data.getLastPitchDelta());
+        if (Math.abs(yawDelta - state.lastYawDelta) < 1.0E-4F && Math.abs(pitchDelta - state.lastPitchDelta) < 1.0E-4F && yawDelta > 2.0F) {
+            state.repeatedPatternCount++;
+            if (state.repeatedPatternCount >= 3) {
+                double buffer = slideAndAddScore(data, 0.45D, 1.0D);
+                if (buffer > plugin.getConfig().getDouble("checks.KillAura.repeated-rotation-buffer", 2.25D)) {
+                    flag(attacker, data, 0.45D, "REPEATED_ROT yaw=" + fmt(yawDelta) + " pitch=" + fmt(pitchDelta));
+                }
+            }
+        } else {
+            state.repeatedPatternCount = 0;
+        }
+        state.lastYawDelta = yawDelta;
+        state.lastPitchDelta = pitchDelta;
+    }
+
     private void checkMultiTarget(Player attacker, PlayerData data, Player target) {
         long now = System.currentTimeMillis();
         long lastAttack = data.getLastAttackAt();
@@ -137,7 +168,14 @@ public final class KillAuraCheck extends Check {
         data.recordCombatEvidence(evidence);
     }
 
+    private static final class RotationPatternState {
+        private float lastYawDelta;
+        private float lastPitchDelta;
+        private int repeatedPatternCount;
+    }
+
     private String fmt(float value) {
         return String.format(Locale.ROOT, "%.1f", value);
     }
 }
+

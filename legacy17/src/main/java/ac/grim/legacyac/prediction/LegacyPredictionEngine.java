@@ -33,7 +33,7 @@ import java.util.List;
 public final class LegacyPredictionEngine {
     private static final double GRAVITY = 0.08D;
     private static final double Y_DRAG = 0.98D;
-    /** Movement threshold for 1.7/1.8 clients — values below this are zeroed per axis */
+    /** Movement threshold for 1.7/1.8 clients values below this are zeroed per axis */
     private static final double MOVEMENT_THRESHOLD = 0.005D;
 
     public static final float[] SIN_TABLE = new float[65536];
@@ -117,7 +117,7 @@ public final class LegacyPredictionEngine {
     }
 
     /**
-     * Vector-level candidate evaluation — compares actual motionX/motionZ from
+     * Vector-level candidate evaluation  compares actual motionX/motionZ from
      * ProtocolLib packet-level shadow tracking against candidate vectors.
      * This provides Grim-quality precision by eliminating the direction-sampling
      * uncertainty inherent in scalar-only deltaXZ comparison.
@@ -157,9 +157,9 @@ public final class LegacyPredictionEngine {
         return Math.sqrt(dx * dx + dz * dz + dy * dy);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // Core candidate generation — Vector level (Actual X/Z tracking)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
+    // Core candidate generation  Vector level (Actual X/Z tracking)
+    // ══════════════════════════════════════════════════════════════════
 
     public static List<CandidateVelocity> generateResolvedCandidatesVector(Player player, Material feetBlock,
             Material belowBlock, double lastDeltaY, double lastDeltaXZ, boolean onGround,
@@ -281,6 +281,18 @@ public final class LegacyPredictionEngine {
         if (liquidRestricted) {
             verticalCandidates.add(-0.02D);
             verticalCandidates.add(0.0D);
+        }
+
+        if (context != null && (context.isRecentUnevenGround() || context.isRecentSnowLayerGround() || context.isNearPartialGround())) {
+            verticalCandidates.add(-0.03125D);
+            verticalCandidates.add(-0.046875D);
+            verticalCandidates.add(-0.09375D);
+            verticalCandidates.add(-0.109375D);
+            verticalCandidates.add(0.015625D);
+            verticalCandidates.add(0.03125D);
+            verticalCandidates.add(0.248136D);
+            verticalCandidates.add(0.333200D);
+            verticalCandidates.add(0.419999D);
         }
 
         float f_yaw = yaw * 0.017453292F;
@@ -437,9 +449,9 @@ public final class LegacyPredictionEngine {
         return collisionAware;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // Core candidate generation — Scalar level (Fallback for missing X/Z)
-    // ═══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════
+    // Core candidate generation  Scalar level (Fallback for missing X/Z)
+    // ══════════════════════════════════════════════════════════════════
 
 
     public static List<CandidateVelocity> generateResolvedCandidates(Player player, Material feetBlock,
@@ -577,6 +589,18 @@ public final class LegacyPredictionEngine {
             verticalCandidates.add(0.0D);
         }
 
+        if (context != null && (context.isRecentUnevenGround() || context.isRecentSnowLayerGround() || context.isNearPartialGround())) {
+            verticalCandidates.add(-0.03125D);
+            verticalCandidates.add(-0.046875D);
+            verticalCandidates.add(-0.09375D);
+            verticalCandidates.add(-0.109375D);
+            verticalCandidates.add(0.015625D);
+            verticalCandidates.add(0.03125D);
+            verticalCandidates.add(0.248136D);
+            verticalCandidates.add(0.333200D);
+            verticalCandidates.add(0.419999D);
+        }
+
         // ── Step 6: Generate candidates with yaw-rotated inputs ──
         float f_yaw = yaw * 0.017453292F;
         double sinYaw = mathHelperSin(f_yaw);
@@ -601,7 +625,7 @@ public final class LegacyPredictionEngine {
 
                 double inputMag = vanillaForward * vanillaForward + vanillaStrafe * vanillaStrafe;
                 if (inputMag < 1.0E-4D) {
-                    // Zero input — only carried momentum
+                    // Zero input  only carried momentum
                     addCandidatesForMotion(candidates, player, feetBlock, belowBlock, onGround,
                             prevCarriedXZ, 0.0D, 0.0D,
                             verticalCandidates, yaw, false, "zero", context, liquidRestricted);
@@ -636,7 +660,7 @@ public final class LegacyPredictionEngine {
         // ── Step 7: Sprint-jump candidates ──
         if (onGround && player.isSprinting()) {
             // Vanilla sprint-jump: adds -sin(yaw)*0.2 to X and cos(yaw)*0.2 to Z
-            // This is the CRITICAL fix — previous version used inputX * 0.2 which was wrong
+            // This is the CRITICAL fix  previous version used inputX * 0.2 which was wrong
             double sprintJumpX = -(double)(mathHelperSin(f_yaw) * 0.2F);
             double sprintJumpZ = (double)(mathHelperCos(f_yaw) * 0.2F);
 
@@ -859,3 +883,4 @@ public final class LegacyPredictionEngine {
         return null;
     }
 }
+

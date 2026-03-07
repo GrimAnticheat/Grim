@@ -5,10 +5,10 @@ import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.util.collision.LegacyBlockBoxResolver;
+import ac.grim.legacyac.world.LegacyBlockState;
 import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -46,7 +46,7 @@ public final class PhaseCheck extends Check {
             return;
         }
 
-        OverlapResult overlap = findMaxOverlap(player, playerBox, playerVolume);
+        OverlapResult overlap = findMaxOverlap(player, data, playerBox, playerVolume);
         if (overlap.maxRatio <= 0.0D || overlap.maxVolume <= 0.0D) {
             data.scaleBuffer(PHASE_STREAK_KEY, 0.0D);
             data.scaleBuffer(THIN_PHASE_STREAK_KEY, 0.0D);
@@ -78,10 +78,10 @@ public final class PhaseCheck extends Check {
         double buffer = increaseBuffer(data, overlap.maxRatio);
         if (buffer > plugin.getConfig().getDouble("checks.Phase.buffer", 1.5D)) {
             flag(player, data, overlap.maxRatio,
-                "inside=" + overlap.material.name()
-                    + ",volume=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxVolume)
-                    + ",ratio=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxRatio)
-                    + ",streak=" + streak);
+                    "inside=" + overlap.material.name()
+                            + ",volume=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxVolume)
+                            + ",ratio=" + String.format(java.util.Locale.ROOT, "%.4f", overlap.maxRatio)
+                            + ",streak=" + streak);
         }
     }
 
@@ -89,15 +89,16 @@ public final class PhaseCheck extends Check {
         double halfWidth = 0.3D;
         double height = player.isSneaking() ? 1.65D : 1.8D;
         return new LegacyBlockBoxResolver.Box(
-            to.getX() - halfWidth,
-            to.getY(),
-            to.getZ() - halfWidth,
-            to.getX() + halfWidth,
-            to.getY() + height,
-            to.getZ() + halfWidth);
+                to.getX() - halfWidth,
+                to.getY(),
+                to.getZ() - halfWidth,
+                to.getX() + halfWidth,
+                to.getY() + height,
+                to.getZ() + halfWidth);
     }
 
-    private OverlapResult findMaxOverlap(Player player, LegacyBlockBoxResolver.Box playerBox, double playerVolume) {
+    private OverlapResult findMaxOverlap(final Player player, final PlayerData data,
+            LegacyBlockBoxResolver.Box playerBox, double playerVolume) {
         int minX = floor(playerBox.getMinX());
         int maxX = floor(playerBox.getMaxX());
         int minY = floor(playerBox.getMinY());
@@ -110,11 +111,18 @@ public final class PhaseCheck extends Check {
         Material maxMaterial = Material.AIR;
         boolean thin = false;
 
+        LegacyBlockBoxResolver.BlockAccess access = new LegacyBlockBoxResolver.BlockAccess() {
+            @Override
+            public LegacyBlockState getBlockState(int x, int y, int z) {
+                return data.getCompensatedBlockState(player, x, y, z);
+            }
+        };
+
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    Block block = player.getWorld().getBlockAt(x, y, z);
-                    List<LegacyBlockBoxResolver.Box> boxes = LegacyBlockBoxResolver.resolve(block);
+                    LegacyBlockState state = data.getCompensatedBlockState(player, x, y, z);
+                    List<LegacyBlockBoxResolver.Box> boxes = LegacyBlockBoxResolver.resolve(state, x, y, z, access);
                     if (!boxes.isEmpty()) {
                         for (LegacyBlockBoxResolver.Box blockBox : boxes) {
                             double overlapVolume = playerBox.overlapVolume(blockBox);
@@ -125,11 +133,11 @@ public final class PhaseCheck extends Check {
                             if (ratio > maxRatio) {
                                 maxRatio = ratio;
                                 maxVolume = overlapVolume;
-                                maxMaterial = block.getType();
+                                maxMaterial = state.getType();
                                 thin = LegacyBlockBoxResolver.isThinCollision(maxMaterial);
                             }
                         }
-                    } else if (isSolid(block.getType())) {
+                    } else if (isSolid(state.getType())) {
                         LegacyBlockBoxResolver.Box fallback = new LegacyBlockBoxResolver.Box(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D);
                         double overlapVolume = playerBox.overlapVolume(fallback);
                         if (overlapVolume <= 0.0D) {
@@ -139,7 +147,7 @@ public final class PhaseCheck extends Check {
                         if (ratio > maxRatio) {
                             maxRatio = ratio;
                             maxVolume = overlapVolume;
-                            maxMaterial = block.getType();
+                            maxMaterial = state.getType();
                             thin = false;
                         }
                     }
@@ -154,18 +162,18 @@ public final class PhaseCheck extends Check {
         return (int) Math.floor(value);
     }
 
-    // Legacy fallback for unusual servers with custom material mappings.
     private boolean isSolid(Material material) {
         if (material.isSolid()) {
             return true;
         }
         String name = material.name();
         return name.contains("GLASS")
-            || name.contains("FENCE")
-            || name.contains("WALL")
-            || name.contains("STAIRS")
-            || name.contains("SLAB")
-            || name.contains("STEP");
+                || name.contains("FENCE")
+                || name.contains("WALL")
+                || name.contains("STAIRS")
+                || name.contains("SLAB")
+                || name.contains("STEP")
+                || "CARPET".equals(name);
     }
 
     private static final class OverlapResult {

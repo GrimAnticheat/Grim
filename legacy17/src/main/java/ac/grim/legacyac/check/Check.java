@@ -16,16 +16,16 @@ public abstract class Check {
     protected final LegacyAntiCheatPlugin plugin;
     private final String name;
 
-    // ── Stage map: CheckName → CheckStage (FR-2) ────────────────────────
+    // ── Stage map: CheckName CheckStage (FR-2) ────────────────────────
     private static final Map<String, CheckStage> STAGE_MAP;
     static {
         Map<String, CheckStage> map = new HashMap<String, CheckStage>();
-        // PRE stage — packet-level preprocessing
+        // PRE stage packet-level preprocessing
         map.put("Timer", CheckStage.PRE);
         map.put("InventoryMove", CheckStage.PRE);
-        // PREDICTION stage — movement prediction
+        // PREDICTION stage  movement prediction
         map.put("Prediction", CheckStage.PREDICTION);
-        // POST stage — post-prediction movement checks
+        // POST stage  post-prediction movement checks
         map.put("Speed", CheckStage.POST);
         map.put("Fly", CheckStage.POST);
         map.put("Phase", CheckStage.POST);
@@ -34,15 +34,15 @@ public abstract class Check {
         map.put("NoSlow", CheckStage.POST);
         map.put("Knockback", CheckStage.POST);
         map.put("Velocity", CheckStage.POST);
-        // COMBAT stage — attack-event-driven
+        // COMBAT stage  attack-event-driven
         map.put("Reach", CheckStage.COMBAT);
         map.put("KillAura", CheckStage.COMBAT);
-        // PASSIVE stage — rate-limit / timing
+        // PASSIVE stage  rate-limit / timing
         map.put("AutoClicker", CheckStage.PASSIVE);
         map.put("FastPlace", CheckStage.PASSIVE);
         map.put("FastBreak", CheckStage.PASSIVE);
         map.put("FastUse", CheckStage.PASSIVE);
-        // PRE stage — BadPackets (packet-level validation)
+        // PRE stage  BadPackets (packet-level validation)
         map.put("BadPacketsA", CheckStage.PRE);
         map.put("BadPacketsC", CheckStage.PRE);
         map.put("BadPacketsD", CheckStage.PRE);
@@ -54,14 +54,23 @@ public abstract class Check {
         map.put("BadPacketsO", CheckStage.PRE);
         map.put("BadPacketsQ", CheckStage.PRE);
         map.put("CrashA", CheckStage.PRE);
-        // POST stage — GroundSpoof
+        // POST stage  GroundSpoof
         map.put("GroundSpoof", CheckStage.POST);
-        // PASSIVE stage — Scaffold checks
+        map.put("AimProcessor", CheckStage.POST);
+        map.put("AimModulo360", CheckStage.POST);
+        map.put("AimDuplicateLook", CheckStage.POST);
+        // PASSIVE stage  Scaffold checks
         map.put("AirLiquidPlace", CheckStage.PASSIVE);
         map.put("FarPlace", CheckStage.PASSIVE);
         map.put("RotationPlace", CheckStage.PASSIVE);
         map.put("MultiPlace", CheckStage.PASSIVE);
         map.put("PositionPlace", CheckStage.PASSIVE);
+        map.put("DuplicateRotPlace", CheckStage.PASSIVE);
+        map.put("FabricatedPlace", CheckStage.PASSIVE);
+        map.put("AirLiquidBreak", CheckStage.PASSIVE);
+        map.put("FarBreak", CheckStage.PASSIVE);
+        map.put("RotationBreak", CheckStage.PASSIVE);
+        map.put("MultiBreak", CheckStage.PASSIVE);
         STAGE_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -250,3 +259,4 @@ public abstract class Check {
         data.markPunishExecuted(name);
     }
 }
+
