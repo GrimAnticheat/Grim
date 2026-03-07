@@ -22,6 +22,11 @@ import org.bukkit.entity.Player;
  * - If advantageGained >= maxAdvantage OR offset >= immediateSetbackThreshold → setback
  * - If offset < threshold, decay advantageGained by setbackDecayMultiplier
  * - No dual old/new scoring — only the candidate model
+ *
+ * Vector-level prediction: When ProtocolLib shadow position tracking is available,
+ * we use the actual per-tick motionX/motionZ from packet positions instead of
+ * scalar deltaXZ. This eliminates the fundamental imprecision that caused
+ * massive false positives in the direction-sampling approach.
  */
 public final class PredictionMovementCheck extends Check {
     /** Accumulated advantage — mirrors Grim's OffsetHandler.advantageGained */
@@ -72,13 +77,39 @@ public final class PredictionMovementCheck extends Check {
         // ── Uncertainty budget ──
         double uncertaintyBudget = PredictionUncertaintyHandler.resolveBudget(context, plugin);
 
+        // ── Vector-level prediction using shadow motion ──
+        // When ProtocolLib shadow tracking is available we have real motionX/motionZ
+        // from per-packet position deltas, enabling Grim-quality vector comparison.
+        double observedMotionX = data.getShadowMotionX();
+        double observedMotionY = data.getShadowMotionY();
+        double observedMotionZ = data.getShadowMotionZ();
+        double prevMotionX = data.getPrevShadowMotionX();
+        double prevMotionZ = data.getPrevShadowMotionZ();
+        boolean hasVectorData = data.isShadowInitialized() 
+                && (Math.abs(observedMotionX) > 1e-10 || Math.abs(observedMotionZ) > 1e-10 || horizontal > 0.001);
+
         // ── Generate candidates and find best fit ──
-        PredictionEvaluation evaluation = LegacyPredictionEngine.evaluateBestCandidate(
-                player, feet, below,
-                data.getPrevDeltaY(), data.getPrevDeltaXZ(),
-                data.wasOnGround(), context, highFallRecoveryTicks,
-                horizontal, deltaY,
-                uncertaintyBudget);
+        PredictionEvaluation evaluation;
+        float packetYaw = to.getYaw();
+        
+        if (hasVectorData) {
+            // Vector-level comparison — the precise approach like Grim
+            evaluation = LegacyPredictionEngine.evaluateBestCandidateVector(
+                    player, feet, below,
+                    data.getPrevDeltaY(), data.getPrevDeltaXZ(),
+                    data.wasOnGround(), context, highFallRecoveryTicks,
+                    observedMotionX, observedMotionZ, deltaY,
+                    prevMotionX, prevMotionZ,
+                    uncertaintyBudget, packetYaw);
+        } else {
+            // Fallback: scalar comparison
+            evaluation = LegacyPredictionEngine.evaluateBestCandidate(
+                    player, feet, below,
+                    data.getPrevDeltaY(), data.getPrevDeltaXZ(),
+                    data.wasOnGround(), context, highFallRecoveryTicks,
+                    horizontal, deltaY,
+                    uncertaintyBudget, packetYaw);
+        }
         CandidateVelocity bestCandidate = evaluation.getBestCandidate();
         double rawOffset = evaluation.getRawOffset();
 
@@ -86,19 +117,31 @@ public final class PredictionMovementCheck extends Check {
         data.setPredictionMinDeviation(rawOffset);
         double horizontalDeviation = 0.0D;
         if (bestCandidate != null) {
-            horizontalDeviation = Math.max(0.0D, horizontal - bestCandidate.getHorizontalMagnitude());
+            if (hasVectorData) {
+                // Vector deviation: compare actual H components
+                double cdx = observedMotionX - bestCandidate.getMotionX();
+                double cdz = observedMotionZ - bestCandidate.getMotionZ();
+                horizontalDeviation = Math.sqrt(cdx * cdx + cdz * cdz);
+            } else {
+                horizontalDeviation = Math.max(0.0D, horizontal - bestCandidate.getHorizontalMagnitude());
+            }
         }
         data.setPredictionHorizontalDeviation(horizontalDeviation);
-        double reducedOffset = PredictionUncertaintyHandler.reduceOffset(rawOffset, context, plugin);
+
+        // Use lenience-aware reduction (Grim OffsetHandler: previous tick's offset as extra tolerance)
+        double lastHOffset = data.getLastHorizontalOffset();
+        double lastVOffset = data.getLastVerticalOffset();
+        double reducedOffset = PredictionUncertaintyHandler.reduceOffsetWithLenience(rawOffset, context, plugin, lastHOffset, lastVOffset);
         data.setPredictionReducedDeviation(reducedOffset);
-        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffset(horizontalDeviation, context, plugin);
+        double reducedHorizontalDeviation = PredictionUncertaintyHandler.reduceOffsetWithLenience(horizontalDeviation, context, plugin, lastHOffset, lastVOffset);
         data.setPredictionReducedHorizontalDeviation(reducedHorizontalDeviation);
         data.setPredictionBestProfile(bestCandidate == null ? "none" : bestCandidate.getProfile());
         data.markPredictionReady(frame.getTimestampNanos());
 
         // ── Grim OffsetHandler pattern ──
         // Config mirrors Grim's Simulation section
-        double threshold = plugin.getConfig().getDouble("Simulation.threshold", 0.001D);
+        // Increased threshold to 0.005 to absorb 1.7.10 MathHelper/Float noise
+        double threshold = plugin.getConfig().getDouble("Simulation.threshold", 0.005D);
         double immediateSetbackThreshold = plugin.getConfig().getDouble("Simulation.immediate-setback-threshold", 0.1D);
         double maxAdvantage = plugin.getConfig().getDouble("Simulation.max-advantage", 1.0D);
         double maxCeiling = plugin.getConfig().getDouble("Simulation.max-ceiling", 4.0D);
@@ -135,6 +178,9 @@ public final class PredictionMovementCheck extends Check {
             advantage = Math.min(advantage, maxCeiling);
             data.setBuffer(ADVANTAGE_KEY, advantage);
 
+            // Grim OffsetHandler: carry offset into next tick as extra tolerance
+            data.giveOffsetLenienceNextTick(offset);
+
             recordEvidence(data, offset, "PREDICTION_MODEL");
 
             // Format offset like Grim
@@ -163,11 +209,23 @@ public final class PredictionMovementCheck extends Check {
             // No significant offset — decay advantage
             decayAdvantage(data);
         }
+
+        // Grim Offset: remove lenience after processing
+        data.removeOffsetLenience();
     }
 
     private void decayAdvantage(PlayerData data) {
         double decayMultiplier = plugin.getConfig().getDouble("Simulation.setback-decay-multiplier", 0.999D);
         data.scaleBuffer(ADVANTAGE_KEY, decayMultiplier);
+        // Linear subtraction: even with vector-level prediction,
+        // environmental noise (block boundaries, entity collision, etc.) can produce
+        // small residual offsets. Subtract a fixed amount per clean tick
+        // to prevent infinite advantage buildup from noise.
+        double linearDecay = plugin.getConfig().getDouble("Simulation.linear-decay-per-tick", 0.05D);
+        double current = data.getBuffer(ADVANTAGE_KEY);
+        if (current > 0.0D) {
+            data.setBuffer(ADVANTAGE_KEY, Math.max(0.0D, current - linearDecay));
+        }
         coolDownScore(data);
     }
 

@@ -21,6 +21,9 @@ import org.bukkit.entity.Player;
  * - No double budget subtraction (PredictionMovementCheck already handles it)
  * - Removed overly aggressive direction stability gating
  * - Uses advantage accumulator with configurable decay
+ * - Fixed advantage to decay properly via both multiplicative and linear decay
+ *   every tick regardless of offset (matching Grim's pattern where advantage only
+ *   grows on offset ticks and decays on clean ticks)
  */
 public final class SpeedCheck extends Check {
     /** Accumulated horizontal advantage — mirrors Grim's OffsetHandler pattern */
@@ -78,7 +81,8 @@ public final class SpeedCheck extends Check {
         }
 
         // Grim OffsetHandler pattern
-        double threshold = plugin.getConfig().getDouble("checks.Speed.threshold", 0.001D);
+        // Increased threshold to 0.005 to absorb 1.7.10 MathHelper/Float noise
+        double threshold = plugin.getConfig().getDouble("checks.Speed.threshold", 0.005D);
         double maxAdvantage = plugin.getConfig().getDouble("checks.Speed.max-advantage", 0.5D);
         double setbackDecayMultiplier = plugin.getConfig().getDouble("checks.Speed.setback-decay-multiplier", 0.999D);
         double immediateSetbackThreshold = plugin.getConfig().getDouble("checks.Speed.immediate-setback-threshold", 0.1D);
@@ -98,8 +102,13 @@ public final class SpeedCheck extends Check {
                         + " best=" + data.getPredictionBestProfile());
             }
         } else {
-            // Decay advantage
+            // Decay advantage — multiplicative + linear (same as Prediction)
             data.scaleBuffer(ADVANTAGE_KEY, setbackDecayMultiplier);
+            double linearDecay = plugin.getConfig().getDouble("checks.Speed.linear-decay-per-tick", 0.05D);
+            double current = data.getBuffer(ADVANTAGE_KEY);
+            if (current > 0.0D) {
+                data.setBuffer(ADVANTAGE_KEY, Math.max(0.0D, current - linearDecay));
+            }
             if (frame.isOnGround() && from.getY() == to.getY()) {
                 data.setLastSafeLocation(to.clone());
             }

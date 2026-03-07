@@ -46,12 +46,10 @@ public final class CollisionResolver {
         if (bodyBlock == Material.LADDER || bodyBlock == Material.VINE) {
             x = clamp(x, -0.15D, 0.15D);
             z = clamp(z, -0.15D, 0.15D);
-            y = clamp(y, -0.15D, 0.2D);
         }
 
-        if (onGround && y < -0.08D) {
-            y = -0.08D;
-        }
+        // Removed incorrect Y clamping that interfered with walking down stairs
+        // Handled by specific step candidates in prediction engine now
 
         return new CandidateVelocity(candidate.getProfile(), x, y, z);
     }

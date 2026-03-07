@@ -33,21 +33,26 @@ prediction:
   lag-small-tolerance: 0.03
   velocity-pending-tolerance: 0.04
   recovery-after-high-fall-ticks: 8
-  stage:
-    base-allowance: 0.0
-    soft-buffer-threshold: 0.35
-    hard-flag-streak: 3
   budget:
-    base: 0.012
-    recent-velocity: 0.022
-    stuck-speed: 0.018
-    liquid: 0.03
-    near-glitchy-block: 0.016
-    point-three: 0.018
-    rod-pull: 0.04
-    entity-hard-collision: 0.02
-    high-fall-recovery: 0.05
-    teleport: 0.02
+    base: 0.060
+    recent-velocity: 1.20
+    stuck-speed: 0.050
+    liquid: 0.065
+    near-glitchy-block: 0.045
+    point-three: 0.045
+    rod-pull: 0.080
+    entity-hard-collision: 0.060
+    high-fall-recovery: 0.40
+    teleport: 0.15
+
+# Simulation settings — mirrors Grim OffsetHandler pattern
+Simulation:
+  threshold: 0.045
+  immediate-setback-threshold: 0.30
+  max-advantage: 1.2
+  max-ceiling: 5.0
+  setback-decay-multiplier: 0.98
+  linear-decay-per-tick: 0.08
 
 transaction:
   enabled: true
@@ -55,36 +60,34 @@ transaction:
   max-ack-age-ms: 4000
 
 combat:
-  backtrack-window-ms: 400
-  reach-teleport-grace-ms: 350
+  backtrack-window-ms: 600
+  reach-teleport-grace-ms: 500
 
 heuristics:
-  window-decay: 0.95
+  window-decay: 0.90
 
 adaptive-lag:
-  jitter-threshold-ms: 50
+  jitter-threshold-ms: 40
   min-tps: 18.0
-  reach-extra-distance: 0.15
-  speed-tolerance-multiplier: 1.15
-  speed-small-margin: 0.03
-  pending-state-margin: 0.06
+  reach-extra-distance: 0.25
+  speed-tolerance-multiplier: 1.35
+  speed-small-margin: 0.05
+  pending-state-margin: 0.10
   compare-log-enabled: true
-
-
-
 
 checks:
   Speed:
     enabled: true
     max-vl: 12.0
     setback: true
-    buffer: 0.35
+    threshold: 0.045
+    max-advantage: 0.8
+    immediate-setback-threshold: 0.30
+    setback-decay-multiplier: 0.98
+    linear-decay-per-tick: 0.08
+    buffer: 0.45
     window-weight: 1.0
-    prediction-base-allowance: 0.0
-    direction-min-horizontal: 0.06
-    turning-max-yaw-delta: 45.0
-    turning-max-direction-deviation: 85.0
-    turning-direction-margin: 0.03
+    prediction-base-allowance: 0.08
     punish-vl: 30
     punish-commands:
       - "kick %player% Speed cheat (%check% VL:%vl%)"

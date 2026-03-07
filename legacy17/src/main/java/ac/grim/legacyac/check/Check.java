@@ -132,6 +132,13 @@ public abstract class Check {
         return data.addBuffer(name, amount);
     }
 
+    protected double decreaseBuffer(PlayerData data, double amount) {
+        double current = data.getBuffer(name);
+        double next = Math.max(0.0D, current - amount);
+        data.setBuffer(name, next);
+        return next;
+    }
+
     protected double slideAndAddScore(PlayerData data, double deviation, double weight) {
         double decay = plugin.getConfig().getDouble("heuristics.window-decay", 0.95D);
         data.scaleBuffer(name, decay);

@@ -578,7 +578,7 @@ public final class CheckManager implements Listener {
                 }
             }
             if (isSneak != null && isSneak.booleanValue()) {
-                boolean startSneak = actionId != null && actionId.intValue() == 0; // START_SNEAK=0, STOP_SNEAK=1
+                boolean startSneak = actionId != null && actionId.intValue() == 1; // 1.7: START_SNEAK=1, STOP_SNEAK=2
                 for (BadPacketsG check : badPacketsGChecks) {
                     check.onSneakAction(player, data, startSneak);
                 }

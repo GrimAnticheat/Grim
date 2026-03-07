@@ -12,7 +12,7 @@ import java.util.LinkedList;
  * and the PredictionContext (merged from PlayerData.PredictionContext).
  */
 public final class EnvironmentState {
-    private static final int RECENT_TICK_WINDOW = 10;
+    private static final int RECENT_TICK_WINDOW = 25;
 
     // Recent event ticks
     private int recentVelocityTicks;
@@ -31,6 +31,7 @@ public final class EnvironmentState {
     private boolean shadowInitialized;
     private double shadowX, shadowY, shadowZ;
     private double shadowMotionX, shadowMotionY, shadowMotionZ;
+    private double prevShadowMotionX, prevShadowMotionY, prevShadowMotionZ;
     private double shadowDeviation;
 
     // Vertical delta history (for parabola checks)
@@ -45,10 +46,15 @@ public final class EnvironmentState {
     private long lastPredictionFrameAtNanos;
     private boolean predictionFrameValid;
 
+    // Grim OffsetHandler lenience: carry offset from flagged tick into next tick as extra tolerance
+    private double lastHorizontalOffset;
+    private double lastVerticalOffset;
+
     // Item use tracking
     private double usingItemConfidence;
     private int ticksUsingItem;
     private int noSlowConsecutiveViolationTicks;
+    private int speedLevel;
 
     // ── Tick / Update methods ───────────────────────────────────────────
 
@@ -68,6 +74,14 @@ public final class EnvironmentState {
             recentHighFallTicks--;
         if (recentEntityCollisionTicks > 0)
             recentEntityCollisionTicks--;
+
+        speedLevel = 0;
+        for (org.bukkit.potion.PotionEffect effect : player.getActivePotionEffects()) {
+            if (effect.getType().equals(org.bukkit.potion.PotionEffectType.SPEED)) {
+                speedLevel = effect.getAmplifier() + 1;
+                break;
+            }
+        }
 
         Material feet = to.getBlock().getType();
         Material below = to.clone().add(0.0D, -1.0D, 0.0D).getBlock().getType();
@@ -100,6 +114,9 @@ public final class EnvironmentState {
             shadowMotionX = 0.0D;
             shadowMotionY = 0.0D;
             shadowMotionZ = 0.0D;
+            prevShadowMotionX = 0.0D;
+            prevShadowMotionY = 0.0D;
+            prevShadowMotionZ = 0.0D;
             shadowDeviation = 0.0D;
             return;
         }
@@ -112,6 +129,10 @@ public final class EnvironmentState {
         double diffY = y - expectedY;
         double diffZ = z - expectedZ;
         shadowDeviation = Math.sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
+
+        prevShadowMotionX = shadowMotionX;
+        prevShadowMotionY = shadowMotionY;
+        prevShadowMotionZ = shadowMotionZ;
 
         shadowMotionX = x - shadowX;
         shadowMotionY = y - shadowY;
@@ -272,6 +293,34 @@ public final class EnvironmentState {
         return shadowDeviation;
     }
 
+    public double getShadowMotionX() {
+        return shadowMotionX;
+    }
+
+    public double getShadowMotionY() {
+        return shadowMotionY;
+    }
+
+    public double getShadowMotionZ() {
+        return shadowMotionZ;
+    }
+
+    public double getPrevShadowMotionX() {
+        return prevShadowMotionX;
+    }
+
+    public double getPrevShadowMotionY() {
+        return prevShadowMotionY;
+    }
+
+    public double getPrevShadowMotionZ() {
+        return prevShadowMotionZ;
+    }
+
+    public boolean isShadowInitialized() {
+        return shadowInitialized;
+    }
+
     public double getPredictionMinDeviation() {
         return predictionMinDeviation;
     }
@@ -312,12 +361,37 @@ public final class EnvironmentState {
         this.predictionBestProfile = val == null ? "none" : val;
     }
 
+    // ── Grim OffsetHandler lenience (carry offset into next tick) ────
+
+    public void giveOffsetLenienceNextTick(double offset) {
+        double minimized = Math.min(offset, 1.0D);
+        this.lastHorizontalOffset = minimized;
+        this.lastVerticalOffset = minimized;
+    }
+
+    public void removeOffsetLenience() {
+        this.lastHorizontalOffset = 0.0D;
+        this.lastVerticalOffset = 0.0D;
+    }
+
+    public double getLastHorizontalOffset() {
+        return lastHorizontalOffset;
+    }
+
+    public double getLastVerticalOffset() {
+        return lastVerticalOffset;
+    }
+
     public double getUsingItemConfidence() {
         return usingItemConfidence;
     }
 
     public int getTicksUsingItem() {
         return ticksUsingItem;
+    }
+
+    public int getSpeedLevel() {
+        return speedLevel;
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────

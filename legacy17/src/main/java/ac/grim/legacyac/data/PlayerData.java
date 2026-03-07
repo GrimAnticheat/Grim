@@ -82,6 +82,7 @@ public final class PlayerData {
     private int sprintActionCount;
     private boolean lastSneakActionState;
     private int sneakActionCount;
+    private boolean recentRespawn;
     private int consecutiveLookOnlyPackets;
     private boolean diggingActive;
 
@@ -559,7 +560,7 @@ public final class PlayerData {
 
     public PredictionContext getPredictionContext() {
         // Legacy compatibility wrapper
-        return new PredictionContext(environment);
+        return new PredictionContext(environment, this);
     }
 
     public String getScenarioTag() {
@@ -606,12 +607,32 @@ public final class PlayerData {
         environment.setPredictionReducedHorizontalDeviation(val);
     }
 
+    public int getSpeedLevel() {
+        return environment.getSpeedLevel();
+    }
+
     public String getPredictionBestProfile() {
         return environment.getPredictionBestProfile();
     }
 
     public void setPredictionBestProfile(String val) {
         environment.setPredictionBestProfile(val);
+    }
+
+    public void giveOffsetLenienceNextTick(double offset) {
+        environment.giveOffsetLenienceNextTick(offset);
+    }
+
+    public void removeOffsetLenience() {
+        environment.removeOffsetLenience();
+    }
+
+    public double getLastHorizontalOffset() {
+        return environment.getLastHorizontalOffset();
+    }
+
+    public double getLastVerticalOffset() {
+        return environment.getLastVerticalOffset();
     }
 
     public void beginPredictionFrame(long frameTimestampNanos) {
@@ -656,6 +677,34 @@ public final class PlayerData {
 
     public double getShadowDeviation() {
         return environment.getShadowDeviation();
+    }
+
+    public double getShadowMotionX() {
+        return environment.getShadowMotionX();
+    }
+
+    public double getShadowMotionY() {
+        return environment.getShadowMotionY();
+    }
+
+    public double getShadowMotionZ() {
+        return environment.getShadowMotionZ();
+    }
+
+    public double getPrevShadowMotionX() {
+        return environment.getPrevShadowMotionX();
+    }
+
+    public double getPrevShadowMotionY() {
+        return environment.getPrevShadowMotionY();
+    }
+
+    public double getPrevShadowMotionZ() {
+        return environment.getPrevShadowMotionZ();
+    }
+
+    public boolean isShadowInitialized() {
+        return environment.isShadowInitialized();
     }
 
     // ── Enforcement ──
@@ -960,9 +1009,15 @@ public final class PlayerData {
      */
     public static final class PredictionContext {
         private final EnvironmentState env;
+        private final PlayerData data;
 
-        PredictionContext(EnvironmentState env) {
+        PredictionContext(EnvironmentState env, PlayerData data) {
             this.env = env;
+            this.data = data;
+        }
+
+        public PlayerData getData() {
+            return data;
         }
 
         public boolean isRecentVelocity() {
@@ -1076,6 +1131,9 @@ public final class PlayerData {
     public void setLastSneakActionState(boolean state) { lastSneakActionState = state; }
     public int getSneakActionCount() { return sneakActionCount; }
     public void incrementSneakActionCount() { sneakActionCount++; }
+    public boolean isRecentRespawn() { return recentRespawn; }
+    public void markRecentRespawn() { recentRespawn = true; }
+    public void clearRecentRespawn() { recentRespawn = false; }
 
     public int incrementConsecutiveLookOnlyPackets() { return ++consecutiveLookOnlyPackets; }
     public void resetConsecutiveLookOnlyPackets() { consecutiveLookOnlyPackets = 0; }

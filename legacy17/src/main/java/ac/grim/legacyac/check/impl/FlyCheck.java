@@ -35,7 +35,22 @@ public final class FlyCheck extends Check {
             return;
         }
 
-        if (frame.isOnGround() || to.getBlock().getType() == Material.WATER || to.getBlock().getType() == Material.LAVA) {
+        // Check for liquid at current position AND at feet level
+        // Must check both WATER/STATIONARY_WATER and LAVA/STATIONARY_LAVA
+        // Also check block below for edge cases (standing on surface of water)
+        Material feetBlock = to.getBlock().getType();
+        Material belowBlock = to.clone().add(0.0D, -0.5D, 0.0D).getBlock().getType();
+        if (frame.isOnGround() || isLiquid(feetBlock) || isLiquid(belowBlock)) {
+            return;
+        }
+
+        // Check for ladders/vines
+        if (feetBlock == Material.LADDER || feetBlock == Material.VINE) {
+            return;
+        }
+
+        // Check for web (slows fall significantly)
+        if (feetBlock == Material.WEB) {
             return;
         }
 
@@ -46,5 +61,10 @@ public final class FlyCheck extends Check {
                 flag(player, data, 1.0D, "airTicks=" + data.getAirTicks() + " dy=" + String.format(Locale.ROOT, "%.4f", data.getLastDeltaY()));
             }
         }
+    }
+
+    private static boolean isLiquid(Material material) {
+        return material == Material.WATER || material == Material.STATIONARY_WATER
+                || material == Material.LAVA || material == Material.STATIONARY_LAVA;
     }
 }
