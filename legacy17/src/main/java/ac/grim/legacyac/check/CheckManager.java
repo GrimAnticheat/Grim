@@ -753,6 +753,7 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
+        data.recordPlacedBlock(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ());
         data.recordPendingBlockChange("place:" + event.getBlockPlaced().getType().name());
         data.queueCompensatedBlockChange(event.getPlayer(), event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(),
                 event.getBlockPlaced().getType(), event.getBlockPlaced().getData(), "event:block-place");
@@ -870,6 +871,7 @@ public final class CheckManager implements Listener {
         }
     }
 }
+
 
 
 

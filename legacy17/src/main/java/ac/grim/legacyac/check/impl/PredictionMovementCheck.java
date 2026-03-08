@@ -75,9 +75,16 @@ public final class PredictionMovementCheck extends Check {
         Material feet = data.getCompensatedBlockType(player, blockX, blockY, blockZ);
         Material below = data.getCompensatedBlockType(player, blockX, blockY - 1, blockZ);
         PlayerData.PredictionContext context = data.getPredictionContext();
-        boolean recentTowerPlace = data.getLastClientBlockPlacePacketAt() != 0L
-                && System.currentTimeMillis() - data.getLastClientBlockPlacePacketAt() <= 250L;
-        boolean towerLike = recentTowerPlace && Math.abs(deltaY) > 0.35D && horizontal < 0.35D;
+        boolean recentTowerPlace = data.hasRecentPlacedBlock(400L);
+        int playerBlockX = (int) Math.floor(to.getX());
+        int playerBlockY = (int) Math.floor(to.getY());
+        int playerBlockZ = (int) Math.floor(to.getZ());
+        boolean placedUnderSelf = recentTowerPlace
+                && Math.abs(data.getLastPlacedBlockX() - playerBlockX) <= 1
+                && Math.abs(data.getLastPlacedBlockZ() - playerBlockZ) <= 1
+                && data.getLastPlacedBlockY() >= playerBlockY - 2
+                && data.getLastPlacedBlockY() <= playerBlockY;
+        boolean towerLike = placedUnderSelf && Math.abs(deltaY) > 0.28D && horizontal < 0.55D;
         boolean customSpeedBurst = Math.abs(player.getWalkSpeed() - 0.2F) > 1.0E-4F && horizontal > 0.35D;
         if ((context.isRecentTeleport() && (horizontal > 1.25D || Math.abs(deltaY) > 0.90D)) || towerLike || customSpeedBurst) {
             decayAdvantage(data);
@@ -172,14 +179,39 @@ public final class PredictionMovementCheck extends Check {
         double offset = Math.max(0.0D, reducedOffset - extraTolerance);
         String bestProfile = bestCandidate == null ? "none" : bestCandidate.getProfile();
         boolean terrainNoise = context.isRecentUnevenGround() || context.isRecentSnowLayerGround() || context.isNearPartialGround();
+        boolean iceNoise = context.isRecentIceGround();
+        boolean headHitNoise = context.isRecentHeadHit();
+        boolean utilityNoise = (data.isInventoryOpen() && (System.currentTimeMillis() - data.getInventoryOpenAt()) <= 400L && Math.abs(deltaY) > 0.05D)
+                || data.hasRecentUseItemPacket(plugin.getConfig().getLong("checks.NoSlow.use-packet-max-age-ms", 250L));
+        boolean speedNoise = data.getSpeedLevel() >= 2;
+        boolean towerNoise = towerLike || (placedUnderSelf && (bestProfile.contains("y=0.42") || bestProfile.contains("y=0.33") || bestProfile.contains("y=1.00")));
+
         if (terrainNoise) {
             if (deltaY < -0.20D) {
                 offset = Math.max(0.0D, offset - 0.08D);
             }
             if (bestProfile.contains("wall-x,ceiling") || bestProfile.contains("wall-z,ceiling")
                     || bestProfile.contains("y=0.33") || bestProfile.contains("y=-0.02")) {
-                offset = Math.max(0.0D, offset - 0.025D);
+                offset = Math.max(0.0D, offset - 0.030D);
             }
+        }
+        if (iceNoise) {
+            offset = Math.max(0.0D, offset - 0.035D);
+            if (bestProfile.contains("y=0.42") || bestProfile.contains("y=0.33")) {
+                offset = Math.max(0.0D, offset - 0.020D);
+            }
+        }
+        if (headHitNoise && (bestProfile.contains("ceiling") || bestProfile.contains("y=0.42") || bestProfile.contains("y=0.33"))) {
+            offset = Math.max(0.0D, offset - 0.050D);
+        }
+        if (speedNoise) {
+            offset = Math.max(0.0D, offset - 0.020D);
+        }
+        if (utilityNoise && Math.abs(deltaY) > 0.05D) {
+            offset = Math.max(0.0D, offset - 0.060D);
+        }
+        if (towerNoise) {
+            offset = Math.max(0.0D, offset - 0.120D);
         }
 
         if (data.isDebugEnabled()) {
@@ -196,8 +228,14 @@ public final class PredictionMovementCheck extends Check {
                     + " best=" + bestProfile);
         }
 
-        double terrainAlertFloor = terrainNoise ? plugin.getConfig().getDouble("prediction.terrain-alert-floor", 0.075D) : 0.0D;
-        if (terrainNoise && offset < terrainAlertFloor) {
+        double terrainAlertFloor = terrainNoise ? plugin.getConfig().getDouble("prediction.terrain-alert-floor", 0.08D) : 0.0D;
+        double iceAlertFloor = iceNoise ? plugin.getConfig().getDouble("prediction.ice-alert-floor", 0.105D) : 0.0D;
+        double headHitAlertFloor = headHitNoise ? plugin.getConfig().getDouble("prediction.head-hit-alert-floor", 0.115D) : 0.0D;
+        double utilityAlertFloor = utilityNoise ? plugin.getConfig().getDouble("prediction.utility-alert-floor", 0.14D) : 0.0D;
+        double speedAlertFloor = speedNoise ? plugin.getConfig().getDouble("prediction.speed-alert-floor", 0.095D) : 0.0D;
+        double towerAlertFloor = towerNoise ? plugin.getConfig().getDouble("prediction.tower-alert-floor", 0.18D) : 0.0D;
+        double effectiveAlertFloor = Math.max(Math.max(terrainAlertFloor, iceAlertFloor), Math.max(headHitAlertFloor, Math.max(utilityAlertFloor, Math.max(speedAlertFloor, towerAlertFloor))));
+        if ((terrainNoise || iceNoise || headHitNoise || utilityNoise || speedNoise || towerNoise) && offset < effectiveAlertFloor) {
             decayAdvantage(data);
             data.removeOffsetLenience();
             return;
@@ -264,6 +302,9 @@ public final class PredictionMovementCheck extends Check {
         return String.format(Locale.ROOT, "%.4f", value);
     }
 }
+
+
+
 
 
 

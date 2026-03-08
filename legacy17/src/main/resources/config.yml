@@ -36,6 +36,7 @@ prediction:
   head-hit-alert-floor: 0.115
   utility-alert-floor: 0.14
   speed-alert-floor: 0.095
+  tower-alert-floor: 0.18
   lag-small-tolerance: 0.03
   velocity-pending-tolerance: 0.04
   recovery-after-high-fall-ticks: 8
@@ -364,6 +365,7 @@ checks:
     punish-vl: 18
     punish-commands:
       - "kick %player% Scaffold (%check% VL:%vl%)"
+
 
 
 
