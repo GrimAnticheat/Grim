@@ -34,6 +34,12 @@ public final class FlyCheck extends Check {
         if (player.isFlying() || player.getAllowFlight() || player.getVehicle() != null) {
             return;
         }
+        if (data.getPredictionContext().isRecentRodPull() || data.getPredictionContext().isRecentVelocity()) {
+            return;
+        }
+        if (System.currentTimeMillis() - data.getLastVelocityAt() < 1200L) {
+            return;
+        }
 
         // Check for liquid at current position AND at feet level
         // Must check both WATER/STATIONARY_WATER and LAVA/STATIONARY_LAVA
@@ -68,3 +74,4 @@ public final class FlyCheck extends Check {
                 || material == Material.LAVA || material == Material.STATIONARY_LAVA;
     }
 }
+
