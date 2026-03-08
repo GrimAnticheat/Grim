@@ -18,6 +18,8 @@ public final class EnvironmentState {
     private int recentUnevenGroundTicks;
     private int recentSnowLayerTicks;
     private int recentPartialGroundTicks;
+    private int recentIceTicks;
+    private int recentHeadHitTicks;
 
     private boolean inLiquid;
     private boolean stuckEdge;
@@ -26,6 +28,8 @@ public final class EnvironmentState {
     private boolean unevenGround;
     private boolean snowLayerGround;
     private boolean nearPartialGround;
+    private boolean iceGround;
+    private boolean headHitGround;
 
     private boolean shadowInitialized;
     private double shadowX, shadowY, shadowZ;
@@ -61,6 +65,8 @@ public final class EnvironmentState {
         recentUnevenGroundTicks = Math.max(0, recentUnevenGroundTicks - 1);
         recentSnowLayerTicks = Math.max(0, recentSnowLayerTicks - 1);
         recentPartialGroundTicks = Math.max(0, recentPartialGroundTicks - 1);
+        recentIceTicks = Math.max(0, recentIceTicks - 1);
+        recentHeadHitTicks = Math.max(0, recentHeadHitTicks - 1);
 
         speedLevel = 0;
         for (org.bukkit.potion.PotionEffect effect : player.getActivePotionEffects()) {
@@ -84,6 +90,8 @@ public final class EnvironmentState {
         snowLayerGround = isSnowLayer(feet, feetData) || isSnowLayer(below, belowData);
         nearPartialGround = isPartialGround(feet, feetData) || isPartialGround(below, belowData) || hasPartialNeighbor(to);
         unevenGround = nearPartialGround || hasUnevenGroundProfile(to);
+        iceGround = isIce(feet) || isIce(below);
+        headHitGround = deltaY > 0.18D && hasHeadCollision(to, player.isSneaking());
 
         if (snowLayerGround) {
             recentSnowLayerTicks = RECENT_TICK_WINDOW;
@@ -93,6 +101,12 @@ public final class EnvironmentState {
         }
         if (unevenGround) {
             recentUnevenGroundTicks = RECENT_TICK_WINDOW;
+        }
+        if (iceGround) {
+            recentIceTicks = RECENT_TICK_WINDOW;
+        }
+        if (headHitGround) {
+            recentHeadHitTicks = Math.max(recentHeadHitTicks, 8);
         }
 
         if (player.getNearbyEntities(0.6D, 0.8D, 0.6D).size() > 0) {
@@ -149,21 +163,10 @@ public final class EnvironmentState {
         shadowZ = z;
     }
 
-    public void markVelocity() {
-        recentVelocityTicks = RECENT_TICK_WINDOW;
-    }
-
-    public void markRodPull() {
-        recentRodPullTicks = RECENT_TICK_WINDOW;
-    }
-
-    public void markTeleport() {
-        recentTeleportTicks = RECENT_TICK_WINDOW;
-    }
-
-    public void markHighFall() {
-        recentHighFallTicks = RECENT_TICK_WINDOW;
-    }
+    public void markVelocity() { recentVelocityTicks = RECENT_TICK_WINDOW; }
+    public void markRodPull() { recentRodPullTicks = RECENT_TICK_WINDOW; }
+    public void markTeleport() { recentTeleportTicks = RECENT_TICK_WINDOW; }
+    public void markHighFall() { recentHighFallTicks = RECENT_TICK_WINDOW; }
 
     public void beginPredictionFrame(long frameTimestampNanos) {
         this.lastPredictionFrameAtNanos = frameTimestampNanos;
@@ -197,18 +200,11 @@ public final class EnvironmentState {
         }
     }
 
-    public void resetNoSlowViolationStreak() {
-        noSlowConsecutiveViolationTicks = 0;
-    }
-
-    public int incrementNoSlowViolationStreak() {
-        return ++noSlowConsecutiveViolationTicks;
-    }
+    public void resetNoSlowViolationStreak() { noSlowConsecutiveViolationTicks = 0; }
+    public int incrementNoSlowViolationStreak() { return ++noSlowConsecutiveViolationTicks; }
 
     public boolean isParabolaAnomalous(double minAvgError, int minSamples) {
-        if (recentDeltaY.size() < minSamples) {
-            return false;
-        }
+        if (recentDeltaY.size() < minSamples) return false;
         double totalError = 0.0D;
         int compared = 0;
         Double previous = null;
@@ -220,10 +216,7 @@ public final class EnvironmentState {
             }
             previous = current;
         }
-        if (compared == 0) {
-            return false;
-        }
-        return (totalError / compared) >= minAvgError;
+        return compared != 0 && (totalError / compared) >= minAvgError;
     }
 
     public String getScenarioTag() {
@@ -231,6 +224,8 @@ public final class EnvironmentState {
         if (recentRodPullTicks > 0) return "rod_pull";
         if (recentTeleportTicks > 0) return "pearl_displacement";
         if (recentHighFallTicks > 0) return "high_fall_landing";
+        if (recentHeadHitTicks > 0) return "head_hit";
+        if (recentIceTicks > 0) return "ice_surface";
         if (inLiquid && recentVelocityTicks > 0) return "liquid_hit";
         if (inLiquid) return "liquid_movement";
         if (recentSnowLayerTicks > 0) return "snow_layer_ground";
@@ -243,156 +238,50 @@ public final class EnvironmentState {
         return "normal";
     }
 
-    public boolean isRecentVelocity() {
-        return recentVelocityTicks > 0;
-    }
+    public boolean isRecentVelocity() { return recentVelocityTicks > 0; }
+    public boolean isRecentRodPull() { return recentRodPullTicks > 0; }
+    public boolean isRecentTeleport() { return recentTeleportTicks > 0; }
+    public boolean isRecentHighFall() { return recentHighFallTicks > 0; }
+    public boolean isRecentEntityCollision() { return recentEntityCollisionTicks > 0; }
+    public boolean isRecentUnevenGround() { return recentUnevenGroundTicks > 0; }
+    public boolean isRecentSnowLayerGround() { return recentSnowLayerTicks > 0; }
+    public boolean isRecentIceGround() { return recentIceTicks > 0; }
+    public boolean isRecentHeadHit() { return recentHeadHitTicks > 0; }
+    public boolean isInLiquid() { return inLiquid; }
+    public boolean isStuckEdge() { return stuckEdge; }
+    public boolean isNearGlitchyBlock() { return nearGlitchyBlock; }
+    public boolean isNearZeroThreeBoundary() { return nearZeroThreeBoundary; }
+    public boolean isNearPartialGround() { return nearPartialGround || recentPartialGroundTicks > 0; }
 
-    public boolean isRecentRodPull() {
-        return recentRodPullTicks > 0;
-    }
-
-    public boolean isRecentTeleport() {
-        return recentTeleportTicks > 0;
-    }
-
-    public boolean isRecentHighFall() {
-        return recentHighFallTicks > 0;
-    }
-
-    public boolean isRecentEntityCollision() {
-        return recentEntityCollisionTicks > 0;
-    }
-
-    public boolean isRecentUnevenGround() {
-        return recentUnevenGroundTicks > 0;
-    }
-
-    public boolean isRecentSnowLayerGround() {
-        return recentSnowLayerTicks > 0;
-    }
-
-    public boolean isInLiquid() {
-        return inLiquid;
-    }
-
-    public boolean isStuckEdge() {
-        return stuckEdge;
-    }
-
-    public boolean isNearGlitchyBlock() {
-        return nearGlitchyBlock;
-    }
-
-    public boolean isNearZeroThreeBoundary() {
-        return nearZeroThreeBoundary;
-    }
-
-    public boolean isNearPartialGround() {
-        return nearPartialGround || recentPartialGroundTicks > 0;
-    }
-
-    public double getShadowDeviation() {
-        return shadowDeviation;
-    }
-
-    public double getShadowMotionX() {
-        return shadowMotionX;
-    }
-
-    public double getShadowMotionY() {
-        return shadowMotionY;
-    }
-
-    public double getShadowMotionZ() {
-        return shadowMotionZ;
-    }
-
-    public double getPrevShadowMotionX() {
-        return prevShadowMotionX;
-    }
-
-    public double getPrevShadowMotionY() {
-        return prevShadowMotionY;
-    }
-
-    public double getPrevShadowMotionZ() {
-        return prevShadowMotionZ;
-    }
-
-    public boolean isShadowInitialized() {
-        return shadowInitialized;
-    }
-
-    public double getPredictionMinDeviation() {
-        return predictionMinDeviation;
-    }
-
-    public void setPredictionMinDeviation(double val) {
-        predictionMinDeviation = Math.max(0.0D, val);
-    }
-
-    public double getPredictionReducedDeviation() {
-        return predictionReducedDeviation;
-    }
-
-    public void setPredictionReducedDeviation(double val) {
-        predictionReducedDeviation = Math.max(0.0D, val);
-    }
-
-    public double getPredictionHorizontalDeviation() {
-        return predictionHorizontalDeviation;
-    }
-
-    public void setPredictionHorizontalDeviation(double val) {
-        predictionHorizontalDeviation = Math.max(0.0D, val);
-    }
-
-    public double getPredictionReducedHorizontalDeviation() {
-        return predictionReducedHorizontalDeviation;
-    }
-
-    public void setPredictionReducedHorizontalDeviation(double val) {
-        predictionReducedHorizontalDeviation = Math.max(0.0D, val);
-    }
-
-    public String getPredictionBestProfile() {
-        return predictionBestProfile;
-    }
-
-    public void setPredictionBestProfile(String val) {
-        predictionBestProfile = val == null ? "none" : val;
-    }
-
+    public double getShadowDeviation() { return shadowDeviation; }
+    public double getShadowMotionX() { return shadowMotionX; }
+    public double getShadowMotionY() { return shadowMotionY; }
+    public double getShadowMotionZ() { return shadowMotionZ; }
+    public double getPrevShadowMotionX() { return prevShadowMotionX; }
+    public double getPrevShadowMotionY() { return prevShadowMotionY; }
+    public double getPrevShadowMotionZ() { return prevShadowMotionZ; }
+    public boolean isShadowInitialized() { return shadowInitialized; }
+    public double getPredictionMinDeviation() { return predictionMinDeviation; }
+    public void setPredictionMinDeviation(double val) { predictionMinDeviation = Math.max(0.0D, val); }
+    public double getPredictionReducedDeviation() { return predictionReducedDeviation; }
+    public void setPredictionReducedDeviation(double val) { predictionReducedDeviation = Math.max(0.0D, val); }
+    public double getPredictionHorizontalDeviation() { return predictionHorizontalDeviation; }
+    public void setPredictionHorizontalDeviation(double val) { predictionHorizontalDeviation = Math.max(0.0D, val); }
+    public double getPredictionReducedHorizontalDeviation() { return predictionReducedHorizontalDeviation; }
+    public void setPredictionReducedHorizontalDeviation(double val) { predictionReducedHorizontalDeviation = Math.max(0.0D, val); }
+    public String getPredictionBestProfile() { return predictionBestProfile; }
+    public void setPredictionBestProfile(String val) { predictionBestProfile = val == null ? "none" : val; }
     public void giveOffsetLenienceNextTick(double offset) {
         double minimized = Math.min(offset, 1.0D);
         lastHorizontalOffset = minimized;
         lastVerticalOffset = minimized;
     }
-
-    public void removeOffsetLenience() {
-        lastHorizontalOffset = 0.0D;
-        lastVerticalOffset = 0.0D;
-    }
-
-    public double getLastHorizontalOffset() {
-        return lastHorizontalOffset;
-    }
-
-    public double getLastVerticalOffset() {
-        return lastVerticalOffset;
-    }
-
-    public double getUsingItemConfidence() {
-        return usingItemConfidence;
-    }
-
-    public int getTicksUsingItem() {
-        return ticksUsingItem;
-    }
-
-    public int getSpeedLevel() {
-        return speedLevel;
-    }
+    public void removeOffsetLenience() { lastHorizontalOffset = 0.0D; lastVerticalOffset = 0.0D; }
+    public double getLastHorizontalOffset() { return lastHorizontalOffset; }
+    public double getLastVerticalOffset() { return lastVerticalOffset; }
+    public double getUsingItemConfidence() { return usingItemConfidence; }
+    public int getTicksUsingItem() { return ticksUsingItem; }
+    public int getSpeedLevel() { return speedLevel; }
 
     private static boolean hasAdjacentDrop(Location location) {
         int baseY = location.getBlockY() - 1;
@@ -404,6 +293,24 @@ public final class EnvironmentState {
                 || isAirLike(location.getWorld().getBlockAt(baseX, baseY, baseZ - 1).getType());
     }
 
+    private static boolean hasHeadCollision(Location location, boolean sneaking) {
+        double headY = location.getY() + (sneaking ? 1.54D : 1.8D);
+        int minX = floor(location.getX() - 0.3D);
+        int maxX = floor(location.getX() + 0.3D);
+        int minZ = floor(location.getZ() - 0.3D);
+        int maxZ = floor(location.getZ() + 0.3D);
+        int blockY = floor(headY);
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                Material material = location.getWorld().getBlockAt(x, blockY, z).getType();
+                if (material.isSolid() && !isPartialGround(material, (byte) 0)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static boolean isAirLike(Material material) {
         return material == Material.AIR || isLiquid(material);
     }
@@ -413,16 +320,23 @@ public final class EnvironmentState {
                 || material == Material.LAVA || material == Material.STATIONARY_LAVA;
     }
 
+    private static boolean isIce(Material material) {
+        return material == Material.ICE || material == Material.PACKED_ICE;
+    }
+
     private static boolean isSnowLayer(Material material, byte data) {
         return material == Material.SNOW && data >= 0;
     }
 
     private static boolean isPartialGround(Material material, byte data) {
-        if (material == Material.SNOW || material == Material.SOUL_SAND || material == Material.ENCHANTMENT_TABLE || material == Material.BED_BLOCK) {
+        if (material == Material.SNOW || material == Material.SOUL_SAND || material == Material.ENCHANTMENT_TABLE
+                || material == Material.BED_BLOCK || material == Material.FENCE || material == Material.NETHER_FENCE
+                || material == Material.COBBLE_WALL || material == Material.IRON_FENCE) {
             return true;
         }
         String name = material.name();
-        return name.contains("STEP") || name.contains("SLAB") || name.contains("STAIRS") || "CARPET".equals(name);
+        return name.contains("STEP") || name.contains("SLAB") || name.contains("STAIRS")
+                || name.contains("FENCE") || name.contains("WALL") || "CARPET".equals(name);
     }
 
     private static boolean hasPartialNeighbor(Location location) {
@@ -462,5 +376,10 @@ public final class EnvironmentState {
 
     private static boolean nearPointThree(double value) {
         return Math.abs(value - 0.03D) <= 0.005D || Math.abs(value - 0.06D) <= 0.005D;
+    }
+
+    private static int floor(double value) {
+        int i = (int) value;
+        return value < i ? i - 1 : i;
     }
 }

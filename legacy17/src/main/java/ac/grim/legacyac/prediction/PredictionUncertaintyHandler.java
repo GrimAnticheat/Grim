@@ -8,30 +8,22 @@ public final class PredictionUncertaintyHandler {
     }
 
     public static double reduceOffset(double rawOffset, PlayerData.PredictionContext context, LegacyAntiCheatPlugin plugin) {
-        double reduced = Math.max(0.0D, rawOffset - resolveBudget(context, plugin));
-        return reduced;
+        return Math.max(0.0D, rawOffset - resolveBudget(context, plugin));
     }
 
-    /**
-     * Reduce offset with Grim's offset lenience from previous tick.
-     * This is the key mechanism Grim uses to prevent cascading false positives:
-     * when a tick flags, the offset is carried into the next tick as extra tolerance.
-     */
     public static double reduceOffsetWithLenience(double rawOffset, PlayerData.PredictionContext context,
             LegacyAntiCheatPlugin plugin, double lastHorizontalOffset, double lastVerticalOffset) {
         double budget = resolveBudget(context, plugin);
-        // Add previous tick's offset as extra tolerance (Grim OffsetHandler pattern)
         double lenience = Math.max(lastHorizontalOffset, lastVerticalOffset);
         budget += lenience;
         return Math.max(0.0D, rawOffset - budget);
     }
 
     public static double resolveBudget(PlayerData.PredictionContext context, LegacyAntiCheatPlugin plugin) {
-        // Base budget - increased for 1.7.10 float jitter (vanilla is 0.005, but we need more for GLAC)
+        PlayerData data = context.getData();
         double budget = plugin.getConfig().getDouble("prediction.budget.base", 0.025D);
 
         if (context.isRecentVelocity()) {
-            // Velocity budget - increased significantly for KB handling
             budget += Math.max(0.6D, plugin.getConfig().getDouble("prediction.budget.recent-velocity", 0.6D));
         }
         if (context.isStuckEdge()) {
@@ -47,13 +39,19 @@ public final class PredictionUncertaintyHandler {
             budget += plugin.getConfig().getDouble("prediction.budget.point-three", 0.020D);
         }
         if (context.isRecentUnevenGround()) {
-            budget += Math.max(0.04D, plugin.getConfig().getDouble("prediction.budget.uneven-ground", 0.04D));
+            budget += Math.max(0.05D, plugin.getConfig().getDouble("prediction.budget.uneven-ground", 0.05D));
         }
         if (context.isRecentSnowLayerGround()) {
-            budget += Math.max(0.05D, plugin.getConfig().getDouble("prediction.budget.snow-layer", 0.05D));
+            budget += Math.max(0.06D, plugin.getConfig().getDouble("prediction.budget.snow-layer", 0.06D));
         }
         if (context.isNearPartialGround()) {
-            budget += Math.max(0.03D, plugin.getConfig().getDouble("prediction.budget.partial-ground", 0.03D));
+            budget += Math.max(0.04D, plugin.getConfig().getDouble("prediction.budget.partial-ground", 0.04D));
+        }
+        if (context.isRecentIceGround()) {
+            budget += Math.max(0.07D, plugin.getConfig().getDouble("prediction.budget.ice-ground", 0.07D));
+        }
+        if (context.isRecentHeadHit()) {
+            budget += Math.max(0.09D, plugin.getConfig().getDouble("prediction.budget.head-hit", 0.09D));
         }
         if (context.isRecentRodPull()) {
             budget += plugin.getConfig().getDouble("prediction.budget.rod-pull", 0.050D);
@@ -62,31 +60,43 @@ public final class PredictionUncertaintyHandler {
             budget += plugin.getConfig().getDouble("prediction.budget.entity-hard-collision", 0.030D);
         }
         if (context.isRecentTeleport()) {
-            // Teleports in 1.7.10 often have 1-tick alignment delay
             budget += plugin.getConfig().getDouble("prediction.budget.teleport", 0.080D);
         }
         if (context.isRecentHighFall()) {
             budget += Math.max(0.30D, plugin.getConfig().getDouble("prediction.budget.high-fall-recovery", 0.30D));
         }
-        if ((context.isRecentUnevenGround() || context.isRecentSnowLayerGround()) && context.getData().getLastDeltaY() < -0.20D) {
+        if ((context.isRecentUnevenGround() || context.isRecentSnowLayerGround() || context.isRecentIceGround())
+                && data.getLastDeltaY() < -0.20D) {
             budget += Math.max(0.08D, plugin.getConfig().getDouble("prediction.budget.uneven-fall", 0.08D));
         }
 
-        // Combat awareness: rapid yaw changes and hits increase uncertainty
-        long timeSinceAttack = System.currentTimeMillis() - context.getData().combat().getLastAttackAt();
-        if (timeSinceAttack < 1000L) {
-            budget += 0.020D; // Combat jitter allowance
+        if (data.isInventoryOpen() && Math.abs(data.getLastDeltaY()) > 0.05D) {
+            budget += Math.max(0.08D, plugin.getConfig().getDouble("prediction.budget.inventory-air", 0.08D));
+        }
+        if (data.hasRecentUseItemPacket(plugin.getConfig().getLong("checks.NoSlow.use-packet-max-age-ms", 250L))
+                && Math.abs(data.getLastDeltaY()) > 0.05D) {
+            budget += Math.max(0.08D, plugin.getConfig().getDouble("prediction.budget.use-item-air", 0.08D));
         }
 
-        // Dynamic Speed potion buffer scaling - increased multiplier
-        int speedLvl = context.getData().getSpeedLevel();
+        long timeSinceAttack = System.currentTimeMillis() - data.combat().getLastAttackAt();
+        if (timeSinceAttack < 1000L) {
+            budget += 0.020D;
+        }
+
+        int speedLvl = data.getSpeedLevel();
         if (speedLvl > 0) {
-            budget += (0.015D * speedLvl); // Scalable buffer based on amp
+            budget += (0.03D * speedLvl);
+            if (speedLvl >= 2) {
+                budget += 0.02D;
+            }
         } else {
-            budget += 0.015D; // Small base buffer (non-speed)
+            budget += 0.015D;
+        }
+
+        if (data.getLastDeltaXZ() > 0.28D && Math.abs(data.getLastDeltaY()) > 0.20D) {
+            budget += Math.max(0.03D, plugin.getConfig().getDouble("prediction.budget.air-sprint-jump", 0.03D));
         }
 
         return budget;
     }
 }
-

@@ -1105,10 +1105,17 @@ public final class PlayerData {
             return env.isRecentSnowLayerGround();
         }
 
+        public boolean isRecentIceGround() {
+            return env.isRecentIceGround();
+        }
+
+        public boolean isRecentHeadHit() {
+            return env.isRecentHeadHit();
+        }
+
         public boolean isNearPartialGround() {
             return env.isNearPartialGround();
         }
-
 
         public boolean isRecentEntityCollision() {
             return env.isRecentEntityCollision();
@@ -1485,6 +1492,11 @@ public final class PlayerData {
         }
     }
 }
+
+
+
+
+
 
 
 

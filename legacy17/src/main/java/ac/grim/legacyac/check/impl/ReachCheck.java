@@ -9,6 +9,9 @@ import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -16,8 +19,8 @@ import org.bukkit.util.Vector;
 
 public final class ReachCheck extends Check {
     private static final double MOVEMENT_THRESHOLD = 0.03D;
-    /** Grim-style cancel buffer: set to 1 on flag, decays by 0.25 on valid hit */
     private static final String CANCEL_BUFFER_KEY = "Reach.cancelBuffer";
+    private final Map<UUID, RecentPacketReach> recentPacketReach = new ConcurrentHashMap<UUID, RecentPacketReach>();
 
     public ReachCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Reach");
@@ -47,29 +50,12 @@ public final class ReachCheck extends Check {
             this.evidenceType = evidenceType;
         }
 
-        public boolean isLegal() {
-            return legal;
-        }
-
-        public double getDirectDistance() {
-            return directDistance;
-        }
-
-        public long getBoxTimeOffsetMs() {
-            return boxTimeOffsetMs;
-        }
-
-        public boolean isTeleportMarkerHit() {
-            return teleportMarkerHit;
-        }
-
-        public boolean isEnforceableWindow() {
-            return enforceableWindow;
-        }
-
-        public ReachEvidenceType getEvidenceType() {
-            return evidenceType;
-        }
+        public boolean isLegal() { return legal; }
+        public double getDirectDistance() { return directDistance; }
+        public long getBoxTimeOffsetMs() { return boxTimeOffsetMs; }
+        public boolean isTeleportMarkerHit() { return teleportMarkerHit; }
+        public boolean isEnforceableWindow() { return enforceableWindow; }
+        public ReachEvidenceType getEvidenceType() { return evidenceType; }
     }
 
     public void onAttack(EntityDamageByEntityEvent event, Player attacker, Player victim, PlayerData data) {
@@ -84,23 +70,26 @@ public final class ReachCheck extends Check {
             return;
         }
 
+        RecentPacketReach recentPacket = recentPacketReach.get(attacker.getUniqueId());
+        if (recentPacket != null && recentPacket.matches(victim, 175L)) {
+            data.setLastAttackAt(System.currentTimeMillis());
+            return;
+        }
+
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
-        boolean recentTeleportOrPearl = System.currentTimeMillis()
-                - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
-        double bonus = getAdaptiveReachBonus(data) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
+        boolean recentTeleportOrPearl = System.currentTimeMillis() - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
+        double bonus = getAdaptiveReachBonus(data, victimData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
         AttackEvaluation eval = evaluate(attacker, data, victimData, maxReach, 400L, strafeSyncMargin);
         if (!eval.isLegal()) {
-            handleViolation(null, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
+            handleViolation(event, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
         } else {
             coolDownScore(data);
-            // Grim: cancelBuffer decays by 0.25 on valid hit
             double cb = Math.max(0.0D, data.getBuffer(CANCEL_BUFFER_KEY) - 0.25D);
             data.setBuffer(CANCEL_BUFFER_KEY, cb);
         }
-        // FR-4: Record CombatEvidence
         recordReachCombatEvidence(attacker, data, victimData, eval, maxReach, "event");
         data.setLastAttackAt(System.currentTimeMillis());
     }
@@ -120,21 +109,19 @@ public final class ReachCheck extends Check {
         double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
-        boolean recentTeleportOrPearl = System.currentTimeMillis()
-                - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
-        double bonus = getAdaptiveReachBonus(attackerData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
+        boolean recentTeleportOrPearl = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
+        double bonus = getAdaptiveReachBonus(attackerData, targetData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis,
-                strafeSyncMargin);
+        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis, strafeSyncMargin);
+        recentPacketReach.put(attacker.getUniqueId(), new RecentPacketReach(target.getUniqueId(), System.currentTimeMillis()));
+
         if (!eval.isLegal()) {
-            handleViolation(null, attacker, attackerData, eval, maxReach, baseReach, bonus, recentTeleportOrPearl,
-                    "packet");
+            handleViolation(null, attacker, attackerData, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "packet");
         } else {
             coolDownScore(attackerData);
             double cb = Math.max(0.0D, attackerData.getBuffer(CANCEL_BUFFER_KEY) - 0.25D);
             attackerData.setBuffer(CANCEL_BUFFER_KEY, cb);
         }
-        // FR-4: Record CombatEvidence
         recordReachCombatEvidence(attacker, attackerData, targetData, eval, maxReach, "packet");
         return eval;
     }
@@ -142,25 +129,30 @@ public final class ReachCheck extends Check {
     private void handleViolation(EntityDamageByEntityEvent event, Player attacker, PlayerData attackerData,
             AttackEvaluation eval, double maxReach, double baseReach, double bonus,
             boolean recentTeleportOrPearl, String source) {
+        if (eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS) {
+            double closeMissGrace = plugin.getConfig().getDouble("checks.Reach.hitbox-miss-close-margin", 0.18D);
+            closeMissGrace += Math.min(0.08D, attackerData.getLastDeltaXZ() * 0.10D);
+            closeMissGrace += Math.min(0.05D, Math.abs(attackerData.getLastDeltaY()) * 0.08D);
+            closeMissGrace += attackerData.getSpeedLevel() > 0 ? 0.03D * attackerData.getSpeedLevel() : 0.0D;
+            if (eval.getDirectDistance() <= maxReach + closeMissGrace) {
+                coolDownScore(attackerData);
+                return;
+            }
+        }
+
         String evidencePrefix = eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS ? "HITBOX_MISS" : "REACH";
         String evidenceTag = evidencePrefix + "_" + source.toUpperCase(Locale.ROOT);
-
-        // Grim: cancelBuffer = 1 on any violation
         attackerData.setBuffer(CANCEL_BUFFER_KEY, 1.0D);
 
-        String verbose;
-        if (eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS) {
-            verbose = "type=" + eval.getEvidenceType().name();
-        } else {
-            verbose = String.format(Locale.ROOT, "%.5f", eval.getDirectDistance()) + " blocks";
-        }
+        String verbose = eval.getEvidenceType() == ReachEvidenceType.HITBOX_MISS
+                ? "type=" + eval.getEvidenceType().name()
+                : String.format(Locale.ROOT, "%.5f", eval.getDirectDistance()) + " blocks";
 
         recordEvidence(attackerData, eval.getDirectDistance() - maxReach, evidenceTag);
 
         if (!eval.isEnforceableWindow() || recentTeleportOrPearl || eval.isTeleportMarkerHit()) {
             plugin.alerts().alert(attacker, getName(), attackerData.getViolation(getName()),
-                    source + "-teleport-grace-only " + verbose
-                            + " max=" + String.format(Locale.ROOT, "%.3f", maxReach));
+                    source + "-teleport-grace-only " + verbose + " max=" + String.format(Locale.ROOT, "%.3f", maxReach));
             return;
         }
 
@@ -178,44 +170,48 @@ public final class ReachCheck extends Check {
     }
 
     private boolean isTargetValidForReach(Player target, PlayerData targetData) {
-        if (target == null || !target.isOnline()) {
-            return false;
-        }
-        if (target.isDead() || target.getHealth() <= 0.0D) {
-            return false;
-        }
+        if (target == null || !target.isOnline()) return false;
+        if (target.isDead() || target.getHealth() <= 0.0D) return false;
         PlayerData.MovementStateSnapshot movementSnapshot = targetData.getMovementStateSnapshot();
-        if (!movementSnapshot.isTeleportAligned()) {
-            return false;
-        }
+        if (!movementSnapshot.isTeleportAligned()) return false;
         return !targetData.isTeleportSyncPending();
     }
 
-    private double getAdaptiveReachBonus(PlayerData data) {
-        // FR-3: Use BudgetSnapshot for reach compensation if available
-        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+    private double getAdaptiveReachBonus(PlayerData attackerData, PlayerData targetData) {
+        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(attackerData);
         if (budget != null) {
-            return budget.getCombatReachMargin();
+            double bonus = budget.getCombatReachMargin();
+            bonus += Math.min(0.10D, attackerData.getLastDeltaXZ() * 0.18D);
+            if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) bonus += 0.05D;
+            if (attackerData.getSpeedLevel() > 0) bonus += 0.03D * attackerData.getSpeedLevel();
+            if (targetData != null) {
+                bonus += Math.min(0.08D, targetData.getLastDeltaXZ() * 0.15D);
+                if (Math.abs(targetData.getLastDeltaY()) > 0.20D) bonus += 0.04D;
+                if (targetData.getSpeedLevel() > 0) bonus += 0.02D * targetData.getSpeedLevel();
+            }
+            return bonus;
         }
 
-        // Fallback: original hardcoded logic
         double bonus = 0.0D;
-        if (isLagging(data)) {
+        if (isLagging(attackerData)) {
             bonus += plugin.getConfig().getDouble("adaptive-lag.reach-extra-distance", 0.15D);
         }
-
-        long timeSinceVelocity = System.currentTimeMillis() - data.getLastVelocityAt();
-        if (timeSinceVelocity < 600L && data.getLastVelocityXZ() > 0.1D) {
+        long timeSinceVelocity = System.currentTimeMillis() - attackerData.getLastVelocityAt();
+        if (timeSinceVelocity < 600L && attackerData.getLastVelocityXZ() > 0.1D) {
             double decay = 1.0D - (timeSinceVelocity / 600.0D);
-            bonus += data.getLastVelocityXZ() * decay * 1.2D;
+            bonus += attackerData.getLastVelocityXZ() * decay * 1.2D;
         }
-
+        bonus += Math.min(0.10D, attackerData.getLastDeltaXZ() * 0.18D);
+        if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) bonus += 0.05D;
+        if (attackerData.getSpeedLevel() > 0) bonus += 0.03D * attackerData.getSpeedLevel();
+        if (targetData != null) {
+            bonus += Math.min(0.08D, targetData.getLastDeltaXZ() * 0.15D);
+            if (Math.abs(targetData.getLastDeltaY()) > 0.20D) bonus += 0.04D;
+            if (targetData.getSpeedLevel() > 0) bonus += 0.02D * targetData.getSpeedLevel();
+        }
         return bonus;
     }
 
-    /**
-     * FR-4: Build and record a standardized CombatEvidence for this attack.
-     */
     private void recordReachCombatEvidence(Player attacker, PlayerData attackerData, PlayerData targetData,
             AttackEvaluation eval, double maxReach, String source) {
         Location eye = attacker.getEyeLocation();
@@ -231,8 +227,7 @@ public final class ReachCheck extends Check {
                 .hitboxIntersects(eval.isLegal())
                 .teleportMarkerHit(eval.isTeleportMarkerHit())
                 .enforceableWindow(eval.isEnforceableWindow())
-                .scoring(eval.isLegal() ? 0.0D : Math.max(0.0D, eval.getDirectDistance() - maxReach),
-                        maxReach, !eval.isLegal())
+                .scoring(eval.isLegal() ? 0.0D : Math.max(0.0D, eval.getDirectDistance() - maxReach), maxReach, !eval.isLegal())
                 .detail(source + "-" + eval.getEvidenceType().name())
                 .build();
         attackerData.recordCombatEvidence(evidence);
@@ -251,11 +246,7 @@ public final class ReachCheck extends Check {
         float lastYaw = attackerData.getPrevYaw();
         float lastPitch = attackerData.getPrevPitch();
         Vector altDir = getDirection(lastYaw, lastPitch);
-        if (altDir.lengthSquared() < 1.0E-9D) {
-            altDir = primaryDir;
-        } else {
-            altDir = altDir.normalize();
-        }
+        altDir = altDir.lengthSquared() < 1.0E-9D ? primaryDir : altDir.normalize();
 
         Vector strafeDir = new Vector(primaryDir.getZ(), 0.0D, -primaryDir.getX());
         if (strafeDir.lengthSquared() > 1.0E-9D) {
@@ -319,21 +310,12 @@ public final class ReachCheck extends Check {
         }
 
         if (closestIntersection <= maxReach) {
-            return new AttackEvaluation(true, closestIntersection, hitOffset, markerHit, enforceableWindow,
-                    ReachEvidenceType.NONE);
+            return new AttackEvaluation(true, closestIntersection, hitOffset, markerHit, enforceableWindow, ReachEvidenceType.NONE);
         }
-
         if (closestIntersection < Double.MAX_VALUE) {
-            return new AttackEvaluation(false, closestIntersection, hitOffset, markerHit, enforceableWindow,
-                    ReachEvidenceType.REACH);
+            return new AttackEvaluation(false, closestIntersection, hitOffset, markerHit, enforceableWindow, ReachEvidenceType.REACH);
         }
 
-        // No ray intersection found at all — this is a HITBOX_MISS.
-        // Grim does not use a center-distance fallback. If the ray misses the
-        // hitbox, it is always flagged. The old +0.5 grace here was too lenient
-        // and let reach cheaters pass.
-        // We compute the minimum reach to box (closest point on AABB surface)
-        // to get a meaningful distance value for the flag message.
         double minReachToBox = Double.MAX_VALUE;
         boolean closestBoxEnforceable = true;
         for (HitboxFrame frame : frames) {
@@ -347,28 +329,25 @@ public final class ReachCheck extends Check {
             }
         }
 
-        return new AttackEvaluation(false, minReachToBox, hitOffset, markerHit, closestBoxEnforceable,
-                ReachEvidenceType.HITBOX_MISS);
+        return new AttackEvaluation(false, minReachToBox, hitOffset, markerHit, closestBoxEnforceable, ReachEvidenceType.HITBOX_MISS);
     }
 
     private double resolveHitboxExpand(PlayerData attackerData) {
         double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D);
-        // 1.7.10 clients always get the 0.1 expand (same as Grim's 1.8- branch)
         expand += 0.1D;
-        // Give movement threshold allowance when the attacker is nearly stationary
-        // (Grim: giveMovementThreshold when didLastLastMovementIncludePosition is false)
-        if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD
-                && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
+        if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
             expand += MOVEMENT_THRESHOLD;
+        }
+        expand += Math.min(0.04D, attackerData.getLastDeltaXZ() * 0.08D);
+        if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) {
+            expand += 0.03D;
+        }
+        if (attackerData.getSpeedLevel() > 0) {
+            expand += 0.01D * attackerData.getSpeedLevel();
         }
         return expand;
     }
 
-    /**
-     * Compute the distance from a point to the closest point on an AABB surface.
-     * This replaces the old center-distance fallback with a proper min-reach-to-box
-     * computation, matching Grim's ReachUtils.getMinReachToBox approach.
-     */
     private static double closestPointDistance(Vector point, HitboxFrame box) {
         double cx = Math.max(box.getMinX(), Math.min(point.getX(), box.getMaxX()));
         double cy = Math.max(box.getMinY(), Math.min(point.getY(), box.getMaxY()));
@@ -393,5 +372,20 @@ public final class ReachCheck extends Check {
         double y = Math.sin(pitchRad);
         double z = Math.cos(yawRad) * pitchCos;
         return new Vector(x, y, z);
+    }
+
+    private static final class RecentPacketReach {
+        private final UUID targetUuid;
+        private final long createdAtMillis;
+
+        private RecentPacketReach(UUID targetUuid, long createdAtMillis) {
+            this.targetUuid = targetUuid;
+            this.createdAtMillis = createdAtMillis;
+        }
+
+        private boolean matches(Player target, long maxAgeMillis) {
+            return target != null && target.getUniqueId().equals(targetUuid)
+                    && System.currentTimeMillis() - createdAtMillis <= maxAgeMillis;
+        }
     }
 }
