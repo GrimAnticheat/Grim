@@ -14,29 +14,39 @@ import org.bukkit.util.Vector;
 
 public final class VelocityCheck extends Check {
     public VelocityCheck(LegacyAntiCheatPlugin plugin) {
-        super(plugin, "Velocity");
+        super(plugin, "Knockback");
     }
 
     public void onVelocity(PlayerVelocityEvent event, PlayerData data) {
         if (!isEnabled()) {
             return;
         }
-
         Vector velocity = event.getVelocity();
         if (velocity == null) {
             return;
         }
+        int ticks = plugin.getConfig().getInt("checks.Knockback.window-ticks", 8);
+        data.armVelocityWindow(velocity, ticks);
+    }
 
-        double xz = Math.sqrt(velocity.getX() * velocity.getX() + velocity.getZ() * velocity.getZ());
-        double minExpectedXZ = plugin.getConfig().getDouble("checks.Velocity.min-expected-xz", 0.08D);
-        if (xz < minExpectedXZ && Math.abs(velocity.getY()) < 0.05D) {
+    public void onVelocityPacket(Player player, PlayerData data, int entityId, int vx, int vy, int vz, long sentAtNanos) {
+        if (!isEnabled() || entityId != player.getEntityId()) {
             return;
         }
-
-        // Legacy fallback path compatibility; new logic uses tx-confirmed
-        // VelocitySample.
-        int ticks = plugin.getConfig().getInt("checks.Velocity.window-ticks", 8);
-        data.armVelocityWindow(velocity, ticks);
+        short preTxId = 0;
+        short postTxId = 0;
+        if (plugin.transactionSync() != null) {
+            preTxId = plugin.transactionSync().sendTransactionNow(player);
+            postTxId = plugin.transactionSync().sendTransactionNow(player);
+        }
+        double velocityX = vx / 8000.0D;
+        double velocityY = vy / 8000.0D;
+        double velocityZ = vz / 8000.0D;
+        long txWindowMaxMs = plugin.getConfig().getLong("checks.Knockback.tx-window-max-ms", 500L);
+        data.startVelocitySample(sentAtNanos, preTxId, postTxId, velocityX, velocityY, velocityZ, txWindowMaxMs);
+        data.armVelocityWindow(new Vector(velocityX, velocityY, velocityZ), plugin.getConfig().getInt("checks.Knockback.window-ticks", 8));
+        data.setLastVelocityAt(System.currentTimeMillis());
+        data.setLastVelocityXZ(Math.sqrt(velocityX * velocityX + velocityZ * velocityZ));
     }
 
     public void onMove(PlayerMoveEvent event, PlayerData data) {
@@ -50,12 +60,11 @@ public final class VelocityCheck extends Check {
     }
 
     public void onMovementFrame(Player player, MovementFrame frame, PlayerData data) {
-        if (!isEnabled() || isExempt(player, data)) {
+        if (!isEnabled() || isExempt(player, data, false)) {
             return;
         }
-
         PlayerData.VelocitySample sample = data.getCurrentVelocitySample();
-        if (sample == null) {
+        if (sample == null || !data.hasPredictionForFrame(frame.getTimestampNanos())) {
             return;
         }
 
@@ -69,54 +78,36 @@ public final class VelocityCheck extends Check {
                 && !sample.hasFlag(PlayerData.VelocitySample.FLAG_POST_ACK)) {
             sample.observeTick(offset);
             double responseThreshold = Math.max(0.03D, expectedXZ * 0.20D);
-
-            // FR-3: Use BudgetSnapshot velocity slack if available
             ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
             if (budget != null) {
                 responseThreshold += budget.getVelocityResponseSlack();
             }
-
-            int delayedKbTicks = plugin.getConfig().getInt("checks.Velocity.delayed-kb-ticks",
-                    plugin.getConfig().getInt("checks.Velocity.window-ticks", 3));
+            int delayedKbTicks = plugin.getConfig().getInt("checks.Knockback.delayed-window-ticks",
+                    plugin.getConfig().getInt("checks.Knockback.window-ticks", 3));
             sample.recordObservedMotion(observedXZ, responseThreshold, delayedKbTicks);
         }
 
-        double minScoreToFlag = plugin.getConfig().getDouble("checks.Velocity.min-score-to-flag",
-                plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D));
-        int minSamples = plugin.getConfig().getInt("checks.Velocity.min-samples", 2);
+        double minScoreToFlag = plugin.getConfig().getDouble("checks.Knockback.min-score-to-flag",
+                plugin.getConfig().getDouble("checks.Knockback.buffer", 1.2D));
+        int minSamples = plugin.getConfig().getInt("checks.Knockback.min-samples", 2);
 
-        if (sample.hasFlag(PlayerData.VelocitySample.FLAG_FIRST_CONFIRMED) && sample.getTicksObserved() == 1) {
-            double firstStageScore = Math.max(0.0D, sample.getMinOffset() - 0.03D);
-            if (firstStageScore > 0.0D) {
-                slideAndAddScore(data, firstStageScore, 0.7D);
-            }
-        }
-
-        if (!sample.hasFlag(PlayerData.VelocitySample.FLAG_LIKELY_CONFIRMED)) {
-            return;
-        }
-
-        if (sample.getTicksObserved() < minSamples) {
+        if (!sample.hasFlag(PlayerData.VelocitySample.FLAG_LIKELY_CONFIRMED) || sample.getTicksObserved() < minSamples) {
             return;
         }
 
         double predictionReduced = data.getPredictionReducedDeviation();
-        double likelyStageScore = Math.max(0.0D, Math.max(sample.getMinOffset(), predictionReduced) - 0.025D);
+        double likelyStageScore = Math.max(0.0D, Math.max(sample.getMinOffset(), predictionReduced)
+                - plugin.getConfig().getDouble("checks.Knockback.threshold", 0.001D));
         double buffer = slideAndAddScore(data, likelyStageScore,
-                plugin.getConfig().getDouble("checks.Velocity.window-weight", 1.0D));
+                plugin.getConfig().getDouble("checks.Knockback.window-weight", 1.0D));
 
         if (sample.hasFlag(PlayerData.VelocitySample.FLAG_DELAYED_KB_PATTERN)) {
             buffer = slideAndAddScore(data, 0.35D, 1.0D);
-            if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                        + " Velocity DELAYED_KB_PATTERN silentTicks=" + sample.getInitialSilentTicks()
-                        + " maxObsXZ=" + fmt(sample.getMaxObservedHorizontal()));
-            }
         }
 
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                    + " Velocity txWindow pre=" + sample.getPreTxId()
+                    + " Knockback pre=" + sample.getPreTxId()
                     + " post=" + sample.getPostTxId()
                     + " ticks=" + sample.getTicksObserved()
                     + " minOffset=" + fmt(sample.getMinOffset())
@@ -131,24 +122,19 @@ public final class VelocityCheck extends Check {
                             + " minOffset=" + fmt(sample.getMinOffset())
                             + " ticks=" + sample.getTicksObserved()
                             + " flags=" + sample.getStateFlags());
-
-            // FR-4: Record CombatEvidence for velocity
-            recordVelocityCombatEvidence(player, data, sample, likelyStageScore);
+            recordKnockbackCombatEvidence(player, data, sample, likelyStageScore);
         }
     }
 
-    /**
-     * FR-4: Build and record a CombatEvidence for Velocity check violations.
-     */
-    private void recordVelocityCombatEvidence(Player player, PlayerData data,
+    private void recordKnockbackCombatEvidence(Player player, PlayerData data,
             PlayerData.VelocitySample sample, double score) {
         CombatEvidence evidence = CombatEvidence.builder(
                 CombatEvidence.CombatCheckType.VELOCITY, player.getName(), "")
                 .localAttackTime(System.currentTimeMillis())
                 .directDistance(sample.getMinOffset())
                 .scoring(score,
-                        plugin.getConfig().getDouble("checks.Velocity.min-score-to-flag",
-                                plugin.getConfig().getDouble("checks.Velocity.buffer", 1.2D)),
+                        plugin.getConfig().getDouble("checks.Knockback.min-score-to-flag",
+                                plugin.getConfig().getDouble("checks.Knockback.buffer", 1.2D)),
                         true)
                 .detail("preTx=" + sample.getPreTxId() + " postTx=" + sample.getPostTxId()
                         + " ticks=" + sample.getTicksObserved() + " flags=" + sample.getStateFlags())
