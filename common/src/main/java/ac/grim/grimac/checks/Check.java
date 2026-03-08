@@ -60,7 +60,11 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean shouldModifyPackets() {
-        return isEnabled && !player.disableGrim && !player.noModifyPacketPermission && !exemptPermission;
+        return isEnabled
+                && !player.disableGrim
+                && !player.noModifyPacketPermission
+                && !noModifyPacketPermission
+                && !exemptPermission;
     }
 
     public final void updatePermissions() {

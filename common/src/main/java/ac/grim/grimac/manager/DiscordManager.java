@@ -7,6 +7,7 @@ import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.webhook.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
@@ -30,7 +32,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private static final Predicate<String> WEBHOOK_REGEX = Pattern.compile("^https://discord\\.com/api(?:/v\\d+)?/webhooks/\\d+/[\\w-]+(\\?thread_id=\\d+)?$").asMatchPredicate();
     private static final Duration timeout = Duration.ofSeconds(15);
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build();
-    private static final ConcurrentLinkedDeque<HttpRequest> requests = new ConcurrentLinkedDeque<>();
+    private static final ConcurrentLinkedDeque<Pair<HttpRequest, CompletableFuture<Boolean>>> requests = new ConcurrentLinkedDeque<>();
     private static final AtomicBoolean taskStarted = new AtomicBoolean();
     private static final AtomicBoolean sending = new AtomicBoolean();
     private static long rateLimitedUntil;
@@ -120,7 +122,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     }
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, int violations) {
-        if (url == null) {
+        if (isDisabled()) {
             return;
         }
 
@@ -148,23 +150,36 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
         sendWebhookMessage(new WebhookMessage().addEmbeds(embed));
     }
 
-    public void sendWebhookMessage(WebhookMessage message) {
-        requests.add(HttpRequest.newBuilder()
+    public CompletableFuture<Boolean> sendWebhookMessage(WebhookMessage message) {
+        if (isDisabled()) return CompletableFuture.completedFuture(false);
+
+        HttpRequest request = HttpRequest.newBuilder()
                 .uri(url)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(message.toJson().toString()))
                 .timeout(timeout)
-                .build());
+                .build();
+
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        requests.add(new Pair<>(request, future));
 
         if (!taskStarted.getAndSet(true)) {
             // there's probably a better way to handle rate limits, but this works, so whatever.
             GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getGrimPlugin(), DiscordManager::tick, 0, 1);
         }
+
+        return future;
+    }
+
+    public boolean isDisabled() {
+        return url == null;
     }
 
     private static void tick() {
-        HttpRequest request = requests.peek();
-        if (request != null && rateLimitedUntil < System.currentTimeMillis() && !sending.getAndSet(true)) {
+        Pair<HttpRequest, CompletableFuture<Boolean>> pair = requests.peek();
+        if (pair != null && rateLimitedUntil < System.currentTimeMillis() && !sending.getAndSet(true)) {
+            HttpRequest request = pair.first();
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete((response, throwable) -> {
                 if (throwable != null) {
                     sending.set(false);
@@ -178,12 +193,15 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                     return;
                 }
 
-                requests.remove(request);
+                requests.remove(pair);
                 sending.set(false);
 
                 // TODO: handle 503 (Service Unavailable)?
                 if (response != null && response.statusCode() >= 400) {
                     LogUtil.error("Encountered status code " + response.statusCode() + " with body " + response.body() + " and headers " + response.headers().map() + " while sending a Discord webhook alert.");
+                    pair.second().complete(false);
+                } else {
+                    pair.second().complete(true);
                 }
             });
         }

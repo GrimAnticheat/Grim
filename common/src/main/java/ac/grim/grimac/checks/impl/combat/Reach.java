@@ -46,6 +46,7 @@ import com.viaversion.viaversion.api.Via;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,14 +115,62 @@ public class Reach extends Check implements PacketCheck {
 
             InteractionHand hand = action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK ?
                     InteractionHand.MAIN_HAND : action.getHand(); // attacks can be only performed with the main hand
-            ItemStack itemInHand = player.inventory.getItemInHand(hand);
+
+            ItemStack currentStack = player.inventory.getItemInHand(hand);
+            ItemStack startStack = player.inventory.getStartOfTickStack();
+
+            boolean hasRange = false;
+            float maxReach = 0f;
+            float hitboxMargin = 0f;
+
+            boolean clientAttackRangeExists = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11);
+            boolean clientAndServerAgrees = clientAttackRangeExists && ATTACK_RANGE_COMPONENT_EXISTS;
+            boolean clientAndViaVersion = clientAttackRangeExists && USE_1_8_HITBOX_MARGIN && ViaVersionUtil.isAvailable;
+            if (clientAndServerAgrees || clientAndViaVersion) {
+                ItemAttackRange startRange = startStack.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
+                ItemAttackRange currentRange = currentStack.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
+
+                if (clientAndViaVersion) {
+                    boolean useLegacyHitboxMargin = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
+                    if (useLegacyHitboxMargin) {
+                        if (startStack != ItemStack.EMPTY) {
+                            startRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
+                        }
+
+                        if (currentStack != ItemStack.EMPTY) {
+                            currentRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
+                        }
+                    }
+                }
+
+                // If the start stack has no range component, the client defaults to vanilla reach behavior,
+                // regardless of what the current stack is (No Range -> X = No Range used).
+                if (startRange != null) {
+                    if (currentRange == null) {
+                        // Range (Start) -> No Range (Current)
+                        // Client logic uses Start Range
+                        hasRange = true;
+                        maxReach = startRange.getMaxRange();
+                        hitboxMargin = startRange.getHitboxMargin();
+                    } else {
+                        // Range (Start) -> Range (Current)
+                        // Client logic requires satisfying BOTH constraints
+                        hasRange = true;
+                        maxReach = Math.min(startRange.getMaxRange(), currentRange.getMaxRange());
+                        hitboxMargin = Math.min(startRange.getHitboxMargin(), currentRange.getHitboxMargin());
+                    }
+                }
+            }
 
             boolean tooManyAttacks = playerAttackQueue.size() > 10;
             if (!tooManyAttacks) {
-                playerAttackQueue.put(action.getEntityId(), new InteractionData(new Vector3d(player.x, player.y, player.z), itemInHand)); // Queue for next tick for very precise check
+                playerAttackQueue.put(action.getEntityId(), new InteractionData(
+                        player.x, player.y, player.z,
+                        hasRange, maxReach, hitboxMargin
+                )); // Queue for next tick for very precise check
             }
 
-            boolean knownInvalid = isKnownInvalid(entity, itemInHand);
+            boolean knownInvalid = isKnownInvalid(entity, hasRange, maxReach, hitboxMargin);
 
             if ((shouldModifyPackets() && cancelImpossibleHits && knownInvalid) || tooManyAttacks) {
                 event.setCancelled(true);
@@ -143,7 +192,7 @@ public class Reach extends Check implements PacketCheck {
     // than this method.  If this method flags, the other method WILL flag.
     //
     // Meaning that the other check should be the only one that flags.
-    private boolean isKnownInvalid(PacketEntity reachEntity, ItemStack itemInHand) {
+    private boolean isKnownInvalid(PacketEntity reachEntity, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin) {
         // If the entity doesn't exist, or if it is exempt, or if it is dead
         if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
@@ -154,12 +203,13 @@ public class Reach extends Check implements PacketCheck {
 
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
-            CheckResult result = checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), itemInHand, true);
+            CheckResult result = checkReach(reachEntity, player.x, player.y, player.z, hasAttackRange, itemMaxReach, itemHitboxMargin, true);
             return result.isFlag(); // If they flagged
         } else {
             SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
-            double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastMovementIncludePosition);
+            double maxReach = applyReachModifiers(targetBox, hasAttackRange, itemMaxReach, itemHitboxMargin, !player.packetStateData.didLastMovementIncludePosition);
+
             return ReachUtils.getMinReachToBox(player, targetBox) > maxReach;
         }
     }
@@ -170,7 +220,7 @@ public class Reach extends Check implements PacketCheck {
             if (reachEntity == null) continue;
 
             InteractionData interactionData = attack.getValue();
-            CheckResult result = checkReach(reachEntity, interactionData.vector(), interactionData.itemInHand(), false);
+            CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, false);
             switch (result.type()) {
                 case REACH -> {
                     String added = ", type=" + reachEntity.type.getName().getKey();
@@ -193,10 +243,10 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @NotNull
-    private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, ItemStack itemInHand, boolean isPrediction) {
+    private CheckResult checkReach(PacketEntity reachEntity, double x, double y, double z, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin, boolean isPrediction) {
         SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
-        double maxReach = applyReachModifiers(targetBox, itemInHand, !player.packetStateData.didLastLastMovementIncludePosition);
+        double maxReach = applyReachModifiers(targetBox, hasAttackRange, itemMaxReach, itemHitboxMargin, !player.packetStateData.didLastLastMovementIncludePosition);
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
@@ -221,10 +271,10 @@ public class Reach extends Check implements PacketCheck {
         final double distance = maxReach + 3;
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        final Vector3dm eyePos = new Vector3dm(from.getX(), 0, from.getZ());
+        final Vector3dm eyePos = new Vector3dm(x, 0, z);
         for (Vector3dm lookVec : possibleLookDirs) {
             for (double eye : possibleEyeHeights) {
-                eyePos.setY(from.getY() + eye);
+                eyePos.setY(y + eye);
                 Vector3dm endReachPos = eyePos.clone().add(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance);
 
                 Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
@@ -266,25 +316,13 @@ public class Reach extends Check implements PacketCheck {
     private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
     private static final boolean USE_1_8_HITBOX_MARGIN = PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8);
 
-    private double applyReachModifiers(SimpleCollisionBox targetBox, ItemStack itemInHand, boolean giveMovementThreshold) {
+    private double applyReachModifiers(SimpleCollisionBox targetBox, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin, boolean giveMovementThreshold) {
         double maxReach;
         double hitboxMargin = threshold;
 
-        ItemAttackRange attackRange = null;
-
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && ATTACK_RANGE_COMPONENT_EXISTS) {
-            attackRange = itemInHand.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
-        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11) && USE_1_8_HITBOX_MARGIN && ViaVersionUtil.isAvailable) {
-            boolean itemExists = itemInHand != ItemStack.EMPTY;
-            boolean useLegacyHitboxMargin = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
-            if (itemExists && useLegacyHitboxMargin) {
-                attackRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
-            }
-        }
-
-        if (attackRange != null) {
-            maxReach = attackRange.getMaxRange();
-            hitboxMargin += attackRange.getHitboxMargin();
+        if (hasAttackRange) {
+            maxReach = itemMaxReach;
+            hitboxMargin += itemHitboxMargin;
         } else {
             maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
@@ -324,7 +362,6 @@ public class Reach extends Check implements PacketCheck {
         }
     }
 
-    private record InteractionData(Vector3d vector, ItemStack itemInHand) {
+    private record InteractionData(double x, double y, double z, boolean hasAttackRange, float maxReach, float hitboxMargin) {
     }
-
 }

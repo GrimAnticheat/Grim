@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.handler.ResyncHandler;
 import ac.grim.grimac.checks.Check;
@@ -672,6 +673,11 @@ public class GrimPlayer implements GrimUser {
                 default -> this.possibleEyeHeights[0]; // [standing height, sneaking height, swimming/gliding/riptide height]
             };
         }
+    }
+
+    @Override
+    public PacketWorld getPacketWorld() {
+        return compensatedWorld;
     }
 
     @Override
