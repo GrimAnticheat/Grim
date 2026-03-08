@@ -107,6 +107,10 @@ public final class PlayerData {
     private boolean hasLastClientCursor;
     private long lastUseItemPacketAt;
     private boolean usingItemPacketActive;
+    private long lastPlacedBlockAt;
+    private int lastPlacedBlockX;
+    private int lastPlacedBlockY;
+    private int lastPlacedBlockZ;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -1256,6 +1260,21 @@ public final class PlayerData {
         return usingItemPacketActive && System.currentTimeMillis() - lastUseItemPacketAt <= maxAgeMillis;
     }
 
+    public void recordPlacedBlock(int x, int y, int z) {
+        lastPlacedBlockAt = System.currentTimeMillis();
+        lastPlacedBlockX = x;
+        lastPlacedBlockY = y;
+        lastPlacedBlockZ = z;
+    }
+
+    public boolean hasRecentPlacedBlock(long maxAgeMillis) {
+        return lastPlacedBlockAt != 0L && System.currentTimeMillis() - lastPlacedBlockAt <= maxAgeMillis;
+    }
+    public long getLastPlacedBlockAt() { return lastPlacedBlockAt; }
+    public int getLastPlacedBlockX() { return lastPlacedBlockX; }
+    public int getLastPlacedBlockY() { return lastPlacedBlockY; }
+    public int getLastPlacedBlockZ() { return lastPlacedBlockZ; }
+
     // ══════════════════════════════════════════════════════════════════
     // KnockbackSample (unchanged inner class)
     // ══════════════════════════════════════════════════════════════════
@@ -1492,6 +1511,7 @@ public final class PlayerData {
         }
     }
 }
+
 
 
 

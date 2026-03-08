@@ -140,7 +140,6 @@ public final class CheckManager implements Listener {
         noFallChecks.add(new NoFallCheck(plugin));
         killAuraChecks.add(new KillAuraCheck(plugin));
         timerChecks.add(new TimerCheck(plugin));
-        knockbackChecks.add(new KnockbackHandlerLegacy(plugin));
         jesusChecks.add(new JesusCheck(plugin));
         fastPlaceChecks.add(new FastPlaceCheck(plugin));
         fastBreakChecks.add(new FastBreakCheck(plugin));
@@ -424,9 +423,6 @@ public final class CheckManager implements Listener {
         for (PhaseCheck check : phaseChecks) {
             check.onMovementFrame(player, frame, to, data);
         }
-        for (KnockbackHandlerLegacy check : knockbackChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
         for (JesusCheck check : jesusChecks) {
             check.onMovementFrame(player, frame, data);
         }
@@ -500,7 +496,7 @@ public final class CheckManager implements Listener {
         sb.append(", Speed=").append(!speedChecks.isEmpty());
         sb.append(", Fly=").append(!flyChecks.isEmpty());
         sb.append(", Phase=").append(!phaseChecks.isEmpty());
-        sb.append(", Knockback=").append(!knockbackChecks.isEmpty());
+        sb.append(", Knockback=").append(!velocityChecks.isEmpty());
         sb.append(", Jesus=").append(!jesusChecks.isEmpty());
         sb.append(", Reach=").append(!reachChecks.isEmpty()).append("(attack-stage)");
         sb.append(" | legacy-onMove-fallback=")
@@ -584,7 +580,7 @@ public final class CheckManager implements Listener {
             if (entityId == null || vx == null || vy == null || vz == null) {
                 return;
             }
-            for (KnockbackHandlerLegacy check : knockbackChecks) {
+            for (VelocityCheck check : velocityChecks) {
                 check.onVelocityPacket(player, data, entityId.intValue(), vx.intValue(), vy.intValue(), vz.intValue(),
                         event.getCreatedAtNanos());
             }
@@ -874,6 +870,8 @@ public final class CheckManager implements Listener {
         }
     }
 }
+
+
 
 
 

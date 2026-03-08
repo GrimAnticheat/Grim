@@ -197,6 +197,8 @@ checks:
     min-samples: 2
     window-ticks: 8
     buffer: 1.2
+    window-weight: 1.0
+    min-score-to-flag: 1.2
     punish-vl: 20
     punish-commands:
       - "kick %player% Knockback cheat (%check% VL:%vl%)"
@@ -362,6 +364,7 @@ checks:
     punish-vl: 18
     punish-commands:
       - "kick %player% Scaffold (%check% VL:%vl%)"
+
 
 
 
