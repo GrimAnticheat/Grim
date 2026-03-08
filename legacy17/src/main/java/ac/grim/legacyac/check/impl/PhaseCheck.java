@@ -162,6 +162,11 @@ public final class PhaseCheck extends Check {
         return (int) Math.floor(value);
     }
 
+    private boolean isPhaseBlacklist(Material material) {
+        String name = material.name();
+        return "THIN_GLASS".equals(name) || "GLASS_PANE".equals(name);
+    }
+
     private boolean isSolid(Material material) {
         if (material.isSolid()) {
             return true;
@@ -190,3 +195,4 @@ public final class PhaseCheck extends Check {
         }
     }
 }
+
