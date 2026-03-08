@@ -75,6 +75,16 @@ public final class PredictionMovementCheck extends Check {
         Material feet = data.getCompensatedBlockType(player, blockX, blockY, blockZ);
         Material below = data.getCompensatedBlockType(player, blockX, blockY - 1, blockZ);
         PlayerData.PredictionContext context = data.getPredictionContext();
+        boolean recentTowerPlace = data.getLastClientBlockPlacePacketAt() != 0L
+                && System.currentTimeMillis() - data.getLastClientBlockPlacePacketAt() <= 250L;
+        boolean towerLike = recentTowerPlace && Math.abs(deltaY) > 0.35D && horizontal < 0.35D;
+        boolean customSpeedBurst = Math.abs(player.getWalkSpeed() - 0.2F) > 1.0E-4F && horizontal > 0.35D;
+        if ((context.isRecentTeleport() && (horizontal > 1.25D || Math.abs(deltaY) > 0.90D)) || towerLike || customSpeedBurst) {
+            decayAdvantage(data);
+            data.markPredictionReady(frame.getTimestampNanos());
+            data.removeOffsetLenience();
+            return;
+        }
         int highFallRecoveryTicks = plugin.getConfig().getInt("prediction.recovery-after-high-fall-ticks", 8);
 
         // ── Uncertainty budget ──
@@ -254,6 +264,8 @@ public final class PredictionMovementCheck extends Check {
         return String.format(Locale.ROOT, "%.4f", value);
     }
 }
+
+
 
 
 

@@ -168,7 +168,7 @@ public final class LegacyPredictionEngine {
         double slipperiness = getBlockSlipperiness(belowBlock);
         double friction = onGround ? slipperiness * 0.91D : 0.91D;
 
-        double attributeSpeed = 0.10000000149011612D;
+        double attributeSpeed = getBaseMoveSpeed(player);
         if (player.isSprinting()) {
             attributeSpeed *= 1.3D;
         }
@@ -463,7 +463,7 @@ public final class LegacyPredictionEngine {
         double friction = onGround ? slipperiness * 0.91D : 0.91D;
 
         // ── Step 2: Attribute speed ──
-        double attributeSpeed = 0.10000000149011612D;
+        double attributeSpeed = getBaseMoveSpeed(player);
         if (player.isSprinting()) {
             attributeSpeed *= 1.3D;
         }
@@ -858,6 +858,18 @@ public final class LegacyPredictionEngine {
         }
     }
 
+    private static double getBaseMoveSpeed(Player player) {
+        double base = 0.10000000149011612D;
+        try {
+            float walkSpeed = player.getWalkSpeed();
+            if (walkSpeed > 0.0F) {
+                base *= (walkSpeed / 0.2F);
+            }
+        } catch (Throwable ignored) {
+        }
+        return Math.max(0.02D, Math.min(0.6D, base));
+    }
+
     private static double getBlockSlipperiness(Material material) {
         if (material == Material.ICE || material == Material.PACKED_ICE) {
             return 0.98D;
@@ -883,5 +895,6 @@ public final class LegacyPredictionEngine {
         return null;
     }
 }
+
 
 
