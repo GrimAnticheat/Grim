@@ -80,7 +80,6 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
-        "ZNPCsPlus",
     )
 
     permissions {

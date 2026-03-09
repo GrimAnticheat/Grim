@@ -1,14 +1,20 @@
-# Включать ли веб-крючок discord
+# Справка по вебхукам: https://support.discord.com/hc/ru/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+# Установите значение `true`, чтобы обойти проверку формата URL Discord.
+# Это разрешает любой действительный HTTPS URL (полезно для прокси или Matrix forwarder).
+disable-webhook-validation: false
+embed-title: "**Grim Оповещение**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# Заменяет обратные кавычки (`) в значениях (например, в названиях клиентов), чтобы не нарушать форматирование текста в Discord.
+# Установите значение "`", чтобы отключить эту замену.
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**Игрок**: %player%"
+    - "**Игрок**: `%player%`"
     - "**Проверка**: %check%"
     - "**Нарушения**: %violations%"
     - "**Версия Клиента**: %version%"
-    - "**Бренд**: %brand%"
+    - "**Бренд**: `%brand%`"
     - "**Пинг**: %ping%"
     - "**ТПС**: %tps%"

@@ -1,13 +1,20 @@
+# Hulp bij webhooks: https://support.discord.com/hc/nl/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+# Stel in op `true` om de URL-formaatcontrole van Discord te omzeilen.
+# Dit staat elke geldige HTTPS-URL toe (handig voor proxy's of Matrix-forwarders).
+disable-webhook-validation: false
+embed-title: "**Grim Waarschuwing**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# Vervangt backticks (`) in waarden (zoals clientmerken) om te voorkomen dat de tekstopmaak van Discord breekt.
+# Stel in op "`" om deze vervanging uit te schakelen.
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**Speler**: %player%"
-    - "**Controleer**: %check%"
+    - "**Speler**: `%player%`"
+    - "**Controle**: %check%"
     - "**Overtredingen**: %violations%"
     - "**Client-versie**: %version%"
-    - "**Client-merk**: %brand%"
+    - "**Client-merk**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"

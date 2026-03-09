@@ -3,14 +3,20 @@
 # https://support.discord.com/hc/ja/articles/228383668-Webhooks-%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9
 enabled: false
 webhook: ""
-embed-title: "**Grim アラート**"
+# DiscordのURLフォーマット検証をバイパスするには `true` に設定します。
+# これにより、任意の有効なHTTPS URLが許可されます（プロキシやMatrixフォワーダーに便利です）。
+disable-webhook-validation: false
+embed-title: "**Grim 警告**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# 値（クライアントのブランド名など）に含まれるバッククォート (`) を置換し、Discordのテキスト書式が崩れるのを防ぎます。
+# この置換を無効にするには "`" を設定してください。
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**プレイヤー**: %player%"
+    - "**プレイヤー**: `%player%`"
     - "**違反項目**: %check%"
     - "**違反回数**: %violations%"
     - "**クライアントバージョン**: %version%"
-    - "**ブランド**: %brand%"
+    - "**ブランド**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
