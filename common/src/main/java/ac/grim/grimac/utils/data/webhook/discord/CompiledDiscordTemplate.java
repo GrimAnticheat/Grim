@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.discord;
+package ac.grim.grimac.utils.data.webhook.discord;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;

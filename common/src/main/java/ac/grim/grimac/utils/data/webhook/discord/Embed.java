@@ -1,5 +1,6 @@
-package ac.grim.grimac.utils.webhook;
+package ac.grim.grimac.utils.data.webhook.discord;
 
+import ac.grim.grimac.utils.webhook.JsonSerializable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
