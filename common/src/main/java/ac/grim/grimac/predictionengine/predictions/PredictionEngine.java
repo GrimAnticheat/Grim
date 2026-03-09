@@ -273,13 +273,13 @@ public class PredictionEngine {
     }
 
     private Pair<Vector3dm, Vector3dm> doSeekingWallCollisions(GrimPlayer player, Vector3dm primaryPushMovement, Vector3dm originalClientVel, VectorData clientVelAfterInput) {
-        // TODO: causes falses when riding nautilus on the ground, figure out why this is even here
         boolean vehicleKB = player.inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
         // Extra collision epsilon required for vehicles to be accurate
         double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
         // The server likes sending y=0 kb "lifting" the player off the ground.
         // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
-        double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
+        double yAdditional = vehicleKB ? 0 : (player.inVehicle() ? Math.signum(primaryPushMovement.getY()) : (primaryPushMovement.getY() > 0 ? 1 : -1))
+                * SimpleCollisionBox.COLLISION_EPSILON;
         double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
 
         // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)

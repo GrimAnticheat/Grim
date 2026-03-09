@@ -7,19 +7,27 @@ enabled: false
 # La URL del webhook.
 webhook: ""
 
-embed-title: "**Grim Alert**"
+# Establécelo en `true` para omitir la validación de formato de URL de Discord.
+# Esto permite cualquier URL HTTPS válida (útil para proxies o reenviadores de Matrix).
+disable-webhook-validation: false
+
+embed-title: "**Grim Alerta**"
 
 # El color del embed que se mandara por este webhook.
 embed-color: "#00FFFF"
 
 include-timestamp: true
 
+# Reemplaza las comillas invertidas (`) en los valores (como las marcas de clientes) para no romper el formato de texto de Discord.
+# Establécelo en "`" para desactivar este reemplazo.
+backtick-replacement-char: "ˋ"
+
 # El contenido del embed que se mandara por este webhook.
 violation-content:
-    - "**Jugador**: %player%"
+    - "**Jugador**: `%player%`"
     - "**Comprobación**: %check%"
     - "**Violaciones**: %violations%"
     - "**Version del cliente**: %version%"
-    - "**Marca del cliente**: %brand%"
+    - "**Marca del cliente**: `%brand%`"
     - "**Latencia**: %ping%"
     - "**TPS**: %tps%"

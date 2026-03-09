@@ -29,6 +29,10 @@ disconnect:
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &cQuesto comando può essere utilizzato solo dai giocatori!"
 run-as-player-or-console: "%prefix% &cQuesto comando può essere utilizzato solo dai giocatori o dalla console!"
+webhook-not-enabled: "Discord webhooks are not enabled!"
+webhook-test-message: "test message"
+webhook-test-succeeded: "Discord webhook test succeeded!"
+webhook-test-failed: "Discord webhook test failed!"
 
 alerts-format: "%prefix% &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"

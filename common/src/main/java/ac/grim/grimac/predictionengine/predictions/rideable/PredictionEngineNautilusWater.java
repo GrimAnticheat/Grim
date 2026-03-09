@@ -17,8 +17,6 @@ public class PredictionEngineNautilusWater extends PredictionEngine {
 
     @Override
     public void endOfTick(GrimPlayer player, double delta) {
-        super.endOfTick(player, delta);
-
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             vector.vector.setX(vector.vector.getX() * multiplier);
             vector.vector.setY(vector.vector.getY() * multiplier);
