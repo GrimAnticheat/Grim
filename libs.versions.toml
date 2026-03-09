@@ -14,7 +14,7 @@ geyser-base-api = "1.0.2"
 grim-api = "1.2.4.0"
 packetevents = "2.11.2+675bc5c-SNAPSHOT"
 placeholderapi = "2.11.6"
-viaversion = "5.5.0"
+viaversion = "5.7.1"
 
 # --- General Java Utilities ---
 fastutil = "8.5.15"
