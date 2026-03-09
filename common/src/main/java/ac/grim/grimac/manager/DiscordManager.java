@@ -132,7 +132,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
         );
     }
 
-    public void sendAlert(GrimPlayer player, String verbose, String checkName, int violations) {
+    public void sendAlert(@NotNull GrimPlayer player, String verbose, String checkName, int violations) {
         if (isDisabled()) {
             return;
         }
@@ -144,11 +144,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
 
         Map<String, Function<GrimUser, String>> dynamics = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements();
 
-        // PAPI resolver: called only for placeholders Grim doesn't recognize
-        Function<String, String> papiResolver = key ->
-                GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(player.platformPlayer, key);
-
-        String content = compiledContent.render(player, statics, dynamics, backtickReplacement, papiResolver);
+        String content = compiledContent.render(player, statics, dynamics, backtickReplacement);
 
         Embed embed = new Embed(content)
                 .color(embedColor)

@@ -1,17 +1,25 @@
 package ac.grim.grimac.utils.discord;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public record CompiledDiscordTemplate(Segment[] segments) {
+
+    // PAPI resolver: called only for placeholders Grim doesn't recognize
+    private static final BiFunction<String, PlatformPlayer, String> papiResolver = (key, platformPlayer) ->
+            GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, key);
 
     /**
      * Markdown context as determined by a state-machine scan of the template.
@@ -88,30 +96,27 @@ public record CompiledDiscordTemplate(Segment[] segments) {
      * @param statics             Static replacements (may include per-alert overrides like %check%)
      * @param dynamics            Dynamic replacements (lazy functions like %tps%)
      * @param backtickReplacement Char to substitute for backticks inside code spans (loaded from config)
-     * @param externalResolver    PAPI resolver: key → resolved string, or key unchanged if unresolved (nullable)
      */
-    public String render(@Nullable GrimPlayer player,
-                         Map<String, String> statics,
-                         Map<String, Function<GrimUser, String>> dynamics,
-                         char backtickReplacement,
-                         @Nullable Function<String, String> externalResolver) {
+    public String render(@NotNull GrimPlayer player,
+                         @NotNull Map<String, String> statics,
+                         @NotNull Map<String, Function<GrimUser, String>> dynamics,
+                         char backtickReplacement) {
         StringBuilder sb = new StringBuilder(segments.length * 32);
         for (Segment seg : segments) {
-            if (seg instanceof Literal) {
-                sb.append(((Literal) seg).text);
-            } else if (seg instanceof Placeholder) {
-                Placeholder p = (Placeholder) seg;
-
+            if (seg instanceof Literal l) {
+                sb.append(l.text);
+            } else if (seg instanceof Placeholder p) {
                 // Priority: static → dynamic → external (PAPI)
                 String val = statics.get(p.key);
 
-                if (val == null && player != null) {
+                if (val == null) {
                     Function<GrimUser, String> fn = dynamics.get(p.key);
                     if (fn != null) val = fn.apply(player);
                 }
 
-                if (val == null && externalResolver != null) {
-                    String resolved = externalResolver.apply(p.key);
+                if (val == null) {
+                    String resolved = GrimAPI.INSTANCE.getMessagePlaceHolderManager()
+                            .replacePlaceholders(player.platformPlayer, p.key);
                     if (!resolved.equals(p.key)) val = resolved;
                 }
 
@@ -126,37 +131,64 @@ public record CompiledDiscordTemplate(Segment[] segments) {
     }
 
     private static String escape(String value, EscapeMode mode, char backtickReplacement) {
-        if (mode == EscapeMode.CODE_SPAN) {
-            return escapeCodeSpan(value, backtickReplacement);
-        }
+        if (mode == EscapeMode.NONE) return value;
+        if (mode == EscapeMode.CODE_SPAN) return escapeCodeSpan(value, backtickReplacement);
         return escapeMarkdown(value);
     }
 
-    /** Full Discord Markdown escaping. Backslashes first to prevent double-escaping. */
+    /**
+     * Full Discord Markdown escaping for untrusted data values.
+     * <p>
+     * This method treats input as <b>raw data</b>, not pre-formatted markdown.
+     * A literal backslash in a player name is data and must render as a visible backslash.
+     * This means "already escaped" input like {@code \*} correctly becomes {@code \\*}
+     * (rendering as {@code \*}), which is the intended behavior — identical to SQL parameterization.
+     * <p>
+     * All escaped characters ({@code \X}) render identically to their unescaped form ({@code X})
+     * in Discord's CommonMark variant, so escaping is invisible to end users.
+     */
     public static String escapeMarkdown(String s) {
         if (s == null || s.isEmpty()) return s;
         StringBuilder sb = new StringBuilder(s.length() + 16);
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             switch (c) {
+                // Backslash MUST be first — prevents our own escape backslashes
+                // from being re-escaped if the input already contains backslashes.
                 case '\\' -> sb.append("\\\\");
+                // Inline code spans (`text`)
                 case '`' -> sb.append("\\`");
+                // Bold (**text**) and italic (*text*)
                 case '*' -> sb.append("\\*");
+                // Bold (__text__) and italic (_text_)
                 case '_' -> sb.append("\\_");
+                // Strikethrough (~~text~~)
                 case '~' -> sb.append("\\~");
+                // Spoiler tags (||text||)
                 case '|' -> sb.append("\\|");
+                // Link [text](url) and image ![alt](url) syntax
                 case '[' -> sb.append("\\[");
                 case ']' -> sb.append("\\]");
                 case '(' -> sb.append("\\(");
                 case ')' -> sb.append("\\)");
+                // Auto-linking (https://...) and emoji (:name:)
+                case ':' -> sb.append("\\:");
+                // Timestamps (<t:...>), mentions (<@id>), custom emoji (<:n:id>),
+                // embed suppression (<url>)
+                case '<' -> sb.append("\\<");
+                // Headers (#, ##, ###), block quotes (>, >>>).
+                // Always escaped — \# and \> render identically to # and >.
+                case '#' -> sb.append("\\#");
+                case '>' -> sb.append("\\>");
+                // Unordered lists (- item) and subtext (-# text)
+                case '-' -> sb.append("\\-");
+                // Ordered lists (1. item). \. renders identically to .
+                case '.' -> sb.append("\\.");
+                // Newlines in injected values would break embed layout and enable
+                // line-start syntax injection (headers, quotes, lists).
+                // Replaced with literal "\n" text. Template newlines are unaffected
+                // (they pass through as Literal segments, not through this method).
                 case '\n' -> sb.append("\\n");
-                case '#', '>', '-' -> {
-                    // These are only special at the start of a line followed by a space
-                    boolean lineStart = (i == 0) || (s.charAt(i - 1) == '\n');
-                    boolean spaceAfter = (i + 1 < s.length()) && (s.charAt(i + 1) == ' ');
-                    if (lineStart && spaceAfter) sb.append('\\');
-                    sb.append(c);
-                }
                 default -> sb.append(c);
             }
         }
@@ -176,48 +208,46 @@ public record CompiledDiscordTemplate(Segment[] segments) {
     // ──────────────────── STATE MACHINE ────────────────────
 
     /**
-     * Advances Markdown context through literal text.
-     * Handles: backslash escapes in NORMAL, single-` inline code, triple-` code blocks.
-     *
+     * Advances Markdown context through literal template text.
+     * Handles: backslash escapes (NORMAL only), single-` inline code, triple-` code blocks.
+     * <p>
      * Edge cases resolved:
-     *   `text %p% text`         → INLINE_CODE (` opens)
-     *   `a`%p%`b`              → NORMAL      (` opens, ` closes before %p%)
-     *   \`%p%`                  → NORMAL      (` is backslash-escaped)
+     * <pre>
+     *   `text %p% text`  → INLINE_CODE  (` opens before placeholder)
+     *   `a`%p%`b`        → NORMAL       (` opens then ` closes before placeholder)
+     *   \`%p%`           → NORMAL       (backtick is backslash-escaped)
+     * </pre>
+     * <b>Known limitation:</b> Double-backtick code spans ({@code `` text ``}) are not tracked.
      */
     private static MarkdownContext advanceContext(MarkdownContext ctx, String text) {
         int i = 0;
         while (i < text.length()) {
             char c = text.charAt(i);
-            switch (ctx) {
-                case NORMAL -> {
-                    if (c == '\\' && i + 1 < text.length()) {
-                        i += 2;  // skip escaped char entirely
-                        continue;
-                    }
-                    if (c == '`') {
-                        if (i + 2 < text.length()
-                                && text.charAt(i + 1) == '`'
-                                && text.charAt(i + 2) == '`') {
-                            ctx = MarkdownContext.CODE_BLOCK;
-                            i += 3;
-                            continue;
-                        }
-                        ctx = MarkdownContext.INLINE_CODE;
-                    }
+            if (ctx == MarkdownContext.NORMAL) {
+                if (c == '\\' && i + 1 < text.length()) {
+                    i += 2; // skip escaped char entirely
+                    continue;
                 }
-                case INLINE_CODE -> {
-                    // No escape sequences inside code spans — backtick always closes
-                    if (c == '`') ctx = MarkdownContext.NORMAL;
-                }
-                case CODE_BLOCK -> {
-                    if (c == '`'
-                            && i + 2 < text.length()
+                if (c == '`') {
+                    if (i + 2 < text.length()
                             && text.charAt(i + 1) == '`'
                             && text.charAt(i + 2) == '`') {
-                        ctx = MarkdownContext.NORMAL;
+                        ctx = MarkdownContext.CODE_BLOCK;
                         i += 3;
                         continue;
                     }
+                    ctx = MarkdownContext.INLINE_CODE;
+                }
+            } else if (ctx == MarkdownContext.INLINE_CODE) {
+                if (c == '`') ctx = MarkdownContext.NORMAL;
+            } else { // CODE_BLOCK
+                if (c == '`'
+                        && i + 2 < text.length()
+                        && text.charAt(i + 1) == '`'
+                        && text.charAt(i + 2) == '`') {
+                    ctx = MarkdownContext.NORMAL;
+                    i += 3;
+                    continue;
                 }
             }
             i++;
