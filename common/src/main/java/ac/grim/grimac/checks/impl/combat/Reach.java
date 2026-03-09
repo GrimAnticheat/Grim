@@ -123,21 +123,24 @@ public class Reach extends Check implements PacketCheck {
 
             boolean clientAttackRangeExists = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11);
             boolean clientAndServerAgrees = clientAttackRangeExists && ATTACK_RANGE_COMPONENT_EXISTS;
-            boolean clientAndViaVersion = clientAttackRangeExists && USE_1_8_HITBOX_MARGIN && ViaVersionUtil.isAvailable;
+
+            boolean viaVersionAvailable = false;
+            if (USE_1_8_HITBOX_MARGIN && ViaVersionUtil.isAvailable) {
+                viaVersionAvailable = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
+            }
+
+            boolean clientAndViaVersion = clientAttackRangeExists && viaVersionAvailable;
             if (clientAndServerAgrees || clientAndViaVersion) {
                 ItemAttackRange startRange = startStack.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
                 ItemAttackRange currentRange = currentStack.getComponentOr(ComponentTypes.ATTACK_RANGE, null);
 
                 if (clientAndViaVersion) {
-                    boolean useLegacyHitboxMargin = Via.getConfig().getValues().containsKey("use-1_8-hitbox-margin") && Via.getConfig().use1_8HitboxMargin();
-                    if (useLegacyHitboxMargin) {
-                        if (startStack != ItemStack.EMPTY) {
-                            startRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
-                        }
+                    if (startStack != ItemStack.EMPTY) {
+                        startRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
+                    }
 
-                        if (currentStack != ItemStack.EMPTY) {
-                            currentRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
-                        }
+                    if (currentStack != ItemStack.EMPTY) {
+                        currentRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
                     }
                 }
 
@@ -207,7 +210,6 @@ public class Reach extends Check implements PacketCheck {
             SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
             double maxReach = applyReachModifiers(targetBox, hasAttackRange, itemMaxReach, itemHitboxMargin, !player.packetStateData.didLastMovementIncludePosition);
-
             return ReachUtils.getMinReachToBox(player, targetBox) > maxReach;
         }
     }
