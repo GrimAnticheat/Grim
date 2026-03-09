@@ -2,24 +2,17 @@ package ac.grim.grimac.utils.discord;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public record CompiledDiscordTemplate(Segment[] segments) {
-
-    // PAPI resolver: called only for placeholders Grim doesn't recognize
-    private static final BiFunction<String, PlatformPlayer, String> papiResolver = (key, platformPlayer) ->
-            GrimAPI.INSTANCE.getMessagePlaceHolderManager().replacePlaceholders(platformPlayer, key);
 
     /**
      * Markdown context as determined by a state-machine scan of the template.
@@ -160,7 +153,7 @@ public record CompiledDiscordTemplate(Segment[] segments) {
                 case '`' -> sb.append("\\`");
                 // Bold (**text**) and italic (*text*)
                 case '*' -> sb.append("\\*");
-                // Bold (__text__) and italic (_text_)
+                // Underlined  (__text__) and italic (_text_)
                 case '_' -> sb.append("\\_");
                 // Strikethrough (~~text~~)
                 case '~' -> sb.append("\\~");
