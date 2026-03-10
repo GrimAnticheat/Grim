@@ -148,7 +148,7 @@ TimerLimit:
     # Ping at which the check will start to limit timer balance, to prevent abuse.
     # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
     # -1 to disable
-    ping-abuse-limit-threshold: 1000
+    ping-abuse-limit-threshold: 2000
 
 NegativeTimer:
     # Number of milliseconds lost while moving before we should start flagging
