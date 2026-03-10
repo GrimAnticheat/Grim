@@ -16,7 +16,7 @@ public abstract class Check {
     protected final LegacyAntiCheatPlugin plugin;
     private final String name;
 
-    // ── Stage map: CheckName CheckStage (FR-2) ────────────────────────
+    // 閳光偓閳光偓 Stage map: CheckName CheckStage (FR-2) 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private static final Map<String, CheckStage> STAGE_MAP;
     static {
         Map<String, CheckStage> map = new HashMap<String, CheckStage>();
@@ -112,9 +112,7 @@ public abstract class Check {
     }
 
     protected boolean isExempt(Player player, PlayerData data, boolean ignoreVelocityGrace) {
-        // Bot soft-compat: skip all checks for bot players
-        String nameLower = player.getName().toLowerCase(java.util.Locale.ROOT);
-        if (nameLower.startsWith("[bot]") || nameLower.startsWith("nodebuff") || nameLower.contains("gapple")) {
+        if (player.hasPermission("grimlegacy.bypass")) {
             return true;
         }
 
@@ -200,7 +198,7 @@ public abstract class Check {
         double vl = data.addViolation(name, amount);
         recordEvidence(data, amount, null);
 
-        // ── FR-5 Phase E: Record to ViolationLedger ──────────────────
+        // 閳光偓閳光偓 FR-5 Phase E: Record to ViolationLedger 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
         ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
         String budgetTag = budget != null ? budget.getScenarioTag() : "no-budget";
         ViolationLedger ledger = plugin.ledger();
@@ -239,10 +237,6 @@ public abstract class Check {
     }
 
     private void runPunishments(Player player, PlayerData data, double vl) {
-        // OP players are checked but never punished
-        if (player.hasPermission("grimlegacy.bypass")) {
-            return;
-        }
         double punishVl = plugin.getConfig().getDouble("checks." + name + ".punish-vl", -1.0D);
         if (punishVl <= 0.0D || vl < punishVl || data.hasExecutedPunish(name)) {
             return;
