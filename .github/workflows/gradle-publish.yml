@@ -1,59 +1,48 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
+name: Gradle Package (Development)
 
-name: Gradle Package
-
-on: [push, workflow_dispatch]
-
+on:
+    workflow_dispatch:
+        inputs:
+            run-build-scan:
+                description: 'Run with public build scan (adds --scan)'
+                required: true
+                type: boolean
+                default: false
+            publish-artifacts:
+                description: 'Upload to Modrinth & API? (Uncheck for a dry run)'
+                type: boolean
+                default: true
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'tenki-standard-autoscale'
+    push:
+        branches:
+            - 'main'
+            - '2.0'
+            - 'dev'
+            - 'release'
+            - 'release/**'
+        paths:
+            - 'bukkit/**'
+            - 'common/**'
+            - 'fabric/**'
+            - '**.java'
+            - '**.kt'
+            - '**.kts'
+            - '**.toml'
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4 # Handles Gradle wrapper validation and basic caching
-
-    - name: Cache Gradle Loom Cache
-      uses: actions/cache@v4
-      with:
-        path: .gradle/loom-cache # Path to Loom cache relative to workspace root
-        key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
-        restore-keys: |
-          loom-cache-${{ runner.os }}
-
-    - name: Build with Gradle (Actual Build for Artifacts)
-      run: ./gradlew build
-
-    - name: Upload Bukkit Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: grimac-bukkit
-        # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-*.jar
-        if-no-files-found: error
-
-    - name: Upload Fabric Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: grimac-fabric
-        # Adding if-no-files-found for robustness
-        path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-*.jar
-        if-no-files-found: error
-
+    call-build-workflow:
+        uses: ./.github/workflows/build-and-publish.yml
+        with:
+            runner: ${{ github.event.inputs.runner || 'tenki-standard-autoscale' }}
+            is-release-build: false
+            release-version-type: alpha # Dev builds are always 'alpha'
+            run-build-scan: ${{ github.event.inputs.run-build-scan == 'true' }}
+            publish-artifacts: ${{ github.event.inputs.publish-artifacts != 'false' }}
+        secrets:
+            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+            BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
+            BUILD_UPDATE_URL: ${{ secrets.BUILD_UPDATE_URL }}

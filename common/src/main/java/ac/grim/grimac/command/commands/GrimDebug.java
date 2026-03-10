@@ -3,6 +3,7 @@ package ac.grim.grimac.command.commands;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -10,30 +11,30 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GrimDebug implements BuildableCommand {
 
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
         Command.Builder<Sender> grimCommand = commandManager.commandBuilder("grim", "grimac");
 
         // Register "debug" subcommand
         Command.Builder<Sender> debugCommand = grimCommand
                 .literal("debug", Description.of("Toggle debug output for a player"))
                 .permission("grim.debug")
-                .optional("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                .optional("target", adapter.singlePlayerSelectorParser())
                 .handler(this::handleDebug);
 
         // Register "consoledebug" subcommand
         Command.Builder<Sender> consoleDebugCommand = grimCommand
                 .literal("consoledebug", Description.of("Toggle console debug output for a player"))
                 .permission("grim.consoledebug")
-                .required("target", GrimAPI.INSTANCE.getParserDescriptors().getSinglePlayer())
+                .required("target", adapter.singlePlayerSelectorParser())
                 .handler(this::handleConsoleDebug);
 
         // Register command
@@ -41,17 +42,24 @@ public class GrimDebug implements BuildableCommand {
         commandManager.command(consoleDebugCommand);
     }
 
-    private void handleDebug(@NonNull CommandContext<Sender> context) {
+    private void handleDebug(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         PlayerSelector playerSelector = context.getOrDefault("target", null);
 
         GrimPlayer targetGrimPlayer = parseTarget(sender, playerSelector == null ? sender : playerSelector.getSinglePlayer());
-        if (targetGrimPlayer == null) return;
+        if (targetGrimPlayer == null) {
+            sender.sendMessage(MessageUtil.getParsedComponent(sender, "player-not-found", "%prefix% &cPlayer is exempt or offline!"));
+            return;
+        }
 
         if (sender.isConsole()) {
             targetGrimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
         } else if (sender.isPlayer()) {
             GrimPlayer senderGrimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(sender.getUniqueId());
+            if (senderGrimPlayer == null) {
+                sender.sendMessage(MessageUtil.getParsedComponent(sender, "sender-not-found", "%prefix% &cYou cannot be exempt to use this command!"));
+                return;
+            }
             targetGrimPlayer.checkManager.getDebugHandler().toggleListener(senderGrimPlayer);
         } else {
             sender.sendMessage(MessageUtil.getParsedComponent(sender,
@@ -61,7 +69,7 @@ public class GrimDebug implements BuildableCommand {
         }
     }
 
-    private void handleConsoleDebug(@NonNull CommandContext<Sender> context) {
+    private void handleConsoleDebug(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         PlayerSelector targetName = context.getOrDefault("target", null);
 
@@ -81,7 +89,7 @@ public class GrimDebug implements BuildableCommand {
         sender.sendMessage(message);
     }
 
-    private @Nullable GrimPlayer parseTarget(@NonNull Sender sender, @Nullable Sender t) {
+    private @Nullable GrimPlayer parseTarget(@NotNull Sender sender, @Nullable Sender t) {
         if (sender.isConsole() && t == null) {
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "console-specify-target", "%prefix% &cYou must specify a target as the console!"));
             return null;

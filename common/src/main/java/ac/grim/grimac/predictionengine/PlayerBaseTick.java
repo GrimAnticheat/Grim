@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
@@ -14,15 +15,20 @@ import ac.grim.grimac.utils.nmsutil.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.attributes.EnvironmentAttributes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import lombok.experimental.UtilityClass;
 
 import java.util.Optional;
 
+@UtilityClass
 public final class PlayerBaseTick {
 
     public static boolean canEnterPose(GrimPlayer player, Pose pose, double x, double y, double z) {
@@ -102,13 +108,13 @@ public final class PlayerBaseTick {
     // 1.16 eye in water is a tick behind
     // 1.15 eye in water is the most recent result
     private static void updateFluidOnEyes(GrimPlayer player) {
-        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
+        player.wasEyeInWater = player.fluidOnEyes == FluidTag.WATER;
         player.fluidOnEyes = null;
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (riding != null && riding.isBoat() && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (riding != null && riding.isBoat && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -129,9 +135,16 @@ public final class PlayerBaseTick {
         }
     }
 
+    private static final boolean SERVER_SUPPORT_ENVIRONMENT_ATTRIBUTES = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
     private static void updateInWaterStateAndDoFluidPushing(GrimPlayer player) {
+        player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing(player);
-        final double multiplier = player.dimensionType.isUltraWarm() ? 0.007 : 0.0023333333333333335;
+
+        final boolean fastLava = SERVER_SUPPORT_ENVIRONMENT_ATTRIBUTES && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)
+                ? player.dimensionType.getAttributes().getOrDefault(EnvironmentAttributes.GAMEPLAY_FAST_LAVA)
+                : player.dimensionType.isUltraWarm();
+
+        final double multiplier = fastLava ? 0.007 : 0.0023333333333333335;
         // 1.15 and below clients use block collisions to check for being in lava
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16))
             player.wasTouchingLava = updateFluidHeightAndDoFluidPushing(player, FluidTag.LAVA, multiplier);
@@ -386,7 +399,8 @@ public final class PlayerBaseTick {
 
     public static void updateInWaterStateAndDoWaterCurrentPushing(GrimPlayer player) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat());
+        player.wasWasTouchingWater = player.wasTouchingWater;
+        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }
@@ -408,7 +422,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
 
@@ -458,7 +472,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
         double d2 = 0.0;
@@ -487,7 +501,7 @@ public final class PlayerBaseTick {
                     hasTouched = true;
                     d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
-                    if (!player.isFlying) {
+                    if (!player.isFlying && !(player.getVehicle() instanceof PacketEntityNautilus)) {
                         Vector3dm vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
@@ -531,6 +545,7 @@ public final class PlayerBaseTick {
             player.slightlyTouchingWater = hasTouched && d2 <= 0.4D;
         }
 
+        player.fluidHeight.put(tag, d2);
         return hasTouched;
     }
 

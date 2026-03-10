@@ -14,6 +14,7 @@ reloaded: "%prefix% &f配置已经重载完毕."
 reload-failed: "%prefix% &c重载配置失败."
 player-not-found: "%prefix% &c指定玩家不存在或离线!"
 player-not-this-server: "%prefix% &c指定玩家不在此服务器上！"
+sender-not-found: "%prefix% &c如果你被豁免，则无法使用此命令！"
 spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &f点击这里返回之前的位置\n</hover></click>"
 cannot-spectate-return: "%prefix% &c您只能在观看玩家后执行此操作"
 cannot-run-on-self: "%prefix% &c你不能对自己使用此命令!"
@@ -28,6 +29,10 @@ disconnect:
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &c此命令只能由玩家使用！"
 run-as-player-or-console: "%prefix% &c此命令只能由玩家或控制台使用！"
+webhook-not-enabled: "Discord webhooks are not enabled!"
+webhook-test-message: "test message"
+webhook-test-succeeded: "Discord webhook test succeeded!"
+webhook-test-failed: "Discord webhook test failed!"
 
 # 变量:
 # %prefix% - 前缀
@@ -63,4 +68,12 @@ help:
     - "/grim spectate <player> &f- &7观看玩家"
     - "/grim verbose &f- &7显示无缓冲区的每个拉回"
     - "/grim log [1-999] &f- &7预测标志的调试日志"
+    - "/grim history <player> [页码] &f- &7显示玩家之前的警报"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &c历史子系统加载失败！请检查服务器控制台中的错误。"
+grim-history-disabled: "%prefix% &c历史子系统已禁用！"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &b显示 &f%player% 的日志 (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &b失败 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"

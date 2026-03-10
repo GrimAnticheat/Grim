@@ -10,11 +10,13 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
+import lombok.experimental.UtilityClass;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class Materials {
     private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
     // Includes iron panes in addition to glass panes
@@ -23,6 +25,10 @@ public class Materials {
     private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
     private static final Set<StateType> WATER_SOURCES = new HashSet<>();
     private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
+
+    public static final Set<StateType> CHESTS = new HashSet<>();
+    public static final Set<StateType> RODS = new HashSet<>();
+    public static final Set<StateType> CHAINS = new HashSet<>();
 
     private static final Set<StateType> COPPER_DOORS = new HashSet<>();
     private static final Set<StateType> COPPER_TRAPDOORS = new HashSet<>();
@@ -114,7 +120,19 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.MOB_INTERACTABLE_DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
+        PANES.addAll(BlockTags.BARS.getStates());
         PANES.add(StateTypes.IRON_BARS);
+
+        CHESTS.addAll(BlockTags.COPPER_CHESTS.getStates());
+        CHESTS.add(StateTypes.TRAPPED_CHEST);
+        CHESTS.add(StateTypes.CHEST);
+
+        RODS.addAll(BlockTags.LIGHTNING_RODS.getStates());
+        RODS.add(StateTypes.END_ROD);
+        RODS.add(StateTypes.LIGHTNING_ROD);
+
+        CHAINS.addAll(BlockTags.CHAINS.getStates());
+        CHAINS.add(StateTypes.CHAIN);
     }
 
     public static boolean isStairs(StateType type) {
@@ -167,6 +185,18 @@ public class Materials {
 
     public static Set<StateType> getPanes() {
         return new HashSet<>(PANES);
+    }
+
+    public static Set<StateType> getChests() {
+        return new HashSet<>(CHESTS);
+    }
+
+    public static Set<StateType> getRods() {
+        return new HashSet<>(RODS);
+    }
+
+    public static Set<StateType> getChains() {
+        return new HashSet<>(CHAINS);
     }
 
     public static boolean isGlassPane(StateType type) {
@@ -237,7 +267,7 @@ public class Materials {
         if (clientVersion.isOlderThan(ClientVersion.V_1_17) && BlockTags.RAILS.contains(type))
             return false;
         // Nice check to see if waterlogged :)
-        return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
+        return state.hasProperty(StateValue.WATERLOGGED) && state.isWaterlogged();
     }
 
     public static boolean isPlaceableWaterBucket(ItemType mat) {
@@ -326,8 +356,8 @@ public class Materials {
             return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
         }
 
-        // If it's not a copper trapdoor players in any version can open it
-        return true;
+        // If it's not a copper or iron trapdoor, players in any version can open it
+        return mat != StateTypes.IRON_TRAPDOOR;
     }
 
     public static boolean isCompostable(ItemType material) {

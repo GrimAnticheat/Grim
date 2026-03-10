@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.player.GrimPlayer;
 
 public class LastInstance {
-    int lastInstance = 100;
+    private int lastInstance = 100;
 
     public LastInstance(GrimPlayer player) {
         player.lastInstanceManager.addInstance(this);

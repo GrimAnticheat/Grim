@@ -33,14 +33,14 @@ public class MultiActionsG extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(BlockPlace place) {
-        if (isCheckActive() && flagAndAlert(place.getDirection() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets() && shouldCancel()) {
+        if (isCheckActive() && flagAndAlert(place.getFace() == BlockFace.OTHER ? "use" : "place") && shouldModifyPackets() && shouldCancel()) {
             place.resync();
         }
     }
 
     public boolean isCheckActive() {
         return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !player.vehicleData.wasVehicleSwitch // one tick off?
-                && player.inVehicle() && player.compensatedEntities.self.getRiding().getType().isInstanceOf(EntityTypes.BOAT)
+                && player.inVehicle() && player.compensatedEntities.self.getRiding().type.isInstanceOf(EntityTypes.BOAT)
                 && (player.vehicleData.nextVehicleForward != 0 || player.vehicleData.nextVehicleHorizontal != 0);
     }
 }

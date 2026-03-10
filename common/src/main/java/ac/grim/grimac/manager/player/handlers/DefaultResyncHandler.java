@@ -7,8 +7,6 @@ import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
@@ -90,7 +88,7 @@ public class DefaultResyncHandler implements ResyncHandler {
                                 }
 
                                 WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(new Vector3i(currChunkX, currChunkY, currChunkZ), true, encodedBlocks);
-                                ChannelHelper.runInEventLoop(player.user.getChannel(), () -> player.user.sendPacket(packet));
+                                player.runSafely(() -> player.user.sendPacket(packet));
                             }
                         }
                     }
@@ -117,16 +115,19 @@ public class DefaultResyncHandler implements ResyncHandler {
         GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world, chunkX, chunkZ, () -> {
             if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport)
                 return;
-            if (player.platformPlayer.getPosition().distance(new Vector3d(x, y, z)) >= 64)
+            if (player.platformPlayer.distanceSquared(x, y, z) >= 64 * 64)
                 return;
             if (!world.isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 
             final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(x & 15, y, z & 15);
 
-            player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
-                player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
-            }
+            player.runSafely(() -> {
+                player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
+                    player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
+                }
+            });
+
         });
     }
 

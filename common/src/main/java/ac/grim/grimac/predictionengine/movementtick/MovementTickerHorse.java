@@ -13,10 +13,9 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         super(player);
 
         PacketEntityHorse horsePacket = (PacketEntityHorse) player.compensatedEntities.self.getRiding();
+        if (!horsePacket.hasSaddle()) return;
 
-        if (!horsePacket.hasSaddle) return;
-
-        player.speed = horsePacket.getAttributeValue(Attributes.MOVEMENT_SPEED) + getExtraSpeed();
+        player.speed = (float) horsePacket.getAttributeValue(Attributes.MOVEMENT_SPEED) + getExtraSpeed();
 
         // Setup player inputs
         float horizInput = player.vehicleData.vehicleHorizontal * 0.5F;
@@ -27,7 +26,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         }
 
         this.movementInput = new Vector3dm(horizInput, 0, forwardsInput);
-        if (movementInput.lengthSquared() > 1) movementInput.normalize();
+        if (this.movementInput.lengthSquared() > 1) this.movementInput.normalize();
     }
 
     @Override

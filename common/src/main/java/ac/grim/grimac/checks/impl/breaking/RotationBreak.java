@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -34,7 +33,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR)
+        if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
@@ -50,7 +49,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onPostFlyingBlockBreak(BlockBreak blockBreak) {
-        if (player.gamemode == GameMode.SPECTATOR)
+        if (!player.cameraEntity.isSelf())
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
@@ -92,18 +91,18 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         // End checking if the player is in the block
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.lastXRot, player.yRot, 0),
-                new Vector3f(player.xRot, player.yRot, 0)
+                new Vector3f(player.lastYaw, player.pitch, 0),
+                new Vector3f(player.yaw, player.pitch, 0)
         ));
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
+            possibleLookDirs.add(new Vector3f(player.lastYaw, player.lastPitch, 0));
         }
 
         // 1.7 players do not have any of these issues! They are always on the latest look vector
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-            possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
+            possibleLookDirs = Collections.singletonList(new Vector3f(player.yaw, player.pitch, 0));
         }
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);

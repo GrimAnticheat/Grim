@@ -18,8 +18,8 @@ public interface CollisionBox {
     void downCast(List<SimpleCollisionBox> list);
 
     /**
-     * @param list - A list that will contain all of the SimpleCollisionBoxes representing the CollisionBox.
-     * @return - int representing the size of elements in the array that belong to this downcast.
+     * @param list A list that will contain all of the SimpleCollisionBoxes representing the CollisionBox.
+     * @return int representing the size of elements in the array that belong to this downcast.
      * The contents of elements starting from list[size] and above are undefined and should not be iterated over.
      */
     int downCast(SimpleCollisionBox[] list);

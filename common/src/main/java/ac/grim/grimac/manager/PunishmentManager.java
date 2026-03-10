@@ -11,6 +11,8 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -19,9 +21,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PunishmentManager implements ConfigReloadable {
-    GrimPlayer player;
-    List<PunishGroup> groups = new ArrayList<>();
-    String experimentalSymbol = "*";
+    private final GrimPlayer player;
+    private final List<PunishGroup> groups = new ArrayList<>();
+    private String experimentalSymbol = "*";
     private String alertString;
     private boolean testMode;
     private String proxyAlertString = "";
@@ -137,6 +139,11 @@ public class PunishmentManager implements ConfigReloadable {
 
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
+                                case "[log]" -> {
+                                    int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
+                                    String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
+                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                                }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
                                     sentDebug = true;
@@ -174,7 +181,7 @@ public class PunishmentManager implements ConfigReloadable {
 
                 group.violations.put(currentTime, check);
                 // Remove violations older than the defined time in the config
-                group.violations.entrySet().removeIf(time -> currentTime - time.getKey() > group.removeViolationsAfter);
+                group.violations.long2ObjectEntrySet().removeIf(time -> currentTime - time.getLongKey() > group.removeViolationsAfter);
             }
         }
     }
@@ -192,7 +199,7 @@ public class PunishmentManager implements ConfigReloadable {
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
-    public final Map<Long, Check> violations = new HashMap<>();
+    public final Long2ObjectMap<Check> violations = new Long2ObjectOpenHashMap<>();
     public final int removeViolationsAfter; // time to remove violations after in milliseconds
 }
 

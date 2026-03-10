@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
@@ -19,7 +20,6 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -64,14 +64,14 @@ import java.util.Map;
 import java.util.Set;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
-public class CompensatedWorld {
+public class CompensatedWorld implements PacketWorld {
     public static final ClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
     private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
     public final Long2ObjectMap<Column> chunks;
     // Packet locations for blocks
-    public Set<PistonData> activePistons = new HashSet<>();
-    public Set<ShulkerData> openShulkerBoxes = new HashSet<>();
+    public final Set<PistonData> activePistons = new HashSet<>();
+    public final Set<ShulkerData> openShulkerBoxes = new HashSet<>();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     @Getter
     private int minHeight = 0;
@@ -206,12 +206,12 @@ public class CompensatedWorld {
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
         } else {
             // ViaVersion is updated and runs tasks with bukkit which is correct
-            // So we must wait for the bukkit thread to start ticking so via can "confirm" it
+            // So we must wait for the bukkit thread to start ticking so via can "confirm" it.
             //
             // no need to support Folia on this one because Folia is 1.19+ only
             GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
                 // And then we jump back to the netty thread to simulate that Via sent the confirmation
-                ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
+                player.runSafely(() -> applyBlockChanges(toApplyBlocks));
             });
         }
     }
@@ -222,7 +222,7 @@ public class CompensatedWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat() || entity.getType() == EntityTypes.SHULKER) && player.compensatedEntities.self.getRiding() != entity) {
+            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && player.compensatedEntities.self.getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -332,7 +332,7 @@ public class CompensatedWorld {
                     data.setOpen(!data.isOpen());
                     updateBlock(blockX, blockY, blockZ, data.getGlobalId());
                 } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
-                    // Then tries setting the first bit of whatever is below it, disregarding it's type
+                    // Then tries setting the first bit of whatever is below it, disregarding its type
                     otherDoor.setOpen(!otherDoor.isOpen());
                     updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
                 }
@@ -461,6 +461,25 @@ public class CompensatedWorld {
         return airData;
     }
 
+    @Override
+    public int getBlockStateId(int x, int y, int z) { // Logic copied from getBlock
+        if (noNegativeBlocks && y < 0) return -1;
+
+        try {
+            Column column = getChunk(x >> 4, z >> 4);
+
+            y -= minHeight;
+            if (column == null || y < 0 || (y >> 4) >= column.chunks().length) return -2;
+
+            BaseChunk chunk = column.chunks()[y >> 4];
+            if (chunk != null) {
+                return chunk.getBlockId(x & 0xF, y & 0xF, z & 0xF);
+            }
+        } catch (Exception ignored) {
+        }
+        return -3;
+    }
+
     // Not direct power into a block
     // Trapped chests give power but there's no packet to the client to actually apply this... ignore trapped chests
     // just like mojang did!
@@ -537,7 +556,7 @@ public class CompensatedWorld {
         WrappedBlockState block = getBlock(x, y, z);
 
         if (block.getType() == StateTypes.DETECTOR_RAIL) { // Rails hard power block below itself
-            boolean isPowered = (boolean) block.getInternalData().getOrDefault(StateValue.POWERED, false);
+            boolean isPowered = block.hasProperty(StateValue.POWERED) && block.isPowered();
             return face == BlockFace.UP && isPowered ? 15 : 0;
         } else if (block.getType() == StateTypes.REDSTONE_TORCH) {
             return face != BlockFace.UP && block.isLit() ? 15 : 0;
@@ -599,6 +618,7 @@ public class CompensatedWorld {
         return chunks.get(chunkPosition);
     }
 
+    @Override
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         return chunks.containsKey(chunkPosition);

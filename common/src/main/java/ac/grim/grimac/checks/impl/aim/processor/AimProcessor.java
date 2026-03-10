@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
 
-
 public class AimProcessor extends Check implements RotationCheck {
 
     private static final int SIGNIFICANT_SAMPLES_THRESHOLD = 15;
@@ -19,10 +18,10 @@ public class AimProcessor extends Check implements RotationCheck {
     public double divisorY;
     public double modeX, modeY;
     public double deltaDotsX, deltaDotsY;
-    RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-    RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-    float lastXRot;
-    float lastYRot;
+    private final RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    private final RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    private float lastXRot;
+    private float lastYRot;
 
     public AimProcessor(GrimPlayer playerData) {
         super(playerData);
@@ -38,7 +37,6 @@ public class AimProcessor extends Check implements RotationCheck {
     public void process(final RotationUpdate rotationUpdate) {
         rotationUpdate.setProcessor(this);
 
-
         float deltaXRot = rotationUpdate.getDeltaXRotABS();
 
         this.divisorX = GrimMath.gcd(deltaXRot, lastXRot);
@@ -46,7 +44,6 @@ public class AimProcessor extends Check implements RotationCheck {
             this.xRotMode.add(divisorX);
             this.lastXRot = deltaXRot;
         }
-
 
         float deltaYRot = rotationUpdate.getDeltaYRotABS();
 

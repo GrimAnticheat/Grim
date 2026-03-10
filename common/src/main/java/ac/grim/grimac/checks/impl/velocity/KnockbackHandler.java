@@ -1,6 +1,5 @@
 package ac.grim.grimac.checks.impl.velocity;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -24,17 +23,17 @@ import java.util.LinkedList;
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
-    Deque<VelocityData> firstBreadMap = new LinkedList<>();
+    private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
-    Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
-    VelocityData firstBreadOnlyKnockback = null;
+    private final Deque<VelocityData> lastKnockbackKnownTaken = new LinkedList<>();
+    private VelocityData firstBreadOnlyKnockback = null;
     @Getter
-    boolean knockbackPointThree = false;
+    private boolean knockbackPointThree = false;
 
-    double offsetToFlag;
-    double maxAdv, immediate, ceiling, multiplier;
+    private double offsetToFlag;
+    private double maxAdv, immediate, ceiling, multiplier;
 
-    double threshold;
+    private double threshold;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
@@ -45,9 +44,6 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
 
             // Detect whether this knockback packet affects the player or if it is useless
             // Mojang sends extra useless knockback packets for no apparent reason
@@ -68,6 +64,8 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 playerVelocity = velocity.getVelocity();
                 event.markForReEncode(true);
             }
+
+            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
 
             // Wrap velocity between two transactions
             player.sendTransaction();
@@ -130,10 +128,13 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 //firstBreadMap.poll();
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
-                if (firstBreadOnlyKnockback != null) // Don't require kb twice
+                if (firstBreadOnlyKnockback != null) { // Don't require kb twice
                     lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector, data.isSetback, data.offset));
-                else
+                } else {
                     lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector));
+                }
+
+                // Knockback has been applied and is now required, remove it from first bread
                 firstBreadOnlyKnockback = null;
                 firstBreadMap.poll();
                 data = firstBreadMap.peek();

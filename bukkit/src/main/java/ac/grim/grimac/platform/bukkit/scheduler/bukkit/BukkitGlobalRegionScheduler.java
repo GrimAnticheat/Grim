@@ -13,8 +13,8 @@ public class BukkitGlobalRegionScheduler implements GlobalRegionScheduler {
     private final BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
 
     @Override
-    public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run) {
-        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, run);
+    public void execute(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
+        bukkitScheduler.runTask(GrimACBukkitLoaderPlugin.LOADER, task);
     }
 
     @Override

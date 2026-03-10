@@ -23,13 +23,12 @@ public class Inventory extends AbstractContainerMenu {
     private static final int TOTAL_SIZE = 46;
     public int selected = 0;
     @Getter
-    CorrectingPlayerInventoryStorage inventoryStorage;
+    private final CorrectingPlayerInventoryStorage inventoryStorage;
 
     public Inventory(GrimPlayer player, CorrectingPlayerInventoryStorage inventoryStorage) {
+        super(player);
+        this.setPlayerInventory(this);
         this.inventoryStorage = inventoryStorage;
-
-        super.setPlayer(player);
-        super.setPlayerInventory(this);
 
         // Result slot
         addSlot(new ResultSlot(inventoryStorage, 0));

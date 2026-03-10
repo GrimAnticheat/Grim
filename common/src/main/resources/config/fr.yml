@@ -25,7 +25,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
     # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
@@ -41,6 +41,18 @@ spectators:
 
 # Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
 max-transaction-time: 60
+
+# Enable this to stop Grim cancelling pongs received from players.
+# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
+# Do not enable this if you are not sure what you are doing.
+disable-pong-cancelling: false
+
+# Le gestionnaire de resynchronisation des blocs par défaut doit-il être désactivé ?
+# Par défaut, Grim lit les blocs du monde serveur et les envoie au client pour corriger la désynchronisation.
+# Si vous utilisez des plugins créant de faux blocs via paquets (qui n'existent pas dans le monde serveur),
+# vous devez régler ceci sur true pour empêcher Grim de les écraser avec de l'air ou des blocs réels.
+# Cela force l'utilisation d'un gestionnaire "NoOp" (Aucune Opération) sauf si un personnalisé est fourni via l'API.
+disable-default-resync-handler: false
 
 # Should the duplicate movement packet be cancelled?
 # Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
@@ -185,6 +197,7 @@ experimental-checks: false
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
+reset-item-usage-on-item-use: true
 
 # Grim annule parfois des paquets illégaux, comme ceux liés au chronomètre, après avoir annulé X paquets en une seconde,
 # à partir de combien de paquets annulés devrions-nous simplement expulser le joueur ?
@@ -201,5 +214,21 @@ max-ping-out-of-flying: 1000
 # Ping maximal lorsque la propulsion de feu d’artifice est retirée du joueur.
 # Cela empêche les joueurs à forte latence d’utiliser indéfiniment un seul boost de feu d’artifice avec une élytra.
 max-ping-firework-boost: 1000
+
+history:
+    enabled: true
+    # Combien d’entrées doivent être affichées par page avec /grim history <player>
+    entries-per-page: 15
+    # Quel nom de serveur doit être inséré pour la commande history ? Utile si vous utilisez la même base de données pour plusieurs serveurs
+    server-name: Prison
+    database:
+        # Utilisez SQLITE pour le stockage local, utilisez MYSQL ou POSTGRESQL si vous avez une base de données externe. Ceci n'est mis à jour qu'au redémarrage du serveur
+        type: SQLITE
+        # Détails de connexion à la base de données
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
 
 config-version: 9

@@ -17,7 +17,5 @@ public abstract class AbstractTickEndEvent implements StartableInitable {
 
     protected boolean shouldInjectEndTick() {
         return GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("Reach.enable-post-packet", false);
-
-
     }
 }

@@ -1,0 +1,235 @@
+name: Reusable Build and Publish
+
+on:
+    workflow_call:
+        inputs:
+            runner:
+                description: 'The runner to use for the build job.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
+            is-release-build:
+                description: 'True if this is a release build, which affects versioning and publishing.'
+                required: true
+                type: boolean
+            release-version-type:
+                description: 'The version type for Modrinth (e.g., release, beta, alpha).'
+                required: true
+                type: string
+            release-changelog:
+                description: 'The changelog content for the release.'
+                required: false
+                type: string
+                default: ''
+            run-build-scan:
+                description: 'Whether to enable Develocity build scan'
+                required: true
+                type: boolean
+            publish-artifacts:
+                description: 'If true, uploads artifacts to Modrinth and other distribution sites.'
+                required: true
+                type: boolean
+        secrets:
+            MODRINTH_ID:
+                required: false
+            MODRINTH_TOKEN:
+                required: false
+            BUILD_UPDATE_TOKEN:
+                required: true
+            BUILD_UPDATE_URL:
+                required: true
+
+jobs:
+    build:
+        runs-on: ${{ inputs.runner }}
+        permissions:
+            contents: read
+            packages: write
+
+        env:
+            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+            GRIM_MAIN_BRANCH: ${{ github.event.repository.default_branch }}
+            BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
+
+        steps:
+            - name: Checkout repository with full history
+              uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+                  fetch-depth: 200
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: '21'
+                  distribution: 'temurin'
+                  server-id: github
+                  settings-path: ${{ github.workspace }}
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v3
+              with:
+                  cache-read-only: ${{ github.ref_name != github.event.repository.default_branch && github.ref_name != 'dev' }}
+
+            - name: Cache Gradle Loom Cache
+              uses: actions/cache@v4
+              with:
+                  path: .gradle/loom-cache
+                  key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
+                  restore-keys: |
+                      loom-cache-${{ runner.os }}
+
+            - name: Set Git Environment Variables
+              run: |
+                  echo "GRIM_GIT_REPO=${{ github.event.repository.name }}" >> $GITHUB_ENV
+                  echo "GRIM_GIT_ORG=${{ github.repository_owner }}" >> $GITHUB_ENV
+
+            - name: Compute version and Build with Gradle
+              id: build_with_version
+              run: |
+                  # If any command in a pipeline fails, treat the pipeline as failed.
+                  set -o pipefail
+
+                  BUILD_ARGS="build"
+                  if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
+                    BUILD_ARGS="$BUILD_ARGS -Prelease=true"
+                  fi
+                  # Conditionally add the --scan flag
+                  if [[ "${{ inputs.run-build-scan }}" == "true" ]]; then
+                    BUILD_ARGS="$BUILD_ARGS --scan"
+                  fi
+
+                  echo "Running: ./gradlew printVersion $BUILD_ARGS"
+
+                  # Use 'tee' to both display the output live and save it to a file for parsing
+                  VERSION=$(./gradlew printVersion $BUILD_ARGS | tee build-output.log | grep '^VERSION=' | tail -n1 | cut -d'=' -f2)
+
+                  echo "build_version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "BUILD_VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "Build version: $VERSION"
+
+            - name: Publish Build Scan URL
+              # Only run this step if a scan was requested
+              if: ${{ inputs.run-build-scan == true }}
+              run: |
+                  # Search the log file for the build scan URL and extract it
+                  SCAN_URL=$(grep -o 'https://gradle.com/s/[^ ]*' build-output.log | head -n 1 || true)
+
+                  if [[ -n "$SCAN_URL" ]]; then
+                    echo "Found build scan URL: $SCAN_URL"
+                    # Post a highly visible link to the Job Summary page
+                    echo "### Gradle Build Scan" >> $GITHUB_STEP_SUMMARY
+                    echo "A public build scan has been published and is available for inspection." >> $GITHUB_STEP_SUMMARY
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "[**View Build Scan →**]($SCAN_URL)" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "Could not find build scan URL in build-output.log" >> $GITHUB_STEP_SUMMARY
+                  fi
+
+            - name: Upload Bukkit Artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: grimac-bukkit
+                  path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
+                  if-no-files-found: error
+
+            - name: Upload Fabric Artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: grimac-fabric
+                  path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
+                  if-no-files-found: error
+
+            #------------------------------------------------------------------
+            #  Generate/Prepare Changelog
+            #------------------------------------------------------------------
+            - name: Generate Changelog with git-cliff (for Dev Builds)
+              if: ${{ !inputs.is-release-build }}
+              id: git-cliff
+              uses: orhun/git-cliff-action@v4
+              with:
+                  config: cliff.toml
+                  args: --verbose ${{ github.event.before }}..${{ github.event.after }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
+
+            - name: Prepare Final Changelog
+              id: changelog
+              # Add this 'env' block to safely load the changelogs as environment variables
+              env:
+                  RELEASE_NOTES: ${{ inputs.release-changelog }}
+                  DEV_NOTES: ${{ steps.git-cliff.outputs.content }}
+              run: |
+                  NOTES=""
+                  if [[ "${{ inputs.is-release-build }}" == "true" ]]; then
+                    # Use the environment variable for the release changelog.
+                    # The double quotes are critical to preserve newlines!
+                    NOTES="$RELEASE_NOTES"
+                  else
+                    # Use the environment variable for the dev changelog.
+                    NOTES="$DEV_NOTES"
+                  fi
+
+                  if [ -z "$NOTES" ]; then
+                    NOTES="* No new code changes in this build."
+                  fi
+
+                  # This is the correct way to set a multi-line output variable in Actions
+                  {
+                    echo "notes<<EOF"
+                    echo "$NOTES"
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Publish Fabric to Modrinth
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
+              uses: Kir-Antipov/mc-publish@v3.3
+              with:
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
+                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
+
+                  files: fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
+                  name: Grim Anticheat (Fabric) ${{ env.BUILD_VERSION }}
+                  version: ${{ env.BUILD_VERSION }}
+                  version-type: ${{ inputs.release-version-type }}
+                  changelog: ${{ steps.changelog.outputs.notes }}
+                  loaders: |
+                      fabric
+                  game-versions: '>=1.16.1'
+                  dependencies: 'fabric-api'
+
+            #------------------------------------------------------------------
+            #  Publish to Modrinth & API
+            #------------------------------------------------------------------
+            - name: Publish Bukkit to Modrinth
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
+              uses: Kir-Antipov/mc-publish@v3.3
+              with:
+                  modrinth-id: ${{ secrets.MODRINTH_ID }}
+                  modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+                  modrinth-featured: ${{ inputs.is-release-build }} # Only feature release builds
+
+                  files: bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
+                  name: Grim Anticheat (Bukkit) ${{ env.BUILD_VERSION }}
+                  version: ${{ env.BUILD_VERSION }}
+                  version-type: ${{ inputs.release-version-type }}
+                  changelog: ${{ steps.changelog.outputs.notes }}
+                  loaders: |
+                    bukkit
+                    spigot
+                    paper
+                    folia
+                    purpur
+                  game-versions: '>=1.7 <=1.21.11'
+
+            - name: Publish to API
+              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}
+              run: |
+                  curl -X POST \
+                    -H "Content-Type: application/json" \
+                    -H "User-Agent: GrimACBuilder/v1" \
+                    -H "Authorization: Bearer ${{ secrets.BUILD_UPDATE_TOKEN }}" \
+                    -d '{"org": "${{ github.repository_owner }}", "repository": "${{ github.event.repository.name }}", "branch": "${{ github.ref_name }}", "version": "${{ env.BUILD_VERSION }}"}' \
+                    "${{ secrets.BUILD_UPDATE_URL }}"

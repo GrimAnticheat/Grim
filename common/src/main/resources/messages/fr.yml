@@ -14,6 +14,7 @@ reloaded: "%prefix% &fConfig has been reloaded."
 reload-failed: "%prefix% &cFailed to reload config."
 player-not-found: "%prefix% &cPlayer est ignoré ou hors ligne !"
 player-not-this-server: "%prefix% &cPlayer n'est pas sur ce serveur !"
+sender-not-found: "%prefix% &cVous ne pouvez pas utiliser cette commande si vous êtes exempté !"
 spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClickez ici pour retourner à votre position d'origine\n</hover></click>"
 cannot-spectate-return: "%prefix% &cVous pouvez faire cela uniquement en étant en spectateur"
 cannot-run-on-self: "%prefix% &cVous ne pouvez pas utiliser cette commande sur vous-même !"
@@ -28,6 +29,10 @@ disconnect:
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &cCette commande ne peut être utilisée que par les joueurs !"
 run-as-player-or-console: "%prefix% &cCette commande ne peut être utilisée que par les joueurs ou la console !"
+webhook-not-enabled: "Discord webhooks are not enabled!"
+webhook-test-message: "test message"
+webhook-test-succeeded: "Discord webhook test succeeded!"
+webhook-test-failed: "Discord webhook test failed!"
 
 # Placeholders valides :
 # %prefix%
@@ -63,4 +68,12 @@ help:
     - "/grim spectate <player> &f- &7Regarder un joueur"
     - "/grim verbose &f- &7Affiche chaqu'une de vos violations, sans tampons"
     - "/grim log [0-255] &f- &7Téléverse un journal de débogage pour les indicateurs de prédiction"
+    - "/grim history <player> [page] &f- &7Affiche les alertes précédentes du joueur"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cLe sous-système d'historique n'a pas pu être chargé ! Vérifiez la console du serveur pour les erreurs."
+grim-history-disabled: "%prefix% &cLe sous‑système d’historique est désactivé!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bAffichage des journaux pour &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bÉchec &f%check% (x&c%vl%&f) &7%verbose% (&bil y a %timeago%&7)"

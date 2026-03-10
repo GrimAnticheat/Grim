@@ -13,6 +13,7 @@ reloaded: "%prefix% &fDie Konfiguration wurde neu geladen."
 reload-failed: "%prefix% &cFehler beim Neuladen der Konfiguration."
 player-not-found: "%prefix% &cSpieler ist nicht auffindbar oder geschützt!"
 player-not-this-server: "%prefix% &cSpieler ist nicht auf diesem Server!"
+sender-not-found: "%prefix% &cDu kannst diesen Befehl nicht verwenden, wenn du ausgenommen bist!"
 spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fKlicke hier, um zur vorherigen Position zurückzukehren\n</hover></click>"
 cannot-spectate-return: "%prefix% &cDas kannst du nur tun, nachdem du einen Spieler beobachtet hast."
 cannot-run-on-self: "%prefix% &cDu kannst diesen Befehl nicht auf dich selbst anwenden!"
@@ -27,6 +28,10 @@ disconnect:
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &cDiesen Befehl können nur Spieler verwenden!"
 run-as-player-or-console: "%prefix% &cDiesen Befehl können nur Spieler oder die Konsole verwenden!"
+webhook-not-enabled: "Discord webhooks are not enabled!"
+webhook-test-message: "test message"
+webhook-test-succeeded: "Discord webhook test succeeded!"
+webhook-test-failed: "Discord webhook test failed!"
 
 # Gültige Platzhalter:
 # %prefix%
@@ -62,4 +67,12 @@ help:
     - "/grim spectate <player> &f- &7Beobachte einen Spieler"
     - "/grim verbose &f- &7Zeigt dir jeden Verstoß ohne Puffer an"
     - "/grim log [0-255] &f- &7Lädt ein Debug-Log für Vorhersagefehler hoch"
+    - "/grim history <player> [Seite] &f- &7Zeigt frühere Warnungen für den Spieler"
     - "&7======================"
+
+grim-history-load-failure: "%prefix% &cDas Verlaufs-Subsystem konnte nicht geladen werden! Überprüfe die Serverkonsole auf Fehler."
+grim-history-disabled: "%prefix% &cDas History‑Subsystem ist deaktiviert!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bZeige Logs für &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bFehlgeschlagen &f%check% (x&c%vl%&f) &7%verbose% (&bvor %timeago%&7)"

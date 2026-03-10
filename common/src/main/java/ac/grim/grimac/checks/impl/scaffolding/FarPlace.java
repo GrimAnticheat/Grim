@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 
@@ -20,19 +19,18 @@ public class FarPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (player.gamemode == GameMode.SPECTATOR || player.inVehicle()) return;
+        if (!player.cameraEntity.isSelf() || player.inVehicle()) return;
 
-        Vector3i blockPos = place.getPlacedAgainstBlockLocation();
+        Vector3i blockPos = place.position;
 
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (place.material == StateTypes.SCAFFOLDING) return;
 
         double min = Double.MAX_VALUE;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
         for (double d : possibleEyeHeights) {
             SimpleCollisionBox box = new SimpleCollisionBox(blockPos);
-            Vector3dm eyes = new Vector3dm(player.x, player.y + d, player.z);
-            Vector3dm best = VectorUtils.cutBoxToVector(eyes, box);
-            min = Math.min(min, eyes.distanceSquared(best));
+            Vector3dm best = VectorUtils.cutBoxToVector(player.x, player.y + d, player.z, box);
+            min = Math.min(min, best.distanceSquared(player.x, player.y + d, player.z));
         }
 
         // getPickRange() determines this?

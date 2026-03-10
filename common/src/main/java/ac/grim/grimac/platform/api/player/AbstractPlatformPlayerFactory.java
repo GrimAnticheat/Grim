@@ -1,19 +1,19 @@
 package ac.grim.grimac.platform.api.player;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayerFactory {
     protected final PlatformPlayerCache cache = PlatformPlayerCache.getInstance();
 
     @Override
-    public @Nullable
-    final PlatformPlayer getFromUUID(@NonNull UUID uuid) {
+    public final @Nullable PlatformPlayer getFromUUID(@NotNull UUID uuid) {
         // Check cache first
         PlatformPlayer cachedPlayer = cache.getPlayer(uuid);
         if (cachedPlayer != null) {
@@ -32,12 +32,21 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     }
 
     @Override
-    public final PlatformPlayer getFromNativePlayerType(@NonNull Object playerObject) {
-        if (!isNativePlayerType(playerObject)) {
-            throw new IllegalStateException("playerObject was not of type " + getNativePlayerClass().getName());
+    public @Nullable PlatformPlayer getFromName(@NotNull String name) {
+        T nativePlayer = getNativePlayer(name);
+        if (nativePlayer == null) {
+            return null;
         }
 
-        T nativePlayer = (T) playerObject;
+        // Create new PlatformPlayer and cache it
+        PlatformPlayer platformPlayer = createPlatformPlayer(nativePlayer);
+        return cache.addOrGetPlayer(platformPlayer.getUniqueId(), platformPlayer);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final PlatformPlayer getFromNativePlayerType(@NotNull Object playerObject) {
+        T nativePlayer = (T) Objects.requireNonNull(playerObject);
         UUID uuid = getPlayerUUID(nativePlayer);
 
         // Check cache first
@@ -52,7 +61,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     }
 
     @Override
-    public final void invalidatePlayer(@NonNull UUID uuid) {
+    public final void invalidatePlayer(@NotNull UUID uuid) {
         cache.removePlayer(uuid);
     }
 
@@ -64,14 +73,13 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
         List<PlatformPlayer> platformPlayers = new ArrayList<>(nativePlayers.size());
 
         for (T nativePlayer : nativePlayers) {
-            PlatformPlayer platformPlayer = getFromNativePlayerType(nativePlayer);
-            platformPlayers.add(platformPlayer);
+            platformPlayers.add(getFromNativePlayerType(nativePlayer));
         }
 
         return platformPlayers;
     }
 
-    public void replaceNativePlayer(@NonNull UUID uuid, @NonNull T player) {}
+    public void replaceNativePlayer(@NotNull UUID uuid, @NotNull T player) {}
 
     /**
      * Retrieves the native player object for the given UUID.
@@ -79,7 +87,9 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param uuid the UUID of the player
      * @return the native player object, or null if not found
      */
-    protected abstract T getNativePlayer(@NonNull UUID uuid);
+    protected abstract T getNativePlayer(@NotNull UUID uuid);
+
+    protected abstract T getNativePlayer(@NotNull String name);
 
     /**
      * Creates a PlatformPlayer instance from the native player object.
@@ -87,15 +97,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param nativePlayer the native player object
      * @return a new PlatformPlayer instance
      */
-    protected abstract PlatformPlayer createPlatformPlayer(@NonNull T nativePlayer);
-
-    /**
-     * Checks if the given object is of the native player type.
-     *
-     * @param playerObject the object to check
-     * @return true if the object is of the native player type, false otherwise
-     */
-    protected abstract boolean isNativePlayerType(@NonNull Object playerObject);
+    protected abstract PlatformPlayer createPlatformPlayer(@NotNull T nativePlayer);
 
     /**
      * Gets the UUID of the native player.
@@ -103,14 +105,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @param nativePlayer the native player object
      * @return the UUID of the player
      */
-    protected abstract UUID getPlayerUUID(@NonNull T nativePlayer);
-
-    /**
-     * Gets the class of the native player type.
-     *
-     * @return the class of the native player type
-     */
-    protected abstract Class<T> getNativePlayerClass();
+    protected abstract UUID getPlayerUUID(@NotNull T nativePlayer);
 
     /**
      * Gets the native online player objects (e.g., Player for Bukkit, ServerPlayerEntity for Fabric).
@@ -118,4 +113,11 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
      * @return a collection of native player objects
      */
     protected abstract Collection<T> getNativeOnlinePlayers();
+
+
+    @Override
+    public abstract OfflinePlatformPlayer getOfflineFromUUID(@NotNull UUID uuid);
+
+    @Override
+    public abstract OfflinePlatformPlayer getOfflineFromName(@NotNull String name);
 }

@@ -21,7 +21,7 @@ public class SprintA extends Check implements PacketCheck {
             if (player.canFly) return;
 
             if (player.food < 6.0F && player.isSprinting) {
-                if (flagAndAlert()) {
+                if (flagAndAlert("hunger=" + player.food)) {
                     // Cancel the packet
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);

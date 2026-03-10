@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.api.sender;
 
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -34,13 +34,13 @@ public abstract class SenderFactory<T> {
         return isConsole(sender);
     }
 
-    public final @NonNull Sender wrap(@NonNull T sender) {
+    public final @NotNull Sender wrap(@NotNull T sender) {
         Objects.requireNonNull(sender, "sender");
         return new AbstractSender<>(this, sender);
     }
 
     @SuppressWarnings("unchecked")
-    public final @NonNull T unwrap(@NonNull Sender sender) {
+    public final @NotNull T unwrap(@NotNull Sender sender) {
         Objects.requireNonNull(sender, "sender");
         return (T) sender.getNativeSender();
     }

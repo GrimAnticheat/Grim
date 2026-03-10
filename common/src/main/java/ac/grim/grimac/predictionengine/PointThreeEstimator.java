@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -20,6 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -129,13 +131,14 @@ public class PointThreeEstimator {
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
-        double movementThreshold = player.getMovementThreshold();
+        final double movementThreshold = player.getMovementThreshold();
         SimpleCollisionBox slightlyExpanded = normalBox.copy().expand(movementThreshold, 0, movementThreshold);
         if (!slightlyExpanded.isIntersected(data) && slightlyExpanded.offset(0, movementThreshold, 0).isIntersected(data)) {
             headHitter = true;
         }
 
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.66f, 1.86f);
+        final float collisionBoxThreshold = (float) (movementThreshold * 2.f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
         if ((Materials.isWater(player.getClientVersion(), state) || stateType == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
@@ -157,9 +160,17 @@ public class PointThreeEstimator {
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             // https://github.com/MWHunter/Grim/issues/613
             int controllingEntityId = player.inVehicle() ? player.getRidingVehicleId() : player.entityID;
+
+            // This can allow a player to ignore knockback and explosions within 0.03 (e.g. if standing still)
+            // But I'm not sure there's a way to fix that without falses
+            // Doesn't matter too much, would only work for 1.9-1.18.1 too
+            final VelocityData oldFirstBreadKB = player.firstBreadKB;
+            final VelocityData oldLikelyKB = player.likelyKB;
             player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
             player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get(), true);
 
+            final VelocityData oldFirstBreadEx = player.firstBreadExplosion;
+            final VelocityData oldLikelyEx = player.likelyExplosions;
             player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
             player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
 
@@ -167,10 +178,16 @@ public class PointThreeEstimator {
 
             if (player.couldSkipTick) {
                 player.uncertaintyHandler.lastPointThree.reset();
+            } else {
+                // Player could not skip this tick, so restore the old values (mimics what happens in CheckManagerListener)
+                player.firstBreadKB = oldFirstBreadKB;
+                player.likelyKB = oldLikelyKB;
+                player.firstBreadExplosion = oldFirstBreadEx;
+                player.likelyExplosions = oldLikelyEx;
             }
         }
 
-        if (!player.inVehicle() && ((stateType == StateTypes.POWDER_SNOW && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)
+        if (!player.inVehicle() && ((stateType == StateTypes.POWDER_SNOW && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)
                 || player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
@@ -216,7 +233,8 @@ public class PointThreeEstimator {
 
     public void endOfTickTick() {
         double movementThreshold = player.getMovementThreshold();
-        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.66f, 1.86f);
+        float collisionBoxThreshold = (float) (movementThreshold * 2.f);
+        SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y - movementThreshold, player.z, 0.6f + collisionBoxThreshold, 1.8f + collisionBoxThreshold);
 
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
@@ -254,12 +272,13 @@ public class PointThreeEstimator {
         Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
             final WrappedBlockState state = pair.first();
             final StateType stateType = state.getType();
-            if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.getInventory().getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
+            final Vector3i pos = pair.second();
+            if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
             if (BlockTags.TRAPDOORS.contains(stateType)) {
-                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pair.second().getX(), pair.second().getY(), pair.second().getZ(), state);
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pos.getX(), pos.getY(), pos.getZ(), state);
             }
 
             if (stateType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
@@ -268,6 +287,15 @@ public class PointThreeEstimator {
 
             if (Materials.isWater(player.getClientVersion(), pair.first()) || pair.first().getType() == StateTypes.LAVA) {
                 isNearFluid = true;
+            }
+
+            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, pos.getX(), pos.getY(), pos.getZ());
+            if (fluidVector.getX() != 0 || fluidVector.getZ() != 0) {
+                isNearHorizontalFlowingLiquid = true;
+            }
+
+            if (fluidVector.getY() != 0) {
+                isNearVerticalFlowingLiquid = true;
             }
 
             return false;
@@ -304,7 +332,8 @@ public class PointThreeEstimator {
 
     private boolean checkForGround(double y) {
         SimpleCollisionBox playerBox = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
+        double threshold = player.getMovementThreshold();
+        player.boundingBox = player.boundingBox.copy().expand(threshold, 0, threshold).offset(0, threshold, 0);
         // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
         double searchDistance = -0.2 + Math.min(0, y);
         Vector3dm collisionResult = Collisions.collide(player, 0, searchDistance, 0);

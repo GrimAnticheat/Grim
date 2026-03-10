@@ -30,9 +30,9 @@ public interface GlobalRegionScheduler {
      * Schedules a task to be executed on the global region.
      *
      * @param plugin The plugin that owns the task
-     * @param run    The task to execute
+     * @param task   The task to execute
      */
-    void execute(@NotNull GrimPlugin plugin, @NotNull Runnable run);
+    void execute(@NotNull GrimPlugin plugin, @NotNull Runnable task);
 
     /**
      * Schedules a task to be executed on the global region.

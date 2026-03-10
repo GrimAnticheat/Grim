@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.utils.chat.ChatUtil;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 
@@ -19,14 +18,34 @@ public class LogUtil {
         getLogger().warning(warn);
     }
 
+    public void warn(final String description, final Throwable throwable) {
+        Logger logger = getLogger();
+        if (logger != null) {
+            logger.warning(description + ": " + getStackTrace(throwable));
+        } else {
+            throwable.printStackTrace();
+        }
+    }
+
     public void error(final String error) {
         getLogger().severe(error);
     }
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public void error(final String description, final Throwable throwable) {
         Logger logger = getLogger();
         if (logger != null) {
             logger.severe(description + ": " + getStackTrace(throwable));
+        } else {
+            throwable.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("CallToPrintStackTrace")
+    public void error(final Throwable throwable) {
+        Logger logger = getLogger();
+        if (logger != null) {
+            logger.severe(getStackTrace(throwable));
         } else {
             throwable.printStackTrace();
         }
@@ -37,7 +56,7 @@ public class LogUtil {
     }
 
     public void console(final String info) {
-        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(ChatUtil.translateAlternateColorCodes('&', info));
+        GrimAPI.INSTANCE.getPlatformServer().getConsoleSender().sendMessage(MessageUtil.translateAlternateColorCodes('&', info));
     }
 
     public void console(final Component info) {

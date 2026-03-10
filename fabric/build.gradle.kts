@@ -1,4 +1,3 @@
-import net.fabricmc.loom.task.RemapJarTask
 import versioning.BuildConfig
 
 val minecraft_version: String by project
@@ -14,10 +13,10 @@ plugins {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-    mappings("net.fabricmc:yarn:$yarn_mappings")
+    mappings(loom.officialMojangMappings())
     modImplementation(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
 
-    modImplementation("me.lucko:fabric-permissions-api:0.3.1")
+    modCompileOnly("me.lucko:fabric-permissions-api:0.3.1")
 
     modImplementation(libs.cloud.fabric)
     modImplementation(libs.fabric.loader)
@@ -38,27 +37,54 @@ allprojects {
     apply(plugin = "grim.base-conventions")
     apply(plugin = "maven-publish")
 
+
     repositories {
-        if (BuildConfig.mavenLocalOverride) {
-            mavenLocal()
+        // 1. Fallback for non-exclusive deps
+        if (BuildConfig.mavenLocalOverride) mavenLocal()
+
+        // 2. Exclusive Repositories
+        exclusive("https://maven.fabricmc.net/") {
+            includeGroup("net.fabricmc")
+            includeGroup("net.fabricmc.fabric-api")
         }
-        maven {
-            name = "FabricMC"
-            url = uri("https://maven.fabricmc.net/")
+
+        exclusive("https://repo.grim.ac/snapshots") {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
         }
-        maven("https://repo.grim.ac/snapshots") { // Grim API
-            content {
-                includeGroup("ac.grim.grimac")
-                includeGroup("com.github.retrooper")
-            }
+
+        exclusive("https://jitpack.io", { mavenContent { releasesOnly() } }) {
+            includeGroup("com.github.Fallen-Breath.conditional-mixin")
         }
-        maven("https://jitpack.io/") // Conditional Mixin
-        maven("https://repo.viaversion.com") // ViaVersion
-        maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
-        maven("https://repo.opencollab.dev/maven-snapshots/") // Floodgate
-        maven("https://repo.opencollab.dev/maven-releases/") // Cumulus (for Floodgate)
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        mavenCentral() // FastUtil
+
+        exclusive("https://repo.viaversion.com", { mavenContent { releasesOnly() } }) {
+            includeGroup("com.viaversion")
+        }
+
+        exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {
+            includeGroup("github.scarsz")
+        }
+
+        exclusive("https://repo.opencollab.dev/maven-releases/", { mavenContent { releasesOnly() } }) {
+            includeGroup("org.geysermc.api")
+        }
+
+        exclusive("https://repo.opencollab.dev/maven-snapshots/", { mavenContent { snapshotsOnly() } }) {
+            includeGroup("org.geysermc.floodgate")
+            includeGroup("org.geysermc.cumulus")
+            includeModule("org.geysermc", "common")
+            includeModule("org.geysermc", "geyser-parent")
+        }
+
+        // Special logic for LuckPerms
+        if (project.name == "mc1161") {
+            exclusive("https://repo.grim.ac/snapshots") { includeGroup("me.lucko") }
+        } else {
+            // Enforce Central for LuckPerms so we don't accidentally check other snapshot repos
+            exclusive(mavenCentral()) { includeGroup("me.lucko") }
+        }
+
+        mavenCentral()
     }
 
     loom {

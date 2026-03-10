@@ -1,16 +1,16 @@
 package ac.grim.grimac.platform.fabric.mc1161.player;
 
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformInventory;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.MenuType;
+import org.jetbrains.annotations.Nullable;
 
 public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory {
-    public Fabric1161PlatformInventory(ServerPlayerEntity player) {
+    public Fabric1161PlatformInventory(AbstractFabricPlatformPlayer player) {
         super(player);
     }
 
@@ -23,13 +23,13 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
     // And is slated to be replaced by packet based behaviour, this should do for now
     @Override
     public String getOpenInventoryKey() {
-        ScreenHandler handler = fabricPlayer.currentScreenHandler;
-        ScreenHandlerType<?> type = getSafeType(handler);
+        AbstractContainerMenu handler = fabricPlatformPlayer.getNative().containerMenu;
+        MenuType<?> type = getSafeType(handler);
 
         // Handle null types (player crafting and creative)
         if (type == null) {
             // 4x4 CRAFTING -> CRAFTING
-            if (handler instanceof PlayerScreenHandler) {
+            if (handler instanceof InventoryMenu) {
                 return "CRAFTING";
                 // Not sure if creative mode check here is correct
             } else if (this.isPlayerCreative()) {
@@ -39,23 +39,23 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
 
         // should we handle crafters here also??
         // CRAFTING -> CRAFTING
-        if (type == ScreenHandlerType.CRAFTING) {
+        if (type == MenuType.CRAFTING) {
             return "CRAFTING";
             // PLAYER -> PLAYER
-        } else if (type == ScreenHandlerType.GENERIC_9X4) {
+        } else if (type == MenuType.GENERIC_9x4) {
             return "PLAYER";
             // CHEST, ENDER_CHEST, or BARREL -> CHEST
-        } else if (type == ScreenHandlerType.GENERIC_9X3) {
+        } else if (type == MenuType.GENERIC_9x3) {
             return "CHEST";
             // DISPENSER, DROPPER -> DISPENSER
-        } else if (type == ScreenHandlerType.GENERIC_3X3) {
+        } else if (type == MenuType.GENERIC_3x3) {
             return "DISPENSER";
         } else {
             // Registry handles:
             // SHULKER_BOX -> SHULKER_BOX
             // CRAFTIING -> CRAFTING
 
-            Identifier registryKey = this.getScreenID(type);
+            ResourceLocation registryKey = (ResourceLocation) this.getScreenID(type);
             if (registryKey != null) {
                 return registryKey.getPath();
             }
@@ -64,15 +64,17 @@ public class Fabric1161PlatformInventory extends AbstractFabricPlatformInventory
         }
     }
 
-    protected Identifier getScreenID(ScreenHandlerType<?> type) {
-        return Registry.SCREEN_HANDLER.getId(type);
+    // returns Identifier in > 1.21.11, and ResourceLocation in 1.21.10-, which both map to class_2960
+    // Compiler doesn't know that though and throws a fit, thus we make it return Object and cast to class_2960
+    protected Object getScreenID(MenuType<?> type) {
+        return Registry.MENU.getKey(type);
     }
 
     protected boolean isPlayerCreative() {
-        return fabricPlayer.isCreative();
+        return fabricPlatformPlayer.getNative().isCreative();
     }
 
-    protected @Nullable ScreenHandlerType<?> getSafeType(ScreenHandler handler) {
+    protected @Nullable MenuType<?> getSafeType(AbstractContainerMenu handler) {
         try {
             return handler.getType();
         } catch (UnsupportedOperationException e) {

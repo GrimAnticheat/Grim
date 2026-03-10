@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 public class MovementTickerPig extends MovementTickerRideable {
     public MovementTickerPig(GrimPlayer player) {
         super(player);
-        movementInput = new Vector3dm(0, 0, 1);
+        this.movementInput = new Vector3dm(0, 0, 1);
     }
 
     @Override

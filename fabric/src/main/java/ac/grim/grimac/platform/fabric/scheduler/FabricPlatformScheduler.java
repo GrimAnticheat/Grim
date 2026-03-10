@@ -5,7 +5,7 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.*;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import net.minecraft.server.MinecraftServer;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,7 +34,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
         Iterator<ScheduledTask> iterator = taskMap.keySet().iterator();
         while (iterator.hasNext()) {
             ScheduledTask task = iterator.next();
-            if (server.getTicks() >= task.nextRunTick) {
+            if (server.getTickCount() >= task.nextRunTick) {
                 try {
                     EXECUTING_TASK.set(true);
                     task.task.run();
@@ -45,7 +45,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
                 }
 
                 if (task.isPeriodic) {
-                    task.nextRunTick = server.getTicks() + task.period;
+                    task.nextRunTick = server.getTickCount() + task.period;
                 } else {
                     iterator.remove();
                 }
@@ -85,22 +85,22 @@ public class FabricPlatformScheduler implements PlatformScheduler {
     }
 
     @Override
-    public @NonNull AsyncScheduler getAsyncScheduler() {
+    public @NotNull AsyncScheduler getAsyncScheduler() {
         return asyncScheduler;
     }
 
     @Override
-    public @NonNull GlobalRegionScheduler getGlobalRegionScheduler() {
+    public @NotNull GlobalRegionScheduler getGlobalRegionScheduler() {
         return globalRegionScheduler;
     }
 
     @Override
-    public @NonNull EntityScheduler getEntityScheduler() {
+    public @NotNull EntityScheduler getEntityScheduler() {
         return entityScheduler;
     }
 
     @Override
-    public @NonNull RegionScheduler getRegionScheduler() {
+    public @NotNull RegionScheduler getRegionScheduler() {
         return regionScheduler;
     }
 

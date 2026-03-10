@@ -11,9 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-public class BlockPrediction {
-    List<Vector3i> forBlockUpdate;
-    Vector3i blockPosition;
-    int originalBlockId;
-    Vector3d playerPosition;
+public final class BlockPrediction {
+    private List<Vector3i> forBlockUpdate;
+    private Vector3i blockPosition;
+    private int originalBlockId;
+    private final Vector3d playerPosition;
 }

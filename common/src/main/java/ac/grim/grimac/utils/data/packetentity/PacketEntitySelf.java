@@ -16,17 +16,13 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 
 public class PacketEntitySelf extends PacketEntity {
 
     private final GrimPlayer player;
-    @Getter
-    @Setter
-    int opLevel;
+    public int opLevel;
 
     public PacketEntitySelf(GrimPlayer player) {
         super(player, EntityTypes.PLAYER);
@@ -72,6 +68,7 @@ public class PacketEntitySelf extends PacketEntity {
         final ValuedAttribute movementSpeed = ValuedAttribute.ranged(Attributes.MOVEMENT_SPEED, 0.1f, 0, 1024);
         movementSpeed.with(new WrapperPlayServerUpdateAttributes.Property(Attributes.MOVEMENT_SPEED, 0.1f, new ArrayList<>()));
         trackAttribute(movementSpeed);
+        trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_DAMAGE, 2, 0, 2048)); // NOTE: Not synced to client currently.
         trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_SPEED, 4, 0, 1024)
                 .requiredVersion(player, ClientVersion.V_1_9));
         trackAttribute(ValuedAttribute.ranged(Attributes.JUMP_STRENGTH, 0.42f, 0, 32)
@@ -88,7 +85,9 @@ public class PacketEntitySelf extends PacketEntity {
                 .withGetRewriter(value -> {
                     // Server versions older than 1.20.5 don't send the attribute, if the player is in creative then assume legacy max reach distance.
                     if (player.gamemode == GameMode.CREATIVE
-                            && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)) {
+                            && (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)
+                                // Clients below 1.20.5 also don't have the attribute.
+                                || player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5))) {
                         return 5.0;
                     }
                     // < 1.20.5 is unchanged due to requiredVersion, otherwise controlled by the server
@@ -103,7 +102,7 @@ public class PacketEntitySelf extends PacketEntity {
                     }
 
                     // On clients < 1.21, use depth strider enchant level always
-                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.inventory, EnchantmentTypes.DEPTH_STRIDER);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return depthStrider;
                     }
@@ -126,7 +125,7 @@ public class PacketEntitySelf extends PacketEntity {
                         return (double) 0.3f;
                     }
 
-                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
+                    final int swiftSneak = player.inventory.getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK);
                     final double clamped = GrimMath.clamp(0.3f + swiftSneak * 0.15f, 0f, 1f);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return clamped;

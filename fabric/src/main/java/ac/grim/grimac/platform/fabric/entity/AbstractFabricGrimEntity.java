@@ -2,51 +2,43 @@ package ac.grim.grimac.platform.fabric.entity;
 
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
-import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
-import com.google.common.base.Preconditions;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.world.ServerWorld;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.UUID;
+import net.minecraft.world.entity.Entity;
 
 public abstract class AbstractFabricGrimEntity implements GrimEntity {
 
     protected final Entity entity;
-    protected FabricPlatformWorld fabricPlatformWorld;
 
     public AbstractFabricGrimEntity(Entity entity) {
-        Preconditions.checkArgument(entity != null);
-        this.entity = entity;
+        this.entity = Objects.requireNonNull(entity);
     }
 
     @Override
     public UUID getUniqueId() {
-        return entity.getUuid();
+        return entity.getUUID();
     }
 
     @Override
     public boolean eject() {
-        if (entity.hasPassengers()) {
-            entity.removeAllPassengers();
+        if (entity.isVehicle()) {
+            entity.ejectPassengers();
             return true;
         }
         return false;
     }
 
-    @Override @NonNull
-    public Entity getNative() {
+    @Override
+    public @NotNull Entity getNative() {
         return this.entity;
     }
 
     @Override
     public PlatformWorld getWorld() {
-        ServerWorld currentWorld = (ServerWorld) entity.world;
-        if (fabricPlatformWorld == null || fabricPlatformWorld.getFabricWorld() != currentWorld) {
-            fabricPlatformWorld = new FabricPlatformWorld(currentWorld);
-        }
-        return fabricPlatformWorld;
+        return this.entity.level;
     }
 
     @Override
@@ -56,8 +48,19 @@ public abstract class AbstractFabricGrimEntity implements GrimEntity {
                 this.entity.getX(),
                 this.entity.getY(),
                 this.entity.getZ(),
-                this.entity.getYaw(1.0F),
-                this.entity.getPitch(1.0F)
+                this.entity.getViewYRot(1.0F),
+                this.entity.getViewXRot(1.0F)
         );
+    }
+
+    @Override
+    public double distanceSquared(double oX, double oY, double oZ) {
+        double x = this.entity.getX();
+        double y = this.entity.getY();
+        double z = this.entity.getZ();
+        double distX = (x - oX) * (x - oX);
+        double distY = (y - oY) * (y - oY);
+        double distZ = (z - oZ) * (z - oZ);
+        return distX + distY + distZ;
     }
 }

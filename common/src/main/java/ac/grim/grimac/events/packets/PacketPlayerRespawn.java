@@ -5,7 +5,9 @@ import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsH;
+import ac.grim.grimac.checks.impl.elytra.ElytraC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.enums.Pose;
@@ -116,6 +118,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.gamemode = joinGame.getGameMode();
             player.entityID = joinGame.getEntityId();
             player.dimensionType = joinGame.getDimensionType();
+            player.worldName = joinGame.getWorldName();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17))
                 return;
@@ -149,6 +152,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
 
                 player.lastOnGround = false;
+                player.clientClaimsLastOnGround = false;
                 player.onGround = false;
                 player.isInBed = false;
                 player.packetStateData.setSlowedByUsingItem(false);
@@ -162,9 +166,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.powderSnowFrozenTicks = 0;
                     player.compensatedEntities.self.hasGravity = true;
                     player.playerEntityHasGravity = true;
-                }
+                    player.packetStateData.knownInput = KnownInput.DEFAULT;
+                    player.checkManager.getPostPredictionCheck(ElytraC.class).exempt = true;
 
-                if (!keepTrackedData) {
                     // 1.19.4 uses current sprinting, older versions use last sprinting
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
                         player.isSprinting = false;
@@ -206,7 +210,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector3dm();
-                player.gamemode = respawn.getGameMode();
+                if (!GrimAPI.INSTANCE.getSpectateManager().isSpectating(player.uuid)) {
+                    player.gamemode = respawn.getGameMode();
+                }
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
                     player.compensatedWorld.setDimension(respawn.getDimensionType(), event.getUser());
                 }
@@ -221,7 +227,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
     }
 
     private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16)) {
             return !Objects.equals(respawn.getWorldName().orElse(null), player.worldName);
         }
 

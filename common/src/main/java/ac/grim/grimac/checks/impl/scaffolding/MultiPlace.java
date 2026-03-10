@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -15,7 +14,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiPlace", experimental = true)
+@CheckData(name = "MultiPlace", description = "Placed multiple blocks in a tick", experimental = true)
 public class MultiPlace extends BlockPlaceCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean hasPlaced;
@@ -29,9 +28,9 @@ public class MultiPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        final BlockFace face = place.getDirection();
-        final Vector3f cursor = place.getCursor();
-        final Vector3i pos = place.getPlacedAgainstBlockLocation();
+        final BlockFace face = place.getFace();
+        final Vector3f cursor = place.cursor;
+        final Vector3i pos = place.position;
 
         if (hasPlaced && (face != lastFace || !cursor.equals(lastCursor) || !pos.equals(lastPos))) {
             final String verbose = "face=" + face + ", lastFace=" + lastFace
@@ -54,7 +53,7 @@ public class MultiPlace extends BlockPlaceCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(event.getPacketType())) {
+        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
             hasPlaced = false;
         }
     }

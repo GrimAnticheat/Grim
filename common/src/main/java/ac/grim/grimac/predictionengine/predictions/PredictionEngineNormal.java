@@ -56,7 +56,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
                 JumpPower.jumpFromGround(player, jump);
             } else {
-                jump.add(new Vector3dm(0, player.flySpeed * 3, 0));
+                jump.add(0, player.flySpeed * 3, 0);
                 if (!player.wasFlying) {
                     Vector3dm edgeCaseJump = jump.clone();
                     JumpPower.jumpFromGround(player, edgeCaseJump);
@@ -76,7 +76,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         if (!player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                 player.compensatedWorld.getBlockType(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
-            ItemStack boots = player.getInventory().getBoots();
+            ItemStack boots = player.inventory.getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;
         }
 

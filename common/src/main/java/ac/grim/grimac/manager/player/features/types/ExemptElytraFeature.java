@@ -4,10 +4,11 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.feature.FeatureState;
 import ac.grim.grimac.player.GrimPlayer;
 
-public class ExemptElytraFeature extends GrimFeature {
+public class ExemptElytraFeature implements GrimFeature {
 
-    public ExemptElytraFeature() {
-        super("ExemptElytra");
+    @Override
+    public String getName() {
+        return "ExemptElytra";
     }
 
     @Override

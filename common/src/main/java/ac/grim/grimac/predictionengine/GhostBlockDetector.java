@@ -28,7 +28,7 @@ public class GhostBlockDetector extends Check implements PostPredictionCheck {
             SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.isBoat()) {
+                if (entity.isBoat) {
                     if (entity.getPossibleCollisionBoxes().isIntersected(largeExpandedBB)) {
                         return true;
                     }

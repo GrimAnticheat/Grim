@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.util.Vector3f;
 
-@CheckData(name = "InvalidPlaceA")
+@CheckData(name = "InvalidPlaceA", description = "Sent invalid cursor position")
 public class InvalidPlaceA extends BlockPlaceCheck {
     public InvalidPlaceA(GrimPlayer player) {
         super(player);
@@ -14,9 +14,9 @@ public class InvalidPlaceA extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        Vector3f cursor = place.getCursor();
+        Vector3f cursor = place.cursor;
         if (cursor == null) return;
-        if (!Float.isFinite(cursor.getX()) || !Float.isFinite(cursor.getY()) || !Float.isFinite(cursor.getZ())) {
+        if (!Float.isFinite(cursor.x) || !Float.isFinite(cursor.y) || !Float.isFinite(cursor.z)) {
             if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }

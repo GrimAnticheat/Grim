@@ -1,3 +1,5 @@
+import versioning.BuildConfig
+
 plugins {
     `java-library`
     id("io.freefair.lombok")
@@ -16,11 +18,6 @@ java {
     withJavadocJar()
 }
 
-// Lombok configuration
-//lombok {
-//    version.set("1.18.30") // Use the version from your version catalog if available
-//}
-
 // Spotless configuration
 spotless {
     java {
@@ -38,7 +35,6 @@ spotless {
     }
 }
 
-
 tasks {
     withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
@@ -52,11 +48,29 @@ tasks {
 
     // Process resources (e.g., for plugin metadata files)
     processResources {
-        inputs.property("version", project.version)
-        filesMatching(listOf( // "plugin.yml",  Bukkit variable expansion taken care of by net.minecrell.plugin-yml.bukkit
-            "bungee.yml", "velocity-plugin.json", "fabric.mod.json")
+        val properties = mapOf(
+            "timestamp" to rootProject.ext["timestamp"],
+            "version" to project.version.toString(),
+            "git_commit" to rootProject.ext["git_commit"],
+            "git_branch" to rootProject.ext["git_branch"],
+            "git_repo" to rootProject.ext["git_repo"],
+            "git_org" to rootProject.ext["git_org"],
+            "build_shade_pe" to BuildConfig.shadePE,
+            "build_relocate" to BuildConfig.relocate,
+            "build_release" to BuildConfig.release,
+        )
+
+        properties.forEach { (key, value) -> inputs.property(key, value) }
+
+        filesMatching(
+            listOf(
+                "bungee.yml",
+                "velocity-plugin.json",
+                "fabric.mod.json",
+                "grimac.properties"
+            )
         ) {
-            expand("version" to project.version)
+            expand(properties)
         }
     }
 

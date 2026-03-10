@@ -1,0 +1,22 @@
+name: Publish Release
+
+on:
+    release:
+        types: [published]
+
+jobs:
+    call-release-workflow:
+        uses: ./.github/workflows/build-and-publish.yml
+        with:
+            runner: 'tenki-standard-autoscale'
+            is-release-build: true
+            release-version-type: release # Official releases are 'release'
+            # Use the body of the GitHub Release as the changelog
+            release-changelog: ${{ github.event.release.body }}
+            run-build-scan: false
+            publish-artifacts: true
+        secrets:
+            MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+            BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
+            BUILD_UPDATE_URL: ${{ secrets.BUILD_UPDATE_URL }}

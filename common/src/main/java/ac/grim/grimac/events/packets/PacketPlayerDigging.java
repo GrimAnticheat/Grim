@@ -3,6 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.item.ItemBehaviour;
+import ac.grim.grimac.utils.item.ItemBehaviourRegistry;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -27,6 +29,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import org.jetbrains.annotations.NotNull;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
@@ -34,7 +37,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    public static void handleUseItem(GrimPlayer player, ItemStack item, InteractionHand hand) {
+    private static final boolean RELIABLE_COMPONENT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4);
+    private static final boolean SERVER_HAS_OFFHAND = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+
+    public static void handleUseItem(@NotNull GrimPlayer player, @NotNull InteractionHand hand) {
+        ItemStack item = player.inventory.getItemInHand(hand);
+
         if (item == null) {
             player.packetStateData.setSlowedByUsingItem(false);
             return;
@@ -47,6 +55,20 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         final ItemType material = item.getType();
 
+        // Check for data component stuff on 1.21.4+ (older versions are pain in the ass to support)
+        if (RELIABLE_COMPONENT_SYSTEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4)) {
+            ItemBehaviour itemBehaviour = ItemBehaviourRegistry.getItemBehaviour(material);
+
+            if (itemBehaviour.canUse(item, player.compensatedWorld, player, hand)) {
+                player.packetStateData.setSlowedByUsingItem(true);
+                player.packetStateData.itemInUseHand = hand;
+            } else {
+                player.packetStateData.setSlowedByUsingItem(false);
+            }
+
+            return;
+        }
+
         // Check for data component stuff on 1.21.2+
         final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
         final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
@@ -54,14 +76,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         // The food component can override the consumable component, as it provides conditions for using the item
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && consumable != null && foodComponent == null) {
             player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
+            player.packetStateData.itemInUseHand = hand;
         }
 
         // Check for data component stuff on 1.20.5+
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
             if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
                 player.packetStateData.setSlowedByUsingItem(true);
-                player.packetStateData.eatingHand = hand;
+                player.packetStateData.itemInUseHand = hand;
                 return;
             } else {
                 player.packetStateData.setSlowedByUsingItem(false);
@@ -87,14 +109,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     || material == ItemTypes.HONEY_BOTTLE || material == ItemTypes.SUSPICIOUS_STEW ||
                     material == ItemTypes.CHORUS_FRUIT) {
                 player.packetStateData.setSlowedByUsingItem(true);
-                player.packetStateData.eatingHand = hand;
+                player.packetStateData.itemInUseHand = hand;
                 return;
             }
 
             // The other items that do require it
             if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.platformPlayer != null && player.food < 20) || player.gamemode == GameMode.CREATIVE)) {
                 player.packetStateData.setSlowedByUsingItem(true);
-                player.packetStateData.eatingHand = hand;
+                player.packetStateData.itemInUseHand = hand;
                 return;
             }
 
@@ -104,7 +126,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         if (material == ItemTypes.SHIELD && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
+            player.packetStateData.itemInUseHand = hand;
             return;
         }
 
@@ -120,8 +142,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 && item.getDamageValue() < item.getMaxDamage() - 1 // Player can't use item if it's "about to break"
                 && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13_2)
                 || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
-            player.packetStateData.setSlowedByUsingItem(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0);
-            player.packetStateData.eatingHand = hand;
+            player.packetStateData.setSlowedByUsingItem(item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0);
+            player.packetStateData.itemInUseHand = hand;
         }
 
         // Players in survival can't use a bow without an arrow
@@ -142,12 +164,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         if (material == ItemTypes.SPYGLASS && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
             player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
+            player.packetStateData.itemInUseHand = hand;
         }
 
         if (material == ItemTypes.GOAT_HORN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
             player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
+            player.packetStateData.itemInUseHand = hand;
         }
 
         // Only 1.8 and below players can block with swords
@@ -172,10 +194,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                    ItemStack hand = player.packetStateData.eatingHand == InteractionHand.OFF_HAND ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
+                    ItemStack hand = player.inventory.getItemInHand(player.packetStateData.itemInUseHand);
 
-                    if (hand.getType() == ItemTypes.TRIDENT
-                            && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) {
+                    if (hand.getType() == ItemTypes.TRIDENT && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0) {
                         player.packetStateData.tryingToRiptide = true;
                     }
                 }
@@ -187,11 +208,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player != null && player.packetStateData.isSlowedByUsingItem()
                     && !player.packetStateData.lastPacketWasTeleport
                     && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                if (player.packetStateData.eatingHand != InteractionHand.OFF_HAND
-                        && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected
-                        || player.getInventory().getItemInHand(player.packetStateData.eatingHand).isEmpty()) {
+                boolean slotChanged = player.packetStateData.itemInUseHand != InteractionHand.OFF_HAND
+                        && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected;
+                if (slotChanged || player.inventory.getItemInHand(player.packetStateData.itemInUseHand).isEmpty()) {
                     player.packetStateData.setSlowedByUsingItem(false);
-                    player.checkManager.getPostPredictionCheck(NoSlow.class).didSlotChangeLastTick = true;
+                    if (slotChanged) player.checkManager.getPostPredictionCheck(NoSlow.class).didSlotChangeLastTick = true;
                 }
             }
         }
@@ -215,7 +236,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
 
                 // just assume they tick after this
-                if (player.canSkipTicks() && !player.isTickingReliablyFor(3) && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
+                if (player.canSkipTicks() && !player.isTickingReliablyFor(3) && player.packetStateData.itemInUseHand != InteractionHand.OFF_HAND) {
                     player.packetStateData.setSlowedByUsingItem(false);
                 }
             }
@@ -226,20 +247,21 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            final InteractionHand hand = event.getPacketType() == PacketType.Play.Client.USE_ITEM
-                    ? new WrapperPlayClientUseItem(event).getHand()
-                    : InteractionHand.MAIN_HAND;
-
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)
                     && player.gamemode == GameMode.SPECTATOR)
                 return;
 
+            final InteractionHand hand = SERVER_HAS_OFFHAND && event.getPacketType() == PacketType.Play.Client.USE_ITEM
+                    ? new WrapperPlayClientUseItem(event).getHand()
+                    : InteractionHand.MAIN_HAND;
+
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
-            final ItemStack item = hand == InteractionHand.MAIN_HAND ?
-                    player.getInventory().getHeldItem() : player.getInventory().getOffHand();
+            if (player.isResetItemUsageOnItemUse()) {
+                GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
+            }
 
-            handleUseItem(player, item, hand);
+            handleUseItem(player, hand);
         }
     }
 }

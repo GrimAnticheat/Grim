@@ -17,7 +17,7 @@ import java.util.List;
 
 @CheckData(name = "Phase", setback = 1, decay = 0.005)
 public class Phase extends Check implements PostPredictionCheck {
-    SimpleCollisionBox oldBB;
+    private SimpleCollisionBox oldBB;
 
     public Phase(GrimPlayer player) {
         super(player);

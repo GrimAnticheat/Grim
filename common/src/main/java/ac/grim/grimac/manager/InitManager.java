@@ -7,15 +7,12 @@ import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
-import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
-import org.incendo.cloud.CommandManager;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
 public class InitManager {
 
@@ -30,7 +27,7 @@ public class InitManager {
     @Getter
     private boolean stopped = false;
 
-    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
+    public InitManager(PacketEventsAPI<?> packetEventsAPI, Initable... platformSpecificInitables) {
         ArrayList<LoadableInitable> extraLoadableInitables = new ArrayList<>();
         ArrayList<StartableInitable> extraStartableInitables = new ArrayList<>();
         ArrayList<StoppableInitable> extraStoppableInitables = new ArrayList<>();
@@ -51,11 +48,13 @@ public class InitManager {
                 .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
-                .add(new CommandRegister(commandManager))
+                .add(new CommandRegister(GrimAPI.INSTANCE.getCommandService()))
+                .add(new UpdateChecker())
                 .add(new PacketLimiter())
                 .add(GrimAPI.INSTANCE.getAlertManager())
                 .add(GrimAPI.INSTANCE.getDiscordManager())
                 .add(GrimAPI.INSTANCE.getSpectateManager())
+                .add(GrimAPI.INSTANCE.getViolationDatabaseManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())
@@ -69,32 +68,35 @@ public class InitManager {
     }
 
     public void load() {
-        for (LoadableInitable initable : initializersOnLoad)
+        for (LoadableInitable initable : initializersOnLoad) {
             try {
                 initable.load();
             } catch (Exception e) {
                 LogUtil.error("Failed to load " + initable.getClass().getSimpleName(), e);
             }
+        }
         loaded = true;
     }
 
     public void start() {
-        for (StartableInitable initable : initializersOnStart)
+        for (StartableInitable initable : initializersOnStart) {
             try {
                 initable.start();
             } catch (Exception e) {
                 LogUtil.error("Failed to start " + initable.getClass().getSimpleName(), e);
             }
+        }
         started = true;
     }
 
     public void stop() {
-        for (StoppableInitable initable : initializersOnStop)
+        for (StoppableInitable initable : initializersOnStop) {
             try {
                 initable.stop();
             } catch (Exception e) {
                 LogUtil.error("Failed to stop " + initable.getClass().getSimpleName(), e);
             }
+        }
         stopped = true;
     }
 }

@@ -23,7 +23,9 @@ import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -31,6 +33,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +51,15 @@ public class PacketEntity extends TypedPacketEntity {
     private final UUID uuid; // NULL ON VERSIONS BELOW 1.9 (or for some entities, apparently??)
     @Getter
     public PacketEntity riding;
-    public List<PacketEntity> passengers = new ArrayList<>(0);
+    public final List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
     private Object2IntMap<PotionType> potionsMap = null;
+    public boolean trackEntityEquipment = false;
+    private EnumMap<EquipmentSlot, ItemStack> equipment = null;
 
     public PacketEntity(GrimPlayer player, EntityType type) {
         super(type);
@@ -100,7 +105,7 @@ public class PacketEntity extends TypedPacketEntity {
     public void setAttribute(Attribute attribute, double value) {
         ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + type.getName() + "!");
         }
         property.override(value);
     }
@@ -108,7 +113,7 @@ public class PacketEntity extends TypedPacketEntity {
     public double getAttributeValue(Attribute attribute) {
         final ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName().toString() + "!");
+            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + type.getName() + "!");
         }
         return property.get();
     }
@@ -142,7 +147,27 @@ public class PacketEntity extends TypedPacketEntity {
             }
         }
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+        // BUG FIX LOGIC for https://bugs.mojang.com/browse/MC-255263
+        // 1. We MUST check !hasPos. If hasPos is true, we must let standard interpolation (4-arg) run.
+        // 2. The 3-arg constructor is for versions where the client FREEZES (targets current pos) when rot only packets come in
+        if (!hasPos &&
+                // Logic for versions that FREEZE (Target = Current)
+                // 1.21.5 -> 1.21.8 (regression)
+                ((player.getClientVersion().isOlderThan(ClientVersion.V_1_21_9) && player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4)) ||
+                        // 1.15 -> 1.20.1 (Old bug)
+                        (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4)))
+        ) {
+            // Apply Freeze Fix (Start = Box, Target = Box)
+            this.newPacketLocation = new ReachInterpolationData(
+                    player,
+                    oldPacketLocation.getPossibleLocationCombined(),
+                    this
+            );
+        } else {
+            // Standard Interpolation (Start = Box, Target = ServerPos)
+            // This naturally fixes the "Slowdown"/Interpolation Reset in 1.20.2-1.21.4 and 1.21.9+ resetting the lerp timer
+            this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
+        }
 
         // In versions < 1.16.2 when the client receives non-relative teleport for an entity
         // And they move less by the thresholds given, the entity does not move client side
@@ -252,4 +277,34 @@ public class PacketEntity extends TypedPacketEntity {
     public boolean canHit() {
         return !this.isDead;
     }
+
+    public void setItemBySlot(EquipmentSlot slot, ItemStack item) {
+        if (item == ItemStack.EMPTY && getItemBySlot(slot) == ItemStack.EMPTY) {
+            return;
+        }
+
+        if (equipment == null) {
+            equipment = new EnumMap<>(EquipmentSlot.class);
+        }
+
+        equipment.put(slot, item);
+    }
+
+    public ItemStack getItemBySlot(EquipmentSlot slot) {
+        if (equipment == null) {
+            return ItemStack.EMPTY;
+        }
+
+        return equipment.getOrDefault(slot, ItemStack.EMPTY);
+    }
+
+    public boolean hasItemInSlot(EquipmentSlot slot) {
+        if (equipment == null) {
+            return false;
+        }
+
+        ItemStack item = equipment.get(slot);
+        return item != null && !item.isEmpty();
+    }
+
 }

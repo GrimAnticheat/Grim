@@ -2,8 +2,8 @@ package ac.grim.grimac.platform.api.sender;
 
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -91,7 +91,7 @@ public interface Sender {
     boolean isPlayer();
 
     /**
-     * Gets whether this sender is still valid & receiving messages.
+     * Gets whether this sender is still valid and receiving messages.
      *
      * @return if this sender is valid
      */
@@ -116,14 +116,12 @@ public interface Sender {
      * <li>Forge/NeoForge: {@code net.minecraft.commands.CommandSourceStack}</li>
      * </ul>
      */
-    @NonNull
-    Object getNativeSender();
+    @NotNull Object getNativeSender();
 
     /**
      * Gets the PlatformPlayer tied to a sender
      *
      * @return PlatformPlayer wrapping the underlying native platform-specific player type, null if Sender is not a player
      */
-    @Nullable
-    PlatformPlayer getPlatformPlayer();
+    @Nullable PlatformPlayer getPlatformPlayer();
 }

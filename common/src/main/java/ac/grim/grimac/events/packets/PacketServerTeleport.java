@@ -21,6 +21,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVe
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
+    private static final boolean STUPID_TELEPORT_SYSTEM = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+
     public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
     }
@@ -28,13 +30,12 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-
             Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
-
-            if (player == null) return;
 
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
@@ -42,14 +43,14 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.x = teleport.getX();
                 player.y = teleport.getY();
                 player.z = teleport.getZ();
-                player.xRot = teleport.getYaw();
-                player.yRot = teleport.getPitch();
+                player.yaw = teleport.getYaw();
+                player.pitch = teleport.getPitch();
 
                 player.lastX = teleport.getX();
                 player.lastY = teleport.getY();
                 player.lastZ = teleport.getZ();
-                player.lastXRot = teleport.getYaw();
-                player.lastYRot = teleport.getPitch();
+                player.lastYaw = teleport.getYaw();
+                player.lastPitch = teleport.getPitch();
 
                 player.pollData();
             }
@@ -60,25 +61,61 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-                if (teleport.isRelativeFlag(RelativeFlag.X)) {
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) || player.inVehicle()) {
+                boolean relativeX = teleport.isRelativeFlag(RelativeFlag.X),
+                        relativeY = teleport.isRelativeFlag(RelativeFlag.Y),
+                        relativeZ = teleport.isRelativeFlag(RelativeFlag.Z);
+
+                if (relativeX) {
                     pos = pos.add(new Vector3d(player.x, 0, 0));
                     teleport.setRelative(RelativeFlag.X, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.Y)) {
+                if (relativeY) {
                     pos = pos.add(new Vector3d(0, player.y, 0));
                     teleport.setRelative(RelativeFlag.Y, false);
                 }
 
-                if (teleport.isRelativeFlag(RelativeFlag.Z)) {
+                if (relativeZ) {
                     pos = pos.add(new Vector3d(0, 0, player.z));
                     teleport.setRelative(RelativeFlag.Z, false);
                 }
 
-                teleport.setX(pos.getX());
-                teleport.setY(pos.getY());
-                teleport.setZ(pos.getZ());
+                if (relativeX || relativeY || relativeZ) {
+                    teleport.setX(pos.getX());
+                    teleport.setY(pos.getY());
+                    teleport.setZ(pos.getZ());
+
+                    event.markForReEncode(true);
+                }
+            }
+
+            if (STUPID_TELEPORT_SYSTEM && player.inVehicle()) {
+                boolean relativeDeltaX = teleport.isRelativeFlag(RelativeFlag.DELTA_X),
+                        relativeDeltaY = teleport.isRelativeFlag(RelativeFlag.DELTA_Y),
+                        relativeDeltaZ = teleport.isRelativeFlag(RelativeFlag.DELTA_Z);
+
+                if (relativeDeltaX) {
+                    teleport.setRelative(RelativeFlag.DELTA_X, false);
+                }
+
+                if (relativeDeltaY) {
+                    teleport.setRelative(RelativeFlag.DELTA_Y, false);
+                }
+
+                if (relativeDeltaZ) {
+                    teleport.setRelative(RelativeFlag.DELTA_Z, false);
+                }
+
+                if (relativeDeltaX || relativeDeltaY || relativeDeltaZ) {
+                    teleport.setDeltaMovement(Vector3d.zero());
+                    event.markForReEncode(true);
+                }
+            }
+
+            // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
+                pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
             }
 
             player.sendTransaction();
@@ -120,17 +157,15 @@ public class PacketServerTeleport extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
-            WrapperPlayServerVehicleMove vehicleMove = new WrapperPlayServerVehicleMove(event);
-
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             player.sendTransaction();
-            int lastTransactionSent = player.lastTransactionSent.get();
-            Vector3d finalPos = vehicleMove.getPosition();
-
             event.getTasksAfterSend().add(player::sendTransaction);
-            player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
+            player.vehicleData.vehicleTeleports.add(new Pair<>(
+                    player.lastTransactionSent.get(),
+                    new WrapperPlayServerVehicleMove(event).getPosition()
+            ));
         }
     }
 }

@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1194;
 
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
+import ac.grim.grimac.platform.api.manager.CommandAdapter;
 import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
@@ -15,14 +15,16 @@ import ac.grim.grimac.platform.fabric.mc1161.util.convert.Fabric1140ConversionUt
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
+import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+
 
 public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
 
     public GrimACFabric1190LoaderPlugin() {
         this(
-            new FabricParserDescriptorFactory(
+                () -> new FabricParserDescriptorFactory(
                     new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)
             ),
             new FabricPlatformPlayerFactory(
@@ -38,9 +40,9 @@ public class GrimACFabric1190LoaderPlugin extends GrimACFabric1170LoaderPlugin {
     }
 
     protected GrimACFabric1190LoaderPlugin(
-            ParserDescriptorFactory parserDescriptorFactory,
+            LazyHolder<CommandAdapter> parserDescriptorFactory,
             FabricPlatformPlayerFactory platformPlayerFactory,
-            PlatformServer platformServer,
+            AbstractFabricPlatformServer platformServer,
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil) {
         super(parserDescriptorFactory, platformPlayerFactory, platformServer, fabricMessageUtil, fabricConversionUtil);

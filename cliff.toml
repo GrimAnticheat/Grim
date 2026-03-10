@@ -1,0 +1,47 @@
+# cliff.toml - DEV BUILDS - Now with Author Info
+
+[changelog]
+body = """
+## Changes in this Build (since previous push)
+{%- for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | striptags | upper_first }}
+    {%- for commit in commits %}
+        - {{ commit.message | upper_first }} - *by {{ commit.author.name }}* {% if commit.breaking %}**[BREAKING]**{% endif %} \
+        {%- if commit.remote and commit.remote.url -%}
+            ([`{{ commit.id | truncate(length=7, end="") }}`]({{ commit.remote.url }}/commit/{{- commit.id -}}))
+        {%- else -%}
+            (`{{ commit.id | truncate(length=7, end="") }}`)
+        {%- endif -%}
+    {% endfor %}
+{% endfor %}
+"""
+trim = true
+
+[git]
+# Your previous settings here are perfect, no changes needed
+filter_unconventional = false
+skip_unconventional = false
+remote = "https://github.com/GrimAnticheat/Grim"
+commit_parsers = [
+    { message = "^feat", group = "🚀 Features" },
+    { message = "^fix", group = "🐛 Fixes" },
+    { message = "^perf", group = "⚡️ Performance" },
+    { message = "^refactor", group = "♻️ Refactoring" },
+    { message = "^docs", group = "📖 Documentation" },
+    { message = "^test", group = "✅ Tests" },
+    { message = "^chore", group = "🤖 Maintenance & CI" },
+    { body = ".*BREAKING CHANGE.*", group = "🚨 Breaking Changes" },
+    { message = ".*", group = "Miscellaneous" } # CHANGED THIS LINE
+]
+commit_preprocessors = [
+    { pattern = 'src/main/java/ac/grim/grimac/checks/.*', group = "✔️ Checks" },
+    { pattern = 'src/main/java/ac/grim/grimac/api/.*', group = "🔌 API" },
+    { pattern = 'src/main/java/ac/grim/grimac/platform/.*', group = "🏗️ Platform" },
+    { pattern = 'src/main/java/ac/grim/grimac/engine/.*', group = "⚙️ Core Engine" },
+    { pattern = 'src/main/java/ac/grim/grimac/config/.*', group = "⚙️ Configuration" },
+    { pattern = 'pom.xml', group = "🤖 Maintenance & CI" },
+    { pattern = '.github/.*', group = "🤖 Maintenance & CI" },
+    { pattern = 'build.gradle.kts', group = "🤖 Maintenance & CI" },
+    { pattern = 'src/.*', group = "⚙️ Core Engine" },
+]
+sort_commits = "oldest"

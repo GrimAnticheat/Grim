@@ -10,7 +10,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
-    Vector3dm movementInput = new Vector3dm();
+    protected Vector3dm movementInput = new Vector3dm();
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);
@@ -19,9 +19,9 @@ public class MovementTickerLivingVehicle extends MovementTicker {
     @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
-            new PredictionEngineRideableWater(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
+            new PredictionEngineRideableWater(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction);
         } else {
-            new PredictionEngineRideableWaterLegacy(movementInput).guessBestMovement(swimSpeed, player, player.gravity, swimFriction, player.lastY);
+            new PredictionEngineRideableWaterLegacy(movementInput).guessBestMovement(swimSpeed, player, swimFriction);
         }
     }
 

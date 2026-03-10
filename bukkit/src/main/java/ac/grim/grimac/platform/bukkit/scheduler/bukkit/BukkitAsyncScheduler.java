@@ -22,29 +22,31 @@ public class BukkitAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
-        return new BukkitTaskHandle(bukkitScheduler.runTaskLaterAsynchronously(GrimACBukkitLoaderPlugin.LOADER,
+        return new BukkitTaskHandle(bukkitScheduler.runTaskLaterAsynchronously(
+                GrimACBukkitLoaderPlugin.LOADER,
                 task,
-                PlatformScheduler.convertTimeToTicks(delay, timeUnit))
-        );
+                PlatformScheduler.convertTimeToTicks(delay, timeUnit)
+        ));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
-        return new BukkitTaskHandle(
-                bukkitScheduler.runTaskTimerAsynchronously(
-                        GrimACBukkitLoaderPlugin.LOADER,
-                        task,
-                        PlatformScheduler.convertTimeToTicks(delay, timeUnit),
-                        PlatformScheduler.convertTimeToTicks(period, timeUnit)
-                )
-        );
+        return new BukkitTaskHandle(bukkitScheduler.runTaskTimerAsynchronously(
+                GrimACBukkitLoaderPlugin.LOADER,
+                task,
+                PlatformScheduler.convertTimeToTicks(delay, timeUnit),
+                PlatformScheduler.convertTimeToTicks(period, timeUnit)
+        ));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
-        return new BukkitTaskHandle(
-                bukkitScheduler.runTaskTimerAsynchronously(GrimACBukkitLoaderPlugin.LOADER, task, initialDelayTicks, periodTicks)
-        );
+        return new BukkitTaskHandle(bukkitScheduler.runTaskTimerAsynchronously(
+                GrimACBukkitLoaderPlugin.LOADER,
+                task,
+                initialDelayTicks,
+                periodTicks
+        ));
     }
 
     @Override

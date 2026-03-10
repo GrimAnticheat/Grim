@@ -7,8 +7,9 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.util.concurrent.AtomicDouble;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @UtilityClass
@@ -20,27 +21,26 @@ public class MainSupportingBlockPosFinder {
 
         SimpleCollisionBox slightlyBelowPlayer = new SimpleCollisionBox(maxPose.minX, maxPose.minY - 1.0E-6D, maxPose.minZ, maxPose.maxX, maxPose.minY, maxPose.maxZ);
 
-        Optional<Vector3i> supportingBlock = findSupportingBlock(player, slightlyBelowPlayer);
-        if (supportingBlock.isEmpty() && (!lastSupportingBlock.lastOnGroundAndNoBlock())) {
+        Vector3i supportingBlock = findSupportingBlock(player, slightlyBelowPlayer);
+        if (supportingBlock == null && (!lastSupportingBlock.lastOnGroundAndNoBlock())) {
             if (lastMovement != null) {
                 SimpleCollisionBox aabb2 = slightlyBelowPlayer.offset(-lastMovement.x, 0.0D, -lastMovement.z);
-                supportingBlock = findSupportingBlock(player, aabb2);
-                return new MainSupportingBlockData(supportingBlock.orElse(null), true);
+                return new MainSupportingBlockData(findSupportingBlock(player, aabb2), true);
             }
         } else {
-            return new MainSupportingBlockData(supportingBlock.orElse(null), true);
+            return new MainSupportingBlockData(supportingBlock, true);
         }
 
         return new MainSupportingBlockData(null, true);
     }
 
-    private Optional<Vector3i> findSupportingBlock(GrimPlayer player, SimpleCollisionBox searchBox) {
+    private @Nullable Vector3i findSupportingBlock(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox searchBox) {
         Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
 
         AtomicReference<Vector3i> bestBlockPos = new AtomicReference<>();
         AtomicDouble blockPosDistance = new AtomicDouble(Double.MAX_VALUE);
 
-        Collisions.forEachCollisionBox(player, searchBox, (pos) -> {
+        Collisions.forEachCollisionBox(player, searchBox, pos -> {
             Vector3i blockPos = pos.toVector3i();
             Vector3d blockPosAsVector3d = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
             double distance = playerPos.distanceSquared(blockPosAsVector3d);
@@ -51,11 +51,10 @@ public class MainSupportingBlockPosFinder {
             }
         });
 
-
-        return Optional.ofNullable(bestBlockPos.get());
+        return bestBlockPos.get();
     }
 
-    private boolean firstHasPriorityOverSecond(Vector3i first, Vector3i second) {
+    private boolean firstHasPriorityOverSecond(@NotNull Vector3i first, @NotNull Vector3i second) {
         // Order of loop is X, Y, and Z
         // We prioritize lowest Y axis, then lowest X axis, then lowest Z axis
         // Ties among the X and Z positions are broken by the order of looping being X

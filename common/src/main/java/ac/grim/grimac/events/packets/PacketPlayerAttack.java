@@ -33,7 +33,9 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             // The entity does not exist
-            if (!player.compensatedEntities.entityMap.containsKey(interact.getEntityId()) && !player.compensatedEntities.serverPositionsMap.containsKey(interact.getEntityId())) {
+            if (!player.compensatedEntities.entityMap.containsKey(interact.getEntityId()) && !player.compensatedEntities.serverPositionsMap.containsKey(interact.getEntityId())
+                    // the list of entities used to raytrace isn't the same as the list of entities in the world in pre-1.14 (wtf mojang)
+                    && (!player.compensatedEntities.entitiesRemovedThisTick.contains(interact.getEntityId()) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14))) {
                 final BadPacketsW badPacketsW = player.checkManager.getCheck(BadPacketsW.class);
                 if (badPacketsW.flagAndAlert("entityId=" + interact.getEntityId()) && badPacketsW.shouldModifyPackets()) {
                     event.setCancelled(true);
@@ -47,17 +49,23 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
-                ItemStack heldItem = player.getInventory().getHeldItem();
+                // This is not vanilla behaviour as the attack damage attribute is marked as not synced to the client
+                // However, plugins can still set this by sending an attributes packet
+                if (player.compensatedEntities.self.getAttributeValue(Attributes.ATTACK_DAMAGE) <= 0) return;
+
+                ItemStack heldItem = player.inventory.getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
-                if (entity != null && (!entity.isLivingEntity() || entity.getType() == EntityTypes.PLAYER)) {
+                if (entity != null && (!entity.isLivingEntity || entity.type == EntityTypes.PLAYER || entity.type == EntityTypes.PAINTING
+                        || entity.type == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
                     int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
-                            ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion())
+                            ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                             : 0;
+                    final boolean hasNegativeKB = knockbackLevel < 0;
 
-                    boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
+                    final boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
                     // assume cooldown is full on 1.8 servers
-                    boolean noCooldown = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
+                    final boolean noCooldown = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
 
                     if (!isLegacyPlayer) {
                         knockbackLevel = Math.max(knockbackLevel, 0);
@@ -66,7 +74,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     // 1.8 players who are packet sprinting WILL get slowed
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown
                     // Players with knockback enchantments always get slowed
-                    if (player.lastSprinting && knockbackLevel >= 0 && noCooldown || knockbackLevel > 0) {
+
+                    if ((player.lastSprinting && !hasNegativeKB && noCooldown) || knockbackLevel > 0) {
                         player.minAttackSlow++;
                         player.maxAttackSlow++;
 

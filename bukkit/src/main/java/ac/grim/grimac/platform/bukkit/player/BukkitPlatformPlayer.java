@@ -9,8 +9,11 @@ import ac.grim.grimac.platform.bukkit.entity.BukkitGrimEntity;
 import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.math.Location;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
@@ -20,23 +23,33 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPlayer {
+
     private static final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
 
     @Getter
     private final Player bukkitPlayer;
+    @Getter
     private final PlatformInventory inventory;
+
+    private final @Nullable User user;
 
     public BukkitPlatformPlayer(Player bukkitPlayer) {
         super(bukkitPlayer);
         this.bukkitPlayer = bukkitPlayer;
         this.inventory = new BukkitPlatformInventory(bukkitPlayer);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
+            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
+            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        } else {
+            this.user = null;
+        }
     }
 
     @Override
@@ -66,12 +79,20 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void sendMessage(String message) {
-        bukkitPlayer.sendMessage(message);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
+            user.sendMessage(message);
+        } else {
+            bukkitPlayer.sendMessage(message);
+        }
     }
 
     @Override
     public void sendMessage(Component message) {
-        audiences.player(bukkitPlayer).sendMessage(message);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
+            user.sendMessage(message);
+        } else {
+            audiences.player(bukkitPlayer).sendMessage(message);
+        }
     }
 
     @Override
@@ -91,13 +112,12 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public Vector3d getPosition() {
-        org.bukkit.Location location = this.bukkitPlayer.getLocation();
-        return new Vector3d(location.getX(), location.getY(), location.getZ());
-    }
-
-    @Override
-    public PlatformInventory getInventory() {
-        return inventory;
+        if (CAN_USE_DIRECT_GETTERS) {
+            return new Vector3d(this.bukkitPlayer.getX(), this.bukkitPlayer.getY(), this.bukkitPlayer.getZ());
+        } else {
+            org.bukkit.Location location = this.bukkitPlayer.getLocation();
+            return new Vector3d(location.getX(), location.getY(), location.getZ());
+        }
     }
 
     @Override
@@ -151,7 +171,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    @NonNull
+    @NotNull
     public Player getNative() {
         return this.bukkitPlayer;
     }

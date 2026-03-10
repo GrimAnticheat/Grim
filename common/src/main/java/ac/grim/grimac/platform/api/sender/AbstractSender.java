@@ -3,9 +3,8 @@ package ac.grim.grimac.platform.api.sender;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -22,7 +21,7 @@ public final class AbstractSender<T> implements Sender {
     private final String name;
     private final boolean isConsole;
 
-    AbstractSender(@NonNull SenderFactory<T> factory, @NonNull T sender) {
+    AbstractSender(@NotNull SenderFactory<T> factory, @NotNull T sender) {
         this.factory = factory;
         this.sender = sender;
         this.uniqueId = factory.getUniqueId(this.sender);

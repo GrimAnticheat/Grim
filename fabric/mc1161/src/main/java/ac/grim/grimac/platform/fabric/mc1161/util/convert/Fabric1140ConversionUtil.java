@@ -9,19 +9,18 @@ import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentS
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.text.Text;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class Fabric1140ConversionUtil implements IFabricConversionUtil {
-    public ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    public ItemStack fromFabricItemStack(net.minecraft.world.item.ItemStack fabricStack) {
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
 
         ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
         try {
-            PacketByteBuf packetByteBuf = new PacketByteBuf(buffer);
-            packetByteBuf.writeItemStack(fabricStack);
+            FriendlyByteBuf packetByteBuf = new FriendlyByteBuf(buffer);
+            packetByteBuf.writeItem(fabricStack);
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buffer);
             return wrapper.readItemStack();
         } catch (Exception e) {
@@ -32,7 +31,7 @@ public class Fabric1140ConversionUtil implements IFabricConversionUtil {
         }
     }
 
-    public Text toNativeText(Component component) {
-        return Text.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component));
+    public net.minecraft.network.chat.Component toNativeText(Component component) {
+        return net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component));
     }
 }

@@ -1,15 +1,18 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Vector3dm;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import java.util.Objects;
 
 public class VectorData {
-    public VectorType vectorType;
+    public final VectorType vectorType;
     public VectorData lastVector;
     public VectorData preUncertainty;
     public Vector3dm vector;
+    public @MonotonicNonNull Vector3dm input;
 
     @Getter
     private boolean isKnockback, firstBreadKb, isExplosion, firstBreadExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
@@ -33,6 +36,7 @@ public class VectorData {
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
+            input = lastVector.input;
         }
 
         addVectorType(vectorType);
@@ -50,6 +54,14 @@ public class VectorData {
 
     public VectorData returnNewModified(Vector3dm newVec, VectorType type) {
         return new VectorData(newVec, this, type);
+    }
+
+    public boolean isSetbackKb(GrimPlayer player) {
+        if (!isKnockback) {
+            return false;
+        }
+        VelocityData bread = (firstBreadKb ? player.firstBreadKB : player.likelyKB);
+        return bread != null && bread.isSetback;
     }
 
     @Override

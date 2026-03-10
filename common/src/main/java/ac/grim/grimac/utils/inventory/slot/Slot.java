@@ -9,7 +9,7 @@ import java.util.Optional;
 public class Slot {
     public final int inventoryStorageSlot;
     public int slotListIndex;
-    InventoryStorage container;
+    private final InventoryStorage container;
 
     public Slot(InventoryStorage container, int slot) {
         this.container = container;

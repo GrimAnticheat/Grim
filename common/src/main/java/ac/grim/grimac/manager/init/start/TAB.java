@@ -2,7 +2,7 @@ package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.reflection.ViaVersionUtil;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
@@ -11,7 +11,7 @@ public class TAB implements StartableInitable {
     @Override
     public void start() {
         if (GrimAPI.INSTANCE.getPluginManager().getPlugin("TAB") == null) return;
-        if (!ViaVersionUtil.isAvailable()) return;
+        if (!ViaVersionUtil.isAvailable) return;
         // I don't know when team limits were changed, 1.13 is reasonable enough
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13))
             return;

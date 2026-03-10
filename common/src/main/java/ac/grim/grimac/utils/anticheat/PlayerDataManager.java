@@ -4,13 +4,12 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.reflection.FloodgateUtil;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.player.User;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -21,7 +20,7 @@ public class PlayerDataManager {
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     @Nullable
-    public GrimPlayer getPlayer(final @NonNull UUID uuid) {
+    public GrimPlayer getPlayer(final @NotNull UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
         Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(uuid);
         User user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
@@ -29,21 +28,20 @@ public class PlayerDataManager {
     }
 
     @Nullable
-    public GrimPlayer getPlayer(final @NonNull User user) {
+    public GrimPlayer getPlayer(final @NotNull User user) {
         @Nullable GrimPlayer player = playerDataMap.get(user);
         if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer())
             return null;
         return player;
     }
 
-    public boolean shouldCheck(@NonNull User user) {
+    public boolean shouldCheck(@NotNull User user) {
         if (exemptUsers.contains(user)) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
         if (user.getUUID() != null) {
-            // Geyser players don't have Java movement
-            // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
-            if (GeyserUtil.isGeyserPlayer(user.getUUID()) || FloodgateUtil.isFloodgatePlayer(user.getUUID())) {
+            // Bedrock players don't have Java movement
+            if (GeyserUtil.isBedrockPlayer(user.getUUID())) {
                 exemptUsers.add(user);
                 return false;
             }
@@ -66,7 +64,7 @@ public class PlayerDataManager {
         return true;
     }
 
-    public void addUser(final @NonNull User user) {
+    public void addUser(final @NotNull User user) {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
@@ -74,7 +72,7 @@ public class PlayerDataManager {
         }
     }
 
-    public GrimPlayer remove(final @NonNull User user) {
+    public GrimPlayer remove(final @NotNull User user) {
         return playerDataMap.remove(user);
     }
 

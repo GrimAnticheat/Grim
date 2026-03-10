@@ -20,11 +20,21 @@
   "mixins": [
     "grimac.mixins.json"
   ],
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/level/Level": [
+        "ac/grim/grimac/platform/api/world/PlatformWorld"
+      ]
+    }
+  },
   "accessWidener": "grimac.accesswidener",
   "depends": {
     "fabricloader": "\u003e\u003d0.16",
     "fabric-lifecycle-events-v1": "*",
-    "cloud": "*",
     "packetevents": "*"
+  },
+  "recommends": {
+    "cloud": "*",
+    "fabric-permissions-api-v0": "*"
   }
 }

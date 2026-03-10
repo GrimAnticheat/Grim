@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
     }
 
     // only call this synchronously
-    public void disable(@NonNull PlatformPlayer platformPlayer, boolean teleportBack) {
+    public void disable(@NotNull PlatformPlayer platformPlayer, boolean teleportBack) {
         PreviousState previousState = spectatingPlayers.get(platformPlayer.getUniqueId());
         if (previousState != null) {
             if (teleportBack && previousState.location.isWorldLoaded()) {

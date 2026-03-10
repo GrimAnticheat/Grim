@@ -4,7 +4,6 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -12,11 +11,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
 
 import java.util.LinkedList;
-import java.util.Queue;
 
 @CheckData(name = "BadPacketsO")
 public class BadPacketsO extends Check implements PacketCheck {
-    Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
+    private final LinkedList<Long> keepalives = new LinkedList<>();
 
     public BadPacketsO(GrimPlayer player) {
         super(player);
@@ -25,37 +23,30 @@ public class BadPacketsO extends Check implements PacketCheck {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.KEEP_ALIVE) {
-            WrapperPlayServerKeepAlive packet = new WrapperPlayServerKeepAlive(event);
-            keepaliveMap.add(new Pair<>(packet.getId(), System.nanoTime()));
+            keepalives.add(new WrapperPlayServerKeepAlive(event).getId());
         }
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
-            WrapperPlayClientKeepAlive packet = new WrapperPlayClientKeepAlive(event);
+            final long id = new WrapperPlayClientKeepAlive(event).getId();
 
-            long id = packet.getId();
-            boolean hasID = false;
+            for (long keepalive : keepalives) {
+                if (keepalive == id) {
+                    // Found the ID, remove stuff until we get to it (to stop very slow memory leaks)
+                    Long data;
+                    do {
+                        data = keepalives.poll();
+                    } while (data != null && data != id);
 
-            for (Pair<Long, Long> iterator : keepaliveMap) {
-                if (iterator.first() == id) {
-                    hasID = true;
-                    break;
+                    return;
                 }
             }
 
-            if (!hasID) {
-                if (flagAndAlert("id=" + id) && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            } else { // Found the ID, remove stuff until we get to it (to stop very slow memory leaks)
-                Pair<Long, Long> data;
-                do {
-                    data = keepaliveMap.poll();
-                    if (data == null) break;
-                } while (data.first() != id);
+            if (flagAndAlert("id=" + id) && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
         }
     }

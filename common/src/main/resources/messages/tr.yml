@@ -14,6 +14,7 @@ reloaded: "%prefix% &fConfig has been reloaded."
 reload-failed: "%prefix% &cFailed to reload config."
 player-not-found: "%prefix% &cOyuncu bulunamadı veya aktif değil!"
 player-not-this-server: "%prefix% &cBu oyuncu sunucuda değil!"
+sender-not-found: "%prefix% &cMuafsanız bu komutu kullanamazsınız!"
 spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fBir önceki konuma dönmek için buraya tıklayın.\n</hover></click>"
 cannot-spectate-return: "%prefix% &cBunu yalnızca bir oyuncuyu izledikten sonra yapabilirsiniz."
 cannot-run-on-self: "%prefix% &cBu komutu kendi üzerinizde kullanamazsınız!"
@@ -28,6 +29,10 @@ disconnect:
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
 run-as-player: "%prefix% &cBu komut yalnızca oyuncular tarafından kullanılabilir!"
 run-as-player-or-console: "%prefix% &cBu komut yalnızca oyuncular veya konsol tarafından kullanılabilir!"
+webhook-not-enabled: "Discord webhooks are not enabled!"
+webhook-test-message: "test message"
+webhook-test-succeeded: "Discord webhook test succeeded!"
+webhook-test-failed: "Discord webhook test failed!"
 
 # Geçerli placeholderlar:
 # %prefix%
@@ -63,7 +68,12 @@ help:
     - "/grim spectate (oyuncu) &f- &7Bir oyuncuyu izlemenizi sağlar"
     - "/grim verbose &f- &7Arabelleğe almadan tüm uyarıları görmenizi sağlar"
     - "/grim log (0-255) &f- &7Uyarılar için bir debug logu çıktısı verir"
+    - "/grim history <player> [sayfa] &f- &7Oyuncunun önceki uyarılarını gösterir"
     - "&7======================"
 
-# Translated by Kayera
-# Have a nice day ;)
+grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar için sunucu konsolunu kontrol edin."
+grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
+# Valid placeholders: %prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &bKayıtlar gösteriliyor: &f%player% (&f%page%&b/&f%maxPages%&f)"
+# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &bBaşarısız &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% önce&7)"

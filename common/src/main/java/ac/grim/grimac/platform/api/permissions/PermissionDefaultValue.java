@@ -30,7 +30,7 @@ public enum PermissionDefaultValue {
     /**
      * Permission defaults to not requiring operator (op) status.
      * - Bukkit: Maps to PermissionDefault.NOT_OP
-     * - Fabric: Maps to requiring < op-permission-level
+     * - Fabric: Maps to requiring {@literal <} op-permission-level
      */
     NOT_OP
 }

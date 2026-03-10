@@ -5,17 +5,10 @@ plugins {
     id("com.gradleup.shadow")
 }
 
-// Create a configuration for shading dependencies from common
-val shadowCommon: Configuration by project.configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    extendsFrom(project.configurations.getByName("implementation"))
-}
-
 tasks.named<ShadowJar>("shadowJar") {
     minimize()
-    archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
-    from(shadowCommon) // Use from() instead of direct assignment
+    archiveFileName = "${rootProject.name}-${project.name}-${rootProject.version}.jar"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     if (BuildConfig.relocate) {
         if (BuildConfig.shadePE) {
@@ -38,6 +31,7 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("org.jetbrains", "ac.grim.grimac.shaded.jetbrains")
         relocate("org.incendo", "ac.grim.grimac.shaded.incendo")
         relocate("io.leangen.geantyref", "ac.grim.grimac.shaded.geantyref") // Required by cloud
+        relocate("com.zaxxer", "ac.grim.grimac.shaded.zaxxer") // Database history
     }
     mergeServiceFiles()
 }

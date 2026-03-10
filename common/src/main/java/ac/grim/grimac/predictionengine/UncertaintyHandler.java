@@ -23,9 +23,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
-    public EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
-    public EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
+    public final EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -67,28 +67,28 @@ public class UncertaintyHandler {
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box that are pushable?
-    public EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
+    public final EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
     // How many entities are within 0.5 blocks of the player's bounding box? Should only exclude entities in spectator
-    public EvictingQueue<Integer> riptideEntities = new EvictingQueue<>(3);
+    public final EvictingQueue<Integer> riptideEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
-    public List<Integer> fishingRodPulls = new ArrayList<>();
+    public final List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
 
-    public LastInstance lastFlyingTicks;
-    public LastInstance lastFlyingStatusChange;
-    public LastInstance lastUnderwaterFlyingHack;
-    public LastInstance lastStuckSpeedMultiplier;
-    public LastInstance lastHardCollidingLerpingEntity;
-    public LastInstance lastThirtyMillionHardBorder;
-    public LastInstance lastTeleportTicks;
-    public LastInstance lastPointThree;
-    public LastInstance stuckOnEdge;
-    public LastInstance lastStuckNorth;
-    public LastInstance lastStuckSouth;
-    public LastInstance lastStuckWest;
-    public LastInstance lastStuckEast;
-    public LastInstance lastVehicleSwitch;
+    public final LastInstance lastFlyingTicks;
+    public final LastInstance lastFlyingStatusChange;
+    public final LastInstance lastUnderwaterFlyingHack;
+    public final LastInstance lastStuckSpeedMultiplier;
+    public final LastInstance lastHardCollidingLerpingEntity;
+    public final LastInstance lastThirtyMillionHardBorder;
+    public final LastInstance lastTeleportTicks;
+    public final LastInstance lastPointThree;
+    public final LastInstance stuckOnEdge;
+    public final LastInstance lastStuckNorth;
+    public final LastInstance lastStuckSouth;
+    public final LastInstance lastStuckWest;
+    public final LastInstance lastStuckEast;
+    public final LastInstance lastVehicleSwitch;
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
@@ -157,12 +157,12 @@ public class UncertaintyHandler {
             Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
             Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
 
-            Vector3dm diff = minLocation.subtract(new Vector3dm(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            Vector3dm diff = minLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
             fishingRodPullBox.minX = Math.min(0, diff.getX());
             fishingRodPullBox.minY = Math.min(0, diff.getY());
             fishingRodPullBox.minZ = Math.min(0, diff.getZ());
 
-            diff = maxLocation.subtract(new Vector3dm(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            diff = maxLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
             fishingRodPullBox.maxX = Math.max(0, diff.getX());
             fishingRodPullBox.maxY = Math.max(0, diff.getY());
             fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
@@ -177,8 +177,8 @@ public class UncertaintyHandler {
 
         fireworksBox = new SimpleCollisionBox();
 
-        Vector3dm currentLook = ReachUtils.getLook(player, player.xRot, player.yRot);
-        Vector3dm lastLook = ReachUtils.getLook(player, player.lastXRot, player.lastYRot);
+        Vector3dm currentLook = ReachUtils.getLook(player, player.yaw, player.pitch);
+        Vector3dm lastLook = ReachUtils.getLook(player, player.lastYaw, player.lastPitch);
 
         double antiTickSkipping = player.isPointThree() ? 0 : 0.05; // With 0.03, let that handle tick skipping
 
@@ -211,7 +211,7 @@ public class UncertaintyHandler {
     public double getOffsetHorizontal(VectorData data) {
         double threshold = player.getMovementThreshold();
 
-        boolean newVectorPointThree = player.couldSkipTick && data.isKnockback();
+        boolean newVectorPointThree = player.couldSkipTick && data.isKnockback() && !data.isSetbackKb(player);
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
         boolean either003 = newVectorPointThree || explicit003;
 
@@ -335,7 +335,7 @@ public class UncertaintyHandler {
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat() || entity.getType() == EntityTypes.SHULKER) && entity != riding
+            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -348,7 +348,7 @@ public class UncertaintyHandler {
         // Stiders can walk on top of other striders
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
+                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
                         && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -361,7 +361,7 @@ public class UncertaintyHandler {
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (riding == null || !riding.isBoat()) return false;
+        if (riding == null || !riding.isBoat) return false;
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity != riding && entity.isPushable() && !riding.hasPassenger(entity)

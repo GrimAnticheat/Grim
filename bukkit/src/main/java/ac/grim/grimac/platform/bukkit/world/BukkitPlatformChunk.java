@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.api.world.PlatformChunk;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -15,14 +16,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public class BukkitPlatformChunk implements PlatformChunk {
     private static final Map<BlockData, Integer> blockDataToId = GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA ? new ConcurrentHashMap<>() : new HashMap<>();
     private static final boolean isFlat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
-    private final Chunk chunk;
-
-    public BukkitPlatformChunk(@NotNull Chunk chunkAt) {
-        this.chunk = chunkAt;
-    }
+    private final @NotNull Chunk chunk;
 
     @Override
     public int getBlockID(int x, int y, int z) {
@@ -30,6 +28,11 @@ public class BukkitPlatformChunk implements PlatformChunk {
 
         return isFlat // Cache blockDataToID because Strings are expensive
                 ? blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId())
-                : (block.getType().getId() << 4) | block.getData();
+                : getLegacyBlockID(block);
+    }
+
+    @SuppressWarnings({ "deprecation", "UnstableApiUsage" })
+    private static int getLegacyBlockID(@NotNull Block block) {
+        return (block.getType().getId() << 4) | block.getData();
     }
 }

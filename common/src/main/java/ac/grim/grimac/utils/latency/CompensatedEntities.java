@@ -17,6 +17,7 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.Equipment;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
@@ -26,6 +27,7 @@ import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
@@ -41,13 +43,14 @@ public class CompensatedEntities {
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
 
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
+    public final IntArraySet entitiesRemovedThisTick = new IntArraySet();
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Object2ObjectOpenHashMap<UUID, UserProfile> profiles = new Object2ObjectOpenHashMap<>();
     public Integer serverPlayerVehicle = null;
     public boolean hasSprintingAttributeEnabled = false;
     public TrackerData selfTrackedEntity;
     public PacketEntitySelf self;
-    GrimPlayer player;
+    private final GrimPlayer player;
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
@@ -94,6 +97,10 @@ public class CompensatedEntities {
 
     public OptionalInt getPotionLevelForPlayer(PotionType type) {
         return getEntityInControl().getPotionEffectLevel(type);
+    }
+
+    public OptionalInt getPotionLevelForSelfPlayer(PotionType type) {
+        return self.getPotionEffectLevel(type);
     }
 
     public boolean hasPotionEffect(PotionType type) {
@@ -162,12 +169,16 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
+    public PacketEntity addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
-        if (entityType == EntityTypes.ITEM) return;
+        if (entityType == EntityTypes.ITEM) return null;
 
         PacketEntity packetEntity;
-        if (EntityTypes.CAMEL.equals(entityType)) {
+        if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_NAUTILUS)) {
+            packetEntity = new PacketEntityNautilus(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
+        } else if (EntityTypes.HAPPY_GHAST.equals(entityType)) {
+            packetEntity = new PacketEntityHappyGhast(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.CAMEL)) {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
@@ -193,6 +204,7 @@ public class CompensatedEntities {
                 || EntityTypes.LIGHTNING_BOLT.equals(entityType)
                 || EntityTypes.EXPERIENCE_BOTTLE.equals(entityType)
                 || EntityTypes.EXPERIENCE_ORB.equals(entityType)
+                || EntityTypes.EVOKER_FANGS.equals(entityType)
         ) {
             packetEntity = new PacketEntityUnHittable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.ARMOR_STAND.equals(entityType)) {
@@ -208,6 +220,7 @@ public class CompensatedEntities {
         }
 
         entityMap.put(entityID, packetEntity);
+        return packetEntity;
     }
 
     public PacketEntity getEntity(int entityID) {
@@ -229,7 +242,7 @@ public class CompensatedEntities {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
-        if (entity.isAgeable()) {
+        if (entity.isAgeable) {
             int id;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
                 id = 12;
@@ -278,9 +291,9 @@ public class CompensatedEntities {
             if (sizeObject != null) {
                 Object value = sizeObject.getValue();
                 if (value instanceof Integer) {
-                    sizeable.size = Math.max((int) value, 1);
+                    sizeable.size = (int) value;
                 } else if (value instanceof Byte) {
-                    sizeable.size = Math.max((byte) value, 1);
+                    sizeable.size = (byte) value;
                 }
             }
         }
@@ -324,7 +337,7 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable rideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                if (entity.getType() == EntityTypes.PIG) {
+                if (entity.type == EntityTypes.PIG) {
                     EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
                     if (pigSaddle != null) {
                         rideable.hasSaddle = ((byte) pigSaddle.getValue()) != 0;
@@ -340,7 +353,7 @@ public class CompensatedEntities {
                 offset = 1;
             }
 
-            if (entity.getType() == EntityTypes.PIG) {
+            if (entity.type == EntityTypes.PIG) {
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
                     offset = 1;
 
@@ -401,11 +414,14 @@ public class CompensatedEntities {
                     if (entity instanceof PacketEntityCamel camel) {
                         EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
                         if (entityData != null) {
-                            camel.dashing = (boolean) entityData.getValue();
+                            camel.setDashing((boolean) entityData.getValue());
+
+                            // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
+                            // !firstTick condition
+                            camel.setDashCooldown(camel.getDashCooldown() == 0 ? 55 : camel.getDashCooldown());
                         }
                     }
                 }
-
             } else {
                 EntityData<?> horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {
@@ -417,6 +433,17 @@ public class CompensatedEntities {
                     // horse.hasSaddle = (info & 0x08) != 0; // 0x08 should be hasChest
                     horse.isRearing = (info & 0x40) != 0;
                 }
+            }
+        }
+
+        if (entity instanceof PacketEntityNautilus nautilus) {
+            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 19);
+            if (entityData != null) {
+                nautilus.setDashing((boolean) entityData.getValue());
+
+                // TODO there is: if (!this.firstTick && DASH.equals(accessor)) {
+                // !firstTick condition
+                nautilus.setDashCooldown(nautilus.getDashCooldown() == 0 ? 40 : nautilus.getDashCooldown());
             }
         }
 
@@ -434,7 +461,7 @@ public class CompensatedEntities {
             }
         }
 
-        if (entity.getType() == EntityTypes.FIREWORK_ROCKET) {
+        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
                 offset = 2;
@@ -517,9 +544,19 @@ public class CompensatedEntities {
 
             EntityData<?> guardianByte = WatchableIndexUtil.getIndex(watchableObjects, index);
             if (guardianByte != null) {
-                int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows its an integer
+                int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows it's an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
             }
         }
     }
+
+    public void updateEntityEquipment(int entityId, List<Equipment> equipment) {
+        PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+        if (entity == null || !entity.trackEntityEquipment) return;
+
+        for (Equipment equipmentItem : equipment) {
+            entity.setItemBySlot(equipmentItem.getSlot(), equipmentItem.getItem());
+        }
+    }
+
 }

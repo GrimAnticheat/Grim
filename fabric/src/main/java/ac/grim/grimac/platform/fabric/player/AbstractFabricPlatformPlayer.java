@@ -6,55 +6,82 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
+import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEntity implements PlatformPlayer {
-    @Getter
-    protected ServerPlayerEntity fabricPlayer;
+    protected volatile ServerPlayer fabricPlayer;
     protected final AbstractFabricPlatformInventory inventory;
+    private final @Nullable User user;
 
-    public AbstractFabricPlatformPlayer(ServerPlayerEntity player) {
+    public AbstractFabricPlatformPlayer(ServerPlayer player) {
         super(player);
         this.fabricPlayer = player;
-        this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(player);
+        this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(this);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
+            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(fabricPlayer.getUUID());
+            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        } else {
+            this.user = null;
+        }
     }
 
     @Override
     public void kickPlayer(String textReason) {
-        fabricPlayer.networkHandler.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
+        fabricPlayer.connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
     }
 
     @Override
     public boolean isSneaking() {
-        return fabricPlayer.isSneaking();
+        return fabricPlayer.isShiftKeyDown();
     }
 
     @Override
     public void setSneaking(boolean isSneaking) {
-        fabricPlayer.setSneaking(isSneaking);
+        fabricPlayer.setShiftKeyDown(isSneaking);
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return getSender().hasPermission(permission);
+    }
+
+    @Override
+    public boolean hasPermission(String permission, boolean defaultIfUnset) {
+        return getSender().hasPermission(permission, defaultIfUnset);
     }
 
     @Override
     public void sendMessage(String message) {
-        fabricPlayer.sendMessage(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(message), false);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
+            user.sendMessage(message);
+        } else {
+            fabricPlayer.displayClientMessage(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(message), false);
+        }
     }
 
     @Override
     public void sendMessage(Component message) {
-        fabricPlayer.sendMessage(GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
+            user.sendMessage(message);
+        } else {
+            fabricPlayer.displayClientMessage(GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);
+        }
     }
 
     @Override
     public boolean isOnline() {
-        return !fabricPlayer.isDisconnected();
+        return !fabricPlayer.hasDisconnected();
     }
 
     @Override
@@ -64,7 +91,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void updateInventory() {
-        fabricPlayer.currentScreenHandler.sendContentUpdates();
+        fabricPlayer.containerMenu.broadcastChanges();
     }
 
     @Override
@@ -85,7 +112,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public GameMode getGameMode() {
-        return FabricConversionUtil.fromFabricGameMode(fabricPlayer.interactionManager.getGameMode());
+        return FabricConversionUtil.fromFabricGameMode(fabricPlayer.gameMode.getGameModeForPlayer());
     }
 
     @Override
@@ -95,7 +122,7 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public UUID getUniqueId() {
-        return fabricPlayer.getUuid();
+        return fabricPlayer.getUUID();
     }
 
     @Override
@@ -116,18 +143,16 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
-        this.inventory.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
-        this.inventory.inventory = ((ServerPlayerEntity) nativePlayerObject).inventory;
-        this.fabricPlayer = (ServerPlayerEntity) nativePlayerObject;
+        this.fabricPlayer = (ServerPlayer) nativePlayerObject;
     }
 
-    @Override @NonNull
-    public ServerPlayerEntity getNative() {
+    @Override
+    public @NotNull ServerPlayer getNative() {
         return this.fabricPlayer;
     }
 
     @Override
     public boolean isDead() {
-        return fabricPlayer.isDead();
+        return fabricPlayer.isDeadOrDying();
     }
 }

@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
-@CheckData(name = "PositionPlace")
+@CheckData(name = "PositionPlace", description = "Placed a block against a hidden face")
 public class PositionPlace extends BlockPlaceCheck {
 
     public PositionPlace(GrimPlayer player) {
@@ -16,7 +16,7 @@ public class PositionPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (place.getMaterial() == StateTypes.SCAFFOLDING || player.inVehicle()) return;
+        if (place.material == StateTypes.SCAFFOLDING || player.inVehicle()) return;
 
         SimpleCollisionBox combined = getCombinedBox(place);
 
@@ -46,7 +46,7 @@ public class PositionPlace extends BlockPlaceCheck {
 
         // So now we have the player's possible eye positions
         // So then look at the face that the player has clicked
-        boolean flag = switch (place.getDirection()) {
+        boolean flag = switch (place.getFace()) {
             case NORTH -> eyePositions.minZ > combined.minZ; // Z- face
             case SOUTH -> eyePositions.maxZ < combined.maxZ; // Z+ face
             case EAST -> eyePositions.maxX < combined.maxX; // X+ face

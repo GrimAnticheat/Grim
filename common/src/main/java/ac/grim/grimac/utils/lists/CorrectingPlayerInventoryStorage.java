@@ -45,14 +45,14 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     private static final Set<String> SUPPORTED_INVENTORIES = new HashSet<>(
             Arrays.asList("CHEST", "DISPENSER", "DROPPER", "PLAYER", "ENDER_CHEST", "SHULKER_BOX", "BARREL", "CRAFTING", "CREATIVE")
     );
-    GrimPlayer player;
+    private final GrimPlayer player;
     // The key for this map is the inventory slot ID
     // The value for this map is the transaction that we care about
     // Returns -1 if the entry is null
-    Map<Integer, Integer> serverIsCurrentlyProcessingThesePredictions = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> serverIsCurrentlyProcessingThesePredictions = new ConcurrentHashMap<>();
     // A list of predictions the client has made for inventory changes
     // Remove if the server rejects these changes
-    Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> pendingFinalizedSlot = new ConcurrentHashMap<>();
 
     public CorrectingPlayerInventoryStorage(GrimPlayer player, int size) {
         super(size);
@@ -91,14 +91,18 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         super.setItem(item, stack);
     }
 
+    /**
+     * Checks that the specified slot is in sync with the server's and resyncs if needed.
+     * @param slot the slot to check
+     */
     private void checkThatBukkitIsSynced(int slot) {
         // The player isn't fully logged in yet, don't bother checking
         if (player.platformPlayer == null) return;
         // We aren't tracking the player's inventory, so don't bother
-        if (!player.getInventory().isPacketInventoryActive) return;
+        if (!player.inventory.isPacketInventoryActive) return;
 
         // Bukkit uses different slot ID's to vanilla
-        int bukkitSlot = player.getInventory().getBukkitSlot(slot); // 8 -> 39, should be 36
+        int bukkitSlot = player.inventory.getBukkitSlot(slot); // 8 -> 39, should be 36
 
         if (bukkitSlot != -1) {
             ItemStack existing = getItem(slot);
@@ -115,22 +119,26 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     public void tickWithBukkit() {
         if (player.platformPlayer == null) return;
 
+        // Loop all slot changes the client has predicted and check that the server has accepted them
         int tickID = GrimAPI.INSTANCE.getTickManager().currentTick;
         for (Iterator<Map.Entry<Integer, Integer>> it = pendingFinalizedSlot.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Integer, Integer> entry = it.next();
+            // If x ticks have passed, check the slot is equal to the server slot and remove
             if (entry.getValue() <= tickID) {
                 checkThatBukkitIsSynced(entry.getKey());
                 it.remove();
             }
         }
 
-        if (player.getInventory().needResend) {
+        // If the player's inventory needs to be resent so that Grim can enable the player's packet inventory again
+        // Then resend once the player has a supported inventory to activate that.
+        if (player.inventory.needResend) {
             GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
                 // Potential race condition doing this multiple times
-                if (!player.getInventory().needResend) return;
+                if (!player.inventory.needResend) return;
 
                 if (SUPPORTED_INVENTORIES.contains(player.platformPlayer.getInventory().getOpenInventoryKey().toUpperCase(Locale.ROOT))) {
-                    player.getInventory().needResend = false;
+                    player.inventory.needResend = false;
                     player.platformPlayer.updateInventory();
                 }
             }, null, 0);
@@ -138,7 +146,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         // Every five ticks, we pull a new item for the player
         // This means no desync will last longer than 10 seconds
-        // (Required as mojang has screwed up some things with inventories that we can't easily fix.
+        // (Required as mojang has screwed up some things with inventories that we can't easily fix)
         // Don't spam this as it could cause lag (I was getting 0.3 ms to query this, this is done async though)
         if (tickID % 5 == 0) {
             int slotToCheck = (tickID / 5) % getSize();

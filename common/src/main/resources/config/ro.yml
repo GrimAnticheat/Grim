@@ -1,0 +1,236 @@
+# Configurația principală GrimAC
+# Cod sursă: https://github.com/MWHunter/Grim
+# Drepturi de autor 2025 DefineOutside și colaboratorii, licențiat sub GPLv3.
+# Binarele modificate sau pluginurile cu cod Grim copiat trebuie să fie private,
+# sau cu întregul cod sursă disponibil cumpărătorilor fără costuri suplimentare.
+
+alerts:
+    # Pe lângă transmiterea alertelor către jucători, ar trebui să fie trimise și în consolă?
+    print-to-console: true
+    # Aceasta controlează dacă/și cum sunt partajate alertele între serverele conectate la proxy.
+    # Trebuie să ai 'bungee-plugin-message-channel' activat în configurația Velocity dacă Velocity este folosit.
+    proxy:
+        # Ar trebui ca alertele să fie trimise către alte servere conectate la proxy?
+        send: false
+        # Ar trebui ca alertele primite de la alte servere să fie anunțate pe acest server?
+        receive: false
+
+verbose:
+    print-to-console: false
+
+check-for-updates: true
+
+client-brand:
+    # Aceasta înseamnă că nu va transmite operatorilor brandul clientului dacă brandul se potrivește cu regex-urile de mai jos
+    ignored-clients:
+        - "^vanilla$"
+        - "^fabric$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
+        - "^Feather Fabric$"
+        - "^labymod$"
+    # Grim va bloca anumite versiuni Forge care includ hackuri Reach integrate (Forge 1.18.2 până la 1.19.3).
+    # Setarea acestei opțiuni la false va permite acestor clienți să se conecteze la server. Dezactivează pe propriul risc.
+    disconnect-blacklisted-forge-versions: true
+
+spectators:
+    # Ascunde toți spectatorii cu permisiunea grim.spectator indiferent dacă spectează activ sau nu
+    hide-regardless: false
+    # Va face spectatorii invizibili doar în aceste lumi, lasă gol pentru a permite în toate lumile
+    allowed-worlds:
+        - ""
+
+# Cât timp au jucătorii până să fie deconectați pentru timeout? Implicit = 60 secunde
+max-transaction-time: 60
+
+# Activează pentru a opri Grim din a anula pongs primite de la jucători.
+# Poate îmbunătăți compatibilitatea cu alte anticheaturi. Poate cauza probleme cu limitatoarele de pachete.
+# Nu activa dacă nu ești sigur ce faci.
+disable-pong-cancelling: false
+
+# Ar trebui dezactivat handler-ul implicit de resincronizare a blocurilor?
+# Implicit, Grim citește blocurile din lumea serverului și le trimite clientului pentru a repara desincronizarea.
+# Dacă utilizați plugin-uri care creează blocuri false bazate pe pachete (care nu există în lumea serverului),
+# ar trebui să setați acest lucru pe true pentru a preveni ca Grim să le suprascrie cu aer/blocuri reale.
+# Acest lucru forțează utilizarea unui handler "NoOp" (Fără Operațiune), cu excepția cazului în care unul personalizat este furnizat prin API.
+disable-default-resync-handler: false
+
+# Ar trebui să fie anulat pachetul de mișcare duplicat?
+# Mojang a reparat această problemă în 1.21. A fost încercarea lor de a rezolva „bucket desync”. https://bugs.mojang.com/browse/MC-12363
+# Această setare se aplică doar clienților 1.17-1.20.5 pe servere 1.8.
+cancel-duplicate-packet: true
+
+# Dacă să se ignore rotația în pachetele duplicate
+ignore-duplicate-packet-rotation: false
+
+Simulation:
+    # Cu cât ar trebui să înmulțim avantajul total atunci când jucătorul este legitim
+    # Așa arată configurația implicită (axa X = secunde, axa Y = 1/1000 bloc): https://www.desmos.com/calculator/d4ufgxrxer
+    setback-decay-multiplier: 0.999
+    # Cât de mare trebuie să fie abaterea de la mișcarea jucătorului pentru a crea o încălcare?
+    # Măsurat în blocuri față de mișcarea posibilă
+    # Luăm în considerare Optifine schimbând tabelele trig, dar scăderea la 0.001 va reduce FastMath
+    # și ar putea marca anticheatul dacă această compensație nu funcționează...
+    threshold: 0.001
+    # Cât de mare trebuie să fie încălcarea într-un tick pentru a da setback imediat?
+    # -1 pentru a dezactiva
+    immediate-setback-threshold: 0.1
+    # Cât de mare avantaj acumulat înainte să începem setback?
+    # -1 pentru a dezactiva
+    max-advantage: 1
+    # După 50 de secunde cu setările implicite, jucătorul va trece de la 4 blocuri -> 1 bloc avantaj
+    # Aceasta previne acumularea prea multor încălcări fără șansă de reset
+    # Grafic implicit avantaj (axa X = secunde, axa Y = 1/1000 bloc): https://www.desmos.com/calculator/4lovswdarj
+    max-ceiling: 4
+    # Pragul de încălcare pentru setback
+    # 1 pentru comportamentul vechi
+    setback-violation-threshold: 1
+
+# Verifică dacă un jucător a intrat într-un bloc în timpul mișcării
+Phase:
+    setbackvl: 1 # Glitch-ul în blocuri poate permite escaladarea pereților, iar acest check e relativ stabil
+    decay: 0.005
+
+AirLiquidPlace:
+    cancelvl: 0
+
+FabricatedPlace:
+    cancelvl: 5
+
+FarPlace:
+    cancelvl: 5
+
+PositionPlace:
+    cancelvl: 5
+
+RotationPlace:
+    cancelvl: 5
+
+# Verificare NoSlow bazată pe predicție
+# Grim ține cont de netcode-ul buguit aici... greu de fals chiar și când spamezi click dreapta și butonul offhand
+# Mult mai stabil decât alte anticheaturi, dar raportează orice falsuri... am reparat multe probleme de netcode aici.
+NoSlow:
+    # Cât de mare abatere e considerată „cheating”
+    # Implicit este mai mică decât alte offs
+    # Marchează între 0.03-0.2 constant cu NoSlow activ
+    threshold: 0.001
+    # Setback rapid la primul obiect pentru a elimina orice avantaj dat de NoSlow
+    setbackvl: 5
+    # Scade atunci când jucătorul folosește un item ȘI este încetinit de acesta
+    decay: 0.05
+
+Knockback:
+    # Cu cât ar trebui să înmulțim avantajul total atunci când jucătorul este legitim
+    setback-decay-multiplier: 0.999
+    # Cât de mare trebuie să fie abaterea față de viteza jucătorului pentru a crea o încălcare?
+    # Măsurat în blocuri față de viteza posibilă
+    threshold: 0.001
+    # Cât de mare trebuie să fie încălcarea într-un tick pentru setback imediat?
+    # -1 pentru a dezactiva
+    immediate-setback-threshold: 0.1
+    # Cât de mare avantaj acumulat înainte să începem setback?
+    # -1 pentru a dezactiva
+    max-advantage: 1
+    # Previne acumularea prea multor încălcări imposibil de resetat
+    max-ceiling: 4
+
+Explosion:
+    threshold: 0.001
+    setbackvl: 3
+
+TimerA:
+    setbackvl: 10
+    # Milisecunde pe care jucătorul le poate acumula pentru folosire ulterioară când rămâne în urmă
+    # Poate permite bypass-uri fast use/fast heal/fast bow pe 1.8 dacă e setat prea mare, 120 ms e un echilibru bun
+    drift: 120
+
+# Acest check limitează abuzul TimerA prevenind mișcarea jucătorului să rămână prea mult în urmă față de timpul real
+TimerLimit:
+    # Ping la care check-ul începe să limiteze balanța timer, pentru a preveni abuzul.
+    # Poate cauza setback pentru jucători legitimi doar dacă sunt peste acest prag de ping.
+    # -1 pentru a dezactiva
+    ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+    # Număr de milisecunde pierdute în timp ce se mișcă înainte de a începe să marcheze
+    drift: 1200
+
+# Aceeași metodă de verificare ca TimerA, dar pentru vehicule
+VehicleTimer:
+    # Țintă timer 1.005
+    setbackvl: 10
+
+PacketOrderI:
+    # activează dacă jucătorii sunt marcați folosind moduri de animații 1.7
+    exempt-placing-while-digging: false
+
+Reach:
+    # Cu cât să mărim hitboxurile? 0.0005 ar trebui să detecteze reach 3.0005+
+    #
+    # Există o extindere forțată de 0.03 cu clienți 1.9-1.18.1 (nu 1.18.2), sau unele combinații client/server datorită
+    # schimbărilor și limitărilor protocolului. Acest check este cel mai puternic cu clienți 1.7/1.8 pe servere 1.8.
+    threshold: 0.0005
+    # Ar trebui să anulăm loviturile imposibile?
+    # Lovituri de 3.00-3.03 pot trece dar tot vor fi marcate, din cauza limitărilor de ordine a pachetelor
+    block-impossible-hits: true
+    # Va trimite un pachet suplimentar la sfârșitul fiecărui tick pentru a crește șansele de a prinde cheat-uri
+    # Injectează în lista de conexiuni a serverului pentru a trimite un pachet final chiar înainte ca serverul să facă flush
+    # Activarea va crește traficul pentru toți jucătorii
+    # Nu va scădea performanța serverului
+    # Activarea va prinde mai mulți cheateri.
+    # Lăsarea dezactivată va prinde totuși cheateri și nu va cauza false positive
+    # Dacă nu ești server PvP 1.8, acest pachet suplimentar nu este recomandat
+    enable-post-packet: false
+
+exploit:
+    # Poți obține viteze mari sărind sprint cu elytra, aceasta previne exploitul dacă e setat pe false
+    # Mojang a stricat netcode-ul făcând startul elytra client-side și finalul server-side
+    # Elytra are fricțiune orizontală 0.99, așa că adăugând constant 0.2 viteză rezultă în viteze foarte mari.
+    allow-sprint-jumping-when-using-elytra: true
+    # Această opțiune reduce efectul ghostblocks prin resincronizarea jucătorului când se întâmplă
+    allow-building-on-ghostblocks: true
+    # Această setare, influențată de booleanul de mai sus, definește distanța verificată pentru ghostblocks
+    # Interval valid: 2 până la 4
+    distance-to-check-if-ghostblocks: 2
+
+# Activează logarea pluginurilor care s-au injectat în netty la intrare pentru debugging de compatibilitate
+debug-pipeline-on-join: false
+
+# Activează verificări experimentale
+experimental-checks: false
+
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
+
+# Grim uneori anulează pachete ilegale precum timer, după X pachete anulate într-o secundă, când să
+# deconectăm jucătorul? Este necesar deoarece unele limitatoare de pachete nu numără pachetele anulate de Grim.
+packet-spam-threshold: 100
+# Activează pentru a afișa stacktrace când un jucător e deconectat din cauza packet-spam-threshold
+debug-packet-cancel: false
+
+# Grim poate aplica ca un jucător scos din starea de zbor să nu aibă mai mult de X ms ping
+# Deoarece Grim nu verifică în prezent jucătorii care zboară
+# Pentru dezactivare, folosește -1
+max-ping-out-of-flying: 1000
+
+# Ping maxim când boost-ul cu artificii este eliminat de la jucător.
+# Previne jucătorii cu latență mare să folosească un boost cu artificii la infinit cu elytra.
+max-ping-firework-boost: 1000
+
+history:
+    enabled: true
+    # Câte înregistrări să fie afișate pe pagină cu /grim history <player>
+    entries-per-page: 15
+    # Ce nume de server să fie inserat pentru comanda history? Util dacă folosești aceeași bază de date pentru mai multe servere
+    server-name: Prison
+    database:
+        # Folosiți SQLITE pentru stocare locală, folosiți MYSQL sau POSTGRESQL dacă aveți o bază de date externă. Aceasta este actualizată doar la repornirea serverului
+        type: SQLITE
+        # Detalii de conectare la baza de date
+        host: localhost
+        port: 3306
+        database: grim
+        username: root
+        password: ""
+
+config-version: 9

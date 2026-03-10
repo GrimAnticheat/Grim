@@ -82,7 +82,6 @@ public class DynamicChorusPlant implements CollisionFactory {
             // Player is 1.13 on 1.12 server
             directions = getLegacyStates(player, version, x, y, z);
         }
-
         // Player is 1.13+ on 1.13+ server
         return modernShapes[getAABBIndex(directions)].copy();
     }

@@ -84,6 +84,7 @@ public enum MenuType {
         return switch (type) {
             case GENERIC_9x1, GENERIC_9x2, GENERIC_9x3, GENERIC_9x4, GENERIC_9x5, GENERIC_9x6 ->
                     new BasicInventoryMenu(player, playerInventory, type.getId() + 1);
+            case SHULKER_BOX ->  new BasicInventoryMenu(player, playerInventory, 3);
             case GENERIC_3x3 -> new DispenserMenu(player, playerInventory);
             case HOPPER -> new HopperMenu(player, playerInventory);
             default -> new NotImplementedMenu(player, playerInventory);

@@ -8,10 +8,11 @@ public class FabricTaskHandle implements TaskHandle {
     @Getter
     private boolean cancelled;
     @Getter
-    private boolean sync;
+    private final boolean sync;
 
     public FabricTaskHandle(Runnable cancellationTask) {
         this.cancellationTask = cancellationTask;
+        this.sync = false;
     }
 
     public FabricTaskHandle(Runnable cancellationTask, boolean sync) {

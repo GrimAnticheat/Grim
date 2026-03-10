@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.inventory.ClickAction;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
@@ -10,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.google.common.collect.Sets;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -21,28 +23,26 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractContainerMenu {
-    @Setter
-    protected GrimPlayer player;
+    protected final GrimPlayer player;
     // Quick crafting/dragging
-    int quickcraftStatus = 0;
-    int quickcraftType = -1;
-    Set<Slot> quickcraftSlots = Sets.newHashSet();
-    @Setter
-    Inventory playerInventory;
+    private int quickcraftStatus = 0;
+    private int quickcraftType = -1;
+    private final Set<Slot> quickcraftSlots = Sets.newHashSet();
+    @Setter(AccessLevel.PROTECTED)
+    private Inventory playerInventory;
     @Getter
-    List<Slot> slots = new ArrayList<>();
+    protected final List<Slot> slots = new ArrayList<>();
     @Getter
     @NotNull
-    ItemStack carriedItem;
+    private ItemStack carriedItem = ItemStack.EMPTY;
 
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;
         this.playerInventory = playerInventory;
-        this.carriedItem = ItemStack.EMPTY;
     }
 
-    public AbstractContainerMenu() {
-        this.carriedItem = ItemStack.EMPTY;
+    public AbstractContainerMenu(GrimPlayer player) {
+        this.player = player;
     }
 
     public static int calculateQuickcraftHeader(int p_38948_) {
@@ -205,7 +205,9 @@ public abstract class AbstractContainerMenu {
                     return;
                 }
 
-                for (ItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
+                ItemStack itemstack9 = this.quickMoveStack(slotID);
+                while (!itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9)) {
+                    itemstack9 = this.quickMoveStack(slotID);
                 }
             } else {
                 if (slotID < 0) return;
@@ -217,7 +219,7 @@ public abstract class AbstractContainerMenu {
                 // TODO: What do we do with crafting? I think this is overkill and we shouldn't attempt to track crafting, and just resync inventory.
                 // 1.17+ clients send changed itemstacks anyways, so just hack around stuff until people stop using decade old versions.
                 if (slot instanceof ResultSlot) {
-                    player.getInventory().isPacketInventoryActive = false;
+                    player.inventory.isPacketInventoryActive = false;
                 }
 
                 // TODO: Bundle support
@@ -420,7 +422,12 @@ public abstract class AbstractContainerMenu {
     }
 
     public Slot getSlot(int slotID) {
-        return this.slots.get(slotID);
+        try {
+            return this.slots.get(slotID);
+        } catch (IndexOutOfBoundsException e) {
+            LogUtil.error("Tried to get slot " + slotID + " in a container with only " + this.slots.size() + " slots, container type: " + this.getClass().getName(), e);
+            throw e;
+        }
     }
 
     public boolean canDragTo(Slot slot) {

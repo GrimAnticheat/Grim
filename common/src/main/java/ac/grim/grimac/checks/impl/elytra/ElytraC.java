@@ -8,13 +8,13 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraC", description = "Started gliding too frequently", experimental = true)
+@CheckData(name = "ElytraC", description = "Started gliding too frequently")
 public class ElytraC extends Check implements PostPredictionCheck {
     private boolean glideThisTick, glideLastTick, setback;
     private int flags;
+    public boolean exempt;
 
     public ElytraC(GrimPlayer player) {
         super(player);
@@ -26,11 +26,11 @@ public class ElytraC extends Check implements PostPredictionCheck {
             return;
         }
 
-        if (player.gamemode == GameMode.SPECTATOR) {
+        if (!player.cameraEntity.isSelf()) {
             glideThisTick = glideLastTick = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
+        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA && !exempt) {
             if (glideThisTick || glideLastTick) {
                 if (player.canSkipTicks()) {
                     flags++;
@@ -51,7 +51,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
 
         if (isTickPacket(event.getPacketType())) {
             glideLastTick = glideThisTick;
-            glideThisTick = false;
+            glideThisTick = exempt = false;
         }
     }
 

@@ -1,15 +1,13 @@
 package ac.grim.grimac.platform.api.entity;
 
+import ac.grim.grimac.api.GrimIdentity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.utils.math.Location;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface GrimEntity {
-    UUID getUniqueId();
-
+public interface GrimEntity extends GrimIdentity {
     /**
      * Eject any passenger.
      *
@@ -19,7 +17,7 @@ public interface GrimEntity {
 
     CompletableFuture<Boolean> teleportAsync(Location location);
 
-    @NonNull
+    @NotNull
     Object getNative();
 
     boolean isDead();
@@ -27,4 +25,6 @@ public interface GrimEntity {
     PlatformWorld getWorld();
 
     Location getLocation();
+
+    double distanceSquared(double x, double y, double z);
 }
