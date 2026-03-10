@@ -77,7 +77,7 @@ public final class ReachCheck extends Check {
             return;
         }
 
-        double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
+        double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.0D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
         boolean recentTeleportOrPearl = System.currentTimeMillis() - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
@@ -107,7 +107,7 @@ public final class ReachCheck extends Check {
             return new AttackEvaluation(true, 0.0D, 0L, false, false, ReachEvidenceType.NONE);
         }
 
-        double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
+        double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.0D);
         long teleportGrace = plugin.getConfig().getLong("combat.reach-teleport-grace-ms", 350L);
         double strafeSyncMargin = plugin.getConfig().getDouble("checks.Reach.strafe-sync-extra-margin", 0.05D);
         boolean recentTeleportOrPearl = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
@@ -181,37 +181,26 @@ public final class ReachCheck extends Check {
     private double getAdaptiveReachBonus(PlayerData attackerData, PlayerData targetData) {
         FrameContextSnapshot frameContext = attackerData.getCurrentFrameContext();
         ToleranceBudgetEngine.BudgetSnapshot budget = frameContext != null ? frameContext.getBudgetSnapshot() : getBudget(attackerData);
-        if (budget != null) {
-            double bonus = budget.getCombatReachMargin();
-            bonus += Math.min(0.10D, attackerData.getLastDeltaXZ() * 0.18D);
-            if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) bonus += 0.05D;
-            if (attackerData.getSpeedLevel() > 0) bonus += 0.03D * attackerData.getSpeedLevel();
-            if (targetData != null) {
-                bonus += Math.min(0.08D, targetData.getLastDeltaXZ() * 0.15D);
-                if (Math.abs(targetData.getLastDeltaY()) > 0.20D) bonus += 0.04D;
-                if (targetData.getSpeedLevel() > 0) bonus += 0.02D * targetData.getSpeedLevel();
-            }
-            return bonus;
-        }
 
         double bonus = 0.0D;
-        if (isLagging(attackerData)) {
-            bonus += plugin.getConfig().getDouble("adaptive-lag.reach-extra-distance", 0.15D);
+        if (budget != null) {
+            bonus += Math.min(0.06D, budget.getCombatReachMargin() * 0.35D);
+        } else if (isLagging(attackerData)) {
+            bonus += Math.min(0.08D, plugin.getConfig().getDouble("adaptive-lag.reach-extra-distance", 0.12D));
         }
+
         long timeSinceVelocity = System.currentTimeMillis() - attackerData.getLastVelocityAt();
-        if (timeSinceVelocity < 600L && attackerData.getLastVelocityXZ() > 0.1D) {
-            double decay = 1.0D - (timeSinceVelocity / 600.0D);
-            bonus += attackerData.getLastVelocityXZ() * decay * 1.2D;
+        if (timeSinceVelocity < 400L && attackerData.getLastVelocityXZ() > 0.12D) {
+            double decay = 1.0D - (timeSinceVelocity / 400.0D);
+            bonus += Math.min(0.05D, attackerData.getLastVelocityXZ() * decay * 0.12D);
         }
-        bonus += Math.min(0.10D, attackerData.getLastDeltaXZ() * 0.18D);
-        if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) bonus += 0.05D;
-        if (attackerData.getSpeedLevel() > 0) bonus += 0.03D * attackerData.getSpeedLevel();
-        if (targetData != null) {
-            bonus += Math.min(0.08D, targetData.getLastDeltaXZ() * 0.15D);
-            if (Math.abs(targetData.getLastDeltaY()) > 0.20D) bonus += 0.04D;
-            if (targetData.getSpeedLevel() > 0) bonus += 0.02D * targetData.getSpeedLevel();
+        if (attackerData.getSpeedLevel() > 0) {
+            bonus += Math.min(0.02D, attackerData.getSpeedLevel() * 0.01D);
         }
-        return bonus;
+        if (targetData != null && targetData.getSpeedLevel() > 0) {
+            bonus += Math.min(0.02D, targetData.getSpeedLevel() * 0.01D);
+        }
+        return Math.min(0.12D, bonus);
     }
 
     private void recordReachCombatEvidence(Player attacker, PlayerData attackerData, PlayerData targetData,
@@ -338,19 +327,18 @@ public final class ReachCheck extends Check {
     }
 
     private double resolveHitboxExpand(PlayerData attackerData) {
-        double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D);
-        expand += 0.1D;
-        if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
-            expand += MOVEMENT_THRESHOLD;
-        }
-        expand += Math.min(0.04D, attackerData.getLastDeltaXZ() * 0.08D);
-        if (Math.abs(attackerData.getLastDeltaY()) > 0.25D) {
-            expand += 0.03D;
+        double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D) + 0.1D;
+        PlayerData.MovementStateSnapshot movementSnapshot = attackerData.getMovementStateSnapshot();
+        if (!movementSnapshot.isFullyAligned() || isLagging(attackerData)) {
+            expand += 0.02D;
+        } else if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD
+                && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {
+            expand += 0.01D;
         }
         if (attackerData.getSpeedLevel() > 0) {
-            expand += 0.01D * attackerData.getSpeedLevel();
+            expand += Math.min(0.015D, attackerData.getSpeedLevel() * 0.005D);
         }
-        return expand;
+        return Math.min(0.135D, expand);
     }
 
     private static double closestPointDistance(Vector point, HitboxFrame box) {
