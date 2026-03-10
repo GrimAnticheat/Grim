@@ -8,6 +8,16 @@ import ac.grim.grimac.checks.impl.aim.AimC;
 import ac.grim.grimac.checks.impl.aim.AimD;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimE;
+import ac.grim.grimac.checks.impl.aim.AimF;
+import ac.grim.grimac.checks.impl.aim.AimG;
+import ac.grim.grimac.checks.impl.aim.AimH;
+import ac.grim.grimac.checks.impl.aim.AimI;
+import ac.grim.grimac.checks.impl.aim.AimJ;
+import ac.grim.grimac.checks.impl.aim.AimK;
+import ac.grim.grimac.checks.impl.aim.AimL;
+import ac.grim.grimac.checks.impl.aim.AimM;
+import ac.grim.grimac.checks.impl.aim.AimN;
+import ac.grim.grimac.checks.impl.aim.AimO;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
@@ -22,6 +32,16 @@ import ac.grim.grimac.checks.impl.combat.KillAuraB;
 import ac.grim.grimac.checks.impl.combat.KillAuraC;
 import ac.grim.grimac.checks.impl.combat.KillAuraD;
 import ac.grim.grimac.checks.impl.combat.KillAuraE;
+import ac.grim.grimac.checks.impl.combat.KillAuraF;
+import ac.grim.grimac.checks.impl.combat.KillAuraG;
+import ac.grim.grimac.checks.impl.combat.KillAuraH;
+import ac.grim.grimac.checks.impl.combat.KillAuraI;
+import ac.grim.grimac.checks.impl.combat.KillAuraJ;
+import ac.grim.grimac.checks.impl.combat.KillAuraK;
+import ac.grim.grimac.checks.impl.combat.KillAuraL;
+import ac.grim.grimac.checks.impl.combat.KillAuraM;
+import ac.grim.grimac.checks.impl.combat.KillAuraN;
+import ac.grim.grimac.checks.impl.combat.KillAuraO;
 import ac.grim.grimac.checks.impl.combat.MultiInteractA;
 import ac.grim.grimac.checks.impl.combat.MultiInteractB;
 import ac.grim.grimac.checks.impl.combat.Reach;
@@ -177,6 +197,16 @@ public class CheckManager {
                 .put(AimC.class, new AimC(player))
                 .put(AimD.class, new AimD(player))
                 .put(AimE.class, new AimE(player))
+                .put(AimF.class, new AimF(player))
+                .put(AimG.class, new AimG(player))
+                .put(AimH.class, new AimH(player))
+                .put(AimI.class, new AimI(player))
+                .put(AimJ.class, new AimJ(player))
+                .put(AimK.class, new AimK(player))
+                .put(AimL.class, new AimL(player))
+                .put(AimM.class, new AimM(player))
+                .put(AimN.class, new AimN(player))
+                .put(AimO.class, new AimO(player))
                 .build();
         vehicleChecks = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
@@ -218,6 +248,16 @@ public class CheckManager {
                 .put(KillAuraC.class, new KillAuraC(player))
                 .put(KillAuraD.class, new KillAuraD(player))
                 .put(KillAuraE.class, new KillAuraE(player))
+                .put(KillAuraF.class, new KillAuraF(player))
+                .put(KillAuraG.class, new KillAuraG(player))
+                .put(KillAuraH.class, new KillAuraH(player))
+                .put(KillAuraI.class, new KillAuraI(player))
+                .put(KillAuraJ.class, new KillAuraJ(player))
+                .put(KillAuraK.class, new KillAuraK(player))
+                .put(KillAuraL.class, new KillAuraL(player))
+                .put(KillAuraM.class, new KillAuraM(player))
+                .put(KillAuraN.class, new KillAuraN(player))
+                .put(KillAuraO.class, new KillAuraO(player))
                 .put(ElytraA.class, new ElytraA(player))
                 .put(ElytraB.class, new ElytraB(player))
                 .put(ElytraC.class, new ElytraC(player))
