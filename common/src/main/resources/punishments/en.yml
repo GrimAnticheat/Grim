@@ -33,6 +33,7 @@ Punishments:
       - "100:40 [log]"
       - "100:100 [webhook]"
       - "100:100 [proxy]"
+      - "100:0 kick %player% incorrect movement!"
   Knockback:
     remove-violations-after: 300
     checks:
