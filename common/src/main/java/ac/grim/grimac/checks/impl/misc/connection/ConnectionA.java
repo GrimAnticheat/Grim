@@ -16,7 +16,7 @@ public class ConnectionA extends Check implements PacketCheck {
 
     private static final int SAMPLE_SIZE = 35;
     private static final long JOIN_GRACE_PERIOD = 5000L;
-    private static final double MAX_AVG_PING = 150.0;
+    private static final double MAX_AVG_PING = 300.0;
     private static final double BUFFER_THRESHOLD = 4.0;
     private static final double BUFFER_DECAY = 0.5;
 
