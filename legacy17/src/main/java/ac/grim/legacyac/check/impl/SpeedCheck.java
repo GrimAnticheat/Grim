@@ -115,6 +115,49 @@ public final class SpeedCheck extends Check {
         }
     }
 
+
+    public void onPredictionMissMinimal(Player player, MovementFrame frame, Location from, Location to, PlayerData data,
+            double conservativeThreshold) {
+        if (!isEnabled()) {
+            return;
+        }
+        if (isExempt(player, data) || player.isFlying() || player.getVehicle() != null) {
+            return;
+        }
+        if (!frame.hasPosition()) {
+            return;
+        }
+
+        double horizontal = data.getLastDeltaXZ();
+        double vertical = Math.abs(data.getLastDeltaY());
+        if (horizontal <= conservativeThreshold || vertical > plugin.getConfig().getDouble("pipeline.minimal-post.thresholds.speed-max-dy", 0.42D)) {
+            return;
+        }
+
+        double overflow = horizontal - conservativeThreshold;
+        double increase = Math.min(1.0D, overflow * plugin.getConfig().getDouble("pipeline.minimal-post.thresholds.speed-buffer-scale", 0.35D));
+        double buffer = increaseBuffer(data, increase);
+        double flagBuffer = plugin.getConfig().getDouble("pipeline.minimal-post.thresholds.speed-buffer", 4.5D);
+
+        if (data.isDebugEnabled()) {
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
+                    + " Speed minimal post h=" + fmt(horizontal)
+                    + " threshold=" + fmt(conservativeThreshold)
+                    + " overflow=" + fmt(overflow)
+                    + " buffer=" + fmt(buffer));
+        }
+
+        if (buffer > flagBuffer) {
+            flag(player, data, overflow, "minimal-post h=" + fmt(horizontal)
+                    + " threshold=" + fmt(conservativeThreshold)
+                    + " overflow=" + fmt(overflow));
+        }
+
+        if (frame.isOnGround() && from.getY() == to.getY()) {
+            data.setLastSafeLocation(to.clone());
+        }
+    }
+
     private String fmt(double value) {
         return String.format(Locale.ROOT, "%.4f", value);
     }

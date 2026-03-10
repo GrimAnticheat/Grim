@@ -19,6 +19,26 @@ pipeline:
   bukkit-fallback: true
   bukkit-fallback-stale-nanos: 150000000
   legacy-onmove-fallback: false
+  minimal-post-on-prediction-miss: true
+  minimal-post:
+    thresholds:
+      speed-horizontal: 0.85
+      speed-max-dy: 0.42
+      speed-buffer-scale: 0.35
+      speed-buffer: 4.5
+      speed-budget-multiplier: 3.0
+      fly-air-ticks: 14
+      fly-max-dy: 0.035
+      fly-slack-multiplier: 30.0
+      fly-dy-budget-multiplier: 0.8
+      phase-min-overlap-ratio: 0.16
+      phase-ratio-budget-multiplier: 0.8
+      phase-min-overlap-volume: 0.05
+      phase-volume-budget-multiplier: 0.25
+      groundspoof-min-ticks: 5
+      groundspoof-buffer: 4.0
+      groundspoof-slack-multiplier: 40.0
+      groundspoof-budget-multiplier: 8.0
 
 exempt:
   join-grace-ms: 2500
