@@ -127,6 +127,8 @@ public final class CheckManager implements Listener {
     private long lastTickAtNanos;
     private double currentTps = 20.0D;
     private final ToleranceBudgetEngine.ConfigProvider budgetConfigProvider;
+    private long legacyFallbackHitCount;
+    private long minimalPostPredictionMissHitCount;
 
     public CheckManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
@@ -332,7 +334,7 @@ public final class CheckManager implements Listener {
             }
             if (trace != null)
                 trace.addEntry("*", CheckStage.PRE, PipelineTrace.Status.SKIPPED, 0L, "teleport-not-aligned");
-            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned", trace);
+            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned", budget, trace);
             emitPipelineTrace(trace, pipelineStart);
             return;
         }
@@ -349,7 +351,7 @@ public final class CheckManager implements Listener {
             if (trace != null)
                 trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.SKIPPED, 0L,
                         "prediction-unavailable");
-            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable", trace);
+            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable", budget, trace);
         }
 
         if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
@@ -439,18 +441,25 @@ public final class CheckManager implements Listener {
     }
 
     private void runLegacyFallbackChecks(Player player, PlayerData data, Location from, Location to,
-            MovementFrame frame, String reason, PipelineTrace trace) {
+            MovementFrame frame, String reason, ToleranceBudgetEngine.BudgetSnapshot budget, PipelineTrace trace) {
         if (!plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true)) {
+            if ("prediction-unavailable".equals(reason)
+                    && plugin.getConfig().getBoolean("pipeline.minimal-post-on-prediction-miss", true)) {
+                runMinimalPostChecks(player, data, frame, from, to, budget,
+                        "prediction-unavailable-minimal-post", trace);
+                return;
+            }
             if (trace != null) {
                 trace.addEntry(CheckStage.FALLBACK, "legacy-fallback",
                         0L, false, "disabled-in-config");
             }
             return;
         }
+        legacyFallbackHitCount++;
         long stageStart = System.nanoTime();
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " legacy onMove fallback active: " + reason
-                    + " source=" + frame.getSource().name());
+                    + " source=" + frame.getSource().name() + " pathHits=" + legacyFallbackHitCount);
         }
 
         PlayerMoveEvent syntheticEvent = new PlayerMoveEvent(player, from, to);
@@ -472,6 +481,83 @@ public final class CheckManager implements Listener {
         if (trace != null) {
             trace.addEntry(CheckStage.FALLBACK, "legacy-fallback(" + reason + ")",
                     System.nanoTime() - stageStart, true, null);
+        }
+    }
+
+    private void runMinimalPostChecks(Player player, PlayerData data, MovementFrame frame, Location from, Location to,
+            ToleranceBudgetEngine.BudgetSnapshot budget, String reasonCode, PipelineTrace trace) {
+        long stageStart = System.nanoTime();
+        minimalPostPredictionMissHitCount++;
+
+        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfig();
+        double movementAllowance = budget == null ? 0.0D : budget.getMovementAllowance();
+        double velocitySlack = budget == null ? 0.0D : budget.getVelocityResponseSlack();
+
+        double minimalSpeedThreshold = config.getDouble("pipeline.minimal-post.thresholds.speed-horizontal", 0.85D)
+                + movementAllowance
+                        * config.getDouble("pipeline.minimal-post.thresholds.speed-budget-multiplier", 3.0D);
+        int flyAirTicks = (int) Math.ceil(config.getDouble("pipeline.minimal-post.thresholds.fly-air-ticks", 14.0D)
+                + velocitySlack * config.getDouble("pipeline.minimal-post.thresholds.fly-slack-multiplier", 30.0D));
+        double flyMaxDy = config.getDouble("pipeline.minimal-post.thresholds.fly-max-dy", 0.035D)
+                + movementAllowance * config.getDouble("pipeline.minimal-post.thresholds.fly-dy-budget-multiplier", 0.8D);
+        double phaseRatio = config.getDouble("pipeline.minimal-post.thresholds.phase-min-overlap-ratio", 0.16D)
+                + movementAllowance
+                        * config.getDouble("pipeline.minimal-post.thresholds.phase-ratio-budget-multiplier", 0.8D);
+        double phaseVolume = config.getDouble("pipeline.minimal-post.thresholds.phase-min-overlap-volume", 0.05D)
+                + movementAllowance
+                        * config.getDouble("pipeline.minimal-post.thresholds.phase-volume-budget-multiplier", 0.25D);
+        int groundSpoofMinTicks = (int) Math
+                .ceil(config.getDouble("pipeline.minimal-post.thresholds.groundspoof-min-ticks", 5.0D)
+                        + velocitySlack
+                                * config.getDouble("pipeline.minimal-post.thresholds.groundspoof-slack-multiplier", 40.0D));
+        double groundSpoofBuffer = config.getDouble("pipeline.minimal-post.thresholds.groundspoof-buffer", 4.0D)
+                + movementAllowance
+                        * config.getDouble("pipeline.minimal-post.thresholds.groundspoof-budget-multiplier", 8.0D);
+
+        if (data.isDebugEnabled()) {
+            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " minimal post checks active: " + reasonCode
+                    + " source=" + frame.getSource().name() + " pathHits=" + minimalPostPredictionMissHitCount);
+        }
+
+        for (SpeedCheck check : speedChecks) {
+            check.onPredictionMissMinimal(player, frame, from, to, data, minimalSpeedThreshold);
+        }
+
+        Object oldFlyAirTicks = config.get("checks.Fly.air-ticks-threshold");
+        Object oldFlyDy = config.get("checks.Fly.max-dy");
+        Object oldPhaseRatio = config.get("checks.Phase.min-overlap-ratio");
+        Object oldPhaseVolume = config.get("checks.Phase.min-overlap-volume");
+        Object oldGroundSpoofMinTicks = config.get("checks.GroundSpoof.min-ticks");
+        Object oldGroundSpoofBuffer = config.get("checks.GroundSpoof.buffer");
+        try {
+            config.set("checks.Fly.air-ticks-threshold", Integer.valueOf(flyAirTicks));
+            config.set("checks.Fly.max-dy", Double.valueOf(flyMaxDy));
+            config.set("checks.Phase.min-overlap-ratio", Double.valueOf(phaseRatio));
+            config.set("checks.Phase.min-overlap-volume", Double.valueOf(phaseVolume));
+            config.set("checks.GroundSpoof.min-ticks", Integer.valueOf(groundSpoofMinTicks));
+            config.set("checks.GroundSpoof.buffer", Double.valueOf(groundSpoofBuffer));
+
+            for (FlyCheck check : flyChecks) {
+                check.onMovementFrame(player, frame, to, data);
+            }
+            for (PhaseCheck check : phaseChecks) {
+                check.onMovementFrame(player, frame, to, data);
+            }
+            for (GroundSpoofCheck check : groundSpoofChecks) {
+                check.onMovementFrame(player, frame, to, data);
+            }
+        } finally {
+            config.set("checks.Fly.air-ticks-threshold", oldFlyAirTicks);
+            config.set("checks.Fly.max-dy", oldFlyDy);
+            config.set("checks.Phase.min-overlap-ratio", oldPhaseRatio);
+            config.set("checks.Phase.min-overlap-volume", oldPhaseVolume);
+            config.set("checks.GroundSpoof.min-ticks", oldGroundSpoofMinTicks);
+            config.set("checks.GroundSpoof.buffer", oldGroundSpoofBuffer);
+        }
+
+        if (trace != null) {
+            trace.addEntry("minimal-post-checks", CheckStage.POST, PipelineTrace.Status.RAN,
+                    System.nanoTime() - stageStart, reasonCode);
         }
     }
 
@@ -871,7 +957,6 @@ public final class CheckManager implements Listener {
         }
     }
 }
-
 
 
 
