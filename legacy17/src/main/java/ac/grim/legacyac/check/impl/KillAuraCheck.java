@@ -6,27 +6,17 @@ import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-/**
- * KillAura detection.
- *
- * Detection methods:
- * 1. Snap detection  large yaw change with minimal pitch change and minimal
- * movement (blatant aura)
- * 2. Packet hitbox miss  USE_ENTITY attack doesn't intersect the backtrack
- * hitbox
- * AND the center distance is beyond reach
- * 3. Multi-hit timing  attacks on multiple targets in rapid succession
- */
 public final class KillAuraCheck extends Check {
     private final Map<UUID, RotationPatternState> rotationPatterns = new ConcurrentHashMap<UUID, RotationPatternState>();
+
     public KillAuraCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "KillAura");
     }
@@ -39,71 +29,60 @@ public final class KillAuraCheck extends Check {
         checkAngles(attacker, data, false);
     }
 
-    public void onUseEntityAttack(Player attacker, Player target, PlayerData data, boolean reachLegal) {
+    public void onUseEntityAttack(Player attacker, Player target, PlayerData data, ReachCheck.AttackEvaluation reachEval) {
         if (!isEnabled() || isExempt(attacker, data)) {
             return;
         }
 
-        boolean severe = !reachLegal;
-        checkAngles(attacker, data, severe);
-        checkRepeatedRotationPattern(attacker, data);
-        checkMultiTarget(attacker, data, target);
+        boolean suspicious = false;
+        boolean severe = reachEval != null && !reachEval.isLegal();
+        suspicious |= checkAngles(attacker, data, severe);
+        suspicious |= checkRepeatedRotationPattern(attacker, data);
+        suspicious |= checkMultiTarget(attacker, data, target);
+        suspicious |= checkLineOfSight(attacker, target, data, reachEval);
+        suspicious |= checkReachContext(attacker, data, reachEval);
 
-        // Only flag for hitbox miss if reach also says the distance was too far
-        // During jumping/fast movement, ray can miss hitbox frames even for legit
-        // players
-        if (!reachLegal) {
-            double buffer = slideAndAddScore(data, 0.8D, 1.0D);
-            recordEvidence(data, 0.8D, "KILLAURA_HITBOX");
-            if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
-                flag(attacker, data, 0.8D, "packet attack not intersecting backtrack hitbox");
-            }
-        } else {
-            // Decay when reach says the attack was legal
+        if (!suspicious) {
             coolDownScore(data);
         }
+
+        data.setLastAttackAt(System.currentTimeMillis());
     }
 
-    /**
-     * Detection 1: Snap  large yaw delta with almost no pitch change while barely
-     * moving.
-     * Catches blatant killaura that snaps to targets.
-     */
-    private void checkAngles(Player attacker, PlayerData data, boolean severe) {
-        float yawDelta = data.getLastYawDelta();
-        float pitchDelta = data.getLastPitchDelta();
+    private boolean checkAngles(Player attacker, PlayerData data, boolean severe) {
+        float yawDelta = Math.abs(data.getLastYawDelta());
+        float pitchDelta = Math.abs(data.getLastPitchDelta());
         double horizontal = data.getLastDeltaXZ();
-        float snapThreshold = (float) plugin.getConfig().getDouble("checks.KillAura.snap-threshold", 75.0D);
+        float snapThreshold = (float) plugin.getConfig().getDouble("checks.KillAura.snap-threshold", 55.0D);
 
-        // FR-3: Tighten or relax snap threshold based on budget
         FrameContextSnapshot frameContext = data.getCurrentFrameContext();
         ToleranceBudgetEngine.BudgetSnapshot budget = frameContext != null ? frameContext.getBudgetSnapshot() : getBudget(data);
         if (budget != null && budget.getCombatReachMargin() > 0.1D) {
-            // Under high lag, widen the snap threshold slightly to avoid false positives
             snapThreshold += 5.0F;
         }
-
-        if (yawDelta > snapThreshold && pitchDelta < 2.0F && horizontal < 0.08D) {
-            double add = severe ? 1.4D : 1.0D;
-            double buffer = slideAndAddScore(data, add, 1.0D);
-            recordEvidence(data, add, "KILLAURA_SNAP");
-
-            // FR-4: Record CombatEvidence
-            recordKillAuraCombatEvidence(attacker, data, add,
-                    "SNAP yaw=" + fmt(yawDelta) + " pitch=" + fmt(pitchDelta));
-
-            if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
-                flag(attacker, data, add, "SNAP yaw=" + fmt(yawDelta)
-                        + " pitch=" + fmt(pitchDelta));
-            }
+        if (severe) {
+            snapThreshold = Math.max(40.0F, snapThreshold - 10.0F);
         }
+
+        float maxPitchDelta = severe ? 3.0F : 2.0F;
+        double maxHorizontal = severe ? 0.16D : 0.08D;
+        if (yawDelta <= snapThreshold || pitchDelta >= maxPitchDelta || horizontal >= maxHorizontal) {
+            return false;
+        }
+
+        double add = severe ? 1.4D : 1.0D;
+        double buffer = slideAndAddScore(data, add, 1.0D);
+        String detail = "SNAP yaw=" + fmt(yawDelta) + " pitch=" + fmt(pitchDelta);
+        recordEvidence(data, add, "KILLAURA_SNAP");
+        recordKillAuraCombatEvidence(attacker, data, add, detail);
+
+        if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
+            flag(attacker, data, add, detail);
+        }
+        return true;
     }
 
-    /**
-     * Detection 2: Multi-target switch  attacking multiple different targets in
-     * quick succession.
-     */
-    private void checkRepeatedRotationPattern(Player attacker, PlayerData data) {
+    private boolean checkRepeatedRotationPattern(Player attacker, PlayerData data) {
         RotationPatternState state = rotationPatterns.get(attacker.getUniqueId());
         if (state == null) {
             state = new RotationPatternState();
@@ -112,49 +91,108 @@ public final class KillAuraCheck extends Check {
                 state = existing;
             }
         }
+
         float yawDelta = Math.abs(data.getLastYawDelta());
         float pitchDelta = Math.abs(data.getLastPitchDelta());
-        if (Math.abs(yawDelta - state.lastYawDelta) < 1.0E-4F && Math.abs(pitchDelta - state.lastPitchDelta) < 1.0E-4F && yawDelta > 2.0F) {
-            state.repeatedPatternCount++;
-            if (state.repeatedPatternCount >= 3) {
-                double buffer = slideAndAddScore(data, 0.45D, 1.0D);
-                if (buffer > plugin.getConfig().getDouble("checks.KillAura.repeated-rotation-buffer", 2.25D)) {
-                    flag(attacker, data, 0.45D, "REPEATED_ROT yaw=" + fmt(yawDelta) + " pitch=" + fmt(pitchDelta));
-                }
-            }
-        } else {
+        float yawTolerance = yawDelta > 12.0F ? 1.25F : 0.35F;
+        float pitchTolerance = pitchDelta > 4.0F ? 0.75F : 0.25F;
+        if (Math.abs(yawDelta - state.lastYawDelta) > yawTolerance
+                || Math.abs(pitchDelta - state.lastPitchDelta) > pitchTolerance
+                || yawDelta <= 1.5F) {
             state.repeatedPatternCount = 0;
+            state.lastYawDelta = yawDelta;
+            state.lastPitchDelta = pitchDelta;
+            return false;
         }
+
+        state.repeatedPatternCount++;
         state.lastYawDelta = yawDelta;
         state.lastPitchDelta = pitchDelta;
+        if (state.repeatedPatternCount < 3) {
+            return false;
+        }
+
+        double add = 0.45D;
+        double buffer = slideAndAddScore(data, add, 1.0D);
+        String detail = "REPEATED_ROT yaw=" + fmt(yawDelta) + " pitch=" + fmt(pitchDelta);
+        recordEvidence(data, add, "KILLAURA_REPEAT_ROT");
+        recordKillAuraCombatEvidence(attacker, data, add, detail);
+        if (buffer > plugin.getConfig().getDouble("checks.KillAura.repeated-rotation-buffer", 2.25D)) {
+            flag(attacker, data, add, detail);
+        }
+        return true;
     }
 
-    private void checkMultiTarget(Player attacker, PlayerData data, Player target) {
+    private boolean checkMultiTarget(Player attacker, PlayerData data, Player target) {
         long now = System.currentTimeMillis();
         long lastAttack = data.getLastAttackAt();
         long timeSince = now - lastAttack;
 
+        boolean suspicious = false;
         if (timeSince > 0 && timeSince < 100 && data.getLastAttackTargetId() != 0
                 && data.getLastAttackTargetId() != target.getEntityId()) {
-            double deviation = 0.8D;
-            double buffer = slideAndAddScore(data, deviation, 1.0D);
-            recordEvidence(data, deviation, "KILLAURA_MULTI");
-
-            // FR-4: Record CombatEvidence for multi-target
-            recordKillAuraCombatEvidence(attacker, data, deviation,
-                    "MULTI switch=" + timeSince + "ms target=" + target.getName());
+            double add = 0.8D;
+            double buffer = slideAndAddScore(data, add, 1.0D);
+            String detail = "MULTI switch=" + timeSince + "ms target=" + target.getName();
+            recordEvidence(data, add, "KILLAURA_MULTI");
+            recordKillAuraCombatEvidence(attacker, data, add, detail);
 
             if (buffer > plugin.getConfig().getDouble("checks.KillAura.multi-target-buffer", 3.0D)) {
-                flag(attacker, data, deviation, "MULTI-TARGET switch=" + timeSince + "ms");
+                flag(attacker, data, add, detail);
             }
+            suspicious = true;
         }
 
         data.setLastAttackTargetId(target.getEntityId());
+        return suspicious;
     }
 
-    /**
-     * FR-4: Build and record a CombatEvidence for KillAura detections.
-     */
+    private boolean checkLineOfSight(Player attacker, Player target, PlayerData data,
+            ReachCheck.AttackEvaluation reachEval) {
+        if (target == null || attacker.hasLineOfSight(target)) {
+            return false;
+        }
+        if (reachEval != null && (!reachEval.isEnforceableWindow() || reachEval.isTeleportMarkerHit())) {
+            return false;
+        }
+
+        double directDistance = reachEval != null
+                ? reachEval.getDirectDistance()
+                : attacker.getEyeLocation().distance(target.getEyeLocation());
+        if (directDistance < 2.05D) {
+            return false;
+        }
+
+        double add = reachEval != null && !reachEval.isLegal() ? 0.75D : 0.35D;
+        add += Math.min(0.25D, Math.max(0.0D, directDistance - 2.0D) * 0.15D);
+        double buffer = slideAndAddScore(data, add, 1.0D);
+        String detail = "NO_LOS dist=" + String.format(Locale.ROOT, "%.2f", directDistance);
+        recordEvidence(data, add, "KILLAURA_NO_LOS");
+        recordKillAuraCombatEvidence(attacker, data, add, detail);
+        if (buffer > plugin.getConfig().getDouble("checks.KillAura.wall-buffer", 2.3D)) {
+            flag(attacker, data, add, detail);
+        }
+        return true;
+    }
+
+    private boolean checkReachContext(Player attacker, PlayerData data, ReachCheck.AttackEvaluation reachEval) {
+        if (reachEval == null || reachEval.isLegal()) {
+            return false;
+        }
+
+        double add = reachEval.getEvidenceType() == ReachCheck.ReachEvidenceType.HITBOX_MISS ? 0.70D : 0.80D;
+        double buffer = slideAndAddScore(data, add, 1.0D);
+        String detail = reachEval.getEvidenceType() == ReachCheck.ReachEvidenceType.HITBOX_MISS
+                ? "PACKET_HITBOX dist=" + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
+                : "PACKET_REACH dist=" + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance());
+        recordEvidence(data, add, "KILLAURA_PACKET_CONTEXT");
+        recordKillAuraCombatEvidence(attacker, data, add, detail);
+        if (buffer > plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D)) {
+            flag(attacker, data, add, detail);
+        }
+        return true;
+    }
+
     private void recordKillAuraCombatEvidence(Player attacker, PlayerData data, double score, String detail) {
         Location eye = attacker.getEyeLocation();
         FrameContextSnapshot frameContext = data.getCurrentFrameContext();
@@ -183,4 +221,3 @@ public final class KillAuraCheck extends Check {
         return String.format(Locale.ROOT, "%.1f", value);
     }
 }
-
