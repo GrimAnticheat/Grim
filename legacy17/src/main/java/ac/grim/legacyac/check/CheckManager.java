@@ -16,7 +16,6 @@ import ac.grim.legacyac.check.impl.PredictionMovementCheck;
 import ac.grim.legacyac.check.impl.ReachCheck;
 import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
-import ac.grim.legacyac.check.impl.KnockbackHandlerLegacy;
 import ac.grim.legacyac.check.impl.VelocityCheck;
 import ac.grim.legacyac.check.impl.GroundSpoofCheck;
 import ac.grim.legacyac.check.impl.aim.AimDuplicateLookCheck;
@@ -88,7 +87,6 @@ public final class CheckManager implements Listener {
     private final List<NoFallCheck> noFallChecks = new ArrayList<NoFallCheck>();
     private final List<KillAuraCheck> killAuraChecks = new ArrayList<KillAuraCheck>();
     private final List<TimerCheck> timerChecks = new ArrayList<TimerCheck>();
-    private final List<KnockbackHandlerLegacy> knockbackChecks = new ArrayList<KnockbackHandlerLegacy>();
     private final List<JesusCheck> jesusChecks = new ArrayList<JesusCheck>();
     private final List<FastPlaceCheck> fastPlaceChecks = new ArrayList<FastPlaceCheck>();
     private final List<FastBreakCheck> fastBreakChecks = new ArrayList<FastBreakCheck>();
@@ -190,7 +188,7 @@ public final class CheckManager implements Listener {
     public int getCheckCount() {
         return speedChecks.size() + flyChecks.size() + phaseChecks.size() + reachChecks.size()
                 + autoClickerChecks.size() + noFallChecks.size()
-                + killAuraChecks.size() + timerChecks.size() + knockbackChecks.size() + jesusChecks.size()
+                + killAuraChecks.size() + timerChecks.size() + jesusChecks.size()
                 + fastPlaceChecks.size() + fastBreakChecks.size()
                 + fastUseChecks.size() + inventoryMoveChecks.size() + predictionChecks.size() + noSlowChecks.size()
                 + velocityChecks.size() + groundSpoofChecks.size()
@@ -469,7 +467,7 @@ public final class CheckManager implements Listener {
             check.onMovementFrame(player, frame, to, data);
         }
         if (trace != null) {
-            trace.addEntry(CheckStage.POST, "NoSlow+Speed+Fly+Phase+KB+Jesus+Velocity+GroundSpoof",
+            trace.addEntry(CheckStage.POST, "NoSlow+Speed+Fly+Phase+Jesus+Velocity+GroundSpoof",
                     System.nanoTime() - stageStart, true, null);
         }
     }
@@ -616,7 +614,7 @@ public final class CheckManager implements Listener {
         sb.append(", Speed=").append(!speedChecks.isEmpty());
         sb.append(", Fly=").append(!flyChecks.isEmpty());
         sb.append(", Phase=").append(!phaseChecks.isEmpty());
-        sb.append(", Knockback=").append(!velocityChecks.isEmpty());
+        sb.append(", Velocity=").append(!velocityChecks.isEmpty());
         sb.append(", Jesus=").append(!jesusChecks.isEmpty());
         sb.append(", Reach=").append(!reachChecks.isEmpty()).append("(attack-stage)");
         sb.append(" | legacy-onMove-fallback=")
@@ -832,7 +830,7 @@ public final class CheckManager implements Listener {
             @Override
             public void run() {
                 for (KillAuraCheck check : killAuraChecks) {
-                    check.onUseEntityAttack(attacker, target, attackerData, reachEval.isLegal());
+                    check.onUseEntityAttack(attacker, target, attackerData, reachEval);
                 }
             }
         });
@@ -999,8 +997,3 @@ public final class CheckManager implements Listener {
         }
     }
 }
-
-
-
-
-
