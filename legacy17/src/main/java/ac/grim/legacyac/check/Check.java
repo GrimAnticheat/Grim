@@ -32,7 +32,6 @@ public abstract class Check {
         map.put("NoFall", CheckStage.POST);
         map.put("Jesus", CheckStage.POST);
         map.put("NoSlow", CheckStage.POST);
-        map.put("Knockback", CheckStage.POST);
         map.put("Velocity", CheckStage.POST);
         // COMBAT stage  attack-event-driven
         map.put("Reach", CheckStage.COMBAT);
@@ -259,4 +258,3 @@ public abstract class Check {
         data.markPunishExecuted(name);
     }
 }
-

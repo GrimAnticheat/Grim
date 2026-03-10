@@ -57,6 +57,8 @@ prediction:
   utility-alert-floor: 0.14
   speed-alert-floor: 0.095
   tower-alert-floor: 0.18
+  landing-extra-tolerance: 0.12
+  landing-alert-floor: 0.22
   lag-small-tolerance: 0.03
   velocity-pending-tolerance: 0.04
   recovery-after-high-fall-ticks: 8
@@ -96,7 +98,7 @@ transaction:
   max-ack-age-ms: 4000
 
 combat:
-  backtrack-window-ms: 600
+  backtrack-window-ms: 400
   reach-teleport-grace-ms: 500
 
 heuristics:
@@ -105,7 +107,7 @@ heuristics:
 adaptive-lag:
   jitter-threshold-ms: 40
   min-tps: 18.0
-  reach-extra-distance: 0.25
+  reach-extra-distance: 0.12
   speed-tolerance-multiplier: 1.35
   speed-small-margin: 0.05
   pending-state-margin: 0.10
@@ -156,7 +158,7 @@ checks:
   Reach:
     enabled: true
     max-vl: 8.0
-    Ray-Distance: 3.1
+    Ray-Distance: 3.0
     setback: false
     buffer: 0.5
     window-weight: 1.0
@@ -188,7 +190,8 @@ checks:
     enabled: true
     max-vl: 7.0
     setback: false
-    snap-threshold: 75.0
+    snap-threshold: 55.0
+    wall-buffer: 2.3
     buffer: 2.0
     multi-target-buffer: 3.0
     repeated-rotation-buffer: 2.25
@@ -204,7 +207,7 @@ checks:
     punish-vl: 20
     punish-commands:
       - "kick %player% Timer cheat (%check% VL:%vl%)"
-  Knockback:
+  Velocity:
     enabled: true
     max-vl: 8.0
     setback: true
@@ -217,27 +220,12 @@ checks:
     delayed-window-ticks: 3
     min-samples: 2
     window-ticks: 8
-    buffer: 1.2
-    window-weight: 1.0
-    min-score-to-flag: 1.2
-    punish-vl: 20
-    punish-commands:
-      - "kick %player% Knockback cheat (%check% VL:%vl%)"
-  Velocity:
-    enabled: true
-    max-vl: 8.0
-    setback: false
-    tx-window-max-ms: 500
-    delayed-kb-ticks: 3
-    min-score-to-flag: 1.2
-    min-samples: 2
-    # legacy compatibility
-    window-ticks: 8
     min-expected-xz: 0.08
     min-response-ratio-xz: 0.40
     min-response-ratio-y: 0.25
     buffer: 1.2
     window-weight: 1.0
+    min-score-to-flag: 1.2
     punish-vl: 20
     punish-commands:
       - "kick %player% Velocity cheat (%check% VL:%vl%)"
@@ -385,9 +373,3 @@ checks:
     punish-vl: 18
     punish-commands:
       - "kick %player% Scaffold (%check% VL:%vl%)"
-
-
-
-
-
-

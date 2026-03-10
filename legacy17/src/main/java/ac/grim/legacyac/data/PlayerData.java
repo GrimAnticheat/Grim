@@ -38,7 +38,7 @@ public final class PlayerData {
     private final UUID uuid;
     private long joinAt;
 
-    // ── Domain state aggregates (FR-1) ──────────────────────────────────
+    // 閳光偓閳光偓 Domain state aggregates (FR-1) 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private final MovementState movement = new MovementState();
     private final CombatState combat = new CombatState();
     private final NetworkState network = new NetworkState();
@@ -47,15 +47,15 @@ public final class PlayerData {
     private final EnforcementState enforcement = new EnforcementState();
     private final LegacyCompensatedWorld compensatedWorld = new LegacyCompensatedWorld();
 
-    // ── Tolerance budget snapshot (FR-3)  set once per frame ───────────
+    // 閳光偓閳光偓 Tolerance budget snapshot (FR-3)  set once per frame 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private ToleranceBudgetEngine.BudgetSnapshot currentBudget;
     private FrameContextSnapshot currentFrameContext;
 
-    // ── Combat evidence buffer (FR-4) ──────────────────────────────────
+    // 閳光偓閳光偓 Combat evidence buffer (FR-4) 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private final LinkedList<CombatEvidence> combatEvidenceBuffer = new LinkedList<CombatEvidence>();
     private static final int COMBAT_EVIDENCE_LIMIT = 80;
 
-    // ── Legacy fields still needed directly ────────────────────────────
+    // 閳光偓閳光偓 Legacy fields still needed directly 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     // Velocity samples & knockback samples are kept here for backward compatibility
     private final LinkedList<VelocitySample> velocitySamples = new LinkedList<VelocitySample>();
     private final LinkedList<KnockbackSample> knockbackSamples = new LinkedList<KnockbackSample>();
@@ -64,8 +64,6 @@ public final class PlayerData {
     private KnockbackSample firstBreadKB;
     private KnockbackSample likelyKB;
     private double knockbackOffset;
-    private short knockbackTransactionId;
-    private boolean knockbackSetbackLike;
 
     // Inventory
     private boolean inventoryOpen;
@@ -79,7 +77,7 @@ public final class PlayerData {
     private int useWindow;
     private long useWindowStart;
 
-    // ── BadPackets state fields ──────────────────────────────────────────
+    // 閳光偓閳光偓 BadPackets state fields 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private int lastHeldSlot = -1;
     private int heldSlotChangeCount;
     private boolean lastSprintActionState;
@@ -90,11 +88,11 @@ public final class PlayerData {
     private int consecutiveLookOnlyPackets;
     private boolean diggingActive;
 
-    // ── Timer state (nanosecond precision) ───────────────────────────────
+    // 閳光偓閳光偓 Timer state (nanosecond precision) 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private long timerLastPacketNanos;
     private double timerBalance;
 
-    // ── Scaffold state ───────────────────────────────────────────────────
+    // 閳光偓閳光偓 Scaffold state 閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓閳光偓
     private long lastBlockPlaceTimeMs;
     private int sameTickPlaceCount;
     private long lastClientBlockPlacePacketAt;
@@ -118,9 +116,9 @@ public final class PlayerData {
         this.joinAt = System.currentTimeMillis();
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Domain accessors  new code should use these
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public MovementState movement() {
         return movement;
@@ -150,9 +148,9 @@ public final class PlayerData {
         return compensatedWorld;
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Tolerance Budget (FR-3)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public void setCurrentBudget(ToleranceBudgetEngine.BudgetSnapshot budget) {
         this.currentBudget = budget;
@@ -170,9 +168,9 @@ public final class PlayerData {
         return currentFrameContext;
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Combat Evidence (FR-4)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public void recordCombatEvidence(CombatEvidence evidence) {
         if (evidence == null)
@@ -187,15 +185,15 @@ public final class PlayerData {
         return Collections.unmodifiableList(new ArrayList<CombatEvidence>(combatEvidenceBuffer));
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Forwarding layer  all legacy methods delegate to domain objects
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public UUID getUuid() {
         return uuid;
     }
 
-    // ── Movement ──
+    // 閳光偓閳光偓 Movement 閳光偓閳光偓
 
     public void handleMove(Player player, Location from, Location to, boolean onGround) {
         compensation.applyPendingWorldChanges();
@@ -327,7 +325,7 @@ public final class PlayerData {
         movement.updateSafeLocation(loc);
     }
 
-    // ── Combat ──
+    // 閳光偓閳光偓 Combat 閳光偓閳光偓
 
     public long getLastAttackAt() {
         return combat.getLastAttackAt();
@@ -383,7 +381,7 @@ public final class PlayerData {
         return combat.getHitboxHistorySnapshot(maxAgeMillis);
     }
 
-    // ── Network ──
+    // 閳光偓閳光偓 Network 閳光偓閳光偓
 
     public long getLastTransactionRttNanos() {
         return network.getLastTransactionRttNanos();
@@ -453,7 +451,7 @@ public final class PlayerData {
         network.clearPendingTransactions();
     }
 
-    // ── Compensation ──
+    // 閳光偓閳光偓 Compensation 閳光偓閳光偓
 
     public long getLastTeleportAt() {
         return compensation.getLastTeleportAt();
@@ -615,7 +613,7 @@ public final class PlayerData {
         return compensation.getLastSlotSwitchAt();
     }
 
-    // ── Environment ──
+    // 閳光偓閳光偓 Environment 閳光偓閳光偓
 
     public PredictionContext getPredictionContext() {
         // Legacy compatibility wrapper
@@ -766,7 +764,7 @@ public final class PlayerData {
         return environment.isShadowInitialized();
     }
 
-    // ── Enforcement ──
+    // 閳光偓閳光偓 Enforcement 閳光偓閳光偓
 
     public double addViolation(String check, double amount) {
         return enforcement.addViolation(check, amount);
@@ -841,7 +839,7 @@ public final class PlayerData {
         combat.decayClickWindow();
     }
 
-    // ── Join time ──
+    // 閳光偓閳光偓 Join time 閳光偓閳光偓
 
     public long getJoinAt() {
         return joinAt;
@@ -851,7 +849,7 @@ public final class PlayerData {
         this.joinAt = joinAt;
     }
 
-    // ── Inventory ──
+    // 閳光偓閳光偓 Inventory 閳光偓閳光偓
 
     public boolean isInventoryOpen() {
         return inventoryOpen;
@@ -868,7 +866,7 @@ public final class PlayerData {
         return inventoryOpenAt;
     }
 
-    // ── Place/break/use windows ──
+    // 閳光偓閳光偓 Place/break/use windows 閳光偓閳光偓
 
     public int incrementPlaceWindow() {
         long now = System.currentTimeMillis();
@@ -897,9 +895,9 @@ public final class PlayerData {
         return ++useWindow;
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Velocity / Knockback sample management (kept in PlayerData for now)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     private void onVelocityTransactionAck(short actionId, long recvAtNanos) {
         for (VelocitySample sample : velocitySamples) {
@@ -960,8 +958,6 @@ public final class PlayerData {
         }
         firstBreadKB = null;
         likelyKB = null;
-        knockbackTransactionId = postTxId;
-        knockbackSetbackLike = setbackLike;
     }
 
     public void updateKnockbackStages() {
@@ -1012,7 +1008,7 @@ public final class PlayerData {
         likelyKB = null;
     }
 
-    public void pruneKnockbackSamples() {
+    private void pruneKnockbackSamples() {
         Iterator<KnockbackSample> iterator = knockbackSamples.iterator();
         while (iterator.hasNext()) {
             KnockbackSample sample = iterator.next();
@@ -1051,17 +1047,10 @@ public final class PlayerData {
         this.knockbackOffset *= Math.max(0.0D, Math.min(1.0D, multiplier));
     }
 
-    public short getKnockbackTransactionId() {
-        return knockbackTransactionId;
-    }
 
-    public boolean isKnockbackSetbackLike() {
-        return knockbackSetbackLike;
-    }
-
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Inner classes (legacy  kept for API compatibility)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     /**
      * Legacy PredictionContext wrapper that delegates to EnvironmentState.
@@ -1161,7 +1150,7 @@ public final class PlayerData {
         }
     }
 
-    // ── MovementStateSnapshot compatibility ──
+    // 閳光偓閳光偓 MovementStateSnapshot compatibility 閳光偓閳光偓
     // Old code referenced PlayerData.MovementStateSnapshot; now delegated
     public static final class MovementStateSnapshot {
         private final CompensationState.MovementStateSnapshot delegate;
@@ -1191,9 +1180,9 @@ public final class PlayerData {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // BadPackets state accessors
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public int getLastHeldSlot() { return lastHeldSlot; }
     public void setLastHeldSlot(int slot) { lastHeldSlot = slot; }
@@ -1219,9 +1208,9 @@ public final class PlayerData {
     public boolean isDiggingActive() { return diggingActive; }
     public void setDiggingActive(boolean val) { diggingActive = val; }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Timer state accessors (nanosecond precision)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public long getTimerLastPacketNanos() { return timerLastPacketNanos; }
     public void setTimerLastPacketNanos(long nanos) { timerLastPacketNanos = nanos; }
@@ -1229,9 +1218,9 @@ public final class PlayerData {
     public void setTimerBalance(double balance) { timerBalance = balance; }
     public void resetTimerState() { timerLastPacketNanos = 0L; timerBalance = 0.0; }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // Scaffold state accessors
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public long getLastBlockPlaceTimeMs() { return lastBlockPlaceTimeMs; }
     public void setLastBlockPlaceTimeMs(long ms) { lastBlockPlaceTimeMs = ms; }
@@ -1284,9 +1273,9 @@ public final class PlayerData {
     public int getLastPlacedBlockY() { return lastPlacedBlockY; }
     public int getLastPlacedBlockZ() { return lastPlacedBlockZ; }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // KnockbackSample (unchanged inner class)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public static final class KnockbackSample {
         private final long expiresAtNanos;
@@ -1392,9 +1381,9 @@ public final class PlayerData {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
     // VelocitySample (unchanged inner class)
-    // ══════════════════════════════════════════════════════════════════
+    // 閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅查埡鎰ㄦ櫜閳烘劏鏅?
 
     public static final class VelocitySample {
         public static final int FLAG_PRE_ACK = 1;
@@ -1520,18 +1509,3 @@ public final class PlayerData {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
