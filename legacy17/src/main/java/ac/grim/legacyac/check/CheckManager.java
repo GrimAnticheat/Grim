@@ -45,6 +45,7 @@ import ac.grim.legacyac.check.impl.breaking.FarBreakCheck;
 import ac.grim.legacyac.check.impl.breaking.MultiBreakCheck;
 import ac.grim.legacyac.check.impl.breaking.RotationBreakCheck;
 import ac.grim.legacyac.combat.EntityIdIndex;
+import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.data.state.CompensationState;
 import ac.grim.legacyac.network.InternalPacketEvent;
@@ -321,6 +322,20 @@ public final class CheckManager implements Listener {
         ToleranceBudgetEngine.BudgetSnapshot budget = ToleranceBudgetEngine.compute(
                 data.network(), data.compensation(), data.environment(), currentTps, budgetConfigProvider);
         data.setCurrentBudget(budget);
+        PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
+        FrameContextSnapshot frameContext = new FrameContextSnapshot(
+                frame.getTimestampNanos(),
+                data.getMoveWindow(),
+                new FrameContextSnapshot.PredictionOutputSnapshot(false, 0.0D, 0.0D, 0.0D, 0.0D, "none"),
+                new FrameContextSnapshot.TxWindowStateSnapshot(
+                        velocitySample == null ? (short) 0 : velocitySample.getPreTxId(),
+                        velocitySample == null ? (short) 0 : velocitySample.getPostTxId(),
+                        velocitySample == null ? 0 : velocitySample.getStateFlags(),
+                        velocitySample == null ? 0 : velocitySample.getTicksObserved()),
+                null,
+                budget,
+                data.getPendingWorldChangeDebugSnapshot());
+        data.setCurrentFrameContext(frameContext);
 
         if (data.isDebugEnabled() && plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
             plugin.getLogger().info("[GLAC-BUDGET] " + player.getName() + " " + budget.toDebugString());
@@ -341,6 +356,14 @@ public final class CheckManager implements Listener {
 
         runPacketStatePreprocess(player, frame, data, trace);
         boolean predictionReady = runMovementPrediction(player, frame, to, data, trace);
+        boolean oldPredictionReady = data.hasPredictionForFrame(frame.getTimestampNanos());
+        if (plugin.getConfig().getBoolean("pipeline.frame-context.dual-track-log", true)
+                && predictionReady != oldPredictionReady) {
+            plugin.getLogger().info("[GLAC-FRAMECTX-DIFF] " + player.getName()
+                    + " frame=" + frame.getTimestampNanos()
+                    + " oldPredictionReady=" + oldPredictionReady
+                    + " newPredictionReady=" + predictionReady);
+        }
         data.updateKnockbackStages();
 
         if (predictionReady) {
@@ -393,7 +416,18 @@ public final class CheckManager implements Listener {
         for (PredictionMovementCheck check : predictionChecks) {
             check.onMovementFrame(player, frame, to, data);
         }
-        boolean hasPrediction = data.hasPredictionForFrame(frame.getTimestampNanos());
+        FrameContextSnapshot context = data.getCurrentFrameContext();
+        FrameContextSnapshot.PredictionOutputSnapshot output = new FrameContextSnapshot.PredictionOutputSnapshot(
+                data.hasPredictionForFrame(frame.getTimestampNanos()),
+                data.getPredictionMinDeviation(),
+                data.getPredictionReducedDeviation(),
+                data.getPredictionHorizontalDeviation(),
+                data.getPredictionReducedHorizontalDeviation(),
+                data.getPredictionBestProfile());
+        if (context != null) {
+            data.setCurrentFrameContext(context.withPredictionOutput(output));
+        }
+        boolean hasPrediction = output.isReady();
         if (trace != null) {
             trace.addEntry(CheckStage.PREDICTION, "Prediction",
                     System.nanoTime() - stageStart, hasPrediction, hasPrediction ? null : "no-prediction-frame");
@@ -770,6 +804,14 @@ public final class CheckManager implements Listener {
         boolean enforceable = transactionAligned && !targetData.isTeleportSyncPending();
         targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1],
                 teleportMarker, transactionAligned, enforceable);
+        java.util.List<ac.grim.legacyac.combat.HitboxFrame> attackFrames = targetData.getHitboxHistorySnapshot(400L);
+        if (!attackFrames.isEmpty()) {
+            FrameContextSnapshot attackerFrameContext = attackerData.getCurrentFrameContext();
+            if (attackerFrameContext != null) {
+                attackerData.setCurrentFrameContext(attackerFrameContext.withTargetHitboxSnapshot(
+                        FrameContextSnapshot.HitboxSnapshot.fromFrame(attackFrames.get(0))));
+            }
+        }
         final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
         final ReachCheck.AttackEvaluation reachEval;
         if (reachChecks.isEmpty()) {

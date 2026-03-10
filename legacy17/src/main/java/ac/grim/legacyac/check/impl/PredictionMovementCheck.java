@@ -2,6 +2,7 @@ package ac.grim.legacyac.check.impl;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
+import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.prediction.CandidateVelocity;
@@ -45,6 +46,7 @@ public final class PredictionMovementCheck extends Check {
             return;
         }
 
+        FrameContextSnapshot frameContext = data.getCurrentFrameContext();
         PlayerData.MovementStateSnapshot state = data.getMovementStateSnapshot();
         if (!state.isTeleportAligned()) {
             return;
@@ -85,6 +87,9 @@ public final class PredictionMovementCheck extends Check {
                 && data.getLastPlacedBlockY() >= playerBlockY - 2
                 && data.getLastPlacedBlockY() <= playerBlockY;
         boolean towerLike = placedUnderSelf && Math.abs(deltaY) > 0.28D && horizontal < 0.55D;
+        if (!towerLike && frameContext != null && !frameContext.getPendingBlockChanges().isEmpty()) {
+            towerLike = Math.abs(deltaY) > 0.28D && horizontal < 0.55D;
+        }
         boolean customSpeedBurst = Math.abs(player.getWalkSpeed() - 0.2F) > 1.0E-4F && horizontal > 0.35D;
         if ((context.isRecentTeleport() && (horizontal > 1.25D || Math.abs(deltaY) > 0.90D)) || towerLike || customSpeedBurst) {
             decayAdvantage(data);

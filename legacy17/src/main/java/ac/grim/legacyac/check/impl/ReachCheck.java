@@ -4,6 +4,7 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.combat.HitboxFrame;
 import ac.grim.legacyac.combat.RayTraceUtil;
+import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
@@ -178,7 +179,8 @@ public final class ReachCheck extends Check {
     }
 
     private double getAdaptiveReachBonus(PlayerData attackerData, PlayerData targetData) {
-        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(attackerData);
+        FrameContextSnapshot frameContext = attackerData.getCurrentFrameContext();
+        ToleranceBudgetEngine.BudgetSnapshot budget = frameContext != null ? frameContext.getBudgetSnapshot() : getBudget(attackerData);
         if (budget != null) {
             double bonus = budget.getCombatReachMargin();
             bonus += Math.min(0.10D, attackerData.getLastDeltaXZ() * 0.18D);
@@ -215,6 +217,7 @@ public final class ReachCheck extends Check {
     private void recordReachCombatEvidence(Player attacker, PlayerData attackerData, PlayerData targetData,
             AttackEvaluation eval, double maxReach, String source) {
         Location eye = attacker.getEyeLocation();
+        FrameContextSnapshot frameContext = attackerData.getCurrentFrameContext();
         CombatEvidence evidence = CombatEvidence.builder(
                 CombatEvidence.CombatCheckType.REACH, attacker.getName(),
                 targetData != null ? "target" : "unknown")
@@ -229,6 +232,8 @@ public final class ReachCheck extends Check {
                 .enforceableWindow(eval.isEnforceableWindow())
                 .scoring(eval.isLegal() ? 0.0D : Math.max(0.0D, eval.getDirectDistance() - maxReach), maxReach, !eval.isLegal())
                 .detail(source + "-" + eval.getEvidenceType().name())
+                .frameLink(frameContext == null ? -1L : frameContext.getFrameId(),
+                        frameContext == null ? -1 : frameContext.getTxWindowId())
                 .build();
         attackerData.recordCombatEvidence(evidence);
     }

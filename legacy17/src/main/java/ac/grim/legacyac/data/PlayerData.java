@@ -49,6 +49,7 @@ public final class PlayerData {
 
     // ── Tolerance budget snapshot (FR-3)  set once per frame ───────────
     private ToleranceBudgetEngine.BudgetSnapshot currentBudget;
+    private FrameContextSnapshot currentFrameContext;
 
     // ── Combat evidence buffer (FR-4) ──────────────────────────────────
     private final LinkedList<CombatEvidence> combatEvidenceBuffer = new LinkedList<CombatEvidence>();
@@ -159,6 +160,14 @@ public final class PlayerData {
 
     public ToleranceBudgetEngine.BudgetSnapshot getCurrentBudget() {
         return currentBudget;
+    }
+
+    public void setCurrentFrameContext(FrameContextSnapshot frameContext) {
+        this.currentFrameContext = frameContext;
+    }
+
+    public FrameContextSnapshot getCurrentFrameContext() {
+        return currentFrameContext;
     }
 
     // ══════════════════════════════════════════════════════════════════

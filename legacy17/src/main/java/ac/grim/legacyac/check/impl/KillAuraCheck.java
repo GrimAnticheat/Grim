@@ -2,6 +2,7 @@ package ac.grim.legacyac.check.impl;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
+import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
@@ -75,7 +76,8 @@ public final class KillAuraCheck extends Check {
         float snapThreshold = (float) plugin.getConfig().getDouble("checks.KillAura.snap-threshold", 75.0D);
 
         // FR-3: Tighten or relax snap threshold based on budget
-        ToleranceBudgetEngine.BudgetSnapshot budget = getBudget(data);
+        FrameContextSnapshot frameContext = data.getCurrentFrameContext();
+        ToleranceBudgetEngine.BudgetSnapshot budget = frameContext != null ? frameContext.getBudgetSnapshot() : getBudget(data);
         if (budget != null && budget.getCombatReachMargin() > 0.1D) {
             // Under high lag, widen the snap threshold slightly to avoid false positives
             snapThreshold += 5.0F;
@@ -155,6 +157,7 @@ public final class KillAuraCheck extends Check {
      */
     private void recordKillAuraCombatEvidence(Player attacker, PlayerData data, double score, String detail) {
         Location eye = attacker.getEyeLocation();
+        FrameContextSnapshot frameContext = data.getCurrentFrameContext();
         CombatEvidence evidence = CombatEvidence.builder(
                 CombatEvidence.CombatCheckType.KILLAURA, attacker.getName(), "")
                 .actorPos(eye.getX(), eye.getY(), eye.getZ())
@@ -164,6 +167,8 @@ public final class KillAuraCheck extends Check {
                 .horizontalDelta(data.getLastDeltaXZ())
                 .scoring(score, plugin.getConfig().getDouble("checks.KillAura.buffer", 2.0D), score > 0.0D)
                 .detail(detail)
+                .frameLink(frameContext == null ? -1L : frameContext.getFrameId(),
+                        frameContext == null ? -1 : frameContext.getTxWindowId())
                 .build();
         data.recordCombatEvidence(evidence);
     }
