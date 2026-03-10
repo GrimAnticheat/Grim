@@ -190,6 +190,10 @@ public final class PredictionMovementCheck extends Check {
                 || data.hasRecentUseItemPacket(plugin.getConfig().getLong("checks.NoSlow.use-packet-max-age-ms", 250L));
         boolean speedNoise = data.getSpeedLevel() >= 2;
         boolean towerNoise = towerLike || (placedUnderSelf && (bestProfile.contains("y=0.42") || bestProfile.contains("y=0.33") || bestProfile.contains("y=1.00")));
+        boolean justLanded = data.isOnGroundNow() && !data.wasOnGround();
+        boolean landingProfileNoise = bestProfile.contains("y=0.42") || bestProfile.contains("y=0.33")
+                || bestProfile.contains("wall-x") || bestProfile.contains("wall-z");
+        boolean landingNoise = justLanded && horizontal > 0.12D && Math.abs(deltaY) < 0.42D;
 
         if (terrainNoise) {
             if (deltaY < -0.20D) {
@@ -218,6 +222,13 @@ public final class PredictionMovementCheck extends Check {
         if (towerNoise) {
             offset = Math.max(0.0D, offset - 0.120D);
         }
+        if (landingNoise) {
+            double landingRelief = plugin.getConfig().getDouble("prediction.landing-extra-tolerance", 0.12D);
+            if (terrainNoise || headHitNoise || landingProfileNoise) {
+                landingRelief += 0.03D;
+            }
+            offset = Math.max(0.0D, offset - landingRelief);
+        }
 
         if (data.isDebugEnabled()) {
             plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
@@ -239,8 +250,11 @@ public final class PredictionMovementCheck extends Check {
         double utilityAlertFloor = utilityNoise ? plugin.getConfig().getDouble("prediction.utility-alert-floor", 0.14D) : 0.0D;
         double speedAlertFloor = speedNoise ? plugin.getConfig().getDouble("prediction.speed-alert-floor", 0.095D) : 0.0D;
         double towerAlertFloor = towerNoise ? plugin.getConfig().getDouble("prediction.tower-alert-floor", 0.18D) : 0.0D;
-        double effectiveAlertFloor = Math.max(Math.max(terrainAlertFloor, iceAlertFloor), Math.max(headHitAlertFloor, Math.max(utilityAlertFloor, Math.max(speedAlertFloor, towerAlertFloor))));
-        if ((terrainNoise || iceNoise || headHitNoise || utilityNoise || speedNoise || towerNoise) && offset < effectiveAlertFloor) {
+        double landingAlertFloor = landingNoise ? plugin.getConfig().getDouble("prediction.landing-alert-floor", 0.22D) : 0.0D;
+        double effectiveAlertFloor = Math.max(Math.max(terrainAlertFloor, iceAlertFloor), Math.max(headHitAlertFloor,
+                Math.max(utilityAlertFloor, Math.max(speedAlertFloor, Math.max(towerAlertFloor, landingAlertFloor)))));
+        if ((terrainNoise || iceNoise || headHitNoise || utilityNoise || speedNoise || towerNoise || landingNoise)
+                && offset < effectiveAlertFloor) {
             decayAdvantage(data);
             data.removeOffsetLenience();
             return;
