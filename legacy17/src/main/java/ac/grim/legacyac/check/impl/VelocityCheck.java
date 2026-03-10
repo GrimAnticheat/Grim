@@ -2,6 +2,7 @@ package ac.grim.legacyac.check.impl;
 
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
+import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.evidence.CombatEvidence;
 import ac.grim.legacyac.network.frame.MovementFrame;
@@ -64,7 +65,18 @@ public final class VelocityCheck extends Check {
             return;
         }
         PlayerData.VelocitySample sample = data.getCurrentVelocitySample();
-        if (sample == null || !data.hasPredictionForFrame(frame.getTimestampNanos())) {
+        FrameContextSnapshot frameContext = data.getCurrentFrameContext();
+        boolean oldPredictionReady = data.hasPredictionForFrame(frame.getTimestampNanos());
+        boolean predictionReady = frameContext != null && frameContext.getPredictionOutput() != null
+                ? frameContext.getPredictionOutput().isReady()
+                : oldPredictionReady;
+        if (plugin.getConfig().getBoolean("pipeline.frame-context.dual-track-log", true)
+                && oldPredictionReady != predictionReady) {
+            plugin.getLogger().info("[GLAC-FRAMECTX-DIFF] " + player.getName()
+                    + " check=Velocity oldReady=" + oldPredictionReady + " newReady=" + predictionReady
+                    + " frame=" + frame.getTimestampNanos());
+        }
+        if (sample == null || !predictionReady) {
             return;
         }
 
@@ -95,7 +107,9 @@ public final class VelocityCheck extends Check {
             return;
         }
 
-        double predictionReduced = data.getPredictionReducedDeviation();
+        double predictionReduced = frameContext != null && frameContext.getPredictionOutput() != null
+                ? frameContext.getPredictionOutput().getReducedDeviation()
+                : data.getPredictionReducedDeviation();
         double likelyStageScore = Math.max(0.0D, Math.max(sample.getMinOffset(), predictionReduced)
                 - plugin.getConfig().getDouble("checks.Knockback.threshold", 0.001D));
         double buffer = slideAndAddScore(data, likelyStageScore,
@@ -128,6 +142,7 @@ public final class VelocityCheck extends Check {
 
     private void recordKnockbackCombatEvidence(Player player, PlayerData data,
             PlayerData.VelocitySample sample, double score) {
+        FrameContextSnapshot frameContext = data.getCurrentFrameContext();
         CombatEvidence evidence = CombatEvidence.builder(
                 CombatEvidence.CombatCheckType.VELOCITY, player.getName(), "")
                 .localAttackTime(System.currentTimeMillis())
@@ -138,6 +153,8 @@ public final class VelocityCheck extends Check {
                         true)
                 .detail("preTx=" + sample.getPreTxId() + " postTx=" + sample.getPostTxId()
                         + " ticks=" + sample.getTicksObserved() + " flags=" + sample.getStateFlags())
+                .frameLink(frameContext == null ? -1L : frameContext.getFrameId(),
+                        frameContext == null ? -1 : frameContext.getTxWindowId())
                 .build();
         data.recordCombatEvidence(evidence);
     }

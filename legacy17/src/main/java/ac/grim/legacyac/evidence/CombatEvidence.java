@@ -55,6 +55,8 @@ public final class CombatEvidence {
     private final double threshold;
     private final boolean flagged;
     private final String detail;
+    private final long frameId;
+    private final int txWindowId;
 
     public CombatEvidence(Builder builder) {
         this.timestampMillis = builder.timestampMillis;
@@ -84,6 +86,8 @@ public final class CombatEvidence {
         this.threshold = builder.threshold;
         this.flagged = builder.flagged;
         this.detail = builder.detail;
+        this.frameId = builder.frameId;
+        this.txWindowId = builder.txWindowId;
     }
 
     // ── Read interface ──────────────────────────────────────────────────
@@ -196,6 +200,14 @@ public final class CombatEvidence {
         return detail;
     }
 
+    public long getFrameId() {
+        return frameId;
+    }
+
+    public int getTxWindowId() {
+        return txWindowId;
+    }
+
     /**
      * Human-readable single-line report for debug logs and admin review.
      */
@@ -203,11 +215,11 @@ public final class CombatEvidence {
         return String.format(Locale.ROOT,
                 "[%s] %s -> %s | dist=%.2f hitbox=%.2f intersect=%b " +
                         "boxOffset=%dms yaw=%.1f pitch=%.1f hDelta=%.3f " +
-                        "score=%.3f/%.3f flagged=%b | %s",
+                        "score=%.3f/%.3f flagged=%b frame=%d txWin=%d | %s",
                 checkType.name(), actorName, targetName,
                 directDistance, closestHitboxDistance, hitboxIntersects,
                 boxTimeOffsetMs, yawDelta, pitchDelta, horizontalDelta,
-                score, threshold, flagged, detail);
+                score, threshold, flagged, frameId, txWindowId, detail);
     }
 
     // ── Check type enum ─────────────────────────────────────────────────
@@ -245,6 +257,8 @@ public final class CombatEvidence {
         private double threshold;
         private boolean flagged;
         private String detail = "";
+        private long frameId = -1L;
+        private int txWindowId = -1;
 
         Builder(CombatCheckType checkType, String actorName, String targetName) {
             this.checkType = checkType;
@@ -332,6 +346,12 @@ public final class CombatEvidence {
 
         public Builder detail(String d) {
             detail = d == null ? "" : d;
+            return this;
+        }
+
+        public Builder frameLink(long frameId, int txWindowId) {
+            this.frameId = frameId;
+            this.txWindowId = txWindowId;
             return this;
         }
 
