@@ -45,4 +45,6 @@ public interface PlatformPlayer extends GrimEntity, OfflinePlatformPlayer {
      * Vanilla MC replaces ServerPlayerEntity references on respawn and dimension change
      */
     default void replaceNativePlayer(Object nativePlayerObject) {}
+
+    BlockTranslator getBlockTranslator();
 }

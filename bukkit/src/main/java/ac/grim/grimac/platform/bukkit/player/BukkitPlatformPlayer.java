@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.bukkit.player;
 
 import ac.grim.grimac.platform.api.entity.GrimEntity;
+import ac.grim.grimac.platform.api.player.BlockTranslator;
 import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
@@ -168,6 +169,11 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Override
     public Sender getSender() {
         return GrimACBukkitLoaderPlugin.LOADER.getBukkitSenderFactory().map(this.bukkitPlayer);
+    }
+
+    @Override
+    public BlockTranslator getBlockTranslator() {
+        return BlockTranslator.IDENTITY;
     }
 
     @Override
