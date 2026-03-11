@@ -1,5 +1,5 @@
 <div align="center">
- <h1>GrimAC (fork)</h1>
+ <h1>GrimAC</h1>
 
  <div>
   <a href="https://github.com/GrimAnticheat/Grim/actions/workflows/gradle-publish.yml">
