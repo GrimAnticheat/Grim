@@ -324,7 +324,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector3dm(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-
         if (player.isSprinting != player.lastSprinting) {
             player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
         }

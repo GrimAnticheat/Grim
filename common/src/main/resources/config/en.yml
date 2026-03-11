@@ -70,7 +70,7 @@ Simulation:
     # Measured in blocks from the possible movement
     # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
     # flagging the anticheat if this compensation doesn't work...
-    threshold: 0.001
+    threshold: 0.1
     # How large of a violation in a tick before the player gets immediately setback?
     # -1 to disable
     immediate-setback-threshold: 0.1
@@ -148,11 +148,11 @@ TimerLimit:
     # Ping at which the check will start to limit timer balance, to prevent abuse.
     # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
     # -1 to disable
-    ping-abuse-limit-threshold: 1000
+    ping-abuse-limit-threshold: -1
 
 NegativeTimer:
     # Number of milliseconds lost while moving before we should start flagging
-    drift: 1200
+    drift: 2000
 
 # Same check method as TimerA, but for vehicles
 VehicleTimer:

@@ -3,9 +3,7 @@ package ac.grim.grimac.utils.math;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import java.util.Collection;
 
 @UtilityClass
 public class GrimMath {
@@ -31,23 +29,34 @@ public class GrimMath {
 
         return a;
     }
+    public static double getAverage(final Collection<? extends Number> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
+        }
 
-    @Contract(pure = true)
-    public static double calculateSD(@NotNull List<@NotNull Double> numbers) {
         double sum = 0.0;
-        double standardDeviation = 0.0;
 
-        for (double rotation : numbers) {
-            sum += rotation;
+        for (Number number : data) {
+            sum += number.doubleValue();
         }
 
-        double mean = sum / numbers.size();
+        return sum / data.size();
+    }
 
-        for (double num : numbers) {
-            standardDeviation += Math.pow(num - mean, 2);
+    public static double getVariance(final Collection<? extends Number> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
         }
 
-        return Math.sqrt(standardDeviation / numbers.size());
+        double mean = getAverage(data);
+        double variance = 0.0;
+
+        for (Number number : data) {
+            double diff = number.doubleValue() - mean;
+            variance += diff * diff;
+        }
+
+        return variance / data.size();
     }
 
     @Contract(pure = true)

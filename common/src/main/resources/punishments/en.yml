@@ -33,6 +33,7 @@ Punishments:
       - "100:40 [log]"
       - "100:100 [webhook]"
       - "100:100 [proxy]"
+      - "100:0 kick %player% incorrect movement!"
   Knockback:
     remove-violations-after: 300
     checks:
@@ -63,6 +64,14 @@ Punishments:
       - "20:20 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
+  Connection:
+      remove-violations-after: 300
+      checks:
+          - "Connection"
+      commands:
+          - "5:5 [alert]"
+          - "5:5 [log]"
+          - "10:0 kick %player% Suspicious connection detected (unstable ping)"
   Reach:
     remove-violations-after: 300
     checks:
