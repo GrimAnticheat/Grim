@@ -70,7 +70,7 @@ Punishments:
       commands:
           - "5:5 [alert]"
           - "5:5 [log]"
-          - "10:0 kick %player% Suspicious connection detected (unstable ping)"
+          - "5:5 kick %player% Suspicious connection detected (unstable ping)"
   Reach:
     remove-violations-after: 300
     checks:
