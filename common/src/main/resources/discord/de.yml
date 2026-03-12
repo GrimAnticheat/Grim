@@ -1,13 +1,20 @@
+# Hilfe zu Webhooks: https://support.discord.com/hc/de/articles/228383668
 enabled: false
 webhook: ""
+# Auf `true` setzen, um die Discord-URL-Formatprüfung zu umgehen.
+# Dies erlaubt jede gültige HTTPS-URL (nützlich für Proxys oder Matrix-Forwarder).
+disable-webhook-validation: false
 embed-title: "**Grim Warnung**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# Ersetzt Backticks (`) in Werten (z. B. Client-Marken), um Fehler in der Discord-Textformatierung zu vermeiden.
+# Auf "`" setzen, um diese Ersetzung zu deaktivieren.
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**Spieler**: %player%"
+    - "**Spieler**: `%player%`"
     - "**Überprüfung**: %check%"
     - "**Verstöße**: %violations%"
     - "**Client-Version**: %version%"
-    - "**Marke**: %brand%"
+    - "**Marke**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"

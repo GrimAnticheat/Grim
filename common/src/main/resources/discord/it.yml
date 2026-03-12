@@ -1,13 +1,20 @@
+# Guida sui webhook: https://support.discord.com/hc/it/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+# Imposta su `true` per ignorare la validazione del formato URL di Discord.
+# Questo consente qualsiasi URL HTTPS valida (utile per proxy o forwarder Matrix).
+disable-webhook-validation: false
+embed-title: "**Grim Avviso**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# Sostituisce gli apici inversi (`) nei valori (come i brand dei client) per evitare di rompere la formattazione del testo di Discord.
+# Imposta su "`" per disabilitare questa sostituzione.
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**Giocatore**: %player%"
-    - "**Cheats Rilevati**: %check%"
+    - "**Giocatore**: `%player%`"
+    - "**Controllo**: %check%"
     - "**Violazioni**: %violations%"
-    - "**Versione Client**: %version%"
-    - "**Client**: %brand%"
+    - "**Versione del client**: %version%"
+    - "**Marca del client**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"

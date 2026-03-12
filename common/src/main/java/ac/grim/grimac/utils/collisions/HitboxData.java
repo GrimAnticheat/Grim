@@ -587,7 +587,7 @@ public enum HitboxData implements HitBoxFactory {
                 new HexCollisionBox(0.0D, 0.0D, 14.0D, 2.0D, 16.0D, 16.0D),
                 new HexCollisionBox(14.0D, 0.0D, 14.0D, 16.0D, 16.0D, 16.0D));
 
-        if (data.getHalf() == Half.LOWER) { // Add the unstable shape to the collision boxes
+        if (data.isBottom()) { // Add the unstable shape to the collision boxes
             box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 2.0D, 2.0D, 16.0D));
             box.add(new HexCollisionBox(14.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D));
             box.add(new HexCollisionBox(0.0D, 0.0D, 14.0D, 16.0D, 2.0D, 16.0D));

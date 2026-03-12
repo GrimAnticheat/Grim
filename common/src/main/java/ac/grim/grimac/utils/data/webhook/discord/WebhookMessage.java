@@ -1,5 +1,6 @@
-package ac.grim.grimac.utils.webhook;
+package ac.grim.grimac.utils.data.webhook.discord;
 
+import ac.grim.grimac.utils.data.json.JsonSerializable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
@@ -11,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static ac.grim.grimac.utils.webhook.JsonSerializable.deserializeArray;
-import static ac.grim.grimac.utils.webhook.JsonSerializable.serializeArray;
+import static ac.grim.grimac.utils.data.json.JsonSerializable.deserializeArray;
+import static ac.grim.grimac.utils.data.json.JsonSerializable.serializeArray;
 
 @Getter
 @Setter

@@ -23,6 +23,14 @@ public class BaseConfigManager {
     @Getter
     private String prefix = "&bGrim &8»";
     @Getter
+    private String webhookNotEnabled;
+    @Getter
+    private String webhookTestMessage;
+    @Getter
+    private String webhookTestSucceeded;
+    @Getter
+    private String webhookTestFailed;
+    @Getter
     private String disconnectTimeout;
     @Getter
     private String disconnectClosed;
@@ -57,6 +65,10 @@ public class BaseConfigManager {
         printAlertsToConsole = config.getBooleanElse("alerts.print-to-console", true);
         prefix = config.getStringElse("prefix", "&bGrim &8»");
 
+        webhookNotEnabled = config.getStringElse("webhook-not-enabled", "Discord webhooks are not enabled!");
+        webhookTestMessage = config.getStringElse("webhook-test-message", "test message");
+        webhookTestSucceeded = config.getStringElse("webhook-test-succeeded", "Discord webhook test succeeded!");
+        webhookTestFailed = config.getStringElse("webhook-test-failed", "Discord webhook test failed!");
         disconnectTimeout = config.getStringElse("disconnect.timeout", "<lang:disconnect.timeout>");
         disconnectClosed = config.getStringElse("disconnect.closed", "<lang:disconnect.timeout>");
         disconnectPacketError = config.getStringElse("disconnect.error", "<red>An error occurred whilst processing packets. Please contact the administrators.");

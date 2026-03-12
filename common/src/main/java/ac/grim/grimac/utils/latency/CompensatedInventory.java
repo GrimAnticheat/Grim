@@ -56,6 +56,14 @@ public class CompensatedInventory extends Check implements PacketCheck {
     // Unsupported inventory is -2
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
+    // The item held at the start of the current client tick (processed at the end of the previous tick)
+    // Currently only used by 1.21.11+ players to handle attribute swapping items with the ATTACK_RANGE Component
+    private ItemStack startOfTickStack = ItemStack.EMPTY;
+
+    public ItemStack getStartOfTickStack() {
+        return startOfTickStack;
+    }
+
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
 
@@ -234,9 +242,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
                 inventory.getInventoryStorage().setItem(slot, use);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             // 1.8 clients don't predict dropping items
@@ -258,18 +264,14 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.setHeldItem(null);
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+        } else if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
 
             inventory.selected = slot;
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
+        } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
 
@@ -281,9 +283,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
+        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
             // How is this possible? Maybe transaction splitting.
@@ -312,10 +312,10 @@ public class CompensatedInventory extends Check implements PacketCheck {
             if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
                 menu.doClick(button, slot, clickType);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
+        } else if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             this.closeActiveInventory();
+        } else if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+            this.startOfTickStack = getHeldItem();
         }
     }
 
