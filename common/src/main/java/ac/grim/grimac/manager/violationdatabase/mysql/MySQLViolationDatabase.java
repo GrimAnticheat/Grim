@@ -123,13 +123,16 @@ public class MySQLViolationDatabase implements ViolationDatabase {
                             ")"
             ).execute();
 
-            connection.prepareStatement(
-                    "CREATE INDEX idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_uuid_created_at ON " +
-                            DatabaseConstants.VIOLATIONS_TABLE + "(" +
-                            DatabaseConstants.VIOLATIONS_UUID_COLUMN + ", " +
-                            DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN +
-                            ")"
-            ).execute();
+            try {
+                connection.prepareStatement(
+                        "CREATE INDEX idx_" + DatabaseConstants.VIOLATIONS_TABLE + "_uuid_created_at ON " +
+                                DatabaseConstants.VIOLATIONS_TABLE + "(" +
+                                DatabaseConstants.VIOLATIONS_UUID_COLUMN + ", " +
+                                DatabaseConstants.VIOLATIONS_CREATED_AT_COLUMN +
+                                ")"
+                ).execute();
+            } catch (SQLException ignored) {}
+
 
         } catch (SQLException ex) {
             LogUtil.error("Failed to generate violations database:", ex);
