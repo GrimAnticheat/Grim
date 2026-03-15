@@ -142,6 +142,12 @@ public class Reach extends Check implements PacketCheck {
                     if (currentStack != ItemStack.EMPTY) {
                         currentRange = new ItemAttackRange(0F, 3F, 0F, 4F, 0.1F, 1F);
                     }
+
+                    if (startRange == null && currentRange != null) {
+                        hasRange = true;
+                        maxReach = currentRange.getMaxRange();
+                        hitboxMargin = currentRange.getHitboxMargin();
+                    }
                 }
 
                 // If the start stack has no range component, the client defaults to vanilla reach behavior,
