@@ -2,6 +2,7 @@ package ac.grim.grimac.manager.player.handlers;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.handler.ResyncHandler;
+import ac.grim.grimac.platform.api.player.BlockTranslator;
 import ac.grim.grimac.platform.api.world.PlatformChunk;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
@@ -58,6 +59,8 @@ public class DefaultResyncHandler implements ResyncHandler {
                     int minChunkZ = minBlockZ >> 4;
                     int maxChunkZ = maxBlockZ >> 4;
 
+                    BlockTranslator translator = player.platformPlayer.getBlockTranslator();
+
                     for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
                         int minZ = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
                         int maxZ = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
@@ -81,8 +84,9 @@ public class DefaultResyncHandler implements ResyncHandler {
                                 for (int currZ = minZ; currZ <= maxZ; ++currZ) {
                                     for (int currX = minX; currX <= maxX; ++currX) {
                                         for (int currY = minY; currY <= maxY; ++currY) {
-                                            int blockId = chunk.getBlockID(currX, currY | (currChunkY << 4), currZ);
-                                            encodedBlocks[blockIndex++] = new WrapperPlayServerMultiBlockChange.EncodedBlock(blockId, currX, currY | (currChunkY << 4), currZ);
+                                            int rawId = chunk.getBlockID(currX, currY | (currChunkY << 4), currZ);
+                                            int networkId = translator.translate(rawId);
+                                            encodedBlocks[blockIndex++] = new WrapperPlayServerMultiBlockChange.EncodedBlock(networkId, currX, currY | (currChunkY << 4), currZ);
                                         }
                                     }
                                 }

@@ -41,10 +41,6 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                             continue;
                         }
 
-                        if (i == xAgainst && j == yAgainst && k == zAgainst) {
-                            continue;
-                        }
-
                         if (!world.isChunkLoaded(i >> 4, k >> 4)) {
                             continue;
                         }

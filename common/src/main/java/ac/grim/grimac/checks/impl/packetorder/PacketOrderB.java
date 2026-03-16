@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "PacketOrderB", description = "Did not swing for attack")
@@ -47,7 +48,8 @@ public class PacketOrderB extends Check implements PacketCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && (player.gamemode != GameMode.SPECTATOR || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_11))) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 sentAttack = true;

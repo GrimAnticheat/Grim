@@ -163,6 +163,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 
                 if (!keepTrackedData) {
+                    player.food = 20;
                     player.powderSnowFrozenTicks = 0;
                     player.compensatedEntities.self.hasGravity = true;
                     player.playerEntityHasGravity = true;
