@@ -8,12 +8,13 @@ alerts:
 
 protocollib:
   enabled: true
+  strict-reflection: false
 
 netty:
   inject-on-join: true
   strict-reflection: false
 
-# packet-first 优先使用包级事件；当其数据过期或缺失时， stale 窗口回退 Bukkit 事件
+# packet-first 娴兼ê鍘涙担璺ㄦ暏閸栧懐楠囨禍瀣╂閿涙稑缍嬮崗鑸垫殶閹诡喛绻冮張鐔稿灗缂傚搫銇戦弮璁圭礉 stale 缁愭褰涢崶鐐衡偓鈧?Bukkit 娴滃娆?
 pipeline:
   packet-first: true
   bukkit-fallback: true
@@ -270,6 +271,8 @@ checks:
     max-vl: 8.0
     setback: false
     max-move: 0.12
+    open-grace-ms: 1500
+    close-grace-ms: 250
     buffer: 0.2
     window-weight: 1.0
     punish-vl: 18

@@ -24,10 +24,12 @@ public final class ProtocolLibBridgeManager {
     private final LegacyAntiCheatPlugin plugin;
     private final List<PacketListener> listeners = new ArrayList<PacketListener>();
     private final EntityBoxCache entityBoxCache = new EntityBoxCache();
+    private final ProtocolLibPacketReader packetReader;
     private ProtocolManager protocolManager;
 
     public ProtocolLibBridgeManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
+        this.packetReader = new ProtocolLibPacketReader(plugin);
     }
 
     public boolean start() {
@@ -80,155 +82,166 @@ public final class ProtocolLibBridgeManager {
                 Player player = event.getPlayer();
                 PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
                 PacketType type = event.getPacketType();
-                PacketContainer packet = event.getPacket();
+                Object handle = event.getPacket().getHandle();
 
-                final boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
-                final boolean hasLook = type == PacketType.Play.Client.LOOK || type == PacketType.Play.Client.POSITION_LOOK;
+                boolean hasPosition = type == PacketType.Play.Client.POSITION || type == PacketType.Play.Client.POSITION_LOOK;
+                boolean hasLook = type == PacketType.Play.Client.LOOK || type == PacketType.Play.Client.POSITION_LOOK;
 
                 double x = player.getLocation().getX();
                 double y = player.getLocation().getY();
                 double z = player.getLocation().getZ();
                 if (hasPosition) {
-                    if (packet.getDoubles().size() < 3) {
+                    Double packetX = packetReader.readDoubleValue(handle, 0, "x", "a");
+                    Double packetY = packetReader.readDoubleValue(handle, 1, "y", "b");
+                    Double packetZ = packetReader.readDoubleValue(handle, 2, "z", "c");
+                    if (packetX == null || packetY == null || packetZ == null) {
+                        packetReader.warnReflectionFailureOnce(type.name(), "movement-position");
                         return;
                     }
-                    x = packet.getDoubles().read(0);
-                    y = packet.getDoubles().read(1);
-                    z = packet.getDoubles().read(2);
+                    x = packetX.doubleValue();
+                    y = packetY.doubleValue();
+                    z = packetZ.doubleValue();
                 }
 
                 float yaw = player.getLocation().getYaw();
                 float pitch = player.getLocation().getPitch();
-                if (hasLook && packet.getFloat().size() >= 2) {
-                    yaw = packet.getFloat().read(0);
-                    pitch = packet.getFloat().read(1);
+                if (hasLook) {
+                    Float packetYaw = packetReader.readFloatValue(handle, 0, "yaw", "d");
+                    Float packetPitch = packetReader.readFloatValue(handle, 1, "pitch", "e");
+                    if (packetYaw == null || packetPitch == null) {
+                        packetReader.warnReflectionFailureOnce(type.name(), "movement-look");
+                        return;
+                    }
+                    yaw = packetYaw.floatValue();
+                    pitch = packetPitch.floatValue();
                 }
 
+                Boolean onGround = packetReader.readBooleanValue(handle, 0, "onGround", "f", "g");
+                if (onGround == null) {
+                    packetReader.warnReflectionFailureOnce(type.name(), "movement-ground");
+                    return;
+                }
+
+                long now = System.nanoTime();
+                String packetName = handle == null ? type.name() : handle.getClass().getSimpleName();
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.clientMovementEx(player, type.name(), System.nanoTime(), hasPosition, yaw, pitch));
+                        InternalPacketEvent.clientMovementEx(player, packetName, now, hasPosition, yaw, pitch));
 
                 if (hasPosition) {
                     data.tryConfirmTeleportSync(x, y, z);
                 }
 
-                boolean onGround = packet.getBooleans().size() > 0 && packet.getBooleans().read(0);
-                data.updateShadowPosition(x, y, z, onGround);
-
-                MovementFrame.Source source = toMovementSource(type);
-                MovementFrame frame = new MovementFrame(System.nanoTime(), x, y, z, yaw, pitch, onGround, hasPosition, hasLook, source);
+                data.updateShadowPosition(x, y, z, onGround.booleanValue());
+                MovementFrame frame = new MovementFrame(now, x, y, z, yaw, pitch, onGround.booleanValue(),
+                        hasPosition, hasLook, toMovementSource(type));
                 ((LegacyAntiCheatPlugin) plugin).movementFrames().dispatch(player, frame);
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
     }
-
     private void registerUseEntityListener() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                int entityId = packet.getIntegers().size() > 0 ? packet.getIntegers().read(0) : -1;
-                boolean attack = true;
-                try {
-                    Object handle = packet.getHandle();
-                    Object action = readFieldValue(handle, "action", "c");
-                    if (action != null) {
-                        attack = "ATTACK".equals(String.valueOf(action));
-                    }
-                } catch (Throwable ignored) {
+                Object handle = event.getPacket().getHandle();
+                Integer entityId = packetReader.readIntegerValue(handle, 0, "a", "entityId");
+                Object action = packetReader.readFieldValue(handle, "action", "c", "b");
+                boolean attack = packetReader.isUseEntityAttack(action);
+                if (entityId == null) {
+                    packetReader.warnReflectionFailureOnce("USE_ENTITY", "entityId");
+                    return;
                 }
-                if (entityId >= 0) {
-                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                            InternalPacketEvent.clientUseEntity(event.getPlayer(), entityId, attack, System.nanoTime()));
-                }
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientUseEntity(event.getPlayer(), entityId.intValue(), attack, System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
     }
-
     private void registerServerPositionListener() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.POSITION) {
             @Override
             public void onPacketSending(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                if (packet.getDoubles().size() < 3) {
+                Object handle = event.getPacket().getHandle();
+                Double x = packetReader.readDoubleValue(handle, 0, "a", "x");
+                Double y = packetReader.readDoubleValue(handle, 1, "b", "y");
+                Double z = packetReader.readDoubleValue(handle, 2, "c", "z");
+                if (x == null || y == null || z == null) {
+                    packetReader.warnReflectionFailureOnce("SERVER_POSITION", "xyz");
                     return;
                 }
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.serverPosition(event.getPlayer(),
-                                packet.getDoubles().read(0),
-                                packet.getDoubles().read(1),
-                                packet.getDoubles().read(2),
+                        InternalPacketEvent.serverPosition(event.getPlayer(), x.doubleValue(), y.doubleValue(), z.doubleValue(),
                                 System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
     }
-
     private void registerVelocityListener() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.ENTITY_VELOCITY) {
             @Override
             public void onPacketSending(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                if (packet.getIntegers().size() < 4) {
+                Object handle = event.getPacket().getHandle();
+                Integer entityId = packetReader.readIntegerValue(handle, 0, "a", "entityId");
+                Integer vx = packetReader.readIntegerValue(handle, 1, "b", "x");
+                Integer vy = packetReader.readIntegerValue(handle, 2, "c", "y");
+                Integer vz = packetReader.readIntegerValue(handle, 3, "d", "z");
+                if (entityId == null || vx == null || vy == null || vz == null) {
+                    packetReader.warnReflectionFailureOnce("ENTITY_VELOCITY", "entityId/velocity");
                     return;
                 }
-                int entityId = packet.getIntegers().read(0);
-                int vx = packet.getIntegers().read(1);
-                int vy = packet.getIntegers().read(2);
-                int vz = packet.getIntegers().read(3);
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.serverEntityVelocity(event.getPlayer(), entityId, vx, vy, vz, System.nanoTime()));
+                        InternalPacketEvent.serverEntityVelocity(event.getPlayer(), entityId.intValue(), vx.intValue(), vy.intValue(),
+                                vz.intValue(), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
     }
-
     private void registerAckListener() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
                 PacketType.Play.Client.TRANSACTION,
                 PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
+                Object handle = event.getPacket().getHandle();
                 PacketType type = event.getPacketType();
                 if (type == PacketType.Play.Client.TRANSACTION) {
-                    if (packet.getShorts().size() > 0) {
-                        short actionId = packet.getShorts().read(0);
-                        ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                                InternalPacketEvent.clientTransactionAck(event.getPlayer(), actionId, System.nanoTime()));
+                    Short actionId = packetReader.readShortValue(handle, 0, "b", "action", "uid");
+                    if (actionId == null) {
+                        packetReader.warnReflectionFailureOnce("TRANSACTION", "actionId");
+                        return;
                     }
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                            InternalPacketEvent.clientTransactionAck(event.getPlayer(), actionId.shortValue(), System.nanoTime()));
                     return;
                 }
 
                 if (type == PacketType.Play.Client.KEEP_ALIVE) {
-                    Long keepAliveId = null;
-                    if (packet.getIntegers().size() > 0) {
-                        keepAliveId = Long.valueOf(packet.getIntegers().read(0).longValue());
-                    }
+                    Integer keepAliveId = packetReader.readIntegerValue(handle, 0, "a", "keepAliveId", "id");
                     ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                            InternalPacketEvent.clientKeepAlive(event.getPlayer(), keepAliveId, System.nanoTime()));
+                            InternalPacketEvent.clientKeepAlive(event.getPlayer(),
+                                    keepAliveId == null ? null : Long.valueOf(keepAliveId.longValue()), System.nanoTime()));
                 }
             }
         };
         protocolManager.addPacketListener(adapter);
         listeners.add(adapter);
     }
-
     private void registerBadPacketsListeners() {
         PacketAdapter heldItemAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.HELD_ITEM_SLOT) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                if (packet.getIntegers().size() > 0) {
-                    int slot = packet.getIntegers().read(0);
-                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                            InternalPacketEvent.clientHeldItemChange(event.getPlayer(), slot, System.nanoTime()));
+                Object handle = event.getPacket().getHandle();
+                Integer slot = packetReader.readIntegerValue(handle, 0, "itemInHandIndex", "slot", "a");
+                if (slot == null) {
+                    packetReader.warnReflectionFailureOnce("HELD_ITEM_SLOT", "slot");
+                    return;
                 }
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientHeldItemChange(event.getPlayer(), slot.intValue(), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(heldItemAdapter);
@@ -237,18 +250,26 @@ public final class ProtocolLibBridgeManager {
         PacketAdapter entityActionAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.ENTITY_ACTION) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                if (packet.getIntegers().size() < 3) {
+                Object handle = event.getPacket().getHandle();
+                Integer entityId = packetReader.readIntegerValue(handle, 0, "a", "entityId");
+                Object actionObj = packetReader.readFieldValue(handle, "action", "animation", "b");
+                if (actionObj == null) {
+                    actionObj = packetReader.readFirstEnumField(handle, "PLAYERACTION", "ENTITYACTION");
+                }
+                Integer actionId = packetReader.resolveEntityActionId(actionObj);
+                Integer jumpBoost = packetReader.readIntegerValue(handle, 1, "c", "jumpBoost");
+                if (jumpBoost == null) {
+                    jumpBoost = Integer.valueOf(0);
+                }
+                if (entityId == null || actionId == null) {
+                    packetReader.warnReflectionFailureOnce("ENTITY_ACTION", "entityId/actionId");
                     return;
                 }
-                int entityId = packet.getIntegers().read(0);
-                int actionId = packet.getIntegers().read(1);
-                int jumpBoost = packet.getIntegers().read(2);
-                boolean isSprint = (actionId == 4 || actionId == 5);
-                boolean isSneak = (actionId == 1 || actionId == 2);
+                boolean isSprint = actionId.intValue() == 4 || actionId.intValue() == 5;
+                boolean isSneak = actionId.intValue() == 1 || actionId.intValue() == 2;
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.clientEntityAction(event.getPlayer(), entityId, actionId, jumpBoost,
-                                isSprint, isSneak, System.nanoTime()));
+                        InternalPacketEvent.clientEntityAction(event.getPlayer(), entityId.intValue(), actionId.intValue(),
+                                jumpBoost.intValue(), isSprint, isSneak, System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(entityActionAdapter);
@@ -258,12 +279,14 @@ public final class ProtocolLibBridgeManager {
             PacketAdapter abilitiesAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.ABILITIES) {
                 @Override
                 public void onPacketReceiving(PacketEvent event) {
-                    PacketContainer packet = event.getPacket();
-                    if (packet.getBooleans().size() > 1) {
-                        boolean claimsFlying = packet.getBooleans().read(1);
-                        ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                                InternalPacketEvent.clientAbilities(event.getPlayer(), claimsFlying, System.nanoTime()));
+                    Object handle = event.getPacket().getHandle();
+                    Boolean claimsFlying = packetReader.readBooleanValue(handle, 1, "b", "isFlying", "flying");
+                    if (claimsFlying == null) {
+                        packetReader.warnReflectionFailureOnce("ABILITIES", "flying");
+                        return;
                     }
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                            InternalPacketEvent.clientAbilities(event.getPlayer(), claimsFlying.booleanValue(), System.nanoTime()));
                 }
             };
             protocolManager.addPacketListener(abilitiesAdapter);
@@ -275,36 +298,40 @@ public final class ProtocolLibBridgeManager {
         PacketAdapter blockDigAdapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                if (packet.getIntegers().size() > 0) {
-                    int action = packet.getIntegers().read(0);
-                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                            InternalPacketEvent.clientBlockDig(event.getPlayer(), action, System.nanoTime()));
+                Object handle = event.getPacket().getHandle();
+                Integer action = packetReader.resolveDigAction(handle);
+                if (action == null) {
+                    packetReader.warnReflectionFailureOnce("BLOCK_DIG", "digAction");
+                    return;
                 }
+                ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                        InternalPacketEvent.clientBlockDig(event.getPlayer(), action.intValue(), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(blockDigAdapter);
         listeners.add(blockDigAdapter);
     }
-
     private void registerBlockPlaceCaptureListener() {
         try {
             PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.BLOCK_PLACE) {
                 @Override
                 public void onPacketReceiving(PacketEvent event) {
-                    PacketContainer packet = event.getPacket();
-                    if (packet.getIntegers().size() < 4 || packet.getFloat().size() < 3) {
+                    Object handle = event.getPacket().getHandle();
+                    Integer x = packetReader.readIntegerValue(handle, 0, "c", "a");
+                    Integer y = packetReader.readIntegerValue(handle, 1, "d", "b");
+                    Integer z = packetReader.readIntegerValue(handle, 2, "e", "c");
+                    Integer face = packetReader.readIntegerValue(handle, 3, "face", "d");
+                    Float cursorX = packetReader.readFloatValue(handle, 0, "f");
+                    Float cursorY = packetReader.readFloatValue(handle, 1, "g");
+                    Float cursorZ = packetReader.readFloatValue(handle, 2, "h");
+                    if (x == null || y == null || z == null || face == null
+                            || cursorX == null || cursorY == null || cursorZ == null) {
+                        packetReader.warnReflectionFailureOnce("BLOCK_PLACE", "placeCursor");
                         return;
                     }
                     PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
-                    data.recordClientBlockPlacePacket(
-                            packet.getIntegers().read(0),
-                            packet.getIntegers().read(1),
-                            packet.getIntegers().read(2),
-                            packet.getIntegers().read(3),
-                            packet.getFloat().read(0),
-                            packet.getFloat().read(1),
-                            packet.getFloat().read(2));
+                    data.recordClientBlockPlacePacket(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
+                            cursorX.floatValue(), cursorY.floatValue(), cursorZ.floatValue());
                 }
             };
             protocolManager.addPacketListener(adapter);
@@ -313,7 +340,6 @@ public final class ProtocolLibBridgeManager {
             plugin.getLogger().info("[GLAC] Block place capture listener not available: " + throwable.getMessage());
         }
     }
-
     private void registerWorldStateListeners() {
         PacketAdapter adapter = new PacketAdapter(plugin, ListenerPriority.HIGHEST,
                 PacketType.Play.Server.BLOCK_CHANGE,
@@ -364,6 +390,9 @@ public final class ProtocolLibBridgeManager {
     }
 
     private MovementFrame.Source toMovementSource(PacketType type) {
+        if (type == PacketType.Play.Client.FLYING) {
+            return MovementFrame.Source.PACKET_FLYING;
+        }
         if (type == PacketType.Play.Client.POSITION) {
             return MovementFrame.Source.PACKET_POSITION;
         }
@@ -373,9 +402,8 @@ public final class ProtocolLibBridgeManager {
         if (type == PacketType.Play.Client.POSITION_LOOK) {
             return MovementFrame.Source.PACKET_POSITION_LOOK;
         }
-        return MovementFrame.Source.PACKET_POSITION_LOOK;
+        return MovementFrame.Source.PACKET_FLYING;
     }
-
     private BlockChangeSnapshot readBlockChange(Object handle) {
         if (handle == null) {
             return null;
