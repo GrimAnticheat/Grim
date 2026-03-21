@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils;
+package ac.grim.grimac.manager;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -12,7 +12,6 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-// TODO: move this to a sub-package of utils
 public class AttackCooldownHandler extends Check implements PacketCheck {
     private int ticksSinceLastSwing;
     private ItemStack stack = ItemStack.EMPTY;

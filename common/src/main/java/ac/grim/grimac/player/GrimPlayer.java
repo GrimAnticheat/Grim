@@ -20,7 +20,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
-import ac.grim.grimac.utils.AttackCooldownHandler;
+import ac.grim.grimac.manager.AttackCooldownHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;

@@ -47,7 +47,6 @@ import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
-import ac.grim.grimac.utils.AttackCooldownHandler;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCameraEntity;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
