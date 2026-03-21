@@ -21,7 +21,8 @@ public class Inventory extends AbstractContainerMenu {
     public static final int SLOT_LEGGINGS = 6;
     public static final int SLOT_BOOTS = 7;
     private static final int TOTAL_SIZE = 46;
-    public int selected = 0;
+    @Getter
+    private int selected;
     @Getter
     private final CorrectingPlayerInventoryStorage inventoryStorage;
 
@@ -68,7 +69,7 @@ public class Inventory extends AbstractContainerMenu {
     }
 
     public boolean hasItemType(ItemType item) {
-        for (int i = 0; i < inventoryStorage.items.length; ++i) {
+        for (int i = 0; i < inventoryStorage.getSize(); ++i) {
             if (inventoryStorage.getItem(i).getType() == item) {
                 return true;
             }
@@ -93,7 +94,7 @@ public class Inventory extends AbstractContainerMenu {
     }
 
     public int getFreeSlot() {
-        for (int i = 0; i < inventoryStorage.items.length; ++i) {
+        for (int i = 0; i < inventoryStorage.getSize(); ++i) {
             if (inventoryStorage.getItem(i).isEmpty()) {
                 return i;
             }
@@ -251,5 +252,10 @@ public class Inventory extends AbstractContainerMenu {
     @Override
     public boolean canTakeItemForPickAll(ItemStack p_38908_, Slot p_38909_) {
         return p_38909_.inventoryStorageSlot != 0; // Result slot
+    }
+
+    public void setSelected(int selected) {
+        this.selected = selected;
+        this.player.attackCooldown.updateHeldItem();
     }
 }

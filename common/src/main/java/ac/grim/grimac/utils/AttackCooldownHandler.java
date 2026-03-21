@@ -38,25 +38,32 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
 
         if (isTickPacket(event.getPacketType())) {
             ++ticksSinceLastSwing;
-
-            // FIXME:
-            //  this is the only part which can cause falses, since this doesn't run every client tick.
-            //  for example, if the player switches slots while standing still and then back to the original one
-            //  before the next tick packet, the cooldown will get reset on the client but won't get reset here.
-            //  this could be also be run on transactions to mitigate this, but that could also cause issues
-
-            ItemStack held = player.inventory.getHeldItem().copy();
-
-            if (!(stack.isEmpty() && held.isEmpty() || stack.getType() == held.getType() && (stack.isDamageableItem() || stack.getLegacyData() == held.getLegacyData()))) {
-                reset();
-            }
-
-            stack = held;
+            updateHeldItem();
         }
     }
 
     public void reset() {
         ticksSinceLastSwing = 0;
+    }
+
+    // called on client tick and whenever the slot gets updated
+    public void updateHeldItem() {
+        // 06/04/2025:
+        // FIXME:
+        //  this is the only part which can cause falses, since this doesn't run every client tick.
+        //  for example, if the player switches slots while standing still and then back to the original one
+        //  before the next tick packet, the cooldown will get reset on the client but won't get reset here.
+        //  this could be also be run on transactions to mitigate this, but that could also cause issues
+        //
+        // 21/03/2026: fixed?
+
+        ItemStack held = player.inventory.getHeldItem().copy();
+
+        if (!(stack.isEmpty() && held.isEmpty() || stack.getType() == held.getType() && (stack.isDamageableItem() || stack.getLegacyData() == held.getLegacyData()))) {
+            reset();
+        }
+
+        stack = held;
     }
 
     public float getMinimumProgress() {
