@@ -16,6 +16,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 public class AttackCooldownHandler extends Check implements PacketCheck {
     private int ticksSinceLastSwing;
     private ItemStack stack = ItemStack.EMPTY;
+    // Since we don't know when the client ticks, we call updateHeldItem() when the held item changes,
+    // but that means ticksSinceLastSwing is incremented after it gets reset. This is wrong, so we
+    // compensate for that by not incrementing ticksSinceLastSwing if updateHeldItem() was called
+    // (and the held item changed) before the tick packet.
+    private boolean stackChanged;
 
     public AttackCooldownHandler(GrimPlayer player) {
         super(player);
@@ -37,8 +42,11 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
         }
 
         if (isTickPacket(event.getPacketType())) {
-            ++ticksSinceLastSwing;
+            if (!stackChanged) {
+                ++ticksSinceLastSwing;
+            }
             updateHeldItem();
+            stackChanged = false;
         }
     }
 
@@ -48,19 +56,11 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
 
     // called on client tick and whenever the slot gets updated
     public void updateHeldItem() {
-        // 06/04/2025:
-        // FIXME:
-        //  this is the only part which can cause falses, since this doesn't run every client tick.
-        //  for example, if the player switches slots while standing still and then back to the original one
-        //  before the next tick packet, the cooldown will get reset on the client but won't get reset here.
-        //  this could be also be run on transactions to mitigate this, but that could also cause issues
-        //
-        // 21/03/2026: fixed?
-
         ItemStack held = player.inventory.getHeldItem().copy();
 
         if (!(stack.isEmpty() && held.isEmpty() || stack.getType() == held.getType() && (stack.isDamageableItem() || stack.getLegacyData() == held.getLegacyData()))) {
             reset();
+            stackChanged = true;
         }
 
         stack = held;

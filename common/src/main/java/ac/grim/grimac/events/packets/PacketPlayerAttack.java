@@ -66,8 +66,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
                     final boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
                     // assume cooldown is full on 1.8 servers
-                    final boolean sufficientCooldownProgress = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
-                            || player.attackCooldown.getMinimumProgress() > 0.9F;
+                    final boolean sufficientCooldownProgress = isLegacyPlayer || player.attackCooldown.getMinimumProgress() > 0.9F;
 
                     if (!isLegacyPlayer) {
                         knockbackLevel = Math.max(knockbackLevel, 0);
