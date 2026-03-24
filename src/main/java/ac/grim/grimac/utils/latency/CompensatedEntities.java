@@ -17,6 +17,7 @@ import ac.grim.grimac.shaded.com.packetevents.protocol.world.Direction;
 import ac.grim.grimac.shaded.com.packetevents.resources.ResourceLocation;
 import ac.grim.grimac.shaded.com.packetevents.util.Vector3d;
 import ac.grim.grimac.shaded.com.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
@@ -150,12 +151,14 @@ public class CompensatedEntities {
             return;
         }
 
-        passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
-
-        for (PacketEntity passengerPassenger : riding.passengers) {
-            tickPassenger(passenger, passengerPassenger);
+        if (passenger == player.compensatedEntities.self) {
+            Vector3d ridingOffset = BoundingBoxSize.getRidingOffsetFromVehicle(riding, player);
+            passenger.setPositionRaw(player, new SimpleCollisionBox(ridingOffset.getX(), ridingOffset.getY(), ridingOffset.getZ(), ridingOffset.getX(), ridingOffset.getY(), ridingOffset.getZ()));
+        } else {
+            passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
         }
     }
+
 
     public void addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance

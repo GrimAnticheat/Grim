@@ -366,4 +366,62 @@ public class UncertaintyHandler {
         }
         return false;
     }
+
+    private void trackBoatCollision(PacketEntity boat, SimpleCollisionBox boatBox, boolean standingOnBoat) {
+        SimpleCollisionBox possibleLocations = boat.getPossibleLocationBoxes();
+        double vertical = possibleLocations.maxY - possibleLocations.minY;
+        double supportY = boatBox.maxY - player.boundingBox.minY;
+        boolean stepUpSupport = supportY > 0.0 && supportY <= 0.6 + SimpleCollisionBox.COLLISION_EPSILON;
+
+        if (stepUpSupport) {
+            vertical = Math.max(vertical, supportY);
+        }
+
+        if (standingOnBoat) {
+            vertical = Math.max(vertical, 0.08);
+        }
+
+        trackBoatCollision(
+                possibleLocations.maxX - possibleLocations.minX,
+                vertical,
+                possibleLocations.maxZ - possibleLocations.minZ,
+                standingOnBoat || stepUpSupport ? 4 : 3
+        );
+    }
+
+
+
+
+    private boolean nearbyBoatCollision(SimpleCollisionBox expandedPlayerBB) {
+        boolean collided = false;
+        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity == riding) continue;
+            if (!entity.isBoat) continue;
+
+            SimpleCollisionBox boatBox = entity.getPossibleCollisionBoxes();
+            boolean standingOnBoat = isStandingOnBoat(boatBox);
+            if (!boatBox.copy().expand(0.05, 0.05, 0.05).isIntersected(expandedPlayerBB) && !standingOnBoat) {
+                continue;
+            }
+
+            trackBoatCollision(entity, boatBox, standingOnBoat);
+            collided = true;
+        }
+
+        return collided;
+    }
+
+    private double getBoatVerticalUncertainty() {
+        if (boatCollisionTicks <= 0) {
+            return 0;
+        }
+
+        return Math.min(0.6, Math.abs(boatCollisionVelocity.getY()) + 0.03);
+    }
+
+
+
+
 }
