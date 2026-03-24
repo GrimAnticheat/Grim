@@ -20,6 +20,9 @@ import java.util.HashSet;
 import java.util.List;
 
 public class UncertaintyHandler {
+    private static final int SHULKER_GROUND_UNCERTAINTY_TICKS = 3;
+    private static final int SHULKER_TRAILING_LENIENCE_TICKS = 1;
+
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
@@ -55,9 +58,10 @@ public class UncertaintyHandler {
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isSteppingNearScaffolding = false;
-    public boolean isSteppingNearShulker = false;
     public boolean isNearGlitchyBlock = false;
     public boolean isOrWasNearGlitchyBlock = false;
+    public final Vector3dm shulkerPush = new Vector3dm();
+    public final Vector3dm previousShulkerPush = new Vector3dm();
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
@@ -89,6 +93,7 @@ public class UncertaintyHandler {
     public final LastInstance lastStuckWest;
     public final LastInstance lastStuckEast;
     public final LastInstance lastVehicleSwitch;
+    public final LastInstance lastShulkerPush;
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
@@ -108,6 +113,7 @@ public class UncertaintyHandler {
         this.lastStuckWest = new LastInstance(player);
         this.lastStuckEast = new LastInstance(player);
         this.lastVehicleSwitch = new LastInstance(player);
+        this.lastShulkerPush = new LastInstance(player);
         tick();
 
         this.riptideEntities.add(0);
@@ -120,7 +126,6 @@ public class UncertaintyHandler {
         pistonZ.add(0d);
         isStepMovement = false;
 
-        isSteppingNearShulker = false;
         wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
         isSteppingOnSlime = false;
         isSteppingOnBouncyBlock = false;
@@ -128,6 +133,8 @@ public class UncertaintyHandler {
         isSteppingOnHoney = false;
         isSteppingNearBubbleColumn = false;
         isSteppingNearScaffolding = false;
+        previousShulkerPush.copy(shulkerPush);
+        shulkerPush.zero();
 
         slimePistonBounces = new HashSet<>();
         tickFireworksBox();
@@ -254,6 +261,41 @@ public class UncertaintyHandler {
         return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
     }
 
+    public void recordShulkerPush(double x, double y, double z) {
+        if (Math.abs(x) > Math.abs(shulkerPush.getX())) {
+            shulkerPush.setX(x);
+        }
+        if (Math.abs(y) > Math.abs(shulkerPush.getY())) {
+            shulkerPush.setY(y);
+        }
+        if (Math.abs(z) > Math.abs(shulkerPush.getZ())) {
+            shulkerPush.setZ(z);
+        }
+
+        lastShulkerPush.reset();
+    }
+
+    public boolean hasShulkerGroundUncertainty() {
+        return lastShulkerPush.hasOccurredSince(SHULKER_GROUND_UNCERTAINTY_TICKS)
+                && (shulkerPush.getY() != 0 || previousShulkerPush.getY() != 0);
+    }
+
+    public boolean hasTrailingShulkerPushLenience() {
+        return lastShulkerPush.hasOccurredSince(SHULKER_TRAILING_LENIENCE_TICKS);
+    }
+
+    public double getTrailingShulkerX() {
+        return shulkerPush.getX() == 0 ? previousShulkerPush.getX() : 0;
+    }
+
+    public double getTrailingShulkerY() {
+        return shulkerPush.getY() == 0 ? previousShulkerPush.getY() : 0;
+    }
+
+    public double getTrailingShulkerZ() {
+        return shulkerPush.getZ() == 0 ? previousShulkerPush.getZ() : 0;
+    }
+
     public double getVerticalOffset(VectorData data) {
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -329,13 +371,13 @@ public class UncertaintyHandler {
         // This bounding box can be infinitely large without crashing the server.
         // This works by the proof that if you collide with an object, you will stop near the object
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+        return regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
     }
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
+            if ((entity.isBoat || entity.isHappyGhast) && entity != riding
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }

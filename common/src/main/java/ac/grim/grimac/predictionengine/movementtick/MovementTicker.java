@@ -151,6 +151,10 @@ public class MovementTicker {
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
+        if (player.hasShulkerGroundUncertainty()) {
+            calculatedOnGround = player.clientClaimsLastOnGround;
+        }
+
         // Fix step movement inside of water
         // Swim hop into step is very unlikely, as step requires y < 0, while swim hop forces y = 0.3
         if (player.inVehicle() && player.clientControlledVerticalCollision && player.uncertaintyHandler.isStepMovement &&

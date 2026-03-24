@@ -8,6 +8,8 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.Objects;
 
 public class ShulkerData {
+    private static final int GUARANTEED_FINISH_TICKS = 10;
+
     public final int lastTransactionSent;
     public final boolean isClosing;
 
@@ -32,9 +34,9 @@ public class ShulkerData {
 
     // We don't know when the piston has applied, or what stage of pushing it is on
     // Therefore, we need to use what we have - the number of movement packets.
-    // 25 is a very cautious number beyond
+    // 10 is a cautious number and keeps the lenience window much tighter than before
     public boolean tickIfGuaranteedFinished() {
-        return isClosing && ++ticksOfOpeningClosing >= 25;
+        return isClosing && ++ticksOfOpeningClosing >= GUARANTEED_FINISH_TICKS;
     }
 
     public SimpleCollisionBox getCollision() {

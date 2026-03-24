@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 public class PredictionEngine {
+    private static final double TRAILING_SHULKER_PUSH_LENIENCE = 0.03D;
 
     public static Vector3dm clampMovementToHardBorder(GrimPlayer player, Vector3dm outputVel) {
         // TODO: Reimplement
@@ -570,6 +571,10 @@ public class PredictionEngine {
         double pistonX = Collections.max(player.uncertaintyHandler.pistonX);
         double pistonY = Collections.max(player.uncertaintyHandler.pistonY);
         double pistonZ = Collections.max(player.uncertaintyHandler.pistonZ);
+        Vector3dm shulkerPush = player.uncertaintyHandler.shulkerPush;
+        double trailingShulkerX = player.uncertaintyHandler.getTrailingShulkerX();
+        double trailingShulkerY = player.uncertaintyHandler.getTrailingShulkerY();
+        double trailingShulkerZ = player.uncertaintyHandler.getTrailingShulkerZ();
 
         additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
         additionVertical += player.uncertaintyHandler.lastVerticalOffset;
@@ -784,6 +789,10 @@ public class PredictionEngine {
             minVector.setZ(Math.min(minVector.getZ() - pistonZ, pistonZ));
             maxVector.setZ(Math.max(maxVector.getZ() + pistonZ, pistonZ));
         }
+
+        applyShulkerUncertainty(vector.vector, minVector, maxVector, shulkerPush, trailingShulkerX, trailingShulkerY, trailingShulkerZ,
+                player.uncertaintyHandler.hasTrailingShulkerPushLenience());
+
         return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
     }
 
@@ -869,6 +878,44 @@ public class PredictionEngine {
             // Who would notice a tick of non-slow movement when netcode is so terrible that it just looks normal
             player.isSlowMovement = !player.isSlowMovement;
         }
+    }
+
+    private static void applyShulkerUncertainty(Vector3dm startVector, Vector3dm minVector, Vector3dm maxVector, Vector3dm shulkerPush,
+                                                double trailingShulkerX, double trailingShulkerY, double trailingShulkerZ,
+                                                boolean hasTrailingLenience) {
+        minVector.setX(applyNegativePush(minVector.getX(), startVector.getX(), shulkerPush.getX()));
+        maxVector.setX(applyPositivePush(maxVector.getX(), startVector.getX(), shulkerPush.getX()));
+        minVector.setY(applyNegativePush(minVector.getY(), startVector.getY(), shulkerPush.getY()));
+        maxVector.setY(applyPositivePush(maxVector.getY(), startVector.getY(), shulkerPush.getY()));
+        minVector.setZ(applyNegativePush(minVector.getZ(), startVector.getZ(), shulkerPush.getZ()));
+        maxVector.setZ(applyPositivePush(maxVector.getZ(), startVector.getZ(), shulkerPush.getZ()));
+
+        if (!hasTrailingLenience) {
+            return;
+        }
+
+        minVector.setX(applyTrailingNegativeLenience(minVector.getX(), trailingShulkerX));
+        maxVector.setX(applyTrailingPositiveLenience(maxVector.getX(), trailingShulkerX));
+        minVector.setY(applyTrailingNegativeLenience(minVector.getY(), trailingShulkerY));
+        maxVector.setY(applyTrailingPositiveLenience(maxVector.getY(), trailingShulkerY));
+        minVector.setZ(applyTrailingNegativeLenience(minVector.getZ(), trailingShulkerZ));
+        maxVector.setZ(applyTrailingPositiveLenience(maxVector.getZ(), trailingShulkerZ));
+    }
+
+    private static double applyNegativePush(double currentMin, double start, double push) {
+        return push < 0 ? Math.min(currentMin, start + push) : currentMin;
+    }
+
+    private static double applyPositivePush(double currentMax, double start, double push) {
+        return push > 0 ? Math.max(currentMax, start + push) : currentMax;
+    }
+
+    private static double applyTrailingNegativeLenience(double currentMin, double trailingPush) {
+        return trailingPush < 0 ? currentMin - TRAILING_SHULKER_PUSH_LENIENCE : currentMin;
+    }
+
+    private static double applyTrailingPositiveLenience(double currentMax, double trailingPush) {
+        return trailingPush > 0 ? currentMax + TRAILING_SHULKER_PUSH_LENIENCE : currentMax;
     }
 
     public boolean canSwimHop(GrimPlayer player) {
