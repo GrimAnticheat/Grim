@@ -205,6 +205,13 @@ checks:
     setback: false
     max-moves-per-second: 26
     buffer: 2.0
+    balance-threshold-ms: 65.0
+    max-credit-ms: -250.0
+    idle-packet-weight: 0.0
+    look-only-weight: 0.35
+    idle-decay-multiplier: 0.82
+    look-rotation-threshold: 0.5
+    minimum-look-sample-ms: 8.0
     punish-vl: 20
     punish-commands:
       - "kick %player% Timer cheat (%check% VL:%vl%)"

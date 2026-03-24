@@ -280,6 +280,7 @@ public final class CheckManager implements Listener {
 
     private void consumeMovementFrame(Player player, MovementFrame frame, Location explicitFrom, Location explicitTo) {
         PlayerData data = plugin.getPlayerData(player);
+        data.touchMovementFrame(frame.getTimestampNanos());
 
         if (!frame.hasPosition()) {
             runTimingChecks(player, frame, data);

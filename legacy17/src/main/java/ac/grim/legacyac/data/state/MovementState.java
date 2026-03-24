@@ -90,6 +90,10 @@ public final class MovementState {
         moveWindow++;
     }
 
+    public void touchMovementFrame(long timestampNanos) {
+        this.lastMovementFrameAtNanos = timestampNanos;
+    }
+
     public void setMovementFrame(double x, double y, double z, float yaw, float pitch, long timestampNanos) {
         this.movementFrameInitialized = true;
         this.lastFrameX = x;
@@ -97,7 +101,7 @@ public final class MovementState {
         this.lastFrameZ = z;
         this.lastFrameYaw = yaw;
         this.lastFramePitch = pitch;
-        this.lastMovementFrameAtNanos = timestampNanos;
+        touchMovementFrame(timestampNanos);
     }
 
     public void updateSafeLocation(Location location) {

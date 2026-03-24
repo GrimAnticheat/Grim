@@ -92,6 +92,9 @@ public final class PlayerData {
     // 闁冲厜鍋撻柍鍏夊亾 Timer state (nanosecond precision) 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
     private long timerLastPacketNanos;
     private double timerBalance;
+    private float timerLastYaw;
+    private float timerLastPitch;
+    private boolean timerRotationInitialized;
 
     // 闁冲厜鍋撻柍鍏夊亾 Scaffold state 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
     private long lastBlockPlaceTimeMs;
@@ -216,6 +219,10 @@ public final class PlayerData {
 
     public boolean isMovementFrameInitialized() {
         return movement.isMovementFrameInitialized();
+    }
+
+    public void touchMovementFrame(long timestampNanos) {
+        movement.touchMovementFrame(timestampNanos);
     }
 
     public void setMovementFrame(double x, double y, double z, float yaw, float pitch, long timestampNanos) {
@@ -1223,7 +1230,21 @@ public final class PlayerData {
     public void setTimerLastPacketNanos(long nanos) { timerLastPacketNanos = nanos; }
     public double getTimerBalance() { return timerBalance; }
     public void setTimerBalance(double balance) { timerBalance = balance; }
-    public void resetTimerState() { timerLastPacketNanos = 0L; timerBalance = 0.0; }
+    public boolean isTimerRotationInitialized() { return timerRotationInitialized; }
+    public float getTimerLastYaw() { return timerLastYaw; }
+    public float getTimerLastPitch() { return timerLastPitch; }
+    public void updateTimerRotation(float yaw, float pitch) {
+        timerRotationInitialized = true;
+        timerLastYaw = yaw;
+        timerLastPitch = pitch;
+    }
+    public void resetTimerState() {
+        timerLastPacketNanos = 0L;
+        timerBalance = 0.0;
+        timerLastYaw = 0.0F;
+        timerLastPitch = 0.0F;
+        timerRotationInitialized = false;
+    }
 
     // 闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲?
     // Scaffold state accessors

@@ -4,25 +4,16 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.network.frame.MovementFrame;
+import java.util.Locale;
 import org.bukkit.entity.Player;
 
 /**
- * Timer — Nanosecond-precision real-time-clock timer check.
- * Ported from Grim's Timer check design.
- *
- * <p>Instead of simply counting packets per second (which can't detect 1.005x timer),
- * this tracks the time advantage the client accumulates by comparing expected vs actual
- * packet intervals. Each movement packet should arrive at ~50ms intervals (20 TPS).
- * If the client sends packets faster, it accumulates a positive "advantage" balance.
- * Once that balance exceeds a threshold, we flag.</p>
- *
- * <p>Transaction RTT is used for lag compensation — we grant the client credit
- * for network jitter so legitimate lag spikes don't cause false positives.</p>
+ * Timer check backed by real packet timing, with idle heartbeat filtering.
  */
 public final class TimerCheck extends Check {
 
-    /** Expected interval between movement packets in nanoseconds (50ms = 1 tick at 20TPS) */
     private static final long EXPECTED_INTERVAL_NANOS = 50_000_000L;
+    private static final long MAX_ACCEPTED_GAP_NANOS = 2_000_000_000L;
 
     public TimerCheck(LegacyAntiCheatPlugin plugin) {
         super(plugin, "Timer");
@@ -36,72 +27,110 @@ public final class TimerCheck extends Check {
 
         long nowNanos = frame.getTimestampNanos();
         long lastPacketNanos = data.getTimerLastPacketNanos();
-
-        // First packet — initialize baseline
         if (lastPacketNanos == 0L) {
             data.setTimerLastPacketNanos(nowNanos);
+            data.updateTimerRotation(frame.getYaw(), frame.getPitch());
             return;
         }
 
         long elapsed = nowNanos - lastPacketNanos;
         data.setTimerLastPacketNanos(nowNanos);
 
-        // Ignore absurdly large gaps (server freeze, rejoin, etc.)
-        if (elapsed > 2_000_000_000L || elapsed < 0L) {
+        if (elapsed <= 0L || elapsed > MAX_ACCEPTED_GAP_NANOS) {
             data.resetTimerState();
+            data.setTimerLastPacketNanos(nowNanos);
+            data.updateTimerRotation(frame.getYaw(), frame.getPitch());
             return;
         }
 
-        // Calculate advantage: how much faster than expected this packet arrived
-        // Positive = client is sending faster than expected (timer cheat)
-        // Negative = client is sending slower than expected (lag or slow timer)
-        long advantage = EXPECTED_INTERVAL_NANOS - elapsed;
-        double advantageMs = advantage / 1_000_000.0;
+        double maxNegativeBalance = plugin.getConfig().getDouble("checks.Timer.max-credit-ms", -250.0D);
+        double flagThreshold = plugin.getConfig().getDouble("checks.Timer.balance-threshold-ms", 65.0D);
+        double idlePacketWeight = clamp(plugin.getConfig().getDouble("checks.Timer.idle-packet-weight", 0.0D), 0.0D,
+                1.0D);
+        double lookOnlyWeight = clamp(plugin.getConfig().getDouble("checks.Timer.look-only-weight", 0.35D), 0.0D,
+                1.0D);
+        double idleDecayMultiplier = clamp(plugin.getConfig().getDouble("checks.Timer.idle-decay-multiplier", 0.82D),
+                0.0D, 1.0D);
+        double rotationThreshold = Math.max(0.0D,
+                plugin.getConfig().getDouble("checks.Timer.look-rotation-threshold", 0.5D));
+        long minimumLookSampleNanos = (long) (Math.max(0.0D,
+                plugin.getConfig().getDouble("checks.Timer.minimum-look-sample-ms", 8.0D)) * 1_000_000.0D);
 
-        // Accumulate balance
-        double balance = data.getTimerBalance() + advantageMs;
+        float lastYaw = data.isTimerRotationInitialized() ? data.getTimerLastYaw() : frame.getYaw();
+        float lastPitch = data.isTimerRotationInitialized() ? data.getTimerLastPitch() : frame.getPitch();
+        double yawDelta = wrappedAngleDistance(frame.getYaw(), lastYaw);
+        double pitchDelta = Math.abs(frame.getPitch() - lastPitch);
+        boolean meaningfulLook = frame.hasLook() && (yawDelta >= rotationThreshold || pitchDelta >= rotationThreshold);
 
-        // Lag compensation: allow the client to bank negative balance (credit for lag)
-        // but cap how negative it can go, so they can't stockpile credit
-        double maxNegativeBalance = plugin.getConfig().getDouble("checks.Timer.max-credit-ms", -200.0);
+        double balance = data.getTimerBalance();
+        double positiveWeight = frame.hasPosition() ? 1.0D : (meaningfulLook ? lookOnlyWeight : idlePacketWeight);
+        if (!frame.hasPosition() && elapsed < minimumLookSampleNanos) {
+            positiveWeight = Math.min(positiveWeight, idlePacketWeight);
+        }
+
+        double advantageMs = (EXPECTED_INTERVAL_NANOS - elapsed) / 1_000_000.0D;
+        if (positiveWeight <= 0.0D) {
+            balance *= idleDecayMultiplier;
+            if (advantageMs < 0.0D) {
+                balance += advantageMs;
+            }
+            if (balance < maxNegativeBalance) {
+                balance = maxNegativeBalance;
+            }
+            data.setTimerBalance(balance);
+            data.updateTimerRotation(frame.getYaw(), frame.getPitch());
+            return;
+        }
+
+        if (advantageMs > 0.0D) {
+            advantageMs *= positiveWeight;
+        }
+        balance += advantageMs;
         if (balance < maxNegativeBalance) {
             balance = maxNegativeBalance;
         }
-
-        // Additional RTT-based compensation: grant extra credit proportional to jitter
-        double jitterMs = data.getTransactionRttJitterNanos() / 1_000_000.0;
-        double jitterCredit = Math.min(jitterMs * 0.5, 15.0);
-
         data.setTimerBalance(balance);
 
-        // Flag when balance exceeds threshold (client has sent packets faster than real time)
-        double flagThreshold = plugin.getConfig().getDouble("checks.Timer.balance-threshold-ms", 50.0);
-
-        // Apply jitter credit to threshold
+        double jitterMs = data.getTransactionRttJitterNanos() / 1_000_000.0D;
+        double jitterCredit = Math.min(jitterMs * 0.5D, 20.0D);
         double effectiveThreshold = flagThreshold + jitterCredit;
 
         if (balance > effectiveThreshold) {
             double severity = balance / effectiveThreshold;
-            double timerSpeed = elapsed > 0
-                    ? (double) EXPECTED_INTERVAL_NANOS / elapsed
-                    : 99.0;
+            double timerSpeed = elapsed > 0L ? (double) EXPECTED_INTERVAL_NANOS / (double) elapsed : 99.0D;
 
-            flag(player, data, Math.min(severity, 3.0),
-                    "balance=" + String.format("%.1fms", balance)
-                            + " speed=" + String.format("%.3fx", timerSpeed)
-                            + " jitter=" + String.format("%.1fms", jitterMs));
+            flag(player, data, Math.min(severity, 3.0D),
+                    "balance=" + String.format(Locale.ROOT, "%.1fms", balance)
+                            + " speed=" + String.format(Locale.ROOT, "%.3fx", timerSpeed)
+                            + " weight=" + String.format(Locale.ROOT, "%.2f", positiveWeight)
+                            + " jitter=" + String.format(Locale.ROOT, "%.1fms", jitterMs)
+                            + " src=" + frame.getSource().name());
 
-            // Drain some balance after flagging to prevent spam
-            data.setTimerBalance(balance * 0.5);
+            data.setTimerBalance(balance * 0.35D);
         }
 
-        // Also keep the legacy per-second counter for backwards compatibility with config
-        int maxMoves = plugin.getConfig().getInt("checks.Timer.max-moves-per-second", 26);
-        if (data.getMoveWindow() > maxMoves) {
-            double buffer = increaseBuffer(data, 0.5);
-            if (buffer > plugin.getConfig().getDouble("checks.Timer.buffer", 2.0)) {
-                flag(player, data, 0.5, "legacy-count moves=" + data.getMoveWindow());
+        if (frame.hasPosition()) {
+            int maxMoves = plugin.getConfig().getInt("checks.Timer.max-moves-per-second", 26);
+            if (data.getMoveWindow() > maxMoves) {
+                double buffer = increaseBuffer(data, 0.5D);
+                if (buffer > plugin.getConfig().getDouble("checks.Timer.buffer", 2.0D)) {
+                    flag(player, data, 0.5D, "legacy-count moves=" + data.getMoveWindow());
+                }
             }
         }
+
+        data.updateTimerRotation(frame.getYaw(), frame.getPitch());
+    }
+
+    private double wrappedAngleDistance(float current, float previous) {
+        double delta = Math.abs(current - previous);
+        if (delta > 180.0D) {
+            delta = 360.0D - delta;
+        }
+        return delta;
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 }
