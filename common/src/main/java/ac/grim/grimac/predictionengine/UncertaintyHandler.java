@@ -92,6 +92,10 @@ public class UncertaintyHandler {
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
+    public Vector3dm boatCollisionVelocity = new Vector3dm();
+    public int boatCollisionTicks = 0;
+    public boolean boatCollision = false;
+
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
         this.lastFlyingTicks = new LastInstance(player);
@@ -130,6 +134,8 @@ public class UncertaintyHandler {
         isSteppingNearScaffolding = false;
 
         slimePistonBounces = new HashSet<>();
+        if (boatCollisionTicks > 0) boatCollisionTicks--;
+        else boatCollisionVelocity.zero();
         tickFireworksBox();
     }
 
@@ -210,6 +216,7 @@ public class UncertaintyHandler {
 
     public double getOffsetHorizontal(VectorData data) {
         double threshold = player.getMovementThreshold();
+        double boatOffset = getBoatHorizontalUncertainty();
 
         boolean newVectorPointThree = player.couldSkipTick && data.isKnockback() && !data.isSetbackKb(player);
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
@@ -246,8 +253,7 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-
-        return pointThree;
+        return Math.max(pointThree, boatOffset);
     }
 
     public boolean influencedByBouncyBlock() {
@@ -255,45 +261,45 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
+        double boatOffset = getBoatVerticalUncertainty();
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
-            return 0.06;
+            return Math.max(0.06, boatOffset);
 
         // We don't know if the player was pressing jump or not
         if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
-            return 0.06;
+            return Math.max(0.06, boatOffset);
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
         if ((lastFlyingTicks.hasOccurredSince(5)) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
-            return 0.06;
+            return Math.max(0.06, boatOffset);
 
         double pointThree = player.getMovementThreshold();
         // This swim hop could be 0.03-influenced movement
         if (data.isTrident())
-            return pointThree * 2;
+            return Math.max(pointThree * 2, boatOffset);
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
         if (player.couldSkipTick && (data.isKnockback() || player.isClimbing) && !data.isZeroPointZeroThree())
-            return pointThree;
+            return Math.max(pointThree, boatOffset);
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // 0.03 from last tick into 0.03 now = 0.06 (could reduce by friction in the future, only 0.91 at most though)
             if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree)
-                return pointThree * 2;
+                return Math.max(pointThree * 2, boatOffset);
         }
 
         // Handle the player landing on this tick or the next tick
         if (wasZeroPointThreeVertically || player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket)
-            return pointThree;
+            return Math.max(pointThree, boatOffset);
 
-        return 0;
+        return boatOffset;
     }
 
     public double reduceOffset(double offset) {
-        // Boats are too glitchy to check.
-        // Yes, they have caused an insane amount of uncertainty!
-        // Even 1 block offset reduction isn't enough... damn it mojang
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)) {
+        if (player.uncertaintyHandler.boatCollisionTicks > 0) {
+            offset -= Math.min(0.08, Math.max(getBoatHorizontalUncertainty(), getBoatVerticalUncertainty()) * 0.5);
+        } else if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)) {
             offset -= 1.2;
         }
 
@@ -301,7 +307,6 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
-        // This is a section where I hack around current issues with Grim itself...
         if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.inVehicle())) {
             offset -= 0.01;
         }
@@ -309,9 +314,7 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.inVehicle())) {
             offset -= 0.03;
         }
-        // This is the end of that section.
 
-        // I can't figure out how the client exactly tracks boost time
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityRideable vehicle) {
             if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
                 offset -= 0.01;
@@ -321,16 +324,21 @@ public class UncertaintyHandler {
     }
 
     public void checkForHardCollision() {
-        // Look for boats the player could collide with
-        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity.reset();
+        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(0.1);
+
+        boolean boat = nearbyBoatCollision(expandedBB) || riddenBoatCollision(expandedBB);
+        boolean regular = isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB);
+
+        if (regular) {
+            player.uncertaintyHandler.lastHardCollidingLerpingEntity.reset();
+        }
+
+        if (boat) {
+            player.uncertaintyHandler.boatCollision = true;
+        }
     }
 
-    private boolean hasHardCollision() {
-        // This bounding box can be infinitely large without crashing the server.
-        // This works by the proof that if you collide with an object, you will stop near the object
-        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
-    }
+
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
@@ -358,17 +366,101 @@ public class UncertaintyHandler {
         return false;
     }
 
-    private boolean boatCollision(SimpleCollisionBox expandedBB) {
-        // Boats can collide with quite literally anything
+    private boolean nearbyBoatCollision(SimpleCollisionBox expandedPlayerBB) {
+        boolean collided = false;
+        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity == riding) continue;
+            if (!entity.isBoat) continue;
+
+            SimpleCollisionBox boatBox = entity.getPossibleCollisionBoxes();
+            boolean standingOnBoat = isStandingOnBoat(boatBox);
+            if (!boatBox.copy().expand(0.05, 0.05, 0.05).isIntersected(expandedPlayerBB) && !standingOnBoat) {
+                continue;
+            }
+
+            trackBoatCollision(entity, boatBox, standingOnBoat);
+            collided = true;
+        }
+
+        return collided;
+    }
+
+    private boolean riddenBoatCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         if (riding == null || !riding.isBoat) return false;
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity != riding && entity.isPushable() && !riding.hasPassenger(entity)
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                trackBoatCollision(0.08, 0.03, 0.08, 2);
                 return true;
             }
         }
+
         return false;
     }
+
+    private boolean isStandingOnBoat(SimpleCollisionBox boatBox) {
+        double feetGap = player.boundingBox.minY - boatBox.maxY;
+        if (feetGap < -0.05 || feetGap > 0.3) {
+            return false;
+        }
+
+        return player.boundingBox.maxX - SimpleCollisionBox.COLLISION_EPSILON > boatBox.minX
+                && player.boundingBox.minX + SimpleCollisionBox.COLLISION_EPSILON < boatBox.maxX
+                && player.boundingBox.maxZ - SimpleCollisionBox.COLLISION_EPSILON > boatBox.minZ
+                && player.boundingBox.minZ + SimpleCollisionBox.COLLISION_EPSILON < boatBox.maxZ;
+    }
+
+    private void trackBoatCollision(PacketEntity boat, SimpleCollisionBox boatBox, boolean standingOnBoat) {
+        SimpleCollisionBox possibleLocations = boat.getPossibleLocationBoxes();
+        double vertical = possibleLocations.maxY - possibleLocations.minY;
+        double supportY = boatBox.maxY - player.boundingBox.minY;
+        boolean stepUpSupport = supportY > 0.0 && supportY <= 0.6 + SimpleCollisionBox.COLLISION_EPSILON;
+
+        if (stepUpSupport) {
+            vertical = Math.max(vertical, supportY);
+        }
+
+        if (standingOnBoat) {
+            vertical = Math.max(vertical, 0.08);
+        }
+
+        trackBoatCollision(
+                possibleLocations.maxX - possibleLocations.minX,
+                vertical,
+                possibleLocations.maxZ - possibleLocations.minZ,
+                standingOnBoat || stepUpSupport ? 4 : 3
+        );
+    }
+
+    private void trackBoatCollision(double x, double y, double z, int ticks) {
+        boatCollisionVelocity.setX(Math.max(boatCollisionVelocity.getX(), x));
+        boatCollisionVelocity.setY(Math.max(boatCollisionVelocity.getY(), y));
+        boatCollisionVelocity.setZ(Math.max(boatCollisionVelocity.getZ(), z));
+        boatCollision = true;
+        boatCollisionTicks = Math.max(boatCollisionTicks, ticks);
+    }
+
+
+    private double getBoatHorizontalUncertainty() {
+        if (boatCollisionTicks <= 0) {
+            return 0;
+        }
+
+        return Math.min(0.35, Math.max(Math.abs(boatCollisionVelocity.getX()), Math.abs(boatCollisionVelocity.getZ())) + 0.03);
+    }
+
+
+    private double getBoatVerticalUncertainty() {
+        if (boatCollisionTicks <= 0) {
+            return 0;
+        }
+
+        return Math.min(0.6, Math.abs(boatCollisionVelocity.getY()) + 0.03);
+    }
+
+
 }

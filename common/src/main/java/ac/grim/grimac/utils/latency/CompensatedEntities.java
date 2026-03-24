@@ -162,12 +162,14 @@ public class CompensatedEntities {
             return;
         }
 
-        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
-
-        for (PacketEntity passengerPassenger : riding.passengers) {
-            tickPassenger(passenger, passengerPassenger);
+        if (passenger == player.compensatedEntities.self) {
+            Vector3d ridingOffset = BoundingBoxSize.getRidingOffsetFromVehicle(riding, player);
+            passenger.setPositionRaw(player, new SimpleCollisionBox(ridingOffset.getX(), ridingOffset.getY(), ridingOffset.getZ(), ridingOffset.getX(), ridingOffset.getY(), ridingOffset.getZ()));
+        } else {
+            passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
         }
     }
+
 
     public PacketEntity addEntity(int entityID, UUID uuid, EntityType entityType, Vector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance

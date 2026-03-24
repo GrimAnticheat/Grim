@@ -14,6 +14,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.Location;
@@ -252,6 +253,13 @@ public final class Collisions {
             }
         }
         return false;
+    }
+
+    private static boolean hasHorizontalOverlap(SimpleCollisionBox first, SimpleCollisionBox second) {
+        return first.maxX - COLLISION_EPSILON > second.minX
+                && first.minX + COLLISION_EPSILON < second.maxX
+                && first.maxZ - COLLISION_EPSILON > second.minZ
+                && first.minZ + COLLISION_EPSILON < second.maxZ;
     }
 
     // This is mostly taken from Tuinity collisions
@@ -924,6 +932,71 @@ public final class Collisions {
 
         return false;
     }
+
+    private static Vector3dm resolveBoatSupport(GrimPlayer player, Vector3dm collisionResult, double desiredY, double stepUpHeight) {
+        if (player.inVehicle()) {
+            return collisionResult;
+        }
+
+        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+        final SimpleCollisionBox movedHorizontally = player.boundingBox.copy().offset(collisionResult.getX(), 0.0D, collisionResult.getZ());
+        final SimpleCollisionBox movedWithoutBoatStep = player.boundingBox.copy().offset(collisionResult.getX(), collisionResult.getY(), collisionResult.getZ());
+        double bestY = collisionResult.getY();
+        boolean steppedOntoBoat = false;
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity == riding || !entity.isBoat) {
+                continue;
+            }
+
+            SimpleCollisionBox boatBox = entity.getPossibleCollisionBoxes();
+            double supportY = boatBox.maxY - movedHorizontally.minY;
+            if (desiredY < 0.0D) {
+                if (!hasHorizontalOverlap(movedHorizontally, boatBox)) {
+                    continue;
+                }
+
+                if (supportY > SimpleCollisionBox.COLLISION_EPSILON || supportY < bestY) {
+                    continue;
+                }
+
+                bestY = supportY;
+                continue;
+            }
+
+            if (!canStepOntoBoat(player, movedWithoutBoatStep, boatBox, supportY, bestY, stepUpHeight)) {
+                continue;
+            }
+
+            bestY = supportY;
+            steppedOntoBoat = true;
+        }
+
+        if (steppedOntoBoat) {
+            player.uncertaintyHandler.isStepMovement = true;
+        }
+
+        return bestY == collisionResult.getY() ? collisionResult : collisionResult.clone().setY(bestY);
+    }
+
+    private static boolean canStepOntoBoat(GrimPlayer player, SimpleCollisionBox movedWithoutBoatStep, SimpleCollisionBox boatBox, double supportY, double currentY, double stepUpHeight) {
+        if (supportY <= currentY + COLLISION_EPSILON || supportY > stepUpHeight + COLLISION_EPSILON) {
+            return false;
+        }
+
+        if (!movedWithoutBoatStep.isCollided(boatBox)) {
+            return false;
+        }
+
+        SimpleCollisionBox steppedBox = player.boundingBox.copy().offset(
+                movedWithoutBoatStep.minX - player.boundingBox.minX,
+                supportY,
+                movedWithoutBoatStep.minZ - player.boundingBox.minZ
+        ).expand(-COLLISION_EPSILON);
+
+        return isEmpty(player, steppedBox);
+    }
+
 
     public enum Axis {
         X {
