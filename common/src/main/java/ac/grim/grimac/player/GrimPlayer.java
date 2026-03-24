@@ -699,6 +699,8 @@ public class GrimPlayer implements GrimUser {
         boolean verticalCollision = inputY != collisionY;
         boolean calculatedOnGround = verticalCollision && inputY < 0.0D;
 
+        if (hasShulkerGroundUncertainty()) return false;
+
         // We don't care about ground results here
         if (exemptOnGround()) return false;
 
@@ -714,7 +716,12 @@ public class GrimPlayer implements GrimUser {
                 || Collections.max(uncertaintyHandler.pistonX) != 0 || Collections.max(uncertaintyHandler.pistonY) != 0
                 || Collections.max(uncertaintyHandler.pistonZ) != 0 || uncertaintyHandler.isStepMovement
                 || isFlying || compensatedEntities.self.isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
-                || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
+                || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)
+                || uncertaintyHandler.isOrWasNearGlitchyBlock;
+    }
+
+    public boolean hasShulkerGroundUncertainty() {
+        return uncertaintyHandler.hasShulkerGroundUncertainty();
     }
 
     public void handleMountVehicle(int vehicleID) {

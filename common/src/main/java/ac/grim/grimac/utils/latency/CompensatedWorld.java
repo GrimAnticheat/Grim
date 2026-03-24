@@ -379,37 +379,7 @@ public class CompensatedWorld implements PacketWorld {
         }
 
         for (ShulkerData data : openShulkerBoxes) {
-            SimpleCollisionBox shulkerCollision = data.getCollision();
-
-            BlockFace direction;
-            if (data.entity == null) {
-                WrappedBlockState state = getBlock(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
-                direction = state.getFacing();
-            } else {
-                direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
-            }
-
-            if (direction == null) direction = BlockFace.UP; // default state
-
-            // Change negative corner in expansion as the direction is negative
-            // We don't bother differentiating shulker entities and shulker boxes
-            // I guess players can cheat to get an extra 0.49 of Y height on shulker boxes, I don't care.
-            if (direction.getModX() == -1 || direction.getModY() == -1 || direction.getModZ() == -1) {
-                shulkerCollision.expandMin(direction.getModX(), direction.getModY(), direction.getModZ());
-            } else {
-                shulkerCollision.expandMax(direction.getModZ(), direction.getModY(), direction.getModZ());
-            }
-
-            if (playerBox.isCollided(shulkerCollision)) {
-                modX = Math.max(modX, Math.abs(direction.getModX() * 0.51D));
-                modY = Math.max(modY, Math.abs(direction.getModY() * 0.51D));
-                modZ = Math.max(modZ, Math.abs(direction.getModZ() * 0.51D));
-
-                playerBox.expandMax(modX, modY, modZ);
-                playerBox.expandMin(modX, modY, modZ);
-
-                player.uncertaintyHandler.isSteppingNearShulker = true;
-            }
+            handleShulkerPush(playerBox, data);
         }
 
         player.uncertaintyHandler.pistonX.add(modX);
@@ -440,6 +410,46 @@ public class CompensatedWorld implements PacketWorld {
 
     public WrappedBlockState getBlock(Vector3i position) {
         return getBlock(position.x, position.y, position.z);
+    }
+
+    private void handleShulkerPush(SimpleCollisionBox playerBox, ShulkerData data) {
+        SimpleCollisionBox shulkerCollision = data.getCollision();
+        BlockFace direction = getShulkerDirection(data);
+
+        expandShulkerCollision(shulkerCollision, direction);
+        if (!playerBox.isCollided(shulkerCollision)) {
+            return;
+        }
+
+        double pushX = direction.getModX() * 0.51D;
+        double pushY = direction.getModY() * 0.51D;
+        double pushZ = direction.getModZ() * 0.51D;
+
+        player.uncertaintyHandler.recordShulkerPush(pushX, pushY, pushZ);
+
+        playerBox.expandMax(Math.max(0.0D, pushX), Math.max(0.0D, pushY), Math.max(0.0D, pushZ));
+        playerBox.expandMin(Math.min(0.0D, pushX), Math.min(0.0D, pushY), Math.min(0.0D, pushZ));
+    }
+
+    private BlockFace getShulkerDirection(ShulkerData data) {
+        if (data.entity != null) {
+            return ((PacketEntityShulker) data.entity).facing.getOppositeFace();
+        }
+
+        WrappedBlockState state = getBlock(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
+        BlockFace direction = state.getFacing();
+        return direction != null ? direction : BlockFace.UP;
+    }
+
+    private static void expandShulkerCollision(SimpleCollisionBox shulkerCollision, BlockFace direction) {
+        // Change negative corner in expansion as the direction is negative.
+        // We don't bother differentiating shulker entities and shulker boxes.
+        if (direction.getModX() < 0 || direction.getModY() < 0 || direction.getModZ() < 0) {
+            shulkerCollision.expandMin(direction.getModX(), direction.getModY(), direction.getModZ());
+            return;
+        }
+
+        shulkerCollision.expandMax(direction.getModX(), direction.getModY(), direction.getModZ());
     }
 
     public WrappedBlockState getBlock(int x, int y, int z) {
