@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class NetworkState {
     private final Map<Short, Long> pendingTransactions = new ConcurrentHashMap<Short, Long>();
+    private final PacketOrderState packetOrderState = new PacketOrderState();
     private short transactionActionCounter;
     private long lastTransactionRttNanos;
     private long lastTransactionRttSampleNanos;
@@ -70,6 +71,10 @@ public final class NetworkState {
 
     public void clearPendingTransactions() {
         pendingTransactions.clear();
+    }
+
+    public PacketOrderState packetOrder() {
+        return packetOrderState;
     }
 
     // ── Read interface ──────────────────────────────────────────────────
@@ -135,5 +140,81 @@ public final class NetworkState {
 
     public double getJitterMillis() {
         return transactionRttJitterNanos / 1000000.0D;
+    }
+
+    /**
+     * Minimal 1.7 packet order tracker. This is only used for frame association
+     * and debug context, not for a modern full packet-order check family.
+     */
+    public static final class PacketOrderState {
+        private long movementSequence;
+        private long actionSequence;
+        private long currentActionWindowId;
+        private long lastMovementPacketAtNanos;
+        private long lastActionPacketAtNanos;
+        private long lastServerSyncAtNanos;
+        private String lastMovementPacketName = "none";
+        private String lastActionName = "none";
+        private String lastServerSyncName = "none";
+        private boolean lastActionAfterMovement;
+
+        public void recordMovementPacket(String packetName, long createdAtNanos) {
+            movementSequence++;
+            currentActionWindowId = movementSequence;
+            lastMovementPacketAtNanos = createdAtNanos;
+            lastMovementPacketName = packetName == null ? "unknown" : packetName;
+        }
+
+        public void recordActionPacket(String actionName, long createdAtNanos) {
+            actionSequence++;
+            lastActionPacketAtNanos = createdAtNanos;
+            lastActionName = actionName == null ? "unknown" : actionName;
+            lastActionAfterMovement = lastMovementPacketAtNanos != 0L && createdAtNanos >= lastMovementPacketAtNanos;
+        }
+
+        public void recordServerSync(String syncName, long createdAtNanos) {
+            lastServerSyncAtNanos = createdAtNanos;
+            lastServerSyncName = syncName == null ? "unknown" : syncName;
+        }
+
+        public long getMovementSequence() {
+            return movementSequence;
+        }
+
+        public long getActionSequence() {
+            return actionSequence;
+        }
+
+        public long getCurrentActionWindowId() {
+            return currentActionWindowId;
+        }
+
+        public long getLastMovementPacketAtNanos() {
+            return lastMovementPacketAtNanos;
+        }
+
+        public long getLastActionPacketAtNanos() {
+            return lastActionPacketAtNanos;
+        }
+
+        public long getLastServerSyncAtNanos() {
+            return lastServerSyncAtNanos;
+        }
+
+        public String getLastMovementPacketName() {
+            return lastMovementPacketName;
+        }
+
+        public String getLastActionName() {
+            return lastActionName;
+        }
+
+        public String getLastServerSyncName() {
+            return lastServerSyncName;
+        }
+
+        public boolean wasLastActionAfterMovement() {
+            return lastActionAfterMovement;
+        }
     }
 }

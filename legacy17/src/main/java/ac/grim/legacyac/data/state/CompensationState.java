@@ -333,6 +333,8 @@ public final class CompensationState {
         private boolean velocityAligned;
         private boolean blockAligned;
         private int pendingChanges;
+        private AlignmentBlocker primaryBlocker = AlignmentBlocker.NONE;
+        private boolean enforceable;
 
         void updateFrom(CompensationState state) {
             state.expirePendingWorldChanges();
@@ -343,6 +345,16 @@ public final class CompensationState {
             this.velocityAligned = pendingVelocity == 0;
             this.blockAligned = pendingBlock == 0;
             this.pendingChanges = pendingTeleport + pendingVelocity + pendingBlock;
+            if (!teleportAligned) {
+                primaryBlocker = AlignmentBlocker.TELEPORT;
+            } else if (!blockAligned) {
+                primaryBlocker = AlignmentBlocker.BLOCK;
+            } else if (!velocityAligned) {
+                primaryBlocker = AlignmentBlocker.VELOCITY;
+            } else {
+                primaryBlocker = AlignmentBlocker.NONE;
+            }
+            enforceable = primaryBlocker == AlignmentBlocker.NONE;
         }
 
         public boolean isTeleportAligned() {
@@ -364,6 +376,22 @@ public final class CompensationState {
         public int getPendingChanges() {
             return pendingChanges;
         }
+
+        public AlignmentBlocker getPrimaryBlocker() {
+            return primaryBlocker;
+        }
+
+        public boolean isEnforceable() {
+            return enforceable;
+        }
+    }
+
+    public enum AlignmentBlocker {
+        NONE,
+        TELEPORT,
+        BLOCK,
+        VELOCITY,
+        DEGRADED_PIPELINE
     }
 
     enum PendingWorldChangeType {

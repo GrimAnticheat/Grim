@@ -65,14 +65,14 @@ prediction:
   recovery-after-high-fall-ticks: 8
   budget:
     base: 0.060
-    recent-velocity: 1.20
+    recent-velocity: 0.18
     stuck-speed: 0.050
     liquid: 0.065
     near-glitchy-block: 0.045
     point-three: 0.045
     rod-pull: 0.080
     entity-hard-collision: 0.060
-    high-fall-recovery: 0.40
+    high-fall-recovery: 0.16
     teleport: 0.15
     uneven-ground: 0.05
     snow-layer: 0.06
@@ -80,8 +80,8 @@ prediction:
     ice-ground: 0.07
     head-hit: 0.09
     uneven-fall: 0.08
-    inventory-air: 0.08
-    use-item-air: 0.08
+    inventory-air: 0.05
+    use-item-air: 0.05
     air-sprint-jump: 0.03
 
 # Simulation settings  mirrors Grim OffsetHandler pattern

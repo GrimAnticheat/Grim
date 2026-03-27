@@ -26,6 +26,11 @@ public final class GroundSpoofCheck extends Check {
         if (!frame.hasPosition()) {
             return;
         }
+        PlayerData.MovementStateSnapshot movementState = data.getMovementStateSnapshot();
+        if (!movementState.isTeleportAligned() || !movementState.isBlockAligned()) {
+            consecutiveSpoofTicks = 0;
+            return;
+        }
 
         if (player.isInsideVehicle() || player.isFlying() || player.getAllowFlight()) {
             consecutiveSpoofTicks = 0;

@@ -3,6 +3,7 @@ package ac.grim.legacyac.check;
 import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.data.PlayerData;
 import ac.grim.legacyac.debug.DetectionEvidence;
+import ac.grim.legacyac.enforcement.LegacySetbackController;
 import ac.grim.legacyac.regression.ViolationLedger;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Collections;
@@ -229,8 +230,10 @@ public abstract class Check {
         plugin.alerts().alert(player, name, vl, detail + " [budget=" + budgetTag + "]");
 
         if (vl >= getMaxViolation() && plugin.getConfig().getBoolean("checks." + name + ".setback", true)
-                && data.getLastSafeLocation() != null) {
-            player.teleport(data.getLastSafeLocation());
+                && plugin.setbacks() != null) {
+            plugin.setbacks().requestCorrection(player, data,
+                    LegacySetbackController.CorrectionReason.CHECK_VIOLATION,
+                    LegacySetbackController.CorrectionSeverity.HARD, name + " " + detail);
         }
 
         runPunishments(player, data, vl);

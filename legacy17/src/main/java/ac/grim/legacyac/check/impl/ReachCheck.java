@@ -344,7 +344,7 @@ public final class ReachCheck extends Check {
     private double resolveHitboxExpand(PlayerData attackerData) {
         double expand = plugin.getConfig().getDouble("checks.Reach.hitbox-threshold", 0.0005D) + 0.1D;
         PlayerData.MovementStateSnapshot movementSnapshot = attackerData.getMovementStateSnapshot();
-        if (!movementSnapshot.isFullyAligned() || isLagging(attackerData)) {
+        if (!movementSnapshot.isEnforceable() || isLagging(attackerData)) {
             expand += 0.02D;
         } else if (attackerData.getLastDeltaXZ() <= MOVEMENT_THRESHOLD
                 && Math.abs(attackerData.getLastDeltaY()) <= MOVEMENT_THRESHOLD) {

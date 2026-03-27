@@ -28,6 +28,10 @@ public final class JesusCheck extends Check {
         if (isExempt(player, data) || player.isFlying() || player.getVehicle() != null) {
             return;
         }
+        PlayerData.MovementStateSnapshot movementState = data.getMovementStateSnapshot();
+        if (!movementState.isTeleportAligned() || !movementState.isBlockAligned()) {
+            return;
+        }
 
         Block feet = player.getLocation().getBlock();
         Block below = player.getLocation().add(0.0D, -1.0D, 0.0D).getBlock();

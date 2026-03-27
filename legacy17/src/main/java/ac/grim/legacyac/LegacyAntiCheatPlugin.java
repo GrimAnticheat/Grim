@@ -3,9 +3,11 @@ package ac.grim.legacyac;
 import ac.grim.legacyac.check.CheckManager;
 import ac.grim.legacyac.command.LegacyCommand;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.enforcement.LegacySetbackController;
 import ac.grim.legacyac.network.NetworkTapManager;
 import ac.grim.legacyac.network.ProtocolLibBridgeManager;
 import ac.grim.legacyac.network.TransactionSyncManager;
+import ac.grim.legacyac.network.TxAnchorService;
 import ac.grim.legacyac.network.frame.MovementFrameDispatcher;
 import ac.grim.legacyac.regression.RegressionGatekeeper;
 import ac.grim.legacyac.regression.RegressionReport;
@@ -26,6 +28,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     private NetworkTapManager networkTapManager;
     private ProtocolLibBridgeManager protocolLibBridgeManager;
     private TransactionSyncManager transactionSyncManager;
+    private TxAnchorService txAnchorService;
+    private LegacySetbackController setbackController;
     private MovementFrameDispatcher movementFrameDispatcher;
     private boolean packetPipelineActive;
     private int tickTaskId = -1;
@@ -49,6 +53,8 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
         getCommand("glac").setExecutor(new LegacyCommand(this));
         transactionSyncManager = new TransactionSyncManager(this);
         transactionSyncManager.start();
+        txAnchorService = new TxAnchorService(this);
+        setbackController = new LegacySetbackController(this);
 
         tickTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
@@ -137,6 +143,14 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
 
     public TransactionSyncManager transactionSync() {
         return transactionSyncManager;
+    }
+
+    public TxAnchorService txAnchors() {
+        return txAnchorService;
+    }
+
+    public LegacySetbackController setbacks() {
+        return setbackController;
     }
 
     public boolean isPacketPipelineActive() {

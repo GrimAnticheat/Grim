@@ -61,7 +61,7 @@ public final class SpeedCheck extends Check {
 
         // Extra tolerance only for non-aligned state (lag/pending changes)
         // Do NOT subtract budget again — it was already subtracted in prediction
-        if (!state.isFullyAligned()) {
+        if (!state.isEnforceable()) {
             offset = Math.max(0.0D, offset
                     - plugin.getConfig().getDouble("adaptive-lag.pending-state-margin", 0.06D));
         } else if (isLagging(data)) {

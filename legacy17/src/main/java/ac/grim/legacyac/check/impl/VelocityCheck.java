@@ -4,7 +4,9 @@ import ac.grim.legacyac.LegacyAntiCheatPlugin;
 import ac.grim.legacyac.check.Check;
 import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
+import ac.grim.legacyac.enforcement.LegacySetbackController;
 import ac.grim.legacyac.evidence.CombatEvidence;
+import ac.grim.legacyac.network.TxAnchorService;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.Locale;
@@ -45,21 +47,22 @@ public final class VelocityCheck extends Check {
 
         Vector velocity = new Vector(vx / 8000.0D, vy / 8000.0D, vz / 8000.0D);
         armWindow(data, velocity);
-
-        short preTxId = 0;
-        short postTxId = 0;
-        if (plugin.transactionSync() != null) {
-            preTxId = plugin.transactionSync().sendTransactionNow(player);
-            postTxId = plugin.transactionSync().sendTransactionNow(player);
-        }
-        data.recordPendingVelocityChange(postTxId);
-
         long txWindowMaxMs = getMergedLong("tx-window-max-ms", 500L);
-        data.startVelocitySample(sentAtNanos, preTxId, postTxId,
-                velocity.getX(), velocity.getY(), velocity.getZ(), txWindowMaxMs);
+        TxAnchorService.VelocityWindow velocityWindow = plugin.txAnchors() == null ? null
+                : plugin.txAnchors().beginVelocityWindow(player, velocity, sentAtNanos, txWindowMaxMs);
+        short preTxId = velocityWindow == null ? (short) 0 : velocityWindow.getPreTransactionId();
+        short postTxId = velocityWindow == null ? (short) 0 : velocityWindow.getPostTransactionId();
+        TxAnchorService.VelocityWindowMode mode = velocityWindow == null
+                ? TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX
+                : velocityWindow.getMode();
 
+        if (postTxId != 0) {
+            data.recordPendingVelocityChange(postTxId);
+        }
+        data.startVelocitySample(mode, sentAtNanos, preTxId, postTxId,
+                velocity.getX(), velocity.getY(), velocity.getZ(), txWindowMaxMs);
         boolean setbackLike = data.getLastSafeLocation() == null;
-        data.startKnockbackSample(sentAtNanos, entityId, preTxId, postTxId,
+        data.startKnockbackSample(mode, sentAtNanos, entityId, preTxId, postTxId,
                 velocity.getX(), velocity.getY(), velocity.getZ(), setbackLike, txWindowMaxMs);
     }
 
@@ -129,6 +132,7 @@ public final class VelocityCheck extends Check {
             data.decayKnockbackScore(getMergedDouble("setback-decay-multiplier", 0.999D));
             coolDownScore(data);
             data.completeCurrentKnockbackSample();
+            data.completeCurrentVelocitySample();
             data.clearVelocityWindow();
             return true;
         }
@@ -170,12 +174,14 @@ public final class VelocityCheck extends Check {
 
             if ((likely.isSetbackLike() || likely.getOffset() >= immediate || data.getKnockbackOffset() >= maxAdvantage)
                     && getMergedBoolean("setback", true)
-                    && data.getLastSafeLocation() != null) {
-                player.teleport(data.getLastSafeLocation());
+                    && plugin.setbacks() != null) {
+                plugin.setbacks().requestCorrection(player, data, LegacySetbackController.CorrectionReason.VELOCITY,
+                        LegacySetbackController.CorrectionSeverity.HARD, detail);
             }
         }
 
         data.completeCurrentKnockbackSample();
+        data.completeCurrentVelocitySample();
         data.clearVelocityWindow();
         return true;
     }

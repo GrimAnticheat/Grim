@@ -31,6 +31,9 @@ public final class FlyCheck extends Check {
         if (isExempt(player, data)) {
             return;
         }
+        if (!data.getMovementStateSnapshot().isTeleportAligned()) {
+            return;
+        }
         if (player.isFlying() || player.getAllowFlight() || player.getVehicle() != null) {
             return;
         }

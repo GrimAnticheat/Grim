@@ -198,10 +198,11 @@ public final class ProtocolLibBridgeManager {
                     disableMovementCapture("server-position");
                     return;
                 }
-                short anchorTxId = reserveDeferredTransaction(event.getPlayer());
+                TxAnchorService.TeleportAnchor anchor = ((LegacyAntiCheatPlugin) plugin).txAnchors()
+                        .anchorTeleport(event.getPlayer());
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
                         InternalPacketEvent.serverPosition(event.getPlayer(), x.doubleValue(), y.doubleValue(),
-                                z.doubleValue(), anchorTxId, System.nanoTime()));
+                                z.doubleValue(), anchor.getTransactionId(), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -389,36 +390,44 @@ public final class ProtocolLibBridgeManager {
                 PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
                 PacketType type = event.getPacketType();
                 Object handle = event.getPacket().getHandle();
-                short anchorTxId = reserveDeferredTransaction(player);
-
                 if (type == PacketType.Play.Server.BLOCK_CHANGE) {
+                    TxAnchorService.WorldAnchor anchor = ((LegacyAntiCheatPlugin) plugin).txAnchors()
+                            .anchorWorldUpdate(player, TxAnchorService.WorldUpdateKind.BLOCK_CHANGE);
                     BlockChangeSnapshot snapshot = readBlockChange(handle);
                     if (snapshot != null) {
                         data.queueCompensatedBlockChange(player, snapshot.x, snapshot.y, snapshot.z,
-                                snapshot.material, snapshot.data, anchorTxId,
+                                snapshot.material, snapshot.data, anchor.getTransactionId(),
                                 "packet:block-change:" + snapshot.material.name());
                     } else {
                         disableWorldCapture("block-change");
                         data.queueCompensatedChunkRefresh(player, player.getLocation().getBlockX() >> 4,
-                                player.getLocation().getBlockZ() >> 4, anchorTxId, "packet:block-change-fallback");
+                                player.getLocation().getBlockZ() >> 4, anchor.getTransactionId(),
+                                "packet:block-change-fallback");
                     }
                     return;
                 }
 
                 if (type == PacketType.Play.Server.MULTI_BLOCK_CHANGE || type == PacketType.Play.Server.MAP_CHUNK) {
+                    TxAnchorService.WorldUpdateKind kind = type == PacketType.Play.Server.MULTI_BLOCK_CHANGE
+                            ? TxAnchorService.WorldUpdateKind.MULTI_BLOCK_CHANGE
+                            : TxAnchorService.WorldUpdateKind.MAP_CHUNK;
+                    TxAnchorService.WorldAnchor anchor = ((LegacyAntiCheatPlugin) plugin).txAnchors()
+                            .anchorWorldUpdate(player, kind);
                     int chunkX = readIntField(handle, 0, "a", "chunkX");
                     int chunkZ = readIntField(handle, 1, "b", "chunkZ");
-                    data.queueCompensatedChunkRefresh(player, chunkX, chunkZ, anchorTxId,
+                    data.queueCompensatedChunkRefresh(player, chunkX, chunkZ, anchor.getTransactionId(),
                             "packet:" + type.name().toLowerCase());
                     return;
                 }
 
                 if (type == PacketType.Play.Server.MAP_CHUNK_BULK) {
+                    TxAnchorService.WorldAnchor anchor = ((LegacyAntiCheatPlugin) plugin).txAnchors()
+                            .anchorWorldUpdate(player, TxAnchorService.WorldUpdateKind.MAP_CHUNK_BULK);
                     int[] xs = readIntArrayField(handle, 0, "c", "xChunks");
                     int[] zs = readIntArrayField(handle, 1, "d", "zChunks");
                     if (xs != null && zs != null) {
                         for (int index = 0; index < xs.length && index < zs.length; index++) {
-                            data.queueCompensatedChunkRefresh(player, xs[index], zs[index], anchorTxId,
+                            data.queueCompensatedChunkRefresh(player, xs[index], zs[index], anchor.getTransactionId(),
                                     "packet:map_chunk_bulk");
                         }
                     } else {
@@ -544,24 +553,6 @@ public final class ProtocolLibBridgeManager {
             }
         }
         throw new NoSuchFieldException(name);
-    }
-
-    private short reserveDeferredTransaction(final Player player) {
-        if (plugin.transactionSync() == null || player == null) {
-            return 0;
-        }
-        final PlayerData data = plugin.getPlayerData(player);
-        final short actionId = data.nextTransactionActionId();
-        plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline()) {
-                    return;
-                }
-                plugin.transactionSync().sendReservedTransaction(player, actionId);
-            }
-        });
-        return actionId;
     }
 
     private void disableMovementCapture(String reason) {

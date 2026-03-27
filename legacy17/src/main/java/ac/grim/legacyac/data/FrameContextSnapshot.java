@@ -1,6 +1,7 @@
 package ac.grim.legacyac.data;
 
 import ac.grim.legacyac.combat.HitboxFrame;
+import ac.grim.legacyac.data.state.CompensationState;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,13 +18,19 @@ public final class FrameContextSnapshot {
     private final HitboxSnapshot targetHitboxSnapshot;
     private final ToleranceBudgetEngine.BudgetSnapshot budgetSnapshot;
     private final List<String> pendingBlockChanges;
+    private final CompensationState.AlignmentBlocker alignmentBlocker;
+    private final long actionWindowId;
+    private final boolean enforceableFrame;
 
     public FrameContextSnapshot(long frameId, int txWindowId,
             PredictionOutputSnapshot predictionOutput,
             TxWindowStateSnapshot txWindowState,
             HitboxSnapshot targetHitboxSnapshot,
             ToleranceBudgetEngine.BudgetSnapshot budgetSnapshot,
-            List<String> pendingBlockChanges) {
+            List<String> pendingBlockChanges,
+            CompensationState.AlignmentBlocker alignmentBlocker,
+            long actionWindowId,
+            boolean enforceableFrame) {
         this.frameId = frameId;
         this.txWindowId = txWindowId;
         this.predictionOutput = predictionOutput;
@@ -32,16 +39,19 @@ public final class FrameContextSnapshot {
         this.budgetSnapshot = budgetSnapshot;
         this.pendingBlockChanges = pendingBlockChanges == null ? Collections.<String>emptyList()
                 : Collections.unmodifiableList(new ArrayList<String>(pendingBlockChanges));
+        this.alignmentBlocker = alignmentBlocker == null ? CompensationState.AlignmentBlocker.NONE : alignmentBlocker;
+        this.actionWindowId = actionWindowId;
+        this.enforceableFrame = enforceableFrame;
     }
 
     public FrameContextSnapshot withPredictionOutput(PredictionOutputSnapshot output) {
         return new FrameContextSnapshot(frameId, txWindowId, output, txWindowState, targetHitboxSnapshot,
-                budgetSnapshot, pendingBlockChanges);
+                budgetSnapshot, pendingBlockChanges, alignmentBlocker, actionWindowId, enforceableFrame);
     }
 
     public FrameContextSnapshot withTargetHitboxSnapshot(HitboxSnapshot hitboxSnapshot) {
         return new FrameContextSnapshot(frameId, txWindowId, predictionOutput, txWindowState, hitboxSnapshot,
-                budgetSnapshot, pendingBlockChanges);
+                budgetSnapshot, pendingBlockChanges, alignmentBlocker, actionWindowId, enforceableFrame);
     }
 
     public long getFrameId() {
@@ -70,6 +80,18 @@ public final class FrameContextSnapshot {
 
     public List<String> getPendingBlockChanges() {
         return pendingBlockChanges;
+    }
+
+    public CompensationState.AlignmentBlocker getAlignmentBlocker() {
+        return alignmentBlocker;
+    }
+
+    public long getActionWindowId() {
+        return actionWindowId;
+    }
+
+    public boolean isEnforceableFrame() {
+        return enforceableFrame;
     }
 
     public static final class PredictionOutputSnapshot {

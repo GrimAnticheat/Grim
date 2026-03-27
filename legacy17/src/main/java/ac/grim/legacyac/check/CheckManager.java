@@ -321,6 +321,7 @@ public final class CheckManager implements Listener {
         ToleranceBudgetEngine.BudgetSnapshot budget = ToleranceBudgetEngine.compute(
                 data.network(), data.compensation(), data.environment(), currentTps, budgetConfigProvider);
         data.setCurrentBudget(budget);
+        CompensationState.MovementStateSnapshot snapshot = data.compensation().getMovementStateSnapshot();
         PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
         FrameContextSnapshot frameContext = new FrameContextSnapshot(
                 frame.getTimestampNanos(),
@@ -333,22 +334,25 @@ public final class CheckManager implements Listener {
                         velocitySample == null ? 0 : velocitySample.getTicksObserved()),
                 null,
                 budget,
-                data.getPendingWorldChangeDebugSnapshot());
+                data.getPendingWorldChangeDebugSnapshot(),
+                snapshot.getPrimaryBlocker(),
+                data.getMoveWindow(),
+                snapshot.isEnforceable());
         data.setCurrentFrameContext(frameContext);
 
         if (data.isDebugEnabled() && plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
             plugin.getLogger().info("[GLAC-BUDGET] " + player.getName() + " " + budget.toDebugString());
         }
 
-        CompensationState.MovementStateSnapshot snapshot = data.compensation().getMovementStateSnapshot();
         if (!snapshot.isTeleportAligned()) {
+            String reason = snapshot.getPrimaryBlocker().name().toLowerCase(Locale.ROOT) + "-not-aligned";
             if (data.isDebugEnabled()) {
                 plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                        + " checks SKIPPED: teleport-not-aligned pending=" + snapshot.getPendingChanges());
+                        + " checks SKIPPED: " + reason + " pending=" + snapshot.getPendingChanges());
             }
             if (trace != null)
-                trace.addEntry("*", CheckStage.PRE, PipelineTrace.Status.SKIPPED, 0L, "teleport-not-aligned");
-            runLegacyFallbackChecks(player, data, from, to, frame, "teleport-not-aligned", budget, trace);
+                trace.addEntry("*", CheckStage.PRE, PipelineTrace.Status.SKIPPED, 0L, reason);
+            runLegacyFallbackChecks(player, data, from, to, frame, reason, budget, trace);
             emitPipelineTrace(trace, pipelineStart);
             return;
         }
@@ -406,7 +410,10 @@ public final class CheckManager implements Listener {
 
     private void runQueuedBlockInteractionChecks(Player player, PlayerData data, PipelineTrace trace) {
         long stageStart = System.nanoTime();
-        for (PlayerData.QueuedBlockPlaceSnapshot snapshot : data.drainQueuedBlockPlaces(350L)) {
+        PlayerData.MovementStateSnapshot movementState = data.getMovementStateSnapshot();
+        boolean readyForBlockChecks = movementState.isTeleportAligned() && movementState.isBlockAligned();
+        for (PlayerData.QueuedBlockPlaceSnapshot snapshot : data.consumeQueuedBlockPlaces(data.getMoveWindow(),
+                readyForBlockChecks)) {
             if (snapshot.getFace() == 255) {
                 continue;
             }
@@ -433,7 +440,8 @@ public final class CheckManager implements Listener {
             }
         }
 
-        for (PlayerData.QueuedBlockDigSnapshot snapshot : data.drainQueuedBlockDigs(350L)) {
+        for (PlayerData.QueuedBlockDigSnapshot snapshot : data.consumeQueuedBlockDigs(data.getMoveWindow(),
+                readyForBlockChecks)) {
             if (snapshot.getDigAction() != 0 && snapshot.getDigAction() != 2) {
                 continue;
             }
@@ -465,7 +473,7 @@ public final class CheckManager implements Listener {
 
     private void runQueuedAttackChecks(Player player, PlayerData data, PipelineTrace trace) {
         long stageStart = System.nanoTime();
-        for (PlayerData.QueuedAttackSnapshot snapshot : data.drainQueuedAttacks(350L)) {
+        for (PlayerData.QueuedAttackSnapshot snapshot : data.consumeQueuedAttacks(data.getMoveWindow(), true)) {
             onUseEntityAttackPacket(player, snapshot.getTargetEntityId(), snapshot);
         }
         if (trace != null) {
@@ -917,7 +925,7 @@ public final class CheckManager implements Listener {
                         FrameContextSnapshot.HitboxSnapshot.fromFrame(attackFrames.get(0))));
             }
         }
-        final long backtrackWindow = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
+        final long backtrackWindow = resolveCombatBacktrackWindow(attackerData);
         final ReachCheck.AttackEvaluation reachEval;
         if (reachChecks.isEmpty()) {
             reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false, true, ReachCheck.ReachEvidenceType.NONE);
@@ -941,6 +949,17 @@ public final class CheckManager implements Listener {
                 }
             }
         });
+    }
+
+    private long resolveCombatBacktrackWindow(PlayerData attackerData) {
+        long configuredMax = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
+        double oneWayDelay = Math.max(0.0D, attackerData.getLastTransactionRttNanos() / 2000000.0D);
+        double jitterGrace = Math.min(80.0D, attackerData.getTransactionRttJitterNanos() / 1000000.0D);
+        long dynamicWindow = Math.round(oneWayDelay + jitterGrace + 40.0D);
+        if (dynamicWindow < 75L) {
+            dynamicWindow = 75L;
+        }
+        return Math.min(configuredMax, dynamicWindow);
     }
 
     @EventHandler(ignoreCancelled = true)

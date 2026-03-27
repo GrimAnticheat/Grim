@@ -9,6 +9,7 @@ import ac.grim.legacyac.data.state.MovementState;
 import ac.grim.legacyac.data.state.NetworkState;
 import ac.grim.legacyac.debug.DetectionEvidence;
 import ac.grim.legacyac.evidence.CombatEvidence;
+import ac.grim.legacyac.network.TxAnchorService;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import ac.grim.legacyac.world.LegacyBlockState;
 import ac.grim.legacyac.world.LegacyCompensatedWorld;
@@ -121,6 +122,7 @@ public final class PlayerData {
     private float claimedPitch;
     private boolean claimedOnGround;
     private boolean claimedMovementInitialized;
+    private int claimedMoveWindow;
     private final LinkedList<QueuedBlockPlaceSnapshot> queuedBlockPlaces = new LinkedList<QueuedBlockPlaceSnapshot>();
     private final LinkedList<QueuedBlockDigSnapshot> queuedBlockDigs = new LinkedList<QueuedBlockDigSnapshot>();
     private final LinkedList<QueuedAttackSnapshot> queuedAttacks = new LinkedList<QueuedAttackSnapshot>();
@@ -957,9 +959,9 @@ public final class PlayerData {
         pruneKnockbackSamples();
     }
 
-    public void startVelocitySample(long sentAtNanos, short preTxId, short postTxId, double vx, double vy, double vz,
-            long txWindowMaxMs) {
-        VelocitySample sample = new VelocitySample(sentAtNanos, preTxId, postTxId, vx, vy, vz, txWindowMaxMs);
+    public void startVelocitySample(TxAnchorService.VelocityWindowMode mode, long sentAtNanos,
+            short preTxId, short postTxId, double vx, double vy, double vz, long txWindowMaxMs) {
+        VelocitySample sample = new VelocitySample(mode, sentAtNanos, preTxId, postTxId, vx, vy, vz, txWindowMaxMs);
         velocitySamples.addLast(sample);
         while (velocitySamples.size() > VELOCITY_SAMPLE_LIMIT) {
             velocitySamples.removeFirst();
@@ -981,9 +983,7 @@ public final class PlayerData {
         while (iterator.hasNext()) {
             VelocitySample sample = iterator.next();
             if (sample.isExpired() || sample.isCompleted()) {
-                if (sample != getCurrentVelocitySampleUnsafe()) {
-                    iterator.remove();
-                }
+                iterator.remove();
             }
         }
         while (velocitySamples.size() > VELOCITY_SAMPLE_LIMIT) {
@@ -995,10 +995,18 @@ public final class PlayerData {
         return velocitySamples.isEmpty() ? null : velocitySamples.getLast();
     }
 
-    public void startKnockbackSample(long sentAtNanos, int entityId, short preTxId, short postTxId,
-            double vx, double vy, double vz, boolean setbackLike, long txWindowMaxMs) {
-        KnockbackSample sample = new KnockbackSample(sentAtNanos, entityId, preTxId, postTxId, vx, vy, vz, setbackLike,
-                txWindowMaxMs);
+    public void completeCurrentVelocitySample() {
+        VelocitySample sample = getCurrentVelocitySampleUnsafe();
+        if (sample != null) {
+            sample.markCompleted();
+        }
+        pruneVelocitySamples();
+    }
+
+    public void startKnockbackSample(TxAnchorService.VelocityWindowMode mode, long sentAtNanos, int entityId,
+            short preTxId, short postTxId, double vx, double vy, double vz, boolean setbackLike, long txWindowMaxMs) {
+        KnockbackSample sample = new KnockbackSample(mode, sentAtNanos, entityId, preTxId, postTxId,
+                vx, vy, vz, setbackLike, txWindowMaxMs);
         knockbackSamples.addLast(sample);
         while (knockbackSamples.size() > KNOCKBACK_SAMPLE_LIMIT) {
             knockbackSamples.removeFirst();
@@ -1225,6 +1233,14 @@ public final class PlayerData {
         public int getPendingChanges() {
             return delegate.getPendingChanges();
         }
+
+        public CompensationState.AlignmentBlocker getPrimaryBlocker() {
+            return delegate.getPrimaryBlocker();
+        }
+
+        public boolean isEnforceable() {
+            return delegate.isEnforceable();
+        }
     }
 
     // 闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲?
@@ -1296,6 +1312,7 @@ public final class PlayerData {
         claimedPitch = pitch;
         claimedOnGround = onGround;
         claimedMovementInitialized = true;
+        claimedMoveWindow = getMoveWindow();
     }
 
     public boolean hasClaimedMovement() {
@@ -1345,41 +1362,41 @@ public final class PlayerData {
         recordClientBlockPlacePacket(x, y, z, face, cursorX, cursorY, cursorZ);
         queuedBlockPlaces.addLast(new QueuedBlockPlaceSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
                 snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(), x, y, z,
-                face, cursorX, cursorY, cursorZ));
+                face, cursorX, cursorY, cursorZ, snapshotClaimedMoveWindow()));
         while (queuedBlockPlaces.size() > 8) {
             queuedBlockPlaces.removeFirst();
         }
     }
 
-    public List<QueuedBlockPlaceSnapshot> drainQueuedBlockPlaces(long maxAgeMillis) {
-        return drainQueuedSnapshots(queuedBlockPlaces, maxAgeMillis);
+    public List<QueuedBlockPlaceSnapshot> consumeQueuedBlockPlaces(int currentMoveWindow, boolean readyForConsume) {
+        return consumeQueuedSnapshots(queuedBlockPlaces, currentMoveWindow, 3, 150L, readyForConsume);
     }
 
     public void queuePacketBlockDig(int x, int y, int z, int face, int digAction, long createdAtNanos) {
         queuedBlockDigs.addLast(new QueuedBlockDigSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
                 snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(),
-                x, y, z, face, digAction));
+                x, y, z, face, digAction, snapshotClaimedMoveWindow()));
         while (queuedBlockDigs.size() > 8) {
             queuedBlockDigs.removeFirst();
         }
     }
 
-    public List<QueuedBlockDigSnapshot> drainQueuedBlockDigs(long maxAgeMillis) {
-        return drainQueuedSnapshots(queuedBlockDigs, maxAgeMillis);
+    public List<QueuedBlockDigSnapshot> consumeQueuedBlockDigs(int currentMoveWindow, boolean readyForConsume) {
+        return consumeQueuedSnapshots(queuedBlockDigs, currentMoveWindow, 3, 150L, readyForConsume);
     }
 
     public void queueAttackSnapshot(int targetEntityId, long createdAtNanos) {
         combat.recordAttack(targetEntityId);
         queuedAttacks.addLast(new QueuedAttackSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
                 snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(),
-                targetEntityId));
+                targetEntityId, snapshotClaimedMoveWindow()));
         while (queuedAttacks.size() > 8) {
             queuedAttacks.removeFirst();
         }
     }
 
-    public List<QueuedAttackSnapshot> drainQueuedAttacks(long maxAgeMillis) {
-        return drainQueuedSnapshots(queuedAttacks, maxAgeMillis);
+    public List<QueuedAttackSnapshot> consumeQueuedAttacks(int currentMoveWindow, boolean readyForConsume) {
+        return consumeQueuedSnapshots(queuedAttacks, currentMoveWindow, 4, 175L, readyForConsume);
     }
 
     private double snapshotClaimedX() {
@@ -1406,19 +1423,32 @@ public final class PlayerData {
         return claimedMovementInitialized ? claimedOnGround : movement.isOnGroundNow();
     }
 
-    private <T extends TimedPacketSnapshot> List<T> drainQueuedSnapshots(LinkedList<T> queue, long maxAgeMillis) {
+    private int snapshotClaimedMoveWindow() {
+        return claimedMovementInitialized ? claimedMoveWindow : getMoveWindow();
+    }
+
+    private <T extends TimedPacketSnapshot> List<T> consumeQueuedSnapshots(LinkedList<T> queue, int currentMoveWindow,
+            int maxFrameDelta, long maxAgeMillis, boolean readyForConsume) {
         long cutoff = System.nanoTime() - (maxAgeMillis * 1000000L);
-        List<T> drained = new ArrayList<T>();
+        List<T> consumed = new ArrayList<T>();
         Iterator<T> iterator = queue.iterator();
         while (iterator.hasNext()) {
             T snapshot = iterator.next();
-            iterator.remove();
             if (snapshot.getCreatedAtNanos() < cutoff) {
+                iterator.remove();
                 continue;
             }
-            drained.add(snapshot);
+            if ((currentMoveWindow - snapshot.getEnqueueMoveWindow()) > maxFrameDelta) {
+                iterator.remove();
+                continue;
+            }
+            if (!readyForConsume || currentMoveWindow <= snapshot.getEnqueueMoveWindow()) {
+                continue;
+            }
+            iterator.remove();
+            consumed.add(snapshot);
         }
-        return drained;
+        return consumed;
     }
 
     public long getLastClientBlockPlacePacketAt() { return lastClientBlockPlacePacketAt; }
@@ -1455,6 +1485,7 @@ public final class PlayerData {
 
     private interface TimedPacketSnapshot {
         long getCreatedAtNanos();
+        int getEnqueueMoveWindow();
     }
 
     public static final class QueuedBlockPlaceSnapshot implements TimedPacketSnapshot {
@@ -1475,10 +1506,11 @@ public final class PlayerData {
         private final float cursorX;
         private final float cursorY;
         private final float cursorZ;
+        private final int enqueueMoveWindow;
 
         QueuedBlockPlaceSnapshot(long createdAtNanos, double originX, double originY, double originZ,
                 float yaw, float pitch, boolean onGround, int againstX, int againstY, int againstZ, int face,
-                float cursorX, float cursorY, float cursorZ) {
+                float cursorX, float cursorY, float cursorZ, int enqueueMoveWindow) {
             this.createdAtNanos = createdAtNanos;
             this.originX = originX;
             this.originY = originY;
@@ -1496,6 +1528,7 @@ public final class PlayerData {
             this.cursorX = cursorX;
             this.cursorY = cursorY;
             this.cursorZ = cursorZ;
+            this.enqueueMoveWindow = enqueueMoveWindow;
         }
 
         public long getCreatedAtNanos() { return createdAtNanos; }
@@ -1515,6 +1548,7 @@ public final class PlayerData {
         public float getCursorX() { return cursorX; }
         public float getCursorY() { return cursorY; }
         public float getCursorZ() { return cursorZ; }
+        public int getEnqueueMoveWindow() { return enqueueMoveWindow; }
     }
 
     public static final class QueuedBlockDigSnapshot implements TimedPacketSnapshot {
@@ -1530,9 +1564,11 @@ public final class PlayerData {
         private final int z;
         private final int face;
         private final int digAction;
+        private final int enqueueMoveWindow;
 
         QueuedBlockDigSnapshot(long createdAtNanos, double originX, double originY, double originZ,
-                float yaw, float pitch, boolean onGround, int x, int y, int z, int face, int digAction) {
+                float yaw, float pitch, boolean onGround, int x, int y, int z, int face, int digAction,
+                int enqueueMoveWindow) {
             this.createdAtNanos = createdAtNanos;
             this.originX = originX;
             this.originY = originY;
@@ -1545,6 +1581,7 @@ public final class PlayerData {
             this.z = z;
             this.face = face;
             this.digAction = digAction;
+            this.enqueueMoveWindow = enqueueMoveWindow;
         }
 
         public long getCreatedAtNanos() { return createdAtNanos; }
@@ -1559,6 +1596,7 @@ public final class PlayerData {
         public int getZ() { return z; }
         public int getFace() { return face; }
         public int getDigAction() { return digAction; }
+        public int getEnqueueMoveWindow() { return enqueueMoveWindow; }
     }
 
     public static final class QueuedAttackSnapshot implements TimedPacketSnapshot {
@@ -1570,9 +1608,10 @@ public final class PlayerData {
         private final float pitch;
         private final boolean onGround;
         private final int targetEntityId;
+        private final int enqueueMoveWindow;
 
         QueuedAttackSnapshot(long createdAtNanos, double originX, double originY, double originZ,
-                float yaw, float pitch, boolean onGround, int targetEntityId) {
+                float yaw, float pitch, boolean onGround, int targetEntityId, int enqueueMoveWindow) {
             this.createdAtNanos = createdAtNanos;
             this.originX = originX;
             this.originY = originY;
@@ -1581,6 +1620,7 @@ public final class PlayerData {
             this.pitch = pitch;
             this.onGround = onGround;
             this.targetEntityId = targetEntityId;
+            this.enqueueMoveWindow = enqueueMoveWindow;
         }
 
         public long getCreatedAtNanos() { return createdAtNanos; }
@@ -1591,6 +1631,7 @@ public final class PlayerData {
         public float getPitch() { return pitch; }
         public boolean isOnGround() { return onGround; }
         public int getTargetEntityId() { return targetEntityId; }
+        public int getEnqueueMoveWindow() { return enqueueMoveWindow; }
     }
 
     private static int faceOffsetX(int face) {
@@ -1628,6 +1669,7 @@ public final class PlayerData {
     // 闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲?
 
     public static final class KnockbackSample {
+        private final TxAnchorService.VelocityWindowMode mode;
         private final long expiresAtNanos;
         private final int entityId;
         private final short preTransactionId;
@@ -1639,8 +1681,10 @@ public final class PlayerData {
         private int ticksObserved, initialSilentTicks;
         private double maxObservedHorizontal;
 
-        KnockbackSample(long sentAtNanos, int entityId, short preTransactionId, short postTransactionId,
-                double vx, double vy, double vz, boolean setbackLike, long txWindowMaxMs) {
+        KnockbackSample(TxAnchorService.VelocityWindowMode mode, long sentAtNanos, int entityId,
+                short preTransactionId, short postTransactionId, double vx, double vy, double vz,
+                boolean setbackLike, long txWindowMaxMs) {
+            this.mode = mode;
             this.entityId = entityId;
             this.preTransactionId = preTransactionId;
             this.postTransactionId = postTransactionId;
@@ -1652,23 +1696,41 @@ public final class PlayerData {
         }
 
         void handleAck(short actionId) {
-            if (actionId == preTransactionId)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if (actionId == postTransactionId) {
+                    preAck = true;
+                }
+                return;
+            }
+            if (actionId == preTransactionId) {
                 preAck = true;
-            if (actionId == postTransactionId)
+            }
+            if (actionId == postTransactionId) {
                 postAck = true;
+            }
         }
 
         void observe(double currentOffset) {
-            if (!preAck || postAck)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if (!preAck || completed) {
+                    return;
+                }
+            } else if (!preAck || postAck) {
                 return;
+            }
             ticksObserved++;
             if (currentOffset < offset)
                 offset = currentOffset;
         }
 
         void recordObservedMotion(double observedHorizontal, double responseThreshold, int delayedTicks) {
-            if (!preAck || postAck)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if (!preAck || completed) {
+                    return;
+                }
+            } else if (!preAck || postAck) {
                 return;
+            }
             if (observedHorizontal > maxObservedHorizontal)
                 maxObservedHorizontal = observedHorizontal;
             if (ticksObserved <= Math.max(1, delayedTicks) && observedHorizontal < responseThreshold)
@@ -1683,14 +1745,17 @@ public final class PlayerData {
         }
 
         boolean isCompleted() {
-            return completed || postAck;
+            return completed || (mode == TxAnchorService.VelocityWindowMode.EXACT_PRE_POST && postAck);
         }
 
         boolean isFirstBread() {
-            return preAck && !postAck;
+            return mode == TxAnchorService.VelocityWindowMode.EXACT_PRE_POST && preAck && !postAck;
         }
 
         boolean isLikely() {
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                return preAck && !completed;
+            }
             return preAck && postAck;
         }
 
@@ -1742,17 +1807,20 @@ public final class PlayerData {
         public static final int FLAG_LIKELY_CONFIRMED = 1 << 3;
         public static final int FLAG_DELAYED_KB_PATTERN = 1 << 4;
 
+        private final TxAnchorService.VelocityWindowMode mode;
         private final long sentAtNanos;
         private final short preTxId, postTxId;
         private final double vx, vy, vz;
         private final long expiresAtNanos;
+        private boolean completed;
         private int stateFlags;
         private double minOffset = Double.MAX_VALUE;
         private int ticksObserved, ticksSincePreAck, initialSilentTicks;
         private double maxObservedHorizontal;
 
-        VelocitySample(long sentAtNanos, short preTxId, short postTxId, double vx, double vy, double vz,
-                long txWindowMaxMs) {
+        VelocitySample(TxAnchorService.VelocityWindowMode mode, long sentAtNanos, short preTxId, short postTxId,
+                double vx, double vy, double vz, long txWindowMaxMs) {
+            this.mode = mode;
             this.sentAtNanos = sentAtNanos;
             this.preTxId = preTxId;
             this.postTxId = postTxId;
@@ -1763,17 +1831,32 @@ public final class PlayerData {
         }
 
         void handleAck(short actionId, long recvAtNanos) {
-            if (actionId == preTxId)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if (actionId == postTxId) {
+                    stateFlags |= FLAG_POST_ACK;
+                    stateFlags |= FLAG_LIKELY_CONFIRMED;
+                }
+                return;
+            }
+            if (actionId == preTxId) {
                 stateFlags |= FLAG_PRE_ACK;
-            if (actionId == postTxId)
+            }
+            if (actionId == postTxId) {
                 stateFlags |= FLAG_POST_ACK;
-            if ((stateFlags & FLAG_PRE_ACK) != 0 && (stateFlags & FLAG_POST_ACK) != 0)
+            }
+            if ((stateFlags & FLAG_PRE_ACK) != 0 && (stateFlags & FLAG_POST_ACK) != 0) {
                 stateFlags |= FLAG_LIKELY_CONFIRMED;
+            }
         }
 
         public void observeTick(double offset) {
-            if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if ((stateFlags & FLAG_POST_ACK) == 0 || completed) {
+                    return;
+                }
+            } else if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0) {
                 return;
+            }
             ticksObserved++;
             ticksSincePreAck++;
             if (offset < minOffset)
@@ -1783,8 +1866,13 @@ public final class PlayerData {
         }
 
         public void recordObservedMotion(double observedHorizontal, double responseThreshold, int delayedKbTicks) {
-            if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0)
+            if (mode == TxAnchorService.VelocityWindowMode.SINGLE_AUTHORITATIVE_POST_TX) {
+                if ((stateFlags & FLAG_POST_ACK) == 0 || completed) {
+                    return;
+                }
+            } else if ((stateFlags & FLAG_PRE_ACK) == 0 || (stateFlags & FLAG_POST_ACK) != 0) {
                 return;
+            }
             if (observedHorizontal > maxObservedHorizontal)
                 maxObservedHorizontal = observedHorizontal;
             if (ticksObserved <= Math.max(1, delayedKbTicks) && observedHorizontal < responseThreshold)
@@ -1799,7 +1887,8 @@ public final class PlayerData {
         }
 
         public boolean isCompleted() {
-            return (stateFlags & FLAG_POST_ACK) != 0;
+            return completed || (mode == TxAnchorService.VelocityWindowMode.EXACT_PRE_POST
+                    && (stateFlags & FLAG_POST_ACK) != 0);
         }
 
         public long getSentAtNanos() {
@@ -1856,6 +1945,10 @@ public final class PlayerData {
 
         public void addFlag(int flag) {
             stateFlags |= flag;
+        }
+
+        public void markCompleted() {
+            completed = true;
         }
     }
 }

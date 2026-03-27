@@ -36,6 +36,12 @@ public final class PhaseCheck extends Check {
         if (isExempt(player, data)) {
             return;
         }
+        PlayerData.MovementStateSnapshot movementState = data.getMovementStateSnapshot();
+        if (!movementState.isTeleportAligned() || !movementState.isBlockAligned()) {
+            data.setBuffer(PHASE_STREAK_KEY, 0.0D);
+            data.setBuffer(THIN_PHASE_STREAK_KEY, 0.0D);
+            return;
+        }
         if (player.getVehicle() != null || player.isInsideVehicle()) {
             return;
         }
