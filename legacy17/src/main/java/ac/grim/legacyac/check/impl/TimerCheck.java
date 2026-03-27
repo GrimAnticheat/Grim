@@ -24,6 +24,9 @@ public final class TimerCheck extends Check {
             data.resetTimerState();
             return;
         }
+        if (plugin.isPacketPipelineActive() && frame.getSource() == MovementFrame.Source.BUKKIT_MOVE_EVENT) {
+            return;
+        }
 
         long nowNanos = frame.getTimestampNanos();
         long lastPacketNanos = data.getTimerLastPacketNanos();

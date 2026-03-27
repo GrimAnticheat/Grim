@@ -114,6 +114,16 @@ public final class PlayerData {
     private int lastPlacedBlockX;
     private int lastPlacedBlockY;
     private int lastPlacedBlockZ;
+    private double claimedX;
+    private double claimedY;
+    private double claimedZ;
+    private float claimedYaw;
+    private float claimedPitch;
+    private boolean claimedOnGround;
+    private boolean claimedMovementInitialized;
+    private final LinkedList<QueuedBlockPlaceSnapshot> queuedBlockPlaces = new LinkedList<QueuedBlockPlaceSnapshot>();
+    private final LinkedList<QueuedBlockDigSnapshot> queuedBlockDigs = new LinkedList<QueuedBlockDigSnapshot>();
+    private final LinkedList<QueuedAttackSnapshot> queuedAttacks = new LinkedList<QueuedAttackSnapshot>();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -207,12 +217,14 @@ public final class PlayerData {
         double width = 0.6D;
         double height = player.isSneaking() ? 1.65D : 1.8D;
         boolean teleportMarker = System.currentTimeMillis() - compensation.getLastTeleportOrPearlAt() <= 400L;
+        CompensationState.MovementStateSnapshot movementSnapshot = compensation.getMovementStateSnapshot();
+        boolean transactionAligned = movementSnapshot.isTeleportAligned() && movementSnapshot.isVelocityAligned();
+        boolean enforceable = transactionAligned && !compensation.isTeleportSyncPending();
         combat.recordHitbox(to.getX(), to.getY(), to.getZ(), width, height,
-                teleportMarker, network.hasRecentTransactionAck(2000L), !compensation.isTeleportSyncPending());
+                teleportMarker, transactionAligned, enforceable);
 
         compensation.tickVelocityWindow(movement.getLastDeltaXZ(), movement.getLastDeltaY());
 
-        compensation.getMovementStateSnapshot(); // refresh snapshot
         environment.tick(player, to, onGround, movement.getLastDeltaXZ(), movement.getLastDeltaY(),
                 compensation.isTeleportSyncPending());
     }
@@ -438,7 +450,9 @@ public final class PlayerData {
     public void acknowledgeTransaction(short actionId, long recvAtNanos) {
         boolean found = network.acknowledgeTransaction(actionId, recvAtNanos);
         if (found) {
-            compensation.getMovementStateSnapshot(); // refresh
+            compensation.acknowledgeTransaction(actionId);
+            compensatedWorld.acknowledgeTransaction(actionId);
+            compensation.getMovementStateSnapshot();
         }
         onVelocityTransactionAck(actionId, recvAtNanos);
     }
@@ -508,12 +522,16 @@ public final class PlayerData {
     }
 
     public void beginTeleportSync(double x, double y, double z) {
-        compensation.beginTeleportSync(x, y, z);
+        beginTeleportSync(x, y, z, (short) 0);
+    }
+
+    public void beginTeleportSync(double x, double y, double z, short anchorTransactionId) {
+        compensation.beginTeleportSync(x, y, z, anchorTransactionId);
         movement.setMovementFrame(0, 0, 0, 0, 0, 0); // reset frame init
     }
 
     public void tryConfirmTeleportSync(double x, double y, double z) {
-        compensation.tryConfirmTeleportSync(x, y, z, network.hasRecentTransactionAck(2000L));
+        compensation.tryConfirmTeleportSync(x, y, z);
     }
 
     public void armVelocityWindow(Vector velocity, int ticks) {
@@ -558,11 +576,19 @@ public final class PlayerData {
     }
 
     public void recordPendingVelocityChange() {
-        compensation.recordPendingVelocityChange(network.estimateOneWayDelayMillis());
+        compensation.recordPendingVelocityChange((short) 0);
+    }
+
+    public void recordPendingVelocityChange(short anchorTransactionId) {
+        compensation.recordPendingVelocityChange(anchorTransactionId);
     }
 
     public void recordPendingBlockChange(String reason) {
-        compensation.recordPendingBlockChange(reason, network.estimateOneWayDelayMillis());
+        compensation.recordPendingBlockChange(reason, (short) 0);
+    }
+
+    public void recordPendingBlockChange(String reason, short anchorTransactionId) {
+        compensation.recordPendingBlockChange(reason, anchorTransactionId);
     }
 
     public void preloadCompensatedWorld(Player player, int radiusChunks) {
@@ -570,15 +596,22 @@ public final class PlayerData {
     }
 
     public void queueCompensatedChunkRefresh(Player player, int chunkX, int chunkZ, String reason) {
-        long delay = network.estimateOneWayDelayMillis();
-        compensatedWorld.queueChunkRefresh(player.getWorld(), chunkX, chunkZ, delay);
-        compensation.recordPendingBlockChange(reason, delay);
+        queueCompensatedChunkRefresh(player, chunkX, chunkZ, (short) 0, reason);
+    }
+
+    public void queueCompensatedChunkRefresh(Player player, int chunkX, int chunkZ, short anchorTransactionId, String reason) {
+        compensatedWorld.queueChunkRefresh(player.getWorld(), chunkX, chunkZ, anchorTransactionId);
+        compensation.recordPendingBlockChange(reason, anchorTransactionId);
     }
 
     public void queueCompensatedBlockChange(Player player, int x, int y, int z, Material type, byte data, String reason) {
-        long delay = network.estimateOneWayDelayMillis();
-        compensatedWorld.queueBlockChange(player.getWorld(), x, y, z, type, data, delay);
-        compensation.recordPendingBlockChange(reason, delay);
+        queueCompensatedBlockChange(player, x, y, z, type, data, (short) 0, reason);
+    }
+
+    public void queueCompensatedBlockChange(Player player, int x, int y, int z, Material type, byte data,
+            short anchorTransactionId, String reason) {
+        compensatedWorld.queueBlockChange(player.getWorld(), x, y, z, type, data, anchorTransactionId);
+        compensation.recordPendingBlockChange(reason, anchorTransactionId);
     }
 
     public LegacyBlockState getCompensatedBlockState(Player player, int x, int y, int z) {
@@ -1255,6 +1288,44 @@ public final class PlayerData {
     public int incrementSameTickPlaceCount() { return ++sameTickPlaceCount; }
     public void resetSameTickPlaceCount() { sameTickPlaceCount = 0; }
 
+    public void recordClaimedMovement(double x, double y, double z, float yaw, float pitch, boolean onGround) {
+        claimedX = x;
+        claimedY = y;
+        claimedZ = z;
+        claimedYaw = yaw;
+        claimedPitch = pitch;
+        claimedOnGround = onGround;
+        claimedMovementInitialized = true;
+    }
+
+    public boolean hasClaimedMovement() {
+        return claimedMovementInitialized;
+    }
+
+    public double getClaimedX() {
+        return claimedX;
+    }
+
+    public double getClaimedY() {
+        return claimedY;
+    }
+
+    public double getClaimedZ() {
+        return claimedZ;
+    }
+
+    public float getClaimedYaw() {
+        return claimedYaw;
+    }
+
+    public float getClaimedPitch() {
+        return claimedPitch;
+    }
+
+    public boolean isClaimedOnGround() {
+        return claimedOnGround;
+    }
+
     public void recordClientBlockPlacePacket(int x, int y, int z, int face, float cursorX, float cursorY, float cursorZ) {
         lastClientBlockPlacePacketAt = System.currentTimeMillis();
         lastClientPlaceX = x;
@@ -1267,6 +1338,87 @@ public final class PlayerData {
         hasLastClientCursor = true;
         lastUseItemPacketAt = lastClientBlockPlacePacketAt;
         usingItemPacketActive = true;
+    }
+
+    public void queuePacketBlockPlace(int x, int y, int z, int face, float cursorX, float cursorY, float cursorZ,
+            long createdAtNanos) {
+        recordClientBlockPlacePacket(x, y, z, face, cursorX, cursorY, cursorZ);
+        queuedBlockPlaces.addLast(new QueuedBlockPlaceSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
+                snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(), x, y, z,
+                face, cursorX, cursorY, cursorZ));
+        while (queuedBlockPlaces.size() > 8) {
+            queuedBlockPlaces.removeFirst();
+        }
+    }
+
+    public List<QueuedBlockPlaceSnapshot> drainQueuedBlockPlaces(long maxAgeMillis) {
+        return drainQueuedSnapshots(queuedBlockPlaces, maxAgeMillis);
+    }
+
+    public void queuePacketBlockDig(int x, int y, int z, int face, int digAction, long createdAtNanos) {
+        queuedBlockDigs.addLast(new QueuedBlockDigSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
+                snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(),
+                x, y, z, face, digAction));
+        while (queuedBlockDigs.size() > 8) {
+            queuedBlockDigs.removeFirst();
+        }
+    }
+
+    public List<QueuedBlockDigSnapshot> drainQueuedBlockDigs(long maxAgeMillis) {
+        return drainQueuedSnapshots(queuedBlockDigs, maxAgeMillis);
+    }
+
+    public void queueAttackSnapshot(int targetEntityId, long createdAtNanos) {
+        combat.recordAttack(targetEntityId);
+        queuedAttacks.addLast(new QueuedAttackSnapshot(createdAtNanos, snapshotClaimedX(), snapshotClaimedY(),
+                snapshotClaimedZ(), snapshotClaimedYaw(), snapshotClaimedPitch(), snapshotClaimedOnGround(),
+                targetEntityId));
+        while (queuedAttacks.size() > 8) {
+            queuedAttacks.removeFirst();
+        }
+    }
+
+    public List<QueuedAttackSnapshot> drainQueuedAttacks(long maxAgeMillis) {
+        return drainQueuedSnapshots(queuedAttacks, maxAgeMillis);
+    }
+
+    private double snapshotClaimedX() {
+        return claimedMovementInitialized ? claimedX : movement.getLastFrameX();
+    }
+
+    private double snapshotClaimedY() {
+        return claimedMovementInitialized ? claimedY : movement.getLastFrameY();
+    }
+
+    private double snapshotClaimedZ() {
+        return claimedMovementInitialized ? claimedZ : movement.getLastFrameZ();
+    }
+
+    private float snapshotClaimedYaw() {
+        return claimedMovementInitialized ? claimedYaw : movement.getLastFrameYaw();
+    }
+
+    private float snapshotClaimedPitch() {
+        return claimedMovementInitialized ? claimedPitch : movement.getLastFramePitch();
+    }
+
+    private boolean snapshotClaimedOnGround() {
+        return claimedMovementInitialized ? claimedOnGround : movement.isOnGroundNow();
+    }
+
+    private <T extends TimedPacketSnapshot> List<T> drainQueuedSnapshots(LinkedList<T> queue, long maxAgeMillis) {
+        long cutoff = System.nanoTime() - (maxAgeMillis * 1000000L);
+        List<T> drained = new ArrayList<T>();
+        Iterator<T> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            T snapshot = iterator.next();
+            iterator.remove();
+            if (snapshot.getCreatedAtNanos() < cutoff) {
+                continue;
+            }
+            drained.add(snapshot);
+        }
+        return drained;
     }
 
     public long getLastClientBlockPlacePacketAt() { return lastClientBlockPlacePacketAt; }
@@ -1300,6 +1452,176 @@ public final class PlayerData {
     public int getLastPlacedBlockX() { return lastPlacedBlockX; }
     public int getLastPlacedBlockY() { return lastPlacedBlockY; }
     public int getLastPlacedBlockZ() { return lastPlacedBlockZ; }
+
+    private interface TimedPacketSnapshot {
+        long getCreatedAtNanos();
+    }
+
+    public static final class QueuedBlockPlaceSnapshot implements TimedPacketSnapshot {
+        private final long createdAtNanos;
+        private final double originX;
+        private final double originY;
+        private final double originZ;
+        private final float yaw;
+        private final float pitch;
+        private final boolean onGround;
+        private final int againstX;
+        private final int againstY;
+        private final int againstZ;
+        private final int face;
+        private final int placedX;
+        private final int placedY;
+        private final int placedZ;
+        private final float cursorX;
+        private final float cursorY;
+        private final float cursorZ;
+
+        QueuedBlockPlaceSnapshot(long createdAtNanos, double originX, double originY, double originZ,
+                float yaw, float pitch, boolean onGround, int againstX, int againstY, int againstZ, int face,
+                float cursorX, float cursorY, float cursorZ) {
+            this.createdAtNanos = createdAtNanos;
+            this.originX = originX;
+            this.originY = originY;
+            this.originZ = originZ;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.onGround = onGround;
+            this.againstX = againstX;
+            this.againstY = againstY;
+            this.againstZ = againstZ;
+            this.face = face;
+            this.placedX = againstX + faceOffsetX(face);
+            this.placedY = againstY + faceOffsetY(face);
+            this.placedZ = againstZ + faceOffsetZ(face);
+            this.cursorX = cursorX;
+            this.cursorY = cursorY;
+            this.cursorZ = cursorZ;
+        }
+
+        public long getCreatedAtNanos() { return createdAtNanos; }
+        public double getOriginX() { return originX; }
+        public double getOriginY() { return originY; }
+        public double getOriginZ() { return originZ; }
+        public float getYaw() { return yaw; }
+        public float getPitch() { return pitch; }
+        public boolean isOnGround() { return onGround; }
+        public int getAgainstX() { return againstX; }
+        public int getAgainstY() { return againstY; }
+        public int getAgainstZ() { return againstZ; }
+        public int getFace() { return face; }
+        public int getPlacedX() { return placedX; }
+        public int getPlacedY() { return placedY; }
+        public int getPlacedZ() { return placedZ; }
+        public float getCursorX() { return cursorX; }
+        public float getCursorY() { return cursorY; }
+        public float getCursorZ() { return cursorZ; }
+    }
+
+    public static final class QueuedBlockDigSnapshot implements TimedPacketSnapshot {
+        private final long createdAtNanos;
+        private final double originX;
+        private final double originY;
+        private final double originZ;
+        private final float yaw;
+        private final float pitch;
+        private final boolean onGround;
+        private final int x;
+        private final int y;
+        private final int z;
+        private final int face;
+        private final int digAction;
+
+        QueuedBlockDigSnapshot(long createdAtNanos, double originX, double originY, double originZ,
+                float yaw, float pitch, boolean onGround, int x, int y, int z, int face, int digAction) {
+            this.createdAtNanos = createdAtNanos;
+            this.originX = originX;
+            this.originY = originY;
+            this.originZ = originZ;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.onGround = onGround;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.face = face;
+            this.digAction = digAction;
+        }
+
+        public long getCreatedAtNanos() { return createdAtNanos; }
+        public double getOriginX() { return originX; }
+        public double getOriginY() { return originY; }
+        public double getOriginZ() { return originZ; }
+        public float getYaw() { return yaw; }
+        public float getPitch() { return pitch; }
+        public boolean isOnGround() { return onGround; }
+        public int getX() { return x; }
+        public int getY() { return y; }
+        public int getZ() { return z; }
+        public int getFace() { return face; }
+        public int getDigAction() { return digAction; }
+    }
+
+    public static final class QueuedAttackSnapshot implements TimedPacketSnapshot {
+        private final long createdAtNanos;
+        private final double originX;
+        private final double originY;
+        private final double originZ;
+        private final float yaw;
+        private final float pitch;
+        private final boolean onGround;
+        private final int targetEntityId;
+
+        QueuedAttackSnapshot(long createdAtNanos, double originX, double originY, double originZ,
+                float yaw, float pitch, boolean onGround, int targetEntityId) {
+            this.createdAtNanos = createdAtNanos;
+            this.originX = originX;
+            this.originY = originY;
+            this.originZ = originZ;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.onGround = onGround;
+            this.targetEntityId = targetEntityId;
+        }
+
+        public long getCreatedAtNanos() { return createdAtNanos; }
+        public double getOriginX() { return originX; }
+        public double getOriginY() { return originY; }
+        public double getOriginZ() { return originZ; }
+        public float getYaw() { return yaw; }
+        public float getPitch() { return pitch; }
+        public boolean isOnGround() { return onGround; }
+        public int getTargetEntityId() { return targetEntityId; }
+    }
+
+    private static int faceOffsetX(int face) {
+        if (face == 4) {
+            return -1;
+        }
+        if (face == 5) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int faceOffsetY(int face) {
+        if (face == 0) {
+            return -1;
+        }
+        if (face == 1) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int faceOffsetZ(int face) {
+        if (face == 2) {
+            return -1;
+        }
+        if (face == 3) {
+            return 1;
+        }
+        return 0;
+    }
 
     // 闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲鏌ュ煛閹般劍娅滈柍鐑樺姀閺呮煡鍩￠幇銊︽珳闁崇儤鍔忛弲?
     // KnockbackSample (unchanged inner class)

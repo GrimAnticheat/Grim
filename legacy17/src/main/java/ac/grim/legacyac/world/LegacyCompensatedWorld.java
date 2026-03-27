@@ -4,12 +4,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public final class LegacyCompensatedWorld {
+    private static final long PENDING_TIMEOUT_MS = 2000L;
+
     private final Map<String, Map<Long, ChunkCache>> worldChunks = new ConcurrentHashMap<String, Map<Long, ChunkCache>>();
     private final LinkedList<PendingChunkRefresh> pendingChunkRefreshes = new LinkedList<PendingChunkRefresh>();
     private final LinkedList<PendingBlockUpdate> pendingBlockUpdates = new LinkedList<PendingBlockUpdate>();
@@ -32,30 +35,39 @@ public final class LegacyCompensatedWorld {
         }
     }
 
-    public void queueChunkRefresh(World world, int chunkX, int chunkZ, long delayMillis) {
+    public void queueChunkRefresh(World world, int chunkX, int chunkZ, short anchorTransactionId) {
         if (world == null) {
             return;
         }
         synchronized (pendingChunkRefreshes) {
             pendingChunkRefreshes.add(new PendingChunkRefresh(world.getName(), chunkX, chunkZ,
-                    System.currentTimeMillis() + Math.max(0L, delayMillis)));
+                    anchorTransactionId, System.currentTimeMillis() + PENDING_TIMEOUT_MS));
             trimChunkRefreshes();
         }
     }
 
-    public void queueBlockChange(World world, int x, int y, int z, Material type, byte data, long delayMillis) {
+    public void queueBlockChange(World world, int x, int y, int z, Material type, byte data, short anchorTransactionId) {
         if (world == null) {
             return;
         }
         synchronized (pendingBlockUpdates) {
             pendingBlockUpdates.add(new PendingBlockUpdate(world.getName(), x, y, z,
-                    type == null ? Material.AIR : type, data, System.currentTimeMillis() + Math.max(0L, delayMillis)));
+                    type == null ? Material.AIR : type, data, anchorTransactionId,
+                    System.currentTimeMillis() + PENDING_TIMEOUT_MS));
             trimBlockUpdates();
         }
     }
 
+    public void acknowledgeTransaction(short actionId) {
+        if (actionId == 0) {
+            return;
+        }
+        applyAnchoredChunkRefreshes(actionId);
+        applyAnchoredBlockUpdates(actionId);
+    }
+
     public LegacyBlockState getBlockState(World world, int x, int y, int z) {
-        applyPending(world);
+        expirePending();
         if (world == null || y < 0 || y > 255) {
             return LegacyBlockState.AIR;
         }
@@ -71,46 +83,57 @@ public final class LegacyCompensatedWorld {
         return getBlockState(world, x, y, z).getData();
     }
 
-    private void applyPending(World world) {
-        long now = System.currentTimeMillis();
-        if (world != null) {
-            applyPendingChunkRefreshes(world, now);
-            applyPendingBlockUpdates(world, now);
-            return;
-        }
-        synchronized (pendingChunkRefreshes) {
-            pendingChunkRefreshes.clear();
-        }
-        synchronized (pendingBlockUpdates) {
-            pendingBlockUpdates.clear();
-        }
-    }
-
-    private void applyPendingChunkRefreshes(World world, long now) {
+    private void applyAnchoredChunkRefreshes(short actionId) {
         synchronized (pendingChunkRefreshes) {
             Iterator<PendingChunkRefresh> iterator = pendingChunkRefreshes.iterator();
             while (iterator.hasNext()) {
                 PendingChunkRefresh refresh = iterator.next();
-                if (!refresh.worldName.equals(world.getName()) || refresh.effectiveAtMillis > now) {
+                if (refresh.anchorTransactionId != actionId) {
                     continue;
                 }
-                ensureChunkSnapshot(world, refresh.chunkX, refresh.chunkZ).snapshot(world, refresh.chunkX, refresh.chunkZ);
+                World world = Bukkit.getWorld(refresh.worldName);
+                if (world != null) {
+                    ensureChunkSnapshot(world, refresh.chunkX, refresh.chunkZ).snapshot(world, refresh.chunkX, refresh.chunkZ);
+                }
                 iterator.remove();
             }
         }
     }
 
-    private void applyPendingBlockUpdates(World world, long now) {
+    private void applyAnchoredBlockUpdates(short actionId) {
         synchronized (pendingBlockUpdates) {
             Iterator<PendingBlockUpdate> iterator = pendingBlockUpdates.iterator();
             while (iterator.hasNext()) {
                 PendingBlockUpdate update = iterator.next();
-                if (!update.worldName.equals(world.getName()) || update.effectiveAtMillis > now) {
+                if (update.anchorTransactionId != actionId) {
                     continue;
                 }
-                ChunkCache chunk = ensureChunkSnapshot(world, update.x >> 4, update.z >> 4);
-                chunk.setBlockState(update.x & 15, update.y, update.z & 15, update.type, update.data);
+                World world = Bukkit.getWorld(update.worldName);
+                if (world != null) {
+                    ChunkCache chunk = ensureChunkSnapshot(world, update.x >> 4, update.z >> 4);
+                    chunk.setBlockState(update.x & 15, update.y, update.z & 15, update.type, update.data);
+                }
                 iterator.remove();
+            }
+        }
+    }
+
+    private void expirePending() {
+        long now = System.currentTimeMillis();
+        synchronized (pendingChunkRefreshes) {
+            Iterator<PendingChunkRefresh> iterator = pendingChunkRefreshes.iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().expiresAtMillis <= now) {
+                    iterator.remove();
+                }
+            }
+        }
+        synchronized (pendingBlockUpdates) {
+            Iterator<PendingBlockUpdate> iterator = pendingBlockUpdates.iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().expiresAtMillis <= now) {
+                    iterator.remove();
+                }
             }
         }
     }
@@ -158,13 +181,16 @@ public final class LegacyCompensatedWorld {
         private final String worldName;
         private final int chunkX;
         private final int chunkZ;
-        private final long effectiveAtMillis;
+        private final short anchorTransactionId;
+        private final long expiresAtMillis;
 
-        private PendingChunkRefresh(String worldName, int chunkX, int chunkZ, long effectiveAtMillis) {
+        private PendingChunkRefresh(String worldName, int chunkX, int chunkZ, short anchorTransactionId,
+                long expiresAtMillis) {
             this.worldName = worldName;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
-            this.effectiveAtMillis = effectiveAtMillis;
+            this.anchorTransactionId = anchorTransactionId;
+            this.expiresAtMillis = expiresAtMillis;
         }
     }
 
@@ -175,17 +201,19 @@ public final class LegacyCompensatedWorld {
         private final int z;
         private final Material type;
         private final byte data;
-        private final long effectiveAtMillis;
+        private final short anchorTransactionId;
+        private final long expiresAtMillis;
 
         private PendingBlockUpdate(String worldName, int x, int y, int z, Material type, byte data,
-                long effectiveAtMillis) {
+                short anchorTransactionId, long expiresAtMillis) {
             this.worldName = worldName;
             this.x = x;
             this.y = y;
             this.z = z;
             this.type = type;
             this.data = data;
-            this.effectiveAtMillis = effectiveAtMillis;
+            this.anchorTransactionId = anchorTransactionId;
+            this.expiresAtMillis = expiresAtMillis;
         }
     }
 }

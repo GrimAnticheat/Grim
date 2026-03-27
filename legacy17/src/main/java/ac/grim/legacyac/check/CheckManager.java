@@ -354,6 +354,7 @@ public final class CheckManager implements Listener {
         }
 
         runPacketStatePreprocess(player, frame, data, trace);
+        runQueuedBlockInteractionChecks(player, data, trace);
         boolean predictionReady = runMovementPrediction(player, frame, to, data, trace);
         boolean oldPredictionReady = data.hasPredictionForFrame(frame.getTimestampNanos());
         if (plugin.getConfig().getBoolean("pipeline.frame-context.dual-track-log", true)
@@ -369,6 +370,7 @@ public final class CheckManager implements Listener {
             if (trace != null)
                 trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.RAN, 0L, null);
             runPostPredictionChecks(player, frame, from, to, data, trace);
+            runQueuedAttackChecks(player, data, trace);
         } else {
             if (trace != null)
                 trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.SKIPPED, 0L,
@@ -402,9 +404,73 @@ public final class CheckManager implements Listener {
         }
     }
 
+    private void runQueuedBlockInteractionChecks(Player player, PlayerData data, PipelineTrace trace) {
+        long stageStart = System.nanoTime();
+        for (PlayerData.QueuedBlockPlaceSnapshot snapshot : data.drainQueuedBlockPlaces(350L)) {
+            if (snapshot.getFace() == 255) {
+                continue;
+            }
+            for (AirLiquidPlaceCheck check : airLiquidPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+            for (FarPlaceCheck check : farPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+            for (RotationPlaceCheck check : rotationPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+            for (MultiPlaceCheck check : multiPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+            for (PositionPlaceCheck check : positionPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+            for (DuplicateRotPlaceCheck check : duplicateRotPlaceChecks) {
+                check.onPacketPlace(player, data);
+            }
+            for (FabricatedPlaceCheck check : fabricatedPlaceChecks) {
+                check.onPacketPlace(player, data, snapshot);
+            }
+        }
+
+        for (PlayerData.QueuedBlockDigSnapshot snapshot : data.drainQueuedBlockDigs(350L)) {
+            if (snapshot.getDigAction() != 0 && snapshot.getDigAction() != 2) {
+                continue;
+            }
+            for (AirLiquidBreakCheck check : airLiquidBreakChecks) {
+                check.onPacketBreak(player, data, snapshot);
+            }
+            for (FarBreakCheck check : farBreakChecks) {
+                check.onPacketBreak(player, data, snapshot);
+            }
+            for (RotationBreakCheck check : rotationBreakChecks) {
+                check.onPacketBreak(player, data, snapshot);
+            }
+            for (MultiBreakCheck check : multiBreakChecks) {
+                check.onPacketBreak(player, data, snapshot);
+            }
+        }
+
+        if (trace != null) {
+            trace.addEntry(CheckStage.PRE, "QueuedPlaceBreak",
+                    System.nanoTime() - stageStart, true, null);
+        }
+    }
+
     private void runTimingChecks(Player player, MovementFrame frame, PlayerData data) {
         for (TimerCheck check : timerChecks) {
             check.onMovementFrame(player, frame, data);
+        }
+    }
+
+    private void runQueuedAttackChecks(Player player, PlayerData data, PipelineTrace trace) {
+        long stageStart = System.nanoTime();
+        for (PlayerData.QueuedAttackSnapshot snapshot : data.drainQueuedAttacks(350L)) {
+            onUseEntityAttackPacket(player, snapshot.getTargetEntityId(), snapshot);
+        }
+        if (trace != null) {
+            trace.addEntry(CheckStage.COMBAT, "QueuedAttack",
+                    System.nanoTime() - stageStart, true, null);
         }
     }
 
@@ -633,10 +699,18 @@ public final class CheckManager implements Listener {
         if (event.getType() == InternalPacketEvent.Type.CLIENT_MOVEMENT) {
             data.setLastRawMovementPacketAt(event.getCreatedAtNanos());
             data.incrementRawMovementPacketCounter();
+            Double x = event.getX();
+            Double y = event.getY();
+            Double z = event.getZ();
+            Float yaw = event.getYaw();
+            Float pitch = event.getPitch();
+            Boolean onGround = event.getOnGround();
+            if (x != null && y != null && z != null && yaw != null && pitch != null && onGround != null) {
+                data.recordClaimedMovement(x.doubleValue(), y.doubleValue(), z.doubleValue(),
+                        yaw.floatValue(), pitch.floatValue(), onGround.booleanValue());
+            }
             // BadPacketsD + BadPacketsE: check pitch and look-only packets
             Boolean hasPos = event.getHasPosition();
-            Float pitch = event.getPitch();
-            Float yaw = event.getYaw();
             if (pitch != null && yaw != null) {
                 for (CrashA check : crashAChecks) {
                     check.onRotation(player, data, yaw.floatValue(), pitch.floatValue());
@@ -672,7 +746,9 @@ public final class CheckManager implements Listener {
             Double y = event.getY();
             Double z = event.getZ();
             if (x != null && y != null && z != null) {
-                data.beginTeleportSync(x.doubleValue(), y.doubleValue(), z.doubleValue());
+                Short anchorTxId = event.getTransactionActionId();
+                data.beginTeleportSync(x.doubleValue(), y.doubleValue(), z.doubleValue(),
+                        anchorTxId == null ? (short) 0 : anchorTxId.shortValue());
             }
             return;
         }
@@ -686,7 +762,7 @@ public final class CheckManager implements Listener {
                 }
             }
             if (event.isAttackAction() && entityId != null) {
-                onUseEntityAttackPacket(player, entityId.intValue());
+                data.queueAttackSnapshot(entityId.intValue(), event.getCreatedAtNanos());
             }
             return;
         }
@@ -762,11 +838,41 @@ public final class CheckManager implements Listener {
                 for (BadPacketsL check : badPacketsLChecks) {
                     check.onDigAction(player, data, digAction.intValue());
                 }
+                Double x = event.getX();
+                Double y = event.getY();
+                Double z = event.getZ();
+                Integer face = event.getFace();
+                if (x != null && y != null && z != null && face != null) {
+                    data.queuePacketBlockDig(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
+                            digAction.intValue(), event.getCreatedAtNanos());
+                }
+            }
+            return;
+        }
+
+        if (event.getType() == InternalPacketEvent.Type.CLIENT_BLOCK_PLACE) {
+            Double x = event.getX();
+            Double y = event.getY();
+            Double z = event.getZ();
+            Integer face = event.getFace();
+            Float cursorX = event.getCursorX();
+            Float cursorY = event.getCursorY();
+            Float cursorZ = event.getCursorZ();
+            if (x != null && y != null && z != null && face != null
+                    && cursorX != null && cursorY != null && cursorZ != null) {
+                data.queuePacketBlockPlace(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
+                        cursorX.floatValue(), cursorY.floatValue(), cursorZ.floatValue(),
+                        event.getCreatedAtNanos());
             }
         }
     }
 
     public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId) {
+        onUseEntityAttackPacket(attacker, targetEntityId, null);
+    }
+
+    public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId,
+            final PlayerData.QueuedAttackSnapshot snapshot) {
         Entity targetEntity = entityIdIndex.get(targetEntityId);
         if (targetEntity == null) {
             entityIdIndex.recordFallbackScan();
@@ -816,7 +922,7 @@ public final class CheckManager implements Listener {
         if (reachChecks.isEmpty()) {
             reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false, true, ReachCheck.ReachEvidenceType.NONE);
         } else {
-            reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow);
+            reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow, snapshot);
         }
 
         if (attackerData.isDebugEnabled()) {
@@ -840,6 +946,9 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) {
+            return;
+        }
+        if (plugin.isCombatPacketPipelineActive()) {
             return;
         }
         Player attacker = (Player) event.getDamager();
@@ -881,11 +990,16 @@ public final class CheckManager implements Listener {
     public void onPlace(BlockPlaceEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.recordPlacedBlock(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ());
-        data.recordPendingBlockChange("place:" + event.getBlockPlaced().getType().name());
-        data.queueCompensatedBlockChange(event.getPlayer(), event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(),
-                event.getBlockPlaced().getType(), event.getBlockPlaced().getData(), "event:block-place");
+        if (!plugin.isWorldPacketPipelineActive()) {
+            data.queueCompensatedBlockChange(event.getPlayer(), event.getBlockPlaced().getX(),
+                    event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(),
+                    event.getBlockPlaced().getType(), event.getBlockPlaced().getData(), "event:block-place");
+        }
         for (FastPlaceCheck check : fastPlaceChecks) {
             check.onPlace(event, data);
+        }
+        if (plugin.isPlacePacketPipelineActive()) {
+            return;
         }
         for (AirLiquidPlaceCheck check : airLiquidPlaceChecks) {
             check.onPlace(event, data);
@@ -913,11 +1027,15 @@ public final class CheckManager implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
-        data.recordPendingBlockChange("break:" + event.getBlock().getType().name());
-        data.queueCompensatedBlockChange(event.getPlayer(), event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ(),
-                Material.AIR, (byte) 0, "event:block-break");
+        if (!plugin.isWorldPacketPipelineActive()) {
+            data.queueCompensatedBlockChange(event.getPlayer(), event.getBlock().getX(), event.getBlock().getY(),
+                    event.getBlock().getZ(), Material.AIR, (byte) 0, "event:block-break");
+        }
         for (FastBreakCheck check : fastBreakChecks) {
             check.onBreak(event, data);
+        }
+        if (plugin.isPlacePacketPipelineActive()) {
+            return;
         }
         for (AirLiquidBreakCheck check : airLiquidBreakChecks) {
             check.onBreak(event, data);
@@ -974,11 +1092,13 @@ public final class CheckManager implements Listener {
     public void onVelocity(PlayerVelocityEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setLastVelocityAt(System.currentTimeMillis());
-        data.recordPendingVelocityChange();
         // Store the actual XZ magnitude so speed check can account for it
         org.bukkit.util.Vector vel = event.getVelocity();
         double xzMagnitude = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
         data.setLastVelocityXZ(xzMagnitude);
+        if (plugin.isCombatPacketPipelineActive()) {
+            return;
+        }
         // Feed VelocityCheck
         for (VelocityCheck check : velocityChecks) {
             check.onVelocity(event, data);
