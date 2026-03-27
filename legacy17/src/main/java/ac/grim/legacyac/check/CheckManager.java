@@ -6,6 +6,7 @@ import ac.grim.legacyac.check.impl.FastBreakCheck;
 import ac.grim.legacyac.check.impl.FastPlaceCheck;
 import ac.grim.legacyac.check.impl.FastUseCheck;
 import ac.grim.legacyac.check.impl.FlyCheck;
+import ac.grim.legacyac.check.impl.GroundSpoofCheck;
 import ac.grim.legacyac.check.impl.InventoryMoveCheck;
 import ac.grim.legacyac.check.impl.JesusCheck;
 import ac.grim.legacyac.check.impl.KillAuraCheck;
@@ -17,7 +18,6 @@ import ac.grim.legacyac.check.impl.ReachCheck;
 import ac.grim.legacyac.check.impl.SpeedCheck;
 import ac.grim.legacyac.check.impl.TimerCheck;
 import ac.grim.legacyac.check.impl.VelocityCheck;
-import ac.grim.legacyac.check.impl.GroundSpoofCheck;
 import ac.grim.legacyac.check.impl.aim.AimDuplicateLookCheck;
 import ac.grim.legacyac.check.impl.aim.AimModulo360Check;
 import ac.grim.legacyac.check.impl.aim.AimProcessorCheck;
@@ -32,26 +32,25 @@ import ac.grim.legacyac.check.impl.badpackets.BadPacketsL;
 import ac.grim.legacyac.check.impl.badpackets.BadPacketsO;
 import ac.grim.legacyac.check.impl.badpackets.BadPacketsQ;
 import ac.grim.legacyac.check.impl.badpackets.CrashA;
-import ac.grim.legacyac.check.impl.scaffold.AirLiquidPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.FarPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.MultiPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.DuplicateRotPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.FabricatedPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.PositionPlaceCheck;
-import ac.grim.legacyac.check.impl.scaffold.RotationPlaceCheck;
 import ac.grim.legacyac.check.impl.breaking.AirLiquidBreakCheck;
 import ac.grim.legacyac.check.impl.breaking.FarBreakCheck;
 import ac.grim.legacyac.check.impl.breaking.MultiBreakCheck;
 import ac.grim.legacyac.check.impl.breaking.RotationBreakCheck;
+import ac.grim.legacyac.check.impl.scaffold.AirLiquidPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.DuplicateRotPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.FabricatedPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.FarPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.MultiPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.PositionPlaceCheck;
+import ac.grim.legacyac.check.impl.scaffold.RotationPlaceCheck;
 import ac.grim.legacyac.combat.EntityIdIndex;
-import ac.grim.legacyac.data.FrameContextSnapshot;
 import ac.grim.legacyac.data.PlayerData;
-import ac.grim.legacyac.data.state.CompensationState;
 import ac.grim.legacyac.network.InternalPacketEvent;
 import ac.grim.legacyac.network.frame.MovementFrame;
 import ac.grim.legacyac.tolerance.ToleranceBudgetEngine;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleSupplier;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -74,7 +73,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
-import java.util.Locale;
 
 public final class CheckManager implements Listener {
     private final LegacyAntiCheatPlugin plugin;
@@ -99,7 +97,6 @@ public final class CheckManager implements Listener {
     private final List<AimProcessorCheck> aimProcessorChecks = new ArrayList<AimProcessorCheck>();
     private final List<AimModulo360Check> aimModulo360Checks = new ArrayList<AimModulo360Check>();
     private final List<AimDuplicateLookCheck> aimDuplicateLookChecks = new ArrayList<AimDuplicateLookCheck>();
-    // BadPackets
     private final List<BadPacketsA> badPacketsAChecks = new ArrayList<BadPacketsA>();
     private final List<BadPacketsC> badPacketsCChecks = new ArrayList<BadPacketsC>();
     private final List<BadPacketsD> badPacketsDChecks = new ArrayList<BadPacketsD>();
@@ -111,7 +108,6 @@ public final class CheckManager implements Listener {
     private final List<BadPacketsO> badPacketsOChecks = new ArrayList<BadPacketsO>();
     private final List<BadPacketsQ> badPacketsQChecks = new ArrayList<BadPacketsQ>();
     private final List<CrashA> crashAChecks = new ArrayList<CrashA>();
-    // Scaffold
     private final List<AirLiquidPlaceCheck> airLiquidPlaceChecks = new ArrayList<AirLiquidPlaceCheck>();
     private final List<FarPlaceCheck> farPlaceChecks = new ArrayList<FarPlaceCheck>();
     private final List<RotationPlaceCheck> rotationPlaceChecks = new ArrayList<RotationPlaceCheck>();
@@ -123,16 +119,18 @@ public final class CheckManager implements Listener {
     private final List<FarBreakCheck> farBreakChecks = new ArrayList<FarBreakCheck>();
     private final List<RotationBreakCheck> rotationBreakChecks = new ArrayList<RotationBreakCheck>();
     private final List<MultiBreakCheck> multiBreakChecks = new ArrayList<MultiBreakCheck>();
+    private final ToleranceBudgetEngine.ConfigProvider budgetConfigProvider;
+    private final CombatPipeline combatPipeline;
+    private final MovementPipeline movementPipeline;
+    private final PacketIntakeCoordinator packetIntakeCoordinator;
     private long lastTickAtNanos;
     private double currentTps = 20.0D;
-    private final ToleranceBudgetEngine.ConfigProvider budgetConfigProvider;
-    private long legacyFallbackHitCount;
-    private long minimalPostPredictionMissHitCount;
 
     public CheckManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
         this.entityIdIndex = new EntityIdIndex(plugin.getLogger());
         this.budgetConfigProvider = ToleranceBudgetEngine.fromBukkitConfig(plugin.getConfig());
+
         speedChecks.add(new SpeedCheck(plugin));
         flyChecks.add(new FlyCheck(plugin));
         phaseChecks.add(new PhaseCheck(plugin));
@@ -153,7 +151,7 @@ public final class CheckManager implements Listener {
         aimProcessorChecks.add(new AimProcessorCheck(plugin));
         aimModulo360Checks.add(new AimModulo360Check(plugin));
         aimDuplicateLookChecks.add(new AimDuplicateLookCheck(plugin));
-        // BadPackets
+
         badPacketsAChecks.add(new BadPacketsA(plugin));
         badPacketsCChecks.add(new BadPacketsC(plugin));
         badPacketsDChecks.add(new BadPacketsD(plugin));
@@ -165,7 +163,7 @@ public final class CheckManager implements Listener {
         badPacketsOChecks.add(new BadPacketsO(plugin));
         badPacketsQChecks.add(new BadPacketsQ(plugin));
         crashAChecks.add(new CrashA(plugin));
-        // Scaffold
+
         airLiquidPlaceChecks.add(new AirLiquidPlaceCheck(plugin));
         farPlaceChecks.add(new FarPlaceCheck(plugin));
         rotationPlaceChecks.add(new RotationPlaceCheck(plugin));
@@ -177,6 +175,55 @@ public final class CheckManager implements Listener {
         farBreakChecks.add(new FarBreakCheck(plugin));
         rotationBreakChecks.add(new RotationBreakCheck(plugin));
         multiBreakChecks.add(new MultiBreakCheck(plugin));
+
+        this.combatPipeline = new CombatPipeline(plugin, entityIdIndex, reachChecks, killAuraChecks);
+        this.movementPipeline = new MovementPipeline(
+                plugin,
+                budgetConfigProvider,
+                new DoubleSupplier() {
+                    @Override
+                    public double getAsDouble() {
+                        return currentTps;
+                    }
+                },
+                combatPipeline,
+                timerChecks,
+                inventoryMoveChecks,
+                airLiquidPlaceChecks,
+                farPlaceChecks,
+                rotationPlaceChecks,
+                multiPlaceChecks,
+                positionPlaceChecks,
+                duplicateRotPlaceChecks,
+                fabricatedPlaceChecks,
+                airLiquidBreakChecks,
+                farBreakChecks,
+                rotationBreakChecks,
+                multiBreakChecks,
+                predictionChecks,
+                aimProcessorChecks,
+                aimModulo360Checks,
+                aimDuplicateLookChecks,
+                noSlowChecks,
+                speedChecks,
+                flyChecks,
+                phaseChecks,
+                jesusChecks,
+                velocityChecks,
+                groundSpoofChecks);
+        this.packetIntakeCoordinator = new PacketIntakeCoordinator(
+                plugin,
+                velocityChecks,
+                badPacketsAChecks,
+                badPacketsCChecks,
+                badPacketsDChecks,
+                badPacketsEChecks,
+                badPacketsFChecks,
+                badPacketsGChecks,
+                badPacketsIChecks,
+                badPacketsLChecks,
+                badPacketsQChecks,
+                crashAChecks);
 
         for (org.bukkit.World world : plugin.getServer().getWorlds()) {
             for (Entity entity : world.getEntities()) {
@@ -194,7 +241,8 @@ public final class CheckManager implements Listener {
                 + velocityChecks.size() + groundSpoofChecks.size()
                 + aimProcessorChecks.size() + aimModulo360Checks.size() + aimDuplicateLookChecks.size()
                 + duplicateRotPlaceChecks.size() + fabricatedPlaceChecks.size()
-                + airLiquidBreakChecks.size() + farBreakChecks.size() + rotationBreakChecks.size() + multiBreakChecks.size()
+                + airLiquidBreakChecks.size() + farBreakChecks.size() + rotationBreakChecks.size()
+                + multiBreakChecks.size()
                 + badPacketsAChecks.size() + badPacketsCChecks.size() + badPacketsDChecks.size()
                 + badPacketsEChecks.size() + badPacketsFChecks.size() + badPacketsGChecks.size()
                 + badPacketsIChecks.size() + badPacketsLChecks.size() + badPacketsOChecks.size()
@@ -222,6 +270,32 @@ public final class CheckManager implements Listener {
 
     public double getCurrentTps() {
         return currentTps;
+    }
+
+    public String describeMovementExecutionPath() {
+        boolean packetFirst = plugin.getConfig().getBoolean("pipeline.packet-first", true);
+        boolean packetActive = plugin.isPacketPipelineActive();
+        boolean bukkitFallback = plugin.getConfig().getBoolean("pipeline.bukkit-fallback", true);
+        long staleThresholdNanos = plugin.getConfig().getLong("pipeline.bukkit-fallback-stale-nanos", 150000000L);
+
+        StringBuilder sb = new StringBuilder();
+        if (packetFirst && packetActive) {
+            sb.append("packet-first -> MovementPipeline");
+            sb.append(bukkitFallback ? " -> stale Bukkit fallback enabled" : " -> no Bukkit fallback");
+        } else {
+            sb.append("Bukkit move event -> MovementPipeline");
+        }
+        sb.append(" [stale=").append(staleThresholdNanos).append("ns");
+        sb.append(", legacyFallback=")
+                .append(plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true));
+        sb.append(", minimalPost=")
+                .append(plugin.getConfig().getBoolean("pipeline.minimal-post-on-prediction-miss", true));
+        sb.append(']');
+        return sb.toString();
+    }
+
+    public String describeMovementPipelineTopology() {
+        return "CheckManager -> PacketIntakeCoordinator -> MovementPipeline -> CombatPipeline";
     }
 
     @EventHandler
@@ -271,714 +345,31 @@ public final class CheckManager implements Listener {
         long now = System.nanoTime();
         MovementFrame frame = new MovementFrame(now, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch(),
                 player.isOnGround(), true, true, MovementFrame.Source.BUKKIT_MOVE_EVENT);
-        consumeMovementFrame(player, frame, event.getFrom(), to);
+        movementPipeline.consumeMovementFrame(player, frame, event.getFrom(), to);
     }
 
     public void onMovementFrame(Player player, MovementFrame frame) {
-        consumeMovementFrame(player, frame, null, null);
-    }
-
-    private void consumeMovementFrame(Player player, MovementFrame frame, Location explicitFrom, Location explicitTo) {
-        PlayerData data = plugin.getPlayerData(player);
-        data.touchMovementFrame(frame.getTimestampNanos());
-
-        if (!frame.hasPosition()) {
-            runTimingChecks(player, frame, data);
-            return;
-        }
-
-        Location from = explicitFrom;
-        if (from == null) {
-            if (data.isMovementFrameInitialized()) {
-                from = new Location(player.getWorld(), data.getLastFrameX(), data.getLastFrameY(), data.getLastFrameZ(),
-                        data.getLastFrameYaw(), data.getLastFramePitch());
-            } else {
-                from = player.getLocation().clone();
-            }
-        }
-
-        Location to = explicitTo;
-        if (to == null) {
-            to = new Location(player.getWorld(), frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(),
-                    frame.getPitch());
-        }
-
-        data.setMovementFrame(frame.getX(), frame.getY(), frame.getZ(), frame.getYaw(), frame.getPitch(),
-                frame.getTimestampNanos());
-        executeMovementPipeline(player, data, frame, from, to);
-    }
-
-    private void executeMovementPipeline(Player player, PlayerData data, MovementFrame frame, Location from,
-            Location to) {
-        long pipelineStart = System.nanoTime();
-        PipelineTrace trace = data.isDebugEnabled() ? new PipelineTrace(pipelineStart, player.getName()) : null;
-
-        data.handleMove(player, from, to, frame.isOnGround());
-        data.preloadCompensatedWorld(player, 1);
-        data.setDetectionContext(frame.getSource().name(), data.getMoveWindow());
-
-        // ── FR-3: Compute tolerance budget for this frame ──
-        ToleranceBudgetEngine.BudgetSnapshot budget = ToleranceBudgetEngine.compute(
-                data.network(), data.compensation(), data.environment(), currentTps, budgetConfigProvider);
-        data.setCurrentBudget(budget);
-        CompensationState.MovementStateSnapshot snapshot = data.compensation().getMovementStateSnapshot();
-        PlayerData.VelocitySample velocitySample = data.getCurrentVelocitySample();
-        FrameContextSnapshot frameContext = new FrameContextSnapshot(
-                frame.getTimestampNanos(),
-                data.getMoveWindow(),
-                new FrameContextSnapshot.PredictionOutputSnapshot(false, 0.0D, 0.0D, 0.0D, 0.0D, "none"),
-                new FrameContextSnapshot.TxWindowStateSnapshot(
-                        velocitySample == null ? (short) 0 : velocitySample.getPreTxId(),
-                        velocitySample == null ? (short) 0 : velocitySample.getPostTxId(),
-                        velocitySample == null ? 0 : velocitySample.getStateFlags(),
-                        velocitySample == null ? 0 : velocitySample.getTicksObserved()),
-                null,
-                budget,
-                data.getPendingWorldChangeDebugSnapshot(),
-                snapshot.getPrimaryBlocker(),
-                data.getMoveWindow(),
-                snapshot.isEnforceable());
-        data.setCurrentFrameContext(frameContext);
-
-        if (data.isDebugEnabled() && plugin.getConfig().getBoolean("adaptive-lag.compare-log-enabled", false)) {
-            plugin.getLogger().info("[GLAC-BUDGET] " + player.getName() + " " + budget.toDebugString());
-        }
-
-        if (!snapshot.isTeleportAligned()) {
-            String reason = snapshot.getPrimaryBlocker().name().toLowerCase(Locale.ROOT) + "-not-aligned";
-            if (data.isDebugEnabled()) {
-                plugin.getLogger().info("[GLAC-DEBUG] " + player.getName()
-                        + " checks SKIPPED: " + reason + " pending=" + snapshot.getPendingChanges());
-            }
-            if (trace != null)
-                trace.addEntry("*", CheckStage.PRE, PipelineTrace.Status.SKIPPED, 0L, reason);
-            runLegacyFallbackChecks(player, data, from, to, frame, reason, budget, trace);
-            emitPipelineTrace(trace, pipelineStart);
-            return;
-        }
-
-        runPacketStatePreprocess(player, frame, data, trace);
-        runQueuedBlockInteractionChecks(player, data, trace);
-        boolean predictionReady = runMovementPrediction(player, frame, to, data, trace);
-        boolean oldPredictionReady = data.hasPredictionForFrame(frame.getTimestampNanos());
-        if (plugin.getConfig().getBoolean("pipeline.frame-context.dual-track-log", true)
-                && predictionReady != oldPredictionReady) {
-            plugin.getLogger().info("[GLAC-FRAMECTX-DIFF] " + player.getName()
-                    + " frame=" + frame.getTimestampNanos()
-                    + " oldPredictionReady=" + oldPredictionReady
-                    + " newPredictionReady=" + predictionReady);
-        }
-        data.updateKnockbackStages();
-
-        if (predictionReady) {
-            if (trace != null)
-                trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.RAN, 0L, null);
-            runPostPredictionChecks(player, frame, from, to, data, trace);
-            runQueuedAttackChecks(player, data, trace);
-        } else {
-            if (trace != null)
-                trace.addEntry("Prediction", CheckStage.PREDICTION, PipelineTrace.Status.SKIPPED, 0L,
-                        "prediction-unavailable");
-            runLegacyFallbackChecks(player, data, from, to, frame, "prediction-unavailable", budget, trace);
-        }
-
-        if (frame.isOnGround() && data.getLastDeltaXZ() < 0.35D && Math.abs(data.getLastDeltaY()) < 0.02D) {
-            data.setLastSafeLocation(to.clone());
-        }
-
-        emitPipelineTrace(trace, pipelineStart);
-    }
-
-    private void emitPipelineTrace(PipelineTrace trace, long startNanos) {
-        if (trace == null)
-            return;
-        trace.setTotalDurationNanos(System.nanoTime() - startNanos);
-        plugin.getLogger().info(trace.toSummary());
-    }
-
-    private void runPacketStatePreprocess(Player player, MovementFrame frame, PlayerData data, PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        runTimingChecks(player, frame, data);
-        for (InventoryMoveCheck check : inventoryMoveChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        if (trace != null) {
-            trace.addEntry(CheckStage.PRE, "Timer+InventoryMove",
-                    System.nanoTime() - stageStart, true, null);
-        }
-    }
-
-    private void runQueuedBlockInteractionChecks(Player player, PlayerData data, PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        PlayerData.MovementStateSnapshot movementState = data.getMovementStateSnapshot();
-        boolean readyForBlockChecks = movementState.isTeleportAligned() && movementState.isBlockAligned();
-        for (PlayerData.QueuedBlockPlaceSnapshot snapshot : data.consumeQueuedBlockPlaces(data.getMoveWindow(),
-                readyForBlockChecks)) {
-            if (snapshot.getFace() == 255) {
-                continue;
-            }
-            for (AirLiquidPlaceCheck check : airLiquidPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-            for (FarPlaceCheck check : farPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-            for (RotationPlaceCheck check : rotationPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-            for (MultiPlaceCheck check : multiPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-            for (PositionPlaceCheck check : positionPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-            for (DuplicateRotPlaceCheck check : duplicateRotPlaceChecks) {
-                check.onPacketPlace(player, data);
-            }
-            for (FabricatedPlaceCheck check : fabricatedPlaceChecks) {
-                check.onPacketPlace(player, data, snapshot);
-            }
-        }
-
-        for (PlayerData.QueuedBlockDigSnapshot snapshot : data.consumeQueuedBlockDigs(data.getMoveWindow(),
-                readyForBlockChecks)) {
-            if (snapshot.getDigAction() != 0 && snapshot.getDigAction() != 2) {
-                continue;
-            }
-            for (AirLiquidBreakCheck check : airLiquidBreakChecks) {
-                check.onPacketBreak(player, data, snapshot);
-            }
-            for (FarBreakCheck check : farBreakChecks) {
-                check.onPacketBreak(player, data, snapshot);
-            }
-            for (RotationBreakCheck check : rotationBreakChecks) {
-                check.onPacketBreak(player, data, snapshot);
-            }
-            for (MultiBreakCheck check : multiBreakChecks) {
-                check.onPacketBreak(player, data, snapshot);
-            }
-        }
-
-        if (trace != null) {
-            trace.addEntry(CheckStage.PRE, "QueuedPlaceBreak",
-                    System.nanoTime() - stageStart, true, null);
-        }
-    }
-
-    private void runTimingChecks(Player player, MovementFrame frame, PlayerData data) {
-        for (TimerCheck check : timerChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-    }
-
-    private void runQueuedAttackChecks(Player player, PlayerData data, PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        for (PlayerData.QueuedAttackSnapshot snapshot : data.consumeQueuedAttacks(data.getMoveWindow(), true)) {
-            onUseEntityAttackPacket(player, snapshot.getTargetEntityId(), snapshot);
-        }
-        if (trace != null) {
-            trace.addEntry(CheckStage.COMBAT, "QueuedAttack",
-                    System.nanoTime() - stageStart, true, null);
-        }
-    }
-
-    private boolean runMovementPrediction(Player player, MovementFrame frame, Location to, PlayerData data,
-            PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        data.beginPredictionFrame(frame.getTimestampNanos());
-        for (PredictionMovementCheck check : predictionChecks) {
-            check.onMovementFrame(player, frame, to, data);
-        }
-        FrameContextSnapshot context = data.getCurrentFrameContext();
-        FrameContextSnapshot.PredictionOutputSnapshot output = new FrameContextSnapshot.PredictionOutputSnapshot(
-                data.hasPredictionForFrame(frame.getTimestampNanos()),
-                data.getPredictionMinDeviation(),
-                data.getPredictionReducedDeviation(),
-                data.getPredictionHorizontalDeviation(),
-                data.getPredictionReducedHorizontalDeviation(),
-                data.getPredictionBestProfile());
-        if (context != null) {
-            data.setCurrentFrameContext(context.withPredictionOutput(output));
-        }
-        boolean hasPrediction = output.isReady();
-        if (trace != null) {
-            trace.addEntry(CheckStage.PREDICTION, "Prediction",
-                    System.nanoTime() - stageStart, hasPrediction, hasPrediction ? null : "no-prediction-frame");
-        }
-        return hasPrediction;
-    }
-
-    private void runPostPredictionChecks(Player player, MovementFrame frame, Location from, Location to,
-            PlayerData data, PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        for (AimProcessorCheck check : aimProcessorChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (AimModulo360Check check : aimModulo360Checks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (AimDuplicateLookCheck check : aimDuplicateLookChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (NoSlowCheck check : noSlowChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (SpeedCheck check : speedChecks) {
-            check.onMovementFrame(player, frame, from, to, data);
-        }
-        for (FlyCheck check : flyChecks) {
-            check.onMovementFrame(player, frame, to, data);
-        }
-        for (PhaseCheck check : phaseChecks) {
-            check.onMovementFrame(player, frame, to, data);
-        }
-        for (JesusCheck check : jesusChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (VelocityCheck check : velocityChecks) {
-            check.onMovementFrame(player, frame, data);
-        }
-        for (GroundSpoofCheck check : groundSpoofChecks) {
-            check.onMovementFrame(player, frame, to, data);
-        }
-        if (trace != null) {
-            trace.addEntry(CheckStage.POST, "NoSlow+Speed+Fly+Phase+Jesus+Velocity+GroundSpoof",
-                    System.nanoTime() - stageStart, true, null);
-        }
-    }
-
-    private void runLegacyFallbackChecks(Player player, PlayerData data, Location from, Location to,
-            MovementFrame frame, String reason, ToleranceBudgetEngine.BudgetSnapshot budget, PipelineTrace trace) {
-        if (!plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true)) {
-            if ("prediction-unavailable".equals(reason)
-                    && plugin.getConfig().getBoolean("pipeline.minimal-post-on-prediction-miss", true)) {
-                runMinimalPostChecks(player, data, frame, from, to, budget,
-                        "prediction-unavailable-minimal-post", trace);
-                return;
-            }
-            if (trace != null) {
-                trace.addEntry(CheckStage.FALLBACK, "legacy-fallback",
-                        0L, false, "disabled-in-config");
-            }
-            return;
-        }
-        legacyFallbackHitCount++;
-        long stageStart = System.nanoTime();
-        if (data.isDebugEnabled()) {
-            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " legacy onMove fallback active: " + reason
-                    + " source=" + frame.getSource().name() + " pathHits=" + legacyFallbackHitCount);
-        }
-
-        PlayerMoveEvent syntheticEvent = new PlayerMoveEvent(player, from, to);
-        for (InventoryMoveCheck check : inventoryMoveChecks) {
-            check.onMove(syntheticEvent, data);
-        }
-        for (NoSlowCheck check : noSlowChecks) {
-            check.onMove(syntheticEvent, data);
-        }
-        for (FlyCheck check : flyChecks) {
-            check.onMove(syntheticEvent, data);
-        }
-        for (PhaseCheck check : phaseChecks) {
-            check.onMove(syntheticEvent, data);
-        }
-        for (JesusCheck check : jesusChecks) {
-            check.onMove(syntheticEvent, data);
-        }
-        if (trace != null) {
-            trace.addEntry(CheckStage.FALLBACK, "legacy-fallback(" + reason + ")",
-                    System.nanoTime() - stageStart, true, null);
-        }
-    }
-
-    private void runMinimalPostChecks(Player player, PlayerData data, MovementFrame frame, Location from, Location to,
-            ToleranceBudgetEngine.BudgetSnapshot budget, String reasonCode, PipelineTrace trace) {
-        long stageStart = System.nanoTime();
-        minimalPostPredictionMissHitCount++;
-
-        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfig();
-        double movementAllowance = budget == null ? 0.0D : budget.getMovementAllowance();
-        double velocitySlack = budget == null ? 0.0D : budget.getVelocityResponseSlack();
-
-        double minimalSpeedThreshold = config.getDouble("pipeline.minimal-post.thresholds.speed-horizontal", 0.85D)
-                + movementAllowance
-                        * config.getDouble("pipeline.minimal-post.thresholds.speed-budget-multiplier", 3.0D);
-        int flyAirTicks = (int) Math.ceil(config.getDouble("pipeline.minimal-post.thresholds.fly-air-ticks", 14.0D)
-                + velocitySlack * config.getDouble("pipeline.minimal-post.thresholds.fly-slack-multiplier", 30.0D));
-        double flyMaxDy = config.getDouble("pipeline.minimal-post.thresholds.fly-max-dy", 0.035D)
-                + movementAllowance * config.getDouble("pipeline.minimal-post.thresholds.fly-dy-budget-multiplier", 0.8D);
-        double phaseRatio = config.getDouble("pipeline.minimal-post.thresholds.phase-min-overlap-ratio", 0.16D)
-                + movementAllowance
-                        * config.getDouble("pipeline.minimal-post.thresholds.phase-ratio-budget-multiplier", 0.8D);
-        double phaseVolume = config.getDouble("pipeline.minimal-post.thresholds.phase-min-overlap-volume", 0.05D)
-                + movementAllowance
-                        * config.getDouble("pipeline.minimal-post.thresholds.phase-volume-budget-multiplier", 0.25D);
-        int groundSpoofMinTicks = (int) Math
-                .ceil(config.getDouble("pipeline.minimal-post.thresholds.groundspoof-min-ticks", 5.0D)
-                        + velocitySlack
-                                * config.getDouble("pipeline.minimal-post.thresholds.groundspoof-slack-multiplier", 40.0D));
-        double groundSpoofBuffer = config.getDouble("pipeline.minimal-post.thresholds.groundspoof-buffer", 4.0D)
-                + movementAllowance
-                        * config.getDouble("pipeline.minimal-post.thresholds.groundspoof-budget-multiplier", 8.0D);
-
-        if (data.isDebugEnabled()) {
-            plugin.getLogger().info("[GLAC-DEBUG] " + player.getName() + " minimal post checks active: " + reasonCode
-                    + " source=" + frame.getSource().name() + " pathHits=" + minimalPostPredictionMissHitCount);
-        }
-
-        for (SpeedCheck check : speedChecks) {
-            check.onPredictionMissMinimal(player, frame, from, to, data, minimalSpeedThreshold);
-        }
-
-        Object oldFlyAirTicks = config.get("checks.Fly.air-ticks-threshold");
-        Object oldFlyDy = config.get("checks.Fly.max-dy");
-        Object oldPhaseRatio = config.get("checks.Phase.min-overlap-ratio");
-        Object oldPhaseVolume = config.get("checks.Phase.min-overlap-volume");
-        Object oldGroundSpoofMinTicks = config.get("checks.GroundSpoof.min-ticks");
-        Object oldGroundSpoofBuffer = config.get("checks.GroundSpoof.buffer");
-        try {
-            config.set("checks.Fly.air-ticks-threshold", Integer.valueOf(flyAirTicks));
-            config.set("checks.Fly.max-dy", Double.valueOf(flyMaxDy));
-            config.set("checks.Phase.min-overlap-ratio", Double.valueOf(phaseRatio));
-            config.set("checks.Phase.min-overlap-volume", Double.valueOf(phaseVolume));
-            config.set("checks.GroundSpoof.min-ticks", Integer.valueOf(groundSpoofMinTicks));
-            config.set("checks.GroundSpoof.buffer", Double.valueOf(groundSpoofBuffer));
-
-            for (FlyCheck check : flyChecks) {
-                check.onMovementFrame(player, frame, to, data);
-            }
-            for (PhaseCheck check : phaseChecks) {
-                check.onMovementFrame(player, frame, to, data);
-            }
-            for (GroundSpoofCheck check : groundSpoofChecks) {
-                check.onMovementFrame(player, frame, to, data);
-            }
-        } finally {
-            config.set("checks.Fly.air-ticks-threshold", oldFlyAirTicks);
-            config.set("checks.Fly.max-dy", oldFlyDy);
-            config.set("checks.Phase.min-overlap-ratio", oldPhaseRatio);
-            config.set("checks.Phase.min-overlap-volume", oldPhaseVolume);
-            config.set("checks.GroundSpoof.min-ticks", oldGroundSpoofMinTicks);
-            config.set("checks.GroundSpoof.buffer", oldGroundSpoofBuffer);
-        }
-
-        if (trace != null) {
-            trace.addEntry("minimal-post-checks", CheckStage.POST, PipelineTrace.Status.RAN,
-                    System.nanoTime() - stageStart, reasonCode);
-        }
-    }
-
-    public String describeMovementExecutionPath() {
-        boolean packetFirst = plugin.getConfig().getBoolean("pipeline.packet-first", true);
-        boolean packetActive = plugin.isPacketPipelineActive();
-        boolean bukkitFallback = plugin.getConfig().getBoolean("pipeline.bukkit-fallback", true);
-        if (packetFirst && packetActive) {
-            if (bukkitFallback) {
-                return "PACKET_FIRST_WITH_STALE_BUKKIT_FALLBACK";
-            }
-            return "PACKET_ONLY";
-        }
-        return "BUKKIT_MOVE_EVENT";
-    }
-
-    public String describeMovementPipelineTopology() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("preprocess(packet/state): Timer, InventoryMove");
-        sb.append(" | prediction(shared-frame): Prediction");
-        sb.append(" | post-prediction: NoSlow=").append(!noSlowChecks.isEmpty());
-        sb.append(", Speed=").append(!speedChecks.isEmpty());
-        sb.append(", Fly=").append(!flyChecks.isEmpty());
-        sb.append(", Phase=").append(!phaseChecks.isEmpty());
-        sb.append(", Velocity=").append(!velocityChecks.isEmpty());
-        sb.append(", Jesus=").append(!jesusChecks.isEmpty());
-        sb.append(", Reach=").append(!reachChecks.isEmpty()).append("(attack-stage)");
-        sb.append(" | legacy-onMove-fallback=")
-                .append(plugin.getConfig().getBoolean("pipeline.legacy-onmove-fallback", true));
-        return sb.toString();
+        movementPipeline.consumeMovementFrame(player, frame, null, null);
     }
 
     public void onInternalPacketEvent(InternalPacketEvent event) {
-        Player player = event.getPlayer();
-        if (player == null) {
-            return;
-        }
-        PlayerData data = plugin.getPlayerData(player);
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_MOVEMENT) {
-            data.setLastRawMovementPacketAt(event.getCreatedAtNanos());
-            data.incrementRawMovementPacketCounter();
-            Double x = event.getX();
-            Double y = event.getY();
-            Double z = event.getZ();
-            Float yaw = event.getYaw();
-            Float pitch = event.getPitch();
-            Boolean onGround = event.getOnGround();
-            if (x != null && y != null && z != null && yaw != null && pitch != null && onGround != null) {
-                data.recordClaimedMovement(x.doubleValue(), y.doubleValue(), z.doubleValue(),
-                        yaw.floatValue(), pitch.floatValue(), onGround.booleanValue());
-            }
-            // BadPacketsD + BadPacketsE: check pitch and look-only packets
-            Boolean hasPos = event.getHasPosition();
-            if (pitch != null && yaw != null) {
-                for (CrashA check : crashAChecks) {
-                    check.onRotation(player, data, yaw.floatValue(), pitch.floatValue());
-                }
-                for (BadPacketsD check : badPacketsDChecks) {
-                    check.onRotation(player, data, pitch.floatValue());
-                }
-            }
-            if (hasPos != null) {
-                for (BadPacketsE check : badPacketsEChecks) {
-                    check.onFlyingPacket(player, data, hasPos.booleanValue());
-                }
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_TRANSACTION_ACK) {
-            Short actionId = event.getTransactionActionId();
-            if (actionId != null) {
-                data.acknowledgeTransaction(actionId.shortValue(), event.getCreatedAtNanos());
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_KEEP_ALIVE) {
-            data.acknowledgeKeepAlive(System.currentTimeMillis());
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.SERVER_POSITION) {
-            data.setLastServerPositionSyncAt(event.getCreatedAtNanos());
-            Double x = event.getX();
-            Double y = event.getY();
-            Double z = event.getZ();
-            if (x != null && y != null && z != null) {
-                Short anchorTxId = event.getTransactionActionId();
-                data.beginTeleportSync(x.doubleValue(), y.doubleValue(), z.doubleValue(),
-                        anchorTxId == null ? (short) 0 : anchorTxId.shortValue());
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_USE_ENTITY) {
-            // BadPacketsC: self-interaction check
-            Integer entityId = event.getEntityId();
-            if (entityId != null) {
-                for (BadPacketsC check : badPacketsCChecks) {
-                    check.onUseEntity(player, data, entityId.intValue());
-                }
-            }
-            if (event.isAttackAction() && entityId != null) {
-                data.queueAttackSnapshot(entityId.intValue(), event.getCreatedAtNanos());
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.SERVER_ENTITY_VELOCITY) {
-            Integer entityId = event.getEntityId();
-            Integer vx = event.getVelocityX();
-            Integer vy = event.getVelocityY();
-            Integer vz = event.getVelocityZ();
-            if (entityId == null || vx == null || vy == null || vz == null) {
-                return;
-            }
-            for (VelocityCheck check : velocityChecks) {
-                check.onVelocityPacket(player, data, entityId.intValue(), vx.intValue(), vy.intValue(), vz.intValue(),
-                        event.getCreatedAtNanos());
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_HELD_ITEM_CHANGE) {
-            Integer slot = event.getSlot();
-            if (slot != null) {
-                data.clearUsingItemPacket();
-                for (BadPacketsA check : badPacketsAChecks) {
-                    check.onHeldItemChange(player, data, slot.intValue());
-                }
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_ENTITY_ACTION) {
-            Integer entityId = event.getEntityId();
-            Integer actionId = event.getActionId();
-            Integer jumpBoost = event.getJumpBoost();
-            Boolean isSprint = event.getSprintAction();
-            Boolean isSneak = event.getSneakAction();
-            if (entityId != null && actionId != null && jumpBoost != null) {
-                for (BadPacketsQ check : badPacketsQChecks) {
-                    check.onEntityAction(player, data, entityId.intValue(), actionId.intValue(), jumpBoost.intValue());
-                }
-            }
-            if (isSprint != null && isSprint.booleanValue()) {
-                boolean startSprint = actionId != null && actionId.intValue() == 4; // START_SPRINT=4, STOP_SPRINT=5
-                for (BadPacketsF check : badPacketsFChecks) {
-                    check.onSprintAction(player, data, startSprint);
-                }
-            }
-            if (isSneak != null && isSneak.booleanValue()) {
-                boolean startSneak = actionId != null && actionId.intValue() == 1; // 1.7: START_SNEAK=1, STOP_SNEAK=2
-                for (BadPacketsG check : badPacketsGChecks) {
-                    check.onSneakAction(player, data, startSneak);
-                }
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_ABILITIES) {
-            Boolean claimsFlying = event.getClaimsFlying();
-            if (claimsFlying != null) {
-                for (BadPacketsI check : badPacketsIChecks) {
-                    check.onAbilitiesPacket(player, data, claimsFlying.booleanValue());
-                }
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_BLOCK_DIG) {
-            Integer digAction = event.getDigAction();
-            if (digAction != null) {
-                if (digAction.intValue() == 5) {
-                    data.clearUsingItemPacket();
-                }
-                for (BadPacketsL check : badPacketsLChecks) {
-                    check.onDigAction(player, data, digAction.intValue());
-                }
-                Double x = event.getX();
-                Double y = event.getY();
-                Double z = event.getZ();
-                Integer face = event.getFace();
-                if (x != null && y != null && z != null && face != null) {
-                    data.queuePacketBlockDig(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
-                            digAction.intValue(), event.getCreatedAtNanos());
-                }
-            }
-            return;
-        }
-
-        if (event.getType() == InternalPacketEvent.Type.CLIENT_BLOCK_PLACE) {
-            Double x = event.getX();
-            Double y = event.getY();
-            Double z = event.getZ();
-            Integer face = event.getFace();
-            Float cursorX = event.getCursorX();
-            Float cursorY = event.getCursorY();
-            Float cursorZ = event.getCursorZ();
-            if (x != null && y != null && z != null && face != null
-                    && cursorX != null && cursorY != null && cursorZ != null) {
-                data.queuePacketBlockPlace(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
-                        cursorX.floatValue(), cursorY.floatValue(), cursorZ.floatValue(),
-                        event.getCreatedAtNanos());
-            }
-        }
+        packetIntakeCoordinator.onInternalPacketEvent(event);
     }
 
-    public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId) {
-        onUseEntityAttackPacket(attacker, targetEntityId, null);
+    public void onUseEntityAttackPacket(Player attacker, int targetEntityId) {
+        combatPipeline.onUseEntityAttackPacket(attacker, targetEntityId, null);
     }
 
-    public void onUseEntityAttackPacket(final Player attacker, final int targetEntityId,
-            final PlayerData.QueuedAttackSnapshot snapshot) {
-        Entity targetEntity = entityIdIndex.get(targetEntityId);
-        if (targetEntity == null) {
-            entityIdIndex.recordFallbackScan();
-            for (Entity entity : attacker.getWorld().getEntities()) {
-                if (entity.getEntityId() == targetEntityId) {
-                    targetEntity = entity;
-                    entityIdIndex.put(entity);
-                    break;
-                }
-            }
-        }
-        if (!(targetEntity instanceof Player)) {
-            return;
-        }
-
-        final Player target = (Player) targetEntity;
-        final PlayerData attackerData = plugin.getPlayerData(attacker);
-        attackerData.setDetectionContext("USE_ENTITY_PACKET", attackerData.getMoveWindow());
-        if (attackerData.isTeleportSyncPending()) {
-            if (attackerData.isDebugEnabled()) {
-                plugin.getLogger()
-                        .info("[GLAC-DEBUG] " + attacker.getName() + " attack packet blocked: teleport-sync-pending");
-            }
-            return;
-        }
-        PlayerData targetData = plugin.getPlayerData(target);
-        if (!target.isOnline() || target.isDead() || target.getHealth() <= 0.0D || targetData.isTeleportSyncPending()) {
-            return;
-        }
-        double[] targetBox = plugin.resolveEntityBox(target);
-        Location targetLoc = target.getLocation();
-        boolean teleportMarker = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= 400L;
-        boolean transactionAligned = targetData.hasRecentTransactionAck(2000L);
-        boolean enforceable = transactionAligned && !targetData.isTeleportSyncPending();
-        targetData.recordCurrentHitbox(targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(), targetBox[0], targetBox[1],
-                teleportMarker, transactionAligned, enforceable);
-        java.util.List<ac.grim.legacyac.combat.HitboxFrame> attackFrames = targetData.getHitboxHistorySnapshot(400L);
-        if (!attackFrames.isEmpty()) {
-            FrameContextSnapshot attackerFrameContext = attackerData.getCurrentFrameContext();
-            if (attackerFrameContext != null) {
-                attackerData.setCurrentFrameContext(attackerFrameContext.withTargetHitboxSnapshot(
-                        FrameContextSnapshot.HitboxSnapshot.fromFrame(attackFrames.get(0))));
-            }
-        }
-        final long backtrackWindow = resolveCombatBacktrackWindow(attackerData);
-        final ReachCheck.AttackEvaluation reachEval;
-        if (reachChecks.isEmpty()) {
-            reachEval = new ReachCheck.AttackEvaluation(true, 0.0D, 0L, false, true, ReachCheck.ReachEvidenceType.NONE);
-        } else {
-            reachEval = reachChecks.get(0).onUseEntityAttack(attacker, target, attackerData, backtrackWindow, snapshot);
-        }
-
-        if (attackerData.isDebugEnabled()) {
-            double baseReach = plugin.getConfig().getDouble("checks.Reach.Ray-Distance", 3.1D);
-            plugin.getLogger().info("[GLAC-DEBUG] " + attacker.getName() + " -> " + target.getName()
-                    + " Ray-Distance: " + String.format(Locale.ROOT, "%.2f", reachEval.getDirectDistance())
-                    + ", Config: " + String.format(Locale.ROOT, "%.2f", baseReach)
-                    + ", Box-Time-Offset: " + reachEval.getBoxTimeOffsetMs() + "ms");
-        }
-
-        plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                for (KillAuraCheck check : killAuraChecks) {
-                    check.onUseEntityAttack(attacker, target, attackerData, reachEval);
-                }
-            }
-        });
-    }
-
-    private long resolveCombatBacktrackWindow(PlayerData attackerData) {
-        long configuredMax = plugin.getConfig().getLong("combat.backtrack-window-ms", 400L);
-        double oneWayDelay = Math.max(0.0D, attackerData.getLastTransactionRttNanos() / 2000000.0D);
-        double jitterGrace = Math.min(80.0D, attackerData.getTransactionRttJitterNanos() / 1000000.0D);
-        long dynamicWindow = Math.round(oneWayDelay + jitterGrace + 40.0D);
-        if (dynamicWindow < 75L) {
-            dynamicWindow = 75L;
-        }
-        return Math.min(configuredMax, dynamicWindow);
+    public void onUseEntityAttackPacket(Player attacker, int targetEntityId, PlayerData.QueuedAttackSnapshot snapshot) {
+        combatPipeline.onUseEntityAttackPacket(attacker, targetEntityId, snapshot);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onAttack(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) {
-            return;
-        }
         if (plugin.isCombatPacketPipelineActive()) {
             return;
         }
-        Player attacker = (Player) event.getDamager();
-        PlayerData data = plugin.getPlayerData(attacker);
-        data.setDetectionContext("ENTITY_DAMAGE_EVENT", data.getMoveWindow());
-        for (ReachCheck check : reachChecks) {
-            check.onAttack(event, attacker, (Player) event.getEntity(), data);
-        }
-        for (KillAuraCheck check : killAuraChecks) {
-            check.onAttack(event, attacker, data);
-        }
+        combatPipeline.onAttackFallback(event);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -1111,14 +502,12 @@ public final class CheckManager implements Listener {
     public void onVelocity(PlayerVelocityEvent event) {
         PlayerData data = plugin.getPlayerData(event.getPlayer());
         data.setLastVelocityAt(System.currentTimeMillis());
-        // Store the actual XZ magnitude so speed check can account for it
         org.bukkit.util.Vector vel = event.getVelocity();
         double xzMagnitude = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
         data.setLastVelocityXZ(xzMagnitude);
         if (plugin.isCombatPacketPipelineActive()) {
             return;
         }
-        // Feed VelocityCheck
         for (VelocityCheck check : velocityChecks) {
             check.onVelocity(event, data);
         }
