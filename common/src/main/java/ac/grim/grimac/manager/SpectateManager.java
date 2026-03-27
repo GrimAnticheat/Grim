@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpectateManager implements StartableInitable, ReloadableInitable {
-
     private final Map<UUID, PreviousState> spectatingPlayers = new ConcurrentHashMap<>();
     private final Set<UUID> hiddenPlayers = ConcurrentHashMap.newKeySet();
     private final Set<String> allowedWorlds = ConcurrentHashMap.newKeySet();
