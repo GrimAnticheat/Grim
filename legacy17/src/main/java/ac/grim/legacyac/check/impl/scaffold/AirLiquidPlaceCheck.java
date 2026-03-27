@@ -43,6 +43,21 @@ public final class AirLiquidPlaceCheck extends Check {
         }
     }
 
+    public void onPacketPlace(Player player, PlayerData data, PlayerData.QueuedBlockPlaceSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+        Block placedAgainst = player.getWorld().getBlockAt(snapshot.getAgainstX(), snapshot.getAgainstY(), snapshot.getAgainstZ());
+        Material againstType = placedAgainst.getType();
+        if (againstType == Material.AIR) {
+            flag(player, data, 1.0D, "placedAgainstAir");
+            return;
+        }
+        if (isLiquid(againstType)) {
+            flag(player, data, 1.0D, "placedAgainstLiquid=" + againstType.name());
+        }
+    }
+
     private boolean isLiquid(Material mat) {
         return mat == Material.WATER || mat == Material.STATIONARY_WATER
                 || mat == Material.LAVA || mat == Material.STATIONARY_LAVA;

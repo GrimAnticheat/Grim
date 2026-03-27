@@ -38,6 +38,31 @@ public final class FarBreakCheck extends Check {
         }
     }
 
+    public void onPacketBreak(Player player, PlayerData data, PlayerData.QueuedBlockDigSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+        double eyeX = snapshot.getOriginX();
+        double eyeY = snapshot.getOriginY() + player.getEyeHeight();
+        double eyeZ = snapshot.getOriginZ();
+        double distance = distanceToAabb(eyeX, eyeY, eyeZ,
+                snapshot.getX(), snapshot.getY(), snapshot.getZ(),
+                snapshot.getX() + 1.0D, snapshot.getY() + 1.0D, snapshot.getZ() + 1.0D);
+        double maxReach = plugin.getConfig().getDouble("checks.FarBreak.max-distance", 5.1D);
+        if (isLagging(data)) {
+            maxReach += 0.15D;
+        }
+        if (distance > maxReach) {
+            double add = Math.max(0.25D, distance - maxReach);
+            double buffer = increaseBuffer(data, add);
+            if (buffer > plugin.getConfig().getDouble("checks.FarBreak.buffer", 1.25D)) {
+                flag(player, data, add, "distance=" + String.format(java.util.Locale.ROOT, "%.3f", distance));
+            }
+        } else {
+            coolDownScore(data);
+        }
+    }
+
     private double distanceToAabb(double px, double py, double pz,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ) {

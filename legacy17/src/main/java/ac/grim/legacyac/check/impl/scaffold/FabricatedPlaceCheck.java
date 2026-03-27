@@ -52,4 +52,28 @@ public final class FabricatedPlaceCheck extends Check {
             coolDownScore(data);
         }
     }
+
+    public void onPacketPlace(Player player, PlayerData data, PlayerData.QueuedBlockPlaceSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+        double minBound = 0.0D;
+        double maxBound = 1.0D;
+        double cursorX = snapshot.getCursorX();
+        double cursorY = snapshot.getCursorY();
+        double cursorZ = snapshot.getCursorZ();
+        boolean invalid = cursorX < minBound - MAX_DOUBLE_ERROR || cursorY < minBound - MAX_DOUBLE_ERROR
+                || cursorZ < minBound - MAX_DOUBLE_ERROR
+                || cursorX > maxBound + Math.ulp(1.0F) || cursorY > maxBound + Math.ulp(1.0F)
+                || cursorZ > maxBound + Math.ulp(1.0F);
+        if (invalid) {
+            double buffer = increaseBuffer(data, 1.0D);
+            if (buffer > plugin.getConfig().getDouble("checks.FabricatedPlace.buffer", 1.0D)) {
+                flag(player, data, 1.0D,
+                        "cursor=" + String.format(java.util.Locale.ROOT, "%.4f,%.4f,%.4f", cursorX, cursorY, cursorZ));
+            }
+        } else {
+            coolDownScore(data);
+        }
+    }
 }

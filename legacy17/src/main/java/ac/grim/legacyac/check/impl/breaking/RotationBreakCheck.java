@@ -39,6 +39,30 @@ public final class RotationBreakCheck extends Check {
         }
     }
 
+    public void onPacketBreak(Player player, PlayerData data, PlayerData.QueuedBlockDigSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+        Location eye = new Location(player.getWorld(), snapshot.getOriginX(),
+                snapshot.getOriginY() + player.getEyeHeight(), snapshot.getOriginZ(), snapshot.getYaw(),
+                snapshot.getPitch());
+        Vector direction = eye.getDirection();
+        boolean intersects = rayIntersectsAABB(
+                eye.getX(), eye.getY(), eye.getZ(),
+                direction.getX(), direction.getY(), direction.getZ(),
+                snapshot.getX(), snapshot.getY(), snapshot.getZ(),
+                snapshot.getX() + 1.0D, snapshot.getY() + 1.0D, snapshot.getZ() + 1.0D,
+                plugin.getConfig().getDouble("checks.RotationBreak.max-reach", 5.2D));
+        if (!intersects) {
+            double buffer = increaseBuffer(data, 1.0D);
+            if (buffer > plugin.getConfig().getDouble("checks.RotationBreak.buffer", 1.25D)) {
+                flag(player, data, 1.0D, "rotation-miss");
+            }
+        } else {
+            coolDownScore(data);
+        }
+    }
+
     private boolean rayIntersectsAABB(double ox, double oy, double oz,
             double dx, double dy, double dz,
             double minX, double minY, double minZ,

@@ -76,6 +76,50 @@ public final class RotationPlaceCheck extends Check {
         }
     }
 
+    public void onPacketPlace(Player player, PlayerData data, PlayerData.QueuedBlockPlaceSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+
+        Location eyeLocation = new Location(player.getWorld(), snapshot.getOriginX(),
+                snapshot.getOriginY() + player.getEyeHeight(), snapshot.getOriginZ(), snapshot.getYaw(),
+                snapshot.getPitch());
+        Vector direction = eyeLocation.getDirection();
+
+        double reach = plugin.getConfig().getDouble("checks.RotationPlace.max-reach", 6.0D);
+
+        double bx = snapshot.getAgainstX();
+        double by = snapshot.getAgainstY();
+        double bz = snapshot.getAgainstZ();
+        boolean intersects = rayIntersectsAABB(
+                eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ(),
+                direction.getX(), direction.getY(), direction.getZ(),
+                bx, by, bz, bx + 1.0D, by + 1.0D, bz + 1.0D,
+                reach);
+
+        if (!intersects) {
+            double px = snapshot.getPlacedX();
+            double py = snapshot.getPlacedY();
+            double pz = snapshot.getPlacedZ();
+            intersects = rayIntersectsAABB(
+                    eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ(),
+                    direction.getX(), direction.getY(), direction.getZ(),
+                    px, py, pz, px + 1.0D, py + 1.0D, pz + 1.0D,
+                    reach);
+        }
+
+        if (!intersects) {
+            double buffer = increaseBuffer(data, 1.0D);
+            if (buffer > plugin.getConfig().getDouble("checks.RotationPlace.buffer", 2.0D)) {
+                flag(player, data, 1.0D,
+                        "notLookingAtBlock yaw=" + String.format("%.1f", snapshot.getYaw())
+                                + " pitch=" + String.format("%.1f", snapshot.getPitch())
+                                + " block=" + snapshot.getAgainstX() + "," + snapshot.getAgainstY() + ","
+                                + snapshot.getAgainstZ());
+            }
+        }
+    }
+
     /**
      * Slab method ray-AABB intersection test.
      */

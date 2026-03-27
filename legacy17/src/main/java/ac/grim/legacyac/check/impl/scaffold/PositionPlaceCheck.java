@@ -65,4 +65,34 @@ public final class PositionPlaceCheck extends Check {
             }
         }
     }
+    public void onPacketPlace(Player player, PlayerData data, PlayerData.QueuedBlockPlaceSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+
+        int dx = snapshot.getPlacedX() - snapshot.getAgainstX();
+        int dy = snapshot.getPlacedY() - snapshot.getAgainstY();
+        int dz = snapshot.getPlacedZ() - snapshot.getAgainstZ();
+
+        double faceX = snapshot.getAgainstX() + 0.5D + dx * 0.5D;
+        double faceY = snapshot.getAgainstY() + 0.5D + dy * 0.5D;
+        double faceZ = snapshot.getAgainstZ() + 0.5D + dz * 0.5D;
+
+        Location eyeLocation = new Location(player.getWorld(), snapshot.getOriginX(),
+                snapshot.getOriginY() + player.getEyeHeight(), snapshot.getOriginZ(), snapshot.getYaw(),
+                snapshot.getPitch());
+        double toPlayerX = eyeLocation.getX() - faceX;
+        double toPlayerY = eyeLocation.getY() - faceY;
+        double toPlayerZ = eyeLocation.getZ() - faceZ;
+        double dot = toPlayerX * dx + toPlayerY * dy + toPlayerZ * dz;
+
+        if (dot < -0.01D) {
+            double buffer = increaseBuffer(data, 1.0D);
+            if (buffer > plugin.getConfig().getDouble("checks.PositionPlace.buffer", 2.0D)) {
+                flag(player, data, 1.0D,
+                        "behindFace dot=" + String.format("%.2f", dot)
+                                + " face=" + dx + "," + dy + "," + dz);
+            }
+        }
+    }
 }

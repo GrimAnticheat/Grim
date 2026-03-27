@@ -52,6 +52,7 @@ public final class VelocityCheck extends Check {
             preTxId = plugin.transactionSync().sendTransactionNow(player);
             postTxId = plugin.transactionSync().sendTransactionNow(player);
         }
+        data.recordPendingVelocityChange(postTxId);
 
         long txWindowMaxMs = getMergedLong("tx-window-max-ms", 500L);
         data.startVelocitySample(sentAtNanos, preTxId, postTxId,

@@ -83,7 +83,7 @@ public final class ReachCheck extends Check {
         boolean recentTeleportOrPearl = System.currentTimeMillis() - victimData.getLastTeleportOrPearlAt() <= teleportGrace;
         double bonus = getAdaptiveReachBonus(data, victimData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, data, victimData, maxReach, 400L, strafeSyncMargin);
+        AttackEvaluation eval = evaluate(attacker, data, victimData, maxReach, 400L, strafeSyncMargin, null);
         if (!eval.isLegal()) {
             handleViolation(event, attacker, data, eval, maxReach, baseReach, bonus, recentTeleportOrPearl, "event");
         } else {
@@ -97,6 +97,11 @@ public final class ReachCheck extends Check {
 
     public AttackEvaluation onUseEntityAttack(Player attacker, Player target, PlayerData attackerData,
             long backtrackMillis) {
+        return onUseEntityAttack(attacker, target, attackerData, backtrackMillis, null);
+    }
+
+    public AttackEvaluation onUseEntityAttack(Player attacker, Player target, PlayerData attackerData,
+            long backtrackMillis, PlayerData.QueuedAttackSnapshot snapshot) {
         if (!isEnabled() || isExempt(attacker, attackerData)) {
             return new AttackEvaluation(true, 0.0D, 0L, false, true, ReachEvidenceType.NONE);
         }
@@ -113,7 +118,8 @@ public final class ReachCheck extends Check {
         boolean recentTeleportOrPearl = System.currentTimeMillis() - targetData.getLastTeleportOrPearlAt() <= teleportGrace;
         double bonus = getAdaptiveReachBonus(attackerData, targetData) + (recentTeleportOrPearl ? strafeSyncMargin : 0.0D);
         double maxReach = baseReach + bonus;
-        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis, strafeSyncMargin);
+        AttackEvaluation eval = evaluate(attacker, attackerData, targetData, maxReach, backtrackMillis,
+                strafeSyncMargin, snapshot);
         recentPacketReach.put(attacker.getUniqueId(), new RecentPacketReach(target.getUniqueId(), System.currentTimeMillis()));
 
         if (!eval.isLegal()) {
@@ -228,10 +234,19 @@ public final class ReachCheck extends Check {
     }
 
     private AttackEvaluation evaluate(Player attacker, PlayerData attackerData, PlayerData targetData, double maxReach,
-            long backtrackMillis, double strafeSyncMargin) {
-        Location eyeLoc = attacker.getEyeLocation();
+            long backtrackMillis, double strafeSyncMargin, PlayerData.QueuedAttackSnapshot snapshot) {
+        Location eyeLoc;
+        Vector primaryDir;
+        if (snapshot != null) {
+            eyeLoc = new Location(attacker.getWorld(), snapshot.getOriginX(),
+                    snapshot.getOriginY() + attacker.getEyeHeight(), snapshot.getOriginZ(),
+                    snapshot.getYaw(), snapshot.getPitch());
+            primaryDir = eyeLoc.getDirection();
+        } else {
+            eyeLoc = attacker.getEyeLocation();
+            primaryDir = eyeLoc.getDirection();
+        }
         Vector origin = eyeLoc.toVector();
-        Vector primaryDir = eyeLoc.getDirection();
         if (primaryDir.lengthSquared() < 1.0E-9D) {
             return new AttackEvaluation(false, 999.0D, -1L, false, false, ReachEvidenceType.REACH);
         }

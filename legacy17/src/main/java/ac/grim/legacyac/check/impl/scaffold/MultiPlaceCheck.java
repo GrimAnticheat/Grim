@@ -45,4 +45,29 @@ public final class MultiPlaceCheck extends Check {
 
         data.setLastBlockPlaceTimeMs(now);
     }
+
+    public void onPacketPlace(Player player, PlayerData data, PlayerData.QueuedBlockPlaceSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long lastPlace = data.getLastBlockPlaceTimeMs();
+        int serverTickMs = 50;
+        if (lastPlace != 0L && (now - lastPlace) < serverTickMs) {
+            int sameTickCount = data.incrementSameTickPlaceCount();
+            int maxPerTick = plugin.getConfig().getInt("checks.MultiPlace.max-per-tick", 1);
+            if (sameTickCount > maxPerTick) {
+                double buffer = increaseBuffer(data, 1.0D);
+                if (buffer > plugin.getConfig().getDouble("checks.MultiPlace.buffer", 2.0D)) {
+                    flag(player, data, 1.0D,
+                            "placesThisTick=" + sameTickCount
+                                    + " interval=" + (now - lastPlace) + "ms");
+                }
+            }
+        } else {
+            data.resetSameTickPlaceCount();
+        }
+        data.setLastBlockPlaceTimeMs(now);
+    }
 }

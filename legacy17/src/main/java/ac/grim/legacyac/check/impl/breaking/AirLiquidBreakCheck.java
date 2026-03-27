@@ -30,4 +30,21 @@ public final class AirLiquidBreakCheck extends Check {
             }
         }
     }
+
+    public void onPacketBreak(Player player, PlayerData data, PlayerData.QueuedBlockDigSnapshot snapshot) {
+        if (!isEnabled() || isExempt(player, data)) {
+            return;
+        }
+        Material type = data.getCompensatedBlockType(player, snapshot.getX(), snapshot.getY(), snapshot.getZ());
+        boolean invalid = type == Material.AIR
+                || type == Material.WATER || type == Material.STATIONARY_WATER
+                || type == Material.LAVA || type == Material.STATIONARY_LAVA
+                || type == Material.WEB;
+        if (invalid) {
+            double buffer = increaseBuffer(data, 1.0D);
+            if (buffer > plugin.getConfig().getDouble("checks.AirLiquidBreak.buffer", 1.0D)) {
+                flag(player, data, 1.0D, "block=" + type.name());
+            }
+        }
+    }
 }
