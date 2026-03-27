@@ -26,6 +26,10 @@ public final class ProtocolLibBridgeManager {
     private final EntityBoxCache entityBoxCache = new EntityBoxCache();
     private final ProtocolLibPacketReader packetReader;
     private ProtocolManager protocolManager;
+    private volatile boolean movementCaptureHealthy = true;
+    private volatile boolean placeCaptureHealthy = true;
+    private volatile boolean combatCaptureHealthy = true;
+    private volatile boolean worldCaptureHealthy = true;
 
     public ProtocolLibBridgeManager(LegacyAntiCheatPlugin plugin) {
         this.plugin = plugin;
@@ -51,6 +55,7 @@ public final class ProtocolLibBridgeManager {
             registerBadPacketsListeners();
             registerBlockPlaceCaptureListener();
             registerWorldStateListeners();
+            plugin.getLogger().info("[GLAC] ProtocolLib packet self-check armed: movement=true, place=true, combat=true, world=true");
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("[GLAC] Failed to start ProtocolLib bridge: " + throwable.getMessage());
@@ -69,6 +74,22 @@ public final class ProtocolLibBridgeManager {
             }
         }
         listeners.clear();
+    }
+
+    public boolean isMovementPipelineHealthy() {
+        return movementCaptureHealthy;
+    }
+
+    public boolean isPlaceCaptureHealthy() {
+        return placeCaptureHealthy;
+    }
+
+    public boolean isCombatCaptureHealthy() {
+        return combatCaptureHealthy;
+    }
+
+    public boolean isWorldCaptureHealthy() {
+        return worldCaptureHealthy;
     }
 
     private void registerMovementListener() {
@@ -96,6 +117,7 @@ public final class ProtocolLibBridgeManager {
                     Double packetZ = packetReader.readDoubleValue(handle, 2, "z", "c");
                     if (packetX == null || packetY == null || packetZ == null) {
                         packetReader.warnReflectionFailureOnce(type.name(), "movement-position");
+                        disableMovementCapture("movement-position");
                         return;
                     }
                     x = packetX.doubleValue();
@@ -110,6 +132,7 @@ public final class ProtocolLibBridgeManager {
                     Float packetPitch = packetReader.readFloatValue(handle, 1, "pitch", "e");
                     if (packetYaw == null || packetPitch == null) {
                         packetReader.warnReflectionFailureOnce(type.name(), "movement-look");
+                        disableMovementCapture("movement-look");
                         return;
                     }
                     yaw = packetYaw.floatValue();
@@ -119,13 +142,15 @@ public final class ProtocolLibBridgeManager {
                 Boolean onGround = packetReader.readBooleanValue(handle, 0, "onGround", "f", "g");
                 if (onGround == null) {
                     packetReader.warnReflectionFailureOnce(type.name(), "movement-ground");
+                    disableMovementCapture("movement-ground");
                     return;
                 }
 
                 long now = System.nanoTime();
                 String packetName = handle == null ? type.name() : handle.getClass().getSimpleName();
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.clientMovementEx(player, packetName, now, hasPosition, yaw, pitch));
+                        InternalPacketEvent.clientMovementEx(player, packetName, now, x, y, z,
+                                onGround.booleanValue(), hasPosition, yaw, pitch));
 
                 if (hasPosition) {
                     data.tryConfirmTeleportSync(x, y, z);
@@ -150,6 +175,7 @@ public final class ProtocolLibBridgeManager {
                 boolean attack = packetReader.isUseEntityAttack(action);
                 if (entityId == null) {
                     packetReader.warnReflectionFailureOnce("USE_ENTITY", "entityId");
+                    disableCombatCapture("use-entity");
                     return;
                 }
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
@@ -169,11 +195,13 @@ public final class ProtocolLibBridgeManager {
                 Double z = packetReader.readDoubleValue(handle, 2, "c", "z");
                 if (x == null || y == null || z == null) {
                     packetReader.warnReflectionFailureOnce("SERVER_POSITION", "xyz");
+                    disableMovementCapture("server-position");
                     return;
                 }
+                short anchorTxId = reserveDeferredTransaction(event.getPlayer());
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.serverPosition(event.getPlayer(), x.doubleValue(), y.doubleValue(), z.doubleValue(),
-                                System.nanoTime()));
+                        InternalPacketEvent.serverPosition(event.getPlayer(), x.doubleValue(), y.doubleValue(),
+                                z.doubleValue(), anchorTxId, System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(adapter);
@@ -190,6 +218,7 @@ public final class ProtocolLibBridgeManager {
                 Integer vz = packetReader.readIntegerValue(handle, 3, "d", "z");
                 if (entityId == null || vx == null || vy == null || vz == null) {
                     packetReader.warnReflectionFailureOnce("ENTITY_VELOCITY", "entityId/velocity");
+                    disableCombatCapture("entity-velocity");
                     return;
                 }
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
@@ -299,13 +328,19 @@ public final class ProtocolLibBridgeManager {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Object handle = event.getPacket().getHandle();
+                Integer x = packetReader.readIntegerValue(handle, 0, "a", "x");
+                Integer y = packetReader.readIntegerValue(handle, 1, "b", "y");
+                Integer z = packetReader.readIntegerValue(handle, 2, "c", "z");
+                Integer face = packetReader.readIntegerValue(handle, 3, "d", "face");
                 Integer action = packetReader.resolveDigAction(handle);
-                if (action == null) {
-                    packetReader.warnReflectionFailureOnce("BLOCK_DIG", "digAction");
+                if (action == null || x == null || y == null || z == null || face == null) {
+                    packetReader.warnReflectionFailureOnce("BLOCK_DIG", "coords/action");
+                    disablePlaceCapture("block-dig");
                     return;
                 }
                 ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
-                        InternalPacketEvent.clientBlockDig(event.getPlayer(), action.intValue(), System.nanoTime()));
+                        InternalPacketEvent.clientBlockDig(event.getPlayer(), x.intValue(), y.intValue(), z.intValue(),
+                                face.intValue(), action.intValue(), System.nanoTime()));
             }
         };
         protocolManager.addPacketListener(blockDigAdapter);
@@ -327,11 +362,13 @@ public final class ProtocolLibBridgeManager {
                     if (x == null || y == null || z == null || face == null
                             || cursorX == null || cursorY == null || cursorZ == null) {
                         packetReader.warnReflectionFailureOnce("BLOCK_PLACE", "placeCursor");
+                        disablePlaceCapture("block-place");
                         return;
                     }
-                    PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(event.getPlayer());
-                    data.recordClientBlockPlacePacket(x.intValue(), y.intValue(), z.intValue(), face.intValue(),
-                            cursorX.floatValue(), cursorY.floatValue(), cursorZ.floatValue());
+                    ((LegacyAntiCheatPlugin) plugin).checks().onInternalPacketEvent(
+                            InternalPacketEvent.clientBlockPlace(event.getPlayer(), x.intValue(), y.intValue(),
+                                    z.intValue(), face.intValue(), cursorX.floatValue(), cursorY.floatValue(),
+                                    cursorZ.floatValue(), System.nanoTime()));
                 }
             };
             protocolManager.addPacketListener(adapter);
@@ -352,15 +389,18 @@ public final class ProtocolLibBridgeManager {
                 PlayerData data = ((LegacyAntiCheatPlugin) plugin).getPlayerData(player);
                 PacketType type = event.getPacketType();
                 Object handle = event.getPacket().getHandle();
+                short anchorTxId = reserveDeferredTransaction(player);
 
                 if (type == PacketType.Play.Server.BLOCK_CHANGE) {
                     BlockChangeSnapshot snapshot = readBlockChange(handle);
                     if (snapshot != null) {
                         data.queueCompensatedBlockChange(player, snapshot.x, snapshot.y, snapshot.z,
-                                snapshot.material, snapshot.data, "packet:block-change:" + snapshot.material.name());
+                                snapshot.material, snapshot.data, anchorTxId,
+                                "packet:block-change:" + snapshot.material.name());
                     } else {
+                        disableWorldCapture("block-change");
                         data.queueCompensatedChunkRefresh(player, player.getLocation().getBlockX() >> 4,
-                                player.getLocation().getBlockZ() >> 4, "packet:block-change-fallback");
+                                player.getLocation().getBlockZ() >> 4, anchorTxId, "packet:block-change-fallback");
                     }
                     return;
                 }
@@ -368,7 +408,8 @@ public final class ProtocolLibBridgeManager {
                 if (type == PacketType.Play.Server.MULTI_BLOCK_CHANGE || type == PacketType.Play.Server.MAP_CHUNK) {
                     int chunkX = readIntField(handle, 0, "a", "chunkX");
                     int chunkZ = readIntField(handle, 1, "b", "chunkZ");
-                    data.queueCompensatedChunkRefresh(player, chunkX, chunkZ, "packet:" + type.name().toLowerCase());
+                    data.queueCompensatedChunkRefresh(player, chunkX, chunkZ, anchorTxId,
+                            "packet:" + type.name().toLowerCase());
                     return;
                 }
 
@@ -377,9 +418,11 @@ public final class ProtocolLibBridgeManager {
                     int[] zs = readIntArrayField(handle, 1, "d", "zChunks");
                     if (xs != null && zs != null) {
                         for (int index = 0; index < xs.length && index < zs.length; index++) {
-                            data.queueCompensatedChunkRefresh(player, xs[index], zs[index], "packet:map_chunk_bulk");
+                            data.queueCompensatedChunkRefresh(player, xs[index], zs[index], anchorTxId,
+                                    "packet:map_chunk_bulk");
                         }
                     } else {
+                        disableWorldCapture("map-chunk-bulk");
                         data.preloadCompensatedWorld(player, 2);
                     }
                 }
@@ -501,6 +544,60 @@ public final class ProtocolLibBridgeManager {
             }
         }
         throw new NoSuchFieldException(name);
+    }
+
+    private short reserveDeferredTransaction(final Player player) {
+        if (plugin.transactionSync() == null || player == null) {
+            return 0;
+        }
+        final PlayerData data = plugin.getPlayerData(player);
+        final short actionId = data.nextTransactionActionId();
+        plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    return;
+                }
+                plugin.transactionSync().sendReservedTransaction(player, actionId);
+            }
+        });
+        return actionId;
+    }
+
+    private void disableMovementCapture(String reason) {
+        if (!movementCaptureHealthy) {
+            return;
+        }
+        movementCaptureHealthy = false;
+        plugin.getLogger().warning("[GLAC] ProtocolLib movement capture degraded: " + reason
+                + ". Falling back to Bukkit movement pipeline.");
+    }
+
+    private void disablePlaceCapture(String reason) {
+        if (!placeCaptureHealthy) {
+            return;
+        }
+        placeCaptureHealthy = false;
+        plugin.getLogger().warning("[GLAC] ProtocolLib block-place capture degraded: " + reason
+                + ". Falling back to Bukkit place checks.");
+    }
+
+    private void disableCombatCapture(String reason) {
+        if (!combatCaptureHealthy) {
+            return;
+        }
+        combatCaptureHealthy = false;
+        plugin.getLogger().warning("[GLAC] ProtocolLib combat capture degraded: " + reason
+                + ". Falling back to event-driven combat checks.");
+    }
+
+    private void disableWorldCapture(String reason) {
+        if (!worldCaptureHealthy) {
+            return;
+        }
+        worldCaptureHealthy = false;
+        plugin.getLogger().warning("[GLAC] ProtocolLib world-state capture degraded: " + reason
+                + ". Falling back to direct Bukkit world state.");
     }
 
     private static final class BlockChangeSnapshot {

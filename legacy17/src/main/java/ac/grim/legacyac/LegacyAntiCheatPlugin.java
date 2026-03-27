@@ -140,6 +140,18 @@ public final class LegacyAntiCheatPlugin extends JavaPlugin {
     }
 
     public boolean isPacketPipelineActive() {
-        return packetPipelineActive;
+        return packetPipelineActive && (protocolLibBridgeManager == null || protocolLibBridgeManager.isMovementPipelineHealthy());
+    }
+
+    public boolean isPlacePacketPipelineActive() {
+        return isPacketPipelineActive() && protocolLibBridgeManager != null && protocolLibBridgeManager.isPlaceCaptureHealthy();
+    }
+
+    public boolean isCombatPacketPipelineActive() {
+        return isPacketPipelineActive() && protocolLibBridgeManager != null && protocolLibBridgeManager.isCombatCaptureHealthy();
+    }
+
+    public boolean isWorldPacketPipelineActive() {
+        return isPacketPipelineActive() && protocolLibBridgeManager != null && protocolLibBridgeManager.isWorldCaptureHealthy();
     }
 }

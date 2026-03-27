@@ -41,10 +41,18 @@ public final class TransactionSyncManager {
         return sendTransaction(player);
     }
 
+    public boolean sendReservedTransaction(Player player, short actionId) {
+        return sendTransaction(player, actionId) != 0;
+    }
+
     private short sendTransaction(Player player) {
+        PlayerData data = plugin.getPlayerData(player);
+        return sendTransaction(player, data.nextTransactionActionId());
+    }
+
+    private short sendTransaction(Player player, short actionId) {
         try {
             PlayerData data = plugin.getPlayerData(player);
-            short actionId = data.nextTransactionActionId();
 
             Object handle = player.getClass().getMethod("getHandle").invoke(player);
             Object connection = findField(handle.getClass(), "playerConnection").get(handle);
