@@ -54,8 +54,13 @@ public final class PlayerBaseTick {
             player.trackBaseTickAddition(flyingShift);
         }
 
-        updateInWaterStateAndDoFluidPushing(player);
-        updateFluidOnEyes(player);
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) {
+            updateInWaterStateAndDoFluidPushing(player);
+            updateFluidOnEyes(player);
+        } else {
+            player.wasEyeInWater = player.fluidInteraction.isEyeInFluid(FluidTag.WATER);
+            updateFluidInteraction(player);
+        }
         updateSwimming(player);
 
         // If in lava, fall distance is multiplied by 0.5
@@ -537,16 +542,28 @@ public final class PlayerBaseTick {
             }
         }
 
-        if (tag == FluidTag.LAVA) {
-            player.slightlyTouchingLava = hasTouched && d2 <= 0.4D;
-        }
-
-        if (tag == FluidTag.WATER) {
-            player.slightlyTouchingWater = hasTouched && d2 <= 0.4D;
-        }
-
         player.fluidHeight.put(tag, d2);
         return hasTouched;
+    }
+
+    private static boolean updateFluidInteraction(GrimPlayer player) {
+        player.fluidInteraction.update(player, !player.isPushedByFluid());
+        boolean inWater = player.fluidInteraction.isInFluid(FluidTag.WATER);
+        boolean inLava = player.fluidInteraction.isInFluid(FluidTag.LAVA);
+
+        player.wasTouchingWater = inWater;
+        if (player.isPushedByFluid()) {
+            if (inWater) {
+                player.fluidInteraction.applyCurrentTo(FluidTag.WATER, player, 0.014);
+            }
+
+            if (inLava) {
+                double scale = player.dimensionType.getAttributes().getOrDefault(EnvironmentAttributes.GAMEPLAY_FAST_LAVA) ? 0.007 : 0.0023333333333333335;
+                player.fluidInteraction.applyCurrentTo(FluidTag.LAVA, player, scale);
+            }
+        }
+
+        return inWater || inLava;
     }
 
     private static boolean suffocatesAt(GrimPlayer player, int x, int z) {

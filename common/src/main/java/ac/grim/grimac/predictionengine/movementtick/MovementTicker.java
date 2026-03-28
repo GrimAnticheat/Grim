@@ -448,7 +448,7 @@ public class MovementTicker {
                 doLavaMove();
 
                 // Lava movement changed in 1.16
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.slightlyTouchingLava) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getFluidHeight(FluidTag.LAVA) <= 0.4D) {
                     player.clientVelocity = player.clientVelocity.multiply(0.5D, 0.800000011920929D, 0.5D);
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {
@@ -492,7 +492,7 @@ public class MovementTicker {
 
         PacketEntity vehicle = player.getVehicle();
         boolean canFloatWhileRidden = EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type);
-        double fluidHeight = player.fluidHeight.getDouble(FluidTag.WATER);
+        double fluidHeight = player.getFluidHeight(FluidTag.WATER);
         if (canFloatWhileRidden && player.inVehicle() && fluidHeight > 0.4) {
             player.clientVelocity.add(0.0, 0.04F, 0.0);
         }

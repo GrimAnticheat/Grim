@@ -79,7 +79,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(0, 0.04f, 0), vector, VectorData.VectorType.Jump));
             }
 
-            if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
+            if (player.getFluidHeight(FluidTag.WATER) <= 0.4D && player.lastOnGround && !player.onGround) {
                 Vector3dm withJump = vector.vector.clone();
                 super.doJump(player, withJump);
                 existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
