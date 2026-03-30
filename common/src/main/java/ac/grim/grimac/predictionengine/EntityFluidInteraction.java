@@ -10,13 +10,12 @@ import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 
-import java.util.Map;
+import java.util.EnumMap;
 import java.util.Map.Entry;
 
 public class EntityFluidInteraction {
-    private final Map<FluidTag, EntityFluidInteraction.Tracker> trackerByFluid = new Reference2ObjectArrayMap<>();
+    private final EnumMap<FluidTag, EntityFluidInteraction.Tracker> trackerByFluid = new EnumMap<>(FluidTag.class);
 
     public EntityFluidInteraction(final FluidTag... fluids) {
         for (FluidTag tagKey : fluids) {
@@ -26,54 +25,61 @@ public class EntityFluidInteraction {
 
     public void update(final GrimPlayer player, final boolean ignoreCurrent) {
         this.trackerByFluid.values().forEach(EntityFluidInteraction.Tracker::reset);
+
         SimpleCollisionBox aabb = player.boundingBox.copy().expand(-0.001);
-        if (aabb != null) {
-            int minX = GrimMath.floor(aabb.minX);
-            int minY = GrimMath.floor(aabb.minY);
-            int minZ = GrimMath.floor(aabb.minZ);
-            int maxX = GrimMath.ceil(aabb.maxX) - 1;
-            int maxY = GrimMath.ceil(aabb.maxY) - 1;
-            int maxZ = GrimMath.ceil(aabb.maxZ) - 1;
-            if (hasFluidAndLoaded(player.compensatedWorld, minX - 1, minY, minZ - 1, maxX + 1, maxY, maxZ + 1)) {
-                double aabbMinY = player.boundingBox.minY;
 
-                int playerX = GrimMath.floor(player.lastX);
-                double playerEyeY = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
-                int playerZ = GrimMath.floor(player.lastZ);
+        int minX = GrimMath.floor(aabb.minX);
+        int minY = GrimMath.floor(aabb.minY);
+        int minZ = GrimMath.floor(aabb.minZ);
+        int maxX = GrimMath.ceil(aabb.maxX) - 1;
+        int maxY = GrimMath.ceil(aabb.maxY) - 1;
+        int maxZ = GrimMath.ceil(aabb.maxZ) - 1;
 
-                FluidTag fluid = null;
-                EntityFluidInteraction.Tracker tracker = null;
+        if (!hasFluidAndLoaded(player.compensatedWorld, minX - 1, minY, minZ - 1, maxX + 1, maxY, maxZ + 1)) {
+            return;
+        }
 
-                for (int x = minX; x <= maxX; x++) {
-                    for (int y = minY; y <= maxY; y++) {
-                        for (int z = minZ; z <= maxZ; z++) {
-                            double fluidHeight = player.compensatedWorld.getFluidLevelAt(x, y, z);
-                            if (fluidHeight != 0) {
-                                double fluidHeightToWorld = (double) y + fluidHeight;
-                                if (!(fluidHeightToWorld < aabb.minY)) {
-                                    FluidTag newFluid = Materials.isWater(player.getClientVersion(), player.compensatedWorld.getBlock(x, y, z)) ? FluidTag.WATER : FluidTag.LAVA;
-                                    if (newFluid != fluid) {
-                                        fluid = newFluid;
-                                        tracker = this.getTrackerFor(newFluid);
-                                    }
+        double aabbMinY = player.boundingBox.minY;
 
-                                    if (tracker != null) {
-                                        if (x == playerX && z == playerZ && playerEyeY >= (double) y && playerEyeY <= fluidHeightToWorld) {
-                                            tracker.eyesInside = true;
-                                        }
+        int playerX = GrimMath.floor(player.lastX);
+        double playerEyeY = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
+        int playerZ = GrimMath.floor(player.lastZ);
 
-                                        tracker.height = Math.max(fluidHeightToWorld - aabbMinY, tracker.height);
-                                        if (!ignoreCurrent) {
-                                            Vector3dm current = FluidTypeFlowing.getFlow(player, x, y, z);
-                                            if (tracker.height < 0.4) {
-                                                current = current.multiply(tracker.height);
-                                            }
+        FluidTag fluid = null;
+        EntityFluidInteraction.Tracker tracker = null;
 
-                                            tracker.accumulateCurrent(current);
-                                        }
-                                    }
-                                }
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    double fluidHeight = player.compensatedWorld.getFluidLevelAt(x, y, z);
+                    if (fluidHeight == 0) {
+                        continue;
+                    }
+
+                    double fluidHeightToWorld = (double) y + fluidHeight;
+                    if (fluidHeightToWorld < aabb.minY) {
+                        continue;
+                    }
+
+                    FluidTag newFluid = Materials.isWater(player.getClientVersion(), player.compensatedWorld.getBlock(x, y, z)) ? FluidTag.WATER : FluidTag.LAVA;
+                    if (newFluid != fluid) {
+                        fluid = newFluid;
+                        tracker = this.getTrackerFor(newFluid);
+                    }
+
+                    if (tracker != null) {
+                        if (x == playerX && z == playerZ && playerEyeY >= (double) y && playerEyeY <= fluidHeightToWorld) {
+                            tracker.eyesInside = true;
+                        }
+
+                        tracker.height = Math.max(fluidHeightToWorld - aabbMinY, tracker.height);
+                        if (!ignoreCurrent) {
+                            Vector3dm current = FluidTypeFlowing.getFlow(player, x, y, z);
+                            if (tracker.height < 0.4) {
+                                current = current.multiply(tracker.height);
                             }
+
+                            tracker.accumulateCurrent(current);
                         }
                     }
                 }
