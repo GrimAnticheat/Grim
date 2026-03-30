@@ -1038,32 +1038,6 @@ public class GrimPlayer implements GrimUser {
         return blockStateId;
     }
 
-    public @Nullable SimpleCollisionBox getFluidInteractionBox() {
-        SimpleCollisionBox aabb = this.boundingBox.copy().expand(-0.001);
-        PacketEntity entity = this.getVehicle();
-        if (entity != null) {
-            aabb = modifyPassengerFluidInteractionBox(entity, aabb);
-        }
-
-        return aabb;
-    }
-
-    protected @Nullable SimpleCollisionBox modifyPassengerFluidInteractionBox(PacketEntity entity, SimpleCollisionBox passengerBox) {
-        if (!entity.isBoat) return passengerBox;
-
-        if (this.vehicleData.status == BoatEntityStatus.UNDER_WATER || this.vehicleData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
-            return passengerBox;
-        } else {
-            SimpleCollisionBox aabb = this.boundingBox; // boat boundingbox
-            if (aabb.maxY >= passengerBox.maxY) {
-                return null;
-            } else {
-                double y = Math.max(passengerBox.minY, aabb.maxY);
-                return new SimpleCollisionBox(passengerBox.minX, y, passengerBox.minZ, passengerBox.maxX, passengerBox.maxY, passengerBox.maxZ);
-            }
-        }
-    }
-
     public double getFluidHeight(FluidTag fluidTag) {
         if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) return this.fluidHeight.getDouble(fluidTag);
         return this.fluidInteraction.getFluidHeight(fluidTag);

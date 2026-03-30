@@ -26,7 +26,7 @@ public class EntityFluidInteraction {
 
     public void update(final GrimPlayer player, final boolean ignoreCurrent) {
         this.trackerByFluid.values().forEach(EntityFluidInteraction.Tracker::reset);
-        SimpleCollisionBox aabb = player.getFluidInteractionBox();
+        SimpleCollisionBox aabb = player.boundingBox.copy().expand(-0.001);
         if (aabb != null) {
             int minX = GrimMath.floor(aabb.minX);
             int minY = GrimMath.floor(aabb.minY);
@@ -37,9 +37,9 @@ public class EntityFluidInteraction {
             if (hasFluidAndLoaded(player.compensatedWorld, minX - 1, minY, minZ - 1, maxX + 1, maxY, maxZ + 1)) {
                 double aabbMinY = player.boundingBox.minY;
 
-                int playerX = GrimMath.floor(player.x); // lastX?
+                int playerX = GrimMath.floor(player.lastX);
                 double playerEyeY = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
-                int playerZ = GrimMath.floor(player.z); // lastZ?
+                int playerZ = GrimMath.floor(player.lastZ);
 
                 FluidTag fluid = null;
                 EntityFluidInteraction.Tracker tracker = null;
@@ -102,7 +102,8 @@ public class EntityFluidInteraction {
                 for (int y = minY; y <= maxY; y++) {
                     int sectionY = y - (level.getMinHeight() >> 4);
                     if (sectionY >= 0 && sectionY < sections.length) {
-                        hasFluidAndLoaded |= sections[sectionY].hasFluid();
+//                        hasFluidAndLoaded |= sections[sectionY].hasFluid(); // TODO fluid count tracker
+                        hasFluidAndLoaded |= true;
                     }
                 }
             }
@@ -171,6 +172,9 @@ public class EntityFluidInteraction {
                 }
 
                 current = current.multiply(scale);
+                // Store the vector before handling 0.003, so knockback can use it
+                // However, do this after the multiplier, so that we don't have to recompute it
+                player.baseTickAddWaterPushing(current);
                 if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && current.length() < 0.0045000000000000005) {
                     current = current.normalize().multiply(0.0045000000000000005);
                 }

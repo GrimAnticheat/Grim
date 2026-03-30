@@ -546,19 +546,25 @@ public final class PlayerBaseTick {
         return hasTouched;
     }
 
-    private static boolean updateFluidInteraction(GrimPlayer player) {
+    public static boolean updateFluidInteraction(GrimPlayer player) {
         player.fluidInteraction.update(player, !player.isPushedByFluid());
         boolean inWater = player.fluidInteraction.isInFluid(FluidTag.WATER);
         boolean inLava = player.fluidInteraction.isInFluid(FluidTag.LAVA);
 
+        player.wasWasTouchingWater = player.wasTouchingWater;
         player.wasTouchingWater = inWater;
+        player.wasTouchingLava = inLava;
         if (player.isPushedByFluid()) {
             if (inWater) {
                 player.fluidInteraction.applyCurrentTo(FluidTag.WATER, player, 0.014);
             }
 
             if (inLava) {
-                double scale = player.dimensionType.getAttributes().getOrDefault(EnvironmentAttributes.GAMEPLAY_FAST_LAVA) ? 0.007 : 0.0023333333333333335;
+                final boolean fastLava = SERVER_SUPPORT_ENVIRONMENT_ATTRIBUTES
+                        ? player.dimensionType.getAttributes().getOrDefault(EnvironmentAttributes.GAMEPLAY_FAST_LAVA)
+                        : player.dimensionType.isUltraWarm();
+
+                final double scale = fastLava ? 0.007 : 0.0023333333333333335;
                 player.fluidInteraction.applyCurrentTo(FluidTag.LAVA, player, scale);
             }
         }
