@@ -119,14 +119,7 @@ public class EntityFluidInteraction {
     }
 
     private EntityFluidInteraction.Tracker getTrackerFor(final FluidTag fluid) {
-        for (Entry<FluidTag, EntityFluidInteraction.Tracker> entry : this.trackerByFluid.entrySet()) {
-            FluidTag tagKey = entry.getKey();
-            if (fluid == tagKey) {
-                return entry.getValue();
-            }
-        }
-
-        return null;
+        return this.trackerByFluid.get(fluid);
     }
 
     public void applyCurrentTo(final FluidTag fluid, final GrimPlayer entity, final double scale) {
