@@ -482,6 +482,7 @@ public final class PlayerBaseTick {
         }
         double d2 = 0.0;
         boolean hasTouched = false;
+        boolean pushedByFluid = player.isPushedByFluid();
         Vector3dm vec3 = new Vector3dm();
         int n7 = 0;
 
@@ -506,7 +507,7 @@ public final class PlayerBaseTick {
                     hasTouched = true;
                     d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
-                    if (!player.isFlying && !(player.getVehicle() instanceof PacketEntityNautilus)) {
+                    if (pushedByFluid) {
                         Vector3dm vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
