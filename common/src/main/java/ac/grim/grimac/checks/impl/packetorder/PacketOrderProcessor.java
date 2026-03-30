@@ -38,6 +38,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
     private boolean leavingBed;
     private boolean startingToGlide;
     private boolean jumpingWithMount;
+    private boolean stabbing;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -63,6 +64,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
                 case DROP_ITEM, DROP_ITEM_STACK -> dropping = true;
                 case RELEASE_USE_ITEM -> releasing = true;
                 case FINISHED_DIGGING, CANCELLED_DIGGING, START_DIGGING -> digging = true;
+                case STAB -> stabbing = true;
             }
         }
 
@@ -132,11 +134,17 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
             leavingBed = false;
             startingToGlide = false;
             jumpingWithMount = false;
+            stabbing = false;
         }
     }
 
     @Contract(pure = true)
     public boolean isRightClicking() {
         return placing || using || interacting;
+    }
+
+    @Contract(pure = true)
+    public boolean isAttackingOrStabbing() {
+        return attacking || stabbing;
     }
 }

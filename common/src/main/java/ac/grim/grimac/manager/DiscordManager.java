@@ -173,7 +173,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 .imageURL(MessageUtil.replacePlaceholders(player, embedImageUrl, false))
                 .thumbnailURL(MessageUtil.replacePlaceholders(player, embedThumbnailUrl, false))
                 .footer(new EmbedFooter(
-                        MessageUtil.replacePlaceholders(player, embedFooterText, true),
+                        MessageUtil.replacePlaceholders(player, embedFooterText, false),
                         MessageUtil.replacePlaceholders(player, embedFooterUrl, false)
                 ));
 

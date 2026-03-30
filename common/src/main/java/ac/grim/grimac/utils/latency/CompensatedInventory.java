@@ -231,7 +231,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     return;
 
                 // 1.19.4+ clients support swapping with non-empty items
-                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
+                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.getSelected() + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
 
                 // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
                 // Slot in hotbar
@@ -270,7 +270,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
 
-            inventory.selected = slot;
+            inventory.setSelected(slot);
         } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;

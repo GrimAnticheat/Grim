@@ -7,7 +7,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
@@ -42,7 +41,7 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
             if (!player.canSkipTicks()) {
                 if (flagAndAlert(verbose) && shouldModifyPackets()) {
                     if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING
-                            && new WrapperPlayClientPlayerDigging(event).getAction() == DiggingAction.RELEASE_USE_ITEM
+                            && !canCancel(new WrapperPlayClientPlayerDigging(event).getAction())
                     ) return; // don't cause a noslow
 
                     event.setCancelled(true);

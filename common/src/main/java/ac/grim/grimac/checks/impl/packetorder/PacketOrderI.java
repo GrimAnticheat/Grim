@@ -32,20 +32,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                if (player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
-                    String verbose = "type=attack, rightClicking=" + player.packetOrderProcessor.isRightClicking()
-                            + ", picking=" + player.packetOrderProcessor.isPicking()
-                            + ", releasing=" + player.packetOrderProcessor.isReleasing()
-                            + ", digging=" + player.packetOrderProcessor.isDigging();
-                    if (!player.canSkipTicks()) {
-                        if (flagAndAlert(verbose) && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
-                    } else {
-                        flags.add(verbose);
-                    }
-                }
+                onAttack(event);
             } else if (player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
                 String verbose = "type=interact, releasing=" + player.packetOrderProcessor.isReleasing() + ", digging=" + player.packetOrderProcessor.isDigging();
                 if (!player.canSkipTicks()) {
@@ -77,9 +64,12 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
             switch (packet.getAction()) {
+                case STAB:
+                    onAttack(event);
+                    return;
                 case RELEASE_USE_ITEM:
-                    if (player.packetOrderProcessor.isAttacking() || player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isDigging()) {
-                        String verbose = "type=release, attacking=" + player.packetOrderProcessor.isAttacking()
+                    if (player.packetOrderProcessor.isAttackingOrStabbing() || player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isDigging()) {
+                        String verbose = "type=release, attacking=" + player.packetOrderProcessor.isAttackingOrStabbing()
                                 + ", rightClicking=" + player.packetOrderProcessor.isRightClicking()
                                 + ", picking=" + player.packetOrderProcessor.isPicking()
                                 + ", digging=" + player.packetOrderProcessor.isDigging();
@@ -132,6 +122,23 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
 
         flags.clear();
         setback = false;
+    }
+
+    private void onAttack(PacketReceiveEvent event) {
+        if (player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
+            String verbose = "type=attack" + ", rightClicking=" + player.packetOrderProcessor.isRightClicking()
+                    + ", picking=" + player.packetOrderProcessor.isPicking()
+                    + ", releasing=" + player.packetOrderProcessor.isReleasing()
+                    + ", digging=" + player.packetOrderProcessor.isDigging();
+            if (!player.canSkipTicks()) {
+                if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
+            } else {
+                flags.add(verbose);
+            }
+        }
     }
 
     @Override

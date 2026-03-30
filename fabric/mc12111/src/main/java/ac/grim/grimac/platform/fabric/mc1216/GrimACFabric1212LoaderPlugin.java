@@ -16,7 +16,6 @@ import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import net.minecraft.world.level.chunk.LevelChunk;
 
 public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
