@@ -58,6 +58,10 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
             }
         }
 
+        if (packetType == PacketType.Play.Client.ATTACK || packetType == PacketType.Play.Client.SPECTATE_ENTITY) {
+            attacking = true;
+        }
+
         if (packetType == PacketType.Play.Client.PLAYER_DIGGING) {
             switch (new WrapperPlayClientPlayerDigging(event).getAction()) {
                 case SWAP_ITEM_WITH_OFFHAND -> swapping = true;

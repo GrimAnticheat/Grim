@@ -7,7 +7,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAttack;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSpectateEntity;
 
 import java.util.ArrayList;
 
@@ -28,28 +30,41 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             int entity = packet.getEntityId();
             boolean sneaking = packet.isSneaking().orElse(false);
+            onInteract(event, entity, sneaking);
+        }
 
-            if (hasInteracted && entity != lastEntity) {
-                String verbose = "lastEntity=" + lastEntity + ", entity=" + entity
-                        + ", lastSneaking=" + lastSneaking + ", sneaking=" + sneaking;
-                if (!player.canSkipTicks()) {
-                    if (flagAndAlert(verbose) && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
-                    }
-                } else {
-                    flags.add(verbose);
-                }
-            }
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
+            WrapperPlayClientAttack packet = new WrapperPlayClientAttack(event);
+            onInteract(event, packet.getEntityId(), lastSneaking);
+        }
 
-            lastEntity = entity;
-            lastSneaking = sneaking;
-            hasInteracted = true;
+        if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
+            WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            onInteract(event, packet.getEntityId(), lastSneaking);
         }
 
         if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
             hasInteracted = false;
         }
+    }
+
+    private void onInteract(PacketReceiveEvent event, int entity, boolean sneaking) {
+        if (hasInteracted && (entity != lastEntity || sneaking != lastSneaking)) {
+            String verbose = "lastEntity=" + lastEntity + ", entity=" + entity
+                    + ", lastSneaking=" + lastSneaking + ", sneaking=" + sneaking;
+            if (!player.canSkipTicks()) {
+                if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
+            } else {
+                flags.add(verbose);
+            }
+        }
+
+        lastEntity = entity;
+        lastSneaking = sneaking;
+        hasInteracted = true;
     }
 
     @Override

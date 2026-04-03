@@ -31,7 +31,7 @@ public class PacketOrderD extends Check implements PacketCheck {
                 final int entity = packet.getEntityId();
 
                 if (packet.getHand() == InteractionHand.OFF_HAND) {
-                    if (action == InteractAction.INTERACT) {
+                    if (action == InteractAction.INTERACT || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) {
                         if (!sentMainhand) {
                             if (flagAndAlert("Skipped Mainhand") && shouldModifyPackets()) {
                                 event.setCancelled(true);
@@ -39,12 +39,16 @@ public class PacketOrderD extends Check implements PacketCheck {
                             }
                         }
                         sentMainhand = false;
-                    } else if (sneaking != requiredSneaking || entity != requiredEntity) {
-                        String verbose = "requiredEntity=" + requiredEntity + ", entity=" + entity
-                                + ", requiredSneaking=" + requiredSneaking + ", sneaking=" + sneaking;
-                        if (flagAndAlert(verbose) && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
+                    }
+
+                    if (action == InteractAction.INTERACT_AT) {
+                        if (sneaking != requiredSneaking || entity != requiredEntity) {
+                            String verbose = "requiredEntity=" + requiredEntity + ", entity=" + entity
+                                    + ", requiredSneaking=" + requiredSneaking + ", sneaking=" + sneaking;
+                            if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                                event.setCancelled(true);
+                                player.onPacketCancel();
+                            }
                         }
                     }
                 } else {

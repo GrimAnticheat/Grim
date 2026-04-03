@@ -403,7 +403,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
                 // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
                 // Regardless, the client does accept this packet and update its inventory, so we must do the same.
-                if (slots.size() == cachedPacketInvSize || items.getWindowId() == 0) {
+                boolean forceUpdate = slots.size() == cachedPacketInvSize || items.getWindowId() == 0;
+                if (!isPacketInventoryActive && forceUpdate) {
                     isPacketInventoryActive = true;
                     updatedValue.set(true);
                 }

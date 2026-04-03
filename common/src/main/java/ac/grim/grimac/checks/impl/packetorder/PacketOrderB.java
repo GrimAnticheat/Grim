@@ -61,6 +61,11 @@ public class PacketOrderB extends Check implements PacketCheck {
             }
         }
 
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
+            onAttack(event);
+            return;
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
             if (packet.getAction() == DiggingAction.STAB) {

@@ -21,15 +21,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ANIMATION;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.CLICK_WINDOW;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ENTITY_ACTION;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.HELD_ITEM_CHANGE;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.INTERACT_ENTITY;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_ABILITIES;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_DIGGING;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.USE_ITEM;
+import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post")
 public class Post extends Check implements PacketCheck, PostPredictionCheck {
@@ -90,6 +82,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
             } else if (PLAYER_ABILITIES.equals(packetType)
                     || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
                     || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
+                    || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType)
                     || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
             } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {

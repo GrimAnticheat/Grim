@@ -23,6 +23,8 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
+                || event.getPacketType() == PacketType.Play.Client.ATTACK
+                || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY
                 || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
                 || event.getPacketType() == PacketType.Play.Client.USE_ITEM
                 || event.getPacketType() == PacketType.Play.Client.PICK_ITEM
@@ -31,6 +33,8 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
                 && new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT)
         ) if (player.packetOrderProcessor.isSprinting() || player.packetOrderProcessor.isSneaking()) {
             String verbose = "action=" + (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY ? "interact"
+                    : event.getPacketType() == PacketType.Play.Client.ATTACK ? "attack"
+                    : event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY ? "spectateEntity"
                     : event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT ? "place"
                     : event.getPacketType() == PacketType.Play.Client.USE_ITEM ? "use"
                     : event.getPacketType() == PacketType.Play.Client.PICK_ITEM ? "pick"
