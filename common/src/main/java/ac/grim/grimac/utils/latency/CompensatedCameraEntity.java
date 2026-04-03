@@ -22,7 +22,8 @@ public class CompensatedCameraEntity extends Check implements PacketCheck {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.CAMERA) return;
+        if (event.getPacketType() != PacketType.Play.Server.CAMERA
+                && event.getPacketType() != PacketType.Play.Server.SET_CAMERA) return;
         int camera = new WrapperPlayServerCamera(event).getCameraId();
         player.sendTransaction();
 
