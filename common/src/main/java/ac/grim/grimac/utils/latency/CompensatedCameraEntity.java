@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -24,11 +25,24 @@ public class CompensatedCameraEntity extends Check implements PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() != PacketType.Play.Server.CAMERA
                 && event.getPacketType() != PacketType.Play.Server.SET_CAMERA) return;
-        int camera = new WrapperPlayServerCamera(event).getCameraId();
+        final PacketEntity fallbackEntity = entities.peekLast() != null
+                ? entities.peekLast()
+                : player.compensatedEntities.self;
+        Integer camera = null;
+        try {
+            camera = new WrapperPlayServerCamera(event).getCameraId();
+        } catch (Exception e) {
+            LogUtil.warn("Failed to decode camera packet, using last known camera target: "
+                    + e.getClass().getSimpleName());
+        }
         player.sendTransaction();
 
+        final Integer resolvedCamera = camera;
         player.addRealTimeTaskNow(() -> {
-            PacketEntity entity = player.compensatedEntities.getEntity(camera);
+            PacketEntity entity = resolvedCamera == null ? null : player.compensatedEntities.getEntity(resolvedCamera);
+            if (entity == null) {
+                entity = fallbackEntity;
+            }
             if (entity != null) {
                 entities.add(entity);
             }
