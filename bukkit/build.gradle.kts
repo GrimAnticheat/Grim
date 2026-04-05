@@ -69,18 +69,23 @@ bukkit {
         depend = listOf("packetevents")
     }
 
-    softDepend = listOf(
-        "ProtocolLib",
-        "ProtocolSupport",
-        "Essentials",
-        "ViaVersion",
-        "ViaBackwards",
-        "ViaRewind",
-        "Geyser-Spigot",
-        "floodgate",
-        "FastLogin",
-        "PlaceholderAPI",
-    )
+    softDepend = buildList {
+        // When Grim bundles PacketEvents, still load after the standalone plugin if it is present.
+        if (BuildConfig.shadePE) add("packetevents")
+
+        addAll(listOf(
+            "ProtocolLib",
+            "ProtocolSupport",
+            "Essentials",
+            "ViaVersion",
+            "ViaBackwards",
+            "ViaRewind",
+            "Geyser-Spigot",
+            "floodgate",
+            "FastLogin",
+            "PlaceholderAPI",
+        ))
+    }
 
     permissions {
         register("grim.alerts") {
