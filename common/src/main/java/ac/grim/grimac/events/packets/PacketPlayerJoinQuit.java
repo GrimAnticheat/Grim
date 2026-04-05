@@ -9,9 +9,6 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
-
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
@@ -33,7 +30,11 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
-        Object nativePlayerObject = Objects.requireNonNull(event.getPlayer());
+        Object nativePlayerObject = event.getPlayer();
+        if (nativePlayerObject == null) {
+            LogUtil.warn("Skipping Grim login setup because PacketEvents did not provide a player yet.");
+            return;
+        }
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order
         // And the user will be added to the map before the getPlayer() method call

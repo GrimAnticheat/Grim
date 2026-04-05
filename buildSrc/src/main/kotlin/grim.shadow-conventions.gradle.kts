@@ -6,12 +6,19 @@ plugins {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
+    val bundlePacketEvents = BuildConfig.shadePE && project.name != "bukkit"
+
     minimize()
     archiveFileName = "${rootProject.name}-${project.name}-${rootProject.version}.jar"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
+    if (!bundlePacketEvents) {
+        exclude("com/github/retrooper/packetevents/**")
+        exclude("io/github/retrooper/packetevents/**")
+    }
+
     if (BuildConfig.relocate) {
-        if (BuildConfig.shadePE) {
+        if (bundlePacketEvents) {
             relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
             relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
             relocate("net.kyori", "ac.grim.grimac.shaded.kyori") // use PE's built-in adventure instead when not shading PE

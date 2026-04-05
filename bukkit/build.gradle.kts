@@ -43,12 +43,7 @@ repositories {
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.placeholderapi)
-
-    if (BuildConfig.shadePE) {
-        implementation(libs.packetevents.spigot)
-    } else {
-        compileOnly(libs.packetevents.spigot)
-    }
+    compileOnly(libs.packetevents.spigot)
     implementation(libs.cloud.paper)
     implementation(libs.adventure.platform.bukkit)
     implementation(libs.grim.bukkit.internal)
@@ -65,27 +60,20 @@ bukkit {
     apiVersion = "1.13"
     foliaSupported = true
 
-    if (!BuildConfig.shadePE) {
-        depend = listOf("packetevents")
-    }
+    depend = listOf("packetevents")
 
-    softDepend = buildList {
-        // When Grim bundles PacketEvents, still load after the standalone plugin if it is present.
-        if (BuildConfig.shadePE) add("packetevents")
-
-        addAll(listOf(
-            "ProtocolLib",
-            "ProtocolSupport",
-            "Essentials",
-            "ViaVersion",
-            "ViaBackwards",
-            "ViaRewind",
-            "Geyser-Spigot",
-            "floodgate",
-            "FastLogin",
-            "PlaceholderAPI",
-        ))
-    }
+    softDepend = listOf(
+        "ProtocolLib",
+        "ProtocolSupport",
+        "Essentials",
+        "ViaVersion",
+        "ViaBackwards",
+        "ViaRewind",
+        "Geyser-Spigot",
+        "floodgate",
+        "FastLogin",
+        "PlaceholderAPI",
+    )
 
     permissions {
         register("grim.alerts") {
