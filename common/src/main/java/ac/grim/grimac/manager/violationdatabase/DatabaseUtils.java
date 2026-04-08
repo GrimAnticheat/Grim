@@ -38,8 +38,9 @@ public class DatabaseUtils {
      *
      * @param resultSet  The ResultSet to read from.
      * @param columnName The name of the UUID column.
-     * @return The UUID, or null if the object in the database is null or an unexpected type.
-     * @throws SQLException If a database access error occurs.
+     * @return The UUID.
+     * @throws SQLException If a database access error occurs, or if the UUID column
+     *                      contains an unexpected type or invalid data.
      */
     public static UUID getUuid(ResultSet resultSet, String columnName) throws SQLException {
         Object uuidObject = resultSet.getObject(columnName);
@@ -51,7 +52,7 @@ public class DatabaseUtils {
             return uuid;
         }
 
-        return null;
+        throw new SQLException("Unexpected UUID type: " + (uuidObject == null ? "null" : uuidObject.getClass().getName()));
     }
 
     // --- Generic Deduplication Lookup (uses DatabaseDialect) ---
