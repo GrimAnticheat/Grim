@@ -30,6 +30,30 @@ public class DatabaseUtils {
         return new UUID(msb, lsb);
     }
 
+
+    /**
+     * Retrieves a UUID from a ResultSet.
+     * This handles both PostgreSQL (which returns a native {@link UUID} object)
+     * and MySQL/SQLite (which return a {@code byte[]}).
+     *
+     * @param resultSet  The ResultSet to read from.
+     * @param columnName The name of the UUID column.
+     * @return The UUID, or null if the object in the database is null or an unexpected type.
+     * @throws SQLException If a database access error occurs.
+     */
+    public static UUID getUuid(ResultSet resultSet, String columnName) throws SQLException {
+        Object uuidObject = resultSet.getObject(columnName);
+
+        if (uuidObject instanceof byte[] uuidBytes) {
+            return bytesToUuid(uuidBytes);
+        }
+        if (uuidObject instanceof UUID uuid) {
+            return uuid;
+        }
+
+        return null;
+    }
+
     // --- Generic Deduplication Lookup (uses DatabaseDialect) ---
     public static long getOrCreateId(Connection connection, DatabaseDialect dialect, String tableName, String stringColumnName, String value) throws SQLException {
         // Step 1: Attempt to insert the string.
