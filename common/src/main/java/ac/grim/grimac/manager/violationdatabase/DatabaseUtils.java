@@ -47,8 +47,7 @@ public class DatabaseUtils {
 
         if (uuidObject instanceof byte[] uuidBytes) {
             return bytesToUuid(uuidBytes);
-        }
-        if (uuidObject instanceof UUID uuid) {
+        } else if (uuidObject instanceof UUID uuid) {
             return uuid;
         }
 
