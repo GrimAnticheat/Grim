@@ -27,7 +27,7 @@ public class PacketEventsInit implements LoadableInitable {
         PacketEvents.setAPI(packetEventsAPI);
         PacketEvents.getAPI().getSettings()
                 .fullStackTrace(true)
-                .kickOnPacketException(true)
+                .kickOnPacketException(false)
                 .preViaInjection(true)
                 .checkForUpdates(false)
                 .reEncodeByDefault(false)

@@ -83,7 +83,9 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                                     entry.getLatency(),
                                     GameMode.SURVIVAL,
                                     entry.getDisplayName(),
-                                    entry.getChatSession()
+                                    entry.getChatSession(),
+                                    entry.getListOrder(),
+                                    entry.isShowHat()
                             );
                             modified.add(modifiedPacket);
                         }
@@ -102,7 +104,9 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                     if (onlyGameMode) { // if only the game mode changed, cancel
                         event.setCancelled(true);
                     } else { //if more than the game mode changed, remove the action
-                        wrapper.getActions().remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE);
+                        EnumSet<WrapperPlayServerPlayerInfoUpdate.Action> updatedActions = EnumSet.copyOf(actions);
+                        updatedActions.remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE);
+                        wrapper.setActions(updatedActions);
                         event.markForReEncode(true);
                     }
                 } else { //modify entries

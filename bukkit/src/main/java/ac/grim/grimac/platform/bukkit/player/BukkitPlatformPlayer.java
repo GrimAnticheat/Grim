@@ -47,7 +47,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
         this.inventory = new BukkitPlatformInventory(bukkitPlayer);
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
             Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
-            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+            this.user = channel == null ? null : PacketEvents.getAPI().getProtocolManager().getUser(channel);
         } else {
             this.user = null;
         }
