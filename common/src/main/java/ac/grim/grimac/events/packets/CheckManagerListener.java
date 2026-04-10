@@ -469,7 +469,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        if (event.getPacketType() != PacketType.Play.Client.KEEP_ALIVE && player.packetStateData.queuedDuplicate != null && !player.packetStateData.isReceivingQueuedDuplicate) {
+        if (!Check.isAsync(event.getPacketType()) && player.packetStateData.queuedDuplicate != null && !player.packetStateData.isReceivingQueuedDuplicate) {
             player.packetStateData.isReceivingQueuedDuplicate = true;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM
                     || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
