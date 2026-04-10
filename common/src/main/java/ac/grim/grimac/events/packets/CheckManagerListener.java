@@ -1,8 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
@@ -406,14 +406,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
         if (!player.isIgnoreDuplicatePacketRotation()) {
-            if (player.xRot != location.getYaw() || player.yRot != location.getPitch()) {
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
+            if (player.yaw != location.getYaw() || player.pitch != location.getPitch()) {
+                player.lastYaw = player.yaw;
+                player.lastPitch = player.pitch;
             }
 
             // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.xRot = location.getYaw();
-            player.yRot = location.getPitch();
+            player.yaw = location.getYaw();
+            player.pitch = location.getPitch();
         }
 
         player.packetStateData.lastClaimedPosition = location.getPosition();
@@ -433,13 +433,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         //
         // removed a large rant, but I'm keeping this out of context insult below
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        if (!player.packetStateData.lastPacketWasTeleport && flying.hasPositionChanged() && flying.hasRotationChanged() &&
+        if (flying.hasPositionChanged() && flying.hasRotationChanged() &&
                 // Ground status will never change in this stupidity packet
                 ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
                         // rotations must be the same for all duplicates sent in the same tick
                         && (player.lastDuplicateRotationThisTick == null || !player.isRequireSameRotationInDuplicates()
-                        || player.lastDuplicateRotationThisTick.getYaw() == location.getYaw()
-                        && player.lastDuplicateRotationThisTick.getPitch() == location.getPitch())
+                        || player.lastDuplicateRotationThisTick.yaw() == location.getYaw()
+                        && player.lastDuplicateRotationThisTick.pitch() == location.getPitch())
                         // Mojang added this stupid mechanic in 1.17
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
@@ -454,6 +454,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
             return true;
         }
+        return false;
     }
 
     @Override
