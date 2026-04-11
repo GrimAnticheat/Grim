@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public class MultiInteractB extends Check implements PostPredictionCheck {
     private final ArrayList<String> flags = new ArrayList<>();
     private Vector3d lastPos;
+    private int lastEntityId = -1;
     private boolean hasInteracted;
 
     public MultiInteractB(final GrimPlayer player) {
@@ -32,7 +33,9 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             Vector3d pos = packet.getLocation();
             if (pos == null) return; // shouldn't ever happen, but whatever
 
-            if (hasInteracted && !pos.equals(lastPos)) {
+            int entityId = packet.getEntityId();
+
+            if (hasInteracted && entityId == lastEntityId && !pos.equals(lastPos)) {
                 String verbose = "pos=" + MessageUtil.toUnlabledString(pos) + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
                 if (!player.canSkipTicks()) {
                     if (flagAndAlert(verbose) && shouldModifyPackets()) {
@@ -45,6 +48,7 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             }
 
             lastPos = pos;
+            lastEntityId = entityId;
             hasInteracted = true;
         }
 
