@@ -110,7 +110,7 @@ public final class BoundingBoxSize {
             return 0.3125f;
         } else if (type == EntityTypes.SPIDER) {
             return 1.4f;
-        } else if (type == EntityTypes.SQUID) {
+        } else if (type == EntityTypes.SQUID || type == EntityTypes.GLOW_SQUID) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.TURTLE) {
             return 1.2f;
@@ -251,7 +251,7 @@ public final class BoundingBoxSize {
             return 0.6f;
         } else if (type == EntityTypes.EVOKER_FANGS || type == EntityTypes.VEX) {
             return 0.8f;
-        } else if (type == EntityTypes.SQUID) {
+        } else if (type == EntityTypes.SQUID || type == EntityTypes.GLOW_SQUID) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.PARROT || type == EntityTypes.BAT || type == EntityTypes.PIG || type == EntityTypes.SPIDER) {
             return 0.9f;

@@ -60,13 +60,17 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             }
         }
 
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
+            onAttack(event);
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
             switch (packet.getAction()) {
                 case STAB:
                     onAttack(event);
-                    return;
+                    break;
                 case RELEASE_USE_ITEM:
                     if (player.packetOrderProcessor.isAttackingOrStabbing() || player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isDigging()) {
                         String verbose = "type=release, attacking=" + player.packetOrderProcessor.isAttackingOrStabbing()

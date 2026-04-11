@@ -15,8 +15,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "PacketOrderC")
 public class PacketOrderC extends Check implements PacketCheck {
-    // 1.7 players do not send INTERACT_AT, so we cannot check them
-    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
+    // 1.7 players do not send INTERACT_AT
+    // 26.1 players always send INTERACT_AT
+    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1);
     private boolean sentInteractAt = false;
     private int requiredEntity;
     private InteractionHand requiredHand;
