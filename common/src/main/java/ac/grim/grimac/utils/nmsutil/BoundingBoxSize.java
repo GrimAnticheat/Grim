@@ -50,7 +50,7 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.HAPPY_GHAST) {
             return 4.0f;
         } else if (type == EntityTypes.CHICKEN || type == EntityTypes.ENDERMITE || type == EntityTypes.SILVERFISH || type == EntityTypes.VEX || type == EntityTypes.TADPOLE) {
-            return 0.4f;
+            return type == EntityTypes.CHICKEN && packetEntity.isBaby && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.3f : 0.4f;
         } else if (type == EntityTypes.RABBIT) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.49F : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
         } else if (type == EntityTypes.CREAKING || type == EntityTypes.STRIDER || type == EntityTypes.COW || type == EntityTypes.SHEEP || type == EntityTypes.MOOSHROOM || type == EntityTypes.PIG || type == EntityTypes.LLAMA || type == EntityTypes.DOLPHIN || type == EntityTypes.WITHER || type == EntityTypes.TRADER_LLAMA || type == EntityTypes.WARDEN || type == EntityTypes.GOAT) {
@@ -274,7 +274,7 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.FROG) {
             return 0.55f;
         } else if (type == EntityTypes.CHICKEN) {
-            return 0.7f;
+            return packetEntity.isBaby && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.4f : 0.7f;
         } else if (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN) {
             return 1.4f;
         } else if (type == EntityTypes.COW) {
@@ -424,6 +424,7 @@ public final class BoundingBoxSize {
         if (type == EntityTypes.DOLPHIN) return 0.65f;
         if (type == EntityTypes.ARMADILLO) return 0.6f;
         if (type == EntityTypes.GOAT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return 0.55f;
+        if (type == EntityTypes.CHICKEN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return 1f; // in 26.1 baby chickens have their own independent size, so we return 1f to make this method do nothing
         if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL))
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.6f : 0.45f;
         return 0.5f;
