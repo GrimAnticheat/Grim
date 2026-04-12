@@ -18,9 +18,6 @@ public abstract class TypedPacketEntity {
                         || EntityTypes.isTypeInstanceOf(type, EntityTypes.ZOMBIE)
                         || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN)
                         || type == EntityTypes.ZOGLIN
-                        || type == EntityTypes.ZOMBIFIED_PIGLIN
-                        || type == EntityTypes.PIGLIN_BRUTE
-                        || type == EntityTypes.PIGLIN
                         || type == EntityTypes.SQUID
                         || type == EntityTypes.GLOW_SQUID;
         this.isAnimal = EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);

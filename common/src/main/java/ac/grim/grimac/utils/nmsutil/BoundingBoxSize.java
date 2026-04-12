@@ -129,7 +129,7 @@ public final class BoundingBoxSize {
             return 0.98F;
         } else if (type == EntityTypes.FIREWORK_ROCKET) {
             return 0.25F;
-        } else if ((type == EntityTypes.PIGLIN || type == EntityTypes.ZOMBIFIED_PIGLIN || type == EntityTypes.PIGLIN_BRUTE || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIE_VILLAGER) &&
+        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIE_VILLAGER) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
             return 0.49f;
         }
@@ -418,7 +418,7 @@ public final class BoundingBoxSize {
             return 0.25F;
         } else if (type == EntityTypes.COPPER_GOLEM) {
             return 1.0F;
-        } else if ((type == EntityTypes.PIGLIN || type == EntityTypes.ZOMBIFIED_PIGLIN || type == EntityTypes.PIGLIN_BRUTE || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.VILLAGER) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
+        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.VILLAGER) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
             return 0.99f;
         }
         return 1.95f;
@@ -444,10 +444,7 @@ public final class BoundingBoxSize {
                         type == EntityTypes.ZOMBIE ||
                         type == EntityTypes.VILLAGER ||
                         type == EntityTypes.ZOMBIE_VILLAGER ||
-                        EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) ||
-                        type == EntityTypes.PIGLIN ||
-                        type == EntityTypes.ZOMBIFIED_PIGLIN ||
-                        type == EntityTypes.PIGLIN_BRUTE
+                        EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN)
         )) return 1f;
 
         return 0.5f;

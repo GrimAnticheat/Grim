@@ -255,8 +255,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
             } else {
-                boolean isPiglin = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.ABSTRACT_PIGLIN) || entity.type == EntityTypes.PIGLIN || entity.type == EntityTypes.ZOMBIFIED_PIGLIN || entity.type == EntityTypes.PIGLIN_BRUTE;
-                id = 16 + (isPiglin ? 1 : 0);
+                id = 16 + (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0);
             }
 
             // 1.14 good
