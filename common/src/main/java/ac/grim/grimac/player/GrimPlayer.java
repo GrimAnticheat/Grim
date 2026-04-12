@@ -33,7 +33,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
-import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
