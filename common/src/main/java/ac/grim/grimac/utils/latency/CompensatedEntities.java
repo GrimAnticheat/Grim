@@ -356,6 +356,8 @@ public class CompensatedEntities {
             if (entity.type == EntityTypes.PIG) {
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
                     offset = 1;
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_26_1))
+                    offset--;
 
                 EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (pigSaddle != null) {
@@ -368,6 +370,9 @@ public class CompensatedEntities {
                     rideable.currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_26_1))
+                    offset--;
+
                 EntityData<?> striderBoost = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (striderBoost != null) {
                     rideable.boostTimeMax = (int) striderBoost.getValue();
@@ -399,6 +404,9 @@ public class CompensatedEntities {
                 } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                     offset = 1;
                 }
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_26_1)) {
+                    offset--;
+                }
 
                 EntityData<?> horseByte = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (horseByte != null) {
@@ -412,7 +420,7 @@ public class CompensatedEntities {
                 // track camel dashing
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20)) {
                     if (entity instanceof PacketEntityCamel camel) {
-                        EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
+                        EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset);
                         if (entityData != null) {
                             camel.setDashing((boolean) entityData.getValue());
 
@@ -437,7 +445,12 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityNautilus nautilus) {
-            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 19);
+            int index = 19;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_26_1)) {
+                index = 20;
+            }
+
+            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, index);
             if (entityData != null) {
                 nautilus.setDashing((boolean) entityData.getValue());
 
