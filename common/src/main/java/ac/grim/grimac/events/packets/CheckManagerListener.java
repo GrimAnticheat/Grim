@@ -22,6 +22,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -574,7 +575,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.cancelDuplicatePacket = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+        if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
             player.serverOpenedInventoryThisTick = false;
             if (!player.packetStateData.didSendMovementBeforeTickEnd) {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
@@ -600,11 +601,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
 
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+        final PacketTypeCommon packetType = event.getPacketType();
+        if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.BUNDLE) {
+        if (packetType == PacketType.Play.Server.BUNDLE) {
             player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
         }
 
