@@ -5,7 +5,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -15,9 +17,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "PacketOrderC")
 public class PacketOrderC extends Check implements PacketCheck {
-    // 1.7 players do not send INTERACT_AT
-    // 26.1 players always send INTERACT_AT
-    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1);
+    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) // 1.7 players do not send INTERACT_AT
+            || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) // 26.1 players do not send INTERACT
+            || PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_26_1); // ViaBackwards drops INTERACT on 26.1 servers
     private boolean sentInteractAt = false;
     private int requiredEntity;
     private InteractionHand requiredHand;
