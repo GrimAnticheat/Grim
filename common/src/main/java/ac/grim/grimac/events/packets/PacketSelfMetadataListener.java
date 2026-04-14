@@ -89,7 +89,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
                             if (!isSprinting) {
-                                player.camelSprintingState = SprintingState.STOPPING;
+                                player.vehicleData.camelSprintingState = SprintingState.STOPPING;
                             }
                             // Protect this due to players being able to get the server to spam this packet a lot
                             if (player.isGliding != isGliding) {
