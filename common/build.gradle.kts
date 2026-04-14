@@ -6,26 +6,31 @@ plugins {
 }
 
 repositories {
-    // Unpublished snapshots: ~/.m2 first when mavenLocalOverride=true; exclusive() repos still pair local + remote.
+    // We still call mavenLocal() conditionally at the top for non-exclusive deps (general fallback)
     if (BuildConfig.mavenLocalOverride) mavenLocal()
 
+    // Grim API & PacketEvents
     exclusive("https://repo.grim.ac/snapshots") {
         includeGroup("ac.grim.grimac")
         includeGroup("com.github.retrooper")
     }
 
+    // ViaVersion
     exclusive("https://repo.viaversion.com", { mavenContent { releasesOnly() } }) {
         includeGroup("com.viaversion")
     }
 
+    // Configuralize
     exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {
         includeGroup("github.scarsz")
     }
 
+    // Cumulus
     exclusive("https://repo.opencollab.dev/maven-releases/", { mavenContent { releasesOnly() } }) {
         includeGroup("org.geysermc.api")
     }
 
+    // Floodgate
     exclusive("https://repo.opencollab.dev/maven-snapshots/", { mavenContent { snapshotsOnly() } }) {
         includeGroup("org.geysermc.floodgate")
         includeGroup("org.geysermc.cumulus")
