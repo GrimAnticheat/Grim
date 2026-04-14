@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class PacketEntityRideable extends PacketEntity {
 
-    public boolean hasSaddle = false;
+    public boolean hasSaddle = false; // We dont actually use this anywhere, why is this here?
     public int boostTimeMax = 0;
     public int currentBoostTime = 0;
 
