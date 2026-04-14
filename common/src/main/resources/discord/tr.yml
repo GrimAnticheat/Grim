@@ -1,13 +1,20 @@
+# Webhook yardımı: https://support.discord.com/hc/tr/articles/228383668
 enabled: false
 webhook: ""
-embed-title: "**Grim Alert**"
+# Discord'un URL biçimi doğrulamasını atlamak için `true` olarak ayarlayın.
+# Bu, geçerli herhangi bir HTTPS URL'sine izin verir (proxy'ler veya Matrix yönlendiricileri için kullanışlıdır).
+disable-webhook-validation: false
+embed-title: "**Grim Uyarı**"
 embed-color: "#00FFFF"
 include-timestamp: true
+# Discord'un metin biçimlendirmesini bozmasını önlemek için değerlerdeki (istemci markaları gibi) ters tırnak işaretlerini (`) değiştirir.
+# Bu değiştirmeyi devre dışı bırakmak için "`" olarak ayarlayın.
+backtick-replacement-char: "ˋ"
 violation-content:
-    - "**Oyuncu**: %player%"
+    - "**Oyuncu**: `%player%`"
     - "**Kontrol**: %check%"
     - "**İhlaller**: %violations%"
     - "**Client Versiyonu**: %version%"
-    - "**Kullanılan Client**: %brand%"
+    - "**Client Markası**: `%brand%`"
     - "**Gecikme**: %ping%"
     - "**TPS**: %tps%"

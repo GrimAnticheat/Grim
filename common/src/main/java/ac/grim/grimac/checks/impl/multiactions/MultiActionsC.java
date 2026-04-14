@@ -39,12 +39,15 @@ public class MultiActionsC extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !player.serverOpenedInventoryThisTick) {
-            String verbose = getVerbose(player);
-            if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
-                event.setCancelled(true);
-                player.onPacketCancel();
-            }
+        if (event.getPacketType() != PacketType.Play.Client.CLICK_WINDOW) return;
+        if (player.serverOpenedInventoryThisTick) return;
+
+        String verbose = getVerbose(player);
+        if (verbose.isEmpty()) return;
+
+        if (flagAndAlert(verbose) && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 }

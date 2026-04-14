@@ -8,7 +8,7 @@ public class ResetTick implements Tickable {
     @Override
     public void tick() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            player.checkManager.getEntityReplication().tickStartTick();
+            player.checkManager.getPacketEntityReplication().tickStartTick();
         }
     }
 }

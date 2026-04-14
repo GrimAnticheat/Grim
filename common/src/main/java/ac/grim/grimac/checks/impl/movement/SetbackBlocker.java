@@ -17,7 +17,9 @@ public class SetbackBlocker extends Check implements PacketCheck {
         if (player.disableGrim)
             return; // Let's avoid letting people disable grim with grim.nomodifypackets
 
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
+                || event.getPacketType() == PacketType.Play.Client.ATTACK
+                || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
                 event.setCancelled(true); // Player is in the vehicle
             }

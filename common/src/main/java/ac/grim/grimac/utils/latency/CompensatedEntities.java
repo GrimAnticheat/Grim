@@ -242,6 +242,11 @@ public class CompensatedEntities {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
+        // 26.1 added AGE_LOCKED to AgeableMob after BABY, shifting all descendant field indices +1.
+        // Only affects entities extending AgeableMob (horses, pigs, striders, tamables, etc.)
+        final int ageableOffset = PacketEvents.getAPI().getServerManager().getVersion()
+                .isNewerThanOrEquals(ServerVersion.V_26_1) ? 1 : 0;
+
         if (entity.isAgeable) {
             int id;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
@@ -255,7 +260,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
             } else {
-                id = 16;
+                id = 16; // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY)
             }
 
             // 1.14 good
@@ -320,7 +325,10 @@ public class CompensatedEntities {
                 shulker.facing = BlockFace.valueOf(shulkerAttached.getValue().toString().toUpperCase());
             }
 
-            EntityData<?> height = WatchableIndexUtil.getIndex(watchableObjects, id + 2);
+            // ATTACH_POS was removed in 1.17, shifting PEEK from id+2 to id+1
+            int peekOffset = PacketEvents.getAPI().getServerManager().getVersion()
+                    .isNewerThanOrEquals(ServerVersion.V_1_17) ? 1 : 2;
+            EntityData<?> height = WatchableIndexUtil.getIndex(watchableObjects, id + peekOffset);
             if (height != null) {
                 if ((byte) height.getValue() == 0) {
                     ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), true);
@@ -354,34 +362,42 @@ public class CompensatedEntities {
             }
 
             if (entity.type == EntityTypes.PIG) {
+                // SADDLE removed in 1.21.5, shifting BOOST_TIME from 18→17.
+                // ageableOffset naturally cancels this out in 26.1 (BOOST_TIME back at 18).
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
                     offset = 1;
 
-                EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
-                if (pigSaddle != null) {
-                    rideable.hasSaddle = (boolean) pigSaddle.getValue();
+                // SADDLE removed in 1.21.5; now handled via equipment
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_5)) {
+                    EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset + ageableOffset);
+                    if (pigSaddle != null) {
+                        rideable.hasSaddle = (boolean) pigSaddle.getValue();
+                    }
                 }
 
-                EntityData<?> pigBoost = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset);
+                EntityData<?> pigBoost = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset + ageableOffset);
                 if (pigBoost != null) { // What does 1.9-1.10 do here? Is this feature even here?
                     rideable.boostTimeMax = (int) pigBoost.getValue();
                     rideable.currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
-                EntityData<?> striderBoost = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
+                EntityData<?> striderBoost = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset + ageableOffset);
                 if (striderBoost != null) {
                     rideable.boostTimeMax = (int) striderBoost.getValue();
                     rideable.currentBoostTime = 0;
                 }
 
-                EntityData<?> striderShaking = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset);
+                EntityData<?> striderShaking = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset + ageableOffset);
                 if (striderShaking != null) {
                     ((PacketEntityStrider) rideable).isShaking = (boolean) striderShaking.getValue();
                 }
 
-                EntityData<?> striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset);
-                if (striderSaddle != null) {
-                    rideable.hasSaddle = (boolean) striderSaddle.getValue();
+                // SADDLE removed in 1.21.5; now handled via equipment
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_5)) {
+                    EntityData<?> striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset + ageableOffset);
+                    if (striderSaddle != null) {
+                        rideable.hasSaddle = (boolean) striderSaddle.getValue();
+                    }
                 }
             }
         }
@@ -400,7 +416,7 @@ public class CompensatedEntities {
                     offset = 1;
                 }
 
-                EntityData<?> horseByte = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
+                EntityData<?> horseByte = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset + ageableOffset);
                 if (horseByte != null) {
                     byte info = (byte) horseByte.getValue();
 
@@ -412,7 +428,7 @@ public class CompensatedEntities {
                 // track camel dashing
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20)) {
                     if (entity instanceof PacketEntityCamel camel) {
-                        EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18);
+                        EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 18 + ageableOffset);
                         if (entityData != null) {
                             camel.setDashing((boolean) entityData.getValue());
 
@@ -437,7 +453,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityNautilus nautilus) {
-            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 19);
+            EntityData<?> entityData = WatchableIndexUtil.getIndex(watchableObjects, 19 + ageableOffset);
             if (entityData != null) {
                 nautilus.setDashing((boolean) entityData.getValue());
 

@@ -9,7 +9,12 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAnimation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
 @CheckData(name = "PacketOrderB", description = "Did not swing for attack")
 public class PacketOrderB extends Check implements PacketCheck {
@@ -41,7 +46,8 @@ public class PacketOrderB extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (exempt) return;
 
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (event.getPacketType() == PacketType.Play.Client.ANIMATION
+            && new WrapperPlayClientAnimation(event).getHand() == InteractionHand.MAIN_HAND) {
             sentAnimationSinceLastAttack = sentAnimation = true;
             sentAttack = sentSlotSwitch = false;
             return;
@@ -50,17 +56,20 @@ public class PacketOrderB extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                sentAttack = true;
+                onAttack(event);
+                return;
+            }
+        }
 
-                if (is1_9 ? !sentAnimationSinceLastAttack : !sentAnimation) {
-                    sentAttack = false; // don't flag twice
-                    if (flagAndAlert("pre-attack") && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
-                    }
-                }
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
+            onAttack(event);
+            return;
+        }
 
-                sentAnimationSinceLastAttack = sentAnimation = sentSlotSwitch = false;
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+            if (packet.getAction() == DiggingAction.STAB) {
+                onAttack(event);
                 return;
             }
         }
@@ -77,5 +86,21 @@ public class PacketOrderB extends Check implements PacketCheck {
 
             sentAttack = sentAnimation = sentSlotSwitch = false;
         }
+    }
+
+    private void onAttack(PacketReceiveEvent event) {
+        if (player.gamemode == GameMode.SPECTATOR && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)) return;
+
+        sentAttack = true;
+
+        if (is1_9 ? !sentAnimationSinceLastAttack : !sentAnimation) {
+            sentAttack = false; // don't flag twice
+            if (flagAndAlert("pre-attack") && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
+            }
+        }
+
+        sentAnimationSinceLastAttack = sentAnimation = sentSlotSwitch = false;
     }
 }

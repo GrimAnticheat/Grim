@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.util.Vector3f;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 import java.util.ArrayList;
@@ -16,8 +16,8 @@ import java.util.ArrayList;
 @CheckData(name = "MultiInteractB", experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
     private final ArrayList<String> flags = new ArrayList<>();
-    private Vector3f lastPos;
-    private boolean hasInteracted = false;
+    private Vector3d lastPos;
+    private boolean hasInteracted;
 
     public MultiInteractB(final GrimPlayer player) {
         super(player);
@@ -26,11 +26,11 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            Vector3f pos = new WrapperPlayClientInteractEntity(event).getTarget().orElse(null);
+            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+            if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT) return;
 
-            if (pos == null) {
-                return;
-            }
+            Vector3d pos = packet.getLocation();
+            if (pos == null) return; // shouldn't ever happen, but whatever
 
             if (hasInteracted && !pos.equals(lastPos)) {
                 String verbose = "pos=" + MessageUtil.toUnlabledString(pos) + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);

@@ -225,11 +225,21 @@ jobs:
                   game-versions: '>=1.7 <=1.21.11'
 
             - name: Publish to API
-              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' }}
+              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' && inputs.is-release-build == false }}
               run: |
                   curl -X POST \
                     -H "Content-Type: application/json" \
                     -H "User-Agent: GrimACBuilder/v1" \
                     -H "Authorization: Bearer ${{ secrets.BUILD_UPDATE_TOKEN }}" \
                     -d '{"org": "${{ github.repository_owner }}", "repository": "${{ github.event.repository.name }}", "branch": "${{ github.ref_name }}", "version": "${{ env.BUILD_VERSION }}"}' \
+                    "${{ secrets.BUILD_UPDATE_URL }}"
+
+            - name: Publish Release to API
+              if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' && inputs.is-release-build == true }}
+              run: |
+                  curl -X POST \
+                    -H "Content-Type: application/json" \
+                    -H "User-Agent: GrimACBuilder/v1" \
+                    -H "Authorization: Bearer ${{ secrets.BUILD_UPDATE_TOKEN }}" \
+                    -d '{"org": "${{ github.repository_owner }}", "repository": "${{ github.event.repository.name }}", "branch": "release", "version": "${{ env.BUILD_VERSION }}"}' \
                     "${{ secrets.BUILD_UPDATE_URL }}"

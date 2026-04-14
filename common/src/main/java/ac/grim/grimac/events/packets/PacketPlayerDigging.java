@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.item.ItemBehaviour;
 import ac.grim.grimac.utils.item.ItemBehaviourRegistry;
@@ -212,7 +211,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected;
                 if (slotChanged || player.inventory.getItemInHand(player.packetStateData.itemInUseHand).isEmpty()) {
                     player.packetStateData.setSlowedByUsingItem(false);
-                    if (slotChanged) player.checkManager.getPostPredictionCheck(NoSlow.class).didSlotChangeLastTick = true;
+                    if (slotChanged) player.checkManager.getNoSlow().didSlotChangeLastTick = true;
                 }
             }
         }

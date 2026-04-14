@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.webhook;
+package ac.grim.grimac.utils.data.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

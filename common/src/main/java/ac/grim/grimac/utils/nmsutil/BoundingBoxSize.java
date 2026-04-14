@@ -110,7 +110,7 @@ public final class BoundingBoxSize {
             return 0.3125f;
         } else if (type == EntityTypes.SPIDER) {
             return 1.4f;
-        } else if (type == EntityTypes.SQUID) {
+        } else if (type == EntityTypes.SQUID || type == EntityTypes.GLOW_SQUID) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.TURTLE) {
             return 1.2f;
@@ -251,7 +251,7 @@ public final class BoundingBoxSize {
             return 0.6f;
         } else if (type == EntityTypes.EVOKER_FANGS || type == EntityTypes.VEX) {
             return 0.8f;
-        } else if (type == EntityTypes.SQUID) {
+        } else if (type == EntityTypes.SQUID || type == EntityTypes.GLOW_SQUID) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.PARROT || type == EntityTypes.BAT || type == EntityTypes.PIG || type == EntityTypes.SPIDER) {
             return 0.9f;
@@ -263,8 +263,8 @@ public final class BoundingBoxSize {
             // WHY DOES VIAVERSION OFFSET BOATS? THIS MAKES IT HARD TO SUPPORT, EVEN IF WE INTERPOLATE RIGHT.
             // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;
-        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.NAUTILUS)) {
-            return 0.95F;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_NAUTILUS)) {
+            return 0.95f;
         } else if (type == EntityTypes.HAPPY_GHAST) {
             return 4.0f;
         } else if (type == EntityTypes.CAT) {

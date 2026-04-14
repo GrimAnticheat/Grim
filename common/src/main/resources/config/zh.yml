@@ -2,7 +2,7 @@
 # 源代码链接: https://github.com/MWHunter/Grim
 # 版权所有 © 2025 DefineOutside 及贡献者 / 遵循 GPLv3 开源协议
 # 修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有仓库，不得公开售卖此插件。
-# 中文翻译提供 Regotly / nuym / Dg32z_ , 如有错误请提交 Issues 并@我
+# 中文翻译提供 Regotly / nuym / Dg32z_ / tjshtqwq , 如有错误请提交 Issues 并@我们
 
 alerts:
     # 除了向有权限的玩家发送作弊vl外，是否还在控制台中打印作弊vl消息？
@@ -26,6 +26,7 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
+        - "^quilt$"
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
@@ -40,14 +41,14 @@ spectators:
     allowed-worlds:
         - ""
 
-# 在玩家无法接收 GrimAC的 transaction 数据包后,多少秒对玩家进行踢出
-# 踢出原因为: disconnect.timeout
-# 玩家超时踢出时间（默认 = 60 秒）
+# 在玩家无法接收 GrimAC 的 transaction 数据包后,多少秒对玩家进行踢出
+# 默认踢出原因为: disconnect.timeout
+# 玩家超时踢出时间（单位：秒）（默认 = 60）
 max-transaction-time: 60
 
-# Enable this to stop Grim cancelling pongs received from players.
-# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
-# Do not enable this if you are not sure what you are doing.
+# 启用此选项可禁止Grim取消接收到的Pong包。
+# 可能会优化和其他反作弊的兼容性，但可能会与数据包限制器冲突
+# 在你不知道你在干什么的情况下，不要启用。
 disable-pong-cancelling: false
 
 # 是否应禁用默认的方块重新同步处理程序？
@@ -58,7 +59,7 @@ disable-pong-cancelling: false
 disable-default-resync-handler: false
 
 # 是否对重复的移动数据包进行撤销?
-# 这可以修复 "bucket desync". https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
+# 这可以修复 "bucket desync"（桶不同步问题）. https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
 # 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家
 cancel-duplicate-packet: true
 
@@ -66,27 +67,33 @@ cancel-duplicate-packet: true
 ignore-duplicate-packet-rotation: false
 
 Simulation:
-    # 当玩家合法时，我们应该将总优势乘以多少
+    # 这个检查通过仿真玩家的移动，并与玩家的实际移动进行比较
+    # 仿真出的位置（玩家理应到达的位置）和玩家实际位置的偏差（距离）即为移动优势。
+
+    # 当玩家合法时，我们应该将总移动优势乘以多少
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/d4ufgxrxer
     setback-decay-multiplier: 0.999
-    # 玩家移动偏移量判定阈值（单位：方块）
-    # 已针对 Optifine 优化三角函数表，若设为 0.001 可减少 FastMath 误报
-    # 如果此补偿不起作用，则反作弊记录此玩家作弊
+    # 最大允许玩家移动优势的阈值（单位：方块）
+    # 已经内置了Optifine FastMath的三角函数表，设置为0.001可避免FastMath误判
+    # 若玩家移动优势大于此阈值，标记玩家作弊
     threshold: 0.001
-    # 在玩家受到回弹之前，1 ticks 的判定阈值
-    # 假设作弊者与模拟移动的阈值（threshold）是0.0945，该项目设置的是0.07，玩家会立即被回弹到合适的位置
-    # -1 关闭
+    # 若玩家的移动优势超过此值，玩家会被强制回弹
+    # 假设作弊者的移动优势为0.12，且设置的是0.1，0.12 >= 0.1，玩家会立即被回弹到本应到达的位置
+    # -1 关闭此项
     immediate-setback-threshold: 0.1
-    # 在玩家受到回弹之前，累计回弹的阈值
-    # 假设作弊者与模拟移动的阈值（threshold）是0.0945，并且触发了10次，应为0.9450
-    # 而你设置的值为0.94 ， 作弊者会受到回弹
-    # -1 关闭
+    # 若玩家的总移动优势超过此值，玩家会被强制回弹
+    # 假设作弊者1个游戏刻的移动优势为0.11，并且违规了10次（10个游戏刻），即0.11*10，为1.1
+    # 若设置的值为1，1.1 >= 1，那么玩家会立即被回弹到本应到达的位置
+    # -1 关闭此项
     max-advantage: 1
-    # 在默认配置的50秒后，玩家将从4块跑到1块
-    # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+    # 在默认配置的50秒后，玩家的总优势将从4个方块变为1个方块
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
+
+    # 若玩家的总移动优势大于此项，则会被重置为此项
+    # 例如：总移动优势为4.2，会被强制重置到4
+    # 这是为了防止玩家的总移动优势过大，并且永远无法清除总移动优势
     max-ceiling: 4
-    # 设置回退的违规等级阈值
+    # 设置回弹的违规等级阈值
     # 1 为旧行为
     setback-violation-threshold: 1
 
@@ -114,8 +121,8 @@ RotationPlace:
 # 在这里解释错误的服务器代码......即使在发送垃圾数据包时右键单击和副手按钮也很分辨
 # 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的代码问题。
 NoSlow:
-    # 有多少偏移量是作弊
-    # 标志 0.03-0.2 与 NoSlow 一致
+    # 最大允许玩家在使用物品时的移动优势（单位：方块）
+    # 启用 NoSlow 后，标记量持续为 0.03-0.2
     threshold: 0.001
     # 到达多少VL时回弹
     setbackvl: 5
@@ -125,28 +132,38 @@ NoSlow:
 Knockback:
     # 当玩家合法时，我们应该将总优势乘以多少
     setback-decay-multiplier: 0.999
-    # 我们应该为玩家的移动创建多大的偏移量？
-    # 从可能的移动中以方块为单位测量
+    # 最大允许玩家的移动优势（单位：方块）
     threshold: 0.001
-    # 在玩家受到回弹之前，1 ticks 的违规行为有多大？
-    # -1 关闭
+    # 若玩家的总移动优势超过此值，玩家会被强制回弹
+    # 假设作弊者1个游戏刻的移动优势为0.11，并且违规了10次（10个游戏刻），即0.11*10，为1.1
+    # 若设置的值为1，1.1 >= 1，那么玩家会立即被回弹到本应到达的位置
+    # -1 关闭此项
     immediate-setback-threshold: 0.1
-    # 在我们开始遭遇回弹之前，我们的优势有多大?
-    # -1 关闭
+    # 若玩家的总移动优势超过此值，玩家会被强制回弹
+    # 假设作弊者1个游戏刻的移动优势为0.11，并且违规了10次（10个游戏刻），即0.11*10，为1.1
+    # 若设置的值为1，1.1 >= 1，那么玩家会立即被回弹到本应到达的位置
+    # -1 关闭此项
     max-advantage: 1
-    # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+    # 若玩家的总移动优势大于此项，则会被重置为此项
+    # 例如：总移动优势为4.2，会被强制重置到4
+    # 这是为了防止玩家的总移动优势过大，并且永远无法清除总移动优势
     max-ceiling: 4
 
 
 Explosion:
     threshold: 0.001
+    # 若玩家的总移动优势超过此值，玩家会被强制回弹
+    # 假设作弊者1个游戏刻的移动优势为0.11，并且违规了10次（10个游戏刻），即0.11*10，为1.1
+    # 若设置的值为1，1.1 >= 1，那么玩家会立即被回弹到本应到达的位置
+    # -1 关闭此项
     setbackvl: 3
+    # 到达多少VL时回弹
 
 TimerA:
     setbackvl: 10
-    # 玩家卡顿时可以累积以供以后使用的毫秒数
-    # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
     drift: 120
+    # 玩家卡顿时，可以累积以供以后使用的时间（单位：毫秒）
+    # 如果设置得太高，可能会允许 1.8版本的快速使用/快速回血/快速射弓绕过，120毫秒似乎是一个很好的平衡
 
 # 此项是config是用来防止玩家移动与实时差距过大，来限制对 TimerA 平衡机制的滥用。
 TimerLimit:
@@ -156,43 +173,45 @@ TimerLimit:
     ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
-    # 在开始检查玩家时，玩家的移动丢失了多少毫秒数
+    # 玩家的移动丢失了多少毫秒？
     drift: 1200
 
 # 与 TimerA 相同的检查方法，但适用于坐骑
 VehicleTimer:
-    # 实体1.0005 检查
+    # 实体的1.0005Timer 检查
     setbackvl: 10
+    # VL达到多少时回弹？
 
 PacketOrderI:
-    # 如果玩家因使用 1.7 动画模组而被标记，则启用此项
+    # 如果玩家因使用1.7动画模组而误判，则启用此项
     exempt-placing-while-digging: false
 
 Reach:
-    # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
+    threshold: 0.0005
+    # 我们应该将实体碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
     #
     # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 距离的增加，因为
     # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大。
-    threshold: 0.0005
-    # 我们应该取消我们知道不可能的命中吗？
-    # 3.00-3.03 命中可能会通过，但仍会被标记，因为数据包顺序限制
     block-impossible-hits: true
-    # 这将在每个ticks结束时发送一个额外的数据包，以检查作弊的可能性
-    # 这会注入服务器的连接列表以在服务器刷新之前发送最终数据包
-    # 启用这将增加所有玩家的带宽使用
-    # 这不会降低整体服务器性能
-    # 启用此功能将捕获更多作弊者。
-    # 禁用此功能仍会捕获作弊者，不会导致误报
-    # 除非你是专注于 1.8 PvP 的服务器，否则不建议使用这个额外的数据包
+    # 我们应该取消不合法的攻击吗？
+    # 攻击距离为3.00-3.03可能不会被取消，但仍会被作弊标记，因为有数据包顺序限制
     enable-post-packet: false
+    # 这将在每个游戏刻（tick）结束时发送一个额外的数据包，以检查更多的作弊
+    # 这会注入服务器的连接列表以在服务器刷新之前发送最终数据
+    # 启用这将增加所有玩家的带宽占用
+    # 但这不会降低整体服务器性能
+    # 启用此功能将检查到更多作弊者。
+    # 禁用此功能仍会检查到作弊者，不会导致误报
+    # 除非你是专注于1.8版本的PvP服务器，否则不建议使用这个额外的数据包
 
 exploit:
-    #是否允许玩家在使用鞘翅时候进行的疾跑跳跃
     allow-sprint-jumping-when-using-elytra: true
-    # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
-    # 这可以在玩家遇到幽灵方块时进行同步，这可以减少玩家所碰到幽灵方块
+    # 是否允许玩家在使用鞘翅时候进行的疾跑跳跃
     allow-building-on-ghostblocks: true
+    # 该选项可在发生假方块时重新同步玩家方块，并允许玩家在假方块上继续放置方块
     distance-to-check-if-ghostblocks: 2
+    # 检查假方块的距离。
+    # 范围限制为 2 到 4
 
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
@@ -206,18 +225,19 @@ reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
 reset-item-usage-on-item-use: true
 
-# Grim有时会取消非法的数据包，比如用timer，在一秒钟内取消了数个数据包后，我们应该踢掉这个玩家？
-# 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
+# Grim有时会取消非法的数据包，比如Timer。
+# 在一秒钟内取消了多少个数据包后，我们应该踢掉这个玩家？
+# 我们认为你应该启用此项，因为有些数据包限制器并不记录被Grim取消的数据包。
 packet-spam-threshold: 100
 # 启用此项可在玩家因 packet-spam-threshold 被踢时打印堆栈追踪
 debug-packet-cancel: false
 
-# Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
+# 在玩家处于非飞行状态，且ping（延迟）大于多少毫秒后，Grim会踢出这个玩家？
 # 填写-1则关闭
 max-ping-out-of-flying: 1000
 
-# 限制玩家在使用鞘翅飞行时使用烟花加速的延迟
-# 这可以解决高延迟的玩家可以使用鞘翅时一直使用 1 个烟花就可以加速
+# 当玩家使用鞘翅飞行，且ping（延迟）大于多少毫秒后，Grim会取消这个玩家正在使用的烟花火箭？
+# 可以避免高延迟玩家使用一个烟花火箭就可以一直飞行
 # 填写-1则关闭
 max-ping-firework-boost: 1000
 
@@ -225,17 +245,16 @@ history:
     enabled: true
     # 使用 /grim history <player> 时每页显示多少条记录
     entries-per-page: 15
-    # history 指令中插入的服务器名称？如果多个服务器共用同一数据库则很有用
+    # history命令中应该插入的服务器名称是什么？如果多个服务器共用同一数据库，这个选项会很有用
     server-name: Prison
     database:
         # 本地存储使用SQLITE，如有外部数据库请使用MYSQL或POSTGRESQL。此设置仅在服务器重启时更新
         type: SQLITE
-        # 数据库连接详情
+        # 数据库连接信息
         host: localhost
         port: 3306
         database: grim
         username: root
         password: ""
-
 # 不要调整这个
 config-version: 9
