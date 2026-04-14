@@ -17,9 +17,6 @@
       "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
     ]
   },
-  "mixins": [
-    "grimac.mixins.json"
-  ],
   "custom": {
     "loom:injected_interfaces": {
       "net/minecraft/world/level/Level": [
@@ -27,11 +24,10 @@
       ]
     }
   },
-  "accessWidener": "grimac.accesswidener",
   "depends": {
-    "fabricloader": "\u003e\u003d0.16",
+    "fabricloader": "\u003e\u003d0.18.5",
     "fabric-lifecycle-events-v1": "*",
-    "packetevents": "*"
+    "packetevents": "\u003e\u003d2.12.0"
   },
   "recommends": {
     "cloud": "*",

@@ -1,0 +1,14 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "ac.grim.grimac.platform.fabric.mixins",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "LevelChunkMixin",
+        "LevelMixin",
+        "ServerPlayerMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

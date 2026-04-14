@@ -1,3 +1,0 @@
-accessWidener v2 named
-accessible field net/minecraft/server/level/ServerLevel serverLevelData Lnet/minecraft/world/level/storage/ServerLevelData;
-accessible field net/minecraft/commands/CommandSourceStack source Lnet/minecraft/commands/CommandSource;

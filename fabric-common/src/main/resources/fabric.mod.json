@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-common",
+  "version": "${version}",
+  "name": "GrimAC Fabric (Common)",
+  "description": "Shared Fabric-loader code for GrimAC (no Minecraft-version-specific mappings).",
+  "authors": [
+    "GrimAC"
+  ],
+  "license": "GPLv3",
+  "environment": "server",
+  "depends": {
+    "fabricloader": ">=0.18.5"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [
+        "library"
+      ],
+      "parent": "grimac",
+      "update_checker": false
+    }
+  }
+}

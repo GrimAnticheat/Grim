@@ -11,6 +11,9 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
+    plugins {
+        id("net.fabricmc.fabric-loom-remap") version "1.15-SNAPSHOT"
+    }
     repositories {
         // For the Fabric Loom plugin
         exclusiveContent {
@@ -21,7 +24,7 @@ pluginManagement {
                 }
             }
             filter {
-                includeModule("fabric-loom", "fabric-loom.gradle.plugin")
+                includeModule("net.fabricmc.fabric-loom", "net.fabricmc.fabric-loom.gradle.plugin")
                 includeGroupByRegex("net.fabricmc.*")
             }
         }
@@ -63,9 +66,13 @@ if (gradle.startParameter.isBuildScan) {
 rootProject.name = "grimac"
 include("common")
 include("bukkit")
+include("fabric-common")
+include("fabric-official")
+include("fabric-official:mc261")
+include("fabric-intermediary")
+include("fabric-intermediary:mc1161")
+include("fabric-intermediary:mc1171")
+include("fabric-intermediary:mc1194")
+include("fabric-intermediary:mc1205")
+include("fabric-intermediary:mc12111")
 include("fabric")
-include(":fabric:mc1161")
-include(":fabric:mc1171")
-include(":fabric:mc1194")
-include(":fabric:mc1205")
-include(":fabric:mc12111")
