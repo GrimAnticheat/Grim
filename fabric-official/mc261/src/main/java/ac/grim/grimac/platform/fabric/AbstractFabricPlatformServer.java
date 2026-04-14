@@ -11,12 +11,12 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractFabricPlatformServer implements PlatformServer {
 
-    public PermissionLevel getOperatorPermissionLevel() {
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.operatorUserPermissions().level();
+    public int getOperatorPermissionLevel() {
+        return GrimACFabricLoaderPlugin.FABRIC_SERVER.operatorUserPermissions().level().id();
     }
 
-    public boolean hasPermission(CommandSourceStack stack, PermissionLevel level) {
-        return stack.permissions().hasPermission(new Permission.HasCommandLevel(level));
+    public boolean hasPermission(CommandSourceStack stack, int level) {
+        return stack.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(level)));
     }
 
     @Override
