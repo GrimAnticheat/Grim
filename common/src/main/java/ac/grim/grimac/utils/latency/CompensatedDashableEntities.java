@@ -12,10 +12,9 @@ public class CompensatedDashableEntities {
         if (dashableMap.isEmpty()) return;
         for (DashableEntity dashable : dashableMap.values()) {
             // TODO: this is wrong, but camels desync af so at least "fix" this mob if cooldown is gone
-            int dashCooldown = dashable.getDashCooldown();
-            boolean wasDashable = dashCooldown > 0;
+            boolean hasCooldown = dashable.getDashCooldown() > 0;
             dashable.setDashCooldown(Math.max(0, dashable.getDashCooldown() - 1));
-            if (wasDashable && dashable.getDashCooldown() == 0) {
+            if (hasCooldown && dashable.getDashCooldown() == 0) {
                 dashable.setDashing(false);
             }
         }
