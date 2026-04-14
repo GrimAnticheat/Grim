@@ -1,25 +1,21 @@
-import java.util.Properties
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import versioning.BuildConfig
 
-val fabricOfficialMc261Versions =
-    Properties().apply {
-        rootProject.file("fabric-official/mc261/gradle.properties").reader().use { load(it) }
-    }
-val minecraft_version: String = fabricOfficialMc261Versions.getProperty("minecraft_version").trim()
-val fabric_version: String = fabricOfficialMc261Versions.getProperty("fabric_version").trim()
+val minecraft_version: String by project
+val fabric_version: String by project
 
 plugins {
-    `maven-publish`
     alias(libs.plugins.fabric.loom)
     grim.`base-conventions`
-    grim.`jij-conventions`
 }
 
 dependencies {
+    api(project(":fabric-common"))
+    compileOnly(project(":common"))
+
     minecraft("com.mojang:minecraft:$minecraft_version")
     implementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
+
+    compileOnly("me.lucko:fabric-permissions-api:0.7.0")
 
     implementation(libs.cloud.fabric) {
         exclude(group = "net.fabricmc.fabric-api")
@@ -31,18 +27,6 @@ dependencies {
 
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
-
-    implementation(project(":common"))
-    implementation(project(":fabric-common"))
-    implementation(project(":fabric-official:mc261"))
-    include(project(":fabric-common"))
-    include(project(":fabric-official:mc261"))
-    // Intermediary grimMainLoad JiJ slices (upstream-style :fabric:mc*).
-    include(project(":fabric-intermediary:mc1161"))
-    include(project(":fabric-intermediary:mc1171"))
-    include(project(":fabric-intermediary:mc1194"))
-    include(project(":fabric-intermediary:mc1205"))
-    include(project(":fabric-intermediary:mc12111"))
 }
 
 repositories {
@@ -99,16 +83,5 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 loom {
-    accessWidenerPath = file("grimac-official-mojang.accesswidener")
-}
-
-publishing.publications.create<MavenPublication>("maven") {
-    from(components["java"])
-}
-
-tasks {
-    jar {
-        archiveBaseName.set("${rootProject.name}-fabric")
-        archiveVersion.set(rootProject.version as String)
-    }
+    accessWidenerPath = file("src/main/resources/grimac.accesswidener")
 }

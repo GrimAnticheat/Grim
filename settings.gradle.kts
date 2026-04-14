@@ -11,6 +11,9 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
+    plugins {
+        id("net.fabricmc.fabric-loom-remap") version "1.15-SNAPSHOT"
+    }
     repositories {
         // For the Fabric Loom plugin
         exclusiveContent {
@@ -21,7 +24,6 @@ pluginManagement {
                 }
             }
             filter {
-                includeModule("fabric-loom", "fabric-loom.gradle.plugin")
                 includeModule("net.fabricmc.fabric-loom", "net.fabricmc.fabric-loom.gradle.plugin")
                 includeGroupByRegex("net.fabricmc.*")
             }
@@ -64,10 +66,13 @@ if (gradle.startParameter.isBuildScan) {
 rootProject.name = "grimac"
 include("common")
 include("bukkit")
-include("grim-fabric-common")
-// grim-fabric-intermediary/mc* sources stay in-repo for the PE-style layout. They are not Gradle-included yet:
-// Loom 1.15 rejects official Mojang mappings on older MC lines, default mappings + fabric-api AWs conflict, and
-// namedElements cross-slices changed. Re-enable include("grim-fabric-intermediary:mc1161") etc. when that graph is updated.
-include("grim-fabric-official")
-include("grim-fabric-official:mc261")
+include("fabric-common")
+include("fabric-official")
+include("fabric-official:mc261")
+include("fabric-intermediary")
+include("fabric-intermediary:mc1161")
+include("fabric-intermediary:mc1171")
+include("fabric-intermediary:mc1194")
+include("fabric-intermediary:mc1205")
+include("fabric-intermediary:mc12111")
 include("fabric")

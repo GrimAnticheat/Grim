@@ -9,7 +9,28 @@
   ],
   "license": "GPLv3",
   "environment": "server",
+  "entrypoints": {
+    "main": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+    ],
+    "preLaunch": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+    ]
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/level/Level": [
+        "ac/grim/grimac/platform/api/world/PlatformWorld"
+      ]
+    }
+  },
   "depends": {
-    "fabricloader": ">=0.18.5"
+    "fabricloader": "\u003e\u003d0.18.5",
+    "fabric-lifecycle-events-v1": "*",
+    "packetevents": "\u003e\u003d2.12.0"
+  },
+  "recommends": {
+    "cloud": "*",
+    "fabric-permissions-api-v0": "*"
   }
 }
