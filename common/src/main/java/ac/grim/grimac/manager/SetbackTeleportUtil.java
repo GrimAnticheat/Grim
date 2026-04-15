@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.event.events.GrimTeleportEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -278,6 +279,8 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             requiredSetBack = data;
             // Send after tracking to fix race condition
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
+            // Allows anticheats to keep track of this outbound teleport for compatibility
+            GrimAPI.INSTANCE.getEventBus().post(new GrimTeleportEvent(player, teleportId, System.currentTimeMillis()));
             player.sendTransaction();
 
             if (data.getVelocity() != null && data.getVelocity().lengthSquared() > 0) {

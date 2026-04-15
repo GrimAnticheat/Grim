@@ -1,6 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.event.events.GrimTransactionReceivedEvent;
+import ac.grim.grimac.api.event.events.GrimTransactionSendEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -20,7 +22,6 @@ public class PacketPingListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOWEST);
     }
 
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
@@ -36,6 +37,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             if (id <= 0 && player.addTransactionResponse(id)) {
                 player.packetStateData.lastTransactionPacketWasValid = true;
                 event.setCancelled(true);
+                GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, true, event.getTimestamp()));
             }
         }
 
@@ -52,8 +54,10 @@ public class PacketPingListener extends PacketListenerAbstract {
                 short shortID = ((short) id);
                 if (player.addTransactionResponse(shortID)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
+                    boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
-                    event.setCancelled(!GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling());
+                    event.setCancelled(shouldCancel);
+                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, shouldCancel, event.getTimestamp()));
                 }
             }
         }
@@ -74,6 +78,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionSendEvent(player, id, event.getTimestamp()));
                 }
             }
         }
@@ -93,6 +98,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionSendEvent(player, id, event.getTimestamp()));
                 }
             }
         }
