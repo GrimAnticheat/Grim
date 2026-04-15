@@ -12,7 +12,7 @@ cloud-processors-requirements = "1.0.0-rc.1"
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
 grim-api = "1.2.4.0"
-packetevents = "2.11.2+675bc5c-SNAPSHOT"
+packetevents = "2.12.1+d82ae73-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.7.1"
 
@@ -26,7 +26,7 @@ configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
 
 # --- Build & Tooling ---
 fabric-loader = "0.16.14"
-fabric-loom = "1.14.6"
+fabric-loom = "1.15.5"
 lombok = "9.0.0"
 shadow = "9.3.0"
 spotless = "6.25.0"

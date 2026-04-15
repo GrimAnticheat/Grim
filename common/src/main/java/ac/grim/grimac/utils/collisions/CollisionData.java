@@ -816,7 +816,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.TRIPWIRE_HOOK),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
-            StateTypes.TORCH, StateTypes.REDSTONE_TORCH, StateTypes.COPPER_TORCH),
+            StateTypes.TORCH, StateTypes.REDSTONE_TORCH, StateTypes.COPPER_TORCH, StateTypes.SOUL_TORCH),
 
     WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
@@ -825,7 +825,7 @@ public enum CollisionData implements CollisionFactory {
         case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
         // 1.13 separates wall and normal torches, 1.12 does not
         default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH, StateTypes.COPPER_WALL_TORCH),
+    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH, StateTypes.COPPER_WALL_TORCH, StateTypes.SOUL_WALL_TORCH),
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {

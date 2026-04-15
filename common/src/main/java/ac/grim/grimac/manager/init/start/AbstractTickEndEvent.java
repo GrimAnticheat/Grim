@@ -12,7 +12,7 @@ public abstract class AbstractTickEndEvent implements StartableInitable {
     }
 
     protected void onEndOfTick(GrimPlayer player) {
-        player.checkManager.getEntityReplication().onEndOfTickEvent();
+        player.checkManager.getPacketEntityReplication().onEndOfTickEvent();
     }
 
     protected boolean shouldInjectEndTick() {

@@ -24,6 +24,18 @@ public class MultiActionsG extends BlockPlaceCheck {
             player.onPacketCancel();
         }
 
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK && isCheckActive()
+                && flagAndAlert("attack") && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY && isCheckActive()
+                && flagAndAlert("spectateEntity") && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isCheckActive()
                 && flagAndAlert("use") && shouldModifyPackets()) {
             event.setCancelled(true);

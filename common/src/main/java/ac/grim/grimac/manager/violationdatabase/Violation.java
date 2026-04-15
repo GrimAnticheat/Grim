@@ -13,8 +13,7 @@ public record Violation(String server, UUID uuid, String checkName, String verbo
         List<Violation> violations = new ArrayList<>();
         while (resultSet.next()) {
             String server = resultSet.getString(DatabaseConstants.SERVERS_STRING_COLUMN);
-            byte[] uuidBytes = resultSet.getBytes(DatabaseConstants.VIOLATIONS_UUID_COLUMN);
-            UUID uuid = DatabaseUtils.bytesToUuid(uuidBytes);
+            UUID uuid = DatabaseUtils.getUuid(resultSet, DatabaseConstants.VIOLATIONS_UUID_COLUMN);
             String checkName = resultSet.getString(DatabaseConstants.CHECK_NAMES_STRING_COLUMN);
             String verbose = resultSet.getString(DatabaseConstants.VIOLATIONS_VERBOSE_COLUMN);
             int vl = resultSet.getInt(DatabaseConstants.VIOLATIONS_VL_COLUMN);
