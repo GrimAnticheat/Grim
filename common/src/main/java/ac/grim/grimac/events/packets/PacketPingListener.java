@@ -36,8 +36,10 @@ public class PacketPingListener extends PacketListenerAbstract {
             // Check if we sent this packet before cancelling it
             if (id <= 0 && player.addTransactionResponse(id)) {
                 player.packetStateData.lastTransactionPacketWasValid = true;
-                event.setCancelled(true);
-                GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, true, event.getTimestamp()));
+                boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
+                // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
+                event.setCancelled(shouldCancel);
+                GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, shouldCancel, event.getTimestamp()));
             }
         }
 
