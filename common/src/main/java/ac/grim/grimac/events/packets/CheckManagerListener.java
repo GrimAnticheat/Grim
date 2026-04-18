@@ -476,11 +476,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     && new WrapperPlayClientPlayerBlockPlacement(event).getFaceId() == 255
                     && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
 
+            WrapperPlayClientPlayerFlying packet = player.packetStateData.queuedDuplicate.packet();
+
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                handleDuplicate(player, event, player.packetStateData.queuedDuplicate.packet());
+                handleDuplicate(player, event, packet);
             }
 
-            player.user.receivePacket(player.packetStateData.queuedDuplicate.packet());
+            WrapperPlayClientPlayerFlying copy = new WrapperPlayClientPlayerFlying(packet.hasPositionChanged(), packet.hasRotationChanged(), packet.isOnGround(), packet.isHorizontalCollision(), packet.getLocation());
+
+            player.user.receivePacket(copy);
 
             player.packetStateData.queuedDuplicate = null;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
