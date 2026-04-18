@@ -90,6 +90,7 @@ Punishments:
       - "Baritone"
       - "Break"
       - "TransactionOrder"
+      - "KeepAliveOrder"
       - "Elytra"
       - "Chat"
       - "Exploit"

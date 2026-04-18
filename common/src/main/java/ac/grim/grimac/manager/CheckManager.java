@@ -17,10 +17,7 @@ import ac.grim.grimac.checks.impl.elytra.*;
 import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFall;
-import ac.grim.grimac.checks.impl.misc.ClientBrand;
-import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
-import ac.grim.grimac.checks.impl.misc.Post;
-import ac.grim.grimac.checks.impl.misc.TransactionOrder;
+import ac.grim.grimac.checks.impl.misc.*;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
@@ -109,6 +106,7 @@ public class CheckManager {
                 .put(ChatD.class, new ChatD(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
+                .put(KeepAliveOrder.class, new KeepAliveOrder(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
@@ -121,7 +119,6 @@ public class CheckManager {
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
                 .put(BadPacketsM.class, new BadPacketsM(player))
-                .put(BadPacketsO.class, new BadPacketsO(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))

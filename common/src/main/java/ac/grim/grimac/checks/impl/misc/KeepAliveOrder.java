@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.badpackets;
+package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -12,11 +12,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKe
 
 import java.util.LinkedList;
 
-@CheckData(name = "BadPacketsO", stableKey = "grim.badpackets.invalid_keepalive")
-public class BadPacketsO extends Check implements PacketCheck {
+@CheckData(name = "KeepAliveOrder", stableKey = "grim.badpackets.invalid_keepalive")
+public class KeepAliveOrder extends Check implements PacketCheck {
     private final LinkedList<Long> keepalives = new LinkedList<>();
 
-    public BadPacketsO(GrimPlayer player) {
+    public KeepAliveOrder(GrimPlayer player) {
         super(player);
     }
 
@@ -32,19 +32,26 @@ public class BadPacketsO extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
             final long id = new WrapperPlayClientKeepAlive(event).getId();
 
+            int skipped = -1;
+
             for (long keepalive : keepalives) {
                 if (keepalive == id) {
                     // Found the ID, remove stuff until we get to it (to stop very slow memory leaks)
                     Long data;
                     do {
                         data = keepalives.poll();
+                        skipped++;
                     } while (data != null && data != id);
 
-                    return;
+                    break;
                 }
             }
 
-            if (flagAndAlert("id=" + id) && shouldModifyPackets()) {
+            boolean flagged = skipped == -1
+                    ? flagAndAlert("id=" + id)
+                    : skipped != 0 && flagAndAlert("skipped=" + skipped);
+
+            if (flagged && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
