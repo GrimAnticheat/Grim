@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
@@ -383,7 +382,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void handleDuplicate(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
+    public static void handleDuplicate(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
         final Location location = flying.getLocation();
 
         // Mark that we want this packet to be cancelled from reaching the server
@@ -447,7 +446,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle())) {
             if (player.isQueuePossibleDuplicates()) {
-                player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, teleportData);
+                player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, event, teleportData);
                 event.setCancelled(true);
             } else {
                 handleDuplicate(player, event, flying);
@@ -467,27 +466,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (event.getConnectionState() != ConnectionState.CONFIGURATION) return;
             player.checkManager.onPacketReceive(event);
             return;
-        }
-
-        if (!Check.isAsync(event.getPacketType()) && player.packetStateData.queuedDuplicate != null && !player.packetStateData.isReceivingQueuedDuplicate) {
-            player.packetStateData.isReceivingQueuedDuplicate = true;
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM
-                    || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                    && new WrapperPlayClientPlayerBlockPlacement(event).getFaceId() == 255
-                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
-
-            WrapperPlayClientPlayerFlying packet = player.packetStateData.queuedDuplicate.packet();
-
-            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                handleDuplicate(player, event, packet);
-            }
-
-            WrapperPlayClientPlayerFlying copy = new WrapperPlayClientPlayerFlying(packet.hasPositionChanged(), packet.hasRotationChanged(), packet.isOnGround(), packet.isHorizontalCollision(), packet.getLocation());
-
-            player.user.receivePacket(copy);
-
-            player.packetStateData.queuedDuplicate = null;
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
         }
 
         // Determine if teleport BEFORE we call the pre-prediction vehicle
