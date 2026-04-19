@@ -200,9 +200,11 @@ public class BlockProperties {
         if (type == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
-            // On 1.21, let attributes handle this
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)
-                    && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2)
+            // On 1.21+, soul speed uses a location_changed enchantment effect that sets
+            // movement_efficiency to 1.0 (completely negating the slowdown). The client applies
+            // this locally, but the server-sent attribute update can arrive late, causing
+            // false positives. We check the enchantment directly to stay in sync with the client.
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2)
                     && player.inventory.getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
