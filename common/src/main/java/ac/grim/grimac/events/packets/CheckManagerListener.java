@@ -418,7 +418,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.packetStateData.lastClaimedPosition = location.getPosition();
     }
 
-    private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying, TeleportAcceptData teleportData) {
+    private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
         // Teleports are not stupidity packets.
         if (player.packetStateData.lastPacketWasTeleport) return false;
         // Mojang has become less stupid!
@@ -446,7 +446,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle())) {
             if (player.isStrictDuplicateHandling()) {
-                player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, event, teleportData);
+                player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, event);
                 event.setCancelled(true);
             } else {
                 handleDuplicate(player, event, flying);
@@ -509,7 +509,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying, teleportData);
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
 
             // if this could be a duplicate, then queue it until the next (non-async) packet
             if (player.packetStateData.queuedDuplicate != null && player.packetStateData.queuedDuplicate.packet() == flying) {
@@ -520,8 +520,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (player.packetStateData.isReceivingQueuedDuplicate) {
-            // TODO: can this be replaced with `new TeleportAcceptData()`?
-            teleportData = player.packetStateData.queuedDuplicate.teleportData();
+            teleportData = new TeleportAcceptData();
         }
 
         if (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
