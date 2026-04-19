@@ -63,6 +63,10 @@ cancel-duplicate-packet: true
 # Dacă să se ignore rotația în pachetele duplicate
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+# and require the same head rotation for duplicates sent in the same tick
+strict-duplicate-handling: false
+
 Simulation:
     # Cu cât ar trebui să înmulțim avantajul total atunci când jucătorul este legitim
     # Așa arată configurația implicită (axa X = secunde, axa Y = 1/1000 bloc): https://www.desmos.com/calculator/d4ufgxrxer

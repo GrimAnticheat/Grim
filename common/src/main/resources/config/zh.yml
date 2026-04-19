@@ -67,7 +67,8 @@ cancel-duplicate-packet: true
 ignore-duplicate-packet-rotation: false
 
 # queue potential duplicate packets until the next packet to check if it actually was a duplicate
-queue-possible-duplicates: false
+# and require the same head rotation for duplicates sent in the same tick
+strict-duplicate-handling: false
 
 Simulation:
     # 这个检查通过仿真玩家的移动，并与玩家的实际移动进行比较

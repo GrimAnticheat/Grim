@@ -63,6 +63,10 @@ cancel-duplicate-packet: true
 # Czy ignorować rotację w zduplikowanych pakietach
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+# and require the same head rotation for duplicates sent in the same tick
+strict-duplicate-handling: false
+
 Simulation:
     # O ile powinniśmy pomnożyć całkowitą przewagę, gdy gracz gra zgodnie z zasadami?
     # Tak wygląda domyślna konfiguracja (oś x = sekundy, oś y = 1/1000 bloku): https://www.desmos.com/calculator/d4ufgxrxer

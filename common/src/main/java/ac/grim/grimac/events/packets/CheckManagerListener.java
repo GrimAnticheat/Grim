@@ -436,7 +436,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // Ground status will never change in this stupidity packet
                 ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
                         // rotations must be the same for all duplicates sent in the same tick
-                        && (player.lastDuplicateRotationThisTick == null || !player.isRequireSameRotationInDuplicates()
+                        && (player.lastDuplicateRotationThisTick == null || !player.isStrictDuplicateHandling()
                         || player.lastDuplicateRotationThisTick.yaw() == location.getYaw()
                         && player.lastDuplicateRotationThisTick.pitch() == location.getPitch())
                         // Mojang added this stupid mechanic in 1.17
@@ -445,7 +445,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         player.filterMojangStupidityOnMojangStupidity.distanceSquared(location.getPosition()) < threshold * threshold))
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle())) {
-            if (player.isQueuePossibleDuplicates()) {
+            if (player.isStrictDuplicateHandling()) {
                 player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, event, teleportData);
                 event.setCancelled(true);
             } else {
