@@ -446,7 +446,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle())) {
             if (player.isStrictDuplicateHandling()) {
-                player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying, event);
+                player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
                 event.setCancelled(true);
             } else {
                 handleDuplicate(player, event, flying);
@@ -512,7 +512,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
 
             // if this could be a duplicate, then queue it until the next (non-async) packet
-            if (player.packetStateData.queuedDuplicate != null && player.packetStateData.queuedDuplicate.packet() == flying) {
+            if (player.packetStateData.queuedDuplicate != null) {
                 return;
             }
 

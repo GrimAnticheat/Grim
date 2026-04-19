@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.QueuedDuplicate;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -28,24 +29,26 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
 
-        if (event.getConnectionState() != ConnectionState.PLAY) return;
+        if (event.getConnectionState() != ConnectionState.PLAY
+                || Check.isAsync(event.getPacketType())
+                || player.packetStateData.isReceivingQueuedDuplicate) return;
 
-        if (!Check.isAsync(event.getPacketType()) && player.packetStateData.queuedDuplicate != null && !player.packetStateData.isReceivingQueuedDuplicate) {
+        QueuedDuplicate queuedDuplicate = player.packetStateData.queuedDuplicate;
+
+        if (queuedDuplicate != null) {
             player.packetStateData.isReceivingQueuedDuplicate = true;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM
                     || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
                     && new WrapperPlayClientPlayerBlockPlacement(event).getFaceId() == 255
                     && event.getServerVersion().isOlderThan(ServerVersion.V_1_9);
 
-            WrapperPlayClientPlayerFlying packet = player.packetStateData.queuedDuplicate.packet();
+            WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
 
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                CheckManagerListener.handleDuplicate(player, player.packetStateData.queuedDuplicate.event(), packet);
+                CheckManagerListener.handleDuplicate(player, queuedDuplicate.event(), packet);
             }
 
-            // we need to make a copy like this or else there's errors (why?!)
-            WrapperPlayClientPlayerFlying copy = new WrapperPlayClientPlayerFlying(packet.hasPositionChanged(), packet.hasRotationChanged(), packet.isOnGround(), packet.isHorizontalCollision(), packet.getLocation());
-            player.user.receivePacket(copy);
+            player.user.receivePacket(packet);
 
             player.packetStateData.queuedDuplicate = null;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;

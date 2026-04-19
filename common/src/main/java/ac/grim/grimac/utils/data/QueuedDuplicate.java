@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import com.github.retrooper.packetevents.protocol.world.Location;
 
-public record QueuedDuplicate(WrapperPlayClientPlayerFlying packet, PacketReceiveEvent event) {}
+public record QueuedDuplicate(PacketReceiveEvent event, boolean onGround, Location location) {}
