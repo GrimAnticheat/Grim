@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -15,9 +14,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUseBed;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +23,11 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
     public PacketSelfMetadataListener() {
         super(PacketListenerPriority.HIGH);
+    }
+
+    @Override
+    public boolean isPreVia() {
+        return true;
     }
 
     @Override
@@ -62,7 +64,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 // to the player on old servers... because the player just overrides this pose the very next tick
                 //
                 // It makes no sense to me why mojang is doing this, it has to be a bug.
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                if (event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
                     List<EntityData<?>> metadataStuff = entityMetadata.getEntityMetadata();
 
                     // Remove the pose metadata from the list
@@ -100,7 +102,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                if (event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                     EntityData<?> gravity = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), 5);
 
                     if (gravity != null) {
@@ -119,7 +121,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                if (event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
                     EntityData<?> frozen = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), 7);
 
                     if (frozen != null) {
@@ -130,12 +132,12 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                if (event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
                     int id;
 
-                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                    if (event.getServerVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
                         id = 12; // Added in 1.14 with an initial ID of 12
-                    } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                    } else if (event.getServerVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                         id = 13; // 1.15 changed this to 13
                     } else {
                         id = 14; // 1.17 changed this to 14
@@ -159,9 +161,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
+                if (event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-                    EntityData<?> riptide = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 8 : 7);
+                    EntityData<?> riptide = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 8 : 7);
 
                     // This one only present if it changed
                     if (riptide != null && riptide.getValue() instanceof Byte) {
@@ -187,7 +189,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
-                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                             boolean isActive = (((byte) riptide.getValue()) & 1) > 0;
                             boolean isOffhand = (((byte) riptide.getValue()) & 2) > 0;
 
@@ -218,31 +220,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         }
                     }
                 }
-            }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.USE_BED) {
-            WrapperPlayServerUseBed bed = new WrapperPlayServerUseBed(event);
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player != null && player.entityID == bed.getEntityId()) {
-                // Split so packet received after transaction
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    player.isInBed = true;
-                    player.bedPosition = new Vector3d(bed.getPosition().getX() + 0.5, bed.getPosition().getY(), bed.getPosition().getZ() + 0.5);
-                });
-            }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
-            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player != null && player.entityID == animation.getEntityId()
-                    && animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.WAKE_UP) {
-                // Split so packet received before transaction
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isInBed = false);
-                event.getTasksAfterSend().add(player::sendTransaction);
             }
         }
     }
