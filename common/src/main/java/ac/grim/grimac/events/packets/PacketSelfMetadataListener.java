@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -87,6 +88,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
+                            if (!isSprinting) {
+                                player.vehicleData.camelSprintingState = SprintingState.STOPPING;
+                            }
                             // Protect this due to players being able to get the server to spam this packet a lot
                             if (player.isGliding != isGliding) {
                                 player.pointThreeEstimator.updatePlayerGliding();

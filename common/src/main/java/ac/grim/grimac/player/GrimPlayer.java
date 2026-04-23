@@ -17,6 +17,7 @@ import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
 import ac.grim.grimac.manager.player.handlers.NoOpResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.predictionengine.EntityFluidInteraction;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
@@ -29,6 +30,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -190,10 +192,6 @@ public class GrimPlayer implements GrimUser {
     public boolean wasTouchingWater = false;
     public boolean wasWasTouchingWater = false;
     public boolean wasTouchingLava = false;
-    // For slightly reduced vertical lava friction and jumping
-    public boolean slightlyTouchingLava = false;
-    // For jumping
-    public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public boolean softHorizontalCollision;
@@ -278,6 +276,7 @@ public class GrimPlayer implements GrimUser {
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
+    public EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
 
     public GrimPlayer(@NotNull User user) {
         this.user = user;
@@ -1037,4 +1036,21 @@ public class GrimPlayer implements GrimUser {
 
         return blockStateId;
     }
+
+    public double getFluidHeight(FluidTag fluidTag) {
+        if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) return this.fluidHeight.getDouble(fluidTag);
+        return this.fluidInteraction.getFluidHeight(fluidTag);
+    }
+
+    public boolean isEyeInFluid(FluidTag fluidTag) {
+        if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) return this.fluidOnEyes == fluidTag;
+        return this.fluidInteraction.isEyeInFluid(fluidTag);
+    }
+
+    public boolean isPushedByFluid() {
+        if (!this.inVehicle()) return !this.isFlying;
+        PacketEntity vehicle = getVehicle();
+        return !(vehicle instanceof PacketEntityNautilus);
+    }
+
 }

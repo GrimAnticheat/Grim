@@ -260,7 +260,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
             } else {
-                id = 16; // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY)
+                id = 16 + (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0); // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY), for some reason, piglins have their own age metadata??
             }
 
             // 1.14 good

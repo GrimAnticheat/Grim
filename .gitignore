@@ -75,3 +75,4 @@ run/
 fabric/run/
 
 .ignored/
+/workspace.gradle.kts

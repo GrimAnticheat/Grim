@@ -153,7 +153,7 @@ public class BlockBreakSpeed {
 
         speedMultiplier *= (float) player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_BREAK_SPEED);
 
-        if (player.fluidOnEyes == FluidTag.WATER) {
+        if (player.isEyeInFluid(FluidTag.WATER)) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier *= (float) player.compensatedEntities.self.getAttributeValue(Attributes.SUBMERGED_MINING_SPEED);
             } else {
