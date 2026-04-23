@@ -27,6 +27,7 @@ public class PunishmentManager implements ConfigReloadable {
     private String alertString;
     private boolean testMode;
     private String proxyAlertString = "";
+    private static final CommandExecuteEvent.Channel COMMAND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CommandExecuteEvent.class);
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;
@@ -133,9 +134,7 @@ public class PunishmentManager implements ConfigReloadable {
                         // Any other number means execute every X interval
                         boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
                         if (inInterval) {
-                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
-                            GrimAPI.INSTANCE.getEventBus().post(executeEvent);
-                            if (executeEvent.isCancelled()) continue;
+                            if (COMMAND_CHANNEL.fire(player, check, verbose, cmd)) continue;
 
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);

@@ -28,6 +28,13 @@ import java.util.function.Function;
 
 public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable {
 
+    // Holder class — GrimExternalAPI is constructed inside GrimAPI's ctor,
+    // so a plain static-final would see a null GrimAPI.INSTANCE. Holder
+    // init runs on first fire, after GrimAPI is fully built.
+    private static final class Channels {
+        static final GrimReloadEvent.Channel RELOAD = GrimAPI.INSTANCE.getEventBus().get(GrimReloadEvent.class);
+    }
+
     private final GrimAPI api;
     @Getter
     private final Map<String, Function<GrimUser, String>> variableReplacements = new ConcurrentHashMap<>();
@@ -165,14 +172,14 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
             onReload(config);
             if (started)
                 GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                        () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(true)));
+                        () -> Channels.RELOAD.fire(true));
             return true;
         } catch (Exception e) {
             LogUtil.error("Failed to reload config", e);
         }
         if (started)
             GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(false)));
+                    () -> Channels.RELOAD.fire(false));
         return false;
     }
 

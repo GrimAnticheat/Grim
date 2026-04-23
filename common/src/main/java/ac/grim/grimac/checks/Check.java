@@ -20,6 +20,8 @@ import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayC
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
+    private static final FlagEvent.Channel FLAG_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(FlagEvent.class);
+
     protected @NotNull final GrimPlayer player;
 
     public double violations;
@@ -96,9 +98,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
         if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
             return false; // Avoid calling event if disabled
 
-        FlagEvent event = new FlagEvent(player, this, verbose);
-        GrimAPI.INSTANCE.getEventBus().post(event);
-        if (event.isCancelled()) return false;
+        if (FLAG_CHANNEL.fire(player, this, verbose)) return false;
 
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();

@@ -17,6 +17,9 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 
 public class PacketPingListener extends PacketListenerAbstract {
 
+    private static final GrimTransactionSendEvent.Channel SEND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimTransactionSendEvent.class);
+    private static final GrimTransactionReceivedEvent.Channel RECEIVED_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimTransactionReceivedEvent.class);
+
     // Must listen on LOWEST (or maybe low) to stop Tuinity packet limiter from kicking players for transaction/pong spam
     public PacketPingListener() {
         super(PacketListenerPriority.LOWEST);
@@ -39,7 +42,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
                 // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                 event.setCancelled(shouldCancel);
-                GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, shouldCancel, event.getTimestamp()));
+                RECEIVED_CHANNEL.fire(player, id, shouldCancel, event.getTimestamp());
             }
         }
 
@@ -59,7 +62,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(shouldCancel);
-                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionReceivedEvent(player, id, shouldCancel, event.getTimestamp()));
+                    RECEIVED_CHANNEL.fire(player, id, shouldCancel, event.getTimestamp());
                 }
             }
         }
@@ -80,7 +83,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
-                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionSendEvent(player, id, event.getTimestamp()));
+                    SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }
             }
         }
@@ -100,7 +103,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
-                    GrimAPI.INSTANCE.getEventBus().post(new GrimTransactionSendEvent(player, id, event.getTimestamp()));
+                    SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }
             }
         }

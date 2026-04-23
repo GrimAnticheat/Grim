@@ -16,6 +16,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
+
+    // Holder — PlayerDataManager is constructed inside GrimAPI's ctor, so a
+    // plain static-final would see a null GrimAPI.INSTANCE. Holder init runs
+    // on first fire, after GrimAPI is fully built.
+    private static final class Channels {
+        static final GrimJoinEvent.Channel JOIN = GrimAPI.INSTANCE.getEventBus().get(GrimJoinEvent.class);
+        static final GrimQuitEvent.Channel QUIT = GrimAPI.INSTANCE.getEventBus().get(GrimQuitEvent.class);
+    }
+
     public final Collection<User> exemptUsers = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
@@ -68,7 +77,7 @@ public class PlayerDataManager {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
-            GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
+            Channels.JOIN.fire(player);
         }
     }
 
@@ -78,7 +87,7 @@ public class PlayerDataManager {
 
     public void onDisconnect(User user) {
         GrimPlayer grimPlayer = remove(user);
-        if (grimPlayer != null) GrimAPI.INSTANCE.getEventBus().post(new GrimQuitEvent(grimPlayer));
+        if (grimPlayer != null) Channels.QUIT.fire(grimPlayer);
         exemptUsers.remove(user);
 
         UUID uuid = user.getProfile().getUUID();
