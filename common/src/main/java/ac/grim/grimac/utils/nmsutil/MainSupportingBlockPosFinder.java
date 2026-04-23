@@ -40,10 +40,9 @@ public class MainSupportingBlockPosFinder {
         AtomicReference<Vector3i> bestBlockPos = new AtomicReference<>();
         AtomicDouble blockPosDistance = new AtomicDouble(Double.MAX_VALUE);
 
-        Collisions.forEachCollisionBox(player, searchBox, pos -> {
-            Vector3i blockPos = pos.toVector3i();
-            Vector3d blockPosAsVector3d = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
-            double distance = playerPos.distanceSquared(blockPosAsVector3d);
+        Collisions.forEachCollisionBox(player, searchBox, (data, blockPos) -> {
+            Vector3d center = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
+            double distance = playerPos.distanceSquared(center);
 
             if (distance < blockPosDistance.get() || distance == blockPosDistance.get() && (bestBlockPos.get() == null || firstHasPriorityOverSecond(blockPos, bestBlockPos.get()))) {
                 bestBlockPos.set(blockPos);

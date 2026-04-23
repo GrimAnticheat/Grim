@@ -14,9 +14,10 @@ import java.util.concurrent.CompletableFuture;
 public class PaperUtils {
     public static final boolean PAPER = ReflectionUtils.hasClass("com.destroystokyo.paper.PaperConfig")
             || ReflectionUtils.hasClass("io.papermc.paper.configuration.Configuration");
+    public static final boolean HAS_TELEPORT_ASYNC = ReflectionUtils.hasMethod(Entity.class, "teleportAsync");
 
     public static CompletableFuture<Boolean> teleportAsync(final Entity entity, final Location location) {
-        return PAPER ? entity.teleportAsync(location) : CompletableFuture.completedFuture(entity.teleport(location));
+        return HAS_TELEPORT_ASYNC ? entity.teleportAsync(location) : CompletableFuture.completedFuture(entity.teleport(location));
     }
 
     @SuppressWarnings("unchecked")

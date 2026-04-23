@@ -81,7 +81,7 @@ public class Reach extends Check implements PacketCheck {
 
         if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            onInteract(event, packet.getEntityId(), packet.getHand());
+            onInteract(event, packet.getEntityId(), packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK ? InteractionHand.MAIN_HAND : packet.getHand());
         }
 
         // If the player set their look, or we know they have a new tick
@@ -366,6 +366,7 @@ public class Reach extends Check implements PacketCheck {
         }
     }
 
-    private record InteractionData(double x, double y, double z, boolean hasAttackRange, float maxReach, float hitboxMargin) {
+    private record InteractionData(double x, double y, double z, boolean hasAttackRange,
+                                   float maxReach, float hitboxMargin) {
     }
 }

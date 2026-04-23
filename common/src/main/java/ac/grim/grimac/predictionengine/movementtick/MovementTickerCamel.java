@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 
 public class MovementTickerCamel extends MovementTickerHorse {
@@ -18,6 +19,6 @@ public class MovementTickerCamel extends MovementTickerHorse {
         final boolean wantsToJump = camel.getJumpPower() > 0.0F && !camel.isJumping() && player.lastOnGround;
         if (wantsToJump) return 0;
 
-        return player.isSprinting && camel.getDashCooldown() <= 0 && !camel.isDashing() ? 0.1f : 0.0f;
+        return player.vehicleData.camelSprintingState != SprintingState.STOPPED && camel.getDashCooldown() <= 0 && !camel.isDashing() ? 0.1f : 0.0f;
     }
 }

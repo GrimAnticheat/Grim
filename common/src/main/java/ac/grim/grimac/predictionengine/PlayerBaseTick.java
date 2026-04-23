@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
@@ -54,8 +53,13 @@ public final class PlayerBaseTick {
             player.trackBaseTickAddition(flyingShift);
         }
 
-        updateInWaterStateAndDoFluidPushing(player);
-        updateFluidOnEyes(player);
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) {
+            updateInWaterStateAndDoFluidPushing(player);
+            updateFluidOnEyes(player);
+        } else {
+            player.wasEyeInWater = player.fluidInteraction.isEyeInFluid(FluidTag.WATER);
+            updateFluidInteraction(player);
+        }
         updateSwimming(player);
 
         // If in lava, fall distance is multiplied by 0.5
@@ -477,6 +481,7 @@ public final class PlayerBaseTick {
         }
         double d2 = 0.0;
         boolean hasTouched = false;
+        boolean pushedByFluid = player.isPushedByFluid();
         Vector3dm vec3 = new Vector3dm();
         int n7 = 0;
 
@@ -501,7 +506,7 @@ public final class PlayerBaseTick {
                     hasTouched = true;
                     d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
-                    if (!player.isFlying && !(player.getVehicle() instanceof PacketEntityNautilus)) {
+                    if (pushedByFluid) {
                         Vector3dm vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
@@ -537,16 +542,34 @@ public final class PlayerBaseTick {
             }
         }
 
-        if (tag == FluidTag.LAVA) {
-            player.slightlyTouchingLava = hasTouched && d2 <= 0.4D;
-        }
-
-        if (tag == FluidTag.WATER) {
-            player.slightlyTouchingWater = hasTouched && d2 <= 0.4D;
-        }
-
         player.fluidHeight.put(tag, d2);
         return hasTouched;
+    }
+
+    public static boolean updateFluidInteraction(GrimPlayer player) {
+        player.fluidInteraction.update(player, !player.isPushedByFluid());
+        boolean inWater = player.fluidInteraction.isInFluid(FluidTag.WATER);
+        boolean inLava = player.fluidInteraction.isInFluid(FluidTag.LAVA);
+
+        player.wasWasTouchingWater = player.wasTouchingWater;
+        player.wasTouchingWater = inWater;
+        player.wasTouchingLava = inLava;
+        if (player.isPushedByFluid()) {
+            if (inWater) {
+                player.fluidInteraction.applyCurrentTo(FluidTag.WATER, player, 0.014);
+            }
+
+            if (inLava) {
+                final boolean fastLava = SERVER_SUPPORT_ENVIRONMENT_ATTRIBUTES
+                        ? player.dimensionType.getAttributes().getOrDefault(EnvironmentAttributes.GAMEPLAY_FAST_LAVA)
+                        : player.dimensionType.isUltraWarm();
+
+                final double scale = fastLava ? 0.007 : 0.0023333333333333335;
+                player.fluidInteraction.applyCurrentTo(FluidTag.LAVA, player, scale);
+            }
+        }
+
+        return inWater || inLava;
     }
 
     private static boolean suffocatesAt(GrimPlayer player, int x, int z) {
