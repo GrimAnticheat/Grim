@@ -55,9 +55,9 @@ disable-pong-cancelling: false
 # Dies erzwingt die Verwendung eines "NoOp" (No Operation) Handlers, es sei denn, über die API wird ein eigener bereitgestellt.
 disable-default-resync-handler: false
 
-# Should Grim hook into Polymer to translate custom blocks?
-# This is only applicable on Fabric servers with Polymer installed.
-# If enabled, Grim will ask Polymer for the client-side block state when performing resynchronization.
+# Moet Grim inhaken op Polymer om aangepaste blokken te vertalen?
+# Dit is alleen van toepassing op Fabric-servers waarop Polymer is geïnstalleerd.
+# Indien ingeschakeld, zal Grim Polymer vragen om de client-side blokstatus tijdens het uitvoeren van een resynchronisatie.
 polymer-hook: true
 
 # Should the duplicate movement packet be cancelled?
