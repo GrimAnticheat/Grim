@@ -43,6 +43,8 @@ public class BaseConfigManager {
 
     @Getter
     private boolean disablePongCancelling;
+    @Getter
+    private boolean polymerHook;
 
     // initialize the config
     public void load(ConfigManager config) {
@@ -77,6 +79,7 @@ public class BaseConfigManager {
                 "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309.");
 
         disablePongCancelling = config.getBooleanElse("disable-pong-cancelling", false);
+        polymerHook = config.getBooleanElse("polymer-hook", true);
     }
 
     // ran on start, can be used to handle things that can't be done while loading

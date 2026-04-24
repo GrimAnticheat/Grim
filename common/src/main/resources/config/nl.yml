@@ -55,6 +55,11 @@ disable-pong-cancelling: false
 # Dit forceert het gebruik van een "NoOp" (No Operation) handler tenzij er een aangepaste via de API wordt geleverd.
 disable-default-resync-handler: false
 
+# Moet Grim zich aansluiten bij Polymer om aangepaste blokken te vertalen?
+# Dit is alleen van toepassing op Fabric-servers met Polymer geïnstalleerd.
+# Als het is ingeschakeld, zal Grim Polymer vragen om de blokstatus aan de clientzijde bij het uitvoeren van resynchronisatie.
+polymer-hook: true
+
 # Moet het dubbele bewegingspakket worden geannuleerd?
 # Mojang heeft dit probleem opgelost in 1.21. Dit was hun poging om de "bucket desync" op te lossen. https://bugs.mojang.com/browse/MC-12363
 # Deze instelling geldt alleen voor 1.17-1.20.5 clients op 1.8 servers
