@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "ac.grim.grimac.platform.fabric.mc1161.mixins",
+    "compatibilityLevel": "JAVA_17",
+    "mixins": [
+        "PistonBaseBlockMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}
