@@ -157,6 +157,21 @@ bukkit {
             default = Permission.Default.FALSE
         }
 
+        register("grim.history") {
+            description = "View violation history (/grim history)"
+            default = Permission.Default.OP
+        }
+
+        register("grim.history.migrate") {
+            description = "Run on-demand v0 → v1 history migration"
+            default = Permission.Default.OP
+        }
+
+        register("grim.history.copy") {
+            description = "Copy history data between configured backends"
+            default = Permission.Default.OP
+        }
+
     }
 }
 
