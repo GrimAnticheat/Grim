@@ -3,6 +3,8 @@ package ac.grim.grimac.utils.anticheat;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
+import ac.grim.grimac.manager.datastore.LiveWriteHooks;
+import ac.grim.grimac.manager.datastore.PlayerToggleStore;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -91,6 +93,19 @@ public class PlayerDataManager {
         exemptUsers.remove(user);
 
         UUID uuid = user.getProfile().getUUID();
+
+        // All cleanup paths should call onDisconnect; routing the session-close + toggle
+        // eviction here means a stuck PE event (or a JVM-level channel
+        // close that doesn't surface as UserDisconnectEvent) doesn't leak an open session.
+        // hooks/toggles are NOOP when the datastore is disabled or its init failed
+        // AND go NOOP mid-session if an operator runs /grim reload after flipping database.enabled to false
+        // a player who joined under the prior (enabled) config and disconnects post-reload has no live writer to fire onQuit, so their session stays open (row closed_at IS NULL).
+        // The next datastore-enabled boot's crash sweep stamps closed_at = last_activity for still-open rows; permanently-disabled-after-the-fact leaves the row untouched until DB is enabled again.
+        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
+                .onQuitFromUserDisconnect(user, grimPlayer, System.currentTimeMillis());
+        if (uuid != null) {
+            GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore().evict(uuid);
+        }
 
         // Check if calling async is safe
         if (uuid == null)

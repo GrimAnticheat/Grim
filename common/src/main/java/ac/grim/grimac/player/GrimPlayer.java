@@ -566,6 +566,15 @@ public class GrimPlayer implements GrimUser {
             this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
             updatePermissions();
         }
+
+        // Datastore session heartbeat — throttled internally to once per
+        // `database.session.heartbeat-interval-ms`, so this runs every tick
+        // but only emits a row upsert every N seconds. Bounds how stale
+        // last_activity_epoch_ms can be when the server crashes.
+        if (uuid != null) {
+            GrimAPI.INSTANCE.getDataStoreLifecycle().sessionTracker()
+                    .pollHeartbeat(uuid, System.currentTimeMillis());
+        }
     }
 
     public void updateVelocityMovementSkipping() {
