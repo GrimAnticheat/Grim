@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Paramètres du backend Postgres.
+#
+#  Postgres supporte les déploiements multi-serveurs (plusieurs instances
+#  Grim écrivent dans une BD centrale). Nécessite le driver JDBC Postgres
+#  au runtime ; s'il manque, le backend se désactive au démarrage et le
+#  routing qui le visait retombe sur son fallback.
+# ===========================================================================
+
+# Toutes les clés vivent sous `postgres:` pour que le keyspace de ce
+# fichier n'entre pas en collision avec les fichiers de backends voisins
+# quand Configuralize les fusionne dans un namespace global.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # Paramètres d'URL supplémentaires ajoutés après `?`. Laissez vide sauf
+  # besoin spécifique.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Overrides de noms de table. Défauts ci-dessous.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marqueurs de schéma — voir le commentaire d'en-tête dans config.yml.
+config-flavor: V2
+config-version: 1

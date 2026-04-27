@@ -1,0 +1,92 @@
+# ===========================================================================
+#  Grim 数据存储
+#
+#  将 DataStore 分类（violation / session / player-identity / setting / blob）
+#  路由到具体的后端实例。`routing:` 中列出的每个后端在
+#  `databases/<backend-id>.yml` 下都有自己的设置文件。
+#
+#  首次启动时，如果存在旧版（legacy）数据存储 violations.sqlite，会自动
+#  迁移到新存储。如希望以后手动迁移，可将 migration.skip 设为 true。
+# ===========================================================================
+
+# 所有 datastore 键都位于这个顶层包装下，使键空间天然隔离 — Configuralize
+# 在运行时会把每个 yml 合并到同一个全局键空间，扁平布局会与 config.yml /
+# discord.yml 中同名的顶层键（`enabled`、`history` 等）冲突。
+database:
+
+  # 主开关。设为 false 将完全禁用违规历史与 /grim history。实时 AC 检查
+  # 仍会运行，只是不再持久化 flag。
+  enabled: true
+
+  # 分类 → 后端 ID。这里出现的每个不同 ID 都需要对应的
+  # `databases/<id>.yml`（首次启动时会从内置默认值自动创建），并需要在
+  # 运行时注册一个 BackendProvider。`none` 表示完全关闭该分类的持久化。
+  # 允许混用后端 — 例如违规存到联网 SQL，blob 存到对象存储。
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # 仅在迁移时使用 — 旧版 V0 reader 没有 join/quit 信号，所以
+    # SessionReconstructor 会在连续 flag 落入此间隔内时把它们合并成一次
+    # 会话。实时会话由连接界定，与此值无关。
+    gap-ms: 600000
+    scope-per-server: true
+    # 已连接玩家心跳上 upsert 会话行的间隔，用以保持 last_activity_epoch_ms
+    # 最新。当服务器崩溃时限制会话表观时长（正常断开始终设置 closed_at）。
+    # 成本约为每个在线玩家每个间隔执行一次行 UPSERT。0 表示禁用。
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity 必须是正的 2 的整数次幂（环形缓冲区要求）。
+    # 常用值：4096、8192、16384、32768、65536。
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # 环形缓冲区的等待策略。BLOCKING 是稳妥的默认值：基于条件变量等待，
+    # 在极端突发场景下以少量延迟换取最低 CPU 占用。仅在你有空闲核心、
+    # 且实测优于 BLOCKING 时再选 YIELDING 或 BUSY_SPIN。
+    # 选项：BLOCKING、TIMEOUT_BLOCKING、SLEEPING、YIELDING、BUSY_SPIN。
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = 无超时
+
+  name-resolution:
+    # 顺序很重要 — 取第一个非空结果。
+    # local-cache 读取 PlayerIdentity 分类。
+    # offline-mode-uuid 通过 UUID.nameUUIDFromBytes 推导（仅离线服务器）。
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # 仅用于显示的标签，会刻在新建的会话记录上。在 `/grim history` 的会话
+  # 头部行中显示。运行中修改是安全的。
+  server-name: "Prison"
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

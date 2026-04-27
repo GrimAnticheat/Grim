@@ -1,0 +1,103 @@
+# ===========================================================================
+#  Grim データストア
+#
+#  DataStore のカテゴリ（violation / session / player-identity / setting /
+#  blob）を具体的なバックエンドインスタンスにルーティングします。`routing:`
+#  に登場する各バックエンドは `databases/<backend-id>.yml` に独自の設定
+#  ファイルを持ちます。
+#
+#  初回起動時、既存のレガシーストア（violations.sqlite）があれば自動的に
+#  新ストアへ移行します。後で手動で移行したい場合は migration.skip を
+#  true に設定してください。
+# ===========================================================================
+
+# データストアのすべてのキーは、この最上位ラッパーの下に置かれます。
+# Configuralize は実行時にすべての yml を 1 つのグローバル keyspace に
+# 統合するため、フラットな配置にすると config.yml / discord.yml の同名
+# トップレベルキー（`enabled`、`history` など）と衝突します。
+database:
+
+  # マスタートグル。false にすると違反履歴と /grim history が完全に無効に
+  # なります。ライブの AC チェックはそのまま動きますが、フラグが永続化
+  # されなくなります。
+  enabled: true
+
+  # カテゴリ → バックエンド ID。ここに現れる各 ID は対応する
+  # `databases/<id>.yml`（初回起動時に同梱デフォルトから自動生成）と、
+  # 実行時に登録された BackendProvider を必要とします。`none` を指定すると
+  # そのカテゴリの永続化が完全に無効になります。バックエンドの混在も
+  # 可能で、例えば違反はネットワーク SQL ストア、blob はオブジェクト
+  # ストアにする、といった構成も許容されます。
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # 移行時のみ使用されます。レガシー V0 リーダーには join/quit の
+    # 信号がないため、連続するフラグがこの間隔内にあるときに
+    # SessionReconstructor がそれらを 1 つのセッションにまとめます。
+    # ライブセッションは接続によって区切られ、この値の影響を受けません。
+    gap-ms: 600000
+    scope-per-server: true
+    # 接続中プレイヤーのハートビートがセッション行を upsert する頻度です。
+    # last_activity_epoch_ms を最新に保ち、サーバークラッシュ時の見かけの
+    # セッション時間に上限を与えます（正常切断は常に closed_at を設定
+    # します）。コストはオンラインプレイヤー 1 人あたり間隔ごとに行
+    # UPSERT 約 1 回。0 で無効。
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity は正の 2 のべき乗である必要があります（リングバッファの
+    # 要件）。代表値: 4096, 8192, 16384, 32768, 65536。
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # リングバッファの待機戦略。BLOCKING が安全なデフォルトで、条件変数
+    # ベースの待機により CPU 使用を最小化します（極端なバースト時に若干
+    # のレイテンシ増加）。YIELDING や BUSY_SPIN は、空いている CPU コアに
+    # 余裕があり、BLOCKING より速いと計測できた場合のみ選んでください。
+    # 選択肢: BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN。
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = タイムアウトなし
+
+  name-resolution:
+    # 順序が重要 — 最初に空でない結果を返したものが採用されます。
+    # local-cache は PlayerIdentity カテゴリを読みます。
+    # offline-mode-uuid は UUID.nameUUIDFromBytes を導出します（オフライン
+    # サーバー専用）。
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # 新しいセッションレコードに刻印される、表示用のタグです。`/grim history`
+  # のセッションヘッダー行に表示されます。運用中の変更も安全です。
+  server-name: "Prison"
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1

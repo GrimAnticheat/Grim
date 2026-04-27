@@ -1,0 +1,43 @@
+# ===========================================================================
+#  MySQL 后端设置
+#
+#  MySQL 支持多服务器部署（多个 Grim 实例写入同一个中央数据库）。运行时
+#  需要 MySQL Connector/J 驱动；若驱动缺失，后端会在启动时自我禁用并打印
+#  清晰的错误日志，指向此后端的路由会回退到其他已配置的后端。
+# ===========================================================================
+
+# 所有键都在 `mysql:` 下，使本文件的 keyspace 不会在 Configuralize 把所有
+# yml 合并到同一个全局命名空间时与其他后端文件（sqlite:、postgres:、
+# mongo:、redis:）冲突。
+mysql:
+  # 连接目标。
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # 在固定参数集
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true)
+  # 之后追加的额外 URL 参数。除非确有特殊需要，否则保持为空 — 默认值已
+  # 适合本地开发安装。
+  extra-jdbc-params: ""
+
+  # 每个处理器的批量刷盘上限。每个 ring 处理器会把事件累积到
+  # PreparedStatement 批次中，在 endOfBatch 或批次达到此上限时（取先达到
+  # 者）提交。较高的值在持续突发下用延迟换取吞吐量。
+  batch-flush-cap: 256
+
+  # 表名覆盖。可以重命名六个逻辑存储中的任意一个，从而让多个 Grim 实例
+  # 共用同一个 MySQL 数据库，或对齐已有的企业命名规范。默认值见下方。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

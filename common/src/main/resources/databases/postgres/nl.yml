@@ -1,0 +1,38 @@
+# ===========================================================================
+#  Postgres-backendinstellingen.
+#
+#  Postgres ondersteunt multi-server-deployments (meerdere Grim-instances
+#  die naar één centrale DB schrijven). Vereist het Postgres JDBC-stuur-
+#  programma in runtime; als de driver ontbreekt, schakelt het backend
+#  zichzelf uit bij het starten en valt routing dat hierheen wees terug op
+#  zijn fallback.
+# ===========================================================================
+
+# Alle sleutels staan onder `postgres:` zodat de keyspace van dit bestand
+# niet botst met zustertbestanden per backend wanneer Configuralize ze
+# samenvoegt in één globale namespace.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # Extra URL-parameters die na `?` worden toegevoegd. Laat leeg tenzij je
+  # iets specifieks nodig hebt.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Overrides voor tabelnamen. Defaults hieronder.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

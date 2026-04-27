@@ -1,0 +1,47 @@
+# ===========================================================================
+#  SQLite-backendinstellingen.
+#
+#  SQLite is alleen voor single-server-installaties. Voor netwerk-setups
+#  zet je de routing in database.yml om naar een backend dat met een
+#  gedeelde database praat.
+# ===========================================================================
+
+# Alle sleutels staan onder `sqlite:` zodat de keyspace van dit bestand
+# niet botst met zustertbestanden per backend (mysql:, postgres:, mongo:,
+# redis:) wanneer Configuralize ze samenvoegt in één globale namespace.
+sqlite:
+  # Pad naar het SQLite-databasebestand. Wordt relatief aan de plugin-
+  # datafolder herleid als het niet absoluut is. Het legacy-bestand
+  # `data/violations.sqlite` blijft als vangnet behouden; dit is een nieuw
+  # bestand, nooit een ALTER op het legacy-bestand.
+  path: "data/history.v1.db"
+
+  # WAL-modus laat gelijktijdige lezers naast de writer draaien — essentieel
+  # voor een server-plugin die /grim history leest terwijl er overtredingen
+  # worden geschreven.
+  journal-mode: WAL
+
+  # NORMAL is een redelijke balans tussen schrijf-duurzaamheid en throughput
+  # onder WAL. FULL verdubbelt de duurzaamheid ten koste van throughput.
+  # OFF is gevaarlijk.
+  synchronous-mode: NORMAL
+
+  # Hoe lang SQLite op een lock wacht voordat hij opgeeft. De handler logt
+  # en dropt bij BackendException; verhogen vermindert valse drops op
+  # zwaarbelaste schijven.
+  busy-timeout-ms: 5000
+
+  # Page-cachegrootte (in pagina's). Standaard SQLite-paginagrootte is
+  # 4096 bytes, dus 10000 pagina's ≈ 40 MB. Verhoog voor drukke
+  # geschiedenissen.
+  cache-pages: 10000
+
+  # Per-handler batch-flush-cap. Elke ringhandler verzamelt events in een
+  # PreparedStatement-batch en commit op endOfBatch OF wanneer de batch
+  # deze cap bereikt — wat het eerst gebeurt. Hogere waarden ruilen
+  # latency in voor doorvoer onder aanhoudende bursts.
+  batch-flush-cap: 256
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

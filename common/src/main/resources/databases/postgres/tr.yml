@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Postgres backend ayarları.
+#
+#  Postgres çoklu sunuculu kurulumları destekler (birden çok Grim
+#  instance'ı tek bir merkezi DB'ye yazar). Çalışma zamanında Postgres
+#  JDBC sürücüsünü gerektirir; sürücü yoksa backend başlangıçta kendini
+#  devre dışı bırakır ve buraya yönlenen routing fallback'ine düşer.
+# ===========================================================================
+
+# Tüm anahtarlar `postgres:` altında yer alır; böylece Configuralize
+# tümünü tek bir global ad alanında birleştirdiğinde bu dosyanın anahtar
+# uzayı kardeş backend dosyalarıyla çakışmaz.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # `?` sonrasına eklenen ek URL parametreleri. Belirli bir gereksinim
+  # yoksa boş bırak.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Tablo adı geçersiz kılmaları. Varsayılanlar aşağıda.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

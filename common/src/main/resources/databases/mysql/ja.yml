@@ -1,0 +1,47 @@
+# ===========================================================================
+#  MySQL バックエンド設定
+#
+#  MySQL はマルチサーバー構成（複数の Grim インスタンスから 1 つの中央 DB
+#  への書き込み）に対応します。実行時に MySQL Connector/J ドライバが
+#  必要で、ドライバが見つからない場合は起動時にバックエンドを自己無効化し、
+#  明確なエラーを記録します。これを参照していたルーティングは、他に
+#  設定されているフォールバックに切り替わります。
+# ===========================================================================
+
+# すべてのキーは `mysql:` の下に置きます。これにより、Configuralize が
+# すべてを 1 つのグローバル名前空間にマージしても、兄弟のバックエンド
+# ファイル（sqlite:、postgres:、mongo:、redis:）と keyspace が衝突しません。
+mysql:
+  # 接続先。
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # 既定パラメータ
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true)
+  # の後ろに追加される URL パラメータです。特に必要が無ければ空のまま
+  # にしてください — 既定値はローカルの開発インストールに適した内容です。
+  extra-jdbc-params: ""
+
+  # ハンドラごとのバッチフラッシュ上限。各リングハンドラは PreparedStatement
+  # のバッチにイベントをためて、endOfBatch かバッチがこの上限に達した
+  # タイミングのいずれか早い方でコミットします。値が大きいほど、持続的な
+  # バーストでスループット側に倒します（レイテンシは増加します）。
+  batch-flush-cap: 256
+
+  # テーブル名の上書き。6 つの論理ストアの名前をリネームすることで、
+  # 複数の Grim インスタンスで 1 つの MySQL データベースを共有したり、
+  # 既存の組織命名規則に揃えたりできます。デフォルト値は以下の通り。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1
