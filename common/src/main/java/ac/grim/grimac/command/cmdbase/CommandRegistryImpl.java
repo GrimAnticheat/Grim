@@ -2,6 +2,8 @@ package ac.grim.grimac.command.cmdbase;
 
 import ac.grim.grimac.api.command.AbstractCommand;
 import ac.grim.grimac.api.command.CommandRegistry;
+import ac.grim.grimac.api.command.builder.BuiltImpl;
+import ac.grim.grimac.api.command.builder.GrimCommand;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.sender.Sender;
 import org.incendo.cloud.CommandManager;
@@ -28,11 +30,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CommandRegistryImpl implements CommandRegistry {
 
     private final AbstractCommandRegistrar registrar;
+    private final CloudBridge cloudBridge;
     private final Map<GrimPlugin, List<Entry>> byOwner = new ConcurrentHashMap<>();
     private final Map<AbstractCommand, Entry> byCommand = new IdentityHashMap<>();
 
     public CommandRegistryImpl(@NotNull CommandManager<Sender> manager) {
         this.registrar = new AbstractCommandRegistrar(manager);
+        this.cloudBridge = new CloudBridge(manager);
     }
 
     @Override
@@ -49,6 +53,16 @@ public final class CommandRegistryImpl implements CommandRegistry {
     }
 
     @Override
+    public synchronized void registerBuilt(@NotNull GrimPlugin owner, @NotNull GrimCommand.Built command) {
+        if (!(command instanceof BuiltImpl impl)) {
+            throw new IllegalArgumentException("Unknown GrimCommand.Built impl: " + command.getClass());
+        }
+        AbstractCommandRegistrar.Registration reg = cloudBridge.register(impl.spec());
+        Entry entry = new Entry(owner, null, reg);
+        byOwner.computeIfAbsent(owner, k -> new ArrayList<>()).add(entry);
+    }
+
+    @Override
     public synchronized void unregister(@NotNull AbstractCommand command) {
         Entry entry = byCommand.remove(command);
         if (entry == null) return;
@@ -62,11 +76,15 @@ public final class CommandRegistryImpl implements CommandRegistry {
         List<Entry> entries = byOwner.remove(owner);
         if (entries == null) return;
         for (Entry entry : entries) {
-            byCommand.remove(entry.command);
+            if (entry.command != null) byCommand.remove(entry.command);
             entry.registration.unregister();
         }
     }
 
+    /**
+     * @param command non-null only for AbstractCommand registrations; null for
+     *                builder-facade ({@link GrimCommand.Built}) registrations.
+     */
     private record Entry(GrimPlugin owner, AbstractCommand command,
                          AbstractCommandRegistrar.Registration registration) {
     }
