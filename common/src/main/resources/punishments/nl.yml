@@ -30,7 +30,7 @@ Punishments:
     #
     commands:
       - "100:40 [alert]"
-      - "100:40 [log]"
+      - "1:1 [log]"
       - "100:100 [webhook]"
       - "100:100 [proxy]"
   Knockback:
@@ -40,7 +40,7 @@ Punishments:
       - "Explosion"
     commands:
       - "5:5 [alert]"
-      - "5:5 [log]"
+      - "1:1 [log]"
       - "20:20 [webhook]"
       - "20:20 [proxy]"
   Post:
@@ -49,7 +49,7 @@ Punishments:
       - "Post"
     commands:
       - "20:20 [alert]"
-      - "20:20 [log]"
+      - "1:1 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   BadPackets:
@@ -60,7 +60,7 @@ Punishments:
       - "Crash"
     commands:
       - "20:20 [alert]"
-      - "20:20 [log]"
+      - "1:1 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   Reach:
@@ -78,7 +78,7 @@ Punishments:
       - "Hitboxes"
     commands:
       - "5:3 [alert]"
-      - "5:3 [log]"
+      - "1:1 [log]"
       - "5:3 [webhook]"
       - "5:3 [proxy]"
   Misc:
@@ -97,7 +97,7 @@ Punishments:
       - "Exploit"
     commands:
       - "10:5 [alert]"
-      - "10:5 [log]"
+      - "1:1 [log]"
       - "20:10 [webhook]"
       - "20:10 [proxy]"
   Combat:
@@ -107,7 +107,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-      - "20:40 [log]"
+      - "1:1 [log]"
   # Vanaf 2.2.10 zijn er geen AutoClicker-controles en is dit een placeholder. Grim zal in de toekomst AutoClicker-controles toevoegen.
   Autoclicker:
     remove-violations-after: 300
@@ -115,4 +115,4 @@ Punishments:
       - "Autoclicker"
     commands:
       - "20:40 [alert]"
-      - "20:40 [log]"
+      - "1:1 [log]"
