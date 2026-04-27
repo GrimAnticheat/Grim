@@ -219,20 +219,14 @@ max-ping-out-of-flying: 1000
 # Zapobiega to sytuacji, w której gracze z wysokim opóźnieniem mogą używać jednego boostu z fajerwerka z elytrą w nieskończoność.
 max-ping-firework-boost: 1000
 
-history:
-    enabled: true
-    # Ile wpisów powinno być pokazywanych na każdej stronie w /grim history <player>
-    entries-per-page: 15
-    # Jaka powinna być wstawiona nazwa serwera dla komendy history? Jest to przydatne, jeśli używasz tej samej bazy danych dla wielu serwerów.
-    server-name: Prison
-    database:
-        # Użyj SQLITE dla lokalnego przechowywania, użyj MYSQL lub POSTGRESQL, jeśli masz zewnętrzną bazę danych. To jest aktualizowane tylko przy restarcie serwera.
-        type: SQLITE
-        # Szczegóły połączenia z bazą danych
-        host: localhost
-        port: 3306
-        database: grim
-        username: root
-        password: ""
-
-config-version: 9
+# Znaczniki schematu — zmieniaj tylko jeśli wiesz, co robisz.
+#   config-flavor:  V2 = build Grim 2.x, V3 = Grim 3.x. Wtyczka odmawia
+#                   wczytania konfiguracji, której flavor nie zgadza się z jej
+#                   buildem; config V3 otwarty przez jar V2 natychmiast się
+#                   nie powiedzie, zamiast po cichu scalać się w niewłaściwe
+#                   klucze.
+#   config-version: zwiększany przy każdej niekompatybilnej zmianie formatu.
+#                   Stare configi są automatycznie migrowane przez wbudowany
+#                   updater przy następnym starcie.
+config-flavor: V2
+config-version: 10

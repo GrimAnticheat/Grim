@@ -31,3 +31,7 @@ violation-content:
     - "**Marca del cliente**: `%brand%`"
     - "**Latencia**: %ping%"
     - "**TPS**: %tps%"
+
+# Marcadores de esquema — ver el comentario de cabecera en config.yml.
+config-flavor: V2
+config-version: 1

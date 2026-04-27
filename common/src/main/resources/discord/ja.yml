@@ -20,3 +20,7 @@ violation-content:
     - "**ブランド**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1
