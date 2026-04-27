@@ -1,5 +1,7 @@
 package ac.grim.grimac.command;
 
+import ac.grim.grimac.api.command.CommandRegistry;
+import ac.grim.grimac.command.cmdbase.CommandRegistryImpl;
 import ac.grim.grimac.command.commands.*;
 import ac.grim.grimac.command.handler.GrimCommandFailureHandler;
 import ac.grim.grimac.platform.api.command.CommandService;
@@ -32,10 +34,21 @@ public class CloudCommandService implements CommandService {
 
     private final Supplier<CommandManager<Sender>> commandManagerSupplier;
     private final CloudCommandAdapter commandAdapter;
+    private volatile CommandRegistryImpl commandRegistry;
 
     public CloudCommandService(Supplier<CommandManager<Sender>> commandManagerSupplier, CloudCommandAdapter commandAdapter) {
         this.commandManagerSupplier = commandManagerSupplier;
         this.commandAdapter = commandAdapter;
+    }
+
+    /**
+     * Returns the public API command registry. Available once
+     * {@link #registerCommands()} has run; null before that — callers (such as
+     * {@code GrimExternalAPI.getCommandRegistry()}) should defer access until
+     * GrimAC has reached the start phase.
+     */
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     public void registerCommands() {
@@ -68,6 +81,7 @@ public class CloudCommandService implements CommandService {
         );
         commandManager.registerCommandPostProcessor(senderRequirementPostprocessor);
         registerExceptionHandler(commandManager, InvalidSyntaxException.class, e -> MessageUtil.miniMessage(e.correctSyntax()));
+        this.commandRegistry = new CommandRegistryImpl(commandManager);
         commandsRegistered = true;
     }
 

@@ -1,49 +1,20 @@
 package ac.grim.grimac.platform.api.sender;
 
+import ac.grim.grimac.api.command.CommandSender;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 /**
  * Wrapper interface to represent a CommandSender/CommandSource within the common command implementations.
+ *
+ * <p>Extends the api-public {@link CommandSender} surface — extension code only
+ * sees that, while the common runtime works with the richer {@code Sender}
+ * (adds {@link #sendMessage(Component)}, {@link #getNativeSender()},
+ * {@link #getPlatformPlayer()}, and the {@code defaultIfUnset} permission overload).
  */
-public interface Sender {
-
-    /**
-     * The uuid used by the console sender.
-     */
-    UUID CONSOLE_UUID = new UUID(0, 0); // 00000000-0000-0000-0000-000000000000
-
-    /**
-     * The name used by the console sender.
-     */
-    String CONSOLE_NAME = "Console";
-
-    /**
-     * Gets the sender's username
-     *
-     * @return a friendly username for the sender
-     */
-    String getName();
-
-    /**
-     * Gets the sender's unique id.
-     *
-     * <p>See {@link #CONSOLE_UUID} for the console's UUID representation.</p>
-     *
-     * @return the sender's uuid
-     */
-    UUID getUniqueId();
-
-    /**
-     * Send a json message to the Sender.
-     *
-     * @param message the message to send.
-     */
-    void sendMessage(String message);
+public interface Sender extends CommandSender {
 
     /**
      * Send a component message to the Sender.
@@ -55,49 +26,11 @@ public interface Sender {
     /**
      * Check if the Sender has a permission.
      *
-     * @param permission the permission to check for
-     * @return true if the sender has the permission
-     */
-    boolean hasPermission(String permission);
-
-    /**
-     * Check if the Sender has a permission.
-     *
      * @param permission     the permission to check for
      * @param defaultIfUnset the default value of the permission, if not yet set.
      * @return true if the sender has the permission
      */
     boolean hasPermission(String permission, boolean defaultIfUnset);
-
-    /**
-     * Makes the sender perform a command.
-     *
-     * @param commandLine the command
-     */
-    void performCommand(String commandLine);
-
-    /**
-     * Gets whether this sender is the console
-     *
-     * @return if the sender is the console
-     */
-    boolean isConsole();
-
-    /**
-     * Gets whether this sender is a player
-     *
-     * @return if the sender is a player
-     */
-    boolean isPlayer();
-
-    /**
-     * Gets whether this sender is still valid and receiving messages.
-     *
-     * @return if this sender is valid
-     */
-    default boolean isValid() {
-        return true;
-    }
 
     /**
      * Gets the native platform-specific command sender object.
