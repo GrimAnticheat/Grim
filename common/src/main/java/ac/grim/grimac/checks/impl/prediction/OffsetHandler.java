@@ -11,7 +11,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@CheckData(name = "Simulation", decay = 0.02)
+@CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", decay = 0.02)
 public class OffsetHandler extends Check implements PostPredictionCheck {
     private static final AtomicInteger flags = new AtomicInteger(0);
     // Config

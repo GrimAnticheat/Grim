@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "ElytraA", description = "Started gliding while already gliding")
+@CheckData(name = "ElytraA", stableKey = "grim.legacy.elytraa", description = "Started gliding while already gliding")
 public class ElytraA extends Check implements PostPredictionCheck {
     private boolean setback;
 

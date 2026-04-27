@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 
-@CheckData(name = "PacketOrderA", experimental = true)
+@CheckData(name = "PacketOrderA", stableKey = "grim.legacy.packetordera", experimental = true)
 public class PacketOrderA extends Check implements PostPredictionCheck {
     public PacketOrderA(final GrimPlayer player) {
         super(player);

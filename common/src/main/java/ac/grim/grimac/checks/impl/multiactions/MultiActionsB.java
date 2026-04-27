@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 
-@CheckData(name = "MultiActionsB", description = "Breaking blocks while using an item", experimental = true)
+@CheckData(name = "MultiActionsB", stableKey = "grim.legacy.multiactionsb", description = "Breaking blocks while using an item", experimental = true)
 public class MultiActionsB extends Check implements BlockBreakCheck {
     public MultiActionsB(GrimPlayer player) {
         super(player);

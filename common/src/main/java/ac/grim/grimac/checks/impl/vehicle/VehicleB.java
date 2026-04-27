@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "VehicleB", description = "Claimed to be in a vehicle while not in a vehicle")
+@CheckData(name = "VehicleB", stableKey = "grim.legacy.vehicleb", description = "Claimed to be in a vehicle while not in a vehicle")
 public class VehicleB extends Check implements PacketCheck {
     public VehicleB(GrimPlayer player) {
         super(player);

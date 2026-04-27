@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
-@CheckData(name = "PacketOrderN", experimental = true)
+@CheckData(name = "PacketOrderN", stableKey = "grim.legacy.packetordern", experimental = true)
 public class PacketOrderN extends BlockPlaceCheck {
     public PacketOrderN(final GrimPlayer player) {
         super(player);

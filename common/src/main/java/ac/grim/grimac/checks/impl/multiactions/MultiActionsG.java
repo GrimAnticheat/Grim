@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "MultiActionsG", description = "Attacking or using items while rowing a boat", experimental = true)
+@CheckData(name = "MultiActionsG", stableKey = "grim.legacy.multiactionsg", description = "Attacking or using items while rowing a boat", experimental = true)
 public class MultiActionsG extends BlockPlaceCheck {
     public MultiActionsG(GrimPlayer player) {
         super(player);

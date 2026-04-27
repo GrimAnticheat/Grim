@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "GroundSpoof", setback = 10, decay = 0.01)
+@CheckData(name = "GroundSpoof", stableKey = "grim.legacy.groundspoof", setback = 10, decay = 0.01)
 public class GroundSpoof extends Check implements PostPredictionCheck {
 
     public GroundSpoof(GrimPlayer player) {

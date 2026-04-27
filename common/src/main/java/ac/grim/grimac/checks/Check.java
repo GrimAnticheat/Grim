@@ -33,6 +33,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private String alternativeName;
     private String displayName;
     private String description;
+    private String stableKey = "";
 
     private boolean experimental;
     private @Setter boolean isEnabled;
@@ -56,6 +57,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+            this.stableKey = checkData.stableKey();
             this.displayName = this.checkName;
         }
 

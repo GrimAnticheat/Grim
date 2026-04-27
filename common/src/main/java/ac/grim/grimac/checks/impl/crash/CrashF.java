@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 
-@CheckData(name = "CrashF")
+@CheckData(name = "CrashF", stableKey = "grim.crash.button_crash")
 public class CrashF extends Check implements PacketCheck {
 
     public CrashF(GrimPlayer playerData) {

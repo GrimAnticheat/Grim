@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "SprintC", description = "Sprinting while using an item", setback = 5, experimental = true)
+@CheckData(name = "SprintC", stableKey = "grim.legacy.sprintc", description = "Sprinting while using an item", setback = 5, experimental = true)
 public class SprintC extends Check implements PostPredictionCheck {
     private boolean flaggedLastTick = false;
 

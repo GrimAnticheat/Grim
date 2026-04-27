@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "BadPacketsZ", experimental = true)
+@CheckData(name = "BadPacketsZ", stableKey = "grim.legacy.badpacketsz", experimental = true)
 public class BadPacketsZ extends Check implements PacketCheck {
     private boolean sent;
 

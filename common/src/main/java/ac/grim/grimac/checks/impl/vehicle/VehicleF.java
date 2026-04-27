@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerBoat;
 
-@CheckData(name = "VehicleF", experimental = true, description = "Sent incorrect boat paddle states")
+@CheckData(name = "VehicleF", stableKey = "grim.legacy.vehiclef", experimental = true, description = "Sent incorrect boat paddle states")
 public class VehicleF extends Check implements PacketCheck {
     public VehicleF(GrimPlayer player) {
         super(player);

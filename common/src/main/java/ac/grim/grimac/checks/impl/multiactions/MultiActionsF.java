@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiActionsF", description = "Interacting with a block and an entity in the same tick", experimental = true)
+@CheckData(name = "MultiActionsF", stableKey = "grim.legacy.multiactionsf", description = "Interacting with a block and an entity in the same tick", experimental = true)
 public class MultiActionsF extends BlockPlaceCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean entity, block;

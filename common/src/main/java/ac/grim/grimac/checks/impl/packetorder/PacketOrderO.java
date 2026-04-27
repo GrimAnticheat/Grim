@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-@CheckData(name = "PacketOrderO", experimental = true)
+@CheckData(name = "PacketOrderO", stableKey = "grim.legacy.packetordero", experimental = true)
 public class PacketOrderO extends Check implements PacketCheck {
     public PacketOrderO(final GrimPlayer player) {
         super(player);

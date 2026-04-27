@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-@CheckData(name = "InvalidPlaceB", description = "Sent impossible block face id")
+@CheckData(name = "InvalidPlaceB", stableKey = "grim.scaffolding.invalid_place_b", description = "Sent impossible block face id")
 public class InvalidPlaceB extends BlockPlaceCheck {
     public InvalidPlaceB(GrimPlayer player) {
         super(player);

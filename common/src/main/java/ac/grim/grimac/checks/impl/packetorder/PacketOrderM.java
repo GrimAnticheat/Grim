@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
-@CheckData(name = "PacketOrderM", experimental = true)
+@CheckData(name = "PacketOrderM", stableKey = "grim.legacy.packetorderm", experimental = true)
 public class PacketOrderM extends Check implements PostPredictionCheck {
     public PacketOrderM(final GrimPlayer player) {
         super(player);

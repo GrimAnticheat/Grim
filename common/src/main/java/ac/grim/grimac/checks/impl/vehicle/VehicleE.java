@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "VehicleE", experimental = true, description = "Sent boat paddle states while not in a boat")
+@CheckData(name = "VehicleE", stableKey = "grim.legacy.vehiclee", experimental = true, description = "Sent boat paddle states while not in a boat")
 public class VehicleE extends Check implements PacketCheck {
     public VehicleE(GrimPlayer player) {
         super(player);

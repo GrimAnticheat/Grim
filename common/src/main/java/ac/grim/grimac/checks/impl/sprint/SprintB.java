@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 import java.util.Collections;
 
-@CheckData(name = "SprintB", description = "Sprinting while sneaking or crawling", setback = 5, experimental = true)
+@CheckData(name = "SprintB", stableKey = "grim.legacy.sprintb", description = "Sprinting while sneaking or crawling", setback = 5, experimental = true)
 public class SprintB extends Check implements PostPredictionCheck {
     public SprintB(GrimPlayer player) {
         super(player);

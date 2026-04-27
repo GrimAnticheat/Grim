@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "PacketOrderB", description = "Did not swing for attack")
+@CheckData(name = "PacketOrderB", stableKey = "grim.legacy.packetorderb", description = "Did not swing for attack")
 public class PacketOrderB extends Check implements PacketCheck {
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT

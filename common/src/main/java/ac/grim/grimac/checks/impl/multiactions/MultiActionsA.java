@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "MultiActionsA", description = "Attacked while using an item", experimental = true)
+@CheckData(name = "MultiActionsA", stableKey = "grim.legacy.multiactionsa", description = "Attacked while using an item", experimental = true)
 public class MultiActionsA extends Check implements PacketCheck {
     public MultiActionsA(GrimPlayer player) {
         super(player);

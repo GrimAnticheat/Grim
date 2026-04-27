@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "PacketOrderH", experimental = true)
+@CheckData(name = "PacketOrderH", stableKey = "grim.legacy.packetorderh", experimental = true)
 public class PacketOrderH extends Check implements PostPredictionCheck {
     public PacketOrderH(final GrimPlayer player) {
         super(player);

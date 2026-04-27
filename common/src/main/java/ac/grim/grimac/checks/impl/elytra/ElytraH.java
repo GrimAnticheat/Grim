@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraH", description = "Started gliding in vehicle", experimental = true)
+@CheckData(name = "ElytraH", stableKey = "grim.legacy.elytrah", description = "Started gliding in vehicle", experimental = true)
 public class ElytraH extends Check implements PostPredictionCheck {
     private boolean setback;
 

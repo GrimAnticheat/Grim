@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "BadPacketsC", description = "Tried to wake up while not sleeping", experimental = true)
+@CheckData(name = "BadPacketsC", stableKey = "grim.legacy.badpacketsc", description = "Tried to wake up while not sleeping", experimental = true)
 public class BadPacketsC extends Check implements PacketCheck {
     public BadPacketsC(@NotNull GrimPlayer player) {
         super(player);

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "SprintA", description = "Sprinting with too low hunger", setback = 0)
+@CheckData(name = "SprintA", stableKey = "grim.legacy.sprinta", description = "Sprinting with too low hunger", setback = 0)
 public class SprintA extends Check implements PacketCheck {
 
     public SprintA(GrimPlayer player) {

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 
-@CheckData(name = "VehicleA", description = "Impossible input values")
+@CheckData(name = "VehicleA", stableKey = "grim.legacy.vehiclea", description = "Impossible input values")
 public class VehicleA extends Check implements PacketCheck {
     public VehicleA(GrimPlayer player) {
         super(player);

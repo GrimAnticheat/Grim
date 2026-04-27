@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "SprintE", description = "Sprinting while colliding with a wall", setback = 5, experimental = true)
+@CheckData(name = "SprintE", stableKey = "grim.legacy.sprinte", description = "Sprinting while colliding with a wall", setback = 5, experimental = true)
 public class SprintE extends Check implements PostPredictionCheck {
     private boolean startedSprintingThisTick, wasHardHorizontalCollision;
 

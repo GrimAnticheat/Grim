@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-@CheckData(name = "ChatC", description = "Moving while chatting", experimental = true)
+@CheckData(name = "ChatC", stableKey = "grim.legacy.chatc", description = "Moving while chatting", experimental = true)
 public class ChatC extends Check implements PacketCheck {
     public ChatC(GrimPlayer player) {
         super(player);

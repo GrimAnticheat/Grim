@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "CrashC", description = "Sent non-finite position or rotation")
+@CheckData(name = "CrashC", stableKey = "grim.crash.nan_position", description = "Sent non-finite position or rotation")
 public class CrashC extends Check implements PacketCheck {
     public CrashC(GrimPlayer playerData) {
         super(playerData);

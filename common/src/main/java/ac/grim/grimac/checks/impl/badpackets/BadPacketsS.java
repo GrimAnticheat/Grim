@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 
-@CheckData(name = "BadPacketsS")
+@CheckData(name = "BadPacketsS", stableKey = "grim.legacy.badpacketss")
 public class BadPacketsS extends Check implements PacketCheck {
     public BadPacketsS(GrimPlayer player) {
         super(player);

@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderE", experimental = true)
+@CheckData(name = "PacketOrderE", stableKey = "grim.legacy.packetordere", experimental = true)
 public class PacketOrderE extends Check implements PostPredictionCheck {
     public PacketOrderE(final GrimPlayer player) {
         super(player);

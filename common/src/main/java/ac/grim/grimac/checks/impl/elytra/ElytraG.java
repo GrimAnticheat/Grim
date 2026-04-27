@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraG", description = "Started gliding with levitation", experimental = true)
+@CheckData(name = "ElytraG", stableKey = "grim.legacy.elytrag", description = "Started gliding with levitation", experimental = true)
 public class ElytraG extends Check implements PostPredictionCheck {
     private boolean setback;
 
