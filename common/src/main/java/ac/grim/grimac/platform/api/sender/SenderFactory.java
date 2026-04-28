@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.api.sender;
 
+import ac.grim.grimac.api.command.SenderKind;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +30,20 @@ public abstract class SenderFactory<T> {
     protected abstract boolean isConsole(T sender);
 
     protected abstract boolean isPlayer(T sender);
+
+    /**
+     * Categorical view of {@code sender}. Default derives from the existing
+     * {@link #isPlayer(Object)} / {@link #isConsole(Object)} checks for
+     * back-compat; platform impls should override to disambiguate
+     * {@link SenderKind#REMOTE_CONSOLE} vs {@link SenderKind#CONSOLE},
+     * detect {@link SenderKind#COMMAND_BLOCK} / {@link SenderKind#FUNCTION},
+     * etc.
+     */
+    protected @NotNull SenderKind getKind(T sender) {
+        if (isPlayer(sender)) return SenderKind.PLAYER;
+        if (isConsole(sender)) return SenderKind.CONSOLE;
+        return SenderKind.OTHER;
+    }
 
     protected boolean shouldSplitNewlines(T sender) {
         return isConsole(sender);

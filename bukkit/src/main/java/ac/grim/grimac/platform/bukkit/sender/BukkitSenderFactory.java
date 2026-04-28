@@ -1,11 +1,13 @@
 package ac.grim.grimac.platform.bukkit.sender;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.command.SenderKind;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.RemoteConsoleCommandSender;
@@ -71,6 +73,19 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     @Override
     protected boolean isPlayer(CommandSender sender) {
         return sender instanceof Player;
+    }
+
+    @Override
+    protected @NotNull SenderKind getKind(CommandSender sender) {
+        // Order matters: Player check first (Player extends ServerCommandSender),
+        // RemoteConsole before Console (RemoteConsoleCommandSender doesn't extend
+        // ConsoleCommandSender on every server impl, but we want REMOTE_CONSOLE
+        // to win when both apply), then BlockCommandSender for /setblock'd blocks.
+        if (sender instanceof Player) return SenderKind.PLAYER;
+        if (sender instanceof RemoteConsoleCommandSender) return SenderKind.REMOTE_CONSOLE;
+        if (sender instanceof ConsoleCommandSender) return SenderKind.CONSOLE;
+        if (sender instanceof BlockCommandSender) return SenderKind.COMMAND_BLOCK;
+        return SenderKind.OTHER;
     }
 
     @Override

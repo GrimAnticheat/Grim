@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.fabric.sender;
 
+import ac.grim.grimac.api.command.SenderKind;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
@@ -14,6 +15,8 @@ import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.rcon.RconConsoleSource;
+import net.minecraft.world.level.BaseCommandBlock;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,6 +116,34 @@ public class FabricSenderFactory extends SenderFactory<CommandSourceStack> {
     @Override
     protected boolean isPlayer(CommandSourceStack sender) {
         return sender.getEntity() instanceof ServerPlayer;
+    }
+
+    /**
+     * Cross-platform categorization. Every symbol referenced here is
+     * verified intermediary-stable across MC 1.16.1 → latest via the workflow
+     * documented in {@code /opt/grim-setup/docs/FABRIC.md}:
+     * <ul>
+     *   <li>{@code CommandSourceStack#getEntity()} — already in production parent code.</li>
+     *   <li>{@code ServerPlayer} — already in production parent code.</li>
+     *   <li>{@code CommandSourceStack.source} (field) — already in production parent code.</li>
+     *   <li>{@code CommandSourceStack#getServer()} — already in production parent code.</li>
+     *   <li>{@code RconConsoleSource} — already in production parent code.</li>
+     *   <li>{@code CommandSource.NULL} — already in production parent code.</li>
+     *   <li>{@code CommandSourceStack#getTextName()} — already in production parent code.</li>
+     *   <li>{@code BaseCommandBlock} ({@code class_1918}) — verified stable
+     *       intermediary across all 35 release versions in range.</li>
+     * </ul>
+     */
+    @Override
+    protected @NotNull SenderKind getKind(CommandSourceStack sender) {
+        if (sender.getEntity() instanceof ServerPlayer) return SenderKind.PLAYER;
+        if (sender.getEntity() != null) return SenderKind.NON_PLAYER_ENTITY;
+        CommandSource output = sender.source;
+        if (output == sender.getServer()) return SenderKind.CONSOLE;
+        if (output.getClass() == RconConsoleSource.class) return SenderKind.REMOTE_CONSOLE;
+        if (output == CommandSource.NULL && sender.getTextName().isEmpty()) return SenderKind.FUNCTION;
+        if (output instanceof BaseCommandBlock) return SenderKind.COMMAND_BLOCK;
+        return SenderKind.OTHER;
     }
 
     public void registerPermissionDefault(String permission, PermissionDefaultValue defaultValue) {

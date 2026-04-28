@@ -2,6 +2,7 @@ package ac.grim.grimac.platform.api.sender;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.command.SenderKind;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -106,5 +107,10 @@ public final class AbstractSender<T> implements Sender {
     @Override
     public @Nullable GrimUser asGrimUser() {
         return isPlayer() ? GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(this.uniqueId) : null;
+    }
+
+    @Override
+    public @NotNull SenderKind getKind() {
+        return this.factory.getKind(this.sender);
     }
 }
