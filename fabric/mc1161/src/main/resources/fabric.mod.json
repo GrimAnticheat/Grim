@@ -14,9 +14,6 @@
       "ac.grim.grimac.platform.fabric.mc1161.GrimACFabric1161LoaderPlugin"
     ]
   },
-  "mixins": [
-    "grimac-mc1161.mixins.json"
-  ],
   "accessWidener": "grimac.accesswidener",
   "depends": {
     "fabricloader": "\u003e\u003d0.16",
