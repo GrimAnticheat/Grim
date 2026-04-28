@@ -1,0 +1,43 @@
+# ===========================================================================
+#  SQLite backend settings.
+#
+#  SQLite is single-server only. Networked setups should switch routing
+#  in database.yml to a backend that talks to a shared database.
+# ===========================================================================
+
+# Every key lives under `sqlite:` so this file's keyspace doesn't
+# collide with sibling per-backend files (mysql:, postgres:, mongo:,
+# redis:) when Configuralize merges them all into one global namespace.
+sqlite:
+  # Path to the SQLite database file. Resolved relative to the plugin
+  # data folder if not absolute. The legacy file at
+  # `data/violations.sqlite` is left intact as a safety net; this is
+  # a new file, never an ALTER on the legacy one.
+  path: "data/history.v1.db"
+
+  # WAL mode lets concurrent readers run alongside the writer — essential
+  # for a server plugin that reads /grim history while writing violations.
+  journal-mode: WAL
+
+  # NORMAL is a reasonable balance between write durability and throughput
+  # under WAL. FULL doubles durability at throughput cost. OFF is dangerous.
+  synchronous-mode: NORMAL
+
+  # How long SQLite waits for a lock before giving up. The handler logs
+  # and drops on BackendException; raising this reduces spurious drops on
+  # contended disks.
+  busy-timeout-ms: 5000
+
+  # Page cache size (in pages). SQLite default page size is 4096 bytes, so
+  # 10000 pages ≈ 40 MB. Raise for hot histories.
+  cache-pages: 10000
+
+  # Per-handler batch-flush cap. Each ring handler accumulates events
+  # into a PreparedStatement batch and commits on endOfBatch OR when the
+  # batch hits this cap, whichever comes first. Higher values trade
+  # latency for throughput under sustained bursts.
+  batch-flush-cap: 256
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

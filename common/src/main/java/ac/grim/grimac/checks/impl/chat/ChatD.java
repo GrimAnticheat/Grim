@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.common.client.WrapperCommonClientSettings;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
-@CheckData(name = "ChatD", description = "Chatting while chat is hidden", experimental = true)
+@CheckData(name = "ChatD", stableKey = "grim.exploit.chat_while_hidden", description = "Chatting while chat is hidden", experimental = true)
 public class ChatD extends Check implements PacketCheck {
     private boolean hidden;
 

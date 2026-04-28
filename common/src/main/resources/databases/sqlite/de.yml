@@ -1,0 +1,46 @@
+# ===========================================================================
+#  SQLite-Backend-Einstellungen.
+#
+#  SQLite ist nur für Single-Server-Setups gedacht. In vernetzten Setups
+#  schalte das routing in database.yml auf ein Backend um, das mit einer
+#  geteilten Datenbank spricht.
+# ===========================================================================
+
+# Alle Schlüssel liegen unter `sqlite:`, damit der Keyspace dieser Datei
+# nicht mit Geschwister-Backend-Dateien (mysql:, postgres:, mongo:, redis:)
+# kollidiert, wenn Configuralize alle in einen globalen Namespace merged.
+sqlite:
+  # Pfad zur SQLite-Datenbankdatei. Wird relativ zum Plugin-Datenordner
+  # aufgelöst, falls nicht absolut. Die Legacy-Datei unter
+  # `data/violations.sqlite` bleibt als Sicherheitsnetz erhalten; dies ist
+  # eine neue Datei, niemals ein ALTER auf der Legacy-Datei.
+  path: "data/history.v1.db"
+
+  # WAL-Modus erlaubt parallele Reader neben dem Writer — wesentlich für
+  # ein Server-Plugin, das /grim history liest, während Verstöße geschrieben
+  # werden.
+  journal-mode: WAL
+
+  # NORMAL ist ein vernünftiger Kompromiss zwischen Schreib-Haltbarkeit und
+  # Durchsatz unter WAL. FULL verdoppelt die Haltbarkeit auf Kosten des
+  # Durchsatzes. OFF ist gefährlich.
+  synchronous-mode: NORMAL
+
+  # Wie lange SQLite auf einen Lock wartet, bevor aufgegeben wird. Der
+  # Handler loggt und droppt bei BackendException; ein Erhöhen reduziert
+  # spurious Drops auf umkämpften Festplatten.
+  busy-timeout-ms: 5000
+
+  # Page-Cache-Größe (in Pages). Standard-Pagegröße ist 4096 Bytes,
+  # 10000 Pages ≈ 40 MB. Erhöhe für heiße Historien.
+  cache-pages: 10000
+
+  # Per-Handler Batch-Flush-Cap. Jeder Ring-Handler sammelt Events in einem
+  # PreparedStatement-Batch und committed bei endOfBatch ODER wenn der Batch
+  # diese Schranke erreicht — was auch immer zuerst eintritt. Höhere Werte
+  # tauschen Latenz gegen Durchsatz unter Dauerlast.
+  batch-flush-cap: 256
+
+# Schema-Marker — siehe Kopf-Kommentar in config.yml.
+config-flavor: V2
+config-version: 1

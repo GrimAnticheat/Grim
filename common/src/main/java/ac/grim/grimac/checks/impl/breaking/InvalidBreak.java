@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
-@CheckData(name = "InvalidBreak", description = "Sent impossible block face id")
+@CheckData(name = "InvalidBreak", stableKey = "grim.breaking.invalid_break", description = "Sent impossible block face id")
 public class InvalidBreak extends Check implements BlockBreakCheck {
     public InvalidBreak(GrimPlayer player) {
         super(player);

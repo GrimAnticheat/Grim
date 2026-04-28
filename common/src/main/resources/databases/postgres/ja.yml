@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Postgres バックエンド設定
+#
+#  Postgres はマルチサーバー構成（複数の Grim インスタンスから 1 つの
+#  中央 DB への書き込み）に対応します。実行時に Postgres JDBC ドライバが
+#  必要で、ドライバが見つからない場合は起動時に自己無効化し、これを
+#  参照していたルーティングはフォールバックに切り替わります。
+# ===========================================================================
+
+# すべてのキーは `postgres:` の下に置きます。これにより、Configuralize が
+# すべてを 1 つのグローバル名前空間にマージしても、兄弟のバックエンド
+# ファイルと keyspace が衝突しません。
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # `?` の後ろに追加される URL パラメータです。特に必要が無ければ空の
+  # まま。
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # テーブル名の上書き。デフォルト値は以下の通り。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1

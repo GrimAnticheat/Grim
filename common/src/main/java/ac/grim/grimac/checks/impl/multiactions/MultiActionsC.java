@@ -12,13 +12,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.StringJoiner;
 
-@CheckData(name = "MultiActionsC", description = "Clicked in inventory while moving")
+@CheckData(name = "MultiActionsC", stableKey = "grim.multiactions.inventory_click_while_moving", description = "Clicked in inventory while moving")
 public class MultiActionsC extends Check implements PacketCheck {
     public MultiActionsC(GrimPlayer player) {
         super(player);
     }
 
-    // TODO: move this to a bett spot? not sure where to put this
+    // TODO: move this to a better spot? not sure where to put this
     @Contract(pure = true)
     public static String getVerbose(@NotNull GrimPlayer player) {
         StringJoiner verbose = new StringJoiner(", ");

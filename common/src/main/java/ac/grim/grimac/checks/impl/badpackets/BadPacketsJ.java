@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUs
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "BadPacketsJ", description = "Rotation in use item packet did not match tick rotation")
+@CheckData(name = "BadPacketsJ", stableKey = "grim.badpackets.use_item_rotation_mismatch", description = "Rotation in use item packet did not match tick rotation")
 public class BadPacketsJ extends Check implements PacketCheck {
     private final List<HeadRotation> rotations = new ArrayList<>();
 

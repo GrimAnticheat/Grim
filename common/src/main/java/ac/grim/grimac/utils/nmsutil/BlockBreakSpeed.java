@@ -54,6 +54,11 @@ public class BlockBreakSpeed {
             StateTypes.ENDER_CHEST
     );
 
+    // another temporary hardcode for the same reasons as above; see https://github.com/GrimAnticheat/Grim/issues/2574
+    private static final Set<StateType> HARVESTABLE_TYPES_1_21 = Sets.newHashSet(
+            StateTypes.VAULT
+    );
+
     private static final boolean SERVER_USES_COMPONENTS_AND_RULES = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5);
 
     record ToolSpeedData(float speedMultiplier, boolean isCorrectToolForDrop) {
@@ -104,7 +109,9 @@ public class BlockBreakSpeed {
 
         final boolean canHarvest = !block.isRequiresCorrectTool() || toolSpeedData.isCorrectToolForDrop
                 // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
-                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4) && HARVESTABLE_TYPES_1_21_4.contains(block);
+                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4) && HARVESTABLE_TYPES_1_21_4.contains(block)
+                // same reason as above; see https://github.com/GrimAnticheat/Grim/issues/2574
+                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && HARVESTABLE_TYPES_1_21.contains(block);
 
         float damage = speedMultiplier / blockHardness;
         damage /= canHarvest ? 30F : 100F;

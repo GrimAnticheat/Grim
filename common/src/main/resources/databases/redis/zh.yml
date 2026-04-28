@@ -1,0 +1,48 @@
+# ===========================================================================
+#  Redis 后端设置
+#
+#  Redis 主要是内存型存储 — 若把历史路由到这里，请确保服务端启用了 AOF
+#  持久化，否则重启后历史会丢失。运行时需要 Jedis；若 Jedis 缺失，后端
+#  会自我禁用，路由会回退到其他后端。
+#
+#  不建议作为主要的历史存储目标。仅适用于只能使用 Redis、又必须有可用
+#  方案的运维场景。
+# ===========================================================================
+
+# 所有键都在 `redis:` 下，使本文件的 keyspace 不会在 Configuralize 把所有
+# yml 合并到同一个全局命名空间时与其他后端文件冲突。
+redis:
+  host: "localhost"
+  port: 6379
+
+  # 逻辑数据库索引（默认 0-15）。
+  database: 0
+
+  # 可选的 ACL 凭据。无认证的 Redis 留空即可。
+  user: ""
+  password: ""
+
+  # 该后端写入的每个键都会加上此前缀。当与其他应用共享同一个 Redis 实例
+  # 时很有用。无需前缀就留空。
+  key-prefix: ""
+
+  timeout-ms: 2000
+  batch-flush-cap: 256
+
+  # 当此后端正在路由 violation/session 历史时，true 会在启动时打印一条
+  # 警告。在确认持久化已正确配置后，可改为 false 以静默该警告。
+  warn-on-history: true
+
+  # 键命名空间覆盖。会被解释为键前缀片段（Redis 没有原生表概念）。
+  # 默认值见下方。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

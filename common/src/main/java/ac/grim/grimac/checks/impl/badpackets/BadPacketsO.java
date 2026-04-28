@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKe
 
 import java.util.LinkedList;
 
-@CheckData(name = "BadPacketsO")
+@CheckData(name = "BadPacketsO", stableKey = "grim.badpackets.invalid_keepalive")
 public class BadPacketsO extends Check implements PacketCheck {
     private final LinkedList<Long> keepalives = new LinkedList<>();
 

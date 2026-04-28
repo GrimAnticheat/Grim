@@ -11,7 +11,7 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
-@CheckData(name = "FarBreak", description = "Breaking blocks too far away", experimental = true)
+@CheckData(name = "FarBreak", stableKey = "grim.breaking.far_break", description = "Breaking blocks too far away", experimental = true)
 public class FarBreak extends Check implements BlockBreakCheck {
     public FarBreak(GrimPlayer player) {
         super(player);

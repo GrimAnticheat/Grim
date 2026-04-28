@@ -43,7 +43,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
             Chunk_v1_18 chunk = (Chunk_v1_18) chunks[i];
             if (chunk != null) {
                 // I know I'm passing null into @NotNull, but it shouldn't affect anything.
-                chunks[i] = new Chunk_v1_18(chunk.getBlockCount(), chunk.getChunkData(), null);
+                chunks[i] = new Chunk_v1_18(chunk.getBlockCount(), chunk.getFluidCount(), chunk.getChunkData(), null);
             }
         }
 

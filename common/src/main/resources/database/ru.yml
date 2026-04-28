@@ -1,0 +1,104 @@
+# ===========================================================================
+#  Хранилище Grim
+#
+#  Маршрутизирует категории DataStore (violation / session / player-identity /
+#  setting / blob) на конкретные экземпляры бекендов. У каждого бекенда из
+#  `routing:` свой файл настроек в `databases/<backend-id>.yml`.
+#
+#  При первом запуске, если присутствует legacy-хранилище (violations.sqlite),
+#  оно автоматически мигрирует в новое. Установите migration.skip в true,
+#  если предпочитаете перенести данные вручную позднее.
+# ===========================================================================
+
+# Все ключи datastore лежат под этим верхним враппером, чтобы пространство
+# имён было изолировано естественно — Configuralize в рантайме сливает
+# каждый yml в один глобальный keyspace, и плоская раскладка здесь
+# столкнулась бы с одноимёнными верхнеуровневыми ключами в config.yml /
+# discord.yml (`enabled`, `history` и т. д.).
+database:
+
+  # Главный переключатель. Установите false, чтобы полностью отключить
+  # историю нарушений и /grim history. Live-проверки AC продолжают
+  # работать; просто флаги перестают сохраняться.
+  enabled: true
+
+  # Категории → id бекендов. Для каждого уникального id здесь нужен файл
+  # `databases/<id>.yml` (создаётся при первом запуске из встроенных
+  # дефолтов) и зарегистрированный в рантайме BackendProvider. `none`
+  # полностью отключает сохранение для этой категории. Смешивать бекенды
+  # допустимо — например, нарушения в сетевом SQL-хранилище, а blob — в
+  # объектном.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Используется только при миграции — у legacy V0 reader нет сигналов
+    # join/quit, поэтому SessionReconstructor группирует нарушения в
+    # сессии, когда последовательные флаги попадают в этот интервал.
+    # Live-сессии ограничены соединением, а не этим значением.
+    gap-ms: 600000
+    scope-per-server: true
+    # Как часто heartbeat подключённого игрока делает upsert строки
+    # сессии, чтобы last_activity_epoch_ms оставалось актуальным. Ограничивает
+    # видимую продолжительность сессии при краше сервера (штатные
+    # дисконнекты всегда выставляют closed_at). Стоимость — около одного
+    # UPSERT строки на онлайн-игрока за интервал. 0 — отключено.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity должно быть положительной степенью двойки (требование
+    # ring buffer). Типичные значения: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Стратегия ожидания ring buffer. BLOCKING — безопасный дефолт:
+    # ожидание на условной переменной, минимально нагружающее CPU, но с
+    # небольшим увеличением задержки при экстремальных всплесках.
+    # YIELDING или BUSY_SPIN выбирайте только при наличии свободных ядер
+    # и подтверждённого выигрыша по сравнению с BLOCKING. Варианты:
+    # BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = без таймаута
+
+  name-resolution:
+    # Порядок важен — побеждает первый непустой результат.
+    # local-cache читает категорию PlayerIdentity.
+    # offline-mode-uuid выводит UUID.nameUUIDFromBytes (только offline-серверы).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Отображаемый тег, проставляемый в новых записях сессий. Показывается
+  # в заголовке сессии в `/grim history`. Безопасно менять во время
+  # работы.
+  server-name: "Prison"
+
+# Маркеры схемы — см. шапку config.yml.
+config-flavor: V2
+config-version: 1
