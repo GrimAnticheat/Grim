@@ -60,12 +60,64 @@ help:
     - "/grim spectate <giocatore> &f- &7Osserva un giocatore"
     - "/grim verbose &f- &7Mostra ogni segnalazione a te, senza buffer"
     - "/grim log [0-255] &f- &7Carica un registro di debug per le segnalazioni di previsione"
-    - "/grim history <player> [pagina] &f- &7Mostra gli avvisi precedenti del giocatore"
+    - "/grim history <player> &f- &7Lista delle sessioni (più recenti prima)"
+    - "/grim history <player> page <N> &f- &7Salta alla pagina N della lista delle sessioni"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Dettaglio della sessione (violazioni più recenti prima)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Dettaglio della sessione, pagina N delle violazioni"
     - "&7======================"
+
+# === /grim history ===
+# UI cronologia basata sulle sessioni. Tutte le righe sotto sono pienamente
+# configurabili; i placeholder sono documentati per ciascuna chiave. Il testo
+# in hover delle righe di sessione e violazione è costruito dal renderer dai
+# dati grezzi (verbose, ripartizione check) e non richiede un template — ma
+# puoi aggiungere <hover:show_text:'...'> a qualsiasi riga per sovrapporre
+# tooltip aggiuntivi.
 
 grim-history-load-failure: "%prefix% &cImpossibile caricare il sottosistema della cronologia! Controlla la console del server per errori."
 grim-history-disabled: "%prefix% &cIl sottosistema cronologia è disabilitato!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bMostrando log per &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bFallito &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% fa&7)"
+grim-history-failed: "%prefix% &cCaricamento cronologia fallito: &7%error%"
+grim-history-unknown-player: "%prefix% &cGiocatore sconosciuto: &f%player%"
+grim-history-no-sessions: "%prefix% &7Nessuna cronologia di sessioni per &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSessione &f%ordinal%&c non trovata per &f%player%&c."
+
+# Lista sessioni — placeholder validi: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bMostrando cronologia sessioni per &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Riga di riepilogo singola sessione — placeholder validi:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# %crashed_marker% si espande in grim-history-crashed-marker per sessioni la
+# cui connessione è caduta senza chiusura pulita (crash del server, kill -9,
+# RST del canale che non ha attivato UserDisconnectEvent). Stringa vuota per
+# sessioni in corso o chiuse correttamente.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessione &f%ordinal%&b, durata &f%duration%&b, con &c%violations%&b violazioni &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% fa&8)"
+
+# Marcatore inline sostituito in %crashed_marker% per sessioni il cui
+# closed_at == last_activity (cioè marcate dallo sweep di crash al successivo
+# avvio, non dal percorso di disconnessione). Include uno spazio iniziale
+# perché il marcatore si legga naturalmente quando presente e scompaia
+# pulito quando vuoto.
+grim-history-crashed-marker: " &8(&ccrash&8)"
+
+# Dettaglio sessione — placeholder validi:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bDettaglio sessione &f%ordinal% &bdi &f%player%&b:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Durata: &f%duration%&b, Data: &7%timeago% fa"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Marca: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bViolazioni: &8(%violations% totali, %unique_checks% uniche)"
+grim-history-detail-empty: "%prefix% &7- (nessuna)"
+# Riga raggruppata (predefinito) — placeholder validi: %prefix% %offset% %checks_list%
+#   %checks_list% è costruita unendo voci grim-history-check-count con ", "
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Riga di violazione singola (--detailed) — placeholder validi:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Formato interno per ogni check in %checks_list% — placeholder validi: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Marcatori di schema — vedi il commento di intestazione in config.yml.
+config-flavor: V2
+config-version: 1

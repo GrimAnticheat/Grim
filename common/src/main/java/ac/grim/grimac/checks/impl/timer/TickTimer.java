@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-@CheckData(name = "TickTimer", setback = 1)
+@CheckData(name = "TickTimer", stableKey = "grim.timer.tick", setback = 1)
 public class TickTimer extends Check implements PacketCheck {
 
     private boolean receivedTickEnd = true;

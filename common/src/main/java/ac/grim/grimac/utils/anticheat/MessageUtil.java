@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.webhook.discord.CompiledDiscordTemplate;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
@@ -27,11 +28,15 @@ public class MessageUtil {
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
     private final char PLACEHOLDER_ESCAPE_CHAR = '\uFFFF'; // this specific character holds no significance
 
-    public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
+    public @NotNull String toUnlabledString(@Nullable Vector3d vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
     public @NotNull String toUnlabledString(@Nullable Vector3f vec) {
+        return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
+    }
+
+    public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 

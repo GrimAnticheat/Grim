@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "AirLiquidBreak", description = "Breaking a block that cannot be broken")
+@CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", description = "Breaking a block that cannot be broken")
 public class AirLiquidBreak extends Check implements BlockBreakCheck {
     public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
     private int lastTick;

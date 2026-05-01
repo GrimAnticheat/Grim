@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.fabric.mixins;
 import ac.grim.grimac.platform.api.world.PlatformChunk;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
+import ac.grim.grimac.platform.fabric.utils.world.LevelChunkUtil;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -21,8 +22,12 @@ abstract class LevelMixin implements LevelAccessor {
     @Shadow
     public abstract ResourceKey<Level> dimension();
 
+    // Route through ChunkSource (via LevelChunkUtil trampoline) so the call resolves to
+    // method_12123, not Level.method_8393. Otherwise the prefix-stripped bridge ends up
+    // overriding method_8393 on the target on versions where the runtime mapping aliases
+    // isChunkLoaded(II)Z to it, and the body recurses through itself — see issue #2568.
     public boolean grimac$isChunkLoaded(int chunkX, int chunkZ) {
-        return hasChunk(chunkX, chunkZ);
+        return LevelChunkUtil.hasChunkAt((Level) (Object) this, chunkX, chunkZ);
     }
 
     public WrappedBlockState grimac$getBlockAt(int x, int y, int z) {

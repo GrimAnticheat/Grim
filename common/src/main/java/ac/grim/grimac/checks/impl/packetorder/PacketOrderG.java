@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderG", experimental = true)
+@CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", experimental = true)
 public class PacketOrderG extends Check implements PostPredictionCheck {
     public PacketOrderG(GrimPlayer player) {
         super(player);
@@ -28,21 +28,20 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
             DiggingAction action = null;
             if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
                 action = new WrapperPlayClientPlayerDigging(event).getAction();
-                if (action == DiggingAction.RELEASE_USE_ITEM
-                        || action == DiggingAction.START_DIGGING
-                        || action == DiggingAction.CANCELLED_DIGGING
-                        || action == DiggingAction.FINISHED_DIGGING
+                if (action != DiggingAction.SWAP_ITEM_WITH_OFFHAND
+                        && action != DiggingAction.DROP_ITEM
+                        && action != DiggingAction.DROP_ITEM_STACK
                 ) return;
             }
 
-            if (player.packetOrderProcessor.isAttacking()
+            if (player.packetOrderProcessor.isAttackingOrStabbing()
                     || player.packetOrderProcessor.isReleasing()
                     || player.packetOrderProcessor.isRightClicking()
                     || player.packetOrderProcessor.isPicking()
                     || player.packetOrderProcessor.isDigging()
             ) {
                 String verbose = "action=" + (action == null ? "openInventory" : action == DiggingAction.SWAP_ITEM_WITH_OFFHAND ? "swap" : "drop")
-                        + ", attacking=" + player.packetOrderProcessor.isAttacking()
+                        + ", attacking=" + player.packetOrderProcessor.isAttackingOrStabbing()
                         + ", releasing=" + player.packetOrderProcessor.isReleasing()
                         + ", rightClicking=" + player.packetOrderProcessor.isRightClicking()
                         + ", picking=" + player.packetOrderProcessor.isPicking()

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSelectBundleItem;
 
-@CheckData(name = "CrashI")
+@CheckData(name = "CrashI", stableKey = "grim.crash.invalid_bundle_slot")
 public class CrashI extends Check implements PacketCheck {
     public CrashI(GrimPlayer player) {
         super(player);

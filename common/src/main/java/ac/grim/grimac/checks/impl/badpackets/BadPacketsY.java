@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 
-@CheckData(name = "BadPacketsY", description = "Sent out of bounds slot id")
+@CheckData(name = "BadPacketsY", stableKey = "grim.badpackets.oob_slot", description = "Sent out of bounds slot id")
 public class BadPacketsY extends Check implements PacketCheck {
     public BadPacketsY(GrimPlayer player) {
         super(player);

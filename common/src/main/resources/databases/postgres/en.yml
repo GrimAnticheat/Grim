@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Postgres backend settings.
+#
+#  Postgres supports multi-server deployments (several Grim instances
+#  writing into one central DB). Requires the Postgres JDBC driver at
+#  runtime; if the driver is missing the backend disables itself at
+#  startup and routing that targeted this backend falls back.
+# ===========================================================================
+
+# Every key lives under `postgres:` so this file's keyspace doesn't collide
+# with sibling per-backend files when Configuralize merges them all into
+# one global namespace.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # Extra URL parameters appended after `?`. Leave empty unless you know
+  # you need something specific.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Table-name overrides. Default names below.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

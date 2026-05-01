@@ -17,9 +17,11 @@ import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
 import ac.grim.grimac.manager.player.handlers.NoOpResyncHandler;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.predictionengine.EntityFluidInteraction;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
+import ac.grim.grimac.manager.AttackCooldownHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -28,6 +30,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -113,7 +116,7 @@ public class GrimPlayer implements GrimUser {
     // End transaction handling stuff
     // Manager like classes
     public final CheckManager checkManager;
-    public final ActionManager actionManager;
+    public final AttackCooldownHandler attackCooldown;
     public final PunishmentManager punishmentManager;
     public final MovementCheckRunner movementCheckRunner;
     public final SyncedTags tagManager;
@@ -189,10 +192,6 @@ public class GrimPlayer implements GrimUser {
     public boolean wasTouchingWater = false;
     public boolean wasWasTouchingWater = false;
     public boolean wasTouchingLava = false;
-    // For slightly reduced vertical lava friction and jumping
-    public boolean slightlyTouchingLava = false;
-    // For jumping
-    public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public boolean softHorizontalCollision;
@@ -242,7 +241,6 @@ public class GrimPlayer implements GrimUser {
     public final Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     // possibleEyeHeights[0] = Standing eye heights, [1] = Sneaking. [2] = Elytra, Swimming, and Riptide Trident which only exists in 1.9+
     public final double[][] possibleEyeHeights = new double[3][];
-    public int totalFlyingPacketsSent;
     public final Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public final Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public final PlayerBlockHistory blockHistory = new PlayerBlockHistory();
@@ -278,6 +276,7 @@ public class GrimPlayer implements GrimUser {
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
+    public EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
 
     public GrimPlayer(@NotNull User user) {
         this.user = user;
@@ -291,7 +290,7 @@ public class GrimPlayer implements GrimUser {
         cameraEntity = new CompensatedCameraEntity(this);
 
         lastInstanceManager = new LastInstanceManager(this);
-        actionManager = new ActionManager(this);
+        attackCooldown = new AttackCooldownHandler(this);
         checkManager = new CheckManager(this);
         punishmentManager = new PunishmentManager(this);
         this.tagManager = new SyncedTags(this); // must be after this.user = user
@@ -567,6 +566,15 @@ public class GrimPlayer implements GrimUser {
             this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
             updatePermissions();
         }
+
+        // Datastore session heartbeat — throttled internally to once per
+        // `database.session.heartbeat-interval-ms`, so this runs every tick
+        // but only emits a row upsert every N seconds. Bounds how stale
+        // last_activity_epoch_ms can be when the server crashes.
+        if (uuid != null) {
+            GrimAPI.INSTANCE.getDataStoreLifecycle().sessionTracker()
+                    .pollHeartbeat(uuid, System.currentTimeMillis());
+        }
     }
 
     public void updateVelocityMovementSkipping() {
@@ -639,6 +647,8 @@ public class GrimPlayer implements GrimUser {
     //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
+        if (!cameraEntity.isSelf()) return false;
+
         // 1.21.2+: Tick end packet, on servers 1.21.2+
         // 1.8-: Flying packet
         return !canSkipTicks() || (inVehicle()
@@ -1037,4 +1047,21 @@ public class GrimPlayer implements GrimUser {
 
         return blockStateId;
     }
+
+    public double getFluidHeight(FluidTag fluidTag) {
+        if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) return this.fluidHeight.getDouble(fluidTag);
+        return this.fluidInteraction.getFluidHeight(fluidTag);
+    }
+
+    public boolean isEyeInFluid(FluidTag fluidTag) {
+        if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) return this.fluidOnEyes == fluidTag;
+        return this.fluidInteraction.isEyeInFluid(fluidTag);
+    }
+
+    public boolean isPushedByFluid() {
+        if (!this.inVehicle()) return !this.isFlying;
+        PacketEntity vehicle = getVehicle();
+        return !(vehicle instanceof PacketEntityNautilus);
+    }
+
 }

@@ -18,3 +18,7 @@ violation-content:
     - "**Marca del client**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+
+# Marcatori di schema — vedi il commento di intestazione in config.yml.
+config-flavor: V2
+config-version: 1

@@ -21,6 +21,7 @@ public class ClientBrand extends Check implements PacketCheck {
 
     @Getter
     private String brand = "vanilla";
+    @Getter
     private boolean hasBrand = false;
 
     public ClientBrand(GrimPlayer player) {
@@ -55,6 +56,12 @@ public class ClientBrand extends Check implements PacketCheck {
 
                 GrimAPI.INSTANCE.getAlertManager().sendBrand(component, null);
             }
+            // Push the now-known brand into the session row. The initial onJoin
+            // upsert ran from PlayerJoinEvent, before the brand packet arrived,
+            // so client_brand was null on disk. observeBrandFromCheck re-issues
+            // the upsert with the same session_id (idempotent) but the brand
+            // column now filled in. NOOP impl skips the work entirely.
+            GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks().observeBrandFromCheck(player);
         }
 
         // https://github.com/MinecraftForge/MinecraftForge/issues/9309

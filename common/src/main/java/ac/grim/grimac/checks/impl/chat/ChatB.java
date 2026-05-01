@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCh
 
 // this can false from click events, but I doubt this would actually
 // happen unless they're trying to flag, or if the server is set up badly
-@CheckData(name = "ChatB", description = "Invalid chat message")
+@CheckData(name = "ChatB", stableKey = "grim.exploit.spigot_antispam_bypass", description = "Invalid chat message")
 public class ChatB extends Check implements PacketCheck {
     public ChatB(GrimPlayer player) {
         super(player);

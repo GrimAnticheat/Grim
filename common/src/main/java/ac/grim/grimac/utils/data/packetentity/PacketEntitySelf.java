@@ -70,7 +70,8 @@ public class PacketEntitySelf extends PacketEntity {
         trackAttribute(movementSpeed);
         trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_DAMAGE, 2, 0, 2048)); // NOTE: Not synced to client currently.
         trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_SPEED, 4, 0, 1024)
-                .requiredVersion(player, ClientVersion.V_1_9));
+                .requiredVersion(player, ClientVersion.V_1_9)
+                .withGetRewriter(value -> PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ? 20 : value));
         trackAttribute(ValuedAttribute.ranged(Attributes.JUMP_STRENGTH, 0.42f, 0, 32)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.BLOCK_BREAK_SPEED, 1.0, 0, 1024)

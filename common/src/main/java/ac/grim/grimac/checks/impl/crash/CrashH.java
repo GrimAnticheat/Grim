@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
-@CheckData(name = "CrashH")
+@CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete")
 public class CrashH extends Check implements PacketCheck {
 
     public CrashH(GrimPlayer player) {

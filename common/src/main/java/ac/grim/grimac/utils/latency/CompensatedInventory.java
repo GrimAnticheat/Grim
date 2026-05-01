@@ -231,7 +231,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     return;
 
                 // 1.19.4+ clients support swapping with non-empty items
-                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.selected + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
+                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.getSelected() + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
 
                 // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
                 // Slot in hotbar
@@ -270,7 +270,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
 
-            inventory.selected = slot;
+            inventory.setSelected(slot);
         } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
@@ -403,7 +403,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
                 // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
                 // Regardless, the client does accept this packet and update its inventory, so we must do the same.
-                if (slots.size() == cachedPacketInvSize || items.getWindowId() == 0) {
+                boolean forceUpdate = slots.size() == cachedPacketInvSize || items.getWindowId() == 0;
+                if (!isPacketInventoryActive && forceUpdate) {
                     isPacketInventoryActive = true;
                     updatedValue.set(true);
                 }

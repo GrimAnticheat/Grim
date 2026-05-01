@@ -1,6 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.event.events.GrimTransactionReceivedEvent;
+import ac.grim.grimac.api.event.events.GrimTransactionSendEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -15,11 +17,13 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 
 public class PacketPingListener extends PacketListenerAbstract {
 
+    private static final GrimTransactionSendEvent.Channel SEND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimTransactionSendEvent.class);
+    private static final GrimTransactionReceivedEvent.Channel RECEIVED_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimTransactionReceivedEvent.class);
+
     // Must listen on LOWEST (or maybe low) to stop Tuinity packet limiter from kicking players for transaction/pong spam
     public PacketPingListener() {
         super(PacketListenerPriority.LOWEST);
     }
-
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -35,7 +39,10 @@ public class PacketPingListener extends PacketListenerAbstract {
             // Check if we sent this packet before cancelling it
             if (id <= 0 && player.addTransactionResponse(id)) {
                 player.packetStateData.lastTransactionPacketWasValid = true;
-                event.setCancelled(true);
+                boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
+                // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
+                event.setCancelled(shouldCancel);
+                RECEIVED_CHANNEL.fire(player, id, shouldCancel, event.getTimestamp());
             }
         }
 
@@ -52,8 +59,10 @@ public class PacketPingListener extends PacketListenerAbstract {
                 short shortID = ((short) id);
                 if (player.addTransactionResponse(shortID)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
+                    boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
-                    event.setCancelled(!GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling());
+                    event.setCancelled(shouldCancel);
+                    RECEIVED_CHANNEL.fire(player, id, shouldCancel, event.getTimestamp());
                 }
             }
         }
@@ -74,6 +83,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }
             }
         }
@@ -93,6 +103,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                     player.packetStateData.lastServerTransWasValid = true;
                     player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
+                    SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }
             }
         }

@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.DashableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -101,6 +102,12 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             } else {
                 entity.onMovement(isTickingReliably);
             }
+        }
+
+        if (player.vehicleData.camelSprintingState == SprintingState.STOPPING) {
+            player.vehicleData.camelSprintingState = SprintingState.STOPPED;
+        } else if (player.vehicleData.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
+            player.vehicleData.camelSprintingState = SprintingState.STARTED;
         }
     }
 

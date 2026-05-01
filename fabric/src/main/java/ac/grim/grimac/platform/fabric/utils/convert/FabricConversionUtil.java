@@ -3,7 +3,9 @@ package ac.grim.grimac.platform.fabric.utils.convert;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import net.kyori.adventure.text.Component;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +86,17 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
         return hand == null ? null : switch (hand) {
             case OFF_HAND -> InteractionHand.OFF_HAND;
             case MAIN_HAND -> InteractionHand.MAIN_HAND;
+        };
+    }
+
+    public static BlockFace fromDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> BlockFace.NORTH;
+            case SOUTH -> BlockFace.SOUTH;
+            case WEST  -> BlockFace.WEST;
+            case EAST  -> BlockFace.EAST;
+            case UP    -> BlockFace.UP;
+            case DOWN  -> BlockFace.DOWN;
         };
     }
 }

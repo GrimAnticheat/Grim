@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "MultiActionsG", description = "Attacking or using items while rowing a boat", experimental = true)
+@CheckData(name = "MultiActionsG", stableKey = "grim.multiactions.action_while_rowing", description = "Attacking or using items while rowing a boat", experimental = true)
 public class MultiActionsG extends BlockPlaceCheck {
     public MultiActionsG(GrimPlayer player) {
         super(player);
@@ -20,6 +20,18 @@ public class MultiActionsG extends BlockPlaceCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && isCheckActive()
                 && flagAndAlert("interact") && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.ATTACK && isCheckActive()
+                && flagAndAlert("attack") && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY && isCheckActive()
+                && flagAndAlert("spectateEntity") && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }

@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.elytra.ElytraA;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -37,9 +38,11 @@ public class PacketEntityAction extends PacketListenerAbstract {
             switch (action.getAction()) {
                 case START_SPRINTING:
                     player.isSprinting = true;
+                    player.vehicleData.camelSprintingState = SprintingState.STARTED;
                     break;
                 case STOP_SPRINTING:
                     player.isSprinting = false;
+                    player.vehicleData.camelSprintingState = SprintingState.STOPPED;
                     break;
                 case START_SNEAKING:
                     player.isSneaking = true;
@@ -62,9 +65,11 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         player.onPacketCancel();
                         break;
                     }
+
+                    player.checkManager.getPostPredictionCheck(ElytraA.class).onStartGliding(event);
+
                     // Starting fall flying is server sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
-                    player.checkManager.getPostPredictionCheck(ElytraA.class).onStartGliding(event);
 
                     // This shouldn't be needed with latency compensated inventories
                     // TODO: Remove this?

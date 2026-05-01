@@ -1,0 +1,49 @@
+# ===========================================================================
+#  Paramètres du backend MySQL.
+#
+#  MySQL supporte les déploiements multi-serveurs (plusieurs instances Grim
+#  écrivent dans une BD centrale). Nécessite le driver MySQL Connector/J au
+#  runtime ; s'il manque, le backend se désactive au démarrage, logue une
+#  erreur claire, et le routing qui le visait retombe sur ce qui est
+#  configuré par ailleurs.
+# ===========================================================================
+
+# Toutes les clés vivent sous `mysql:` pour que le keyspace de ce fichier
+# n'entre pas en collision avec les fichiers de backends voisins (sqlite:,
+# postgres:, mongo:, redis:) quand Configuralize les fusionne dans un
+# namespace global.
+mysql:
+  # Cible de connexion.
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # Paramètres d'URL supplémentaires ajoutés après le jeu fixe
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true).
+  # Laissez vide sauf besoin spécifique — les défauts conviennent à une
+  # install locale de dev.
+  extra-jdbc-params: ""
+
+  # Plafond de flush par batch et par handler. Chaque handler de ring
+  # accumule les événements dans un batch de PreparedStatement et commit
+  # à endOfBatch OU quand le batch atteint ce plafond, selon le premier
+  # arrivé. Des valeurs plus hautes échangent de la latence contre du
+  # débit sous bursts soutenus.
+  batch-flush-cap: 256
+
+  # Overrides de noms de table. Renommez l'un des six stores logiques pour
+  # que plusieurs instances Grim partagent une seule BD MySQL, ou pour
+  # coller à une convention d'entreprise. Défauts ci-dessous.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marqueurs de schéma — voir le commentaire d'en-tête dans config.yml.
+config-flavor: V2
+config-version: 1

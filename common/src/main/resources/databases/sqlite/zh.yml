@@ -1,0 +1,40 @@
+# ===========================================================================
+#  SQLite 后端设置
+#
+#  SQLite 仅适用于单服务器场景。联网部署请在 database.yml 中将 routing
+#  切换到能访问共享数据库的后端。
+# ===========================================================================
+
+# 所有键都在 `sqlite:` 下，使本文件的 keyspace 不会在 Configuralize 把所有
+# yml 合并到同一个全局命名空间时与其他后端文件（mysql:、postgres:、
+# mongo:、redis:）冲突。
+sqlite:
+  # SQLite 数据库文件路径。非绝对路径会按相对插件数据目录解析。
+  # 旧版文件 `data/violations.sqlite` 作为兜底保留，本路径始终是新文件，
+  # 绝不会对旧版执行 ALTER。
+  path: "data/history.v1.db"
+
+  # WAL 模式允许写入时并行读取 — 对于一边读取 /grim history、一边写入
+  # 违规的服务器插件来说非常关键。
+  journal-mode: WAL
+
+  # NORMAL 在 WAL 下兼顾写入持久性和吞吐量，是合理的平衡点。
+  # FULL 翻倍地提升持久性，但牺牲吞吐量。OFF 很危险，不推荐。
+  synchronous-mode: NORMAL
+
+  # SQLite 在放弃前等待锁的最长时间。处理器在 BackendException 时会记录
+  # 日志并丢弃；提高此值能减少高竞争磁盘上的偶发丢弃。
+  busy-timeout-ms: 5000
+
+  # 页缓存大小（以页为单位）。SQLite 默认页大小为 4096 字节，因此 10000
+  # 页约 40 MB。访问频繁的历史可适当调高。
+  cache-pages: 10000
+
+  # 每个处理器的批量刷盘上限。每个 ring 处理器会把事件累积到
+  # PreparedStatement 批次中，在 endOfBatch 或批次达到此上限时（取先达到
+  # 者）提交。较高的值在持续突发下用延迟换取吞吐量。
+  batch-flush-cap: 256
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

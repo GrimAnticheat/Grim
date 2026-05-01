@@ -299,13 +299,13 @@ public class CompensatedWorld implements PacketWorld {
                 // Sets entire chunk to air
                 // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
                 // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                chunk.set(null, 0, 0, 0, 0);
+                chunk.set(0, 0, 0, 0);
             }
 
             // The method also gets called for the previous state before replacement
             player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
 
-            chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+            chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
             player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
@@ -397,7 +397,7 @@ public class CompensatedWorld implements PacketWorld {
             if (direction.getModX() == -1 || direction.getModY() == -1 || direction.getModZ() == -1) {
                 shulkerCollision.expandMin(direction.getModX(), direction.getModY(), direction.getModZ());
             } else {
-                shulkerCollision.expandMax(direction.getModZ(), direction.getModY(), direction.getModZ());
+                shulkerCollision.expandMax(direction.getModX(), direction.getModY(), direction.getModZ());
             }
 
             if (playerBox.isCollided(shulkerCollision)) {
@@ -563,7 +563,7 @@ public class CompensatedWorld implements PacketWorld {
         } else if (block.getType() == StateTypes.LEVER || BlockTags.BUTTONS.contains(block.getType())) {
             return block.getFacing().getOppositeFace() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == StateTypes.REDSTONE_WALL_TORCH) {
-            return face == BlockFace.DOWN && block.isPowered() ? 15 : 0;
+            return face == BlockFace.DOWN && block.isLit() ? 15 : 0;
         } else if (block.getType() == StateTypes.LECTERN) {
             return face == BlockFace.UP && block.isPowered() ? 15 : 0;
         } else if (block.getType() == StateTypes.OBSERVER) {

@@ -16,6 +16,14 @@ public @interface CheckData {
 
     String description() default "No description provided";
 
+    /**
+     * Canonical cross-version identity. Dot-separated, lower snake-case
+     * (e.g. {@code "badpackets.duplicate_slot"}). Empty string means
+     * legacy/unpopulated — the runtime will fall back to
+     * {@code StableKeyMapping} during rollout and log a warning.
+     */
+    String stableKey() default "";
+
     double decay() default 0.05;
 
     double setback() default 25;

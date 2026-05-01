@@ -1,0 +1,48 @@
+# ===========================================================================
+#  Configurações do backend MySQL.
+#
+#  MySQL suporta deploys multi-servidor (várias instâncias do Grim
+#  escrevendo num BD central). Requer o driver MySQL Connector/J em
+#  runtime; se ele faltar, o backend se desativa no startup, loga um erro
+#  claro e o routing que apontava para ele cai no que estiver configurado
+#  como fallback.
+# ===========================================================================
+
+# Todas as chaves vivem sob `mysql:` para que o keyspace deste arquivo não
+# colida com arquivos irmãos por backend (sqlite:, postgres:, mongo:,
+# redis:) quando Configuralize os funde num namespace global.
+mysql:
+  # Destino da conexão.
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # Parâmetros de URL extras anexados após o conjunto fixo
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true).
+  # Deixe vazio salvo se precisar de algo específico — os defaults batem
+  # com o que uma instalação local de dev quer.
+  extra-jdbc-params: ""
+
+  # Limite de flush por handler por batch. Cada handler do ring acumula
+  # eventos em um batch de PreparedStatement e commita em endOfBatch OU
+  # quando o batch atinge esse limite, o que ocorrer primeiro. Valores
+  # mais altos trocam latência por throughput sob bursts sustentados.
+  batch-flush-cap: 256
+
+  # Overrides de nome de tabela. Renomeie qualquer um dos seis stores
+  # lógicos para que várias instâncias do Grim possam compartilhar o
+  # mesmo BD MySQL, ou para encaixar num esquema de nomes corporativo.
+  # Defaults abaixo.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marcadores de esquema — ver o comentário do cabeçalho em config.yml.
+config-flavor: V2
+config-version: 1
