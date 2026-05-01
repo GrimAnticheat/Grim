@@ -171,6 +171,7 @@ tasks {
             vendor = JvmVendorSpec.JETBRAINS
             languageVersion = JavaLanguageVersion.of(25)
         }
+        systemProperties(mapOf("paper.explicit-flush" to "true"))
         minecraftVersion("26.1.2")
     }
 
