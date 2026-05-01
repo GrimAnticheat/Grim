@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "SprintG", description = "Sprinting while in water", experimental = true)
+@CheckData(name = "SprintG", stableKey = "grim.sprint.water", description = "Sprinting while in water", experimental = true)
 public class SprintG extends Check implements PostPredictionCheck {
     public SprintG(GrimPlayer player) {
         super(player);

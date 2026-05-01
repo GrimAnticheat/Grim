@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderF", experimental = true)
+@CheckData(name = "PacketOrderF", stableKey = "grim.packetorder.input_tick_to_sneak_sprint_order", experimental = true)
 public class PacketOrderF extends Check implements PostPredictionCheck {
     public PacketOrderF(GrimPlayer player) {
         super(player);

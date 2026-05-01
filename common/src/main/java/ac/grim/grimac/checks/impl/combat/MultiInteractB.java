@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractB", experimental = true)
+@CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
     private final ArrayList<String> flags = new ArrayList<>();
     private Vector3d lastPos;

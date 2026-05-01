@@ -568,6 +568,15 @@ public class GrimPlayer implements GrimUser {
             this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
             updatePermissions();
         }
+
+        // Datastore session heartbeat — throttled internally to once per
+        // `database.session.heartbeat-interval-ms`, so this runs every tick
+        // but only emits a row upsert every N seconds. Bounds how stale
+        // last_activity_epoch_ms can be when the server crashes.
+        if (uuid != null) {
+            GrimAPI.INSTANCE.getDataStoreLifecycle().sessionTracker()
+                    .pollHeartbeat(uuid, System.currentTimeMillis());
+        }
     }
 
     public void updateVelocityMovementSkipping() {
@@ -640,6 +649,8 @@ public class GrimPlayer implements GrimUser {
     //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
+        if (!cameraEntity.isSelf()) return false;
+
         // 1.21.2+: Tick end packet, on servers 1.21.2+
         // 1.8-: Flying packet
         return !canSkipTicks() || (inVehicle()

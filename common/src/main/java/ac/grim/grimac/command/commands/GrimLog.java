@@ -45,6 +45,8 @@ public class GrimLog implements BuildableCommand {
         try {
             urlConn.setDoOutput(true);
             urlConn.setRequestMethod("POST");
+            urlConn.setConnectTimeout(CommonGrimArguments.URL_TIMEOUT.value());
+            urlConn.setReadTimeout(CommonGrimArguments.URL_TIMEOUT.value());
             urlConn.addRequestProperty("User-Agent", "GrimAC/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion());
             urlConn.addRequestProperty("Content-Type", type); // Not really yaml, but looks nicer than plaintext
             urlConn.setRequestProperty("Content-Length", Integer.toString(log.length()));

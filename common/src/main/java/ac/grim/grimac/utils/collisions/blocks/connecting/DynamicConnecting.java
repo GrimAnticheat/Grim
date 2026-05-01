@@ -100,6 +100,10 @@ public class DynamicConnecting {
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 
+        // 1.9+ clients fixed isFullBlock() behind these blocks meaning we don't need to redundantly blacklist them on those versions.
+        if (clientVersion.isOlderThan(ClientVersion.V_1_9))
+            return (m == StateTypes.DAYLIGHT_DETECTOR || m== StateTypes.REPEATER || m == StateTypes.COMPARATOR);
+
         return m == StateTypes.ENCHANTING_TABLE || m == StateTypes.FARMLAND || m == StateTypes.CARVED_PUMPKIN || m == StateTypes.JACK_O_LANTERN || m == StateTypes.PUMPKIN || m == StateTypes.MELON ||
                 m == StateTypes.BEACON || BlockTags.CAULDRONS.contains(m) || m == StateTypes.GLOWSTONE || m == StateTypes.SEA_LANTERN || m == StateTypes.ICE
                 || m == StateTypes.PISTON || m == StateTypes.STICKY_PISTON || m == StateTypes.PISTON_HEAD || (!canConnectToGlassBlock()

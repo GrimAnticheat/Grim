@@ -1,0 +1,49 @@
+# ===========================================================================
+#  MySQL backend ayarları.
+#
+#  MySQL çoklu sunuculu kurulumları destekler (birden çok Grim instance'ı
+#  tek bir merkezi DB'ye yazar). Çalışma zamanında MySQL Connector/J
+#  sürücüsünü gerektirir; sürücü yoksa backend başlangıçta kendini devre
+#  dışı bırakır, açıklayıcı bir hata loglar ve buraya yönlenen routing
+#  başka neyle yapılandırılmışsa ona düşer.
+# ===========================================================================
+
+# Tüm anahtarlar `mysql:` altında yer alır; böylece Configuralize tümünü
+# tek bir global ad alanında birleştirdiğinde bu dosyanın anahtar uzayı
+# kardeş backend dosyalarıyla (sqlite:, postgres:, mongo:, redis:)
+# çakışmaz.
+mysql:
+  # Bağlantı hedefi.
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # Sabit setin (useSSL=false&allowPublicKeyRetrieval=true&
+  # rewriteBatchedStatements=true) sonrasına eklenen ek URL parametreleri.
+  # Belirli bir gereksinim yoksa boş bırak — varsayılanlar yerel bir dev
+  # kurulumu için uygundur.
+  extra-jdbc-params: ""
+
+  # Handler başına batch-flush sınırı. Her ring handler, olayları bir
+  # PreparedStatement batch'inde biriktirir ve endOfBatch'te VEYA batch
+  # bu sınıra ulaştığında commit eder; hangisi önce olursa. Daha yüksek
+  # değerler, sürekli burst altında verim için gecikmeyi takas eder.
+  batch-flush-cap: 256
+
+  # Tablo adı geçersiz kılmaları. Altı mantıksal store'dan birini yeniden
+  # adlandırarak birden çok Grim instance'ının aynı MySQL DB'sini
+  # paylaşmasını sağlayabilir veya mevcut bir kurumsal isimlendirmeye
+  # uydurabilirsin. Varsayılanlar aşağıda.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

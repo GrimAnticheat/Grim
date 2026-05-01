@@ -1,0 +1,51 @@
+# ===========================================================================
+#  Redis backend settings.
+#
+#  Redis is primarily an in-memory store — ensure AOF persistence is
+#  enabled on the server if you route history to it, or the history will
+#  disappear on restart. Requires Jedis at runtime; if Jedis is missing
+#  the backend disables itself and routing falls back.
+#
+#  Not recommended as a primary history target. Offered for operators
+#  who only have Redis available and need something working in a pinch.
+# ===========================================================================
+
+# Every key lives under `redis:` so this file's keyspace doesn't collide
+# with sibling per-backend files when Configuralize merges them all into
+# one global namespace.
+redis:
+  host: "localhost"
+  port: 6379
+
+  # Logical database index (0-15 by default).
+  database: 0
+
+  # Optional ACL credentials. Leave empty for no-auth Redis.
+  user: ""
+  password: ""
+
+  # Prepended to every key this backend writes. Useful when sharing a Redis
+  # instance with other apps. Leave empty for no prefix.
+  key-prefix: ""
+
+  timeout-ms: 2000
+  batch-flush-cap: 256
+
+  # When true, log a startup warning if this backend is routing
+  # violation/session history. Set false to silence after you've confirmed
+  # persistence is configured.
+  warn-on-history: true
+
+  # Key-namespace overrides. Interpreted as key-prefix segments (Redis has
+  # no native tables). Default names below.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

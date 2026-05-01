@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.RotationCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
-@CheckData(name = "AimDuplicateLook")
+@CheckData(name = "AimDuplicateLook", stableKey = "grim.aim.duplicate_look")
 public class AimDuplicateLook extends Check implements RotationCheck {
     private boolean exempt;
 

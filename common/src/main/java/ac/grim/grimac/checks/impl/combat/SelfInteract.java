@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAt
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSpectateEntity;
 
-@CheckData(name = "SelfInteract", description = "Interacted with self")
+@CheckData(name = "SelfInteract", stableKey = "grim.badpackets.self_hit", description = "Interacted with self")
 public class SelfInteract extends Check implements PacketCheck {
     public SelfInteract(GrimPlayer player) {
         super(player);

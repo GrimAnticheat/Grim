@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderK", experimental = true)
+@CheckData(name = "PacketOrderK", stableKey = "grim.packetorder.inventory_open_order", experimental = true)
 public class PacketOrderK extends Check implements PostPredictionCheck {
     public PacketOrderK(final GrimPlayer player) {
         super(player);
@@ -38,7 +38,7 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
             if (player.packetOrderProcessor.isOpeningInventory()) {
                 String verbose = event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW ? "click" : "close";
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                    if (flagAndAlert(verbose) && shouldModifyPackets() && event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }

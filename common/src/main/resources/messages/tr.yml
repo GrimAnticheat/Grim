@@ -68,12 +68,62 @@ help:
     - "/grim spectate (oyuncu) &f- &7Bir oyuncuyu izlemenizi sağlar"
     - "/grim verbose &f- &7Arabelleğe almadan tüm uyarıları görmenizi sağlar"
     - "/grim log (0-255) &f- &7Uyarılar için bir debug logu çıktısı verir"
-    - "/grim history <player> [sayfa] &f- &7Oyuncunun önceki uyarılarını gösterir"
+    - "/grim history <player> &f- &7Oturum listesi (en yenisi başta)"
+    - "/grim history <player> page <N> &f- &7Oturum listesinin N. sayfasına atla"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Oturum detayı (en yeni ihlaller başta)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Oturum detayı, ihlal sayfası N"
     - "&7======================"
+
+# === /grim history ===
+# Oturum tabanlı geçmiş arayüzü. Aşağıdaki tüm satırlar tamamen yapılandırılabilir;
+# placeholder'lar her anahtarda belgelenmiştir. Oturum ve ihlal satırlarındaki
+# hover metni, ham verilerden (verbose, kontrol kırılımı) renderer tarafından
+# üretilir; bir şablona ihtiyaç yoktur. Yine de herhangi bir satıra
+# <hover:show_text:'...'> ekleyerek üzerine ek tooltip katmanı koyabilirsin.
 
 grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar için sunucu konsolunu kontrol edin."
 grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bKayıtlar gösteriliyor: &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bBaşarısız &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% önce&7)"
+grim-history-failed: "%prefix% &cGeçmiş yüklenemedi: &7%error%"
+grim-history-unknown-player: "%prefix% &cBilinmeyen oyuncu: &f%player%"
+grim-history-no-sessions: "%prefix% &7&f%player% &7için oturum geçmişi yok."
+grim-history-session-not-found: "%prefix% &c&f%player% &ciçin &f%ordinal% &cnumaralı oturum bulunamadı."
+
+# Oturum listesi — geçerli placeholder'lar: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &b&f%player% &biçin oturum geçmişi &8[&f%page%&7/&f%max_pages%&8]"
+# Tek oturum özeti satırı — geçerli placeholder'lar:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# Bağlantısı düzgün kapanmadan kopan oturumlar (sunucu çökmesi, kill -9,
+# UserDisconnectEvent tetiklemeyen channel RST gibi) için %crashed_marker%
+# grim-history-crashed-marker olarak genişler. Devam eden veya düzgün
+# kapatılmış oturumlarda boş string olur.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bOturum &f%ordinal%&b, süre &f%duration%&b, &c%violations%&b ihlal &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% önce&8)"
+
+# closed_at == last_activity olan oturumlar (yani disconnect yolu yerine bir
+# sonraki başlatmanın crash-sweep'i tarafından damgalananlar) için
+# %crashed_marker%'a yerleştirilen satır içi işaret. Var olduğunda doğal
+# okunsun, yokken temiz kaybolsun diye başında bir boşluk içerir.
+grim-history-crashed-marker: " &8(&cçöktü&8)"
+
+# Oturum detayı — geçerli placeholder'lar:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &b&f%player% &boyuncusunun &f%ordinal% &bnumaralı oturum detayı:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Sunucu: &f%server_name%&b, Süre: &f%duration%&b, Tarih: &7%timeago% önce"
+grim-history-detail-meta2: "%prefix% &bİstemci: &f%client_version%&b, Marka: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bİhlaller: &8(toplam %violations%, benzersiz %unique_checks%)"
+grim-history-detail-empty: "%prefix% &7- (yok)"
+# Gruplanmış satır (varsayılan) — geçerli placeholder'lar: %prefix% %offset% %checks_list%
+#   %checks_list%, grim-history-check-count girdileri ", " ile birleştirilerek oluşur
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Tek ham ihlal satırı (--detailed) — geçerli placeholder'lar:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# %checks_list% içinde her kontrol için iç biçim — geçerli placeholder'lar: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

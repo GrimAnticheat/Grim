@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
-@CheckData(name = "CrashE")
+@CheckData(name = "CrashE", stableKey = "grim.crash.low_view_distance")
 public class CrashE extends Check implements PacketCheck {
 
     public CrashE(GrimPlayer playerData) {

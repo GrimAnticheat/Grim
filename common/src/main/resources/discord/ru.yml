@@ -18,3 +18,7 @@ violation-content:
     - "**Бренд**: `%brand%`"
     - "**Пинг**: %ping%"
     - "**ТПС**: %tps%"
+
+# Маркеры схемы — см. шапку config.yml.
+config-flavor: V2
+config-version: 1

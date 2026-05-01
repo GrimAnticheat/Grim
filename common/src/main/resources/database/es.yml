@@ -1,0 +1,105 @@
+# ===========================================================================
+#  Datastore de Grim
+#
+#  Enruta las categorías del DataStore (violation / session / player-identity /
+#  setting / blob) hacia instancias de backend concretas. Cada backend listado
+#  en `routing:` tiene su propio archivo de ajustes en
+#  `databases/<backend-id>.yml`.
+#
+#  En el primer arranque, si existe el almacén legado (violations.sqlite),
+#  se migra automáticamente al nuevo. Pon migration.skip a true si prefieres
+#  migrar manualmente más tarde.
+# ===========================================================================
+
+# Todas las claves del datastore viven bajo este wrapper de nivel superior
+# para que el keyspace quede naturalmente con namespace — Configuralize
+# fusiona cada yml en un único keyspace global en runtime, y un layout plano
+# aquí chocaría con claves idénticas de nivel superior en config.yml /
+# discord.yml (`enabled`, `history`, etc.).
+database:
+
+  # Interruptor principal. Pon en false para desactivar el historial de
+  # violaciones + /grim history por completo. Las comprobaciones AC en vivo
+  # siguen funcionando; las flags simplemente no se persisten.
+  enabled: true
+
+  # Categorías → ids de backend. Cada id distinto aquí debe tener un archivo
+  # `databases/<id>.yml` correspondiente (creado automáticamente desde los
+  # defaults empaquetados en el primer arranque) y un BackendProvider
+  # registrado en runtime. `none` desactiva por completo la persistencia
+  # para esa categoría. Se admite mezclar backends — p. ej. violaciones en
+  # un SQL en red y blobs en un object store.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Solo se usa en migración — el reader V0 legado no tiene señales de
+    # join/quit, así que SessionReconstructor agrupa violaciones en sesiones
+    # cuando flags consecutivas caen dentro de este hueco. Las sesiones en
+    # vivo están delimitadas por la conexión, no por este valor.
+    gap-ms: 600000
+    scope-per-server: true
+    # Cada cuánto un heartbeat de jugador conectado hace upsert de la fila
+    # de sesión para mantener last_activity_epoch_ms al día. Acota la
+    # duración aparente de la sesión si el servidor cae (las desconexiones
+    # limpias siempre fijan closed_at). Coste: ~un UPSERT de fila por
+    # jugador online por intervalo. 0 lo desactiva.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity debe ser una potencia de dos positiva (requisito del
+    # ring buffer). Valores típicos: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Estrategia de espera del ring buffer. BLOCKING es el default seguro:
+    # espera basada en variable de condición que minimiza CPU a costa de
+    # algo de latencia en bursts extremos. Elige YIELDING o BUSY_SPIN solo
+    # cuando tengas presupuesto de núcleos libres y hayas medido una mejora
+    # frente a BLOCKING. Opciones: BLOCKING, TIMEOUT_BLOCKING, SLEEPING,
+    # YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = sin timeout
+
+  name-resolution:
+    # El orden importa — gana el primer resultado no vacío.
+    # local-cache lee la categoría PlayerIdentity.
+    # offline-mode-uuid deriva UUID.nameUUIDFromBytes (solo servidores offline).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Etiqueta solo visual estampada en los nuevos registros de sesión. Se
+  # muestra en la línea de cabecera de sesión de `/grim history`. Cambiarla
+  # en operación es seguro.
+  server-name: "Prison"
+
+# Marcadores de esquema — ver el comentario de cabecera en config.yml.
+config-flavor: V2
+config-version: 1

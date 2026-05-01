@@ -1,0 +1,38 @@
+# ===========================================================================
+#  MongoDB バックエンド設定
+#
+#  実行時に同期版 MongoDB ドライバが必要です。ドライバが見つからない場合は
+#  バックエンドが自己無効化し、これを参照していたルーティングは
+#  フォールバックに切り替わります。
+# ===========================================================================
+
+# すべてのキーは `mongo:` の下に置きます。これにより、Configuralize が
+# すべてを 1 つのグローバル名前空間にマージしても、兄弟のバックエンド
+# ファイルと keyspace が衝突しません。
+mongo:
+  # MongoDB の接続文字列。資格情報はドライバの標準（
+  # mongodb://user:pass@host:port/?authSource=admin）に従って URL 内に
+  # 埋め込みます。
+  connection-string: "mongodb://localhost:27017"
+
+  # 書き込み先のデータベース。内部のコレクション名は下の `tables:`
+  # ブロックで指定します。
+  database: "grim"
+
+  # ハンドラごとの bulkWrite() サイズ。Mongo ドライバは内部で接続を
+  # プールするため、ここで制御するのはコミットのバッチング量であり、
+  # 接続数ではありません。
+  batch-flush-cap: 256
+
+  # コレクション名の上書き。デフォルト値は以下の通り。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1

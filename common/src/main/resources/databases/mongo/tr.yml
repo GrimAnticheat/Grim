@@ -1,0 +1,36 @@
+# ===========================================================================
+#  MongoDB backend ayarları.
+#
+#  Çalışma zamanında senkron MongoDB sürücüsünü gerektirir; sürücü yoksa
+#  backend kendini devre dışı bırakır ve routing fallback'ine düşer.
+# ===========================================================================
+
+# Tüm anahtarlar `mongo:` altında yer alır; böylece Configuralize tümünü
+# tek bir global ad alanında birleştirdiğinde bu dosyanın anahtar uzayı
+# kardeş backend dosyalarıyla çakışmaz.
+mongo:
+  # MongoDB bağlantı string'i. Kimlik bilgileri sürücü standardına göre
+  # URL içine kodlanır (mongodb://user:pass@host:port/?authSource=admin).
+  connection-string: "mongodb://localhost:27017"
+
+  # Yazılacak veritabanı. İçindeki koleksiyonlar aşağıdaki `tables:`
+  # bloğuyla isimlendirilir.
+  database: "grim"
+
+  # Handler başına bulkWrite() boyutu. Mongo sürücüsü bağlantıları
+  # dahili olarak havuzlar — bu commit batching'i kontrol eder, bağlantı
+  # sayısını değil.
+  batch-flush-cap: 256
+
+  # Koleksiyon adı geçersiz kılmaları. Varsayılanlar aşağıda.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

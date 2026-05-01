@@ -68,12 +68,65 @@ help:
     - "/grim spectate <player> &f- &7Regarder un joueur"
     - "/grim verbose &f- &7Affiche chaqu'une de vos violations, sans tampons"
     - "/grim log [0-255] &f- &7Téléverse un journal de débogage pour les indicateurs de prédiction"
-    - "/grim history <player> [page] &f- &7Affiche les alertes précédentes du joueur"
+    - "/grim history <player> &f- &7Liste des sessions (les plus récentes en premier)"
+    - "/grim history <player> page <N> &f- &7Aller à la page N de la liste des sessions"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Détail d'une session (violations les plus récentes en premier)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Détail d'une session, page N des violations"
     - "&7======================"
 
+# === /grim history ===
+# UI d'historique basée sur les sessions. Toutes les lignes ci-dessous sont
+# entièrement configurables ; les placeholders sont documentés à chaque clé.
+# Le texte au survol des lignes de session et de violation est construit par
+# le renderer à partir des données brutes (verbose, ventilation des checks)
+# et n'a pas besoin de modèle — mais vous pouvez ajouter
+# <hover:show_text:'...'> sur n'importe quelle ligne pour superposer des
+# tooltips supplémentaires.
+
 grim-history-load-failure: "%prefix% &cLe sous-système d'historique n'a pas pu être chargé ! Vérifiez la console du serveur pour les erreurs."
-grim-history-disabled: "%prefix% &cLe sous‑système d’historique est désactivé!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bAffichage des journaux pour &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bÉchec &f%check% (x&c%vl%&f) &7%verbose% (&bil y a %timeago%&7)"
+grim-history-disabled: "%prefix% &cLe sous-système d'historique est désactivé !"
+grim-history-failed: "%prefix% &cÉchec du chargement de l'historique : &7%error%"
+grim-history-unknown-player: "%prefix% &cJoueur inconnu : &f%player%"
+grim-history-no-sessions: "%prefix% &7Pas d'historique de sessions pour &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSession &f%ordinal%&c introuvable pour &f%player%&c."
+
+# Liste des sessions — placeholders valides : %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bAffichage de l'historique des sessions pour &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Ligne de résumé d'une session — placeholders valides :
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# %crashed_marker% s'étend en grim-history-crashed-marker pour les sessions
+# dont la connexion a disparu sans fermeture propre (crash serveur, kill -9,
+# RST de canal sans UserDisconnectEvent). Chaîne vide pour les sessions en
+# cours ou closes proprement.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b, durée &f%duration%&b, avec &c%violations%&b violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7il y a %timeago%&8)"
+
+# Marqueur en ligne substitué dans %crashed_marker% pour les sessions dont
+# closed_at == last_activity (c.-à-d. estampillées par le balayage de crash
+# au prochain démarrage, et non par le chemin de déconnexion). Inclut un
+# espace de tête pour que le marqueur se lise naturellement quand il est
+# présent et disparaisse proprement quand il est vide.
+grim-history-crashed-marker: " &8(&ccrash&8)"
+
+# Détail de session — placeholders valides :
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bDétail de la session &f%ordinal% &bde &f%player%&b :"
+grim-history-detail-meta1: "%prefix% &bGrim : &f%grim_version%&b, Serveur : &f%server_name%&b, Durée : &f%duration%&b, Date : &7il y a %timeago%"
+grim-history-detail-meta2: "%prefix% &bClient : &f%client_version%&b, Marque : &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bViolations : &8(%violations% au total, %unique_checks% uniques)"
+grim-history-detail-empty: "%prefix% &7- (aucune)"
+# Ligne groupée (par défaut) — placeholders valides : %prefix% %offset% %checks_list%
+#   %checks_list% est construite en joignant les entrées grim-history-check-count avec ", "
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Ligne de violation brute (--detailed) — placeholders valides :
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Format interne pour chaque check dans %checks_list% — placeholders valides : %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Marqueurs de schéma — voir le commentaire d'en-tête dans config.yml.
+config-flavor: V2
+config-version: 1

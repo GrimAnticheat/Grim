@@ -1,0 +1,49 @@
+# ===========================================================================
+#  Paramètres du backend SQLite.
+#
+#  SQLite est mono-serveur uniquement. Pour les déploiements en réseau,
+#  changez le routing dans database.yml vers un backend qui parle à une
+#  base de données partagée.
+# ===========================================================================
+
+# Toutes les clés vivent sous `sqlite:` pour que le keyspace de ce fichier
+# n'entre pas en collision avec les fichiers de backends voisins (mysql:,
+# postgres:, mongo:, redis:) quand Configuralize les fusionne dans un
+# espace de noms global.
+sqlite:
+  # Chemin vers le fichier de base SQLite. Résolu relativement au dossier
+  # de données du plugin s'il n'est pas absolu. Le fichier legacy
+  # `data/violations.sqlite` est laissé intact comme filet de sécurité ;
+  # celui-ci est un nouveau fichier, jamais un ALTER sur l'ancien.
+  path: "data/history.v1.db"
+
+  # Le mode WAL permet aux lecteurs concurrents de tourner aux côtés du
+  # writer — essentiel pour un plugin serveur qui lit /grim history pendant
+  # qu'il écrit des violations.
+  journal-mode: WAL
+
+  # NORMAL est un compromis raisonnable entre durabilité d'écriture et
+  # débit sous WAL. FULL double la durabilité au prix du débit. OFF est
+  # dangereux.
+  synchronous-mode: NORMAL
+
+  # Combien de temps SQLite attend un verrou avant d'abandonner. Le handler
+  # logue et drop en BackendException ; augmenter cette valeur réduit les
+  # drops parasites sur des disques en contention.
+  busy-timeout-ms: 5000
+
+  # Taille du cache de pages (en pages). Taille de page SQLite par défaut
+  # de 4096 octets, donc 10000 pages ≈ 40 Mo. À augmenter pour des
+  # historiques chauds.
+  cache-pages: 10000
+
+  # Plafond de flush par batch et par handler. Chaque handler de ring
+  # accumule les événements dans un batch de PreparedStatement et commit
+  # à endOfBatch OU quand le batch atteint ce plafond, selon le premier
+  # arrivé. Des valeurs plus hautes échangent de la latence contre du
+  # débit sous bursts soutenus.
+  batch-flush-cap: 256
+
+# Marqueurs de schéma — voir le commentaire d'en-tête dans config.yml.
+config-flavor: V2
+config-version: 1

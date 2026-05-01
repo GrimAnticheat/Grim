@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "MultiActionsD", description = "Closed inventory while moving")
+@CheckData(name = "MultiActionsD", stableKey = "grim.multiactions.inventory_close_while_moving", description = "Closed inventory while moving")
 public class MultiActionsD extends Check implements PacketCheck {
     public MultiActionsD(GrimPlayer player) {
         super(player);

@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
-@CheckData(name = "CrashG", description = "Sent negative sequence id")
+@CheckData(name = "CrashG", stableKey = "grim.crash.negative_sequence", description = "Sent negative sequence id")
 public class CrashG extends BlockPlaceCheck {
 
     public CrashG(GrimPlayer player) {

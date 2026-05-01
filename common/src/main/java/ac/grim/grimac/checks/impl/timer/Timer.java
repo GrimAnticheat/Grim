@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
-@CheckData(name = "Timer", configName = "TimerA", setback = 10)
+@CheckData(name = "Timer", stableKey = "grim.timer.timer", configName = "TimerA", setback = 10)
 public class Timer extends Check implements PacketCheck {
     protected long timerBalanceRealTime = 0;
 

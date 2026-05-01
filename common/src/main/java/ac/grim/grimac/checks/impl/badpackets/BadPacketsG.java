@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "BadPacketsG", description = "Sent duplicate sneaking status")
+@CheckData(name = "BadPacketsG", stableKey = "grim.badpackets.duplicate_sneak", description = "Sent duplicate sneaking status")
 public class BadPacketsG extends Check implements PacketCheck {
     private boolean lastSneaking, respawn;
 

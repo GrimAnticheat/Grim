@@ -21,7 +21,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-@CheckData(name = "AntiKB", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
+@CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
