@@ -397,7 +397,7 @@ public class CompensatedWorld implements PacketWorld {
             if (direction.getModX() == -1 || direction.getModY() == -1 || direction.getModZ() == -1) {
                 shulkerCollision.expandMin(direction.getModX(), direction.getModY(), direction.getModZ());
             } else {
-                shulkerCollision.expandMax(direction.getModZ(), direction.getModY(), direction.getModZ());
+                shulkerCollision.expandMax(direction.getModX(), direction.getModY(), direction.getModZ());
             }
 
             if (playerBox.isCollided(shulkerCollision)) {

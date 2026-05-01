@@ -1,0 +1,53 @@
+# ===========================================================================
+#  Ajustes del backend Redis.
+#
+#  Redis es principalmente un store en memoria — si vas a enrutar
+#  historial aquí, asegúrate de que la persistencia AOF está habilitada en
+#  el servidor, o el historial desaparecerá al reiniciar. Requiere Jedis
+#  en runtime; si falta, el backend se autodesactiva y el routing cae en
+#  su fallback.
+#
+#  No recomendado como destino principal de historial. Está pensado para
+#  operadores que solo tienen Redis disponible y necesitan algo que
+#  funcione.
+# ===========================================================================
+
+# Todas las claves van bajo `redis:` para que el keyspace de este archivo
+# no colisione con archivos hermanos por backend cuando Configuralize los
+# une en un namespace global.
+redis:
+  host: "localhost"
+  port: 6379
+
+  # Índice lógico de base de datos (0-15 por defecto).
+  database: 0
+
+  # Credenciales ACL opcionales. Déjalo vacío para un Redis sin auth.
+  user: ""
+  password: ""
+
+  # Se antepone a cada clave que este backend escribe. Útil si compartes
+  # una instancia Redis con otras apps. Déjalo vacío para no usar prefijo.
+  key-prefix: ""
+
+  timeout-ms: 2000
+  batch-flush-cap: 256
+
+  # Si es true, loguea un aviso al arranque cuando este backend está
+  # enrutando historial de violations/sessions. Pon a false para silenciar
+  # tras confirmar que la persistencia está configurada.
+  warn-on-history: true
+
+  # Overrides de namespace de claves. Se interpretan como segmentos de
+  # prefijo de clave (Redis no tiene tablas nativas). Defaults abajo.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marcadores de esquema — ver el comentario de cabecera en config.yml.
+config-flavor: V2
+config-version: 1

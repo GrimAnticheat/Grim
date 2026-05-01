@@ -1,0 +1,47 @@
+# ===========================================================================
+#  Ajustes del backend SQLite.
+#
+#  SQLite es solo para un único servidor. Si tu instalación es en red,
+#  cambia el routing en database.yml a un backend que hable con una base
+#  de datos compartida.
+# ===========================================================================
+
+# Todas las claves van bajo `sqlite:` para que el keyspace de este archivo
+# no choque con archivos hermanos por backend (mysql:, postgres:, mongo:,
+# redis:) cuando Configuralize los une en un único namespace global.
+sqlite:
+  # Ruta al archivo de base de datos SQLite. Se resuelve relativo a la
+  # carpeta de datos del plugin si no es absoluta. El archivo legado en
+  # `data/violations.sqlite` se conserva intacto como red de seguridad;
+  # éste es un archivo nuevo, nunca un ALTER sobre el legado.
+  path: "data/history.v1.db"
+
+  # El modo WAL permite que los lectores concurrentes operen junto al
+  # writer — esencial para un plugin que lee /grim history mientras escribe
+  # violaciones.
+  journal-mode: WAL
+
+  # NORMAL es un equilibrio razonable entre durabilidad de escritura y
+  # rendimiento bajo WAL. FULL duplica la durabilidad a costa del
+  # rendimiento. OFF es peligroso.
+  synchronous-mode: NORMAL
+
+  # Cuánto espera SQLite por un lock antes de rendirse. El handler loguea y
+  # descarta en BackendException; subirlo reduce drops espurios en discos
+  # con contención.
+  busy-timeout-ms: 5000
+
+  # Tamaño de la caché de páginas (en páginas). El tamaño de página por
+  # defecto es 4096 bytes, así que 10000 páginas ≈ 40 MB. Súbelo para
+  # historiales calientes.
+  cache-pages: 10000
+
+  # Tope de flush por lote por handler. Cada handler del ring acumula
+  # eventos en un batch de PreparedStatement y commitea en endOfBatch O
+  # cuando el batch alcanza este tope, lo que ocurra antes. Valores más
+  # altos cambian latencia por throughput bajo bursts sostenidos.
+  batch-flush-cap: 256
+
+# Marcadores de esquema — ver el comentario de cabecera en config.yml.
+config-flavor: V2
+config-version: 1

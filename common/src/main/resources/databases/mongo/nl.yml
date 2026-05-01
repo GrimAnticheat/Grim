@@ -1,0 +1,37 @@
+# ===========================================================================
+#  MongoDB-backendinstellingen.
+#
+#  Vereist het synchrone MongoDB-stuurprogramma in runtime; als het
+#  ontbreekt, schakelt het backend zichzelf uit en valt de routing terug
+#  op zijn fallback.
+# ===========================================================================
+
+# Alle sleutels staan onder `mongo:` zodat de keyspace van dit bestand
+# niet botst met zustertbestanden per backend wanneer Configuralize ze
+# samenvoegt in één globale namespace.
+mongo:
+  # MongoDB connection string. Credentials staan in de URL volgens de
+  # standaard van het stuurprogramma
+  # (mongodb://user:pass@host:port/?authSource=admin).
+  connection-string: "mongodb://localhost:27017"
+
+  # Database om naar te schrijven. Collecties daarbinnen worden benoemd
+  # via het `tables:`-blok hieronder.
+  database: "grim"
+
+  # bulkWrite()-grootte per handler. De Mongo-driver pooled verbindingen
+  # intern, dus dit stuurt commit-batching, niet het aantal verbindingen.
+  batch-flush-cap: 256
+
+  # Overrides voor collectienamen. Defaults hieronder.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

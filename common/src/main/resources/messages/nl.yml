@@ -68,12 +68,64 @@ help:
     - "/grim spectate <player> &f- &7Een speler bekijken"
     - "/grim verbose &f- &7Toont elke flag, zonder buffers"
     - "/grim log [0-255] &f- &7Uploadt een debug-log voor voorspellings-flaggen"
-    - "/grim history <player> [pagina] &f- &7Toont eerdere waarschuwingen voor de speler"
+    - "/grim history <player> &f- &7Sessielijst (nieuwste eerst)"
+    - "/grim history <player> page <N> &f- &7Spring naar pagina N van de sessielijst"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Sessiedetail (nieuwste overtredingen eerst)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Sessiedetail, overtredingenpagina N"
     - "&7======================"
+
+# === /grim history ===
+# Op sessies gebaseerde geschiedenis-UI. Alle regels hieronder zijn vrij
+# instelbaar; placeholders zijn per sleutel gedocumenteerd. Hover-tekst voor
+# sessie- en overtredingsregels wordt door de renderer opgebouwd uit de ruwe
+# data (verbose, check-uitsplitsing) en heeft geen template nodig — je kunt
+# echter <hover:show_text:'...'> aan elke regel toevoegen om extra tooltips
+# erbovenop te leggen.
 
 grim-history-load-failure: "%prefix% &cGeschiedenissubsysteem kon niet worden geladen! Controleer de serverconsole op fouten."
 grim-history-disabled: "%prefix% &cHet geschiedenissubsysteem is uitgeschakeld!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bLogbestanden tonen voor &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bMislukt &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% geleden&7)"
+grim-history-failed: "%prefix% &cKon geschiedenis niet laden: &7%error%"
+grim-history-unknown-player: "%prefix% &cOnbekende speler: &f%player%"
+grim-history-no-sessions: "%prefix% &7Geen sessiegeschiedenis voor &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSessie &f%ordinal%&c niet gevonden voor &f%player%&c."
+
+# Sessielijst — geldige placeholders: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bSessiegeschiedenis tonen voor &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Samenvattingsregel per sessie — geldige placeholders:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# %crashed_marker% breidt uit naar grim-history-crashed-marker voor sessies
+# waarvan de verbinding zonder nette afsluiting wegviel (servercrash, kill -9,
+# kanaal-RST die geen UserDisconnectEvent vuurt). Lege string voor lopende of
+# netjes gesloten sessies.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessie &f%ordinal%&b, duur &f%duration%&b, met &c%violations%&b overtredingen &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% geleden&8)"
+
+# Inline-markering die in %crashed_marker% wordt geplaatst voor sessies met
+# closed_at == last_activity (d.w.z. gestempeld door de crash-sweep bij de
+# volgende start, niet door het disconnect-pad). Begint met een spatie zodat
+# de markering natuurlijk leest wanneer aanwezig en netjes verdwijnt
+# wanneer leeg.
+grim-history-crashed-marker: " &8(&cgecrasht&8)"
+
+# Sessiedetail — geldige placeholders:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bDetails van sessie &f%ordinal% &bvan &f%player%&b:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duur: &f%duration%&b, Datum: &7%timeago% geleden"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Merk: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bOvertredingen: &8(%violations% totaal, %unique_checks% uniek)"
+grim-history-detail-empty: "%prefix% &7- (geen)"
+# Gegroepeerde regel (standaard) — geldige placeholders: %prefix% %offset% %checks_list%
+#   %checks_list% wordt gebouwd door grim-history-check-count-items te verbinden met ", "
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Enkele ruwe overtredingsregel (--detailed) — geldige placeholders:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Intern formaat per check in %checks_list% — geldige placeholders: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

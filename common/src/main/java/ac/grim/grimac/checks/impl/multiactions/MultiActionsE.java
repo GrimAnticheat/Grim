@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "MultiActionsE", description = "Swinging while using an item", experimental = true)
+@CheckData(name = "MultiActionsE", stableKey = "grim.multiactions.swing_while_using", description = "Swinging while using an item", experimental = true)
 public class MultiActionsE extends Check implements PacketCheck {
     private boolean dropping;
 

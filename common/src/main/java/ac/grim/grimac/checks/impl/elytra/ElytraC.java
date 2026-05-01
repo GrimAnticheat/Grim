@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraC", description = "Started gliding too frequently")
+@CheckData(name = "ElytraC", stableKey = "grim.elytra.too_frequent", description = "Started gliding too frequently")
 public class ElytraC extends Check implements PostPredictionCheck {
     private boolean glideThisTick, glideLastTick, setback;
     private int flags;

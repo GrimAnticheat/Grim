@@ -1,0 +1,48 @@
+# ===========================================================================
+#  MySQL-backendinstellingen.
+#
+#  MySQL ondersteunt multi-server-deployments (meerdere Grim-instances die
+#  naar één centrale DB schrijven). Vereist het MySQL Connector/J-stuur-
+#  programma in runtime; als de driver ontbreekt, schakelt het backend
+#  zichzelf uit bij het starten, logt een duidelijke fout, en routing dat
+#  hierheen wees valt terug op wat er verder geconfigureerd staat.
+# ===========================================================================
+
+# Alle sleutels staan onder `mysql:` zodat de keyspace van dit bestand
+# niet botst met zustertbestanden per backend (sqlite:, postgres:, mongo:,
+# redis:) wanneer Configuralize ze samenvoegt in één globale namespace.
+mysql:
+  # Verbindingsdoel.
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # Extra URL-parameters die na de vaste set worden toegevoegd
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true).
+  # Laat leeg tenzij je iets specifieks nodig hebt — de defaults passen
+  # bij een lokale dev-installatie.
+  extra-jdbc-params: ""
+
+  # Per-handler batch-flush-cap. Elke ringhandler verzamelt events in een
+  # PreparedStatement-batch en commit op endOfBatch OF wanneer de batch
+  # deze cap bereikt — wat het eerst gebeurt. Hogere waarden ruilen
+  # latency in voor doorvoer onder aanhoudende bursts.
+  batch-flush-cap: 256
+
+  # Overrides voor tabelnamen. Hernoem een van de zes logische stores
+  # zodat meerdere Grim-instances dezelfde MySQL-database kunnen delen of
+  # om aan te sluiten bij een bestaande naamgevingsconventie. Defaults
+  # hieronder.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

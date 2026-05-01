@@ -241,20 +241,11 @@ max-ping-out-of-flying: 1000
 # 填写-1则关闭
 max-ping-firework-boost: 1000
 
-history:
-    enabled: true
-    # 使用 /grim history <player> 时每页显示多少条记录
-    entries-per-page: 15
-    # history命令中应该插入的服务器名称是什么？如果多个服务器共用同一数据库，这个选项会很有用
-    server-name: Prison
-    database:
-        # 本地存储使用SQLITE，如有外部数据库请使用MYSQL或POSTGRESQL。此设置仅在服务器重启时更新
-        type: SQLITE
-        # 数据库连接信息
-        host: localhost
-        port: 3306
-        database: grim
-        username: root
-        password: ""
-# 不要调整这个
-config-version: 9
+# 模式标记 — 除非你清楚自己在做什么，否则不要修改。
+#   config-flavor:  V2 = Grim 2.x 构建，V3 = Grim 3.x。如果配置的 flavor
+#                   与插件构建不一致（例如用 V2 jar 打开 V3 配置），插件会
+#                   拒绝加载并立即报错，而不是悄悄合并到错误的键。
+#   config-version: 每次发生破坏性结构变更都会递增。下次启动时，旧配置会由
+#                   内置 updater 自动迁移。
+config-flavor: V2
+config-version: 10

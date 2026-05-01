@@ -1,0 +1,45 @@
+# ===========================================================================
+#  Impostazioni del backend SQLite.
+#
+#  SQLite è solo per single-server. Per setup in rete commuta il routing in
+#  database.yml verso un backend che parla con un database condiviso.
+# ===========================================================================
+
+# Tutte le chiavi vivono sotto `sqlite:` così il keyspace di questo file
+# non collide con i file fratelli per backend (mysql:, postgres:, mongo:,
+# redis:) quando Configuralize li unisce in un namespace globale.
+sqlite:
+  # Percorso del file di database SQLite. Risolto relativamente alla
+  # cartella dei dati del plugin se non assoluto. Il file legacy
+  # `data/violations.sqlite` rimane intatto come rete di sicurezza; questo
+  # è un file nuovo, mai un ALTER sul legacy.
+  path: "data/history.v1.db"
+
+  # Il modo WAL consente lettori concorrenti accanto al writer — essenziale
+  # per un plugin che legge /grim history mentre scrive violazioni.
+  journal-mode: WAL
+
+  # NORMAL è un buon compromesso tra durabilità in scrittura e throughput
+  # sotto WAL. FULL raddoppia la durabilità a costo del throughput. OFF è
+  # pericoloso.
+  synchronous-mode: NORMAL
+
+  # Quanto SQLite attende un lock prima di arrendersi. L'handler logga e
+  # scarta in BackendException; alzare questo valore riduce drop spuri su
+  # dischi in contesa.
+  busy-timeout-ms: 5000
+
+  # Dimensione della cache pagine (in pagine). La dimensione di pagina
+  # default di SQLite è 4096 byte, quindi 10000 pagine ≈ 40 MB. Alzala per
+  # cronologie molto attive.
+  cache-pages: 10000
+
+  # Tetto di flush per handler per batch. Ogni handler di ring accumula
+  # eventi in un batch PreparedStatement e fa commit su endOfBatch OPPURE
+  # quando il batch raggiunge questo tetto, a seconda di quale arrivi prima.
+  # Valori più alti scambiano latenza per throughput sotto burst sostenuti.
+  batch-flush-cap: 256
+
+# Marcatori di schema — vedi il commento di intestazione in config.yml.
+config-flavor: V2
+config-version: 1

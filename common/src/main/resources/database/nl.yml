@@ -1,0 +1,105 @@
+# ===========================================================================
+#  Grim datastore
+#
+#  Routet de DataStore-categorieën (violation / session / player-identity /
+#  setting / blob) naar specifieke backend-instanties. Elke backend in
+#  `routing:` heeft zijn eigen instellingenbestand onder
+#  `databases/<backend-id>.yml`.
+#
+#  Bij de eerste start wordt een aanwezige legacy-store (violations.sqlite)
+#  automatisch naar de nieuwe store gemigreerd. Zet migration.skip op true
+#  als je liever later handmatig migreert.
+# ===========================================================================
+
+# Alle datastore-sleutels staan onder deze top-level wrapper zodat de
+# keyspace vanzelf gescheiden is — Configuralize voegt elke yml in runtime
+# samen tot één globale keyspace, en een platte indeling zou hier botsen
+# met identieke top-level sleutels in config.yml / discord.yml (`enabled`,
+# `history`, enz.).
+database:
+
+  # Hoofdschakelaar. Op false zetten om geschiedenis van overtredingen +
+  # /grim history volledig uit te schakelen. Live AC-checks blijven draaien;
+  # alleen de flags worden niet meer opgeslagen.
+  enabled: true
+
+  # Categorieën → backend-ids. Elke unieke id hier moet een bijhorend
+  # `databases/<id>.yml` hebben (wordt bij de eerste start uit de meegeleverde
+  # defaults aangemaakt) en een geregistreerde BackendProvider in runtime.
+  # `none` schakelt persistence voor die categorie volledig uit. Backends
+  # mengen mag — bijv. overtredingen in een netwerk-SQL-store en blobs in
+  # een objectstore.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Wordt alleen tijdens migratie gebruikt — de legacy V0-reader heeft
+    # geen join/quit-signalen, dus SessionReconstructor groepeert
+    # overtredingen tot sessies wanneer opeenvolgende flags binnen deze
+    # afstand vallen. Live sessies worden door de verbinding begrensd, niet
+    # door deze waarde.
+    gap-ms: 600000
+    scope-per-server: true
+    # Hoe vaak een heartbeat van een verbonden speler de sessie-rij upsert
+    # zodat last_activity_epoch_ms actueel blijft. Begrenst de schijnbare
+    # sessieduur als de server crasht (nette disconnects zetten altijd
+    # closed_at). Kosten: ~één rij-UPSERT per online speler per interval.
+    # 0 schakelt het uit.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity moet een positieve macht van twee zijn (vereiste van
+    # de ring buffer). Typische waarden: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Wachtstrategie van de ring buffer. BLOCKING is de veilige standaard:
+    # een wacht op condition variable die CPU minimaliseert tegen iets
+    # latency bij extreme bursts. Kies YIELDING of BUSY_SPIN alleen als je
+    # vrije cores over hebt en hebt gemeten dat het beter is dan BLOCKING.
+    # Opties: BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = geen timeout
+
+  name-resolution:
+    # Volgorde is belangrijk — het eerste niet-lege resultaat wint.
+    # local-cache leest de PlayerIdentity-categorie.
+    # offline-mode-uuid leidt UUID.nameUUIDFromBytes af (alleen offline servers).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Alleen-tonen tag die op nieuwe sessierecords wordt gestempeld. Wordt
+  # getoond in de sessie-header van `/grim history`. Veilig om mid-operatie
+  # te wijzigen.
+  server-name: "Prison"
+
+# Schemamarkers — zie de header-comment in config.yml.
+config-flavor: V2
+config-version: 1

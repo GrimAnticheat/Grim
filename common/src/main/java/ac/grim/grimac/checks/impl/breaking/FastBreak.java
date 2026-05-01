@@ -24,7 +24,7 @@ import java.util.Set;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "FastBreak", description = "Breaking blocks too quickly")
+@CheckData(name = "FastBreak", stableKey = "grim.breaking.fast_break", description = "Breaking blocks too quickly")
 public class FastBreak extends Check implements BlockBreakCheck {
 
     // For some reason these states flag and I don't know why.

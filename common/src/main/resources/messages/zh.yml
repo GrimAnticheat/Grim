@@ -68,12 +68,57 @@ help:
     - "/grim spectate <player> &f- &7观看玩家"
     - "/grim verbose &f- &7显示无缓冲区的每个拉回"
     - "/grim log [1-999] &f- &7预测标志的调试日志"
-    - "/grim history <player> [页码] &f- &7显示玩家之前的警报"
+    - "/grim history <player> &f- &7查看会话列表（最新优先）"
+    - "/grim history <player> page <N> &f- &7跳转到会话列表的第 N 页"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7查看某次会话详情（最新违规优先）"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7查看会话详情的第 N 页违规"
     - "&7======================"
+
+# === /grim history ===
+# 基于会话的历史界面。下方所有行均可自定义；每个键的占位符在注释中说明。
+# 会话和违规行的悬停文本由渲染器根据原始数据（verbose、检查统计）自动构建，
+# 无需模板 — 但你可以在任意行加 <hover:show_text:'...'> 叠加额外提示。
 
 grim-history-load-failure: "%prefix% &c历史子系统加载失败！请检查服务器控制台中的错误。"
 grim-history-disabled: "%prefix% &c历史子系统已禁用！"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &b显示 &f%player% 的日志 (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &b失败 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"
+grim-history-failed: "%prefix% &c历史加载失败：&7%error%"
+grim-history-unknown-player: "%prefix% &c未知玩家：&f%player%"
+grim-history-no-sessions: "%prefix% &7没有 &f%player% &7的会话历史。"
+grim-history-session-not-found: "%prefix% &c未找到 &f%player% &c的第 &f%ordinal% &c次会话。"
+
+# 会话列表 — 可用占位符: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &b显示 &f%player% 的会话历史 &8[&f%page%&7/&f%max_pages%&8]"
+# 单条会话摘要 — 可用占位符:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# 当会话因服务器崩溃、kill -9 或未触发 UserDisconnectEvent 的连接重置而非正常关闭时，
+# %crashed_marker% 会展开为 grim-history-crashed-marker；正在进行或正常关闭的会话则为空字符串。
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &b第 &f%ordinal% &b次会话，时长 &f%duration%&b，含 &c%violations% &b次违规 &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% 前&8)"
+
+# 替换到 %crashed_marker% 的内联标记：仅对 closed_at == last_activity 的会话显示
+# （即由下次启动的崩溃扫描而非正常断开路径标记的会话）。包含前导空格，
+# 这样存在时读起来自然，缺失时也会消失。
+grim-history-crashed-marker: " &8(&c崩溃&8)"
+
+# 会话详情 — 可用占位符:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &b显示 &f%player% &b的第 &f%ordinal% &b次会话详情："
+grim-history-detail-meta1: "%prefix% &bGrim：&f%grim_version%&b，服务器：&f%server_name%&b，时长：&f%duration%&b，时间：&7%timeago% 前"
+grim-history-detail-meta2: "%prefix% &b客户端：&f%client_version%&b，品牌：&f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &b违规：&8(共 %violations% 次，独立检查 %unique_checks% 个)"
+grim-history-detail-empty: "%prefix% &7- (无)"
+# 分组行（默认） — 可用占位符: %prefix% %offset% %checks_list%
+#   %checks_list% 是用 ", " 拼接 grim-history-check-count 项构成的列表
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# 单条原始违规行（--detailed） — 可用占位符:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# %checks_list% 中每个检查项的内部格式 — 可用占位符: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

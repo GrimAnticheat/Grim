@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Ajustes del backend MongoDB.
+#
+#  Requiere el driver síncrono de MongoDB en runtime; si falta, el backend
+#  se autodesactiva y el routing cae en su fallback.
+# ===========================================================================
+
+# Todas las claves van bajo `mongo:` para que el keyspace de este archivo
+# no colisione con archivos hermanos por backend cuando Configuralize los
+# une en un namespace global.
+mongo:
+  # Connection string de MongoDB. Las credenciales van codificadas en la
+  # URL según la convención del driver
+  # (mongodb://user:pass@host:port/?authSource=admin).
+  connection-string: "mongodb://localhost:27017"
+
+  # Base de datos donde escribir. Las colecciones dentro se nombran en el
+  # bloque `tables:` de abajo.
+  database: "grim"
+
+  # Tamaño de bulkWrite() por handler. El driver de Mongo pulsa pools de
+  # conexiones internamente; esto controla el batching de commits, no el
+  # número de conexiones.
+  batch-flush-cap: 256
+
+  # Overrides de nombres de colección. Defaults abajo.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marcadores de esquema — ver el comentario de cabecera en config.yml.
+config-flavor: V2
+config-version: 1

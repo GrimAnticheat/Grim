@@ -68,12 +68,62 @@ help:
     - "/grim spectate <player> &f- &7Spectate a player"
     - "/grim verbose &f- &7Shows every flag to you, without buffers"
     - "/grim log [0-255] &f- &7Uploads a debug log for prediction flags"
-    - "/grim history <player> [page] &f- &7Shows previous alerts for the player"
+    - "/grim history <player> &f- &7Session list (newest first)"
+    - "/grim history <player> page <N> &f- &7Jump to page N of the session list"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Session detail (most recent violations first)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Session detail, violation page N"
     - "&7======================"
+
+# === /grim history ===
+# Session-based history UI. All lines below are fully configurable; placeholders
+# documented at each key. Hover-text on session and violation lines is built by
+# the renderer from the raw data (verbose, check breakdowns) and doesn't need a
+# template — but you can add <hover:show_text:'...'> to any line below to layer
+# additional tooltips on top.
 
 grim-history-load-failure: "%prefix% &cHistory subsystem failed to load! Check server console for errors."
 grim-history-disabled: "%prefix% &cHistory subsystem is disabled!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bShowing logs for &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bFailed &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% ago&7)"
+grim-history-failed: "%prefix% &cFailed to load history: &7%error%"
+grim-history-unknown-player: "%prefix% &cUnknown player: &f%player%"
+grim-history-no-sessions: "%prefix% &7No session history for &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSession &f%ordinal%&c not found for &f%player%&c."
+
+# Session list — valid placeholders: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bShowing session history for &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Single session summary line — valid placeholders:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# %crashed_marker% expands to grim-history-crashed-marker for sessions
+# whose connection went away without a graceful close (server crash,
+# kill -9, channel RST that didn't fire UserDisconnectEvent). Empty
+# string for ongoing or gracefully-closed sessions.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)"
+
+# Inline marker substituted into %crashed_marker% on session lines whose
+# closed_at == last_activity (i.e. stamped by the next-boot crash sweep
+# rather than the disconnect path). Includes a leading space so the
+# marker reads naturally when present and disappears when empty.
+grim-history-crashed-marker: " &8(&ccrashed&8)"
+
+# Session detail — valid placeholders:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bShowing &f%player%&b's session &f%ordinal%&b details:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Brand: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bViolations: &8(%violations% total, %unique_checks% unique)"
+grim-history-detail-empty: "%prefix% &7- (none)"
+# A grouped row (default) — valid placeholders: %prefix% %offset% %checks_list%
+#   %checks_list% is built by joining grim-history-check-count entries with ", "
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# A single raw violation row (--detailed) — valid placeholders:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Inner format for each check in a group's %checks_list% — valid placeholders: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

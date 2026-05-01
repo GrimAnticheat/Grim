@@ -65,12 +65,62 @@ help:
     - "/grim spectate <player> &f- &7プレイヤーを観戦します"
     - "/grim verbose &f- &7全てのフラグをバッファなしで表示します"
     - "/grim log [0-255] &f- &7予測フラグのデバッグログをアップロードします"
-    - "/grim history <player> [ページ] &f- &7プレイヤーの過去のアラートを表示します"
+    - "/grim history <player> &f- &7セッション一覧（新しい順）"
+    - "/grim history <player> page <N> &f- &7セッション一覧の N ページ目へ移動"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7セッション詳細（新しい違反順）"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7セッション詳細の違反 N ページ目"
     - "&7======================"
+
+# === /grim history ===
+# セッション単位の履歴 UI です。下記すべての行は自由に書き換え可能で、
+# プレースホルダはキーごとにコメントで説明しています。セッション行と違反行の
+# ホバー文は、生データ（verbose、チェック内訳）からレンダラーが自動生成するため
+# テンプレートは不要です。任意の行に <hover:show_text:'...'> を追加すると
+# ツールチップを重ねて表示できます。
 
 grim-history-load-failure: "%prefix% &c履歴サブシステムの読み込みに失敗しました！サーバーコンソールでエラーを確認してください。"
 grim-history-disabled: "%prefix% &c履歴サブシステムは無効です！"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &b%player% のログを表示中 (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &b失敗 &f%check% (x&c%vl%&f) &7%verbose% (&b%timeago% 前&7)"
+grim-history-failed: "%prefix% &c履歴の読み込みに失敗しました：&7%error%"
+grim-history-unknown-player: "%prefix% &c不明なプレイヤー：&f%player%"
+grim-history-no-sessions: "%prefix% &7&f%player% &7のセッション履歴はありません。"
+grim-history-session-not-found: "%prefix% &c&f%player% &cの第 &f%ordinal% &c回セッションが見つかりません。"
+
+# セッション一覧 — 有効なプレースホルダ: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &b&f%player% &bのセッション履歴 &8[&f%page%&7/&f%max_pages%&8]"
+# セッション概要行 — 有効なプレースホルダ:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# サーバークラッシュ・kill -9・UserDisconnectEvent を発火しないチャネル RST など、
+# 接続が正常終了せずに失われたセッションでは %crashed_marker% が
+# grim-history-crashed-marker に展開されます。継続中／正常終了したセッションでは
+# 空文字列になります。
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &b第 &f%ordinal% &b回セッション、時間 &f%duration%&b、違反 &c%violations%&b 件 &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% 前&8)"
+
+# closed_at == last_activity のセッション（つまり次回起動時のクラッシュ掃引で
+# スタンプされ、切断パスを通っていない行）に対して %crashed_marker% に
+# 差し込まれるインラインマーカーです。先頭にスペースを含めることで、
+# 表示時は自然に読め、空のときはきれいに消えます。
+grim-history-crashed-marker: " &8(&cクラッシュ&8)"
+
+# セッション詳細 — 有効なプレースホルダ:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &b&f%player% &bの第 &f%ordinal% &b回セッションの詳細："
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, サーバー: &f%server_name%&b, 時間: &f%duration%&b, 日時: &7%timeago% 前"
+grim-history-detail-meta2: "%prefix% &bクライアント: &f%client_version%&b, ブランド: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &b違反: &8(合計 %violations% 件、ユニーク %unique_checks% 件)"
+grim-history-detail-empty: "%prefix% &7- (なし)"
+# グループ化された行（デフォルト） — 有効なプレースホルダ: %prefix% %offset% %checks_list%
+#   %checks_list% は grim-history-check-count の項目を ", " で連結したものです
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# 単一の生違反行（--detailed） — 有効なプレースホルダ:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# %checks_list% の各チェック項目の内部書式 — 有効なプレースホルダ: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# スキーマ用マーカー — config.yml のヘッダーコメントを参照。
+config-flavor: V2
+config-version: 1

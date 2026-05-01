@@ -3,6 +3,8 @@ package ac.grim.grimac.manager.config;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.manager.config.update.ConfigUpdater;
+import ac.grim.grimac.manager.config.update.GrimConfigSpecs;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import github.scarsz.configuralize.DynamicConfig;
 import github.scarsz.configuralize.Language;
@@ -11,8 +13,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
 
@@ -27,6 +31,36 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         return new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), path);
     }
 
+    /** Backend ids whose per-backend yml gets loaded + auto-updated alongside the user-facing files. */
+    static final List<String> BACKEND_IDS = List.of("sqlite", "mysql", "postgres", "mongo", "redis");
+
+    private void runConfigUpdates() {
+        Logger logger = Logger.getLogger("grim-config");
+        ConfigUpdater updater = new ConfigUpdater(GrimAPI.class, logger);
+        // Use the multi-file API so cross-file migrations (e.g. config.yml
+        // v9 → v10 lifting history.database.* into database.yml + the
+        // matching databases/<id>.yml) can target sibling files via
+        // ctx.otherFile(...). punishments.yml is intentionally absent —
+        // open-ended user-defined data, no schema versioning.
+        Map<File, ConfigUpdater.Spec> batch = new LinkedHashMap<>();
+        batch.put(getConfigFile("config.yml"), GrimConfigSpecs.mainConfig());
+        batch.put(getConfigFile("discord.yml"), GrimConfigSpecs.discord());
+        batch.put(getConfigFile("messages.yml"), GrimConfigSpecs.messages());
+        batch.put(getConfigFile("database.yml"), GrimConfigSpecs.database());
+        for (String id : BACKEND_IDS) {
+            batch.put(getConfigFile("databases/" + id + ".yml"), GrimConfigSpecs.backend(id));
+        }
+        // Pass the same language Configuralize resolved (after its own
+        // all-or-nothing availability check above) so a zh operator gets
+        // ZH-comment bundled defaults stamped on disk to match.
+        String langCode = config.getLanguage().getCode().toLowerCase();
+        try {
+            updater.updateAll(batch, langCode);
+        } catch (Exception e) {
+            LogUtil.warn("ConfigUpdater batch failed — loading on-disk files as-is: " + e);
+        }
+    }
+
     @Override
     public void reload() {
         GrimAPI.INSTANCE.getGrimPlugin().getDataFolder().mkdirs();
@@ -36,6 +70,14 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
             config.addSource(GrimAPI.class, "messages", getConfigFile("messages.yml"));
             config.addSource(GrimAPI.class, "discord", getConfigFile("discord.yml"));
             config.addSource(GrimAPI.class, "punishments", getConfigFile("punishments.yml"));
+            // database.yml + per-backend files load through here too; their
+            // keys are namespaced under `database:` / `<id>:` wrappers so
+            // they don't collide with config.yml / discord.yml / each other
+            // when Configuralize merges everything into one keyspace.
+            config.addSource(GrimAPI.class, "database", getConfigFile("database.yml"));
+            for (String id : BACKEND_IDS) {
+                config.addSource(GrimAPI.class, "databases/" + id, getConfigFile("databases/" + id + ".yml"));
+            }
         }
 
         String languageCode = System.getProperty("user.language").toUpperCase();
@@ -54,10 +96,21 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         }
 
         try {
+            // Save bundled defaults BEFORE the updater runs so any cross-file
+            // migration (e.g. config.yml v9 → v10 lifting history.database.*
+            // into database.yml + databases/<id>.yml) can target files that
+            // exist on disk. saveAllDefaults(false) is non-overwriting — the
+            // operator's existing files keep their current content.
             config.saveAllDefaults(false);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save default config files", e);
         }
+
+        // Cross-version migrations run AFTER Configuralize creates any
+        // missing files. Idempotent on already-current configs. Versioned
+        // backups (<name>.v<oldVersion>.bak) preserve operator-rollback
+        // evidence across stacked migration steps.
+        runConfigUpdates();
 
         try {
             config.loadAll();

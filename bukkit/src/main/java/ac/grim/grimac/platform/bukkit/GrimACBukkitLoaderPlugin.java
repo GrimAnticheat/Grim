@@ -136,75 +136,45 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     public void registerAPIService() {
         final GrimExternalAPI externalAPI = GrimAPI.INSTANCE.getExternalAPI();
         final EventBus eventBus = externalAPI.getEventBus();
-        final ac.grim.grimac.api.plugin.GrimPlugin context = GrimAPI.INSTANCE.getGrimPlugin();
+        final ac.grim.grimac.api.plugin.GrimPlugin plugin = GrimAPI.INSTANCE.getGrimPlugin();
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimJoinEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimJoinEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimJoinEvent(event.getUser());
+        // Bridge Grim events → legacy Bukkit Event API so pre-1.3 plugins that
+        // listened for ac.grim.grimac.api.events.* Bukkit events keep working.
+        // Typed channel subscriptions here are plugin-bound so they go away if
+        // GrimAC itself is disabled.
 
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimJoinEvent.class).onJoin(plugin, (user) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimJoinEvent(user));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimQuitEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimQuitEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimQuitEvent(event.getUser());
-
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimQuitEvent.class).onQuit(plugin, (user) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimQuitEvent(user));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimReloadEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimReloadEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimReloadEvent(event.isSuccess());
-
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimReloadEvent.class).onReload(plugin, (success) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimReloadEvent(success));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.FlagEvent.class, (event) -> {
+        eventBus.get(ac.grim.grimac.api.event.events.FlagEvent.class).onFlag(plugin, (user, check, verbose, cancelled) -> {
             ac.grim.grimac.api.events.FlagEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.FlagEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            event.getVerbose()
-                    );
-
+                    new ac.grim.grimac.api.events.FlagEvent(user, check, verbose);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
+            return cancelled || bukkitEvent.isCancelled();
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CommandExecuteEvent.class, (event) -> {
+        eventBus.get(ac.grim.grimac.api.event.events.CommandExecuteEvent.class).onCommandExecute(plugin, (user, check, verbose, command, cancelled) -> {
             ac.grim.grimac.api.events.CommandExecuteEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.CommandExecuteEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            event.getVerbose(),
-                            event.getCommand()
-                    );
-
+                    new ac.grim.grimac.api.events.CommandExecuteEvent(user, check, verbose, command);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
+            return cancelled || bukkitEvent.isCancelled();
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CompletePredictionEvent.class, (event) -> {
-            // Note: New event doesn't have verbose, passing null or check name is standard fallback
+        eventBus.get(ac.grim.grimac.api.event.events.CompletePredictionEvent.class).onCompletePrediction(plugin, (user, check, offset, cancelled) -> {
+            // Legacy Bukkit event has a verbose field that the new channel event does not; pass empty.
             ac.grim.grimac.api.events.CompletePredictionEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.CompletePredictionEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            "",
-                            event.getOffset()
-                    );
-
+                    new ac.grim.grimac.api.events.CompletePredictionEvent(user, check, "", offset);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
+            return cancelled || bukkitEvent.isCancelled();
         });
 
         GrimAPIProvider.init(externalAPI);
