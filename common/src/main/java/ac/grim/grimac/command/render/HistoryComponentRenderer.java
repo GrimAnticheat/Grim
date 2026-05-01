@@ -19,10 +19,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Converts {@link SessionSummary} / {@link SessionDetail} records returned by
@@ -282,6 +285,55 @@ public final class HistoryComponentRenderer {
             line = line.hoverEvent(HoverEvent.showText(tooltip.build()));
         }
         return line;
+    }
+
+    /**
+     * Filter a {@link SessionDetail} through a {@link ViolationEntry}
+     * predicate. Drops non-matching violations AND re-aggregates buckets
+     * from the survivors so non-detailed mode honours the filter too. The
+     * unique-check-count is recomputed from the filtered violations; bucket
+     * size and session metadata stay as-is.
+     *
+     * <p>Used by {@code /grim history --name <regex>} / {@code --match
+     * <regex>} / {@code --grep <regex>} flag handling — pre-filtering at
+     * the renderer keeps the rest of the rendering pipeline filter-agnostic.
+     */
+    public static @NotNull SessionDetail applyFilter(@NotNull SessionDetail d,
+                                                     @NotNull Predicate<ViolationEntry> filter) {
+        List<ViolationEntry> survivors = new ArrayList<>();
+        for (ViolationEntry v : d.violations()) if (filter.test(v)) survivors.add(v);
+        // Re-aggregate buckets keyed (bucketStart) → (displayName → count).
+        // TreeMap orders buckets chronologically; LinkedHashMap on the inner
+        // preserves first-seen check order so %checks_list% doesn't reshuffle
+        // row-to-row. checkMeta caches the first ViolationEntry per
+        // displayName so we can reconstruct CheckCount(checkId, stableKey,
+        // displayName, description, count) without a separate lookup —
+        // every violation with the same displayName shares those fields.
+        TreeMap<Long, Map<String, int[]>> agg = new TreeMap<>();
+        Map<String, ViolationEntry> checkMeta = new LinkedHashMap<>();
+        long bucketSize = Math.max(1, d.bucketSizeMs());
+        for (ViolationEntry v : survivors) {
+            long bucketStart = (v.offsetFromSessionStartMs() / bucketSize) * bucketSize;
+            agg.computeIfAbsent(bucketStart, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(v.displayName(), k -> new int[]{0})[0]++;
+            checkMeta.putIfAbsent(v.displayName(), v);
+        }
+        List<CheckBucket> newBuckets = new ArrayList<>(agg.size());
+        for (Map.Entry<Long, Map<String, int[]>> e : agg.entrySet()) {
+            List<CheckCount> ccs = new ArrayList<>(e.getValue().size());
+            for (Map.Entry<String, int[]> ce : e.getValue().entrySet()) {
+                ViolationEntry meta = checkMeta.get(ce.getKey());
+                ccs.add(new CheckCount(meta.checkId(), meta.stableKey(),
+                        meta.displayName(), meta.description(), ce.getValue()[0]));
+            }
+            newBuckets.add(new CheckBucket(e.getKey(), ccs));
+        }
+        int uniqueChecks = checkMeta.size();
+        return new SessionDetail(
+                d.sessionId(), d.playerUuid(), d.sessionOrdinal(),
+                d.startedEpochMs(), d.lastActivityEpochMs(),
+                d.grimVersion(), d.serverName(), d.clientVersion(), d.clientBrand(),
+                d.bucketSizeMs(), uniqueChecks, newBuckets, survivors);
     }
 
     // ---- helpers ----

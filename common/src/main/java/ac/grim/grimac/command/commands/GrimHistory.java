@@ -5,6 +5,7 @@ import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.history.SessionDetail;
 import ac.grim.grimac.api.storage.history.SessionSummary;
+import ac.grim.grimac.api.storage.history.ViolationEntry;
 import ac.grim.grimac.api.storage.model.PlayerIdentity;
 import ac.grim.grimac.api.storage.query.Cursor;
 import ac.grim.grimac.api.storage.query.Page;
@@ -17,6 +18,7 @@ import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
+import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
@@ -34,6 +36,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * {@code /grim history} UI entry.
@@ -59,7 +64,10 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * Flags: {@code --detailed}/{@code -d} shows raw violations one-per-row instead
  * of time-bucketed groups; {@code --verbose}/{@code -v} inlines verbose text
- * (full verbose always on hover).
+ * (full verbose always on hover). {@code --name <regex>}, {@code --match
+ * <regex>} and {@code --grep <regex>} narrow the displayed violations
+ * (display name, verbose text, or either) and apply to both list and detail
+ * views — combining flags ANDs them.
  * <p>
  * Autocompletion on {@code <session>} and {@code <page>} is constrained to the
  * actual valid range for the player in context (computed via
@@ -84,20 +92,22 @@ public class GrimHistory implements BuildableCommand {
 
         // List, page 1
         commandManager.command(
-                commandManager.commandBuilder("grim", "grimac")
-                        .literal("history", "hist")
-                        .permission("grim.history")
-                        .required("target", StringParser.stringParser(), targetSuggestions)
+                applyFilterFlags(commandManager,
+                        commandManager.commandBuilder("grim", "grimac")
+                                .literal("history", "hist")
+                                .permission("grim.history")
+                                .required("target", StringParser.stringParser(), targetSuggestions))
                         .handler(this::handleListPage1)
         );
         // List, page N
         commandManager.command(
-                commandManager.commandBuilder("grim", "grimac")
-                        .literal("history", "hist")
-                        .permission("grim.history")
-                        .required("target", StringParser.stringParser(), targetSuggestions)
-                        .literal("page")
-                        .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions)
+                applyFilterFlags(commandManager,
+                        commandManager.commandBuilder("grim", "grimac")
+                                .literal("history", "hist")
+                                .permission("grim.history")
+                                .required("target", StringParser.stringParser(), targetSuggestions)
+                                .literal("page")
+                                .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
                         .handler(this::handleListPageN)
         );
         // Detail (default violation page). The `session` literal lives at the
@@ -106,49 +116,76 @@ public class GrimHistory implements BuildableCommand {
         // the "latest" / "last" / "l" aliases alongside plain integers — the
         // handler resolves them via resolveSessionOrdinal().
         commandManager.command(
-                commandManager.commandBuilder("grim", "grimac")
-                        .literal("history", "hist")
-                        .permission("grim.history")
-                        .required("target", StringParser.stringParser(), targetSuggestions)
-                        .literal("session")
-                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover).")))
+                applyFilterFlags(commandManager,
+                        commandManager.commandBuilder("grim", "grimac")
+                                .literal("history", "hist")
+                                .permission("grim.history")
+                                .required("target", StringParser.stringParser(), targetSuggestions)
+                                .literal("session")
+                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailDefaultPage)
         );
         // Detail, violation page N
         commandManager.command(
-                commandManager.commandBuilder("grim", "grimac")
-                        .literal("history", "hist")
-                        .permission("grim.history")
-                        .required("target", StringParser.stringParser(), targetSuggestions)
-                        .literal("session")
-                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                        .literal("page")
-                        .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
-                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover).")))
+                applyFilterFlags(commandManager,
+                        commandManager.commandBuilder("grim", "grimac")
+                                .literal("history", "hist")
+                                .permission("grim.history")
+                                .required("target", StringParser.stringParser(), targetSuggestions)
+                                .literal("session")
+                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                                .literal("page")
+                                .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
+                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailPageN)
         );
+    }
+
+    /**
+     * Attach the three regex-filter flags ({@code --name}, {@code --match},
+     * {@code --grep}) to a command builder. Shared across all four branches
+     * — declarative cloud builders need the flags repeated per branch, but
+     * the bodies are identical, so we centralise.
+     */
+    private static Command.Builder<Sender> applyFilterFlags(
+            CommandManager<Sender> commandManager,
+            Command.Builder<Sender> b) {
+        return b
+                .flag(commandManager.flagBuilder("name")
+                        .withComponent(StringParser.stringParser())
+                        .withDescription(Description.of("Filter to violations whose check display name matches this regex.")))
+                .flag(commandManager.flagBuilder("match")
+                        .withComponent(StringParser.stringParser())
+                        .withDescription(Description.of("Filter to violations whose verbose text matches this regex.")))
+                .flag(commandManager.flagBuilder("grep")
+                        .withComponent(StringParser.stringParser())
+                        .withDescription(Description.of("Filter to violations whose display name OR verbose text matches this regex.")));
     }
 
     private void handleListPage1(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
+        Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
+        if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, 1));
+                renderList(sender, lifecycle, history, uuid, displayName, 1, filter));
     }
 
     private void handleListPageN(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
         int page = context.<Integer>get("page_number");
+        Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
+        if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page)));
+                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page), filter));
     }
 
     private void handleDetailDefaultPage(CommandContext<Sender> context) {
@@ -157,6 +194,8 @@ public class GrimHistory implements BuildableCommand {
         String sessionRaw = context.get("session");
         boolean detailed = context.flags().hasFlag("detailed");
         boolean verbose = context.flags().hasFlag("verbose");
+        Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
+        if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) -> {
             Integer ordinal = resolveSessionOrdinal(sessionRaw, uuid, history);
             if (ordinal == null) {
@@ -166,7 +205,7 @@ public class GrimHistory implements BuildableCommand {
                 return;
             }
             renderDetail(sender, lifecycle, history, uuid, displayName,
-                    ordinal, detailed, verbose, /*pageArg*/ null);
+                    ordinal, detailed, verbose, /*pageArg*/ null, filter);
         });
     }
 
@@ -177,6 +216,8 @@ public class GrimHistory implements BuildableCommand {
         int page = context.<Integer>get("page_number");
         boolean detailed = context.flags().hasFlag("detailed");
         boolean verbose = context.flags().hasFlag("verbose");
+        Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
+        if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) -> {
             Integer ordinal = resolveSessionOrdinal(sessionRaw, uuid, history);
             if (ordinal == null) {
@@ -186,8 +227,89 @@ public class GrimHistory implements BuildableCommand {
                 return;
             }
             renderDetail(sender, lifecycle, history, uuid, displayName,
-                    ordinal, detailed, verbose, Math.max(1, page));
+                    ordinal, detailed, verbose, Math.max(1, page), filter);
         });
+    }
+
+    /**
+     * Sentinel returned by {@link #parseFilterFromContext(Sender, CommandContext)}
+     * when the operator supplied an invalid regex. Handlers compare the
+     * return value against this with {@code ==} to distinguish "no filter"
+     * (null) from "user error already messaged" (this sentinel) before
+     * dispatching to {@code runWithPrelude} — saves a separate boolean
+     * field on each handler.
+     */
+    private static final Predicate<ViolationEntry> FILTER_ERROR = v -> false;
+
+    /**
+     * Build a {@link ViolationEntry} predicate from the three filter flags.
+     *
+     * <ul>
+     *   <li>{@code --name <regex>} — matches the violation's display name.</li>
+     *   <li>{@code --match <regex>} — matches the verbose string. Rows with
+     *       {@code null} verbose drop when this flag is set.</li>
+     *   <li>{@code --grep <regex>} — grep-style: matches if EITHER display
+     *       name OR verbose hits.</li>
+     * </ul>
+     *
+     * <p>Combining flags ANDs them — each flag is an independent narrowing
+     * step. All three use {@link Pattern#CASE_INSENSITIVE} so the operator
+     * doesn't have to think about casing.
+     *
+     * <p>Returns {@code null} when no filter flag is set so callers can
+     * short-circuit; returns {@link #FILTER_ERROR} after sending an error
+     * message to the sender if a regex fails to compile.
+     */
+    private static @Nullable Predicate<ViolationEntry> parseFilterFromContext(Sender sender, CommandContext<Sender> ctx) {
+        Pattern namePat;
+        Pattern verbosePat;
+        Pattern grepPat;
+        try {
+            namePat = compileFlag(ctx, "name");
+            verbosePat = compileFlag(ctx, "match");
+            grepPat = compileFlag(ctx, "grep");
+        } catch (BadRegexException e) {
+            sender.sendMessage(MessageUtil.miniMessage("<red>Invalid regex for --" + e.flag + ": " + e.detail));
+            return FILTER_ERROR;
+        }
+        if (namePat == null && verbosePat == null && grepPat == null) return null;
+        final Pattern n = namePat;
+        final Pattern m = verbosePat;
+        final Pattern g = grepPat;
+        return v -> {
+            if (n != null && !n.matcher(v.displayName()).find()) return false;
+            if (m != null) {
+                String vb = v.verbose();
+                if (vb == null || !m.matcher(vb).find()) return false;
+            }
+            if (g != null) {
+                if (!g.matcher(v.displayName()).find()) {
+                    String vb = v.verbose();
+                    if (vb == null || !g.matcher(vb).find()) return false;
+                }
+            }
+            return true;
+        };
+    }
+
+    private static @Nullable Pattern compileFlag(CommandContext<Sender> ctx, String flag) {
+        String raw = ctx.flags().<String>get(flag);
+        if (raw == null) return null;
+        try {
+            return Pattern.compile(raw, Pattern.CASE_INSENSITIVE);
+        } catch (PatternSyntaxException e) {
+            throw new BadRegexException(flag, e.getDescription());
+        }
+    }
+
+    private static final class BadRegexException extends RuntimeException {
+        final String flag;
+        final String detail;
+        BadRegexException(String flag, String detail) {
+            super(detail);
+            this.flag = flag;
+            this.detail = detail;
+        }
     }
 
     /**
@@ -258,7 +380,8 @@ public class GrimHistory implements BuildableCommand {
     }
 
     private void renderList(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
-                            UUID uuid, String displayName, int page) throws Exception {
+                            UUID uuid, String displayName, int page,
+                            @Nullable Predicate<ViolationEntry> filter) throws Exception {
         int entriesPerPage = lifecycle.config().history().entriesPerPage();
         long totalSessions = history.countSessions(uuid).toCompletableFuture().get(5, TimeUnit.SECONDS);
         int maxPages = Math.max(1, (int) ((totalSessions + entriesPerPage - 1) / Math.max(1, entriesPerPage)));
@@ -269,15 +392,40 @@ public class GrimHistory implements BuildableCommand {
                 .listSessions(uuid, cursor, entriesPerPage)
                 .toCompletableFuture().get(10, TimeUnit.SECONDS);
 
+        // Filter active: keep only sessions with at least one matching
+        // violation. Costs N+1 detail fetches per visible page — acceptable
+        // at the page-size limit. Unfiltered path keeps the original single
+        // listSessions query.
+        if (filter != null) result = filterSessionsByDetail(history, uuid, result, filter);
+
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
         List<Component> components = HistoryComponentRenderer.renderSessionList(
                 sender, uuid, displayName, page, maxPages, result, ongoingSessionId);
         for (Component c : components) sender.sendMessage(c);
     }
 
+    private static Page<SessionSummary> filterSessionsByDetail(HistoryService history, UUID uuid,
+                                                               Page<SessionSummary> result,
+                                                               Predicate<ViolationEntry> filter) {
+        List<SessionSummary> kept = new ArrayList<>();
+        for (SessionSummary s : result.items()) {
+            try {
+                SessionDetail d = history.getSessionDetail(uuid, s.sessionId())
+                        .toCompletableFuture().get(2, TimeUnit.SECONDS);
+                if (d == null) continue;
+                if (d.violations().stream().anyMatch(filter)) kept.add(s);
+            } catch (Exception ignored) {
+                // Skip sessions whose detail fetch fails — under-show beats
+                // blocking the whole page on one slow row.
+            }
+        }
+        return new Page<>(kept, result.nextCursor());
+    }
+
     private void renderDetail(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
                               UUID uuid, String displayName, int sessionOrdinal,
-                              boolean detailed, boolean verbose, @Nullable Integer violationPage) throws Exception {
+                              boolean detailed, boolean verbose, @Nullable Integer violationPage,
+                              @Nullable Predicate<ViolationEntry> filter) throws Exception {
         SessionDetail detail = null;
         if (history instanceof ac.grim.grimac.internal.storage.history.HistoryServiceImpl impl) {
             detail = impl.getSessionDetailByOrdinal(uuid, sessionOrdinal)
@@ -291,6 +439,7 @@ public class GrimHistory implements BuildableCommand {
                             "ordinal", Integer.toString(sessionOrdinal))));
             return;
         }
+        if (filter != null) detail = HistoryComponentRenderer.applyFilter(detail, filter);
         int pageSize = lifecycle.config().history().entriesPerPage();
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
         boolean isOngoing = ongoingSessionId != null && ongoingSessionId.equals(detail.sessionId());

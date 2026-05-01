@@ -31,7 +31,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class GrimVersion implements BuildableCommand {
 
     private static final AtomicReference<Component> updateMessage = new AtomicReference<>();
-    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.of(CommonGrimArguments.URL_TIMEOUT.value(), ChronoUnit.MILLIS))
+            .build();
     private static long lastCheck;
 
     public static void checkForUpdatesAsync(Sender sender) {
@@ -61,7 +63,7 @@ public class GrimVersion implements BuildableCommand {
                     .GET()
                     .header("User-Agent", "GrimAC/" + GrimAPI.INSTANCE.getExternalAPI().getGrimVersion())
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.of(5, ChronoUnit.SECONDS))
+                    .timeout(Duration.of(CommonGrimArguments.URL_TIMEOUT.value(), ChronoUnit.MILLIS))
                     .build();
 
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());

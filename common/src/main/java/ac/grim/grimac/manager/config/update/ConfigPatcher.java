@@ -163,7 +163,13 @@ public final class ConfigPatcher {
                 }
             }
         }
-        if (needsQuotes) return "\"" + s.replace("\"", "\\\"") + "\"";
+        if (needsQuotes) {
+            // Double-quoted YAML scalars interpret backslash escapes, so a
+            // raw `\d` from a regex round-trips as an "unknown escape"
+            // parser error. Escape `\` first so the `\` we inject ahead of
+            // any embedded `"` doesn't get re-doubled by the second pass.
+            return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        }
         return s;
     }
     private int getIndentation(String line) {
