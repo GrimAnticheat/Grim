@@ -563,7 +563,7 @@ public class CompensatedWorld implements PacketWorld {
         } else if (block.getType() == StateTypes.LEVER || BlockTags.BUTTONS.contains(block.getType())) {
             return block.getFacing().getOppositeFace() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == StateTypes.REDSTONE_WALL_TORCH) {
-            return face == BlockFace.DOWN && block.isPowered() ? 15 : 0;
+            return face == BlockFace.DOWN && block.isLit() ? 15 : 0;
         } else if (block.getType() == StateTypes.LECTERN) {
             return face == BlockFace.UP && block.isPowered() ? 15 : 0;
         } else if (block.getType() == StateTypes.OBSERVER) {
