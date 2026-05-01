@@ -542,7 +542,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
 
             if (entityMetadata != null) {
-                if (EntityMetadataPoseUtil.usesPoseMetadata(entity)) {
+                if (EntityMetadataPoseUtil.usesPoseMetadata(entity) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                     Pose initialPose = EntityMetadataPoseUtil.getPoseFromMetadata(entityMetadata);
                     if (initialPose != null) {
                         entity.currentPose = initialPose;
@@ -555,6 +555,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     private void schedulePoseTransition(WrapperPlayServerEntityMetadata entityMetadata, PacketSendEvent event) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) return;
+
         int entityId = entityMetadata.getEntityId();
         if (entityId == player.entityID) return;
 
