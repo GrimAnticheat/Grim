@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "PacketOrderP", description = "Sent keepalive and transaction packets out of order", experimental = true)
+@CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_keepalive_order", description = "Sent keepalive and transaction packets out of order", experimental = true)
 public class PacketOrderP extends Check implements PacketCheck {
 
     private final List<KeepAliveData> pendingKeepAlives = new ArrayList<>();
