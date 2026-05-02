@@ -1,0 +1,105 @@
+# ===========================================================================
+#  Grim-Datenspeicher
+#
+#  Routet die DataStore-Kategorien (violation / session / player-identity /
+#  setting / blob) an konkrete Backend-Instanzen. Jedes in `routing:`
+#  aufgeführte Backend hat seine eigene Settings-Datei unter
+#  `databases/<backend-id>.yml`.
+#
+#  Beim ersten Start wird ein vorhandener Legacy-Speicher (violations.sqlite)
+#  automatisch in den neuen Speicher migriert. Setze migration.skip auf true,
+#  wenn du später manuell migrieren möchtest.
+# ===========================================================================
+
+# Alle Datastore-Schlüssel liegen unter diesem obersten Wrapper, damit der
+# Keyspace natürlich gekapselt ist — Configuralize merged jede yml zur
+# Laufzeit in einen globalen Keyspace, ein flaches Layout würde mit
+# gleichnamigen Top-Level-Keys in config.yml / discord.yml kollidieren
+# (`enabled`, `history`, …).
+database:
+
+  # Hauptschalter. Auf false setzen, um Verstoßhistorie + /grim history
+  # komplett zu deaktivieren. Live-AC-Checks laufen weiter; Flags werden
+  # nur nicht mehr persistiert.
+  enabled: true
+
+  # Kategorien → Backend-IDs. Jede hier verwendete ID braucht eine
+  # passende `databases/<id>.yml` (wird beim ersten Start aus den
+  # mitgelieferten Defaults erzeugt) und einen registrierten BackendProvider
+  # zur Laufzeit. `none` deaktiviert die Persistenz für diese Kategorie
+  # vollständig. Gemischte Backends sind erlaubt — z. B. Verstöße in einem
+  # vernetzten SQL-Store und Blobs in einem Object-Store.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Wird ausschließlich zur Migrationszeit benutzt — der Legacy-V0-Reader
+    # hat keine Join/Quit-Signale, daher gruppiert SessionReconstructor
+    # Verstöße zu Sitzungen, sobald aufeinanderfolgende Flags innerhalb
+    # dieser Lücke liegen. Live-Sitzungen werden durch die Verbindung
+    # begrenzt, nicht durch diesen Wert.
+    gap-ms: 600000
+    scope-per-server: true
+    # Wie oft ein Heartbeat verbundener Spieler die Session-Zeile aktualisiert,
+    # damit last_activity_epoch_ms aktuell bleibt. Begrenzt die scheinbare
+    # Sitzungsdauer beim Server-Crash (saubere Disconnects setzen closed_at
+    # immer). Kosten: ~ein Row-UPSERT pro Online-Spieler je Intervall.
+    # 0 deaktiviert.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity muss eine positive Zweierpotenz sein (Ringbuffer-Anforderung).
+    # Übliche Werte: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Wartestrategie des Ringbuffers. BLOCKING ist der sichere Default: ein
+    # Condition-Variable-Wait, das CPU minimiert auf Kosten geringer Latenz
+    # bei extremen Bursts. YIELDING oder BUSY_SPIN nur, wenn freie Kerne
+    # vorhanden sind und ein Vorteil gegenüber BLOCKING gemessen wurde.
+    # Optionen: BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = kein Timeout
+
+  name-resolution:
+    # Reihenfolge zählt — das erste nicht-leere Ergebnis gewinnt.
+    # local-cache liest die PlayerIdentity-Kategorie.
+    # offline-mode-uuid bildet UUID.nameUUIDFromBytes (nur Offline-Server).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Anzeige-Tag, der auf neue Session-Datensätze gestempelt wird. Wird in der
+  # Sitzungs-Header-Zeile von `/grim history` angezeigt. Im laufenden Betrieb
+  # gefahrlos änderbar.
+  server-name: "Prison"
+
+# Schema-Marker — siehe Kopf-Kommentar in config.yml.
+config-flavor: V2
+config-version: 1

@@ -67,12 +67,62 @@ help:
     - "/grim spectate <player> &f- &7Beobachte einen Spieler"
     - "/grim verbose &f- &7Zeigt dir jeden Verstoß ohne Puffer an"
     - "/grim log [0-255] &f- &7Lädt ein Debug-Log für Vorhersagefehler hoch"
-    - "/grim history <player> [Seite] &f- &7Zeigt frühere Warnungen für den Spieler"
+    - "/grim history <player> &f- &7Sitzungsliste (neueste zuerst)"
+    - "/grim history <player> page <N> &f- &7Springt zu Seite N der Sitzungsliste"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Sitzungsdetails (neueste Verstöße zuerst)"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Sitzungsdetails, Verstoß-Seite N"
     - "&7======================"
 
+# === /grim history ===
+# Sitzungsbasierte Verlaufs-UI. Alle Zeilen unten sind frei konfigurierbar;
+# Platzhalter sind pro Schlüssel dokumentiert. Hover-Texte für Sitzungs- und
+# Verstoßzeilen werden vom Renderer aus den Rohdaten gebaut (verbose,
+# Check-Aufschlüsselung) und brauchen keine Vorlage — du kannst aber jeder
+# Zeile <hover:show_text:'...'> hinzufügen, um zusätzliche Tooltips zu legen.
+
 grim-history-load-failure: "%prefix% &cDas Verlaufs-Subsystem konnte nicht geladen werden! Überprüfe die Serverkonsole auf Fehler."
-grim-history-disabled: "%prefix% &cDas History‑Subsystem ist deaktiviert!"
-# Valid placeholders: %prefix% %player% %page% %maxPages%
-grim-history-header: "%prefix% &bZeige Logs für &f%player% (&f%page%&b/&f%maxPages%&f)"
-# Valid placeholders: %prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
-grim-history-entry: "%prefix% &8[&f%server%&8] &bFehlgeschlagen &f%check% (x&c%vl%&f) &7%verbose% (&bvor %timeago%&7)"
+grim-history-disabled: "%prefix% &cDas History-Subsystem ist deaktiviert!"
+grim-history-failed: "%prefix% &cVerlauf konnte nicht geladen werden: &7%error%"
+grim-history-unknown-player: "%prefix% &cUnbekannter Spieler: &f%player%"
+grim-history-no-sessions: "%prefix% &7Keine Sitzungs-Historie für &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSitzung &f%ordinal%&c für &f%player%&c nicht gefunden."
+
+# Sitzungsliste — gültige Platzhalter: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bZeige Sitzungs-Historie für &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Einzelne Sitzungszeile — gültige Platzhalter:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+# %crashed_marker% wird zu grim-history-crashed-marker erweitert für Sitzungen,
+# deren Verbindung ohne sauberes Schließen wegfiel (Server-Crash, kill -9,
+# Channel-RST ohne UserDisconnectEvent). Für laufende oder sauber geschlossene
+# Sitzungen leerer String.
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSitzung &f%ordinal%&b, Dauer &f%duration%&b, &c%violations%&b Verstöße &8[&c%unique_checks%&8]%crashed_marker% &8(&7vor %timeago%&8)"
+
+# Inline-Marker, der in %crashed_marker% eingesetzt wird bei Sitzungen mit
+# closed_at == last_activity (also vom Crash-Sweep beim nächsten Start
+# gestempelt, nicht vom Disconnect-Pfad). Mit führendem Leerzeichen, damit
+# der Marker beim Vorhandensein natürlich liest und beim Fehlen verschwindet.
+grim-history-crashed-marker: " &8(&cabgestürzt&8)"
+
+# Sitzungsdetails — gültige Platzhalter:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bDetails zu Sitzung &f%ordinal% &bvon &f%player%&b:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Dauer: &f%duration%&b, Datum: &7vor %timeago%"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Marke: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bVerstöße: &8(%violations% gesamt, %unique_checks% verschiedene)"
+grim-history-detail-empty: "%prefix% &7- (keine)"
+# Gruppenzeile (Standard) — gültige Platzhalter: %prefix% %offset% %checks_list%
+#   %checks_list% wird gebaut aus grim-history-check-count-Einträgen, getrennt mit ", "
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Einzelner Verstoß (--detailed) — gültige Platzhalter:
+#   %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Inneres Format für jeden Check in einer Gruppen-%checks_list% — gültige Platzhalter: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Schema-Marker — siehe Kopf-Kommentar in config.yml.
+config-flavor: V2
+config-version: 1

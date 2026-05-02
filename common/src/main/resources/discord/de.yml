@@ -18,3 +18,7 @@ violation-content:
     - "**Marke**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+
+# Schema-Marker — siehe Kopf-Kommentar in config.yml.
+config-flavor: V2
+config-version: 1

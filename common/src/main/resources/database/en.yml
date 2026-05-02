@@ -1,0 +1,99 @@
+# ===========================================================================
+#  Grim datastore
+#
+#  Routes the DataStore categories (violation / session / player-identity /
+#  setting / blob) to specific backend instances. Each backend listed in
+#  `routing:` has its own settings file under `databases/<backend-id>.yml`.
+#
+#  On first boot, if the legacy store (violations.sqlite) is present, it
+#  is migrated into the new store automatically. Set migration.skip to
+#  true if you prefer to carry over manually later.
+# ===========================================================================
+
+# Every datastore key lives under this top-level wrapper so the keyspace is
+# naturally namespaced — Configuralize merges every yml into one global
+# keyspace at runtime, and a flat layout here would collide with identical
+# top-level keys in config.yml / discord.yml (`enabled`, `history`, etc.).
+database:
+
+  # Master toggle. Set false to disable violation history + /grim history
+  # entirely. Live AC checks keep running; flags just aren't persisted.
+  enabled: true
+
+  # Categories → backend ids. Each distinct id here must have a matching
+  # `databases/<id>.yml` file (auto-created from bundled defaults on first
+  # boot) and a registered BackendProvider at runtime. `none` disables
+  # persistence for that category entirely. Mixed backends are fine — e.g.
+  # violations in a networked SQL store and blobs in an object store.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Used at migration time only — the legacy V0 reader has no join/quit
+    # signals, so SessionReconstructor groups violations into sessions when
+    # consecutive flags fall within this gap. Live sessions are bounded by
+    # the connection, not this value.
+    gap-ms: 600000
+    scope-per-server: true
+    # How often a connected-player heartbeat upserts the session row so
+    # last_activity_epoch_ms stays current. Bounds the apparent session
+    # duration if the server crashes (graceful disconnects always set
+    # closed_at). Cost: ~one row UPSERT per online player per interval.
+    # 0 disables.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity must be a positive power of two (ring-buffer requirement).
+    # Typical values: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Ring-buffer wait strategy. BLOCKING is the safe default: a condition-variable
+    # wait that minimises CPU use at the cost of a small amount of latency under
+    # extreme burst. Pick YIELDING or BUSY_SPIN only when you have a free core
+    # budget and have measured a win over BLOCKING.
+    # Options: BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = no timeout
+
+  name-resolution:
+    # Order matters — first non-empty result wins.
+    # local-cache reads the PlayerIdentity category.
+    # offline-mode-uuid derives UUID.nameUUIDFromBytes (offline servers only).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Display-only tag stamped on new session records. Shown in the session
+  # header line of `/grim history`. Safe to change mid-operation.
+  server-name: "Prison"
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

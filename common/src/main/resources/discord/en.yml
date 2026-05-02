@@ -1,4 +1,5 @@
 # For help with webhooks: https://support.discord.com/hc/en-us/articles/228383668
+
 enabled: false
 webhook: ""
 # Set to true to bypass Discord's webhook URL format validation.
@@ -18,3 +19,7 @@ violation-content:
     - "**Brand**: `%brand%`"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+
+# Schema markers — see header comment in config.yml.
+config-flavor: V2
+config-version: 1

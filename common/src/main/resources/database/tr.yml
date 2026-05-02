@@ -1,0 +1,106 @@
+# ===========================================================================
+#  Grim datastore
+#
+#  DataStore kategorilerini (violation / session / player-identity / setting /
+#  blob) belirli backend örneklerine yönlendirir. `routing:` altında listelenen
+#  her backend, `databases/<backend-id>.yml` altında kendi ayar dosyasına
+#  sahiptir.
+#
+#  İlk başlatmada, eski legacy depo (violations.sqlite) varsa otomatik olarak
+#  yeni depoya taşınır. Daha sonra elle taşımayı tercih ediyorsan
+#  migration.skip değerini true yap.
+# ===========================================================================
+
+# Tüm datastore anahtarları bu üst düzey wrapper altında yer alır; böylece
+# anahtar uzayı doğal olarak ad alanlanmış olur — Configuralize çalışma
+# zamanında her yml'i tek bir global keyspace'e birleştirir, düz bir yerleşim
+# burada config.yml / discord.yml içindeki aynı isimli üst seviye
+# anahtarlarla (`enabled`, `history` vb.) çakışırdı.
+database:
+
+  # Ana anahtar. False yapıldığında ihlal geçmişi ve /grim history tamamen
+  # devre dışı kalır. Canlı AC kontrolleri çalışmaya devam eder; sadece
+  # flag'ler kalıcılaştırılmaz.
+  enabled: true
+
+  # Kategoriler → backend id'leri. Burada kullanılan her farklı id için bir
+  # `databases/<id>.yml` dosyası (ilk başlatmada paketlenmiş varsayılanlardan
+  # otomatik oluşturulur) ve çalışma zamanında kayıtlı bir BackendProvider
+  # gerekir. `none` o kategori için kalıcılığı tamamen kapatır. Backend
+  # karışımı yapılabilir — örn. ihlaller ağdaki bir SQL deposunda, blob'lar
+  # bir nesne deposunda.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Yalnızca taşıma sırasında kullanılır — legacy V0 reader'ın join/quit
+    # sinyali olmadığından SessionReconstructor, art arda gelen flag'ler bu
+    # boşluk içine düştüğünde onları aynı oturumda gruplar. Canlı oturumlar
+    # bağlantıyla sınırlanır, bu değerle değil.
+    gap-ms: 600000
+    scope-per-server: true
+    # Bağlı bir oyuncu heartbeat'ının oturum satırını ne sıklıkla upsert
+    # ettiği — last_activity_epoch_ms güncel kalsın diye. Sunucu çökmesi
+    # durumunda görünen oturum süresine üst sınır koyar (düzgün
+    # bağlantı kopuşları her zaman closed_at değerini set eder). Maliyet:
+    # online oyuncu başına aralıkta yaklaşık bir satır UPSERT. 0 devre
+    # dışı bırakır.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity pozitif bir 2'nin kuvveti olmalıdır (ring buffer şartı).
+    # Tipik değerler: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Ring buffer bekleme stratejisi. BLOCKING güvenli varsayılan: aşırı
+    # burst altında küçük bir gecikme karşılığında CPU kullanımını
+    # minimize eden, koşul değişkenine dayalı bekleme. YIELDING veya
+    # BUSY_SPIN'i yalnızca boş çekirdek bütçen varsa ve BLOCKING'e göre
+    # kazançlı olduğunu ölçtüysen seç. Seçenekler: BLOCKING,
+    # TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = zaman aşımı yok
+
+  name-resolution:
+    # Sıra önemli — boş olmayan ilk sonuç kazanır.
+    # local-cache PlayerIdentity kategorisini okur.
+    # offline-mode-uuid UUID.nameUUIDFromBytes türetir (yalnızca offline sunucular).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Yeni oturum kayıtlarına basılan, yalnızca görüntüleme amaçlı etiket.
+  # `/grim history` çıktısının oturum başlık satırında gösterilir. Çalışma
+  # sırasında değiştirmek güvenlidir.
+  server-name: "Prison"
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

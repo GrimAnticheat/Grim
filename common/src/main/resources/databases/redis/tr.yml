@@ -1,0 +1,55 @@
+# ===========================================================================
+#  Redis backend ayarları.
+#
+#  Redis öncelikle bir bellek içi store'dur — geçmişi buraya
+#  yönlendiriyorsan sunucuda AOF kalıcılığının açık olduğundan emin ol,
+#  aksi halde geçmiş yeniden başlatmada kaybolur. Çalışma zamanında
+#  Jedis gerekir; Jedis yoksa backend kendini devre dışı bırakır ve
+#  routing fallback'ine düşer.
+#
+#  Birincil geçmiş hedefi olarak tavsiye edilmez. Yalnızca elinde Redis
+#  bulunan ve "şimdilik çalışan bir şey" arayan operatörler için
+#  düşünülmüştür.
+# ===========================================================================
+
+# Tüm anahtarlar `redis:` altında yer alır; böylece Configuralize tümünü
+# tek bir global ad alanında birleştirdiğinde bu dosyanın anahtar uzayı
+# kardeş backend dosyalarıyla çakışmaz.
+redis:
+  host: "localhost"
+  port: 6379
+
+  # Mantıksal veritabanı indeksi (varsayılan 0-15).
+  database: 0
+
+  # Opsiyonel ACL kimlik bilgileri. Auth'suz Redis için boş bırak.
+  user: ""
+  password: ""
+
+  # Bu backend'in yazdığı her anahtarın önüne eklenir. Bir Redis
+  # instance'ını başka uygulamalarla paylaşıyorsan kullanışlıdır.
+  # Önek istemiyorsan boş bırak.
+  key-prefix: ""
+
+  timeout-ms: 2000
+  batch-flush-cap: 256
+
+  # True ise, bu backend violation/session geçmişi yönlendiriyorsa
+  # başlangıçta bir uyarı loglar. Kalıcılığın doğru yapılandırıldığını
+  # teyit ettikten sonra false yaparak susturabilirsin.
+  warn-on-history: true
+
+  # Anahtar ad alanı geçersiz kılmaları. Anahtar önek segmentleri
+  # olarak yorumlanır (Redis'in yerel tablo kavramı yoktur).
+  # Varsayılanlar aşağıda.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

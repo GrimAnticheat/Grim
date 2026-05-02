@@ -1,0 +1,33 @@
+# ===========================================================================
+#  MongoDB 后端设置
+#
+#  运行时需要同步版 MongoDB 驱动；若驱动缺失，后端会自我禁用，指向此后端
+#  的路由会回退到其他已配置的后端。
+# ===========================================================================
+
+# 所有键都在 `mongo:` 下，使本文件的 keyspace 不会在 Configuralize 把所有
+# yml 合并到同一个全局命名空间时与其他后端文件冲突。
+mongo:
+  # MongoDB 连接字符串。凭据按驱动惯例直接编码在 URL 中
+  # （mongodb://user:pass@host:port/?authSource=admin）。
+  connection-string: "mongodb://localhost:27017"
+
+  # 写入目标数据库。其中的 collection 名由下方的 `tables:` 块决定。
+  database: "grim"
+
+  # 每个处理器的 bulkWrite() 大小。Mongo 驱动会内部维护连接池，所以这里
+  # 控制的是提交批量大小，不是连接数。
+  batch-flush-cap: 256
+
+  # collection 名覆盖。默认值见下方。
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# 模式标记 — 参见 config.yml 顶部的注释。
+config-flavor: V2
+config-version: 1

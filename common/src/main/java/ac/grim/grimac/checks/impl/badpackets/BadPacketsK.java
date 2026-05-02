@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "BadPacketsK", description = "Sent spectate packets while not in spectator mode")
+@CheckData(name = "BadPacketsK", stableKey = "grim.badpackets.invalid_spectate", description = "Sent spectate packets while not in spectator mode")
 public class BadPacketsK extends Check implements PacketCheck {
     public BadPacketsK(GrimPlayer player) {
         super(player);

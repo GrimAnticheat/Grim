@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
-@CheckData(name = "PacketOrderD", experimental = true)
+@CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", experimental = true)
 public class PacketOrderD extends Check implements PacketCheck {
     public PacketOrderD(final GrimPlayer player) {
         super(player);
@@ -29,6 +29,9 @@ public class PacketOrderD extends Check implements PacketCheck {
             if (action != InteractAction.ATTACK) {
                 final boolean sneaking = packet.isSneaking().orElse(false);
                 final int entity = packet.getEntityId();
+
+                // via inserts these wrong...
+                if (action == InteractAction.INTERACT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return;
 
                 if (packet.getHand() == InteractionHand.OFF_HAND) {
                     if (action == InteractAction.INTERACT || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) {

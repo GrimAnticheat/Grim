@@ -48,6 +48,8 @@ public class CloudCommandService implements CommandService {
         new GrimSendAlert().register(commandManager, commandAdapter);
         new GrimHelp().register(commandManager, commandAdapter);
         new GrimHistory().register(commandManager, commandAdapter);
+        new GrimHistoryMigrate().register(commandManager, commandAdapter);
+        new GrimHistoryCopy().register(commandManager, commandAdapter);
         new GrimReload().register(commandManager, commandAdapter);
         new GrimSpectate().register(commandManager, commandAdapter);
         new GrimStopSpectating().register(commandManager, commandAdapter);

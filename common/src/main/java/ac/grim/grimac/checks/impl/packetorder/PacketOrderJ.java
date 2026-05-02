@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "PacketOrderJ", experimental = true)
+@CheckData(name = "PacketOrderJ", stableKey = "grim.packetorder.attack_interact_use_order", experimental = true)
 public class PacketOrderJ extends Check implements PostPredictionCheck {
     public PacketOrderJ(final GrimPlayer player) {
         super(player);

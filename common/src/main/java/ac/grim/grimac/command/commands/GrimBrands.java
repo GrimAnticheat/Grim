@@ -2,7 +2,10 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
+import ac.grim.grimac.manager.AlertManagerImpl;
+import ac.grim.grimac.manager.datastore.PlayerToggleStore;
 import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -25,7 +28,12 @@ public class GrimBrands implements BuildableCommand {
     private void handleBrands(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         if (sender.isPlayer()) {
-            GrimAPI.INSTANCE.getAlertManager().toggleBrands(Objects.requireNonNull(context.sender().getPlatformPlayer()), false);
+            PlatformPlayer p = Objects.requireNonNull(context.sender().getPlatformPlayer());
+            AlertManagerImpl am = GrimAPI.INSTANCE.getAlertManager();
+            boolean newState = !am.hasBrandsEnabled(p);
+            am.setBrandsEnabled(p, newState, false);
+            GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore()
+                    .applyUserToggle(p.getUniqueId(), PlayerToggleStore.KEY_BRANDS, newState);
         } else if (sender.isConsole()) {
             GrimAPI.INSTANCE.getAlertManager().toggleConsoleBrands();
         }

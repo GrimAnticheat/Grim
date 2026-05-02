@@ -6,6 +6,7 @@
 # [alert] - special command to alert
 # [webhook] - special command to alert to discord webhook
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
+
 Punishments:
   Simulation:
     # After how many seconds should a violation be removed?
@@ -30,7 +31,7 @@ Punishments:
     #
     commands:
       - "100:40 [alert]"
-      - "100:40 [log]"
+      - "1:1 [log]"
       - "100:100 [webhook]"
       - "100:100 [proxy]"
   Knockback:
@@ -40,7 +41,7 @@ Punishments:
       - "Explosion"
     commands:
       - "5:5 [alert]"
-      - "5:5 [log]"
+      - "1:1 [log]"
       - "20:20 [webhook]"
       - "20:20 [proxy]"
   Post:
@@ -49,7 +50,7 @@ Punishments:
       - "Post"
     commands:
       - "20:20 [alert]"
-      - "20:20 [log]"
+      - "1:1 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   BadPackets:
@@ -60,7 +61,7 @@ Punishments:
       - "Crash"
     commands:
       - "20:20 [alert]"
-      - "20:20 [log]"
+      - "1:1 [log]"
       - "40:40 [webhook]"
       - "40:40 [proxy]"
   Reach:
@@ -78,7 +79,7 @@ Punishments:
       - "Hitboxes"
     commands:
       - "5:3 [alert]"
-      - "5:3 [log]"
+      - "1:1 [log]"
       - "5:3 [webhook]"
       - "5:3 [proxy]"
   Misc:
@@ -97,7 +98,7 @@ Punishments:
       - "Exploit"
     commands:
       - "10:5 [alert]"
-      - "10:5 [log]"
+      - "1:1 [log]"
       - "20:10 [webhook]"
       - "20:10 [proxy]"
   Combat:
@@ -107,7 +108,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-      - "20:40 [log]"
+      - "1:1 [log]"
   # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. Grim will include AutoClicker checks in the future.
   Autoclicker:
     remove-violations-after: 300
@@ -115,4 +116,4 @@ Punishments:
       - "Autoclicker"
     commands:
       - "20:40 [alert]"
-      - "20:40 [log]"
+      - "1:1 [log]"

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "BadPacketsD", description = "Impossible pitch")
+@CheckData(name = "BadPacketsD", stableKey = "grim.badpackets.invalid_pitch", description = "Impossible pitch")
 public class BadPacketsD extends Check implements PacketCheck {
     public BadPacketsD(GrimPlayer player) {
         super(player);

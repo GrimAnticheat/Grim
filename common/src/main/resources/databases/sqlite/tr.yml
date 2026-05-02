@@ -1,0 +1,48 @@
+# ===========================================================================
+#  SQLite backend ayarları.
+#
+#  SQLite yalnızca tek sunuculu kurulumlar içindir. Ağ üzerinden çalışan
+#  kurulumlarda database.yml içindeki routing'i, paylaşılan bir veritabanıyla
+#  konuşan bir backend'e çevir.
+# ===========================================================================
+
+# Tüm anahtarlar `sqlite:` altında yer alır; böylece Configuralize tümünü
+# tek bir global ad alanında birleştirdiğinde bu dosyanın anahtar uzayı
+# kardeş backend dosyalarıyla (mysql:, postgres:, mongo:, redis:)
+# çakışmaz.
+sqlite:
+  # SQLite veritabanı dosyasının yolu. Mutlak değilse plugin veri
+  # klasörüne göre çözülür. Eski legacy dosyası `data/violations.sqlite`
+  # güvenlik ağı olarak olduğu gibi bırakılır; bu yeni bir dosyadır,
+  # legacy üzerinde ALTER yapılmaz.
+  path: "data/history.v1.db"
+
+  # WAL modu, yazıcı çalışırken eş zamanlı okuyucuların da çalışmasına
+  # izin verir — ihlalleri yazarken /grim history'i okuyan bir sunucu
+  # eklentisi için kritik.
+  journal-mode: WAL
+
+  # NORMAL, WAL altında yazma dayanıklılığı ile verim arasında makul bir
+  # dengedir. FULL, dayanıklılığı ikiye katlar ve verimden götürür. OFF
+  # tehlikelidir.
+  synchronous-mode: NORMAL
+
+  # SQLite vazgeçmeden önce bir lock için ne kadar bekler. Handler,
+  # BackendException'da log atıp drop yapar; bu değeri yükseltmek
+  # çekişen disklerde sahte drop'ları azaltır.
+  busy-timeout-ms: 5000
+
+  # Sayfa önbelleği boyutu (sayfa cinsinden). Varsayılan SQLite sayfa
+  # boyutu 4096 bayttır, dolayısıyla 10000 sayfa ≈ 40 MB. Yoğun
+  # geçmişlerde artır.
+  cache-pages: 10000
+
+  # Handler başına batch-flush sınırı. Her ring handler, olayları bir
+  # PreparedStatement batch'inde biriktirir ve endOfBatch'te VEYA batch
+  # bu sınıra ulaştığında commit eder; hangisi önce olursa. Daha yüksek
+  # değerler, sürekli burst altında verim için gecikmeyi takas eder.
+  batch-flush-cap: 256
+
+# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+config-flavor: V2
+config-version: 1

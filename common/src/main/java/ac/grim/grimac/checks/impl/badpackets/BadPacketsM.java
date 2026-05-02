@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCombatEvent;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDeathCombatEvent;
 
-@CheckData(name = "BadPacketsM", description = "Tried to respawn while alive", experimental = true)
+@CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
 public class BadPacketsM extends Check implements PacketCheck {
     public BadPacketsM(final GrimPlayer player) {
         super(player);

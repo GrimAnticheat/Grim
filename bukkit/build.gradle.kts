@@ -80,6 +80,13 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
+        // Driver holder mods — softdepend so each backend's driver class
+        // resolves through the linked classloader.
+        "sqlite-jdbc",
+        "mysql-jdbc",
+        "postgresql-jdbc",
+        "mongodb-driver",
+        "jedis",
     )
 
     permissions {
@@ -159,7 +166,12 @@ publishing.publications.create<MavenPublication>("maven") {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.11")
+        val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+        javaLauncher = javaToolchains.launcherFor {
+            vendor = JvmVendorSpec.JETBRAINS
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+        minecraftVersion("26.1.2")
     }
 
     shadowJar {

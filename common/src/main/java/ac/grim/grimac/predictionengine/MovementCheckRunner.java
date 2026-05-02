@@ -46,7 +46,6 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
@@ -374,21 +373,24 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.packetStateData.lastRiptide = currentTime;
         }
 
-        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(player.getMovementThreshold()).offset(0, -1, 0);
-        Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
-            WrappedBlockState data = pair.first();
-            if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ)
+                .expand(player.getMovementThreshold())
+                .offset(0.0, player.getClientVersion().isOlderThan(ClientVersion.V_1_15) ? -1.0 : -0.2, 0.0);
+        Collisions.forEachCollisionBox(player, steppingOnBB, (data, pos) -> {
+            if (data.getType() == StateTypes.SLIME_BLOCK && Math.abs((pos.getY() + 1D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
             if (data.getType() == StateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                    // TODO: is stepping on slime = true?
+//                    player.uncertaintyHandler.isSteppingOnSlime = true;
                     player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
             }
-            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+            if (BlockTags.BEDS.contains(data.getType()) && Math.abs((pos.getY() + 0.5625D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
             if (BlockTags.ICE.contains(data.getType())) {
@@ -400,7 +402,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (data.getType() == StateTypes.SCAFFOLDING) {
                 player.uncertaintyHandler.isSteppingNearScaffolding = true;
             }
-            return false;
         });
 
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;

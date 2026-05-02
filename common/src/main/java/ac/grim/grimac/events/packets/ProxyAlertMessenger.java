@@ -14,13 +14,14 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import github.scarsz.configuralize.DynamicConfig;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 
 import java.io.*;
 
 // TODO (Cross-Platform) ensure this is correct, and modify to only check appropriate files for each platform
 public class ProxyAlertMessenger extends PacketListenerAbstract {
-    private static boolean usingProxy;
+    @Getter private static boolean usingProxy;
 
     public ProxyAlertMessenger() {
         usingProxy = ProxyAlertMessenger.getBooleanFromFile("spigot.yml", "settings.bungeecord")
