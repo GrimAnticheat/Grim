@@ -75,7 +75,6 @@ public class LegacyItem extends ItemBehaviour {
         // Avoid releasing crossbow as being seen as slowing player
         final NBTCompound nbt = item.getNBT(); // How can this be null?
         if (material == ItemTypes.CROSSBOW && nbt != null && nbt.getBoolean("Charged")) {
-            // set slowedByUsingItem to false so the player can release the crossbow
             return false; // TODO: Fix this
         }
 
