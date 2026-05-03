@@ -21,6 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +79,21 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null || !player.packetStateData.isSlowedByUsingItem()) return;
+
+            if (!player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                boolean slotChanged = player.packetStateData.itemInUseHand != InteractionHand.OFF_HAND
+                        && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected;
+
+                if (slotChanged || player.inventory.getItemInHand(player.packetStateData.itemInUseHand).isEmpty()) {
+                    player.packetStateData.setSlowedByUsingItem(false);
+                    if (slotChanged) player.checkManager.getNoSlow().didSlotChangeLastTick = true;
+                }
+            }
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
@@ -97,7 +113,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
 
                 boolean usingInMainHand = player.packetStateData.isSlowedByUsingItem() && player.packetStateData.itemInUseHand == InteractionHand.MAIN_HAND;
-                if (usingInMainHand) {
+                if (usingInMainHand && player.canSkipTicks() && !player.isTickingReliablyFor(3)) {
                     player.packetStateData.setSlowedByUsingItem(false);
                     player.checkManager.getNoSlow().didSlotChangeLastTick = true;
                 }
