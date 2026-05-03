@@ -32,9 +32,10 @@ public class BukkitParserDescriptorFactory implements CloudCommandAdapter {
         return (context, input) -> {
             List<Suggestion> suggestions = new ArrayList<>();
 
-            for(Player player : Bukkit.getOnlinePlayers()) {
-                CommandSender bukkit = context.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER);
-                if (!(bukkit instanceof Player) || ((Player)bukkit).canSee(player)) {
+            Player sender = context.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER) instanceof Player player ? player : null;
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (sender == null || sender.canSee(player)) {
                     suggestions.add(Suggestion.suggestion(player.getName()));
                 }
             }

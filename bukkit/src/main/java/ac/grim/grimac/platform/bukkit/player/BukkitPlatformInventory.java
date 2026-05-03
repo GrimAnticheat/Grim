@@ -5,11 +5,12 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public class BukkitPlatformInventory implements PlatformInventory {
 
-    private final Player bukkitPlayer;
+    private final @NotNull Player bukkitPlayer;
 
     @Override
     public ItemStack getItemInHand() {

@@ -60,7 +60,7 @@ public class BukkitGrimEntity implements GrimEntity {
     // TODO replace with PlayerWorldChangeEvent listener instead of checking for equality for better performance
     @Override
     public PlatformWorld getWorld() {
-        if (bukkitPlatformWorld == null || !bukkitPlatformWorld.getBukkitWorld().equals(entity.getWorld())) {
+        if (bukkitPlatformWorld == null || !bukkitPlatformWorld.bukkitWorld().equals(entity.getWorld())) {
             bukkitPlatformWorld = new BukkitPlatformWorld(entity.getWorld());
         }
 

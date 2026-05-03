@@ -330,15 +330,9 @@ public class CompensatedEntities {
                     .isNewerThanOrEquals(ServerVersion.V_1_17) ? 1 : 2;
             EntityData<?> height = WatchableIndexUtil.getIndex(watchableObjects, id + peekOffset);
             if (height != null) {
-                if ((byte) height.getValue() == 0) {
-                    ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
-                } else {
-                    ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
-                }
+                ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), (byte) height.getValue() == 0);
+                player.compensatedWorld.openShulkerBoxes.remove(data);
+                player.compensatedWorld.openShulkerBoxes.add(data);
             }
         }
 
