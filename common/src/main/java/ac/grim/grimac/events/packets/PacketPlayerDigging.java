@@ -41,8 +41,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             return;
         }
 
-        if (player.checkManager.getCompensatedCooldown().hasItem(item)) { // this can lead to a bypass if item in offhand is on cooldown
-            player.packetStateData.setSlowedByUsingItem(false); // resync, not required
+        if (player.checkManager.getCompensatedCooldown().hasItem(item)) {
+            boolean valid = !player.packetStateData.isSlowedByUsingItem() || player.packetStateData.itemInUseHand == hand;
+            if (valid) player.packetStateData.setSlowedByUsingItem(false); // resync, not required
             return; // The player has a cooldown, and therefore cannot use this item!
         }
 
