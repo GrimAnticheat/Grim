@@ -647,6 +647,8 @@ public class GrimPlayer implements GrimUser {
     //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
     // 2. The player is in a vehicle
     public boolean isTickingReliablyFor(int ticks) {
+        if (!cameraEntity.isSelf()) return false;
+
         // 1.21.2+: Tick end packet, on servers 1.21.2+
         // 1.8-: Flying packet
         return !canSkipTicks() || (inVehicle()

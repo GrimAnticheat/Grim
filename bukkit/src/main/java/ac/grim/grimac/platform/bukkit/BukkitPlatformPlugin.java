@@ -1,14 +1,13 @@
 package ac.grim.grimac.platform.bukkit;
 
 import ac.grim.grimac.platform.api.PlatformPlugin;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
+@RequiredArgsConstructor
 public class BukkitPlatformPlugin implements PlatformPlugin {
-    private final Plugin plugin;
-
-    public BukkitPlatformPlugin(Plugin plugin) {
-        this.plugin = plugin;
-    }
+    private final @NotNull Plugin plugin;
 
     @Override
     public boolean isEnabled() {

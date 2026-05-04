@@ -112,6 +112,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R2", "v1_21_R3", "v1_21_R4" -> "fA";
                     case "v1_21_R5" -> "fH";
                     case "v1_21_R6" -> "fP";
+                    case "v1_21_R7" -> "ga";
                     default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
                 });
                 getItemUsageHand = player -> {
@@ -171,6 +172,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R2", "v1_21_R3", "v1_21_R4" -> "fF";
                     case "v1_21_R5" -> "fM";
                     case "v1_21_R6" -> "fU";
+                    case "v1_21_R7" -> "gf";
                     default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
                 });
 
