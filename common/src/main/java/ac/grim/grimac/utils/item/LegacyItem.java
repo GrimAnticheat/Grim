@@ -107,10 +107,11 @@ public class LegacyItem extends ItemBehaviour {
 
         // Only 1.8 and below players can block with swords
         if (material.hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
                 return true;
-            else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
-                return false;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) { // ViaVersion stuff
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4);
+            }
         }
 
         return false;
