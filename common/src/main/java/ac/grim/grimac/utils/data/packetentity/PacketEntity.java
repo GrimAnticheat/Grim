@@ -90,11 +90,16 @@ public class PacketEntity extends TypedPacketEntity {
 
     protected void initAttributes(GrimPlayer player) {
         trackAttribute(ValuedAttribute.ranged(Attributes.SCALE, 1.0, 0.0625, 16)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .requiredVersion(player, ClientVersion.V_1_20_5)
+                .withGetRewriter(this::clampScale));
         trackAttribute(ValuedAttribute.ranged(Attributes.STEP_HEIGHT, 0.6f, 0, 10)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GRAVITY, 0.08, -1, 1)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
+    }
+
+    public double clampScale(double scale) {
+        return scale;
     }
 
     public Optional<ValuedAttribute> getAttribute(Attribute attribute) {

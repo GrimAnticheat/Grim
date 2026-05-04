@@ -18,11 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public class BukkitSenderFactory extends SenderFactory<CommandSender> implements SenderMapper<CommandSender, Sender> {
-    private final BukkitAudiences audiences;
-
-    public BukkitSenderFactory() {
-        this.audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
-    }
+    private final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
 
     @Override
     protected String getName(CommandSender sender) {

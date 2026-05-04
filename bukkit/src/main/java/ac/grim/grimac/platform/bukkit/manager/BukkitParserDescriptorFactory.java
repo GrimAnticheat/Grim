@@ -5,7 +5,6 @@ import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.bukkit.command.BukkitPlayerSelectorParser;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.bukkit.BukkitCommandContextKeys;
 import org.incendo.cloud.parser.ParserDescriptor;
@@ -32,9 +31,10 @@ public class BukkitParserDescriptorFactory implements CloudCommandAdapter {
         return (context, input) -> {
             List<Suggestion> suggestions = new ArrayList<>();
 
-            for(Player player : Bukkit.getOnlinePlayers()) {
-                CommandSender bukkit = context.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER);
-                if (!(bukkit instanceof Player) || ((Player)bukkit).canSee(player)) {
+            Player sender = context.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER) instanceof Player player ? player : null;
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (sender == null || sender.canSee(player)) {
                     suggestions.add(Suggestion.suggestion(player.getName()));
                 }
             }

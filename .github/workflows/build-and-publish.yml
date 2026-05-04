@@ -29,6 +29,11 @@ on:
                 description: 'If true, uploads artifacts to Modrinth and other distribution sites.'
                 required: true
                 type: boolean
+            use-modrinth-fallback:
+                description: 'When the push event range is unavailable (e.g. workflow_dispatch), query Modrinth for the last published SHA to derive the changelog range. Disable to use git-tag fallback only.'
+                required: false
+                type: boolean
+                default: true
         secrets:
             MODRINTH_ID:
                 required: false
@@ -57,7 +62,7 @@ jobs:
               uses: actions/checkout@v4
               with:
                   persist-credentials: false
-                  fetch-depth: 200
+                  fetch-depth: 0
 
             - name: Set up JDK 21
               uses: actions/setup-java@v4
@@ -144,13 +149,77 @@ jobs:
             #------------------------------------------------------------------
             #  Generate/Prepare Changelog
             #------------------------------------------------------------------
+            - name: Determine changelog range
+              if: ${{ !inputs.is-release-build }}
+              id: cliff_range
+              env:
+                  MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+                  EVENT_BEFORE: ${{ github.event.before }}
+                  EVENT_AFTER: ${{ github.event.after }}
+                  USE_MODRINTH_FALLBACK: ${{ inputs.use-modrinth-fallback }}
+              run: |
+                  set -uo pipefail
+
+                  ZERO_SHA="0000000000000000000000000000000000000000"
+                  RANGE=""
+                  SOURCE=""
+
+                  # 1. Fast path: use push event payload if valid.
+                  if [[ -n "${EVENT_BEFORE:-}" && -n "${EVENT_AFTER:-}" && "$EVENT_BEFORE" != "$ZERO_SHA" ]]; then
+                    RANGE="${EVENT_BEFORE}..${EVENT_AFTER}"
+                    SOURCE="push event"
+                  fi
+
+                  # 2. Fallback: query Modrinth for last published dev version.
+                  if [[ -z "$RANGE" && "$USE_MODRINTH_FALLBACK" == "true" && -n "${MODRINTH_ID:-}" ]]; then
+                    echo "Push event range unavailable; querying Modrinth..."
+                    if VERSIONS_JSON=$(curl -fsSL "https://api.modrinth.com/v2/project/${MODRINTH_ID}/version" 2>/dev/null); then
+                      LAST_VERSION=$(echo "$VERSIONS_JSON" | jq -r '[.[] | select(.version_type=="alpha")] | sort_by(.date_published) | reverse | .[0].version_number // empty')
+
+                      if [[ -n "$LAST_VERSION" ]]; then
+                        # version_number looks like 2.3.74-145f71c or 2.3.74-branch-145f71c[+lite]
+                        SHORT_SHA="${LAST_VERSION##*-}"
+                        SHORT_SHA="${SHORT_SHA%%+*}"
+
+                        if FULL_SHA=$(git rev-parse "$SHORT_SHA" 2>/dev/null); then
+                          RANGE="${FULL_SHA}..HEAD"
+                          SOURCE="modrinth ($LAST_VERSION)"
+                        else
+                          echo "::error::Modrinth returned version $LAST_VERSION but short SHA $SHORT_SHA is not reachable in local repo. Refusing to fall back to a less-precise range — that would risk dropping commits. Increase fetch-depth or investigate."
+                          exit 1
+                        fi
+                      else
+                        echo "Modrinth returned no alpha versions; continuing to next fallback."
+                      fi
+                    else
+                      echo "Modrinth API request failed; continuing to next fallback."
+                    fi
+                  fi
+
+                  # 3. Fallback: last git tag.
+                  if [[ -z "$RANGE" ]]; then
+                    if LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null); then
+                      RANGE="${LAST_TAG}..HEAD"
+                      SOURCE="last tag ($LAST_TAG)"
+                    fi
+                  fi
+
+                  # 4. Final fallback: --latest.
+                  if [[ -z "$RANGE" ]]; then
+                    RANGE="--latest"
+                    SOURCE="git-cliff --latest"
+                  fi
+
+                  echo "Using changelog range: $RANGE (source: $SOURCE)"
+                  echo "range_args=$RANGE" >> "$GITHUB_OUTPUT"
+
             - name: Generate Changelog with git-cliff (for Dev Builds)
               if: ${{ !inputs.is-release-build }}
               id: git-cliff
               uses: orhun/git-cliff-action@v4
               with:
                   config: cliff.toml
-                  args: --verbose ${{ github.event.before }}..${{ github.event.after }}
+                  args: --verbose ${{ steps.cliff_range.outputs.range_args }}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
 
