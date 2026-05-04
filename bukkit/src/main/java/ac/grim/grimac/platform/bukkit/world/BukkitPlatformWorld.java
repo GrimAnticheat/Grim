@@ -6,22 +6,16 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-@Getter
-@RequiredArgsConstructor
-public class BukkitPlatformWorld implements PlatformWorld {
+public record BukkitPlatformWorld(@NotNull World bukkitWorld) implements PlatformWorld {
 
     private static final boolean LEGACY_SERVER_VERSION = PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2);
-    private final @NotNull World bukkitWorld;
 
     @Override
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
@@ -46,7 +40,7 @@ public class BukkitPlatformWorld implements PlatformWorld {
     }
 
     @Override
-    public @Nullable UUID getUID() {
+    public @NotNull UUID getUID() {
         return this.bukkitWorld.getUID();
     }
 

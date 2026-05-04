@@ -41,7 +41,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     private final @Nullable User user;
 
-    public BukkitPlatformPlayer(Player bukkitPlayer) {
+    public BukkitPlatformPlayer(@NotNull Player bukkitPlayer) {
         super(bukkitPlayer);
         this.bukkitPlayer = bukkitPlayer;
         this.inventory = new BukkitPlatformInventory(bukkitPlayer);
