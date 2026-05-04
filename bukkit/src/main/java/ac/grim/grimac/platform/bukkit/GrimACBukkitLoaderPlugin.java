@@ -52,7 +52,6 @@ import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
-
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
 
     public static GrimACBukkitLoaderPlugin LOADER;
@@ -133,6 +132,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
+    @SuppressWarnings("removal")
     public void registerAPIService() {
         final GrimExternalAPI externalAPI = GrimAPI.INSTANCE.getExternalAPI();
         final EventBus eventBus = externalAPI.getEventBus();
@@ -178,7 +178,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
         });
 
         GrimAPIProvider.init(externalAPI);
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, this, ServicePriority.Normal);
     }
 
     private PlatformScheduler createScheduler() {
@@ -216,6 +216,6 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     public BukkitSenderFactory getBukkitSenderFactory() {
-        return LOADER.senderFactory.get();
+        return senderFactory.get();
     }
 }
