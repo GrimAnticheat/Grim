@@ -33,7 +33,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     private static final boolean SERVER_HAS_OFFHAND = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
 
-    public static void handleUseItem(@NotNull GrimPlayer player, @NotNull InteractionHand hand, boolean markTransaction) {
+    public static void handleUseItem(@NotNull GrimPlayer player, @NotNull InteractionHand hand) {
         ItemStack item = player.inventory.getItemInHand(hand);
 
         if (item == null) {
@@ -51,7 +51,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         final ItemBehaviour itemBehaviour = ItemBehaviourRegistry.getItemBehaviour(player, material);
 
         if (itemBehaviour.canUse(item, player.compensatedWorld, player, hand)) {
-            if (markTransaction) player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
+            player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
             player.packetStateData.setSlowedByUsingItem(true);
             player.packetStateData.itemInUseHand = hand;
         }
@@ -138,7 +138,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
             }
 
-            handleUseItem(player, hand, true);
+            handleUseItem(player, hand);
         }
     }
 }
