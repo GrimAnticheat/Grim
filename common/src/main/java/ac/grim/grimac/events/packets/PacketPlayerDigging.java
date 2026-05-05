@@ -88,9 +88,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 boolean slotChanged = player.packetStateData.itemInUseHand != InteractionHand.OFF_HAND
                         && player.packetStateData.getSlowedByUsingItemSlot() != player.packetStateData.lastSlotSelected;
 
-                if (slotChanged || player.inventory.getItemInHand(player.packetStateData.itemInUseHand).isEmpty()) {
+                if (slotChanged) {
                     player.packetStateData.setSlowedByUsingItem(false);
-                    if (slotChanged) player.checkManager.getNoSlow().didSlotChangeLastTick = true;
+                    player.checkManager.getNoSlow().didSlotChangeLastTick = true;
                 }
             }
         }

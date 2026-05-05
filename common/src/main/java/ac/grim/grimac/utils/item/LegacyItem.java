@@ -69,7 +69,6 @@ public class LegacyItem extends ItemBehaviour {
 
         if (material == ItemTypes.SHIELD && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             return true;
-
         }
 
         // Avoid releasing crossbow as being seen as slowing player
