@@ -277,6 +277,7 @@ public class GrimPlayer implements GrimUser {
     public boolean isJumping;
     public boolean lastJumping;
     public EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
+    public boolean canFloatWhileRidden = false;
 
     public GrimPlayer(@NotNull User user) {
         this.user = user;
@@ -356,7 +357,7 @@ public class GrimPlayer implements GrimUser {
         // A player cannot swim hop (> 0 y vel) and be on the ground
         // Fixes bug with underwater stepping movement being confused with swim hopping movement
         if (canSwimHop && !onGround) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
+            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f + (canFloatWhileRidden ? 0.04f : 0.0f)), VectorData.VectorType.Swimhop));
         }
 
         // If the player has that client sided riptide thing and has colliding with an entity
