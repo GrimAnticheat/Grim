@@ -357,7 +357,12 @@ public class GrimPlayer implements GrimUser {
         // A player cannot swim hop (> 0 y vel) and be on the ground
         // Fixes bug with underwater stepping movement being confused with swim hopping movement
         if (canSwimHop && !onGround) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f + (canFloatWhileRidden ? 0.04f : 0.0f)), VectorData.VectorType.Swimhop));
+            Vector3dm vector = clientVelocity.clone().setY(0.3f + (canFloatWhileRidden ? 0.04f : 0.0f));
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+                Collisions.resolveBlockEffects(this, vector, true, finalMovementsThisTick);
+            }
+
+            possibleMovements.add(new VectorData(vector, VectorData.VectorType.Swimhop));
         }
 
         // If the player has that client sided riptide thing and has colliding with an entity
