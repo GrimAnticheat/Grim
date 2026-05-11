@@ -448,7 +448,6 @@ public class MovementTicker {
                 player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
             }
 
-            player.canFloatWhileRidden = canFloatWhileRidden();
             floatInWaterWhileRidden();
         } else {
             player.canFloatWhileRidden = false;
@@ -506,8 +505,9 @@ public class MovementTicker {
     }
 
     private void floatInWaterWhileRidden() {
+        player.canFloatWhileRidden = canFloatWhileRidden();
         if (player.canFloatWhileRidden) {
-            player.clientVelocity.add(0.0, 0.04F, 0.0);
+            player.clientVelocity.add(0.0, 0.03999999910593033, 0.0);
         }
     }
 
