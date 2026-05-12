@@ -92,7 +92,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
                 new Vector3f(player.lastYaw, player.pitch, 0),
-                new Vector3f(player.yaw, player.pitch, 0)
+                new Vector3f(player.yaw, player.pitch, 0),
+                new Vector3f(player.yaw, player.lastPitch, 0)
         ));
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
