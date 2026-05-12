@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ViaVersionUtil {
     public static final boolean isAvailable = ReflectionUtils.hasClass("com.viaversion.viaversion.api.Via");
+    public static final boolean hasViaBackwards = ViaVersionUtil.isAvailable && ReflectionUtils.hasClass("com.viaversion.viabackwards.ViaBackwards");
 
     static {
         if (!isAvailable && ReflectionUtils.hasClass("us.myles.ViaVersion.api.Via")) {

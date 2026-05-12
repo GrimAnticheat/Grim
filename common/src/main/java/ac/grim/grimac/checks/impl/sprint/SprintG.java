@@ -19,8 +19,9 @@ public class SprintG extends Check implements PostPredictionCheck {
         if (player.wasTouchingWater && (player.wasWasTouchingWater || player.getClientVersion() == ClientVersion.V_1_21_4)
                 && !player.wasEyeInWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)
                 && player.wasLastPredictionCompleteChecked && predictionComplete.isChecked()
-                && !EntityTypes.isTypeInstanceOf(player.getVehicleType(), EntityTypes.CAMEL)) {
-            if (player.isSprinting && !player.isSwimming) {
+                && !EntityTypes.isTypeInstanceOf(player.getVehicleType(), EntityTypes.CAMEL)
+                && !player.isSwimming) {
+            if (player.isSprinting) {
                 flagAndAlertWithSetback();
             } else {
                 reward();

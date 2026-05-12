@@ -19,8 +19,16 @@ public class TrigHandler {
     }
 
     public Vector3dm getVanillaMathMovement(Vector3dm wantedMovement, float f, float f2) {
-        float f3 = VanillaMath.sin(GrimMath.radians(f2));
-        float f4 = VanillaMath.cos(GrimMath.radians(f2));
+        float f3;
+        float f4;
+        float radians = GrimMath.radians(f2);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)) {
+            f3 = ModernVanillaMath.sin(radians);
+            f4 = ModernVanillaMath.cos(radians);
+        } else {
+            f3 = VanillaMath.sin(radians);
+            f4 = VanillaMath.cos(radians);
+        }
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
@@ -77,10 +85,26 @@ public class TrigHandler {
     }
 
     public float sin(float value) {
-        return isVanillaMath ? VanillaMath.sin(value) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(value) : LegacyFastMath.sin(value));
+        if (isVanillaMath) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)
+                    ? ModernVanillaMath.sin(value)
+                    : VanillaMath.sin(value);
+        }
+
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                ? OptifineFastMath.sin(value)
+                : LegacyFastMath.sin(value);
     }
 
     public float cos(float value) {
-        return isVanillaMath ? VanillaMath.cos(value) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(value) : LegacyFastMath.cos(value));
+        if (isVanillaMath) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)
+                    ? ModernVanillaMath.cos(value)
+                    : VanillaMath.cos(value);
+        }
+
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                ? OptifineFastMath.cos(value)
+                : LegacyFastMath.cos(value);
     }
 }
