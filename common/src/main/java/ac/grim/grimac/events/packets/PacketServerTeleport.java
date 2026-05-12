@@ -131,7 +131,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
                 pos = pos.withY(pos.getY() - 1.62);
 
-            Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
+            Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ(), teleport.getYaw(), teleport.getPitch());
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         }
 

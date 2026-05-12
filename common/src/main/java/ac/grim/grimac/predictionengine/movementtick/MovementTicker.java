@@ -450,6 +450,7 @@ public class MovementTicker {
 
             floatInWaterWhileRidden();
         } else {
+            player.canFloatWhileRidden = false;
             if (player.wasTouchingLava && !player.isFlying && !(lavaLevel > 0 && canStandOnLava())) {
                 player.friction = 0.5F; // Not vanilla, just useful for other grim stuff
 
@@ -495,14 +496,18 @@ public class MovementTicker {
         Collisions.applyEffectsFromBlocks(player);
     }
 
-    private void floatInWaterWhileRidden() {
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_11) || !player.inVehicle()) return;
+    private boolean canFloatWhileRidden() {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_11) || !player.inVehicle()) return false;
 
         PacketEntity vehicle = player.getVehicle();
-        boolean canFloatWhileRidden = EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type);
         double fluidHeight = player.getFluidHeight(FluidTag.WATER);
-        if (canFloatWhileRidden && player.inVehicle() && fluidHeight > 0.4) {
-            player.clientVelocity.add(0.0, 0.04F, 0.0);
+        return EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type) && fluidHeight > 0.4;
+    }
+
+    private void floatInWaterWhileRidden() {
+        player.canFloatWhileRidden = canFloatWhileRidden();
+        if (player.canFloatWhileRidden) {
+            player.clientVelocity.add(0.0, 0.03999999910593033, 0.0);
         }
     }
 

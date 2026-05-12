@@ -15,6 +15,8 @@ public class PaperUtils {
     public static final boolean PAPER = ReflectionUtils.hasClass("com.destroystokyo.paper.PaperConfig")
             || ReflectionUtils.hasClass("io.papermc.paper.configuration.Configuration");
     public static final boolean HAS_TELEPORT_ASYNC = ReflectionUtils.hasMethod(Entity.class, "teleportAsync");
+    private static final Class<?> SERVER_TICK_END_EVENT_CLASS = ReflectionUtils.getClass("com.destroystokyo.paper.event.server.ServerTickEndEvent");
+    public static final boolean HAS_TICK_END_EVENT = SERVER_TICK_END_EVENT_CLASS != null;
 
     public static CompletableFuture<Boolean> teleportAsync(final Entity entity, final Location location) {
         return HAS_TELEPORT_ASYNC ? entity.teleportAsync(location) : CompletableFuture.completedFuture(entity.teleport(location));
@@ -23,10 +25,9 @@ public class PaperUtils {
     @SuppressWarnings("unchecked")
     public static boolean registerTickEndEvent(Listener listener, Runnable runnable) {
         try {
-            Class<?> clazz = ReflectionUtils.getClass("com.destroystokyo.paper.event.server.ServerTickEndEvent");
-            if (clazz == null) return false;
+            if (!HAS_TICK_END_EVENT) return false;
             GrimACBukkitLoaderPlugin.LOADER.getServer().getPluginManager().registerEvent(
-                    (Class<? extends Event>) clazz,
+                    (Class<? extends Event>) SERVER_TICK_END_EVENT_CLASS,
                     listener,
                     EventPriority.NORMAL,
                     (l, event) -> runnable.run(),

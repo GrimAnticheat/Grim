@@ -1,10 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsH;
+import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.elytra.ElytraC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.KnownInput;
@@ -26,7 +23,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJo
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -103,7 +99,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             }
 
             if (health.getHealth() <= 0) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.self.isDead = true);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    player.compensatedEntities.self.isDead = true;
+                    player.checkManager.getPacketCheck(BadPacketsM.class).onDeath();
+                });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.self.isDead = false);
             }
@@ -121,6 +120,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.dimensionType = joinGame.getDimensionType();
             player.worldName = joinGame.getWorldName();
 
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)
+                    && event.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_15)) {
+                player.packetStateData.showsDeathScreen = joinGame.isRespawnScreenEnabled();
+            }
+
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17))
                 return;
             player.compensatedWorld.setDimension(joinGame.getDimensionType(), event.getUser());
@@ -132,8 +136,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getTasksAfterSend();
-            tasks.add(player::sendTransaction);
+            event.getTasksAfterSend().add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning
             // (We won't process movements until they accept a teleport, we won't let movements though either)
@@ -160,6 +163,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
+
+                player.checkManager.getPacketCheck(BadPacketsM.class).onRespawn();
 
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 

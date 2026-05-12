@@ -173,10 +173,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         // Only 1.8 and below players can block with swords
         if (material.hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
                 player.packetStateData.setSlowedByUsingItem(true);
-            else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
-                player.packetStateData.setSlowedByUsingItem(false);
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) { // ViaVersion stuff
+                player.packetStateData.setSlowedByUsingItem(player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4));
+            }
         }
     }
 

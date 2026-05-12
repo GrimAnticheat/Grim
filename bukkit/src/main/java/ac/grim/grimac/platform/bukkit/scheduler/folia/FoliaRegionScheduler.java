@@ -16,7 +16,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
 
     @Override
     public void execute(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
-        regionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).getBukkitWorld(), chunkX, chunkZ, task);
+        regionScheduler.execute(GrimACBukkitLoaderPlugin.LOADER, ((BukkitPlatformWorld) world).bukkitWorld(), chunkX, chunkZ, task);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
     public TaskHandle run(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task) {
         return new FoliaTaskHandle(regionScheduler.run(
                 GrimACBukkitLoaderPlugin.LOADER,
-                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                ((BukkitPlatformWorld) world).bukkitWorld(),
                 chunkX,
                 chunkZ,
                 ignored -> task.run()
@@ -44,7 +44,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long delayTicks) {
         return new FoliaTaskHandle(regionScheduler.runDelayed(
                 GrimACBukkitLoaderPlugin.LOADER,
-                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                ((BukkitPlatformWorld) world).bukkitWorld(),
                 chunkX,
                 chunkZ,
                 ignored -> task.run(),
@@ -61,7 +61,7 @@ public class FoliaRegionScheduler implements RegionScheduler {
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull PlatformWorld world, int chunkX, int chunkZ, @NotNull Runnable task, long initialDelayTicks, long periodTicks) {
         return new FoliaTaskHandle(regionScheduler.runAtFixedRate(
                 GrimACBukkitLoaderPlugin.LOADER,
-                ((BukkitPlatformWorld) world).getBukkitWorld(),
+                ((BukkitPlatformWorld) world).bukkitWorld(),
                 chunkX,
                 chunkZ,
                 ignored -> task.run(),
