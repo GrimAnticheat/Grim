@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 @Getter
 public class TeleportData {
     private final Vector3d location;
+    private final float yaw;
+    private final float pitch;
     @Nullable
     private final Vector3d velocity;
     private final RelativeFlag flags;
@@ -86,14 +88,22 @@ public class TeleportData {
     }
 
     public boolean isRelativeX() {
-        return flags.has(RelativeFlag.X.getMask());
+        return flags.has(RelativeFlag.X);
     }
 
     public boolean isRelativeY() {
-        return flags.has(RelativeFlag.Y.getMask());
+        return flags.has(RelativeFlag.Y);
     }
 
     public boolean isRelativeZ() {
-        return flags.has(RelativeFlag.Z.getMask());
+        return flags.has(RelativeFlag.Z);
+    }
+
+    public boolean isRelativeYaw() {
+        return flags.has(RelativeFlag.YAW);
+    }
+
+    public boolean isRelativePitch() {
+        return flags.has(RelativeFlag.PITCH);
     }
 }

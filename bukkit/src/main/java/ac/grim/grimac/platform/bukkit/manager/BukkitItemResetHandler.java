@@ -43,26 +43,24 @@ public class BukkitItemResetHandler implements ItemResetHandler {
     static {
         final ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
 
-        boolean legacy = version.isOlderThanOrEquals(ServerVersion.V_1_8_8);
+        final boolean legacy = version.isOlderThanOrEquals(ServerVersion.V_1_8_8);
 
         try {
-            Method getHandle_ = null;
+            final Method getHandle;
+            final String nmsPackage;
 
-            if (PaperUtils.PAPER && version.isNewerThanOrEquals(ServerVersion.V_1_20_5)) {
-                Class<?> cls = ReflectionUtils.getClass("org.bukkit.craftbukkit.entity.CraftLivingEntity");
-                if (cls != null) getHandle_ = cls.getMethod("getHandle");
+            Class<?> CraftLivingEntity = ReflectionUtils.getClass("org.bukkit.craftbukkit.entity.CraftLivingEntity");
+            if (CraftLivingEntity != null) {
+                getHandle = CraftLivingEntity.getMethod("getHandle");
+                nmsPackage = null;
+            } else {
+                nmsPackage = Bukkit.getServer().getClass().getPackageName().split("\\.")[3];
+                final String className = legacy ? "CraftHumanEntity" : "CraftLivingEntity";
+                getHandle = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity." + className).getMethod("getHandle");
             }
 
-            boolean obfuscated = getHandle_ == null;
-            String nmsPackage = obfuscated ? Bukkit.getServer().getClass().getPackageName().split("\\.")[3] : null;
-
-            if (obfuscated) {
-                String clazzName = legacy ? "CraftHumanEntity" : "CraftLivingEntity";
-                getHandle_ = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity." + clazzName).getMethod("getHandle");
-            }
-
-            final Method getHandle = getHandle_;
-            Class<?> clazz = getHandle_.getReturnType();
+            final boolean obfuscated = nmsPackage != null;
+            final Class<?> clazz = getHandle.getReturnType();
 
             if (version.isNewerThanOrEquals(ServerVersion.V_1_10)) {
                 isUsingItem = Player::isHandRaised;
@@ -87,11 +85,11 @@ public class BukkitItemResetHandler implements ItemResetHandler {
             } else if (PaperUtils.PAPER && version.isNewerThanOrEquals(ServerVersion.V_1_16_5)) {
                 getItemUsageHand = player -> player.isHandRaised()
                         ? player.getHandRaised() == EquipmentSlot.OFF_HAND
-                        ? InteractionHand.OFF_HAND
-                        : InteractionHand.MAIN_HAND
+                          ? InteractionHand.OFF_HAND
+                          : InteractionHand.MAIN_HAND
                         : null;
             } else {
-                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(nmsPackage != null ? switch (Objects.requireNonNull(nmsPackage)) {
                     case "v1_9_R1" -> "ct";
                     case "v1_9_R2" -> "cu";
                     case "v1_10_R1" -> "cy";
@@ -114,13 +112,14 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R6" -> "fP";
                     case "v1_21_R7" -> "ga";
                     default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
-                });
+                } : "getUsedItemHand");
+
                 getItemUsageHand = player -> {
                     try {
                         return isUsingItem.test(player)
                                 ? ((Enum<?>) method.invoke(getHandle.invoke(player))).ordinal() == 0
-                                ? InteractionHand.MAIN_HAND
-                                : InteractionHand.OFF_HAND
+                                  ? InteractionHand.MAIN_HAND
+                                  : InteractionHand.OFF_HAND
                                 : null;
                     } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
@@ -148,7 +147,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     player.clearActiveItem();
                 };
             } else {
-                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(obfuscated ? switch (nmsPackage) {
                     case "v1_8_R3" -> "bV";
                     case "v1_9_R1" -> "cz";
                     case "v1_9_R2" -> "cA";
@@ -174,7 +173,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R6" -> "fU";
                     case "v1_21_R7" -> "gf";
                     default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
-                });
+                } : "stopUsingItem");
 
                 if (legacy) { // 1.8.8
                     resetItemUsage = player -> {

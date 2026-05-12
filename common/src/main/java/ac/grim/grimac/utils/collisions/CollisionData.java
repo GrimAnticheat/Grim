@@ -1174,7 +1174,7 @@ public enum CollisionData implements CollisionFactory {
     public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
         return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING
-                || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE
+                || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || state == StateTypes.POTTED_GOLDEN_DANDELION
                 || state == StateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state)
                 || BlockTags.COPPER_GOLEM_STATUES.contains(state)
                 ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
