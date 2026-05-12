@@ -408,9 +408,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
 
-            Vector3d position = VectorUtils.clampVector(flying.getLocation().getPosition());
+            Location location = flying.getLocation();
+            Vector3d position = VectorUtils.clampVector(location.getPosition());
             // Teleports must be POS LOOK
-            teleportData = flying.hasPositionChanged() && flying.hasRotationChanged() ? player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ()) : new TeleportAcceptData();
+            teleportData = flying.hasPositionChanged() && flying.hasRotationChanged() ? player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ(), location.getYaw(), location.getPitch()) : new TeleportAcceptData();
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
             if (flying.hasRotationChanged() && !flying.hasPositionChanged() && !flying.isOnGround() && !flying.isHorizontalCollision()) {

@@ -25,7 +25,7 @@ public class FabricTickEndEvent extends AbstractTickEndEvent {
     private void tickAllPlayers() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.disableGrim) continue;
-            super.onEndOfTick(player);
+            super.onEndOfTick(player, true);
         }
     }
 }

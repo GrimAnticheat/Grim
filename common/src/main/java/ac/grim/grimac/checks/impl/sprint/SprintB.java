@@ -38,7 +38,11 @@ public class SprintB extends Check implements PostPredictionCheck {
                 return;
             }
 
-            if (player.isSprinting && (!player.wasTouchingWater || version.isOlderThan(ClientVersion.V_1_13))) {
+            if (!player.wasTouchingWater || version.isOlderThan(ClientVersion.V_1_13)) {
+                return;
+            }
+
+            if (player.isSprinting) {
                 flagAndAlertWithSetback();
             } else reward();
         }

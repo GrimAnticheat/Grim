@@ -73,6 +73,7 @@ dependencies {
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.viaversion)
+    compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
 }
 
