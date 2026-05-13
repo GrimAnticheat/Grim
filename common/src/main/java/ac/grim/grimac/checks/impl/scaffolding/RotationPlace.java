@@ -75,8 +75,7 @@ public class RotationPlace extends BlockPlaceCheck {
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
                 new Vector3f(player.yaw, player.pitch, 0),
-                new Vector3f(player.lastYaw, player.pitch, 0),
-                new Vector3f(player.yaw, player.lastPitch, 0)
+                new Vector3f(player.lastYaw, player.pitch, 0)
         ));
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
