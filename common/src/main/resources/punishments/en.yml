@@ -22,12 +22,13 @@ Punishments:
       - "NoFall"
     # Threshold:Interval Command
     #
-    # Example, to kick the player with the message "incorrect movement!" after 100 violations, with no interval
-    # commands:
-    # - "100:0 kick %player% incorrect movement!"
-    # 0 means execute exactly once
-    # - "100:50 say %player% is cheating"
-    # Execute when the user hits flag 100, and after that, every 50th flag after 100
+    # Fires on flag N, then every M flags after — i.e. at flags N, N+M, N+2M, ...
+    # An interval of 0 means execute exactly once when the threshold is reached.
+    #
+    # Examples:
+    # - "100:0 kick %player% incorrect movement!"   fires once on flag 100
+    # - "100:50 say %player% is cheating"           fires on flags 100, 150, 200, ...
+    # - "5:3 [alert]"                               fires on flags 5, 8, 11, 14, ...
     #
     commands:
       - "100:40 [alert]"

@@ -130,9 +130,10 @@ public class PunishmentManager implements ConfigReloadable {
                     }
 
                     if (violationCount >= command.threshold) {
-                        // 0 means execute once
-                        // Any other number means execute every X interval
-                        boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
+                        // 0 means execute once at the threshold; otherwise fire at N, N+M, N+2M, ...
+                        boolean inInterval = command.interval == 0
+                                ? (command.executeCount == 0)
+                                : ((violationCount - command.threshold) % command.interval == 0);
                         if (inInterval) {
                             if (COMMAND_CHANNEL.fire(player, check, verbose, cmd)) continue;
 
