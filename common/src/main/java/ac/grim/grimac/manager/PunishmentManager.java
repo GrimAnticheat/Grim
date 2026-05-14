@@ -130,9 +130,22 @@ public class PunishmentManager implements ConfigReloadable {
                     }
 
                     if (violationCount >= command.threshold) {
-                        // 0 means execute once
-                        // Any other number means execute every X interval
-                        boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
+                        // 0 means execute once at the threshold; otherwise fire on
+                        // boundary CROSSINGS at N, N+M, N+2M, ... — count how many
+                        // boundaries are at or below the live count vs. how many
+                        // were at or below the previous evaluation. One more now
+                        // than then means we crossed a new boundary.
+                        boolean inInterval;
+                        if (command.interval == 0) {
+                            inInterval = command.executeCount == 0;
+                        } else {
+                            int prev = command.lastViolationCount;
+                            if (prev > violationCount) prev = 0;
+                            int now = Math.max(0, violationCount - command.threshold + command.interval) / command.interval;
+                            int then = Math.max(0, prev - command.threshold + command.interval) / command.interval;
+                            inInterval = now > then;
+                        }
+                        command.lastViolationCount = violationCount;
                         if (inInterval) {
                             if (COMMAND_CHANNEL.fire(player, check, verbose, cmd)) continue;
 
@@ -208,4 +221,9 @@ class ParsedCommand {
     public final int interval;
     public final String command;
     public int executeCount;
+    // Tracks the live group violation count at the previous evaluation so
+    // shouldExecute can fire on boundary CROSSINGS, not on every flag whose
+    // count happens to equal a boundary value (which the prune window holds
+    // steady when an old entry expires for each new entry).
+    public int lastViolationCount;
 }
