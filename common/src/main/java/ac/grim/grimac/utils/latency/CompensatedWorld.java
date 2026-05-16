@@ -637,7 +637,7 @@ public class CompensatedWorld implements PacketWorld {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public double getFluidLevelAt(int x, int y, int z) {
+    public float getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
     }
 
@@ -650,12 +650,12 @@ public class CompensatedWorld implements PacketWorld {
         return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
     }
 
-    public double getLavaFluidLevelAt(int x, int y, int z) {
+    public float getLavaFluidLevelAt(int x, int y, int z) {
         WrappedBlockState magicBlockState = getBlock(x, y, z);
         WrappedBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
 
-        if (magicBlockState.getType() != StateTypes.LAVA) return 0;
-        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1;
+        if (magicBlockState.getType() != StateTypes.LAVA) return 0f;
+        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1f;
 
         int level = magicBlockState.getLevel();
 
@@ -672,19 +672,19 @@ public class CompensatedWorld implements PacketWorld {
         return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
     }
 
-    public double getWaterFluidLevelAt(double x, double y, double z) {
+    public float getWaterFluidLevelAt(double x, double y, double z) {
         return getWaterFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }
 
-    public double getWaterFluidLevelAt(int x, int y, int z) {
+    public float getWaterFluidLevelAt(int x, int y, int z) {
         WrappedBlockState wrappedBlock = getBlock(x, y, z);
         boolean isWater = Materials.isWater(player.getClientVersion(), wrappedBlock);
 
-        if (!isWater) return 0;
+        if (!isWater) return 0f;
 
         // If water has water above it, it's block height is 1, even if it's waterlogged
         if (Materials.isWater(player.getClientVersion(), getBlock(x, y + 1, z))) {
-            return 1;
+            return 1f;
         }
 
         // If it is water or flowing water

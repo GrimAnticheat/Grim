@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -436,7 +437,7 @@ public final class PlayerBaseTick {
         for (int x = floorX; x < ceilX; ++x) {
             for (int y = floorY; y < ceilY; ++y) {
                 for (int z = floorZ; z < ceilZ; ++z) {
-                    double fluidHeight;
+                    float fluidHeight;
                     if (tag == FluidTag.WATER) {
                         fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
                     } else {
@@ -458,7 +459,7 @@ public final class PlayerBaseTick {
 
         // all clients using legacy fluid pushing are not pushed by lava
         if (tag == FluidTag.WATER && vec3.lengthSquared() > 0.0) {
-            vec3.normalize();
+            vec3 = VectorUtils.normalize(player, vec3);
             vec3.multiply(multiplier);
             player.baseTickAddWaterPushing(vec3);
             player.baseTickAddVector(vec3);
@@ -490,7 +491,7 @@ public final class PlayerBaseTick {
                 for (int z = floorZ; z < ceilZ; ++z) {
                     double fluidHeightToWorld;
 
-                    double fluidHeight;
+                    float fluidHeight;
                     if (tag == FluidTag.WATER) {
                         fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
                     } else {
@@ -498,7 +499,7 @@ public final class PlayerBaseTick {
                     }
 
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
-                        fluidHeight = Math.min(fluidHeight, 8 / 9D);
+                        fluidHeight = Math.min(fluidHeight, 8 / 9f);
 
                     if (fluidHeight == 0 || (fluidHeightToWorld = y + fluidHeight) < aABB.minY)
                         continue;
@@ -525,7 +526,7 @@ public final class PlayerBaseTick {
 
             if (player.inVehicle()) {
                 // This is a riding entity, normalize it for some reason.
-                vec3 = vec3.normalize();
+                vec3 = VectorUtils.normalize(player, vec3);
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
@@ -535,7 +536,7 @@ public final class PlayerBaseTick {
                 // However, do this after the multiplier, so that we don't have to recompute it
                 player.baseTickAddWaterPushing(vec3);
                 if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
-                    vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                    vec3 = VectorUtils.normalize(player, vec3).multiply(0.0045000000000000005);
                 }
 
                 player.baseTickAddVector(vec3);

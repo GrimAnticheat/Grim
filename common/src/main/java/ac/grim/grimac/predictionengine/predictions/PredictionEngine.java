@@ -379,7 +379,7 @@ public class PredictionEngine {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                     Vector3dm vec3 = player.baseTickWaterPushing.clone();
                     if (Math.abs(vectorData.vector.getX()) < 0.003 && Math.abs(vectorData.vector.getZ()) < 0.003 && player.baseTickWaterPushing.length() < 0.0045000000000000005D) {
-                        vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                        vec3 = VectorUtils.normalize(player, vec3).multiply(0.0045000000000000005);
                     }
 
                     vectorData.vector = vectorData.vector.add(vec3);

@@ -1,6 +1,8 @@
 package ac.grim.grimac.utils.math;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
@@ -38,4 +40,22 @@ public class VectorUtils {
 
         return new Vector3d(x, y, z);
     }
+
+    public static Vector3dm normalize(GrimPlayer player, Vector3dm vec) {
+        return normalize(player.getClientVersion(), vec);
+    }
+
+    public static Vector3dm normalize(ClientVersion version, Vector3dm vec) {
+        double d0 = Math.sqrt(vec.getX() * vec.getX() + vec.getY() * vec.getY() + vec.getZ() * vec.getZ());
+        return version.isNewerThanOrEquals(ClientVersion.V_1_21_2) ? modern$normalize(vec, d0) : legacy$normalize(vec, d0);
+    }
+
+    private static Vector3dm legacy$normalize(Vector3dm vec, double d0) {
+        return d0 < 1.0E-4D ? new Vector3dm() : new Vector3dm(vec.getX() / d0, vec.getY() / d0, vec.getZ() / d0);
+    }
+
+    private static Vector3dm modern$normalize(Vector3dm vec, double d0) {
+        return d0 < 1.0E-5F ? new Vector3dm() : new Vector3dm(vec.getX() / d0, vec.getY() / d0, vec.getZ() / d0);
+    }
+
 }

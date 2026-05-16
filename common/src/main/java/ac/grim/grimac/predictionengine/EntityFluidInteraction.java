@@ -7,10 +7,12 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 
@@ -53,7 +55,7 @@ public class EntityFluidInteraction {
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    double fluidHeight = player.compensatedWorld.getFluidLevelAt(x, y, z);
+                    float fluidHeight = player.compensatedWorld.getFluidLevelAt(x, y, z);
                     if (fluidHeight == 0) {
                         continue;
                     }
@@ -172,7 +174,7 @@ public class EntityFluidInteraction {
             if (this.currentCount != 0 && !(this.accumulatedCurrent.lengthSquared() < 1.0E-5F)) {
                 Vector3dm current;
                 if (player.inVehicle()) {
-                    current = this.accumulatedCurrent.normalize();
+                    current = VectorUtils.normalize(ClientVersion.V_26_1, this.accumulatedCurrent);
                 } else {
                     current = this.accumulatedCurrent.multiply(1.0 / this.currentCount);
                 }
@@ -182,7 +184,7 @@ public class EntityFluidInteraction {
                 // However, do this after the multiplier, so that we don't have to recompute it
                 player.baseTickAddWaterPushing(current);
                 if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && current.length() < 0.0045000000000000005) {
-                    current = current.normalize().multiply(0.0045000000000000005);
+                    current = VectorUtils.normalize(ClientVersion.V_26_1, current).multiply(0.0045000000000000005);
                 }
 
                 player.baseTickAddVector(current);
