@@ -72,7 +72,11 @@ public class ComplexCollisionBox implements CollisionBox {
 
     @Override
     public void downCast(List<SimpleCollisionBox> list) {
-        list.addAll(Arrays.asList(boxes).subList(0, currentLength));
+        // list.addAll(Arrays.asList(boxes).subList(0, currentLength)); // allocates two wrapper objects per call
+
+        for (int i = 0; i < currentLength; i++) {
+            list.add(boxes[i]);
+        }
     }
 
     @Override
