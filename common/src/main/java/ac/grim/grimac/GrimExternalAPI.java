@@ -27,8 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-//This is used for grim's external API. It has its own class just for organization.
-
+// This is used for grim's external API. It has its own class just for organization.
 public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable {
 
     // Holder class — GrimExternalAPI is constructed inside GrimAPI's ctor,

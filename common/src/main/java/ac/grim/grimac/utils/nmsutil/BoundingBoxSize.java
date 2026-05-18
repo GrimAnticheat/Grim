@@ -62,8 +62,8 @@ public final class BoundingBoxSize {
             }
 
             return 1.5f;
-        } else if (packetEntity instanceof PacketEntityGuardian packetEntityGuardian) { // TODO: 2.35 * guardian?
-            return packetEntityGuardian.isElder ? 1.9975f : 0.85f;
+        } else if (packetEntity instanceof PacketEntityGuardian guardian) { // TODO: 2.35 * guardian?
+            return guardian.isElder ? 1.9975f : 0.85f;
         } else if (type == EntityTypes.END_CRYSTAL) {
             return 2f;
         } else if (type == EntityTypes.ENDER_DRAGON) {
@@ -289,8 +289,8 @@ public final class BoundingBoxSize {
             return 1.7f;
         } else if (type == EntityTypes.DONKEY) {
             return 1.5f;
-        } else if (packetEntity instanceof PacketEntityGuardian packetEntityGuardian) { // TODO: 2.35 * guardian?
-            return packetEntityGuardian.isElder ? 1.9975f : 0.85f;
+        } else if (packetEntity instanceof PacketEntityGuardian guardian) { // TODO: 2.35 * guardian?
+            return guardian.isElder ? 1.9975f : 0.85f;
         } else if (type == EntityTypes.ENDERMAN || type == EntityTypes.WARDEN) {
             return 2.9f;
         } else if (type == EntityTypes.ENDERMITE || type == EntityTypes.COD) {

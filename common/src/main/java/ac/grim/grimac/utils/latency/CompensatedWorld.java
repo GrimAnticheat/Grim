@@ -624,6 +624,27 @@ public class CompensatedWorld implements PacketWorld {
         return chunks.containsKey(chunkPosition);
     }
 
+    public boolean areChunksUnloadedAt(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        if (maxY < minHeight || minY >= maxHeight) {
+            return true;
+        }
+
+        minX >>= 4;
+        minZ >>= 4;
+        maxX >>= 4;
+        maxZ >>= 4;
+
+        for (int i = minX; i <= maxX; i++) {
+            for (int j = minZ; j <= maxZ; j++) {
+                if (!isChunkLoaded(i, j)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.put(chunkPosition, chunk));

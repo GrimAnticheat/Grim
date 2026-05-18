@@ -184,7 +184,7 @@ public class MovementTicker {
         if (player.onGround) {
             player.fallDistance = 0;
         } else if (collide.getY() < 0) {
-            player.fallDistance = (player.fallDistance) - collide.getY();
+            player.fallDistance -= collide.getY();
             player.vehicleData.lastYd = collide.getY();
         }
 

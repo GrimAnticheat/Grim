@@ -40,6 +40,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAttack;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.viaversion.viaversion.api.Via;
@@ -209,7 +210,7 @@ public class Reach extends Check implements PacketCheck {
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
             CheckResult result = checkReach(reachEntity, player.x, player.y, player.z, hasAttackRange, itemMaxReach, itemHitboxMargin, true);
-            return result.isFlag(); // If they flagged
+            return result.isFlag();
         } else {
             SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
@@ -258,16 +259,14 @@ public class Reach extends Check implements PacketCheck {
 
         // If we are a tick behind, we don't know their next look so don't bother doing this
         if (!isPrediction) {
-            possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.pitch));
-
-            // 1.9+ players could be a tick behind because we don't get skipped ticks
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-                possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.lastPitch));
-            }
-
             // 1.7 players do not have any of these issues! They are always on the latest look vector
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
-                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.yaw, player.pitch));
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.pitch));
+
+                // 1.9+ players could be a tick behind because we don't get skipped ticks
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                    possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.lastPitch));
+                }
             }
         }
 
@@ -275,13 +274,14 @@ public class Reach extends Check implements PacketCheck {
         final double distance = maxReach + 3;
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
-        final Vector3dm eyePos = new Vector3dm(x, 0, z);
         for (Vector3dm lookVec : possibleLookDirs) {
-            for (double eye : possibleEyeHeights) {
-                eyePos.setY(y + eye);
-                Vector3dm endReachPos = eyePos.clone().add(lookVec.getX() * distance, lookVec.getY() * distance, lookVec.getZ() * distance);
+            lookVec.multiply(distance);
 
-                Vector3dm intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
+            for (double eye : possibleEyeHeights) {
+                final Vector3d eyePos = new Vector3d(x, y + eye, z);
+                Vector3d endReachPos = eyePos.add(lookVec.getX(), lookVec.getY(), lookVec.getZ());
+
+                Vector3d intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
 
                 if (ReachUtils.isVecInside(targetBox, eyePos)) {
                     minDistance = 0;
@@ -367,6 +367,5 @@ public class Reach extends Check implements PacketCheck {
     }
 
     private record InteractionData(double x, double y, double z, boolean hasAttackRange,
-                                   float maxReach, float hitboxMargin) {
-    }
+                                   float maxReach, float hitboxMargin) {}
 }

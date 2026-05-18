@@ -45,6 +45,8 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
+        // fake channel (NPC / spoofer / EmbeddedChannel) — no PacketUser, nothing to track
+        if (event.getUser() == null) return;
         Object nativePlayerObject = Objects.requireNonNull(event.getPlayer());
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order

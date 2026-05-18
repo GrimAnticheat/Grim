@@ -14,10 +14,10 @@ public final class RotationData {
     private final float yaw;
     private final float pitch;
     private final int transaction;
-    private boolean isAccepted;
+    private boolean accepted;
 
     @Contract(mutates = "this")
     public void accept() {
-        this.isAccepted = true;
+        this.accepted = true;
     }
 }

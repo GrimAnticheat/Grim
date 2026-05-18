@@ -50,6 +50,11 @@ public class Vector3dm implements Cloneable, Serializable {
         this.z = z;
     }
 
+    @Contract(value = "null -> null; !null -> new", pure = true)
+    public static Vector3dm from(Vector3d vec) {
+        return vec == null ? null : new Vector3dm(vec.x, vec.y, vec.z);
+    }
+
     @Contract("_, _ -> new")
     public static @NotNull Vector3dm min(@NotNull Vector3dm a, @NotNull Vector3dm b) {
         return new Vector3dm(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
