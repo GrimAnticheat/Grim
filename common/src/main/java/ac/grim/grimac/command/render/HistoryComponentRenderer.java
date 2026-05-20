@@ -407,17 +407,22 @@ public final class HistoryComponentRenderer {
      */
     private static String mmSafe(@Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "";
-        String stripped = LEGACY_FORMAT_PATTERN.matcher(raw).replaceAll("");
-        // Kill '%' so values can't reintroduce trusted text by riding
-        // through MessageUtil.replacePlaceholders' or MessageUtil
-        // .miniMessage's variable replacement pass — both expand
-        // %prefix% and other registered names after substitution.
+        // Order matters: strip '%' BEFORE legacy markers. A payload like
+        // "&%c" otherwise sneaks past — LEGACY_FORMAT_PATTERN doesn't
+        // match "&%" (% is not a colour code), then a subsequent %-strip
+        // would re-fuse "&c" which MessageUtil.miniMessage's downstream
+        // legacy → MM conversion would then interpret as red. Killing
+        // '%' first also nukes the %prefix% / %grim_version% /
+        // operator-registered variable expansion bypass (those names
+        // run through MessageUtil.replacePlaceholders and
+        // MessageUtil.miniMessage's own prefix pass after substitution).
+        String stripped = LEGACY_FORMAT_PATTERN.matcher(
+                raw.replace("%", "")).replaceAll("");
         // Backslash and '<' are escaped (MM treats '\<' as a literal
         // '<' and '\\' as a literal '\'); the backslash escape must
         // run first so we don't double-process the backslash we add
         // for '<'.
         return stripped
-                .replace("%", "")
                 .replace("\\", "\\\\")
                 .replace("<", "\\<");
     }
