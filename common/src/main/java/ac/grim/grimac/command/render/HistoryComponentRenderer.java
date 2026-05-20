@@ -100,7 +100,7 @@ public final class HistoryComponentRenderer {
                 ? cfg.getStringElse("grim-history-crashed-marker", " &8(&ccrashed&8)")
                 : "";
         Component line = parse(sender, cfg, "grim-history-session",
-                "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8]"
+                "&8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8]"
                         + " &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b"
                         + " violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)",
                 Map.ofEntries(
@@ -180,17 +180,17 @@ public final class HistoryComponentRenderer {
         out.add(parse(sender, cfg, "grim-history-detail-header",
                 "%prefix% &bShowing &f%player%&b's session &f%ordinal%&b details:", metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-meta1",
-                "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago",
+                "&bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago",
                 metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-meta2",
-                "%prefix% &bClient: &f%client_version%&b, Brand: &f%client_brand%",
+                "&bClient: &f%client_version%&b, Brand: &f%client_brand%",
                 metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-violations-header",
-                "%prefix% &bViolations: &8(%violations% total, %unique_checks% unique) &8[&f%page%&7/&f%max_pages%&8]",
+                "&bViolations: &8(%violations% total, %unique_checks% unique) &8[&f%page%&7/&f%max_pages%&8]",
                 metaVars));
 
         if (d.violations().isEmpty()) {
-            out.add(parse(sender, cfg, "grim-history-detail-empty", "%prefix% &7- (none)", Map.of()));
+            out.add(parse(sender, cfg, "grim-history-detail-empty", "&7- (none)", Map.of()));
             return out;
         }
 
@@ -218,7 +218,7 @@ public final class HistoryComponentRenderer {
                     .replace("%count%", Integer.toString(c.count())));
         }
         Component line = parse(sender, cfg, "grim-history-detail-group",
-                "%prefix% &7- %checks_list% &8(&b%offset%&8)",
+                "&7- %checks_list% &8(&b%offset%&8)",
                 Map.of(
                         "checks_list", checksList.toString(),
                         "offset", formatDuration(bucket.bucketStartOffsetMs())));
@@ -257,7 +257,7 @@ public final class HistoryComponentRenderer {
     private static Component renderViolationLine(Sender sender, ConfigManager cfg, ViolationEntry v, boolean verbose) {
         String verboseText = v.verbose() == null ? "" : v.verbose();
         Component line = parse(sender, cfg, "grim-history-detail-entry",
-                "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%",
+                "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
                         "check", v.displayName(),
                         "description", v.description(),

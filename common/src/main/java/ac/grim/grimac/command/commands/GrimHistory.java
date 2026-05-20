@@ -61,12 +61,20 @@ import java.util.regex.PatternSyntaxException;
  *       → session list, page 1
  *   /grim history &lt;target&gt; page &lt;P&gt;
  *       → session list, page P
+ *   /grim history &lt;target&gt; session
+ *       → printable help menu for the session subcommand (no ordinal supplied).
  *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; [-d] [-v]
  *       → session detail for "Session N" (global chronological, Session 1 = oldest).
  *         {@code latest} / {@code last} / {@code l} are aliases for the most
  *         recent session.
  *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; page &lt;P&gt; [-d] [-v]
  *       → session detail, violation page P.
+ *   /grim history player &lt;target&gt; ...
+ *       → disambiguated form for players whose name collides with a literal
+ *         we register at the same tree depth (e.g. {@code repair}, {@code page},
+ *         {@code session}). Cloud matches literals greedily before String
+ *         parsers, so without the {@code player} escape hatch those operators
+ *         are unreachable.
  * </pre>
  * The {@code session} literal leaves the slot after {@code <target>} open for
  * future top-level subcommands (e.g. {@code violations}, {@code summary}) —
@@ -111,25 +119,73 @@ public class GrimHistory implements BuildableCommand {
                         .permission("grim.history.repair")
                         .handler(this::handleRepairCheckIds)
         );
+
+        // The five history-view branches live under both prefixes:
+        //   /grim history <target> ...                — ambiguous form
+        //   /grim history player <target> ...         — disambiguated form
+        // The disambiguated form is the only way to view the history of a
+        // player whose name collides with a literal we register on the same
+        // tree depth (currently 'page', 'repair', 'session', 'player' itself;
+        // potentially more in future). Cloud literals win over String parsing
+        // when both could match, so without the 'player' escape hatch there's
+        // no way to address a player legitimately named e.g. 'repair'.
+        registerHistoryViewBranches(commandManager, false,
+                targetSuggestions, listPageNumberSuggestions,
+                sessionOrdinalSuggestions, violationPageSuggestions);
+        registerHistoryViewBranches(commandManager, true,
+                targetSuggestions, listPageNumberSuggestions,
+                sessionOrdinalSuggestions, violationPageSuggestions);
+    }
+
+    /**
+     * Registers the five history-view branches (list-page-1, list-page-N,
+     * session-help, detail-default-page, detail-page-N) under either the
+     * bare {@code /grim history <target>} prefix or the explicit
+     * {@code /grim history player <target>} prefix. The {@code player}
+     * literal exists for one specific case: addressing a player whose name
+     * collides with a literal we already register at the same tree depth
+     * (e.g. someone literally named {@code repair}). Cloud matches literals
+     * greedily before String parsers, so without the escape hatch those
+     * operators are unreachable. Registering both forms is the simplest way
+     * to keep the short form while still giving a safe long form.
+     */
+    private void registerHistoryViewBranches(
+            CommandManager<Sender> commandManager,
+            boolean withPlayerLiteral,
+            SuggestionProvider<Sender> targetSuggestions,
+            SuggestionProvider<Sender> listPageNumberSuggestions,
+            SuggestionProvider<Sender> sessionOrdinalSuggestions,
+            SuggestionProvider<Sender> violationPageSuggestions) {
+        // Lambda factory so each branch starts from a fresh builder — Cloud
+        // builders are not designed to be reused across .command() calls;
+        // calling .literal() twice on the same builder cross-pollinates the
+        // sibling branches.
+        java.util.function.Supplier<Command.Builder<Sender>> base = () -> {
+            Command.Builder<Sender> b = commandManager.commandBuilder("grim", "grimac")
+                    .literal("history", "hist")
+                    .permission("grim.history");
+            if (withPlayerLiteral) b = b.literal("player");
+            return b.required("target", StringParser.stringParser(), targetSuggestions);
+        };
+
         // List, page 1
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions))
+                applyFilterFlags(commandManager, base.get())
                         .handler(this::handleListPage1)
         );
         // List, page N
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("page")
-                                .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
+                applyFilterFlags(commandManager, base.get()
+                        .literal("page")
+                        .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
                         .handler(this::handleListPageN)
+        );
+        // Help branch: /grim history <target> session  (no ordinal). Cloud
+        // would otherwise refuse dispatch here with a parse error pointing
+        // at the missing required argument, which most operators read as a
+        // syntax mistake rather than a hint to discover the feature.
+        commandManager.command(
+                base.get().literal("session").handler(this::handleSessionHelp)
         );
         // Detail (default violation page). The `session` literal lives at the
         // same tree slot as `page` above; Cloud picks the branch by exact
@@ -137,34 +193,26 @@ public class GrimHistory implements BuildableCommand {
         // the "latest" / "last" / "l" aliases alongside plain integers — the
         // handler resolves them via resolveSessionOrdinal().
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("session")
-                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
+                applyFilterFlags(commandManager, base.get()
+                        .literal("session")
+                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailDefaultPage)
         );
         // Detail, violation page N
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("session")
-                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                                .literal("page")
-                                .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
-                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
+                applyFilterFlags(commandManager, base.get()
+                        .literal("session")
+                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                        .literal("page")
+                        .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
+                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailPageN)
         );
     }
@@ -250,6 +298,50 @@ public class GrimHistory implements BuildableCommand {
             renderDetail(sender, lifecycle, history, uuid, displayName,
                     ordinal, detailed, verbose, Math.max(1, page), filter);
         });
+    }
+
+    /**
+     * Help branch — fires on {@code /grim history <target> session} with no
+     * ordinal after {@code session}. Cloud would otherwise refuse dispatch
+     * here with the stock "missing required argument: session" message,
+     * which most operators read as a parse error rather than a hint that
+     * they need to discover the feature. Prints the actual usage + every
+     * flag inline so they don't have to switch to {@code /grim help} to
+     * learn the syntax.
+     */
+    private void handleSessionHelp(CommandContext<Sender> ctx) {
+        Sender sender = ctx.sender();
+        String target = ctx.get("target");
+        sender.sendMessage(Component.text()
+                .append(Component.text("/grim history ", NamedTextColor.GRAY))
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session ", NamedTextColor.GRAY))
+                .append(Component.text("<N | latest>", NamedTextColor.AQUA))
+                .append(Component.text(" — show violations for a specific session.", NamedTextColor.GRAY))
+                .build());
+        sender.sendMessage(Component.text(
+                "  N is the session ordinal (1 = oldest). 'latest' / 'last' / 'l' = most recent.",
+                NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Optional:", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  page <P>", NamedTextColor.YELLOW)
+                .append(Component.text("                  page through this session's violations", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --detailed / -d", NamedTextColor.YELLOW)
+                .append(Component.text("           raw per-violation rows (no time-bucketing)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --verbose / -v", NamedTextColor.YELLOW)
+                .append(Component.text("            inline verbose text (also on hover)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --name <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("            filter by check display name", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --match <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("           filter by verbose text", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --grep <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("            filter by either name or verbose (AND-composes with others)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("Examples:", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  /grim history ", NamedTextColor.GRAY)
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session latest -d -v", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  /grim history ", NamedTextColor.GRAY)
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session 1 --grep reach", NamedTextColor.GRAY)));
     }
 
     /**
