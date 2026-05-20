@@ -106,10 +106,13 @@ public final class HistoryComponentRenderer {
                         + " &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b"
                         + " violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)",
                 Map.ofEntries(
-                        Map.entry("grim_version", nullToUnknown(s.grimVersion())),
-                        Map.entry("server_name", nullToUnknown(s.serverName())),
+                        // mmSafe wraps the externally-sourced fields. crashed_marker
+                        // is a config-keyed MM/legacy fragment built by the renderer
+                        // above and must NOT round-trip — it would lose its formatting.
+                        Map.entry("grim_version", mmSafe(nullToUnknown(s.grimVersion()))),
+                        Map.entry("server_name", mmSafe(nullToUnknown(s.serverName()))),
                         Map.entry("client_version", clientVersionDisplay(s.clientVersion())),
-                        Map.entry("client_brand", nullToUnknown(s.clientBrand())),
+                        Map.entry("client_brand", mmSafe(nullToUnknown(s.clientBrand()))),
                         Map.entry("ordinal", Integer.toString(s.sessionOrdinal())),
                         Map.entry("duration", durationText),
                         Map.entry("violations", Long.toString(s.violationCount())),
@@ -166,12 +169,15 @@ public final class HistoryComponentRenderer {
         int page = pageArg == null ? maxPages : Math.max(1, Math.min(pageArg, maxPages));
 
         Map<String, String> metaVars = Map.ofEntries(
+                // mmSafe wraps the externally-sourced fields. Player display
+                // names are Minecraft-constrained (letters/digits/underscore),
+                // so they don't need sanitisation.
                 Map.entry("player", playerDisplayName),
                 Map.entry("ordinal", Integer.toString(d.sessionOrdinal())),
-                Map.entry("grim_version", nullToUnknown(d.grimVersion())),
-                Map.entry("server_name", nullToUnknown(d.serverName())),
+                Map.entry("grim_version", mmSafe(nullToUnknown(d.grimVersion()))),
+                Map.entry("server_name", mmSafe(nullToUnknown(d.serverName()))),
                 Map.entry("client_version", clientVersionDisplay(d.clientVersion())),
-                Map.entry("client_brand", nullToUnknown(d.clientBrand())),
+                Map.entry("client_brand", mmSafe(nullToUnknown(d.clientBrand()))),
                 Map.entry("duration", durationText),
                 Map.entry("timeago", formatDuration(elapsedNow)),
                 Map.entry("violations", Integer.toString(d.violations().size())),
@@ -258,6 +264,13 @@ public final class HistoryComponentRenderer {
 
     private static Component renderViolationLine(Sender sender, ConfigManager cfg, ViolationEntry v, boolean verbose) {
         String verboseText = v.verbose() == null ? "" : v.verbose();
+        // verbose carries whatever the check wrote into the column — often a
+        // component fragment serialised via LegacyComponentSerializer, so §
+        // (or `&`) codes are common, as are values derived from user-supplied
+        // strings (chat content, brand fragments). mmSafe converts both
+        // legacy syntaxes to MM tag pairs and escapes literal '<' / '>' so a
+        // crafted verbose can't inject MM tags into the rendered row.
+        // Suppressed when -v isn't set.
         Component line = parse(sender, cfg, "grim-history-detail-entry",
                 "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
@@ -265,7 +278,7 @@ public final class HistoryComponentRenderer {
                         "description", v.description(),
                         "offset", formatDuration(v.offsetFromSessionStartMs()),
                         "vl", Double.toString(v.vl()),
-                        "verbose", verbose ? verboseText : ""));
+                        "verbose", verbose ? mmSafe(verboseText) : ""));
         // Hover carries the richer disambiguation — description on its own
         // line, then the raw verbose below. Shown regardless of the -v
         // flag, because operators scanning a dense list still want the
@@ -340,41 +353,43 @@ public final class HistoryComponentRenderer {
 
     // ---- helpers ----
 
-    /**
-     * Substitute {@code %key%} placeholders, then run through
-     * {@link MessageUtil#miniMessage(String)} (which converts {@code §}-style
-     * legacy codes to MM tags before MM.deserialize).
-     *
-     * <p>Every value is passed through {@link #sanitizeForMiniMessage(String)}
-     * before substitution. MessageUtil already neutralises {@code §} codes
-     * sitting in the template body, but stored field values can still
-     * contain MiniMessage syntax characters ({@code <}, {@code >}) — most
-     * notably the client brand, which is whatever the client sent on the
-     * {@code minecraft:brand} channel. Without sanitisation a brand of e.g.
-     * {@code "Vape<rainbow>"} would let the client inject MM tags into
-     * operator-facing /grim history output.
-     */
     private static Component parse(Sender sender, ConfigManager cfg, String key, String fallback,
                                    Map<String, String> vars) {
         String raw = cfg.getStringElse(key, fallback);
         for (Map.Entry<String, String> e : vars.entrySet()) {
-            raw = raw.replace("%" + e.getKey() + "%", sanitizeForMiniMessage(e.getValue()));
+            raw = raw.replace("%" + e.getKey() + "%", e.getValue());
         }
         raw = MessageUtil.replacePlaceholders(sender, raw);
         return MessageUtil.miniMessage(raw);
     }
 
     /**
-     * Normalise an untrusted string into a MiniMessage-safe substitute by
-     * round-tripping through legacy-section deserialise → MM serialise. §
-     * runs become equivalent MM tag pairs; literal {@code <} / {@code >}
-     * survive as MM-escaped text rather than being interpreted as tags.
-     * {@code null} / empty input short-circuits to {@code ""}.
+     * Normalise an untrusted leaf string into a MiniMessage-safe substitute.
+     * Callers must wrap stored values that originate outside the renderer
+     * (client brand, server name) before stuffing them into the var map for
+     * {@link #parse}. Trusted renderer-built MM fragments — {@code
+     * checks_list} composed from a config-keyed template, {@code
+     * crashed_marker} sourced from messages.yml — must NOT be passed through
+     * this helper, since the round-trip strips their MM tags as literal text.
+     *
+     * <p>The pre-normalisation step translates legacy {@code &amp;}-codes to
+     * {@code §}-codes via {@link MessageUtil#translateAlternateColorCodes(char, String)}.
+     * V2's {@code MessageUtil.miniMessage} otherwise globally rewrites
+     * {@code &c} runs into MM tags AFTER var substitution, so an untrusted
+     * value containing {@code &c} would still inject formatting if the
+     * round-trip below saw only the {@code §}-form. Pre-translating brings
+     * both syntaxes through {@code LegacyComponentSerializer.legacySection}
+     * (which only recognises {@code §}). MM.serialize then re-emits the
+     * runs as MM tag pairs and escapes any literal {@code <} / {@code >}
+     * in the input.
+     *
+     * <p>{@code null} / empty input short-circuits to {@code ""}.
      */
-    private static String sanitizeForMiniMessage(@Nullable String raw) {
+    private static String mmSafe(@Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "";
+        String translated = MessageUtil.translateAlternateColorCodes('&', raw);
         return MiniMessage.miniMessage().serialize(
-                LegacyComponentSerializer.legacySection().deserialize(raw));
+                LegacyComponentSerializer.legacySection().deserialize(translated));
     }
 
     public static @NotNull String formatDuration(long ms) {

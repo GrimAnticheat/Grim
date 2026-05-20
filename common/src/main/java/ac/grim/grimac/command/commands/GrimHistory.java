@@ -70,11 +70,13 @@ import java.util.regex.PatternSyntaxException;
  *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; page &lt;P&gt; [-d] [-v]
  *       → session detail, violation page P.
  *   /grim history player &lt;target&gt; ...
- *       → disambiguated form for players whose name collides with a literal
- *         we register at the same tree depth (e.g. {@code repair}, {@code page},
- *         {@code session}). Cloud matches literals greedily before String
- *         parsers, so without the {@code player} escape hatch those operators
- *         are unreachable.
+ *       → disambiguated form for players whose name collides with a sibling
+ *         literal of {@code <target>}. Today the only such collisions are
+ *         {@code repair} and {@code player} itself; {@code page} and
+ *         {@code session} live below {@code <target>} and are still reachable
+ *         through the bare form. Cloud matches literals greedily before String
+ *         parsers, so without the {@code player} escape hatch an operator can
+ *         never address a player legitimately named {@code repair}.
  * </pre>
  * The {@code session} literal leaves the slot after {@code <target>} open for
  * future top-level subcommands (e.g. {@code violations}, {@code summary}) —
@@ -171,25 +173,24 @@ public class GrimHistory implements BuildableCommand {
             return b.required("target", StringParser.stringParser(), targetSuggestions);
         };
 
-        // Capture the registration form so click commands generated from
-        // session-list rows (and the help-branch examples) route back to the
-        // same form the operator used — a list opened via /grim history
-        // player repair must generate clicks of /grim history player repair
-        // session N, not /grim history repair … (which re-enters the repair
-        // literal branch).
+        // Capture the registration form so the help-branch examples printed
+        // by handleSessionHelp echo the same prefix the operator dispatched
+        // on. (V2's session-list rows attach hover hints with a UUID-prefix
+        // copy-paste form, not a clickEvent.runCommand, so the click-routing
+        // issue raised by codex for V3 doesn't apply to this renderer.)
         final boolean viaPlayer = withPlayerLiteral;
 
         // List, page 1
         commandManager.command(
                 applyFilterFlags(commandManager, base.get())
-                        .handler(ctx -> handleListPage1(ctx, viaPlayer))
+                        .handler(this::handleListPage1)
         );
         // List, page N
         commandManager.command(
                 applyFilterFlags(commandManager, base.get()
                         .literal("page")
                         .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
-                        .handler(ctx -> handleListPageN(ctx, viaPlayer))
+                        .handler(this::handleListPageN)
         );
         // Help branch: /grim history <target> session  (no ordinal). Cloud
         // would otherwise refuse dispatch here with a parse error pointing
@@ -250,13 +251,12 @@ public class GrimHistory implements BuildableCommand {
                         .withDescription(Description.of("Filter to violations whose display name OR verbose text matches this regex.")));
     }
 
-    // The viaPlayer parameter on the list-page handlers is unused by
-    // renderList — V2's session-list hover text uses a UUID-prefix
-    // copy-paste hint (not a clickEvent.runCommand), so the codex finding
-    // about click-routing under the disambiguated form doesn't apply
-    // here. The flag still threads in via the registration closures so
-    // the handler-signature shape stays uniform with handleSessionHelp.
-    private void handleListPage1(CommandContext<Sender> context, boolean viaPlayer) {
+    // List handlers don't need the viaPlayer flag — V2's renderSummaryLine
+    // attaches a hover hint with a UUID-prefix copy-paste form (not a
+    // clickEvent.runCommand), so the V3 click-routing issue with the
+    // disambiguated form doesn't apply here. Only handleSessionHelp needs
+    // to know which prefix the operator dispatched on.
+    private void handleListPage1(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
@@ -265,7 +265,7 @@ public class GrimHistory implements BuildableCommand {
                 renderList(sender, lifecycle, history, uuid, displayName, 1, filter));
     }
 
-    private void handleListPageN(CommandContext<Sender> context, boolean viaPlayer) {
+    private void handleListPageN(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
         int page = context.<Integer>get("page_number");
