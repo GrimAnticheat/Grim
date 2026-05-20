@@ -11,9 +11,11 @@ import ac.grim.grimac.api.storage.query.Page;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -338,14 +340,41 @@ public final class HistoryComponentRenderer {
 
     // ---- helpers ----
 
+    /**
+     * Substitute {@code %key%} placeholders, then run through
+     * {@link MessageUtil#miniMessage(String)} (which converts {@code §}-style
+     * legacy codes to MM tags before MM.deserialize).
+     *
+     * <p>Every value is passed through {@link #sanitizeForMiniMessage(String)}
+     * before substitution. MessageUtil already neutralises {@code §} codes
+     * sitting in the template body, but stored field values can still
+     * contain MiniMessage syntax characters ({@code <}, {@code >}) — most
+     * notably the client brand, which is whatever the client sent on the
+     * {@code minecraft:brand} channel. Without sanitisation a brand of e.g.
+     * {@code "Vape<rainbow>"} would let the client inject MM tags into
+     * operator-facing /grim history output.
+     */
     private static Component parse(Sender sender, ConfigManager cfg, String key, String fallback,
                                    Map<String, String> vars) {
         String raw = cfg.getStringElse(key, fallback);
         for (Map.Entry<String, String> e : vars.entrySet()) {
-            raw = raw.replace("%" + e.getKey() + "%", e.getValue());
+            raw = raw.replace("%" + e.getKey() + "%", sanitizeForMiniMessage(e.getValue()));
         }
         raw = MessageUtil.replacePlaceholders(sender, raw);
         return MessageUtil.miniMessage(raw);
+    }
+
+    /**
+     * Normalise an untrusted string into a MiniMessage-safe substitute by
+     * round-tripping through legacy-section deserialise → MM serialise. §
+     * runs become equivalent MM tag pairs; literal {@code <} / {@code >}
+     * survive as MM-escaped text rather than being interpreted as tags.
+     * {@code null} / empty input short-circuits to {@code ""}.
+     */
+    private static String sanitizeForMiniMessage(@Nullable String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+        return MiniMessage.miniMessage().serialize(
+                LegacyComponentSerializer.legacySection().deserialize(raw));
     }
 
     public static @NotNull String formatDuration(long ms) {

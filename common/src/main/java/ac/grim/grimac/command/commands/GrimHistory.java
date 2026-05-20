@@ -123,12 +123,14 @@ public class GrimHistory implements BuildableCommand {
         // The five history-view branches live under both prefixes:
         //   /grim history <target> ...                — ambiguous form
         //   /grim history player <target> ...         — disambiguated form
-        // The disambiguated form is the only way to view the history of a
-        // player whose name collides with a literal we register on the same
-        // tree depth (currently 'page', 'repair', 'session', 'player' itself;
-        // potentially more in future). Cloud literals win over String parsing
-        // when both could match, so without the 'player' escape hatch there's
-        // no way to address a player legitimately named e.g. 'repair'.
+        // The escape hatch only matters for siblings of <target> — literals
+        // that share the slot the String parser would otherwise match. Today
+        // that's 'repair' (the repair subcommand) and 'player' itself.
+        // 'page' and 'session' live below <target>, so a player legitimately
+        // named 'page' or 'session' is still reachable through the bare
+        // form; only first-token collisions need the disambiguator. Cloud
+        // matches literals greedily before String parsers, so without 'player'
+        // an operator can never address a player legitimately named 'repair'.
         registerHistoryViewBranches(commandManager, false,
                 targetSuggestions, listPageNumberSuggestions,
                 sessionOrdinalSuggestions, violationPageSuggestions);
@@ -142,12 +144,13 @@ public class GrimHistory implements BuildableCommand {
      * session-help, detail-default-page, detail-page-N) under either the
      * bare {@code /grim history <target>} prefix or the explicit
      * {@code /grim history player <target>} prefix. The {@code player}
-     * literal exists for one specific case: addressing a player whose name
-     * collides with a literal we already register at the same tree depth
-     * (e.g. someone literally named {@code repair}). Cloud matches literals
-     * greedily before String parsers, so without the escape hatch those
-     * operators are unreachable. Registering both forms is the simplest way
-     * to keep the short form while still giving a safe long form.
+     * literal exists for first-token collisions only — siblings of
+     * {@code <target>} at the same tree depth (currently {@code repair}
+     * and {@code player} itself). {@code page} and {@code session} live
+     * below {@code <target>} so players with those names still resolve
+     * through the bare form. Cloud matches literals greedily before String
+     * parsers, so without the escape hatch a player legitimately named
+     * {@code repair} would be unreachable.
      */
     private void registerHistoryViewBranches(
             CommandManager<Sender> commandManager,
@@ -168,24 +171,33 @@ public class GrimHistory implements BuildableCommand {
             return b.required("target", StringParser.stringParser(), targetSuggestions);
         };
 
+        // Capture the registration form so click commands generated from
+        // session-list rows (and the help-branch examples) route back to the
+        // same form the operator used — a list opened via /grim history
+        // player repair must generate clicks of /grim history player repair
+        // session N, not /grim history repair … (which re-enters the repair
+        // literal branch).
+        final boolean viaPlayer = withPlayerLiteral;
+
         // List, page 1
         commandManager.command(
                 applyFilterFlags(commandManager, base.get())
-                        .handler(this::handleListPage1)
+                        .handler(ctx -> handleListPage1(ctx, viaPlayer))
         );
         // List, page N
         commandManager.command(
                 applyFilterFlags(commandManager, base.get()
                         .literal("page")
                         .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
-                        .handler(this::handleListPageN)
+                        .handler(ctx -> handleListPageN(ctx, viaPlayer))
         );
         // Help branch: /grim history <target> session  (no ordinal). Cloud
         // would otherwise refuse dispatch here with a parse error pointing
         // at the missing required argument, which most operators read as a
         // syntax mistake rather than a hint to discover the feature.
         commandManager.command(
-                base.get().literal("session").handler(this::handleSessionHelp)
+                base.get().literal("session")
+                        .handler(ctx -> handleSessionHelp(ctx, viaPlayer))
         );
         // Detail (default violation page). The `session` literal lives at the
         // same tree slot as `page` above; Cloud picks the branch by exact
@@ -238,7 +250,13 @@ public class GrimHistory implements BuildableCommand {
                         .withDescription(Description.of("Filter to violations whose display name OR verbose text matches this regex.")));
     }
 
-    private void handleListPage1(CommandContext<Sender> context) {
+    // The viaPlayer parameter on the list-page handlers is unused by
+    // renderList — V2's session-list hover text uses a UUID-prefix
+    // copy-paste hint (not a clickEvent.runCommand), so the codex finding
+    // about click-routing under the disambiguated form doesn't apply
+    // here. The flag still threads in via the registration closures so
+    // the handler-signature shape stays uniform with handleSessionHelp.
+    private void handleListPage1(CommandContext<Sender> context, boolean viaPlayer) {
         Sender sender = context.sender();
         String target = context.get("target");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
@@ -247,7 +265,7 @@ public class GrimHistory implements BuildableCommand {
                 renderList(sender, lifecycle, history, uuid, displayName, 1, filter));
     }
 
-    private void handleListPageN(CommandContext<Sender> context) {
+    private void handleListPageN(CommandContext<Sender> context, boolean viaPlayer) {
         Sender sender = context.sender();
         String target = context.get("target");
         int page = context.<Integer>get("page_number");
@@ -309,11 +327,16 @@ public class GrimHistory implements BuildableCommand {
      * flag inline so they don't have to switch to {@code /grim help} to
      * learn the syntax.
      */
-    private void handleSessionHelp(CommandContext<Sender> ctx) {
+    private void handleSessionHelp(CommandContext<Sender> ctx, boolean viaPlayer) {
         Sender sender = ctx.sender();
         String target = ctx.get("target");
+        // Echo the exact prefix the operator used so the printed examples
+        // dispatch on the same branch — a target that needed the 'player'
+        // escape hatch (e.g. someone named 'repair') would route through
+        // the wrong literal if the help printed the bare form.
+        String addressPrefix = "/grim history " + (viaPlayer ? "player " : "");
         sender.sendMessage(Component.text()
-                .append(Component.text("/grim history ", NamedTextColor.GRAY))
+                .append(Component.text(addressPrefix, NamedTextColor.GRAY))
                 .append(Component.text(target, NamedTextColor.WHITE))
                 .append(Component.text(" session ", NamedTextColor.GRAY))
                 .append(Component.text("<N | latest>", NamedTextColor.AQUA))
@@ -336,10 +359,10 @@ public class GrimHistory implements BuildableCommand {
         sender.sendMessage(Component.text("  --grep <regex>", NamedTextColor.YELLOW)
                 .append(Component.text("            filter by either name or verbose (AND-composes with others)", NamedTextColor.GRAY)));
         sender.sendMessage(Component.text("Examples:", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("  /grim history ", NamedTextColor.GRAY)
+        sender.sendMessage(Component.text("  " + addressPrefix, NamedTextColor.GRAY)
                 .append(Component.text(target, NamedTextColor.WHITE))
                 .append(Component.text(" session latest -d -v", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("  /grim history ", NamedTextColor.GRAY)
+        sender.sendMessage(Component.text("  " + addressPrefix, NamedTextColor.GRAY)
                 .append(Component.text(target, NamedTextColor.WHITE))
                 .append(Component.text(" session 1 --grep reach", NamedTextColor.GRAY)));
     }
