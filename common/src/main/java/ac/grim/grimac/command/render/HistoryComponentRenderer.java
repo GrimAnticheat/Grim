@@ -224,9 +224,14 @@ public final class HistoryComponentRenderer {
         for (CheckCount c : bucket.checks()) {
             if (!first) checksList.append("&7, ");
             first = false;
+            // Check display names come from CheckCount rows in the DB —
+            // most originate from internal Grim checks, but the
+            // AbstractCheck extension API + the v1-catalog repair path
+            // make plugin-authored names plausible. Defence-in-depth
+            // wrap so a hostile plugin can't paint formatting into rows.
             checksList.append(cfg.getStringElse("grim-history-check-count",
                             "&f%check_name%&7 x&c%count%")
-                    .replace("%check_name%", c.displayName())
+                    .replace("%check_name%", mmSafe(c.displayName()))
                     .replace("%count%", Integer.toString(c.count())));
         }
         Component line = parse(sender, cfg, "grim-history-detail-group",
@@ -275,11 +280,15 @@ public final class HistoryComponentRenderer {
         // legacy format code (§, &, hex variants) and escapes the MM tag
         // opener so a crafted verbose can't inject formatting into the
         // rendered row. Suppressed when -v isn't set.
+        // Check display names + descriptions come from CheckCount rows —
+        // built-ins are trusted but plugin-authored AbstractCheck
+        // metadata can flow through here. mmSafe-defend so a hostile
+        // check can't paint formatting into the per-violation row.
         Component line = parse(sender, cfg, "grim-history-detail-entry",
                 "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
-                        "check", v.displayName(),
-                        "description", v.description(),
+                        "check", mmSafe(v.displayName()),
+                        "description", mmSafe(v.description()),
                         "offset", formatDuration(v.offsetFromSessionStartMs()),
                         "vl", Double.toString(v.vl()),
                         "verbose", verbose ? mmSafe(verboseText) : ""));
@@ -399,20 +408,32 @@ public final class HistoryComponentRenderer {
     private static String mmSafe(@Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "";
         String stripped = LEGACY_FORMAT_PATTERN.matcher(raw).replaceAll("");
-        // Escape backslash first so we don't double-process the backslash
-        // we add for '<'. MM treats '\<' as a literal '<' and '\\' as '\'.
-        return stripped.replace("\\", "\\\\").replace("<", "\\<");
+        // Kill '%' so values can't reintroduce trusted text by riding
+        // through MessageUtil.replacePlaceholders' or MessageUtil
+        // .miniMessage's variable replacement pass — both expand
+        // %prefix% and other registered names after substitution.
+        // Backslash and '<' are escaped (MM treats '\<' as a literal
+        // '<' and '\\' as a literal '\'); the backslash escape must
+        // run first so we don't double-process the backslash we add
+        // for '<'.
+        return stripped
+                .replace("%", "")
+                .replace("\\", "\\\\")
+                .replace("<", "\\<");
     }
 
     /**
-     * Matches any legacy format marker that V2's downstream
+     * Matches any legacy Minecraft format marker that V2's downstream
      * {@link MessageUtil#miniMessage} pipeline would otherwise interpret as
-     * a colour / decoration run. Covers both {@code §} and {@code &} sigils,
-     * plain {@code [0-9A-Za-z]} format codes, and the two hex forms
-     * ({@code &#RRGGBB} and the Bedrock-style {@code &x&R&R&G&G&B&B}).
+     * a colour / decoration run. Restricted to the canonical legacy
+     * alphabet (digits, {@code a-f} colours, {@code k-o} decorations,
+     * {@code r} reset, {@code x} hex marker) so innocent text like
+     * {@code AT&T} or {@code R&D} survives untouched. Covers both sigils
+     * and both hex forms (the {@code &#RRGGBB} literal form and the
+     * Bedrock-style {@code &x&R&R&G&G&B&B} interleave).
      */
     private static final Pattern LEGACY_FORMAT_PATTERN = Pattern.compile(
-            "[§&](?:[0-9A-Za-z]|#[A-Fa-f0-9]{6}|x(?:[§&][A-Fa-f0-9]){6})");
+            "[§&](?:[0-9a-fk-orxA-FK-ORX]|#[A-Fa-f0-9]{6}|x(?:[§&][A-Fa-f0-9]){6})");
 
     public static @NotNull String formatDuration(long ms) {
         if (ms < 0) ms = 0;
