@@ -11,11 +11,9 @@ import ac.grim.grimac.api.storage.query.Page;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -63,10 +62,11 @@ public final class HistoryComponentRenderer {
             @NotNull Page<SessionSummary> result,
             @Nullable UUID ongoingSessionId) {
         ConfigManager cfg = GrimAPI.INSTANCE.getConfigManager().getConfig();
+        String safePlayer = mmSafe(playerDisplayName);
         if (result.items().isEmpty()) {
             return List.of(parse(sender, cfg, "grim-history-no-sessions",
                     "%prefix% &7No session history for &f%player%&7.",
-                    Map.of("player", playerDisplayName)));
+                    Map.of("player", safePlayer)));
         }
         List<Component> out = new ArrayList<>(result.items().size() + 1);
         // Emit both %max_pages% (new) and %maxPages% (pre-cutover spelling) so
@@ -76,7 +76,7 @@ public final class HistoryComponentRenderer {
         out.add(parse(sender, cfg, "grim-history-header",
                 "%prefix% &bShowing session history for &f%player% &8[&f%page%&7/&f%max_pages%&8]",
                 Map.of(
-                        "player", playerDisplayName,
+                        "player", safePlayer,
                         "page", Integer.toString(page),
                         "max_pages", maxPagesStr,
                         "maxPages", maxPagesStr)));
@@ -106,11 +106,13 @@ public final class HistoryComponentRenderer {
                         + " &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b"
                         + " violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)",
                 Map.ofEntries(
-                        // mmSafe wraps the externally-sourced fields. crashed_marker
-                        // is a config-keyed MM/legacy fragment built by the renderer
-                        // above and must NOT round-trip — it would lose its formatting.
-                        Map.entry("grim_version", mmSafe(nullToUnknown(s.grimVersion()))),
-                        Map.entry("server_name", mmSafe(nullToUnknown(s.serverName()))),
+                        // mmSafe wraps the truly-untrusted fields. server_name and
+                        // grim_version are operator-/server-configured (operators may
+                        // legitimately want colours), so they pass verbatim.
+                        // crashed_marker is a config-keyed legacy/MM fragment built
+                        // above and must NOT round-trip.
+                        Map.entry("grim_version", nullToUnknown(s.grimVersion())),
+                        Map.entry("server_name", nullToUnknown(s.serverName())),
                         Map.entry("client_version", clientVersionDisplay(s.clientVersion())),
                         Map.entry("client_brand", mmSafe(nullToUnknown(s.clientBrand()))),
                         Map.entry("ordinal", Integer.toString(s.sessionOrdinal())),
@@ -169,13 +171,15 @@ public final class HistoryComponentRenderer {
         int page = pageArg == null ? maxPages : Math.max(1, Math.min(pageArg, maxPages));
 
         Map<String, String> metaVars = Map.ofEntries(
-                // mmSafe wraps the externally-sourced fields. Player display
-                // names are Minecraft-constrained (letters/digits/underscore),
-                // so they don't need sanitisation.
-                Map.entry("player", playerDisplayName),
+                // mmSafe wraps the truly-untrusted leaves: %player% is
+                // operator-typed on the command line (defence in depth),
+                // %client_brand% is whatever the client sent on the
+                // minecraft:brand channel. server_name / grim_version are
+                // server/operator config and may legitimately contain colours.
+                Map.entry("player", mmSafe(playerDisplayName)),
                 Map.entry("ordinal", Integer.toString(d.sessionOrdinal())),
-                Map.entry("grim_version", mmSafe(nullToUnknown(d.grimVersion()))),
-                Map.entry("server_name", mmSafe(nullToUnknown(d.serverName()))),
+                Map.entry("grim_version", nullToUnknown(d.grimVersion())),
+                Map.entry("server_name", nullToUnknown(d.serverName())),
                 Map.entry("client_version", clientVersionDisplay(d.clientVersion())),
                 Map.entry("client_brand", mmSafe(nullToUnknown(d.clientBrand()))),
                 Map.entry("duration", durationText),
@@ -265,12 +269,12 @@ public final class HistoryComponentRenderer {
     private static Component renderViolationLine(Sender sender, ConfigManager cfg, ViolationEntry v, boolean verbose) {
         String verboseText = v.verbose() == null ? "" : v.verbose();
         // verbose carries whatever the check wrote into the column — often a
-        // component fragment serialised via LegacyComponentSerializer, so §
-        // (or `&`) codes are common, as are values derived from user-supplied
-        // strings (chat content, brand fragments). mmSafe converts both
-        // legacy syntaxes to MM tag pairs and escapes literal '<' / '>' so a
-        // crafted verbose can't inject MM tags into the rendered row.
-        // Suppressed when -v isn't set.
+        // component fragment serialised via LegacyComponentSerializer (so §
+        // / & codes are common), occasionally derived from user-supplied
+        // strings (chat content, brand fragments). mmSafe strips every
+        // legacy format code (§, &, hex variants) and escapes the MM tag
+        // opener so a crafted verbose can't inject formatting into the
+        // rendered row. Suppressed when -v isn't set.
         Component line = parse(sender, cfg, "grim-history-detail-entry",
                 "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
@@ -364,33 +368,51 @@ public final class HistoryComponentRenderer {
     }
 
     /**
-     * Normalise an untrusted leaf string into a MiniMessage-safe substitute.
-     * Callers must wrap stored values that originate outside the renderer
-     * (client brand, server name) before stuffing them into the var map for
-     * {@link #parse}. Trusted renderer-built MM fragments — {@code
-     * checks_list} composed from a config-keyed template, {@code
-     * crashed_marker} sourced from messages.yml — must NOT be passed through
-     * this helper, since the round-trip strips their MM tags as literal text.
+     * Render an untrusted leaf string as plain text, MiniMessage-escaped.
+     * Strips every form of formatting (legacy {@code §}-codes, ampersand
+     * {@code &}-codes, hex {@code &#RRGGBB} and Bedrock {@code &x&R&R…}
+     * forms) and escapes the MM tag-opener so the result cannot inject
+     * formatting downstream regardless of {@link MessageUtil#miniMessage}'s
+     * legacy + hex prepass.
      *
-     * <p>The pre-normalisation step translates legacy {@code &amp;}-codes to
-     * {@code §}-codes via {@link MessageUtil#translateAlternateColorCodes(char, String)}.
-     * V2's {@code MessageUtil.miniMessage} otherwise globally rewrites
-     * {@code &c} runs into MM tags AFTER var substitution, so an untrusted
-     * value containing {@code &c} would still inject formatting if the
-     * round-trip below saw only the {@code §}-form. Pre-translating brings
-     * both syntaxes through {@code LegacyComponentSerializer.legacySection}
-     * (which only recognises {@code §}). MM.serialize then re-emits the
-     * runs as MM tag pairs and escapes any literal {@code <} / {@code >}
-     * in the input.
+     * <p>Used on values that originate outside the renderer's trust
+     * boundary:
+     * <ul>
+     *   <li>{@code client_brand} — whatever the client sent on the
+     *       {@code minecraft:brand} plugin channel.</li>
+     *   <li>{@code verbose} — whatever a check wrote into the column.
+     *       Checks sometimes embed user-supplied text inside verbose
+     *       without sanitising.</li>
+     *   <li>{@code playerDisplayName} / {@code target} — operator-typed
+     *       on the command line; defence-in-depth so a hostile MM tag
+     *       in the typed target name can't poison header rendering.</li>
+     * </ul>
+     *
+     * <p>NOT used on trusted leaves: {@code server_name} and
+     * {@code grim_version} are operator-/server-configured and may
+     * legitimately contain operator-authored colours, so they pass
+     * through verbatim. Renderer-built fragments
+     * ({@code crashed_marker}, {@code checks_list}) also pass through.
      *
      * <p>{@code null} / empty input short-circuits to {@code ""}.
      */
     private static String mmSafe(@Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "";
-        String translated = MessageUtil.translateAlternateColorCodes('&', raw);
-        return MiniMessage.miniMessage().serialize(
-                LegacyComponentSerializer.legacySection().deserialize(translated));
+        String stripped = LEGACY_FORMAT_PATTERN.matcher(raw).replaceAll("");
+        // Escape backslash first so we don't double-process the backslash
+        // we add for '<'. MM treats '\<' as a literal '<' and '\\' as '\'.
+        return stripped.replace("\\", "\\\\").replace("<", "\\<");
     }
+
+    /**
+     * Matches any legacy format marker that V2's downstream
+     * {@link MessageUtil#miniMessage} pipeline would otherwise interpret as
+     * a colour / decoration run. Covers both {@code §} and {@code &} sigils,
+     * plain {@code [0-9A-Za-z]} format codes, and the two hex forms
+     * ({@code &#RRGGBB} and the Bedrock-style {@code &x&R&R&G&G&B&B}).
+     */
+    private static final Pattern LEGACY_FORMAT_PATTERN = Pattern.compile(
+            "[§&](?:[0-9A-Za-z]|#[A-Fa-f0-9]{6}|x(?:[§&][A-Fa-f0-9]){6})");
 
     public static @NotNull String formatDuration(long ms) {
         if (ms < 0) ms = 0;
