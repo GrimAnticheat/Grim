@@ -22,7 +22,9 @@ public class MultiActionsC extends Check implements PacketCheck {
     @Contract(pure = true)
     public static String getVerbose(@NotNull GrimPlayer player) {
         StringJoiner verbose = new StringJoiner(", ");
-        if (player.isSprinting && (!player.isSwimming || !player.clientClaimsLastOnGround)) {
+
+        // 1.21.5+: sprint status can desync in dummy vehicles :)
+        if (player.isSprinting && (!player.isSwimming || !player.clientClaimsLastOnGround) && !(player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && player.inVehicle())) {
             verbose.add("sprinting");
         }
 
@@ -41,8 +43,6 @@ public class MultiActionsC extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() != PacketType.Play.Client.CLICK_WINDOW) return;
         if (player.serverOpenedInventoryThisTick) return;
-        // 1.21.5+: sprint status can desync in dummy vehicles :)
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && player.inVehicle()) return;
 
         String verbose = getVerbose(player);
         if (verbose.isEmpty()) return;
