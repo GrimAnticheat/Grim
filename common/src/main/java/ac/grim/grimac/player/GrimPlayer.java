@@ -733,9 +733,16 @@ public class GrimPlayer implements GrimUser {
                 || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 
-    public void handleMountVehicle(int vehicleID) {
+    public void handleMountVehicle(int vehicleID, PacketSendEvent event) {
         compensatedEntities.serverPlayerVehicle = vehicleID;
         TrackerData data = compensatedEntities.getTrackedEntity(vehicleID);
+
+        event.getTasksAfterSend().add(() -> {
+            // Help prevent transaction split
+            sendTransaction();
+
+            latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> this.vehicleData.wasVehicleSwitch = true);
+        });
 
         if (data != null) {
             // If we actually need to check vehicle movement
@@ -750,15 +757,14 @@ public class GrimPlayer implements GrimUser {
                         EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_NAUTILUS)) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
-                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                    user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+
+                    event.getTasksAfterSend().add(() -> {
+                        user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(data.getX(), data.getY(), data.getZ()), yaw, pitch));
+                    });
                 }
             }
         }
-
-        // Help prevent transaction split
-        sendTransaction();
-
-        latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> this.vehicleData.wasVehicleSwitch = true);
     }
 
     public int getRidingVehicleId() {
@@ -785,9 +791,9 @@ public class GrimPlayer implements GrimUser {
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            // 1.21.5 introduced this again! (only in minecarts?)
+            // 1.21.5 introduced this again! (only in dummy vehicles?)
             if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
-                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && EntityTypes.MINECART == entityType)) {
+                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) /*&& (EntityTypes.MINECART == entityType || EntityTypes.PIG == entityType)*/)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });

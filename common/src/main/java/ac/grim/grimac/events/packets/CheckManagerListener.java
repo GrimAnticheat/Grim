@@ -487,8 +487,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), move.isOnGround(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
-
-            player.packetStateData.receivedSteerVehicle = false;
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {

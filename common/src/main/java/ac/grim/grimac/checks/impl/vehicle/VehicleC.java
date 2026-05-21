@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 
 @CheckData(name = "VehicleC", stableKey = "grim.vehicle.vehicle_control")
 public class VehicleC extends Check {
+    public boolean flaggedLastTick = false;
     public VehicleC(GrimPlayer player) {
         super(player);
     }

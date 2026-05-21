@@ -41,6 +41,8 @@ public class MultiActionsC extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() != PacketType.Play.Client.CLICK_WINDOW) return;
         if (player.serverOpenedInventoryThisTick) return;
+        // 1.21.5+: sprint status can desync in dummy vehicles :)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && player.inVehicle()) return;
 
         String verbose = getVerbose(player);
         if (verbose.isEmpty()) return;

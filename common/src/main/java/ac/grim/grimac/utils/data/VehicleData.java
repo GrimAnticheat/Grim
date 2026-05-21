@@ -23,6 +23,7 @@ public class VehicleData {
     public float vehicleForward = 0f;
     public boolean lastDummy = false;
     public boolean wasVehicleSwitch = false;
+    public Integer removedPlayerVehicleId = null;
     public float playerPitch = 0f;
     public float playerYaw = 0f;
     public final Deque<Pair<Integer, JumpableEntity>> pendingJumps = new ArrayDeque<>();

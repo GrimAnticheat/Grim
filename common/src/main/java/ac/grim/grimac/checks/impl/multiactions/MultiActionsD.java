@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "MultiActionsD", stableKey = "grim.multiactions.inventory_close_while_moving", description = "Closed inventory while moving")
 public class MultiActionsD extends Check implements PacketCheck {
@@ -17,6 +18,8 @@ public class MultiActionsD extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() != PacketType.Play.Client.CLOSE_WINDOW) return;
         if (player.serverOpenedInventoryThisTick) return;
+        // 1.21.5+: sprint status can desync in dummy vehicles :)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && player.inVehicle()) return;
 
         String verbose = MultiActionsC.getVerbose(player);
         if (verbose.isEmpty()) return;
