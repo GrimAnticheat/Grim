@@ -671,7 +671,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public EntityType getVehicleType() {
-        return inVehicle() ? getVehicle().type : null;
+        return inVehicle() ? getVehicle().getType() : null;
     }
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height

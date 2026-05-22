@@ -116,10 +116,10 @@ public class Reach extends Check implements PacketCheck {
         if (entity.isDead) return;
 
         // TODO: Remove when in front of via
-        if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
+        if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
             return;
         // Prevents Happy Ghast Reach false on 1.21.6+ servers with ViaBackwards set up
-        if (entity.type == EntityTypes.HAPPY_GHAST && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_6))
+        if (entity.getType() == EntityTypes.HAPPY_GHAST && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_6))
             return;
         if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
             return;
@@ -200,7 +200,7 @@ public class Reach extends Check implements PacketCheck {
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(PacketEntity reachEntity, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin) {
         // If the entity doesn't exist, or if it is exempt, or if it is dead
-        if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity) && reachEntity.type != EntityTypes.END_CRYSTAL)
+        if ((blacklisted.contains(reachEntity.getType()) || !reachEntity.isLivingEntity) && reachEntity.getType() != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
@@ -228,14 +228,14 @@ public class Reach extends Check implements PacketCheck {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, false);
             switch (result.type()) {
                 case REACH -> {
-                    String added = ", type=" + reachEntity.type.getName().getKey();
+                    String added = ", type=" + reachEntity.getType().getName().getKey();
                     if (reachEntity instanceof PacketEntitySizeable sizeable) {
                         added += ", size=" + sizeable.size;
                     }
                     flagAndAlert(result.verbose() + added);
                 }
                 case HITBOX -> {
-                    String added = "type=" + reachEntity.type.getName().getKey();
+                    String added = "type=" + reachEntity.getType().getName().getKey();
                     if (reachEntity instanceof PacketEntitySizeable sizeable) {
                         added += ", size=" + sizeable.size;
                     }
@@ -295,7 +295,7 @@ public class Reach extends Check implements PacketCheck {
         }
 
         // if the entity is not exempt and the entity is alive
-        if ((!blacklisted.contains(reachEntity.type) && reachEntity.isLivingEntity) || reachEntity.type == EntityTypes.END_CRYSTAL) {
+        if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity) || reachEntity.getType() == EntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return new CheckResult(ResultType.HITBOX, "");
@@ -311,7 +311,7 @@ public class Reach extends Check implements PacketCheck {
     }
 
     private SimpleCollisionBox getTargetBox(PacketEntity reachEntity) {
-        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+        if (reachEntity.getType() == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
             return new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
         }
         return reachEntity.getPossibleCollisionBoxes();

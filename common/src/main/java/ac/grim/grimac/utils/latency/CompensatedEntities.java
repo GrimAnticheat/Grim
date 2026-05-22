@@ -215,6 +215,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
         } else if (EntityTypes.ELDER_GUARDIAN.equals(entityType)) {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, true);
+        } else if (EntityTypes.SKELETON == entityType) {
+            packetEntity = new PacketEntitySkeleton(player, uuid, entityType, position.x, position.y, position.z);
         } else {
             packetEntity = new PacketEntity(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         }
@@ -260,7 +262,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
             } else {
-                id = 16 + (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0); // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY), for some reason, piglins have their own age metadata??
+                id = 16 + (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0); // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY), for some reason, piglins have their own age metadata??
             }
 
             // 1.14 good
@@ -339,7 +341,7 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable rideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                if (entity.type == EntityTypes.PIG) {
+                if (entity.getType() == EntityTypes.PIG) {
                     EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
                     if (pigSaddle != null) {
                         rideable.hasSaddle = ((byte) pigSaddle.getValue()) != 0;
@@ -355,7 +357,7 @@ public class CompensatedEntities {
                 offset = 1;
             }
 
-            if (entity.type == EntityTypes.PIG) {
+            if (entity.getType() == EntityTypes.PIG) {
                 // SADDLE removed in 1.21.5, shifting BOOST_TIME from 18→17.
                 // ageableOffset naturally cancels this out in 26.1 (BOOST_TIME back at 18).
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
@@ -471,7 +473,7 @@ public class CompensatedEntities {
             }
         }
 
-        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
+        if (entity.getType() == EntityTypes.FIREWORK_ROCKET) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
                 offset = 2;
@@ -556,6 +558,13 @@ public class CompensatedEntities {
             if (guardianByte != null) {
                 int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows it's an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
+            }
+        }
+
+        if (entity instanceof PacketEntitySkeleton skeleton && PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
+            EntityData<?> skeletonTypeObject = WatchableIndexUtil.getIndex(watchableObjects, 13);
+            if (skeletonTypeObject != null && skeletonTypeObject.getValue() instanceof Byte skeletonType) {
+                skeleton.isWitherSkeleton = skeletonType == 1;
             }
         }
     }

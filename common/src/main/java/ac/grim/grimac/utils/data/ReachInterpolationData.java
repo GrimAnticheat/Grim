@@ -57,7 +57,7 @@ public class ReachInterpolationData {
             interpolationSteps = 10;
         } else if (entity.isMinecart) {
             interpolationSteps = 5;
-        } else if (entity.type == EntityTypes.SHULKER) {
+        } else if (entity.getType() == EntityTypes.SHULKER) {
             interpolationSteps = 1;
         } else if (entity.isLivingEntity) {
             interpolationSteps = 3;

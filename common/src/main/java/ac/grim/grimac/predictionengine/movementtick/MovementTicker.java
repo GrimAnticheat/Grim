@@ -415,7 +415,7 @@ public class MovementTicker {
         if (player.wasTouchingWater && !player.isFlying) {
             // 0.8F seems hardcoded in
             // 1.13+ players on skeleton horses swim faster! Cool feature.
-            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().type == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
+            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().getType() == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : (isSkeletonHorse ? 0.96F : 0.8F);
             float swimSpeed = 0.02F;
 
@@ -501,7 +501,7 @@ public class MovementTicker {
 
         PacketEntity vehicle = player.getVehicle();
         double fluidHeight = player.getFluidHeight(FluidTag.WATER);
-        return EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type) && fluidHeight > 0.4;
+        return EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.getType()) && fluidHeight > 0.4;
     }
 
     private void floatInWaterWhileRidden() {
