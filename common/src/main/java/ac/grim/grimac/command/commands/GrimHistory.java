@@ -123,14 +123,14 @@ public class GrimHistory implements BuildableCommand {
         // List, page 1
         commandManager.command(
                 applyFilterFlags(commandManager, base.get())
-                        .handler(ctx -> handleListPage1(ctx, viaPlayer))
+                        .handler(this::handleListPage1)
         );
         // List, page N
         commandManager.command(
                 applyFilterFlags(commandManager, base.get()
                         .literal("page")
                         .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
-                        .handler(ctx -> handleListPageN(ctx, viaPlayer))
+                        .handler(this::handleListPageN)
         );
         // Help branch on bare 'session' — Cloud would otherwise reject with
         // a parse error that reads like a syntax mistake, not a hint.
@@ -181,23 +181,23 @@ public class GrimHistory implements BuildableCommand {
                         .withDescription(Description.of("Filter to violations whose display name OR verbose text matches this regex.")));
     }
 
-    private void handleListPage1(CommandContext<Sender> context, boolean viaPlayer) {
+    private void handleListPage1(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
         if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, 1, filter, viaPlayer));
+                renderList(sender, lifecycle, history, uuid, displayName, 1, filter));
     }
 
-    private void handleListPageN(CommandContext<Sender> context, boolean viaPlayer) {
+    private void handleListPageN(CommandContext<Sender> context) {
         Sender sender = context.sender();
         String target = context.get("target");
         int page = context.<Integer>get("page_number");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
         if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page), filter, viaPlayer));
+                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page), filter));
     }
 
     private void handleDetailDefaultPage(CommandContext<Sender> context) {
@@ -409,7 +409,7 @@ public class GrimHistory implements BuildableCommand {
 
     private void renderList(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
                             UUID uuid, String displayName, int page,
-                            @Nullable Predicate<ViolationEntry> filter, boolean viaPlayer) throws Exception {
+                            @Nullable Predicate<ViolationEntry> filter) throws Exception {
         int entriesPerPage = lifecycle.config().history().entriesPerPage();
         long totalSessions = history.countSessions(uuid).toCompletableFuture().get(5, TimeUnit.SECONDS);
         int maxPages = Math.max(1, (int) ((totalSessions + entriesPerPage - 1) / Math.max(1, entriesPerPage)));
@@ -428,7 +428,7 @@ public class GrimHistory implements BuildableCommand {
 
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
         List<Component> components = HistoryComponentRenderer.renderSessionList(
-                sender, uuid, displayName, page, maxPages, result, ongoingSessionId, viaPlayer);
+                sender, uuid, displayName, page, maxPages, result, ongoingSessionId);
         for (Component c : components) sender.sendMessage(c);
     }
 

@@ -38,9 +38,9 @@ public final class HistoryComponentRenderer {
      * Session-list view. {@code page} is 1-indexed; {@code maxPages} ≥ 1.
      * {@code ongoingSessionId} (optional) is the player's currently-active
      * sessionId from SessionTracker; the matching row shows "current" as its
-     * duration. {@code viaPlayerLiteral} routes the per-row click /
-     * copy-paste detail command through {@code /grim history player <target>}
-     * so a list opened via the disambiguator stays on that branch.
+     * duration. Per-row click / copy-paste detail commands always use the
+     * disambiguated {@code /grim history player <target>} form so a shared
+     * or re-run command can't dead-end on a literal-collision player name.
      */
     public static @NotNull List<Component> renderSessionList(
             @NotNull Sender sender,
@@ -49,8 +49,7 @@ public final class HistoryComponentRenderer {
             int page,
             int maxPages,
             @NotNull Page<SessionSummary> result,
-            @Nullable UUID ongoingSessionId,
-            boolean viaPlayerLiteral) {
+            @Nullable UUID ongoingSessionId) {
         ConfigManager cfg = GrimAPI.INSTANCE.getConfigManager().getConfig();
         String safePlayer = mmSafe(playerDisplayName);
         if (result.items().isEmpty()) {
@@ -72,13 +71,13 @@ public final class HistoryComponentRenderer {
                         "maxPages", maxPagesStr)));
         for (SessionSummary s : result.items()) {
             boolean ongoing = ongoingSessionId != null && ongoingSessionId.equals(s.sessionId());
-            out.add(renderSummaryLine(sender, cfg, s, ongoing, playerDisplayName, viaPlayerLiteral));
+            out.add(renderSummaryLine(sender, cfg, s, ongoing, playerDisplayName));
         }
         return out;
     }
 
     private static Component renderSummaryLine(Sender sender, ConfigManager cfg, SessionSummary s, boolean ongoing,
-                                               String playerDisplayName, boolean viaPlayerLiteral) {
+                                               String playerDisplayName) {
         long elapsedNow = Math.max(0, System.currentTimeMillis() - s.startedEpochMs());
         String durationText = ongoing
                 ? "current"
@@ -108,8 +107,7 @@ public final class HistoryComponentRenderer {
                         Map.entry("unique_checks", Integer.toString(s.uniqueCheckCount())),
                         Map.entry("crashed_marker", crashedMarker),
                         Map.entry("timeago", formatDuration(elapsedNow))));
-        String detailCommand = "/grim history " + (viaPlayerLiteral ? "player " : "")
-                + playerDisplayName + " session " + s.sessionOrdinal();
+        String detailCommand = "/grim history player " + playerDisplayName + " session " + s.sessionOrdinal();
         Component tooltip = Component.text()
                 .append(Component.text("Session ", NamedTextColor.AQUA))
                 .append(Component.text(s.sessionId().toString(), NamedTextColor.GRAY))
