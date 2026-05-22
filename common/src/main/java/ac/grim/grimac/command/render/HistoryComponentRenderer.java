@@ -28,21 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-/**
- * Converts {@link SessionSummary} / {@link SessionDetail} records returned by
- * {@link ac.grim.grimac.api.storage.history.HistoryService} into Adventure
- * {@link Component} trees for the plugin's command output. All presentation
- * text lives in {@code messages.yml} (see the {@code grim-history-*} keys),
- * so operators can recolour / reword the whole UI without touching code.
- * Hover tooltips are attached here directly from the raw data (verbose
- * strings, description one-liners, grouped check breakdowns).
- * <p>
- * The {@code grim-history-detail-entry} template accepts an optional
- * {@code %description%} variable — include it in your messages.yml when
- * you want the check's short description inlined in detailed-mode rows.
- * The default template omits it (to keep rows narrow); hover always
- * carries the description when the check has one declared.
- */
+/** Renders history service records into command output components. */
 public final class HistoryComponentRenderer {
 
     private HistoryComponentRenderer() {}
@@ -106,11 +92,7 @@ public final class HistoryComponentRenderer {
                         + " &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b"
                         + " violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)",
                 Map.ofEntries(
-                        // mmSafe wraps the truly-untrusted fields. server_name and
-                        // grim_version are operator-/server-configured (operators may
-                        // legitimately want colours), so they pass verbatim.
-                        // crashed_marker is a config-keyed legacy/MM fragment built
-                        // above and must NOT round-trip.
+                        // Only sanitize untrusted leaves; keep operator-configured fragments intact.
                         Map.entry("grim_version", nullToUnknown(s.grimVersion())),
                         Map.entry("server_name", nullToUnknown(s.serverName())),
                         Map.entry("client_version", clientVersionDisplay(s.clientVersion())),
@@ -171,11 +153,7 @@ public final class HistoryComponentRenderer {
         int page = pageArg == null ? maxPages : Math.max(1, Math.min(pageArg, maxPages));
 
         Map<String, String> metaVars = Map.ofEntries(
-                // mmSafe wraps the truly-untrusted leaves: %player% is
-                // operator-typed on the command line (defence in depth),
-                // %client_brand% is whatever the client sent on the
-                // minecraft:brand channel. server_name / grim_version are
-                // server/operator config and may legitimately contain colours.
+                // Only sanitize untrusted leaves; keep operator-configured fragments intact.
                 Map.entry("player", mmSafe(playerDisplayName)),
                 Map.entry("ordinal", Integer.toString(d.sessionOrdinal())),
                 Map.entry("grim_version", nullToUnknown(d.grimVersion())),
@@ -224,11 +202,7 @@ public final class HistoryComponentRenderer {
         for (CheckCount c : bucket.checks()) {
             if (!first) checksList.append("&7, ");
             first = false;
-            // Check display names come from CheckCount rows in the DB —
-            // most originate from internal Grim checks, but the
-            // AbstractCheck extension API + the v1-catalog repair path
-            // make plugin-authored names plausible. Defence-in-depth
-            // wrap so a hostile plugin can't paint formatting into rows.
+            // Check names can be plugin-authored; render them as plain text.
             checksList.append(cfg.getStringElse("grim-history-check-count",
                             "&f%check_name%&7 x&c%count%")
                     .replace("%check_name%", mmSafe(c.displayName()))
@@ -273,17 +247,7 @@ public final class HistoryComponentRenderer {
 
     private static Component renderViolationLine(Sender sender, ConfigManager cfg, ViolationEntry v, boolean verbose) {
         String verboseText = v.verbose() == null ? "" : v.verbose();
-        // verbose carries whatever the check wrote into the column — often a
-        // component fragment serialised via LegacyComponentSerializer (so §
-        // / & codes are common), occasionally derived from user-supplied
-        // strings (chat content, brand fragments). mmSafe strips every
-        // legacy format code (§, &, hex variants) and escapes the MM tag
-        // opener so a crafted verbose can't inject formatting into the
-        // rendered row. Suppressed when -v isn't set.
-        // Check display names + descriptions come from CheckCount rows —
-        // built-ins are trusted but plugin-authored AbstractCheck
-        // metadata can flow through here. mmSafe-defend so a hostile
-        // check can't paint formatting into the per-violation row.
+        // Verbose/check metadata can include user or plugin text; render substitutions as plain text.
         Component line = parse(sender, cfg, "grim-history-detail-entry",
                 "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
@@ -376,67 +340,20 @@ public final class HistoryComponentRenderer {
         return MessageUtil.miniMessage(raw);
     }
 
-    /**
-     * Render an untrusted leaf string as plain text, MiniMessage-escaped.
-     * Strips every form of formatting (legacy {@code §}-codes, ampersand
-     * {@code &}-codes, hex {@code &#RRGGBB} and Bedrock {@code &x&R&R…}
-     * forms) and escapes the MM tag-opener so the result cannot inject
-     * formatting downstream regardless of {@link MessageUtil#miniMessage}'s
-     * legacy + hex prepass.
-     *
-     * <p>Used on values that originate outside the renderer's trust
-     * boundary:
-     * <ul>
-     *   <li>{@code client_brand} — whatever the client sent on the
-     *       {@code minecraft:brand} plugin channel.</li>
-     *   <li>{@code verbose} — whatever a check wrote into the column.
-     *       Checks sometimes embed user-supplied text inside verbose
-     *       without sanitising.</li>
-     *   <li>{@code playerDisplayName} / {@code target} — operator-typed
-     *       on the command line; defence-in-depth so a hostile MM tag
-     *       in the typed target name can't poison header rendering.</li>
-     * </ul>
-     *
-     * <p>NOT used on trusted leaves: {@code server_name} and
-     * {@code grim_version} are operator-/server-configured and may
-     * legitimately contain operator-authored colours, so they pass
-     * through verbatim. Renderer-built fragments
-     * ({@code crashed_marker}, {@code checks_list}) also pass through.
-     *
-     * <p>{@code null} / empty input short-circuits to {@code ""}.
-     */
+    /** Renders untrusted template values as plain text before MiniMessage parsing. */
     private static String mmSafe(@Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "";
-        // Order matters: strip '%' BEFORE legacy markers. A payload like
-        // "&%c" otherwise sneaks past — LEGACY_FORMAT_PATTERN doesn't
-        // match "&%" (% is not a colour code), then a subsequent %-strip
-        // would re-fuse "&c" which MessageUtil.miniMessage's downstream
-        // legacy → MM conversion would then interpret as red. Killing
-        // '%' first also nukes the %prefix% / %grim_version% /
-        // operator-registered variable expansion bypass (those names
-        // run through MessageUtil.replacePlaceholders and
-        // MessageUtil.miniMessage's own prefix pass after substitution).
+        // Strip '%' first so '&%c' cannot become '&c' after placeholder removal.
         String stripped = LEGACY_FORMAT_PATTERN.matcher(
                 raw.replace("%", "")).replaceAll("");
-        // Backslash and '<' are escaped (MM treats '\<' as a literal
-        // '<' and '\\' as a literal '\'); the backslash escape must
-        // run first so we don't double-process the backslash we add
-        // for '<'.
+        // Escape backslash before '<' so the added escape isn't itself escaped.
         return stripped
                 .replace("\\", "\\\\")
                 .replace("<", "\\<");
     }
 
-    /**
-     * Matches any legacy Minecraft format marker that V2's downstream
-     * {@link MessageUtil#miniMessage} pipeline would otherwise interpret as
-     * a colour / decoration run. Restricted to the canonical legacy
-     * alphabet (digits, {@code a-f} colours, {@code k-o} decorations,
-     * {@code r} reset, {@code x} hex marker) so innocent text like
-     * {@code AT&T} or {@code R&D} survives untouched. Covers both sigils
-     * and both hex forms (the {@code &#RRGGBB} literal form and the
-     * Bedrock-style {@code &x&R&R&G&G&B&B} interleave).
-     */
+    // Canonical legacy alphabet only — leaves AT&T / R&D alone.
+    // Covers §/& sigils, &#RRGGBB hex, and the Bedrock &x&R&R… interleave.
     private static final Pattern LEGACY_FORMAT_PATTERN = Pattern.compile(
             "[§&](?:[0-9a-fk-orxA-FK-ORX]|#[A-Fa-f0-9]{6}|x(?:[§&][A-Fa-f0-9]){6})");
 

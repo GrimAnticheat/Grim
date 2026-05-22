@@ -52,51 +52,18 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * {@code /grim history} UI entry.
- * <p>
- * Command tree (sibling shapes disambiguated by the literal that follows
- * {@code <target>}):
  * <pre>
- *   /grim history &lt;target&gt;
- *       → session list, page 1
- *   /grim history &lt;target&gt; page &lt;P&gt;
- *       → session list, page P
- *   /grim history &lt;target&gt; session
- *       → printable help menu for the session subcommand (no ordinal supplied).
- *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; [-d] [-v]
- *       → session detail for "Session N" (global chronological, Session 1 = oldest).
- *         {@code latest} / {@code last} / {@code l} are aliases for the most
- *         recent session.
- *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; page &lt;P&gt; [-d] [-v]
- *       → session detail, violation page P.
- *   /grim history player &lt;target&gt; ...
- *       → disambiguated form for players whose name collides with a sibling
- *         literal of {@code <target>}. Today the only such collisions are
- *         {@code repair} and {@code player} itself; {@code page} and
- *         {@code session} live below {@code <target>} and are still reachable
- *         through the bare form. Cloud matches literals greedily before String
- *         parsers, so without the {@code player} escape hatch an operator can
- *         never address a player legitimately named {@code repair}.
+ *   /grim history &lt;target&gt;                                 → list, page 1
+ *   /grim history &lt;target&gt; page &lt;P&gt;                          → list, page P
+ *   /grim history &lt;target&gt; session                          → help menu
+ *   /grim history &lt;target&gt; session &lt;N|latest&gt; [-d] [-v]     → detail
+ *   /grim history &lt;target&gt; session &lt;N|latest&gt; page &lt;P&gt; [-d] [-v]
+ *   /grim history player &lt;target&gt; ...                       → disambiguated form
+ *   /grim history repair check-ids                           → in-place repair
  * </pre>
- * The {@code session} literal leaves the slot after {@code <target>} open for
- * future top-level subcommands (e.g. {@code violations}, {@code summary}) —
- * adding one is a matter of registering another sibling builder with its own
- * literal. Cloud will disambiguate on the literal token without ambiguity.
- * <p>
- * Flags: {@code --detailed}/{@code -d} shows raw violations one-per-row instead
- * of time-bucketed groups; {@code --verbose}/{@code -v} inlines verbose text
- * (full verbose always on hover). {@code --name <regex>}, {@code --match
- * <regex>} and {@code --grep <regex>} narrow the displayed violations
- * (display name, verbose text, or either) and apply to both list and detail
- * views — combining flags ANDs them.
- * <p>
- * Autocompletion on {@code <session>} and {@code <page>} is constrained to the
- * actual valid range for the player in context (computed via
- * {@code countSessions} / violations count), so tab-complete never offers
- * numbers that'd error out.
- * <p>
- * Player history reads run synchronously so RCON callers keep their reply
- * channel. The repair subcommand schedules its database work asynchronously.
+ * {@code latest} / {@code last} / {@code l} alias the most-recent session.
+ * Flags: {@code -d} raw rows, {@code -v} inline verbose, {@code --name} /
+ * {@code --match} / {@code --grep} regex filters (AND-composed).
  */
 public class GrimHistory implements BuildableCommand {
 
@@ -122,17 +89,9 @@ public class GrimHistory implements BuildableCommand {
                         .handler(this::handleRepairCheckIds)
         );
 
-        // The five history-view branches live under both prefixes:
-        //   /grim history <target> ...                — ambiguous form
-        //   /grim history player <target> ...         — disambiguated form
-        // The escape hatch only matters for siblings of <target> — literals
-        // that share the slot the String parser would otherwise match. Today
-        // that's 'repair' (the repair subcommand) and 'player' itself.
-        // 'page' and 'session' live below <target>, so a player legitimately
-        // named 'page' or 'session' is still reachable through the bare
-        // form; only first-token collisions need the disambiguator. Cloud
-        // matches literals greedily before String parsers, so without 'player'
-        // an operator can never address a player legitimately named 'repair'.
+        // Bare + 'player'-prefixed forms; the prefix is the escape hatch
+        // for players whose name collides with a sibling literal at the
+        // same tree depth (today: 'repair', 'player').
         registerHistoryViewBranches(commandManager, false,
                 targetSuggestions, listPageNumberSuggestions,
                 sessionOrdinalSuggestions, violationPageSuggestions);
@@ -141,19 +100,7 @@ public class GrimHistory implements BuildableCommand {
                 sessionOrdinalSuggestions, violationPageSuggestions);
     }
 
-    /**
-     * Registers the five history-view branches (list-page-1, list-page-N,
-     * session-help, detail-default-page, detail-page-N) under either the
-     * bare {@code /grim history <target>} prefix or the explicit
-     * {@code /grim history player <target>} prefix. The {@code player}
-     * literal exists for first-token collisions only — siblings of
-     * {@code <target>} at the same tree depth (currently {@code repair}
-     * and {@code player} itself). {@code page} and {@code session} live
-     * below {@code <target>} so players with those names still resolve
-     * through the bare form. Cloud matches literals greedily before String
-     * parsers, so without the escape hatch a player legitimately named
-     * {@code repair} would be unreachable.
-     */
+    /** Registers the bare or {@code player}-prefixed view branches. */
     private void registerHistoryViewBranches(
             CommandManager<Sender> commandManager,
             boolean withPlayerLiteral,
@@ -161,10 +108,7 @@ public class GrimHistory implements BuildableCommand {
             SuggestionProvider<Sender> listPageNumberSuggestions,
             SuggestionProvider<Sender> sessionOrdinalSuggestions,
             SuggestionProvider<Sender> violationPageSuggestions) {
-        // Lambda factory so each branch starts from a fresh builder — Cloud
-        // builders are not designed to be reused across .command() calls;
-        // calling .literal() twice on the same builder cross-pollinates the
-        // sibling branches.
+        // Fresh builder per branch — reusing one cross-pollinates siblings.
         java.util.function.Supplier<Command.Builder<Sender>> base = () -> {
             Command.Builder<Sender> b = commandManager.commandBuilder("grim", "grimac")
                     .literal("history", "hist")
@@ -173,11 +117,7 @@ public class GrimHistory implements BuildableCommand {
             return b.required("target", StringParser.stringParser(), targetSuggestions);
         };
 
-        // Capture the registration form so the help-branch examples printed
-        // by handleSessionHelp echo the same prefix the operator dispatched
-        // on. (V2's session-list rows attach hover hints with a UUID-prefix
-        // copy-paste form, not a clickEvent.runCommand, so the click-routing
-        // issue raised by codex for V3 doesn't apply to this renderer.)
+        // handleSessionHelp echoes whichever prefix was used.
         final boolean viaPlayer = withPlayerLiteral;
 
         // List, page 1
@@ -192,19 +132,14 @@ public class GrimHistory implements BuildableCommand {
                         .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
                         .handler(this::handleListPageN)
         );
-        // Help branch: /grim history <target> session  (no ordinal). Cloud
-        // would otherwise refuse dispatch here with a parse error pointing
-        // at the missing required argument, which most operators read as a
-        // syntax mistake rather than a hint to discover the feature.
+        // Help branch on bare 'session' — Cloud would otherwise reject with
+        // a parse error that reads like a syntax mistake, not a hint.
         commandManager.command(
                 base.get().literal("session")
                         .handler(ctx -> handleSessionHelp(ctx, viaPlayer))
         );
-        // Detail (default violation page). The `session` literal lives at the
-        // same tree slot as `page` above; Cloud picks the branch by exact
-        // match. The session-ordinal arg is a String parser so it can accept
-        // the "latest" / "last" / "l" aliases alongside plain integers — the
-        // handler resolves them via resolveSessionOrdinal().
+        // 'session' literal at the same tree slot as 'page'; session-ordinal is
+        // String so it accepts 'latest' / 'last' / 'l' alongside integers.
         commandManager.command(
                 applyFilterFlags(commandManager, base.get()
                         .literal("session")
@@ -230,12 +165,7 @@ public class GrimHistory implements BuildableCommand {
         );
     }
 
-    /**
-     * Attach the three regex-filter flags ({@code --name}, {@code --match},
-     * {@code --grep}) to a command builder. Shared across all four branches
-     * — declarative cloud builders need the flags repeated per branch, but
-     * the bodies are identical, so we centralise.
-     */
+    /** Attach the {@code --name} / {@code --match} / {@code --grep} regex flags. */
     private static Command.Builder<Sender> applyFilterFlags(
             CommandManager<Sender> commandManager,
             Command.Builder<Sender> b) {
@@ -318,15 +248,7 @@ public class GrimHistory implements BuildableCommand {
         });
     }
 
-    /**
-     * Help branch — fires on {@code /grim history <target> session} with no
-     * ordinal after {@code session}. Cloud would otherwise refuse dispatch
-     * here with the stock "missing required argument: session" message,
-     * which most operators read as a parse error rather than a hint that
-     * they need to discover the feature. Prints the actual usage + every
-     * flag inline so they don't have to switch to {@code /grim help} to
-     * learn the syntax.
-     */
+    /** Prints usage for {@code /grim history <target> session} without an ordinal. */
     private void handleSessionHelp(CommandContext<Sender> ctx, boolean viaPlayer) {
         Sender sender = ctx.sender();
         String target = ctx.get("target");
@@ -367,34 +289,14 @@ public class GrimHistory implements BuildableCommand {
                 .append(Component.text(" session 1 --grep reach", NamedTextColor.GRAY)));
     }
 
-    /**
-     * Sentinel returned by {@link #parseFilterFromContext(Sender, CommandContext)}
-     * when the operator supplied an invalid regex. Handlers compare the
-     * return value against this with {@code ==} to distinguish "no filter"
-     * (null) from "user error already messaged" (this sentinel) before
-     * dispatching to {@code runWithPrelude} — saves a separate boolean
-     * field on each handler.
-     */
+    /** Sentinel: invalid regex, sender already messaged. Distinguished from null ("no filter") with {@code ==}. */
     private static final Predicate<ViolationEntry> FILTER_ERROR = v -> false;
 
     /**
-     * Build a {@link ViolationEntry} predicate from the three filter flags.
-     *
-     * <ul>
-     *   <li>{@code --name <regex>} — matches the violation's display name.</li>
-     *   <li>{@code --match <regex>} — matches the verbose string. Rows with
-     *       {@code null} verbose drop when this flag is set.</li>
-     *   <li>{@code --grep <regex>} — grep-style: matches if EITHER display
-     *       name OR verbose hits.</li>
-     * </ul>
-     *
-     * <p>Combining flags ANDs them — each flag is an independent narrowing
-     * step. All three use {@link Pattern#CASE_INSENSITIVE} so the operator
-     * doesn't have to think about casing.
-     *
-     * <p>Returns {@code null} when no filter flag is set so callers can
-     * short-circuit; returns {@link #FILTER_ERROR} after sending an error
-     * message to the sender if a regex fails to compile.
+     * Build the violation predicate from {@code --name} (display name),
+     * {@code --match} (verbose), {@code --grep} (either). Case-insensitive,
+     * AND-composed. Null = no filter; {@link #FILTER_ERROR} = bad regex,
+     * sender already messaged.
      */
     private static @Nullable Predicate<ViolationEntry> parseFilterFromContext(Sender sender, CommandContext<Sender> ctx) {
         Pattern namePat;
@@ -448,12 +350,7 @@ public class GrimHistory implements BuildableCommand {
         }
     }
 
-    /**
-     * Translates the {@code session} argument — either a positive integer, the
-     * literal "latest" / "last" / "l", or {@code null}-ish — into a global session
-     * ordinal. Returns {@code null} when the target has no sessions or the input
-     * is unparseable.
-     */
+    /** Resolves a positive integer, {@code latest}/{@code last}/{@code l}, or null. */
     private static @Nullable Integer resolveSessionOrdinal(String raw, UUID uuid, HistoryService history)
             throws Exception {
         if (raw == null) return null;
@@ -765,17 +662,9 @@ public class GrimHistory implements BuildableCommand {
     // ---- suggestion providers ----
 
     /**
-     * Merged online + offline player suggestions for the {@code <target>} argument.
-     * <p>
-     * Empty prefix: online players only (skips the datastore to avoid
-     * enumerating every historical player). Non-empty prefix: online players
-     * first, then offline matches from the datastore sorted by {@code last_seen}
-     * descending, merged case-insensitively. Combined result is capped at
-     * {@link #MAX_PLAYER_SUGGESTIONS}.
-     * <p>
-     * Permission-gated by the surrounding {@code grim.history} permission on
-     * the command itself; Cloud never invokes suggestions for a sender that
-     * can't execute the command.
+     * Online players + offline name-prefix matches from the datastore
+     * (sorted by {@code last_seen} desc). Empty prefix skips the offline
+     * lookup. Capped at {@link #MAX_PLAYER_SUGGESTIONS}.
      */
     private static SuggestionProvider<Sender> targetSuggestions(CloudCommandAdapter adapter) {
         SuggestionProvider<Sender> onlineProvider = adapter.onlinePlayerSuggestions();
