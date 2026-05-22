@@ -123,14 +123,14 @@ public class GrimHistory implements BuildableCommand {
         // List, page 1
         commandManager.command(
                 applyFilterFlags(commandManager, base.get())
-                        .handler(this::handleListPage1)
+                        .handler(ctx -> handleListPage1(ctx, viaPlayer))
         );
         // List, page N
         commandManager.command(
                 applyFilterFlags(commandManager, base.get()
                         .literal("page")
                         .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
-                        .handler(this::handleListPageN)
+                        .handler(ctx -> handleListPageN(ctx, viaPlayer))
         );
         // Help branch on bare 'session' — Cloud would otherwise reject with
         // a parse error that reads like a syntax mistake, not a hint.
@@ -181,28 +181,23 @@ public class GrimHistory implements BuildableCommand {
                         .withDescription(Description.of("Filter to violations whose display name OR verbose text matches this regex.")));
     }
 
-    // List handlers don't need the viaPlayer flag — V2's renderSummaryLine
-    // attaches a hover hint with a UUID-prefix copy-paste form (not a
-    // clickEvent.runCommand), so the V3 click-routing issue with the
-    // disambiguated form doesn't apply here. Only handleSessionHelp needs
-    // to know which prefix the operator dispatched on.
-    private void handleListPage1(CommandContext<Sender> context) {
+    private void handleListPage1(CommandContext<Sender> context, boolean viaPlayer) {
         Sender sender = context.sender();
         String target = context.get("target");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
         if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, 1, filter));
+                renderList(sender, lifecycle, history, uuid, displayName, 1, filter, viaPlayer));
     }
 
-    private void handleListPageN(CommandContext<Sender> context) {
+    private void handleListPageN(CommandContext<Sender> context, boolean viaPlayer) {
         Sender sender = context.sender();
         String target = context.get("target");
         int page = context.<Integer>get("page_number");
         Predicate<ViolationEntry> filter = parseFilterFromContext(sender, context);
         if (filter == FILTER_ERROR) return;
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) ->
-                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page), filter));
+                renderList(sender, lifecycle, history, uuid, displayName, Math.max(1, page), filter, viaPlayer));
     }
 
     private void handleDetailDefaultPage(CommandContext<Sender> context) {
@@ -414,7 +409,7 @@ public class GrimHistory implements BuildableCommand {
 
     private void renderList(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
                             UUID uuid, String displayName, int page,
-                            @Nullable Predicate<ViolationEntry> filter) throws Exception {
+                            @Nullable Predicate<ViolationEntry> filter, boolean viaPlayer) throws Exception {
         int entriesPerPage = lifecycle.config().history().entriesPerPage();
         long totalSessions = history.countSessions(uuid).toCompletableFuture().get(5, TimeUnit.SECONDS);
         int maxPages = Math.max(1, (int) ((totalSessions + entriesPerPage - 1) / Math.max(1, entriesPerPage)));
@@ -433,7 +428,7 @@ public class GrimHistory implements BuildableCommand {
 
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
         List<Component> components = HistoryComponentRenderer.renderSessionList(
-                sender, uuid, displayName, page, maxPages, result, ongoingSessionId);
+                sender, uuid, displayName, page, maxPages, result, ongoingSessionId, viaPlayer);
         for (Component c : components) sender.sendMessage(c);
     }
 

@@ -12,6 +12,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,9 @@ public final class HistoryComponentRenderer {
      * Session-list view. {@code page} is 1-indexed; {@code maxPages} ≥ 1.
      * {@code ongoingSessionId} (optional) is the player's currently-active
      * sessionId from SessionTracker; the matching row shows "current" as its
-     * duration.
+     * duration. {@code viaPlayerLiteral} routes the per-row click /
+     * copy-paste detail command through {@code /grim history player <target>}
+     * so a list opened via the disambiguator stays on that branch.
      */
     public static @NotNull List<Component> renderSessionList(
             @NotNull Sender sender,
@@ -46,7 +49,8 @@ public final class HistoryComponentRenderer {
             int page,
             int maxPages,
             @NotNull Page<SessionSummary> result,
-            @Nullable UUID ongoingSessionId) {
+            @Nullable UUID ongoingSessionId,
+            boolean viaPlayerLiteral) {
         ConfigManager cfg = GrimAPI.INSTANCE.getConfigManager().getConfig();
         String safePlayer = mmSafe(playerDisplayName);
         if (result.items().isEmpty()) {
@@ -68,12 +72,13 @@ public final class HistoryComponentRenderer {
                         "maxPages", maxPagesStr)));
         for (SessionSummary s : result.items()) {
             boolean ongoing = ongoingSessionId != null && ongoingSessionId.equals(s.sessionId());
-            out.add(renderSummaryLine(sender, cfg, s, ongoing));
+            out.add(renderSummaryLine(sender, cfg, s, ongoing, playerDisplayName, viaPlayerLiteral));
         }
         return out;
     }
 
-    private static Component renderSummaryLine(Sender sender, ConfigManager cfg, SessionSummary s, boolean ongoing) {
+    private static Component renderSummaryLine(Sender sender, ConfigManager cfg, SessionSummary s, boolean ongoing,
+                                               String playerDisplayName, boolean viaPlayerLiteral) {
         long elapsedNow = Math.max(0, System.currentTimeMillis() - s.startedEpochMs());
         String durationText = ongoing
                 ? "current"
@@ -103,18 +108,19 @@ public final class HistoryComponentRenderer {
                         Map.entry("unique_checks", Integer.toString(s.uniqueCheckCount())),
                         Map.entry("crashed_marker", crashedMarker),
                         Map.entry("timeago", formatDuration(elapsedNow))));
-        // Hover tooltip — click-hint plus raw session metadata that doesn't fit on the line.
+        String detailCommand = "/grim history " + (viaPlayerLiteral ? "player " : "")
+                + playerDisplayName + " session " + s.sessionOrdinal();
         Component tooltip = Component.text()
                 .append(Component.text("Session ", NamedTextColor.AQUA))
                 .append(Component.text(s.sessionId().toString(), NamedTextColor.GRAY))
                 .append(Component.newline())
-                .append(Component.text("Click (when supported) or run ", NamedTextColor.GRAY))
-                .append(Component.text("/grim history " + shortName(s.playerUuid()) + " session " + s.sessionOrdinal(),
-                        NamedTextColor.YELLOW))
+                .append(Component.text("Click or run ", NamedTextColor.GRAY))
+                .append(Component.text(detailCommand, NamedTextColor.YELLOW))
                 .append(Component.newline())
                 .append(Component.text("to view session details.", NamedTextColor.GRAY))
                 .build();
-        return line.hoverEvent(HoverEvent.showText(tooltip));
+        return line.hoverEvent(HoverEvent.showText(tooltip))
+                .clickEvent(ClickEvent.runCommand(detailCommand));
     }
 
     /**
@@ -391,7 +397,4 @@ public final class HistoryComponentRenderer {
         }
     }
 
-    private static String shortName(UUID u) {
-        return u.toString().substring(0, 8);
-    }
 }
