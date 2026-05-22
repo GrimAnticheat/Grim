@@ -49,6 +49,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
 public class MovementCheckRunner extends Check implements PositionCheck {
@@ -238,7 +239,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
                 // We can only trust data sent by the server, so teleport player to a last position, as cheater can spoof position however they like
                 player.user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(player.lastX, player.lastY, player.lastZ), player.yaw, player.pitch));
-//                player.user.sendPacket(new WrapperPlayServerEntityVelocity(player.getRidingVehicleId(), new Vector3d()));
+                player.user.sendPacketSilently(new WrapperPlayServerEntityVelocity(player.getRidingVehicleId(), new Vector3d()));
             } else {
                 player.getSetbackTeleportUtil().executeForceResync();
                 handleTeleport(update);

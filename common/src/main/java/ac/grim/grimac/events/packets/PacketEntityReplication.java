@@ -27,7 +27,6 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAttachEntity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEffect;
@@ -50,6 +49,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPainting;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 
 import java.util.ArrayList;
@@ -455,6 +455,8 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         });
     }
 
+    private static final boolean SUPPORTS_ENTITY_POSITION_SYNC = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos, boolean onGround) {
         TrackerData data = player.compensatedEntities.getTrackedEntity(entityId);
 
@@ -484,7 +486,19 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
                         && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
 
-                /*if (vanillaVehicleFlight) {
+                if (vanillaVehicleFlight && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, onGround));
+                    event.setCancelled(true);
+                    return;
+                }
+
+                if (vanillaVehicleFlight && SUPPORTS_ENTITY_POSITION_SYNC && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+                    player.user.writePacket(new WrapperPlayServerEntityPositionSync(entityId, new EntityPositionData(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), Vector3d.zero(), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch), onGround));
+                    event.setCancelled(true);
+                    return;
+                }
+
+                if (vanillaVehicleFlight) {
                     if (!player.inVehicle()) {
                         player.user.writePacket(new WrapperPlayServerVehicleMove(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch));
                     }
@@ -492,15 +506,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                     if (player.vehicleData.lastDummy) {
                         player.user.writePacket(new WrapperPlayServerVehicleMove(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch));
                     }
-                }*/
-
-                if (vanillaVehicleFlight /*&& PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)*/) {
-                    PacketWrapper<?> packet = player.getClientVersion().isNewerThan(ClientVersion.V_1_21_2) // TODO: server check? this will break, is there a way to send this packet after via?
-                            ? new WrapperPlayServerEntityPositionSync(entityId, new EntityPositionData(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), new Vector3d(), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch), onGround)
-                            : new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, onGround);
-                    player.user.writePacket(packet);
-                    event.setCancelled(true);
-                    return;
                 }
 
                 data.setX(data.getX() + deltaX);
