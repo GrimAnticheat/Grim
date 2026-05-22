@@ -12,6 +12,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
@@ -23,25 +24,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-/**
- * Converts {@link SessionSummary} / {@link SessionDetail} records returned by
- * {@link ac.grim.grimac.api.storage.history.HistoryService} into Adventure
- * {@link Component} trees for the plugin's command output. All presentation
- * text lives in {@code messages.yml} (see the {@code grim-history-*} keys),
- * so operators can recolour / reword the whole UI without touching code.
- * Hover tooltips are attached here directly from the raw data (verbose
- * strings, description one-liners, grouped check breakdowns).
- * <p>
- * The {@code grim-history-detail-entry} template accepts an optional
- * {@code %description%} variable — include it in your messages.yml when
- * you want the check's short description inlined in detailed-mode rows.
- * The default template omits it (to keep rows narrow); hover always
- * carries the description when the check has one declared.
- */
+/** Renders history service records into command output components. */
 public final class HistoryComponentRenderer {
 
     private HistoryComponentRenderer() {}
@@ -50,7 +38,9 @@ public final class HistoryComponentRenderer {
      * Session-list view. {@code page} is 1-indexed; {@code maxPages} ≥ 1.
      * {@code ongoingSessionId} (optional) is the player's currently-active
      * sessionId from SessionTracker; the matching row shows "current" as its
-     * duration.
+     * duration. Per-row click / copy-paste detail commands always use the
+     * disambiguated {@code /grim history player <target>} form so a shared
+     * or re-run command can't dead-end on a literal-collision player name.
      */
     public static @NotNull List<Component> renderSessionList(
             @NotNull Sender sender,
@@ -61,10 +51,11 @@ public final class HistoryComponentRenderer {
             @NotNull Page<SessionSummary> result,
             @Nullable UUID ongoingSessionId) {
         ConfigManager cfg = GrimAPI.INSTANCE.getConfigManager().getConfig();
+        String safePlayer = mmSafe(playerDisplayName);
         if (result.items().isEmpty()) {
             return List.of(parse(sender, cfg, "grim-history-no-sessions",
                     "%prefix% &7No session history for &f%player%&7.",
-                    Map.of("player", playerDisplayName)));
+                    Map.of("player", safePlayer)));
         }
         List<Component> out = new ArrayList<>(result.items().size() + 1);
         // Emit both %max_pages% (new) and %maxPages% (pre-cutover spelling) so
@@ -74,18 +65,19 @@ public final class HistoryComponentRenderer {
         out.add(parse(sender, cfg, "grim-history-header",
                 "%prefix% &bShowing session history for &f%player% &8[&f%page%&7/&f%max_pages%&8]",
                 Map.of(
-                        "player", playerDisplayName,
+                        "player", safePlayer,
                         "page", Integer.toString(page),
                         "max_pages", maxPagesStr,
                         "maxPages", maxPagesStr)));
         for (SessionSummary s : result.items()) {
             boolean ongoing = ongoingSessionId != null && ongoingSessionId.equals(s.sessionId());
-            out.add(renderSummaryLine(sender, cfg, s, ongoing));
+            out.add(renderSummaryLine(sender, cfg, s, ongoing, playerDisplayName));
         }
         return out;
     }
 
-    private static Component renderSummaryLine(Sender sender, ConfigManager cfg, SessionSummary s, boolean ongoing) {
+    private static Component renderSummaryLine(Sender sender, ConfigManager cfg, SessionSummary s, boolean ongoing,
+                                               String playerDisplayName) {
         long elapsedNow = Math.max(0, System.currentTimeMillis() - s.startedEpochMs());
         String durationText = ongoing
                 ? "current"
@@ -100,32 +92,33 @@ public final class HistoryComponentRenderer {
                 ? cfg.getStringElse("grim-history-crashed-marker", " &8(&ccrashed&8)")
                 : "";
         Component line = parse(sender, cfg, "grim-history-session",
-                "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8]"
+                "&8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8]"
                         + " &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b"
                         + " violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)",
                 Map.ofEntries(
+                        // Only sanitize untrusted leaves; keep operator-configured fragments intact.
                         Map.entry("grim_version", nullToUnknown(s.grimVersion())),
                         Map.entry("server_name", nullToUnknown(s.serverName())),
                         Map.entry("client_version", clientVersionDisplay(s.clientVersion())),
-                        Map.entry("client_brand", nullToUnknown(s.clientBrand())),
+                        Map.entry("client_brand", mmSafe(nullToUnknown(s.clientBrand()))),
                         Map.entry("ordinal", Integer.toString(s.sessionOrdinal())),
                         Map.entry("duration", durationText),
                         Map.entry("violations", Long.toString(s.violationCount())),
                         Map.entry("unique_checks", Integer.toString(s.uniqueCheckCount())),
                         Map.entry("crashed_marker", crashedMarker),
                         Map.entry("timeago", formatDuration(elapsedNow))));
-        // Hover tooltip — click-hint plus raw session metadata that doesn't fit on the line.
+        String detailCommand = "/grim history player " + playerDisplayName + " session " + s.sessionOrdinal();
         Component tooltip = Component.text()
                 .append(Component.text("Session ", NamedTextColor.AQUA))
                 .append(Component.text(s.sessionId().toString(), NamedTextColor.GRAY))
                 .append(Component.newline())
-                .append(Component.text("Click (when supported) or run ", NamedTextColor.GRAY))
-                .append(Component.text("/grim history " + shortName(s.playerUuid()) + " session " + s.sessionOrdinal(),
-                        NamedTextColor.YELLOW))
+                .append(Component.text("Click or run ", NamedTextColor.GRAY))
+                .append(Component.text(detailCommand, NamedTextColor.YELLOW))
                 .append(Component.newline())
                 .append(Component.text("to view session details.", NamedTextColor.GRAY))
                 .build();
-        return line.hoverEvent(HoverEvent.showText(tooltip));
+        return line.hoverEvent(HoverEvent.showText(tooltip))
+                .clickEvent(ClickEvent.runCommand(detailCommand));
     }
 
     /**
@@ -164,12 +157,13 @@ public final class HistoryComponentRenderer {
         int page = pageArg == null ? maxPages : Math.max(1, Math.min(pageArg, maxPages));
 
         Map<String, String> metaVars = Map.ofEntries(
-                Map.entry("player", playerDisplayName),
+                // Only sanitize untrusted leaves; keep operator-configured fragments intact.
+                Map.entry("player", mmSafe(playerDisplayName)),
                 Map.entry("ordinal", Integer.toString(d.sessionOrdinal())),
                 Map.entry("grim_version", nullToUnknown(d.grimVersion())),
                 Map.entry("server_name", nullToUnknown(d.serverName())),
                 Map.entry("client_version", clientVersionDisplay(d.clientVersion())),
-                Map.entry("client_brand", nullToUnknown(d.clientBrand())),
+                Map.entry("client_brand", mmSafe(nullToUnknown(d.clientBrand()))),
                 Map.entry("duration", durationText),
                 Map.entry("timeago", formatDuration(elapsedNow)),
                 Map.entry("violations", Integer.toString(d.violations().size())),
@@ -180,17 +174,17 @@ public final class HistoryComponentRenderer {
         out.add(parse(sender, cfg, "grim-history-detail-header",
                 "%prefix% &bShowing &f%player%&b's session &f%ordinal%&b details:", metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-meta1",
-                "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago",
+                "&bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago",
                 metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-meta2",
-                "%prefix% &bClient: &f%client_version%&b, Brand: &f%client_brand%",
+                "&bClient: &f%client_version%&b, Brand: &f%client_brand%",
                 metaVars));
         out.add(parse(sender, cfg, "grim-history-detail-violations-header",
-                "%prefix% &bViolations: &8(%violations% total, %unique_checks% unique) &8[&f%page%&7/&f%max_pages%&8]",
+                "&bViolations: &8(%violations% total, %unique_checks% unique) &8[&f%page%&7/&f%max_pages%&8]",
                 metaVars));
 
         if (d.violations().isEmpty()) {
-            out.add(parse(sender, cfg, "grim-history-detail-empty", "%prefix% &7- (none)", Map.of()));
+            out.add(parse(sender, cfg, "grim-history-detail-empty", "&7- (none)", Map.of()));
             return out;
         }
 
@@ -212,13 +206,14 @@ public final class HistoryComponentRenderer {
         for (CheckCount c : bucket.checks()) {
             if (!first) checksList.append("&7, ");
             first = false;
+            // Check names can be plugin-authored; render them as plain text.
             checksList.append(cfg.getStringElse("grim-history-check-count",
                             "&f%check_name%&7 x&c%count%")
-                    .replace("%check_name%", c.displayName())
+                    .replace("%check_name%", mmSafe(c.displayName()))
                     .replace("%count%", Integer.toString(c.count())));
         }
         Component line = parse(sender, cfg, "grim-history-detail-group",
-                "%prefix% &7- %checks_list% &8(&b%offset%&8)",
+                "&7- %checks_list% &8(&b%offset%&8)",
                 Map.of(
                         "checks_list", checksList.toString(),
                         "offset", formatDuration(bucket.bucketStartOffsetMs())));
@@ -256,14 +251,15 @@ public final class HistoryComponentRenderer {
 
     private static Component renderViolationLine(Sender sender, ConfigManager cfg, ViolationEntry v, boolean verbose) {
         String verboseText = v.verbose() == null ? "" : v.verbose();
+        // Verbose/check metadata can include user or plugin text; render substitutions as plain text.
         Component line = parse(sender, cfg, "grim-history-detail-entry",
-                "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%",
+                "&7- &f%check% &8(&b%offset%&8)&7 %verbose%",
                 Map.of(
-                        "check", v.displayName(),
-                        "description", v.description(),
+                        "check", mmSafe(v.displayName()),
+                        "description", mmSafe(v.description()),
                         "offset", formatDuration(v.offsetFromSessionStartMs()),
                         "vl", Double.toString(v.vl()),
-                        "verbose", verbose ? verboseText : ""));
+                        "verbose", verbose ? mmSafe(verboseText) : ""));
         // Hover carries the richer disambiguation — description on its own
         // line, then the raw verbose below. Shown regardless of the -v
         // flag, because operators scanning a dense list still want the
@@ -348,6 +344,23 @@ public final class HistoryComponentRenderer {
         return MessageUtil.miniMessage(raw);
     }
 
+    /** Renders untrusted template values as plain text before MiniMessage parsing. */
+    private static String mmSafe(@Nullable String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+        // Strip '%' first so '&%c' cannot become '&c' after placeholder removal.
+        String stripped = LEGACY_FORMAT_PATTERN.matcher(
+                raw.replace("%", "")).replaceAll("");
+        // Escape backslash before '<' so the added escape isn't itself escaped.
+        return stripped
+                .replace("\\", "\\\\")
+                .replace("<", "\\<");
+    }
+
+    // Canonical legacy alphabet only — leaves AT&T / R&D alone.
+    // Covers §/& sigils, &#RRGGBB hex, and the Bedrock &x&R&R… interleave.
+    private static final Pattern LEGACY_FORMAT_PATTERN = Pattern.compile(
+            "[§&](?:[0-9a-fk-orxA-FK-ORX]|#[A-Fa-f0-9]{6}|x(?:[§&][A-Fa-f0-9]){6})");
+
     public static @NotNull String formatDuration(long ms) {
         if (ms < 0) ms = 0;
         long days = TimeUnit.MILLISECONDS.toDays(ms); ms -= TimeUnit.DAYS.toMillis(days);
@@ -382,7 +395,4 @@ public final class HistoryComponentRenderer {
         }
     }
 
-    private static String shortName(UUID u) {
-        return u.toString().substring(0, 8);
-    }
 }

@@ -83,8 +83,8 @@ public final class BoundingBoxSize {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.98f;
@@ -103,7 +103,8 @@ public final class BoundingBoxSize {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size) : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.3125f;
@@ -324,8 +325,8 @@ public final class BoundingBoxSize {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.7f;
@@ -373,8 +374,8 @@ public final class BoundingBoxSize {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.3125f;
