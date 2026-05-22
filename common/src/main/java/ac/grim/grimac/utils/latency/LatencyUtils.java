@@ -4,20 +4,17 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.collections.FastIteLinkedQueue;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
-import ac.grim.grimac.utils.data.Pair;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class LatencyUtils {
-    private final LinkedList<Pair<Integer, Runnable>> transactionMap = new LinkedList<>();
+    private final Queue<QueuedTask> transactions = new FastIteLinkedQueue<>();
+    private final Queue<QueuedTask> transactionsAsync = new ConcurrentLinkedQueue<>();
     private final GrimPlayer player;
-
-    // Built from transactionMap and cleared at start of every handleNettySyncTransaction() call
-    // The actual usage scope of this variable's use is limited to within the synchronized block of handleNettySyncTransaction
-    private final ArrayList<Runnable> tasksToRun = new ArrayList<>();
 
     public LatencyUtils(GrimPlayer player) {
         this.player = player;
@@ -40,62 +37,47 @@ public class LatencyUtils {
             }
             return;
         }
-        synchronized (this) {
-            transactionMap.add(new Pair<>(transaction, runnable));
-        }
+        queueTask(transaction, runnable, async);
+    }
+
+    private void queueTask(int transaction, Runnable runnable, boolean async) {
+        Queue<QueuedTask> queue = async ? transactionsAsync : transactions;
+        queue.add(new QueuedTask(transaction, runnable));
     }
 
     public void handleNettySyncTransaction(int transaction) {
-        /*
-         * This code uses a two-pass approach within the synchronized block to prevent CMEs.
-         * First we collect and remove tasks using the iterator, then execute all collected tasks.
-         *
-         * The issue:
-         *     We cannot execute tasks during iteration because if a runnable modifies transactionMap
-         *     or calls addRealTimeTask, it will cause a ConcurrentModificationException.
-         *     While only seen on Folia servers, this is theoretically possible everywhere.
-         *
-         * Why this solution:
-         *     Rather than documenting "don't modify transactionMap in runnables" and risking subtle
-         *     bugs from future contributions or Check API usage, we prevent the issue entirely
-         *     at a small performance cost.
-         *
-         * Future considerations:
-         *     If this becomes a performance bottleneck, we may revisit using a single-pass approach
-         *     on non-Folia servers. We could also explore concurrent data structures or parallel
-         *     execution, but this would lose the guarantee that transactions are processed in order.
-         */
-        synchronized (this) {
-            tasksToRun.clear();
+        handleQueue(transaction, true, transactions);
+        // ConcurrentLinkedQueue is weakly consistent, we need to iterate over all elements
+        // to make sure we don't miss anything.
+        handleQueue(transaction, false, transactionsAsync);
+    }
 
-            // First pass: collect tasks and mark them for removal
-            ListIterator<Pair<Integer, Runnable>> iterator = transactionMap.listIterator();
-            while (iterator.hasNext()) {
-                Pair<Integer, Runnable> pair = iterator.next();
+    private void handleQueue(int transaction, boolean breakOnAhead, Queue<QueuedTask> queue) {
+        Iterator<QueuedTask> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            QueuedTask task = iterator.next();
 
-                // We are at most a tick ahead when running tasks based on transactions, meaning this is too far
-                if (transaction + 1 < pair.first())
+            // Tick ahead of
+            if (transaction < task.transaction) {
+                if (breakOnAhead && transaction + 1 < task.transaction)
                     break;
-
-                // This is at most tick ahead of what we want
-                if (transaction == pair.first() - 1)
+                else
                     continue;
-
-                tasksToRun.add(pair.second());
-                iterator.remove();
             }
 
-            for (Runnable runnable : tasksToRun) {
-                try {
-                    runnable.run();
-                } catch (Exception e) {
-                    LogUtil.error("An error has occurred when running transactions for player: " + player.user.getName(), e);
-                    // Kick the player SO PEOPLE ACTUALLY REPORT PROBLEMS AND KNOW WHEN THEY HAPPEN
-                    if (CommonGrimArguments.KICK_ON_TRANSACTION_ERRORS.value()) {
-                        player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectPacketError())));
-                    }
+            try {
+                task.runnable.run();
+            } catch (Exception e) {
+                LogUtil.error("An error has occurred when running transactions for player: " + player.user.getName(), e);
+                // Kick the player SO PEOPLE ACTUALLY REPORT PROBLEMS AND KNOW WHEN THEY HAPPEN
+                if (CommonGrimArguments.KICK_ON_TRANSACTION_ERRORS.value()) {
+                    player.disconnect(MessageUtil.miniMessage(MessageUtil.replacePlaceholders(player, GrimAPI.INSTANCE.getConfigManager().getDisconnectPacketError())));
                 }
             }
+            iterator.remove();
         }
     }
+
+    private record QueuedTask(int transaction, Runnable runnable) {}
+
 }
