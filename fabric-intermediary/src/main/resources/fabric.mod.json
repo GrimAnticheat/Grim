@@ -20,6 +20,7 @@
   "mixins": [
     "grimac.mixins.json"
   ],
+  "accessWidener": "grimac.accesswidener",
   "custom": {
     "loom:injected_interfaces": {
       "net/minecraft/world/level/Level": [
@@ -27,7 +28,6 @@
       ]
     }
   },
-  "accessWidener": "grimac.accesswidener",
   "depends": {
     "minecraft": "\u003e\u003d1.16.1 \u003c26",
     "java": "\u003e\u003d17",

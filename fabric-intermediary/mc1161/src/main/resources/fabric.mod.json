@@ -17,7 +17,7 @@
   "accessWidener": "grimac.accesswidener",
   "depends": {
     "fabricloader": "\u003e\u003d0.16",
-    "minecraft": ">=1.16.1",
+    "minecraft": ">=1.16.1 \u003c26",
     "fabric-resource-loader-v0": "*"
   }
 }
