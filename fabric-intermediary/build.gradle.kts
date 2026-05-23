@@ -109,11 +109,20 @@ allprojects {
 
     tasks {
         remapJar {
-            archiveBaseName = "${rootProject.name}-fabric${if (project.name != "fabric") "-${project.name}" else ""}"
+            archiveBaseName = if (project == project(":fabric-intermediary")) {
+                "${rootProject.name}-fabric-intermediary"
+            } else {
+                "${rootProject.name}-fabric-${project.name}"
+            }
             archiveVersion = rootProject.version as String
         }
 
         remapSourcesJar {
+            archiveBaseName = if (project == project(":fabric-intermediary")) {
+                "${rootProject.name}-fabric-intermediary"
+            } else {
+                "${rootProject.name}-fabric-${project.name}"
+            }
             archiveVersion = rootProject.version as String
         }
     }

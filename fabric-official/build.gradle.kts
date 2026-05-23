@@ -101,7 +101,11 @@ allprojects {
             .configureEach { enabled = false }
 
         remapJar {
-            archiveBaseName = "${rootProject.name}-fabric${if (project.name != "fabric-official") "-${project.name}" else "-official"}"
+            archiveBaseName = if (project == project(":fabric-official")) {
+                "${rootProject.name}-fabric-official"
+            } else {
+                "${rootProject.name}-fabric-${project.name}"
+            }
             archiveVersion = rootProject.version as String
         }
     }

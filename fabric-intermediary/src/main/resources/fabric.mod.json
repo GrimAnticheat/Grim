@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "grimac",
+  "id": "grimac-fabric-intermediary",
   "version": "${version}",
   "name": "GrimAC",
   "description": "Libre simulation anticheat designed for 26.1 with 1.8-26.1 support, powered by PacketEvents 2.0.",
