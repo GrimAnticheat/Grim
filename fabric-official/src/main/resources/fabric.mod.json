@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-official",
+  "version": "${version}",
+  "name": "GrimAC (Fabric, official mappings)",
+  "description": "GrimAC variant for Minecraft 26.X. Structural stub — meaningful MC-typed code awaits mapping availability.",
+  "license": "GPL-3.0",
+  "environment": "*",
+  "depends": {
+    "minecraft": ">=26.1",
+    "java": ">=25",
+    "fabricloader": ">=0.19"
+  }
+}

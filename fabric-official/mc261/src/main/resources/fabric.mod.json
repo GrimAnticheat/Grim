@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-mc261",
+  "version": "${version}",
+  "name": "GrimAC mc261",
+  "description": "Per-version source root for MC 26.1+. Stub.",
+  "license": "GPL-3.0",
+  "environment": "*",
+  "depends": {
+    "minecraft": ">=26.1",
+    "java": ">=25",
+    "fabricloader": ">=0.19"
+  }
+}
