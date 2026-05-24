@@ -39,28 +39,28 @@ public class Materials {
 
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers
-        WATER_LIQUIDS.add(StateTypes.WATER); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.WATER);
         WATER_LIQUIDS_LEGACY.add(StateTypes.WATER);
 
         // Becomes grass for legacy versions
-        WATER_LIQUIDS.add(StateTypes.KELP); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.KELP);
         WATER_SOURCES.add(StateTypes.KELP);
-        WATER_LIQUIDS.add(StateTypes.KELP_PLANT); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.KELP_PLANT);
         WATER_SOURCES.add(StateTypes.KELP_PLANT);
 
         // Is translated to air for legacy versions
         WATER_SOURCES.add(StateTypes.BUBBLE_COLUMN);
         WATER_LIQUIDS_LEGACY.add(StateTypes.BUBBLE_COLUMN);
-        WATER_LIQUIDS.add(StateTypes.BUBBLE_COLUMN); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.BUBBLE_COLUMN);
         WATER_SOURCES_LEGACY.add(StateTypes.BUBBLE_COLUMN);
 
         // This is not water on 1.12- players
         WATER_SOURCES.add(StateTypes.SEAGRASS);
-        WATER_LIQUIDS.add(StateTypes.SEAGRASS); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.SEAGRASS);
 
         // This is not water on 1.12- players`
         WATER_SOURCES.add(StateTypes.TALL_SEAGRASS);
-        WATER_LIQUIDS.add(StateTypes.TALL_SEAGRASS); // update isWaterModern
+        WATER_LIQUIDS.add(StateTypes.TALL_SEAGRASS);
 
         NO_PLACE_LIQUIDS.add(StateTypes.WATER);
         NO_PLACE_LIQUIDS.add(StateTypes.LAVA);
