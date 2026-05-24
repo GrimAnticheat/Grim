@@ -31,7 +31,7 @@ public class GrimStopSpectating implements BuildableCommand {
                             return List.of(); // No suggestions if no permission
                         }))
                         .handler(this::onStopSpectate)
-                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.PLAYER_SENDER_REQUIREMENT))
+                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.INSTANCE))
         );
     }
 

@@ -53,11 +53,14 @@ public class BaseConfigManager {
         }
 
         ignoredClientPatterns.clear();
-        for (String string : config.getStringList("client-brand.ignored-clients")) {
-            try {
-                ignoredClientPatterns.add(Pattern.compile(string));
-            } catch (PatternSyntaxException e) {
-                throw new RuntimeException("Failed to compile client pattern", e);
+        List<String> ignoredClients = config.getStringList("client-brand.ignored-clients");
+        if (ignoredClients != null) {
+            for (String string : ignoredClients) {
+                try {
+                    ignoredClientPatterns.add(Pattern.compile(string));
+                } catch (PatternSyntaxException e) {
+                    throw new RuntimeException("Failed to compile client pattern", e);
+                }
             }
         }
 

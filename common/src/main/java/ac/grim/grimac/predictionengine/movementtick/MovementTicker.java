@@ -254,7 +254,7 @@ public class MovementTicker {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
-        player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
 
         // 1.15 and older clients use the handleInsideBlocks method for lava
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16))
@@ -269,7 +269,7 @@ public class MovementTicker {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+            player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
         }
     }
 

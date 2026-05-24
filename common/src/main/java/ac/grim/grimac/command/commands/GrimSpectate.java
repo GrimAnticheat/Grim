@@ -25,7 +25,7 @@ public class GrimSpectate implements BuildableCommand {
                         .permission("grim.spectate")
                         .required("target", adapter.singlePlayerSelectorParser())
                         .handler(this::handleSpectate)
-                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.PLAYER_SENDER_REQUIREMENT))
+                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.INSTANCE))
         );
     }
 

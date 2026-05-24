@@ -24,6 +24,11 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
             // iterate through players and fake their game mode if they are spectating via grim spectate
@@ -72,21 +77,12 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
             for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : wrapper.getEntries()) {
                 // check if the player should be hidden
                 WrapperPlayServerPlayerInfoUpdate.PlayerInfo modifiedPacket = null;
-                final UserProfile gameProfile = entry.getGameProfile();
-                if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
+                if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, entry.getGameProfile().getUUID())) {
                     hideCount++;
                     // modify & create a new packet from pre-existing one if they are a spectator
                     if (entry.getGameMode() == GameMode.SPECTATOR) {
-                        modifiedPacket = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(
-                                gameProfile,
-                                entry.isListed(),
-                                entry.getLatency(),
-                                GameMode.SURVIVAL,
-                                entry.getDisplayName(),
-                                entry.getChatSession(),
-                                entry.getListOrder(),
-                                entry.isShowHat()
-                        );
+                        modifiedPacket = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(entry);
+                        modifiedPacket.setGameMode(GameMode.SURVIVAL);
                         modified.add(modifiedPacket);
                     }
                 }

@@ -101,6 +101,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
+    public static final Vector3d DEFAULT_STUCK_SPEED = new Vector3d(1, 1, 1);
     public final UUID uuid;
     public final User user;
     public int entityID;
@@ -138,7 +139,7 @@ public class GrimPlayer implements GrimUser {
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
     public Vector3dm actualMovement = new Vector3dm();
-    public Vector3dm stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+    public Vector3d stuckSpeedMultiplier = DEFAULT_STUCK_SPEED;
     public final UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -837,7 +838,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean isInWaterOrRain() {
-        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
+        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block, x, y, z) -> Materials.isWater(CompensatedWorld.blockVersion, block));
     }
 
     @Contract(pure = true)
