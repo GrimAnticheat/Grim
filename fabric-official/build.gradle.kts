@@ -18,16 +18,20 @@ java {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-    // Mojang stopped publishing official mappings starting MC 26.X and Yarn has no 26.X
-    // build either; Fabric intermediary publishes the empty `0.0.0` mapping for it.
-    // fabric-official is currently a structural stub that loads on 26.X but cannot
-    // reference meaningful MC symbols until usable mappings land.
+    // MC 26.X jars are pre-deobfuscated with Mojang's official names, but neither
+    // Mojang's manifest nor FabricMC publishes a tiny intermediary mapping for 26.X.
+    // The 0.0.0:v2 stub is the only mapping the maven currently serves; Loom configures
+    // against it cleanly as long as source code references no MC types. Per-version
+    // source compiled against Mojang names lands once a real 26.X intermediary mapping
+    // (or first-class no-mapping Loom support) is available.
     mappings("net.fabricmc:intermediary:0.0.0:v2")
     modImplementation(libs.fabric.loader)
 
-    // PE is intentionally NOT a dep here: PE's accessWidener is intermediary-namespaced
-    // and conflicts with the intermediary 0.0.0 mappings used by fabric-official.
-    // Bring PE back in once usable 26.X mappings exist and we can compile against named.
+    // PE's pure-Java api jar is safe to pull (no accessWidener inside). The fabric
+    // variant is intentionally excluded — it ships an intermediary-namespaced AW that
+    // Loom would try to remap against the 0.0.0 stub. Source must avoid net.minecraft.*
+    // references so Loom's source remap is a no-op.
+    compileOnly(libs.packetevents.api)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 }
@@ -114,6 +118,8 @@ allprojects {
 subprojects {
     dependencies {
         implementation(project(":fabric-official", configuration = "namedElements"))
+        val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
+        compileOnly(libsx.findLibrary("packetevents-api").get())
     }
 }
 
