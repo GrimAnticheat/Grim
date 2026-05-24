@@ -58,6 +58,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
     // The item held at the start of the current client tick (processed at the end of the previous tick)
+    // also updated before slot changes to account for the delay when using hotbar keybinds
     // Currently only used by 1.21.11+ players to handle attribute swapping items with the ATTACK_RANGE Component
     @Getter
     private ItemStack startOfTickStack = ItemStack.EMPTY;
@@ -268,6 +269,8 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
 
+            // set this before we change the selected slot so we get the previous item held
+            this.startOfTickStack = getHeldItem();
             inventory.setSelected(slot);
         } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
