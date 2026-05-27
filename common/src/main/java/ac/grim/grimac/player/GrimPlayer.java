@@ -29,6 +29,7 @@ import ac.grim.grimac.utils.change.PlayerBlockHistory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityCamel;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
@@ -772,6 +773,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void handleDismountVehicle(PacketSendEvent event) {
+        PacketEntity vehicle = getVehicle();
         EntityType entityType = getVehicleType();
 
         // Help prevent transaction split
@@ -793,7 +795,7 @@ public class GrimPlayer implements GrimUser {
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
             // 1.21.5 introduced this again! (only in dummy vehicles?)
             if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
-                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) /*&& (EntityTypes.MINECART == entityType || EntityTypes.PIG == entityType)*/)) {
+                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && (!EntityTypes.CAMEL.isInstanceOf(entityType) || (vehicle instanceof PacketEntityCamel camel && !camel.hasSaddle())))) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
