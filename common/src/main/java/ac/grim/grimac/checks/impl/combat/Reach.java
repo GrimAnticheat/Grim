@@ -257,17 +257,16 @@ public class Reach extends Check implements PacketCheck {
         List<Vector3dm> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(player, player.yaw, player.pitch)));
 
         if (!isPrediction) {
-            ClientVersion clientVersion = player.getClientVersion();
-
             // 1.7 players do not have any of these issues! They are always on the latest look vector
 
             // 1.8-1.10.2 specific mouse delay fix (MC-67665)
+            ClientVersion clientVersion = player.getClientVersion();
             if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_8) && clientVersion.isOlderThan(ClientVersion.V_1_11)) {
                 possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.pitch));
             }
 
             // 1.9-1.21.1 players could be a tick behind because we don't get skipped ticks, 1.21.2+ added end tick input packet, fixing skipped tick issues
-            if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_9) && clientVersion.isOlderThan(ClientVersion.V_1_21_2)) {
+            if (player.canSkipTicks()) {
                 possibleLookDirs.add(ReachUtils.getLook(player, player.lastYaw, player.lastPitch));
             }
         }
