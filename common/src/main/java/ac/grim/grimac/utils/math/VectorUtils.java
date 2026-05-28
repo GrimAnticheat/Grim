@@ -46,8 +46,17 @@ public class VectorUtils {
     }
 
     public static Vector3dm normalize(ClientVersion version, Vector3dm vec) {
-        double d0 = Math.sqrt(vec.getX() * vec.getX() + vec.getY() * vec.getY() + vec.getZ() * vec.getZ());
+        double d0 = getVanillaLength(version, vec);
         return version.isNewerThanOrEquals(ClientVersion.V_1_21_2) ? modern$normalize(vec, d0) : legacy$normalize(vec, d0);
+    }
+
+    public static double getVanillaLength(ClientVersion version, Vector3dm vec) {
+        return getVanillaLength(version, vec.getX(), vec.getY(), vec.getZ());
+    }
+
+    public static double getVanillaLength(ClientVersion version, double x, double y, double z) {
+        double lengthSquared = x * x + y * y + z * z;
+        return version.isOlderThan(ClientVersion.V_1_17) ? (float) Math.sqrt(lengthSquared) : Math.sqrt(lengthSquared);
     }
 
     private static Vector3dm legacy$normalize(Vector3dm vec, double d0) {
