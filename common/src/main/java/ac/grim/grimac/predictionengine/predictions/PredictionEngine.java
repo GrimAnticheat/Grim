@@ -749,7 +749,6 @@ public class PredictionEngine {
 
         // Handle missing a tick with friction in vehicles
         // TODO: Attempt to fix mojang's netcode here
-        // figure out why we're sometimes 3 ticks off by ~0.05 while switching from dummy to in-control
         if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(3)) {
             double trueFriction = player.lastOnGround ? player.friction * 0.91 : 0.91;
             if (player.wasTouchingLava) trueFriction = 0.5;

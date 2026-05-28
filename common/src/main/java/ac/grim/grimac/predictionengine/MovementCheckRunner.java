@@ -207,10 +207,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
-            // only accept movements after accepting teleport?
-//            player.vehicleData.lastDummy = false;
-//            player.vehicleData.wasVehicleSwitch = false;
-
             if (riding != null) {
                 SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
 
@@ -249,9 +245,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                     PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
                     player.lastWasClimbing = ladder.getY();
                 }
+                return;
             }
-
-            return;
         }
 
         if (player.isInBed != player.lastInBed) {
