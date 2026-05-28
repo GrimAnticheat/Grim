@@ -29,7 +29,7 @@ public class GrimSelfKnockback implements BuildableCommand {
                         .literal("selfkb", Description.of("Send a self knockback packet"))
                         .permission("grim.knockback")
                         .handler(this::handleSelfKnockback)
-                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.PLAYER_SENDER_REQUIREMENT))
+                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.INSTANCE))
         );
     }
 

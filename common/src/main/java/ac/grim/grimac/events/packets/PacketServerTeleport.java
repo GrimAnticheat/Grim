@@ -199,7 +199,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
                 player.sendTransaction();
                 event.getTasksAfterSend().add(player::sendTransaction);
-                player.vehicleData.vehicleTeleports.add(new Pair<>(
+                player.vehicleData.vehicleTeleports.add(new IntToObjectPair<>(
                         player.lastTransactionSent.get(),
                         pos
                 ));
