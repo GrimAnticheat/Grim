@@ -26,7 +26,7 @@ public class VehicleData {
     public Integer removedPlayerVehicleId = null;
     public float playerPitch = 0f;
     public float playerYaw = 0f;
-    public final Deque<Pair<Integer, JumpableEntity>> pendingJumps = new ArrayDeque<>();
-    public final ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
+    public final Deque<IntToObjectPair<JumpableEntity>> pendingJumps = new ArrayDeque<>();
+    public final ConcurrentLinkedQueue<IntToObjectPair<Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
     public SprintingState camelSprintingState = SprintingState.STOPPED;
 }

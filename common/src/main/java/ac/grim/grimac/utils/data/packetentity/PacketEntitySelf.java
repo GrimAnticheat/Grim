@@ -44,7 +44,7 @@ public class PacketEntitySelf extends PacketEntity {
         }
 
         getAttribute(Attributes.SCALE).orElseThrow().withSetRewriter((oldValue, newValue) -> {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_20_5) || (newValue).equals(oldValue)) {
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_20_5) || newValue == oldValue) {
                 return oldValue;
             } else {
                 // Elytra, standing, sneaking (1.14)
@@ -123,7 +123,7 @@ public class PacketEntitySelf extends PacketEntity {
         trackAttribute(ValuedAttribute.ranged(Attributes.SNEAKING_SPEED, 0.3, 0, 1)
                 .withGetRewriter(value -> {
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19)) {
-                        return (double) 0.3f;
+                        return 0.3f;
                     }
 
                     final int swiftSneak = player.inventory.getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK);

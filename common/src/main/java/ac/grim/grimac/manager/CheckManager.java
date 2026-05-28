@@ -67,6 +67,7 @@ public class CheckManager {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
     private static boolean inited;
     public final ClassToInstanceMap<AbstractCheck> allChecks;
+    private final ClassToInstanceMap<PacketCheck> preViaPacketChecks;
     private final ClassToInstanceMap<PacketCheck> packetChecks;
     private final ClassToInstanceMap<PositionCheck> positionChecks;
     private final ClassToInstanceMap<RotationCheck> rotationChecks;
@@ -78,6 +79,7 @@ public class CheckManager {
     @Getter
     private final PacketEntityReplication packetEntityReplication;
 
+    private final List<PacketCheck> preViaPacketChecksValues;
     private final List<PacketCheck> packetChecksValues;
     private final List<PositionCheck> positionChecksValues;
     private final List<RotationCheck> rotationChecksValues;
@@ -89,6 +91,14 @@ public class CheckManager {
 
     public CheckManager(GrimPlayer player) {
         packetEntityReplication = new PacketEntityReplication(player);
+
+        preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+                .put(ChatA.class, new ChatA(player))
+                .put(ChatB.class, new ChatB(player))
+                .put(ChatC.class, new ChatC(player))
+                .put(ChatD.class, new ChatD(player))
+                .put(BadPacketsM.class, new BadPacketsM(player))
+                .build();
 
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
@@ -103,10 +113,6 @@ public class CheckManager {
                 .put(TeamHandler.class, new TeamHandler(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFall.class, new NoFall(player))
-                .put(ChatA.class, new ChatA(player))
-                .put(ChatB.class, new ChatB(player))
-                .put(ChatC.class, new ChatC(player))
-                .put(ChatD.class, new ChatD(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
@@ -120,7 +126,6 @@ public class CheckManager {
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
-                .put(BadPacketsM.class, new BadPacketsM(player))
                 .put(BadPacketsO.class, new BadPacketsO(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
@@ -268,6 +273,7 @@ public class CheckManager {
                 .build();
 
         allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
+                .putAll(preViaPacketChecks)
                 .putAll(packetChecks)
                 .putAll(positionChecks)
                 .putAll(rotationChecks)
@@ -279,6 +285,7 @@ public class CheckManager {
                 .putAll(noneModules)
                 .build();
 
+        preViaPacketChecksValues = new ArrayList<>(preViaPacketChecks.values());
         packetChecksValues = new ArrayList<>(packetChecks.values());
         positionChecksValues = new ArrayList<>(positionChecks.values());
         rotationChecksValues = new ArrayList<>(rotationChecks.values());
@@ -317,6 +324,11 @@ public class CheckManager {
     }
 
     @SuppressWarnings("unchecked")
+    public <T extends PacketCheck> T getPreViaPacketCheck(Class<T> check) {
+        return (T) preViaPacketChecks.get(check);
+    }
+
+    @SuppressWarnings("unchecked")
     public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
         return (T) prePredictionChecks.get(check);
     }
@@ -347,6 +359,12 @@ public class CheckManager {
         }
     }
 
+    public void onPreViaPacketReceive(final PacketReceiveEvent packet) {
+        for (PacketCheck check : preViaPacketChecksValues) {
+            check.onPacketReceive(packet);
+        }
+    }
+
     public void onPacketSend(final PacketSendEvent packet) {
         for (PacketCheck check : prePredictionChecksValues) {
             check.onPacketSend(packet);
@@ -361,6 +379,12 @@ public class CheckManager {
             check.onPacketSend(packet);
         }
         for (BlockBreakCheck check : blockBreakChecksValues) {
+            check.onPacketSend(packet);
+        }
+    }
+
+    public void onPreViaPacketSend(final PacketSendEvent packet) {
+        for (PacketCheck check : preViaPacketChecksValues) {
             check.onPacketSend(packet);
         }
     }

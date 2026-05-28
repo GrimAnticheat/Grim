@@ -11,6 +11,7 @@ import ac.grim.grimac.api.storage.query.Page;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -30,9 +31,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 /** Renders history service records into command output components. */
+@UtilityClass
 public final class HistoryComponentRenderer {
-
-    private HistoryComponentRenderer() {}
 
     /**
      * Session-list view. {@code page} is 1-indexed; {@code maxPages} ≥ 1.

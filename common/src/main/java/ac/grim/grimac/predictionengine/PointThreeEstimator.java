@@ -21,7 +21,6 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -269,27 +268,25 @@ public class PointThreeEstimator {
         isNearFluid = false;
 
         // Check for flowing water
-        Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
-            final WrappedBlockState state = pair.first();
-            final StateType stateType = state.getType();
-            final Vector3i pos = pair.second();
+        Collisions.hasMaterial(player, pointThreeBox, (block, x, y, z) -> {
+            final StateType stateType = block.getType();
             if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
             if (BlockTags.TRAPDOORS.contains(stateType)) {
-                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pos.getX(), pos.getY(), pos.getZ(), state);
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, x, y, z, block);
             }
 
             if (stateType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                 isNearBubbleColumn = true;
             }
 
-            if (Materials.isWater(player.getClientVersion(), pair.first()) || pair.first().getType() == StateTypes.LAVA) {
+            if (Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA) {
                 isNearFluid = true;
             }
 
-            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, pos.getX(), pos.getY(), pos.getZ());
+            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, x, y, z);
             if (fluidVector.getX() != 0 || fluidVector.getZ() != 0) {
                 isNearHorizontalFlowingLiquid = true;
             }

@@ -45,12 +45,12 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
     // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
-    private static final Function<StateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
+    private static final Predicate<StateType> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -791,7 +791,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.queuedBreaks.add(blockBreak);
 
-        if (action == DiggingAction.FINISHED_DIGGING && BREAKABLE.apply(blockBreak.block.getType())) {
+        if (action == DiggingAction.FINISHED_DIGGING && BREAKABLE.test(blockBreak.block.getType())) {
             player.compensatedWorld.startPredicting();
             player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
             player.compensatedWorld.stopPredicting(packet);

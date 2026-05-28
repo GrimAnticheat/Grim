@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.datastore.PlayerToggleStore;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.functions.ObjBooleanConsumer;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
@@ -12,8 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
@@ -102,8 +101,8 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
                                     @NotNull String permTogglePath,
                                     @NotNull String permEnableOnJoin,
                                     @NotNull String permSilentJoin,
-                                    @NotNull BiConsumer<PlatformPlayer, Boolean> toggle,
-                                    @NotNull BiConsumer<PlatformPlayer, Boolean> applySilent) {
+                                    @NotNull ObjBooleanConsumer<PlatformPlayer> toggle,
+                                    @NotNull ObjBooleanConsumer<PlatformPlayer> applySilent) {
         if (!platformPlayer.hasPermission(permTogglePath)) return;
 
         UUID uuid = platformPlayer.getUniqueId();

@@ -4,10 +4,9 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
@@ -24,8 +23,12 @@ public class ChatB extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
             String message = new WrapperPlayClientChatMessage(event).getMessage();
-            if (checkChatMessage(message)) {
-                event.setCancelled(true);
+            if (message.isEmpty() || !message.trim().equals(message)
+                    || message.startsWith("/") && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                if (flagAndAlert("message=" + message) && shouldModifyPackets()) {
+                    player.onPacketCancel();
+                    event.setCancelled(true);
+                }
             }
         }
 
@@ -40,7 +43,6 @@ public class ChatB extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
-            // TODO make previa after making wrapper parse by client version instead of server version
             String command = "/" + new WrapperPlayClientChatCommand(event).getCommand();
             if (!command.trim().equals(command)) {
                 if (flagAndAlert("command=" + command)) {
@@ -49,16 +51,5 @@ public class ChatB extends Check implements PacketCheck {
                 }
             }
         }
-    }
-
-    // returns whether the packet should be cancelled
-    public boolean checkChatMessage(String message) {
-        if (message.isEmpty() || !message.trim().equals(message) || message.startsWith("/") && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
-            if (flagAndAlert("message=" + message) && shouldModifyPackets()) {
-                player.onPacketCancel();
-                return true;
-            }
-        }
-        return false;
     }
 }

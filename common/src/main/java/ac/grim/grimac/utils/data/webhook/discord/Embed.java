@@ -115,6 +115,7 @@ public class Embed implements JsonSerializable {
         return this;
     }
 
+    @Override
     public @NotNull JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("description", description());

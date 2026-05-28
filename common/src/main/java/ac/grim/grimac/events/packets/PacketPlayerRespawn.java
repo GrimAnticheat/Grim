@@ -101,7 +101,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (health.getHealth() <= 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     player.compensatedEntities.self.isDead = true;
-                    player.checkManager.getPacketCheck(BadPacketsM.class).onDeath();
+                    player.checkManager.getPreViaPacketCheck(BadPacketsM.class).onDeath();
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.self.isDead = false);
@@ -167,7 +167,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
 
-                player.checkManager.getPacketCheck(BadPacketsM.class).onRespawn();
+                player.checkManager.getPreViaPacketCheck(BadPacketsM.class).onRespawn();
 
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 
