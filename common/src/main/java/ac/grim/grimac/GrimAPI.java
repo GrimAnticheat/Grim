@@ -37,12 +37,10 @@ import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-
 @Getter
 public final class GrimAPI {
     public static final GrimAPI INSTANCE = new GrimAPI();
 
-    @Getter
     private final Platform platform = detectPlatform();
     private final BaseConfigManager configManager;
     private final AlertManagerImpl alertManager;
@@ -56,7 +54,6 @@ public final class GrimAPI {
     private DataStoreLifecycle dataStoreLifecycle;
     private final BackendRegistry backendRegistry = buildBackendRegistry();
     private PlatformLoader loader;
-    @Getter
     private InitManager initManager;
     private boolean initialized = false;
 
@@ -155,9 +152,5 @@ public final class GrimAPI {
 
     public PermissionRegistrationManager getPermissionManager() {
         return loader.getPermissionManager();
-    }
-
-    public GrimExtensionManager getExtensionManager() {
-        return extensionManager;
     }
 }

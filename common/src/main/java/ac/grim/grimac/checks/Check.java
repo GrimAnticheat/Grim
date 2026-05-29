@@ -22,7 +22,7 @@ import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayC
 public class Check extends GrimProcessor implements AbstractCheck {
     private static final FlagEvent.Channel FLAG_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(FlagEvent.class);
 
-    protected @NotNull final GrimPlayer player;
+    protected final @NotNull GrimPlayer player;
 
     public double violations;
     private double decay;
@@ -36,7 +36,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private String stableKey = "";
 
     private boolean experimental;
-    private @Setter boolean isEnabled;
+    @Setter private boolean isEnabled;
 
     private boolean exemptPermission;
     private boolean noSetbackPermission;

@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 @CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b")
 public class PositionBreakB extends Check implements BlockBreakCheck {
-    private final int releaseFace = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 0 : 255;
+    private final boolean allowLegacyFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
     private BlockFace lastFace;
 
     public PositionBreakB(GrimPlayer player) {
@@ -31,7 +31,9 @@ public class PositionBreakB extends Check implements BlockBreakCheck {
         }
 
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            lastFace = blockBreak.faceId == releaseFace ? null : blockBreak.face;
+            // as of https://github.com/ViaVersion/ViaRewind/commit/e7b0606e187afbccf98ef7c88d3f3af27fe11da3,
+            // ViaRewind maps face 255 for 1.7 clients to 0. Let's allow both, just to be safe
+            lastFace = blockBreak.faceId == 0 || allowLegacyFace && blockBreak.faceId == 255 ? null : blockBreak.face;
         }
     }
 }

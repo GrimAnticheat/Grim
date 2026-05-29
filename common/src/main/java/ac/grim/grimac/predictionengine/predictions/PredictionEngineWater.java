@@ -55,7 +55,6 @@ public class PredictionEngineWater extends PredictionEngine {
 
                 //if (d > 0.0 && player.world.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
                 swimmingVelocities.add(vector.returnNewModified(vector.vector, VectorData.VectorType.SurfaceSwimming));
-
             }
             return swimmingVelocities;
         }

@@ -184,7 +184,7 @@ public class MovementTicker {
         if (player.onGround) {
             player.fallDistance = 0;
         } else if (collide.getY() < 0) {
-            player.fallDistance = (player.fallDistance) - collide.getY();
+            player.fallDistance -= collide.getY();
             player.vehicleData.lastYd = collide.getY();
         }
 
@@ -254,7 +254,7 @@ public class MovementTicker {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
-        player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
 
         // 1.15 and older clients use the handleInsideBlocks method for lava
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16))
@@ -269,7 +269,7 @@ public class MovementTicker {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+            player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
         }
     }
 
@@ -415,7 +415,7 @@ public class MovementTicker {
         if (player.wasTouchingWater && !player.isFlying) {
             // 0.8F seems hardcoded in
             // 1.13+ players on skeleton horses swim faster! Cool feature.
-            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().type == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
+            boolean isSkeletonHorse = player.inVehicle() && player.compensatedEntities.self.getRiding().getType() == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : (isSkeletonHorse ? 0.96F : 0.8F);
             float swimSpeed = 0.02F;
 
@@ -501,7 +501,7 @@ public class MovementTicker {
 
         PacketEntity vehicle = player.getVehicle();
         double fluidHeight = player.getFluidHeight(FluidTag.WATER);
-        return EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type) && fluidHeight > 0.4;
+        return EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.getType()) && fluidHeight > 0.4;
     }
 
     private void floatInWaterWhileRidden() {

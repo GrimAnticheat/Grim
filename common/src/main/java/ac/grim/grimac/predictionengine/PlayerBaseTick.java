@@ -9,8 +9,8 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
-import ac.grim.grimac.utils.nmsutil.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -267,18 +267,16 @@ public final class PlayerBaseTick {
             player.isSwimming = false;
         } else if (player.isFlying) {
             player.isSwimming = false;
+        } else if (player.inVehicle()) {
+            player.isSwimming = false;
+        } else if (player.isSwimming) {
+            player.isSwimming = player.lastSprinting && player.wasTouchingWater;
         } else {
-            if (player.inVehicle()) {
-                player.isSwimming = false;
-            } else if (player.isSwimming) {
-                player.isSwimming = player.lastSprinting && player.wasTouchingWater;
-            } else {
-                // Requirement added in 1.17 to fix player glitching between two swimming states
-                // while swimming with feet in air and eyes in water
-                boolean feetInWater = player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
-                        || player.compensatedWorld.getWaterFluidLevelAt(player.lastX, player.lastY, player.lastZ) > 0;
-                player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater && feetInWater;
-            }
+            // Requirement added in 1.17 to fix player glitching between two swimming states
+            // while swimming with feet in air and eyes in water
+            boolean feetInWater = player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
+                    || player.compensatedWorld.getWaterFluidLevelAt(player.lastX, player.lastY, player.lastZ) > 0;
+            player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater && feetInWater;
         }
     }
 
@@ -372,7 +370,7 @@ public final class PlayerBaseTick {
         double relativeZMovement = zPosition - blockZ;
         BlockFace direction = null;
         double lowestValue = Double.MAX_VALUE;
-        for (BlockFace direction2 : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+        for (BlockFace direction2 : new BlockFace[] { BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH }) {
             double d6;
             double d7 = direction2 == BlockFace.WEST || direction2 == BlockFace.EAST ? relativeXMovement : relativeZMovement;
             d6 = direction2 == BlockFace.EAST || direction2 == BlockFace.SOUTH ? 1.0 - d7 : d7;
@@ -426,7 +424,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (player.compensatedWorld.areChunksUnloadedAt(floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
 
@@ -436,12 +434,9 @@ public final class PlayerBaseTick {
         for (int x = floorX; x < ceilX; ++x) {
             for (int y = floorY; y < ceilY; ++y) {
                 for (int z = floorZ; z < ceilZ; ++z) {
-                    double fluidHeight;
-                    if (tag == FluidTag.WATER) {
-                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
-                    } else {
-                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
-                    }
+                    float fluidHeight = tag == FluidTag.WATER
+                            ? player.compensatedWorld.getWaterFluidLevelAt(x, y, z)
+                            : player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
 
                     if (fluidHeight == 0)
                         continue;
@@ -458,7 +453,7 @@ public final class PlayerBaseTick {
 
         // all clients using legacy fluid pushing are not pushed by lava
         if (tag == FluidTag.WATER && vec3.lengthSquared() > 0.0) {
-            vec3.normalize();
+            vec3 = VectorUtils.normalize(player, vec3);
             vec3.multiply(multiplier);
             player.baseTickAddWaterPushing(vec3);
             player.baseTickAddVector(vec3);
@@ -476,7 +471,7 @@ public final class PlayerBaseTick {
         int ceilY = GrimMath.ceil(aABB.maxY);
         int floorZ = GrimMath.floor(aABB.minZ);
         int ceilZ = GrimMath.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+        if (player.compensatedWorld.areChunksUnloadedAt(floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
         double d2 = 0.0;
@@ -490,15 +485,12 @@ public final class PlayerBaseTick {
                 for (int z = floorZ; z < ceilZ; ++z) {
                     double fluidHeightToWorld;
 
-                    double fluidHeight;
-                    if (tag == FluidTag.WATER) {
-                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
-                    } else {
-                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
-                    }
+                    float fluidHeight = tag == FluidTag.WATER
+                            ? player.compensatedWorld.getWaterFluidLevelAt(x, y, z)
+                            : player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
 
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
-                        fluidHeight = Math.min(fluidHeight, 8 / 9D);
+                        fluidHeight = Math.min(fluidHeight, 8 / 9f);
 
                     if (fluidHeight == 0 || (fluidHeightToWorld = y + fluidHeight) < aABB.minY)
                         continue;
@@ -525,7 +517,7 @@ public final class PlayerBaseTick {
 
             if (player.inVehicle()) {
                 // This is a riding entity, normalize it for some reason.
-                vec3 = vec3.normalize();
+                vec3 = VectorUtils.normalize(player, vec3);
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
@@ -535,7 +527,7 @@ public final class PlayerBaseTick {
                 // However, do this after the multiplier, so that we don't have to recompute it
                 player.baseTickAddWaterPushing(vec3);
                 if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
-                    vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                    vec3 = VectorUtils.normalize(player, vec3).multiply(0.0045000000000000005);
                 }
 
                 player.baseTickAddVector(vec3);

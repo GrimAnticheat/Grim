@@ -1,11 +1,12 @@
 package ac.grim.grimac.utils.lists;
 
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import lombok.experimental.UtilityClass;
 
 import java.util.Collection;
 
+@UtilityClass
 public class ArrayUtils {
-
     public static StateType[] combine(Collection<StateType> tagStates, StateType... manualStates) {
         StateType[] result = new StateType[tagStates.size() + manualStates.length];
         int i = 0;

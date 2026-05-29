@@ -31,7 +31,7 @@ public enum BlockPlaceResult {
     // If the block only has directional data
     ANVIL((player, place) -> {
         WrappedBlockState data = place.material.createBlockState(CompensatedWorld.blockVersion);
-        data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
+        data.setFacing(place.getPlayerFacing().getCW());
         place.set(data);
     }, ItemTags.ANVIL),
 
@@ -904,7 +904,7 @@ public enum BlockPlaceResult {
             // Get the hinge
             BlockFace playerFacing = place.getPlayerFacing();
 
-            BlockFace ccw = BlockFaceHelper.getCounterClockwise(playerFacing);
+            BlockFace ccw = playerFacing.getCCW();
             WrappedBlockState ccwState = place.getDirectionalState(ccw);
             CollisionBox ccwBox = CollisionData.getData(ccwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), ccwState);
 
@@ -912,7 +912,7 @@ public enum BlockPlaceResult {
             WrappedBlockState aboveCCWState = player.compensatedWorld.getBlock(aboveCCWPos);
             CollisionBox aboveCCWBox = CollisionData.getData(aboveCCWState.getType()).getMovementCollisionBox(player, player.getClientVersion(), aboveCCWState);
 
-            BlockFace cw = BlockFaceHelper.getPEClockWise(playerFacing);
+            BlockFace cw = playerFacing.getCW();
             WrappedBlockState cwState = place.getDirectionalState(cw);
             CollisionBox cwBox = CollisionData.getData(cwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), cwState);
 

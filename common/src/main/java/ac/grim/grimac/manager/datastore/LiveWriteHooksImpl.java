@@ -162,9 +162,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
 
     private static @Nullable String safePluginVersion() {
         try {
-            var plugin = GrimAPI.INSTANCE.getGrimPlugin();
-            if (plugin == null || plugin.getDescription() == null) return null;
-            return plugin.getDescription().getVersion();
+            return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
         } catch (RuntimeException e) {
             return null;
         }

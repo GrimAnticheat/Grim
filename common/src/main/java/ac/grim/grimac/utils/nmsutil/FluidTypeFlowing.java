@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -63,12 +64,12 @@ public class FluidTypeFlowing {
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
-                    vec3d = normalizeVectorWithoutNaN(vec3d).add(0.0D, -6.0D, 0.0D);
+                    vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
                     break;
                 }
             }
         }
-        return normalizeVectorWithoutNaN(vec3d);
+        return VectorUtils.normalize(player, vec3d);
     }
 
     private static boolean affectsFlow(GrimPlayer player, int originalX, int originalY, int originalZ, int x2, int y2, int z2) {
@@ -150,11 +151,6 @@ public class FluidTypeFlowing {
             // Explicitly a full block, therefore it has a full face
             return (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isFullBlock());
         }
-    }
-
-    private static Vector3dm normalizeVectorWithoutNaN(Vector3dm vector) {
-        double var0 = vector.length();
-        return var0 < 1.0E-4 ? new Vector3dm() : vector.multiply(1 / var0);
     }
 
     public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {

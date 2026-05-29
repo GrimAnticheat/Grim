@@ -3,7 +3,7 @@ package ac.grim.grimac.predictionengine.predictions.rideable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
-import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.IntToObjectPair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.math.Vector3dm;
@@ -75,7 +75,7 @@ public final class PredictionEngineRideableUtils {
     }
 
     public static void applyPendingJumps(GrimPlayer player) {
-        Pair<Integer, JumpableEntity> pendingJump;
+        IntToObjectPair<JumpableEntity> pendingJump;
         while ((pendingJump = player.vehicleData.pendingJumps.poll()) != null) {
             JumpableEntity jumpable = pendingJump.second();
             if (jumpable.canPlayerJump(player)) {

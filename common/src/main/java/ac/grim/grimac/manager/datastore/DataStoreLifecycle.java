@@ -11,6 +11,7 @@ import ac.grim.grimac.api.storage.backend.BackendContext;
 import ac.grim.grimac.api.storage.backend.BackendException;
 import ac.grim.grimac.api.storage.backend.BackendProvider;
 import ac.grim.grimac.api.storage.backend.BackendRegistry;
+import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.config.DataStoreConfig;
 import ac.grim.grimac.api.storage.history.HistoryService;
@@ -19,7 +20,7 @@ import ac.grim.grimac.api.storage.identity.NameResolverLink;
 import ac.grim.grimac.api.storage.submit.ViolationSink;
 import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackend;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
-import ac.grim.grimac.internal.storage.checks.SqliteCheckPersistence;
+import ac.grim.grimac.internal.storage.checks.InMemoryCheckCatalogPersistence;
 import ac.grim.grimac.internal.storage.core.CapabilityValidator;
 import ac.grim.grimac.internal.storage.core.CategoryRouter;
 import ac.grim.grimac.internal.storage.core.DataStoreImpl;
@@ -133,33 +134,20 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
 
         CapabilityValidator.validate(routing);
 
-        // The CheckRegistry + legacy-migration paths still need a SQLite-backed
-        // persistence store and a SQLite-specific V0 reader. When SQLite is
-        // absent from routing (pure-memory tests, or a site that routes to a
-        // non-SQL backend only), we degrade gracefully: CheckRegistry falls
-        // back to in-memory, legacy migration is skipped.
-        SqliteBackend sqliteForExtras = findSqliteIn(backendsById);
-        if (sqliteForExtras != null) {
-            this.checkRegistry = new CheckRegistry(new SqliteCheckPersistence(sqliteForExtras.jdbcUrl()));
-            this.checkRegistry.reload();
+        Backend violationBackend = routing.get(Categories.VIOLATION);
+        if (violationBackend != null) {
+            this.checkRegistry = new CheckRegistry(violationBackend.checkCatalog());
+        } else {
+            this.checkRegistry = new CheckRegistry(new InMemoryCheckCatalogPersistence());
         }
+        this.checkRegistry.reload();
 
-        maybeMigrateLegacy(dataFolder, sqliteForExtras);
+        SqliteBackend sqliteMigrationTarget = violationBackend instanceof SqliteBackend s ? s : null;
+        maybeMigrateLegacy(dataFolder, sqliteMigrationTarget);
 
         CategoryRouter router = new CategoryRouter(routing);
         this.dataStore = new DataStoreImpl(router, config.writePath(), logger);
         this.dataStore.start();
-
-        if (checkRegistry == null) {
-            this.checkRegistry = new CheckRegistry(new CheckRegistry.CheckPersistence() {
-                @Override public Iterable<CheckRegistry.CheckRow> loadAll() { return List.of(); }
-                @Override public int insert(String stableKey, String display, String description,
-                                            String introducedVersion, long introducedAt) {
-                    return stableKey.hashCode();
-                }
-                @Override public void updateDisplayAndDescription(int checkId, String display, String description) {}
-            });
-        }
 
         this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
                 config.history().entriesPerPage(), config.history().groupIntervalMs());
@@ -204,13 +192,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         return provider.create(cfg);
     }
 
-    private static SqliteBackend findSqliteIn(Map<String, Backend> backends) {
-        for (Backend b : backends.values()) {
-            if (b instanceof SqliteBackend s) return s;
-        }
-        return null;
-    }
-
     private NameResolver buildNameResolver(DataStore store, List<String> chain) {
         List<NameResolverLink> links = new ArrayList<>();
         for (String id : chain) {
@@ -224,9 +205,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     }
 
     private void maybeMigrateLegacy(Path dataFolder, SqliteBackend sqliteBackend) {
-        // SqliteBackend is the only backend that currently understands the
-        // legacy V0 layout. When routing doesn't include SQLite, there's no
-        // place to migrate into — skip.
+        // The V0 reader/import path is SQLite-only. Only run it when the
+        // violation route itself is SQLite; mixed routing should not import
+        // legacy violations into an unrelated local side database.
         if (sqliteBackend == null) return;
         if (config.migration().skip()) {
             logger.info("[grim-datastore] migration.skip=true; leaving legacy v0 un-migrated");

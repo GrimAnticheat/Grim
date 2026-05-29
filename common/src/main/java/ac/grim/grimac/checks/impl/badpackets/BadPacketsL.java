@@ -27,12 +27,15 @@ public class BadPacketsL extends Check implements PacketCheck {
             if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING)
                 return;
 
-            // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
-            // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
-            final int expectedFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && packet.getAction() == DiggingAction.RELEASE_USE_ITEM
-                    ? 255 : 0;
+            // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, face 0
+            // 1.7 and below clients do the same, except use face 255 for RELEASE_USE_ITEM
+            // as of https://github.com/ViaVersion/ViaRewind/commit/e7b0606e187afbccf98ef7c88d3f3af27fe11da3, ViaRewind maps the face to 0
+            // let's allow both, just to be safe
+            final boolean allowLegacyFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)
+                    && packet.getAction() == DiggingAction.RELEASE_USE_ITEM;
+            final boolean isValidFace = packet.getBlockFaceId() == 0 || allowLegacyFace && packet.getBlockFaceId() == 255;
 
-            if (packet.getBlockFaceId() != expectedFace
+            if (!isValidFace
                     || packet.getBlockPosition().getX() != 0
                     || packet.getBlockPosition().getY() != 0
                     || packet.getBlockPosition().getZ() != 0
@@ -40,7 +43,7 @@ public class BadPacketsL extends Check implements PacketCheck {
             ) {
                 if (flagAndAlert("pos="
                         + packet.getBlockPosition().getX() + ", " + packet.getBlockPosition().getY() + ", " + packet.getBlockPosition().getZ()
-                        + ", face=" + packet.getBlockFace()
+                        + ", face=" + packet.getBlockFaceId()
                         + ", sequence=" + packet.getSequence()
                         + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT)
                 ) && shouldModifyPackets() && canCancel(packet.getAction())) {

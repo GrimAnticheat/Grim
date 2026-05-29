@@ -3,7 +3,9 @@ package ac.grim.grimac.utils.inventory;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentType;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class EnchantmentHelper {
     // Some enchants work on any armor piece but only the maximum level counts
     public static int getMaximumEnchantLevel(CompensatedInventory inventory, EnchantmentType enchantmentType) {

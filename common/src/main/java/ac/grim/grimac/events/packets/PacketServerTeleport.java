@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.IntToObjectPair;
 import ac.grim.grimac.utils.data.RotationData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
@@ -162,7 +162,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             event.getTasksAfterSend().add(player::sendTransaction);
-            player.vehicleData.vehicleTeleports.add(new Pair<>(
+            player.vehicleData.vehicleTeleports.add(new IntToObjectPair<>(
                     player.lastTransactionSent.get(),
                     new WrapperPlayServerVehicleMove(event).getPosition()
             ));

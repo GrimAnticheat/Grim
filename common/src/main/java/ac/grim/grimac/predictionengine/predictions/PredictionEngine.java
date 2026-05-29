@@ -66,7 +66,7 @@ public class PredictionEngine {
         inputVector = new Vector3dm((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
 
         if (inputVector.lengthSquared() > 1) {
-            double d0 = Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ());
+            double d0 = VectorUtils.getVanillaLength(player.getClientVersion(), inputVector);
             inputVector = new Vector3dm(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
         }
 
@@ -379,7 +379,7 @@ public class PredictionEngine {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                     Vector3dm vec3 = player.baseTickWaterPushing.clone();
                     if (Math.abs(vectorData.vector.getX()) < 0.003 && Math.abs(vectorData.vector.getZ()) < 0.003 && player.baseTickWaterPushing.length() < 0.0045000000000000005D) {
-                        vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                        vec3 = VectorUtils.normalize(player, vec3).multiply(0.0045000000000000005);
                     }
 
                     vectorData.vector = vectorData.vector.add(vec3);

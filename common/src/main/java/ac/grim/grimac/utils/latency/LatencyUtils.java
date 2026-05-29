@@ -5,14 +5,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
-import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.IntToObjectPair;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 public class LatencyUtils {
-    private final LinkedList<Pair<Integer, Runnable>> transactionMap = new LinkedList<>();
+    private final LinkedList<IntToObjectPair<Runnable>> transactionMap = new LinkedList<>();
     private final GrimPlayer player;
 
     // Built from transactionMap and cleared at start of every handleNettySyncTransaction() call
@@ -41,7 +41,7 @@ public class LatencyUtils {
             return;
         }
         synchronized (this) {
-            transactionMap.add(new Pair<>(transaction, runnable));
+            transactionMap.add(new IntToObjectPair<>(transaction, runnable));
         }
     }
 
@@ -69,9 +69,9 @@ public class LatencyUtils {
             tasksToRun.clear();
 
             // First pass: collect tasks and mark them for removal
-            ListIterator<Pair<Integer, Runnable>> iterator = transactionMap.listIterator();
+            ListIterator<IntToObjectPair<Runnable>> iterator = transactionMap.listIterator();
             while (iterator.hasNext()) {
-                Pair<Integer, Runnable> pair = iterator.next();
+                IntToObjectPair<Runnable> pair = iterator.next();
 
                 // We are at most a tick ahead when running tasks based on transactions, meaning this is too far
                 if (transaction + 1 < pair.first())

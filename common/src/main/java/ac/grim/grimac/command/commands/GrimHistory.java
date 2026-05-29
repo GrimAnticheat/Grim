@@ -1,7 +1,11 @@
 package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.storage.backend.Backend;
 import ac.grim.grimac.api.storage.category.Categories;
+import ac.grim.grimac.api.storage.check.CheckCatalogRepairResult;
+import ac.grim.grimac.api.storage.check.CheckCatalogRow;
 import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.history.SessionDetail;
 import ac.grim.grimac.api.storage.history.SessionSummary;
@@ -12,12 +16,17 @@ import ac.grim.grimac.api.storage.query.Page;
 import ac.grim.grimac.api.storage.query.Queries;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.render.HistoryComponentRenderer;
+import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.manager.datastore.DataStoreLifecycle;
 import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -30,54 +39,35 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * {@code /grim history} UI entry.
- * <p>
- * Command tree (sibling shapes disambiguated by the literal that follows
- * {@code <target>}):
  * <pre>
- *   /grim history &lt;target&gt;
- *       → session list, page 1
- *   /grim history &lt;target&gt; page &lt;P&gt;
- *       → session list, page P
- *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; [-d] [-v]
- *       → session detail for "Session N" (global chronological, Session 1 = oldest).
- *         {@code latest} / {@code last} / {@code l} are aliases for the most
- *         recent session.
- *   /grim history &lt;target&gt; session &lt;N | "latest"&gt; page &lt;P&gt; [-d] [-v]
- *       → session detail, violation page P.
+ *   /grim history &lt;target&gt;                                 → list, page 1
+ *   /grim history &lt;target&gt; page &lt;P&gt;                          → list, page P
+ *   /grim history &lt;target&gt; session                          → help menu
+ *   /grim history &lt;target&gt; session &lt;N|latest&gt; [-d] [-v]     → detail
+ *   /grim history &lt;target&gt; session &lt;N|latest&gt; page &lt;P&gt; [-d] [-v]
+ *   /grim history player &lt;target&gt; ...                       → disambiguated form
+ *   /grim history repair check-ids                           → in-place repair
  * </pre>
- * The {@code session} literal leaves the slot after {@code <target>} open for
- * future top-level subcommands (e.g. {@code violations}, {@code summary}) —
- * adding one is a matter of registering another sibling builder with its own
- * literal. Cloud will disambiguate on the literal token without ambiguity.
- * <p>
- * Flags: {@code --detailed}/{@code -d} shows raw violations one-per-row instead
- * of time-bucketed groups; {@code --verbose}/{@code -v} inlines verbose text
- * (full verbose always on hover). {@code --name <regex>}, {@code --match
- * <regex>} and {@code --grep <regex>} narrow the displayed violations
- * (display name, verbose text, or either) and apply to both list and detail
- * views — combining flags ANDs them.
- * <p>
- * Autocompletion on {@code <session>} and {@code <page>} is constrained to the
- * actual valid range for the player in context (computed via
- * {@code countSessions} / violations count), so tab-complete never offers
- * numbers that'd error out.
- * <p>
- * Runs synchronously on the command thread — keeps RCON callers from losing
- * the reply channel mid-command.
+ * {@code latest} / {@code last} / {@code l} alias the most-recent session.
+ * Flags: {@code -d} raw rows, {@code -v} inline verbose, {@code --name} /
+ * {@code --match} / {@code --grep} regex filters (AND-composed).
  */
 public class GrimHistory implements BuildableCommand {
+
+    private static final AtomicBoolean REPAIR_RUNNING = new AtomicBoolean();
 
     private static final int MAX_SUGGESTIONS = 30;
     private static final int MAX_PLAYER_SUGGESTIONS = 25;
@@ -90,70 +80,92 @@ public class GrimHistory implements BuildableCommand {
         SuggestionProvider<Sender> violationPageSuggestions = violationPageSuggestions();
         SuggestionProvider<Sender> targetSuggestions = targetSuggestions(adapter);
 
+        commandManager.command(
+                commandManager.commandBuilder("grim", "grimac")
+                        .literal("history", "hist")
+                        .literal("repair")
+                        .literal("check-ids")
+                        .permission("grim.history.repair")
+                        .handler(this::handleRepairCheckIds)
+        );
+
+        // Bare + 'player'-prefixed forms; the prefix is the escape hatch
+        // for players whose name collides with a sibling literal at the
+        // same tree depth (today: 'repair', 'player').
+        registerHistoryViewBranches(commandManager, false,
+                targetSuggestions, listPageNumberSuggestions,
+                sessionOrdinalSuggestions, violationPageSuggestions);
+        registerHistoryViewBranches(commandManager, true,
+                targetSuggestions, listPageNumberSuggestions,
+                sessionOrdinalSuggestions, violationPageSuggestions);
+    }
+
+    /** Registers the bare or {@code player}-prefixed view branches. */
+    private void registerHistoryViewBranches(
+            CommandManager<Sender> commandManager,
+            boolean withPlayerLiteral,
+            SuggestionProvider<Sender> targetSuggestions,
+            SuggestionProvider<Sender> listPageNumberSuggestions,
+            SuggestionProvider<Sender> sessionOrdinalSuggestions,
+            SuggestionProvider<Sender> violationPageSuggestions) {
+        // Fresh builder per branch — reusing one cross-pollinates siblings.
+        java.util.function.Supplier<Command.Builder<Sender>> base = () -> {
+            Command.Builder<Sender> b = commandManager.commandBuilder("grim", "grimac")
+                    .literal("history", "hist")
+                    .permission("grim.history");
+            if (withPlayerLiteral) b = b.literal("player");
+            return b.required("target", StringParser.stringParser(), targetSuggestions);
+        };
+
+        // handleSessionHelp echoes whichever prefix was used.
+        final boolean viaPlayer = withPlayerLiteral;
+
         // List, page 1
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions))
+                applyFilterFlags(commandManager, base.get())
                         .handler(this::handleListPage1)
         );
         // List, page N
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("page")
-                                .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
+                applyFilterFlags(commandManager, base.get()
+                        .literal("page")
+                        .required("page_number", IntegerParser.integerParser(1), listPageNumberSuggestions))
                         .handler(this::handleListPageN)
         );
-        // Detail (default violation page). The `session` literal lives at the
-        // same tree slot as `page` above; Cloud picks the branch by exact
-        // match. The session-ordinal arg is a String parser so it can accept
-        // the "latest" / "last" / "l" aliases alongside plain integers — the
-        // handler resolves them via resolveSessionOrdinal().
+        // Help branch on bare 'session' — Cloud would otherwise reject with
+        // a parse error that reads like a syntax mistake, not a hint.
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("session")
-                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
+                base.get().literal("session")
+                        .handler(ctx -> handleSessionHelp(ctx, viaPlayer))
+        );
+        // 'session' literal at the same tree slot as 'page'; session-ordinal is
+        // String so it accepts 'latest' / 'last' / 'l' alongside integers.
+        commandManager.command(
+                applyFilterFlags(commandManager, base.get()
+                        .literal("session")
+                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailDefaultPage)
         );
         // Detail, violation page N
         commandManager.command(
-                applyFilterFlags(commandManager,
-                        commandManager.commandBuilder("grim", "grimac")
-                                .literal("history", "hist")
-                                .permission("grim.history")
-                                .required("target", StringParser.stringParser(), targetSuggestions)
-                                .literal("session")
-                                .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
-                                .literal("page")
-                                .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
-                                .flag(commandManager.flagBuilder("detailed").withAliases("d")
-                                        .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
-                                .flag(commandManager.flagBuilder("verbose").withAliases("v")
-                                        .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
+                applyFilterFlags(commandManager, base.get()
+                        .literal("session")
+                        .required("session", StringParser.stringParser(), sessionOrdinalSuggestions)
+                        .literal("page")
+                        .required("page_number", IntegerParser.integerParser(1), violationPageSuggestions)
+                        .flag(commandManager.flagBuilder("detailed").withAliases("d")
+                                .withDescription(Description.of("Show each violation as its own row instead of time-bucketed groups.")))
+                        .flag(commandManager.flagBuilder("verbose").withAliases("v")
+                                .withDescription(Description.of("Include the raw verbose text inline on each line (also always available on hover)."))))
                         .handler(this::handleDetailPageN)
         );
     }
 
-    /**
-     * Attach the three regex-filter flags ({@code --name}, {@code --match},
-     * {@code --grep}) to a command builder. Shared across all four branches
-     * — declarative cloud builders need the flags repeated per branch, but
-     * the bodies are identical, so we centralise.
-     */
+    /** Attach the {@code --name} / {@code --match} / {@code --grep} regex flags. */
     private static Command.Builder<Sender> applyFilterFlags(
             CommandManager<Sender> commandManager,
             Command.Builder<Sender> b) {
@@ -231,34 +243,55 @@ public class GrimHistory implements BuildableCommand {
         });
     }
 
-    /**
-     * Sentinel returned by {@link #parseFilterFromContext(Sender, CommandContext)}
-     * when the operator supplied an invalid regex. Handlers compare the
-     * return value against this with {@code ==} to distinguish "no filter"
-     * (null) from "user error already messaged" (this sentinel) before
-     * dispatching to {@code runWithPrelude} — saves a separate boolean
-     * field on each handler.
-     */
+    /** Prints usage for {@code /grim history <target> session} without an ordinal. */
+    private void handleSessionHelp(CommandContext<Sender> ctx, boolean viaPlayer) {
+        Sender sender = ctx.sender();
+        String target = ctx.get("target");
+        // Echo the exact prefix the operator used so the printed examples
+        // dispatch on the same branch — a target that needed the 'player'
+        // escape hatch (e.g. someone named 'repair') would route through
+        // the wrong literal if the help printed the bare form.
+        String addressPrefix = "/grim history " + (viaPlayer ? "player " : "");
+        sender.sendMessage(Component.text()
+                .append(Component.text(addressPrefix, NamedTextColor.GRAY))
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session ", NamedTextColor.GRAY))
+                .append(Component.text("<N | latest>", NamedTextColor.AQUA))
+                .append(Component.text(" — show violations for a specific session.", NamedTextColor.GRAY))
+                .build());
+        sender.sendMessage(Component.text(
+                "  N is the session ordinal (1 = oldest). 'latest' / 'last' / 'l' = most recent.",
+                NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Optional:", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  page <P>", NamedTextColor.YELLOW)
+                .append(Component.text("                  page through this session's violations", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --detailed / -d", NamedTextColor.YELLOW)
+                .append(Component.text("           raw per-violation rows (no time-bucketing)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --verbose / -v", NamedTextColor.YELLOW)
+                .append(Component.text("            inline verbose text (also on hover)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --name <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("            filter by check display name", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --match <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("           filter by verbose text", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  --grep <regex>", NamedTextColor.YELLOW)
+                .append(Component.text("            filter by either name or verbose (AND-composes with others)", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("Examples:", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  " + addressPrefix, NamedTextColor.GRAY)
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session latest -d -v", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("  " + addressPrefix, NamedTextColor.GRAY)
+                .append(Component.text(target, NamedTextColor.WHITE))
+                .append(Component.text(" session 1 --grep reach", NamedTextColor.GRAY)));
+    }
+
+    /** Sentinel: invalid regex, sender already messaged. Distinguished from null ("no filter") with {@code ==}. */
     private static final Predicate<ViolationEntry> FILTER_ERROR = v -> false;
 
     /**
-     * Build a {@link ViolationEntry} predicate from the three filter flags.
-     *
-     * <ul>
-     *   <li>{@code --name <regex>} — matches the violation's display name.</li>
-     *   <li>{@code --match <regex>} — matches the verbose string. Rows with
-     *       {@code null} verbose drop when this flag is set.</li>
-     *   <li>{@code --grep <regex>} — grep-style: matches if EITHER display
-     *       name OR verbose hits.</li>
-     * </ul>
-     *
-     * <p>Combining flags ANDs them — each flag is an independent narrowing
-     * step. All three use {@link Pattern#CASE_INSENSITIVE} so the operator
-     * doesn't have to think about casing.
-     *
-     * <p>Returns {@code null} when no filter flag is set so callers can
-     * short-circuit; returns {@link #FILTER_ERROR} after sending an error
-     * message to the sender if a regex fails to compile.
+     * Build the violation predicate from {@code --name} (display name),
+     * {@code --match} (verbose), {@code --grep} (either). Case-insensitive,
+     * AND-composed. Null = no filter; {@link #FILTER_ERROR} = bad regex,
+     * sender already messaged.
      */
     private static @Nullable Predicate<ViolationEntry> parseFilterFromContext(Sender sender, CommandContext<Sender> ctx) {
         Pattern namePat;
@@ -312,12 +345,7 @@ public class GrimHistory implements BuildableCommand {
         }
     }
 
-    /**
-     * Translates the {@code session} argument — either a positive integer, the
-     * literal "latest" / "last" / "l", or {@code null}-ish — into a global session
-     * ordinal. Returns {@code null} when the target has no sessions or the input
-     * is unparseable.
-     */
+    /** Resolves a positive integer, {@code latest}/{@code last}/{@code l}, or null. */
     private static @Nullable Integer resolveSessionOrdinal(String raw, UUID uuid, HistoryService history)
             throws Exception {
         if (raw == null) return null;
@@ -449,6 +477,167 @@ public class GrimHistory implements BuildableCommand {
         for (Component c : components) sender.sendMessage(c);
     }
 
+    private void handleRepairCheckIds(CommandContext<Sender> context) {
+        Sender sender = context.sender();
+        DataStoreLifecycle lifecycle = GrimAPI.INSTANCE.getDataStoreLifecycle();
+        if (lifecycle == null || !lifecycle.isLoaded() || lifecycle.config() == null) {
+            sender.sendMessage(Component.text("History storage is disabled (see database.yml).", NamedTextColor.RED));
+            return;
+        }
+
+        String backendId = lifecycle.config().routing().get(Categories.VIOLATION);
+        if (backendId == null || backendId.equalsIgnoreCase("none")) {
+            sender.sendMessage(Component.text("No violation backend is routed; nothing to repair.", NamedTextColor.YELLOW));
+            return;
+        }
+
+        Backend backend = lifecycle.allBackendsForCommands().get(backendId);
+        if (backend == null) {
+            sender.sendMessage(Component.text("Violation backend '" + backendId + "' is not active.", NamedTextColor.RED));
+            return;
+        }
+
+        if (!REPAIR_RUNNING.compareAndSet(false, true)) {
+            sender.sendMessage(Component.text("A history check-id repair is already running.", NamedTextColor.YELLOW));
+            return;
+        }
+
+        List<CheckDefinition> liveChecks = snapshotLiveCheckDefinitions();
+        logBoth(sender, Component.text(
+                "Repairing history check ids on backend '" + backendId + "' in the background...", NamedTextColor.AQUA));
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(
+                GrimAPI.INSTANCE.getGrimPlugin(),
+                () -> runRepairAsync(sender, lifecycle, backend, liveChecks));
+    }
+
+    private static void runRepairAsync(
+            Sender sender,
+            DataStoreLifecycle lifecycle,
+            Backend backend,
+            List<CheckDefinition> liveChecks) {
+        try {
+            int prewarmed = prewarmCatalog(lifecycle, liveChecks);
+            RepairPlan plan = buildRepairPlan(backend);
+            CheckCatalogRepairResult result = backend.repairCheckCatalog(
+                    plan.legacyToCatalogIds(), currentGrimVersion());
+            runOnGlobalThread(() -> reportRepairComplete(sender, prewarmed, plan, result));
+        } catch (Exception e) {
+            runOnGlobalThread(() -> logBoth(sender, Component.text("Repair failed: " + e.getMessage(), NamedTextColor.RED)));
+            LogUtil.error("v1 check-id repair failed via /grim history repair check-ids", e);
+        } finally {
+            REPAIR_RUNNING.set(false);
+        }
+    }
+
+    private static void reportRepairComplete(
+            Sender sender,
+            int prewarmed,
+            RepairPlan plan,
+            CheckCatalogRepairResult result) {
+        logBoth(sender, Component.text()
+                .append(Component.text("Repair complete: ", NamedTextColor.GREEN))
+                .append(Component.text(prewarmed + " live check definitions prewarmed, "))
+                .append(Component.text(result.mappingsApplied() + " id mapping(s), "))
+                .append(Component.text(result.violationsUpdated() + " violation row(s) rewritten, "))
+                .append(Component.text(result.catalogVersionsUpdated() + " stub version row(s) fixed"))
+                .build());
+        if (plan.ambiguousHashes() > 0 || plan.catalogIdCollisions() > 0) {
+            logBoth(sender, Component.text()
+                    .append(Component.text("Skipped ", NamedTextColor.YELLOW))
+                    .append(Component.text(plan.ambiguousHashes() + " ambiguous hash mapping(s), "))
+                    .append(Component.text(plan.catalogIdCollisions() + " catalog-id collision(s)."))
+                    .build());
+        }
+    }
+
+    private static List<CheckDefinition> snapshotLiveCheckDefinitions() {
+        List<CheckDefinition> definitions = new ArrayList<>();
+        Set<String> seenStableKeys = new HashSet<>();
+        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+                String stableKey = check.getStableKey();
+                if (stableKey == null || stableKey.isBlank()) continue;
+                if (!seenStableKeys.add(stableKey)) continue;
+                definitions.add(new CheckDefinition(stableKey, check.getCheckName(), check.getDescription()));
+            }
+        }
+        return definitions;
+    }
+
+    private static int prewarmCatalog(DataStoreLifecycle lifecycle, List<CheckDefinition> definitions) {
+        CheckRegistry registry = lifecycle.checkRegistryForCommands();
+        if (registry == null) return 0;
+
+        int prewarmed = 0;
+        String version = currentGrimVersion();
+        for (CheckDefinition definition : definitions) {
+            registry.intern(definition.stableKey(), definition.display(), definition.description(), version);
+            prewarmed++;
+        }
+        return prewarmed;
+    }
+
+    private static RepairPlan buildRepairPlan(Backend backend) {
+        Set<Integer> catalogIds = new HashSet<>();
+        Map<Integer, List<CheckCatalogRow>> byLegacyHash = new LinkedHashMap<>();
+        for (CheckCatalogRow row : backend.checkCatalog().loadAll()) {
+            catalogIds.add(row.checkId());
+            byLegacyHash.computeIfAbsent(row.stableKey().hashCode(), k -> new ArrayList<>()).add(row);
+        }
+
+        Map<Integer, Integer> repairIds = new LinkedHashMap<>();
+        int ambiguousHashes = 0;
+        int catalogIdCollisions = 0;
+        for (Map.Entry<Integer, List<CheckCatalogRow>> entry : byLegacyHash.entrySet()) {
+            int legacyId = entry.getKey();
+            List<CheckCatalogRow> owners = entry.getValue();
+            if (owners.size() != 1) {
+                ambiguousHashes += owners.size();
+                continue;
+            }
+            CheckCatalogRow row = owners.get(0);
+            if (legacyId == row.checkId()) continue;
+            if (catalogIds.contains(legacyId)) {
+                catalogIdCollisions++;
+                continue;
+            }
+            repairIds.put(legacyId, row.checkId());
+        }
+        return new RepairPlan(repairIds, ambiguousHashes, catalogIdCollisions);
+    }
+
+    private static String currentGrimVersion() {
+        return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
+    }
+
+    private record RepairPlan(
+            Map<Integer, Integer> legacyToCatalogIds,
+            int ambiguousHashes,
+            int catalogIdCollisions) {}
+
+    private record CheckDefinition(String stableKey, String display, String description) {}
+
+    private static void runOnGlobalThread(Runnable task) {
+        GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(
+                GrimAPI.INSTANCE.getGrimPlugin(), task);
+    }
+
+    private static void logBoth(Sender sender, Component msg) {
+        sender.sendMessage(msg);
+        LogUtil.info(plain(msg));
+    }
+
+    private static String plain(Component c) {
+        StringBuilder sb = new StringBuilder();
+        flatten(c, sb);
+        return sb.toString();
+    }
+
+    private static void flatten(Component c, StringBuilder sb) {
+        if (c instanceof TextComponent tc) sb.append(tc.content());
+        for (Component child : c.children()) flatten(child, sb);
+    }
+
     private Cursor advanceToPage(HistoryService history, UUID uuid, int pageSize, int page) throws Exception {
         if (page <= 1) return null;
         Cursor cursor = null;
@@ -468,17 +657,9 @@ public class GrimHistory implements BuildableCommand {
     // ---- suggestion providers ----
 
     /**
-     * Merged online + offline player suggestions for the {@code <target>} argument.
-     * <p>
-     * Empty prefix: online players only (skips the datastore to avoid
-     * enumerating every historical player). Non-empty prefix: online players
-     * first, then offline matches from the datastore sorted by {@code last_seen}
-     * descending, merged case-insensitively. Combined result is capped at
-     * {@link #MAX_PLAYER_SUGGESTIONS}.
-     * <p>
-     * Permission-gated by the surrounding {@code grim.history} permission on
-     * the command itself; Cloud never invokes suggestions for a sender that
-     * can't execute the command.
+     * Online players + offline name-prefix matches from the datastore
+     * (sorted by {@code last_seen} desc). Empty prefix skips the offline
+     * lookup. Capped at {@link #MAX_PLAYER_SUGGESTIONS}.
      */
     private static SuggestionProvider<Sender> targetSuggestions(CloudCommandAdapter adapter) {
         SuggestionProvider<Sender> onlineProvider = adapter.onlinePlayerSuggestions();

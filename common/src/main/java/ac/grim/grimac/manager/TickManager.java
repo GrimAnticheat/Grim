@@ -28,10 +28,14 @@ public class TickManager {
 
     public void tickSync() {
         currentTick++;
-        syncTick.values().forEach(Tickable::tick);
+        for (Tickable tickable : syncTick.values()) {
+            tickable.tick();
+        }
     }
 
     public void tickAsync() {
-        asyncTick.values().forEach(Tickable::tick);
+        for (Tickable tickable : asyncTick.values()) {
+            tickable.tick();
+        }
     }
 }

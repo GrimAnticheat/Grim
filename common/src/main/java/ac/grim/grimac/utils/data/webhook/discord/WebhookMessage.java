@@ -78,6 +78,7 @@ public class WebhookMessage implements JsonSerializable {
         return embeds(newEmbeds);
     }
 
+    @Override
     public @NotNull JsonObject toJson() {
         JsonObject json = new JsonObject();
         if (content() != null) json.addProperty("content", content());

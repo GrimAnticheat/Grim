@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager.config.update;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +35,8 @@ import java.util.Locale;
  * <p>{@code punishments.yml} is intentionally absent — open-ended user-
  * defined data (operator-authored punishment groups), no schema versioning.
  */
+@UtilityClass
 public final class GrimConfigSpecs {
-
-    private GrimConfigSpecs() {}
 
     /**
      * Spec for the main {@code config.yml}.

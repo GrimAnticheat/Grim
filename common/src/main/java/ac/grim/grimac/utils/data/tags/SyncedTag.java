@@ -6,16 +6,16 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTa
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 
 public final class SyncedTag<T> {
 
     private final ResourceLocation location;
     private final Set<T> values;
-    private final Function<Integer, T> remapper;
+    private final IntFunction<T> remapper;
     private final boolean supported;
 
-    private SyncedTag(ResourceLocation location, Function<Integer, T> remapper, Set<T> defaultValues, boolean supported) {
+    private SyncedTag(ResourceLocation location, IntFunction<T> remapper, Set<T> defaultValues, boolean supported) {
         this.location = location;
         this.supported = supported;
         this.values = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -47,7 +47,7 @@ public final class SyncedTag<T> {
 
     public static final class Builder<T> {
         private final ResourceLocation location;
-        private Function<Integer, T> remapper;
+        private IntFunction<T> remapper;
         private Set<T> defaultValues;
         private boolean supported = true;
 
@@ -55,7 +55,7 @@ public final class SyncedTag<T> {
             this.location = location;
         }
 
-        public Builder<T> remapper(Function<Integer, T> remapper) {
+        public Builder<T> remapper(IntFunction<T> remapper) {
             this.remapper = remapper;
             return this;
         }

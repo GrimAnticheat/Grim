@@ -176,6 +176,8 @@ tasks {
     }
 
     shadowJar {
+        exclude("META-INF/services/javax.annotation.processing.Processor")
+
         manifest {
             attributes["paperweight-mappings-namespace"] = "mojang"
         }
