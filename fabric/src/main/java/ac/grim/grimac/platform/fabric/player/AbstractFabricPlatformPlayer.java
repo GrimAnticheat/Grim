@@ -149,7 +149,9 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
-        this.fabricPlayer = (ServerPlayer) nativePlayerObject;
+        ServerPlayer player = (ServerPlayer) nativePlayerObject;
+        this.fabricPlayer = player;
+        replaceNativeEntity(player);
     }
 
     @Override

@@ -11,7 +11,7 @@ import net.minecraft.world.entity.Entity;
 
 public abstract class AbstractFabricGrimEntity implements GrimEntity {
 
-    protected final Entity entity;
+    protected volatile Entity entity;
 
     public AbstractFabricGrimEntity(Entity entity) {
         this.entity = Objects.requireNonNull(entity);
@@ -34,6 +34,10 @@ public abstract class AbstractFabricGrimEntity implements GrimEntity {
     @Override
     public @NotNull Entity getNative() {
         return this.entity;
+    }
+
+    protected void replaceNativeEntity(@NotNull Entity entity) {
+        this.entity = Objects.requireNonNull(entity);
     }
 
     @Override
