@@ -199,6 +199,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.uncertaintyHandler.lastVehicleSwitch.reset();
         }
 
+        // TODO: this will be invalid with higher ping? flying (causes teleport) -> flying (second multiplication) -> accept teleport -> movement?
+        // this needs to be rewritten
         if (player.vehicleData.lastDummy) {
             player.clientVelocity.multiply(0.98); // This is vanilla, do not touch
         }
@@ -229,8 +231,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.vehicleData.wasVehicleSwitch = true);
 
                 // We can only trust data sent by the server, so teleport player to a last position, as cheater can spoof position however they like
-                player.user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(player.lastX, player.lastY, player.lastZ), player.yaw, player.pitch));
                 player.user.sendPacketSilently(new WrapperPlayServerEntityVelocity(player.getRidingVehicleId(), new Vector3d()));
+                player.user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(player.lastX, player.lastY, player.lastZ), player.yaw, player.pitch));
 
                 player.getSetbackTeleportUtil().blockOffsets = true;
             } else {
