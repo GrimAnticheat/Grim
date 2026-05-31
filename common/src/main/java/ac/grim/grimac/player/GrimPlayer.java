@@ -795,8 +795,7 @@ public class GrimPlayer implements GrimUser {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
             // 1.21.5 introduced this again! (only in dummy vehicles?)
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
-                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && (!EntityTypes.CAMEL.isInstanceOf(entityType) || (vehicle instanceof PacketEntityCamel camel && !camel.hasSaddle())))) {
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
