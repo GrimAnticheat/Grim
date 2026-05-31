@@ -498,16 +498,6 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                     return;
                 }
 
-                if (vanillaVehicleFlight) {
-                    if (!player.inVehicle()) {
-                        player.user.writePacket(new WrapperPlayServerVehicleMove(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch));
-                    }
-
-                    if (player.vehicleData.lastDummy) {
-                        player.user.writePacket(new WrapperPlayServerVehicleMove(new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch));
-                    }
-                }
-
                 data.setX(data.getX() + deltaX);
                 data.setY(data.getY() + deltaY);
                 data.setZ(data.getZ() + deltaZ);
