@@ -368,6 +368,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             Vector3d position = teleportPos.second();
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.vehicleData.vehicleTeleports.poll();
+                blockOffsets = false;
 
                 return true;
             } else if (lastTransaction > teleportPos.first() + 1) {

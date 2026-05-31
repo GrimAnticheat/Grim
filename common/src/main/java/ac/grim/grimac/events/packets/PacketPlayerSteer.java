@@ -147,10 +147,10 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.lastY = player.y;
             player.lastZ = player.z;
 
-            SimpleCollisionBox vehiclePos = player.compensatedEntities.self.getRiding().getPossibleCollisionBoxes();
+            SimpleCollisionBox vehiclePos = player.compensatedEntities.self.getRiding().getPossibleLocationBoxes();
 
             player.x = (vehiclePos.minX + vehiclePos.maxX) / 2;
-            player.y = /*(vehiclePos.minY + vehiclePos.maxY) / 2*/vehiclePos.minY;
+            player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
             player.z = (vehiclePos.minZ + vehiclePos.maxZ) / 2;
 
             if (player.isSprinting != player.lastSprinting) {

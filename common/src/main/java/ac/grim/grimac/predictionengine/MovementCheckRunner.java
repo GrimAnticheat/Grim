@@ -208,16 +208,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             update.setTeleport(true);
 
             if (riding != null) {
-                SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
-
-                // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
-                final float scale = (float) riding.getAttributeValue(Attributes.SCALE);
-                float width = BoundingBoxSize.getWidth(player, riding) * scale;
-                float height = BoundingBoxSize.getHeight(player, riding) * scale;
-                interTruePositions.expand(-width, 0, -width);
-                interTruePositions.expandMax(0, -height, 0);
-
-                Vector3dm cutTo = VectorUtils.cutBoxToVector(player.x, player.y, player.z, interTruePositions);
+                SimpleCollisionBox interTruePositions = riding.getPossibleLocationBoxes();
 
                 // Now we need to simulate a tick starting at the most optimal position
                 // The start position is never sent, so we assume the most optimal start position
@@ -227,15 +218,21 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 // their similar code may also work on grim.
                 //
                 // This is the best I can do, but I think it might just work.
-                player.lastX = cutTo.getX();
-                player.lastY = cutTo.getY();
-                player.lastZ = cutTo.getZ();
+                player.lastX = (interTruePositions.minX + interTruePositions.maxX) / 2;
+                player.lastY = (interTruePositions.minY + interTruePositions.maxY) / 2;
+                player.lastZ = (interTruePositions.minZ + interTruePositions.maxZ) / 2;
 
                 player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+
+                // Help prevent transaction split
+                player.sendTransaction();
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.vehicleData.wasVehicleSwitch = true);
 
                 // We can only trust data sent by the server, so teleport player to a last position, as cheater can spoof position however they like
                 player.user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(player.lastX, player.lastY, player.lastZ), player.yaw, player.pitch));
                 player.user.sendPacketSilently(new WrapperPlayServerEntityVelocity(player.getRidingVehicleId(), new Vector3d()));
+
+                player.getSetbackTeleportUtil().blockOffsets = true;
             } else {
                 player.getSetbackTeleportUtil().executeForceResync();
                 handleTeleport(update);
@@ -245,8 +242,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                     PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
                     player.lastWasClimbing = ladder.getY();
                 }
-                return;
             }
+            return;
         }
 
         if (player.isInBed != player.lastInBed) {
