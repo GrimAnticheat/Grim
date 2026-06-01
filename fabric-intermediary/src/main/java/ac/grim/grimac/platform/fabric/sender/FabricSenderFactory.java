@@ -51,7 +51,10 @@ public class FabricSenderFactory extends SenderFactory<CommandSourceStack> {
 
     @Override
     protected void sendMessage(CommandSourceStack sender, Component message) {
-        fabricMessageUtils.sendMessage(sender, GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);
+        // toNativeText now returns Object (NMS-free interface in fabric-common); cast back.
+        net.minecraft.network.chat.Component nativeText =
+                (net.minecraft.network.chat.Component) GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message);
+        fabricMessageUtils.sendMessage(sender, nativeText, false);
     }
 
     @Override

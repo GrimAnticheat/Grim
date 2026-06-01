@@ -146,7 +146,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
     public ItemStack getHeldItem() {
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHeldItem() :
-                player.platformPlayer.getInventory().getItemInHand();
+                player.platformPlayer.getPlayerInventory().getItemInHand();
         return item == null ? ItemStack.EMPTY : item;
     }
 
@@ -154,31 +154,31 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
             return ItemStack.EMPTY;
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getOffhand() :
-                player.platformPlayer.getInventory().getItemInOffHand();
+                player.platformPlayer.getPlayerInventory().getItemInOffHand();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getHelmet() {
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHelmet() :
-                player.platformPlayer.getInventory().getHelmet();
+                player.platformPlayer.getPlayerInventory().getHelmet();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getChestplate() {
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getChestplate() :
-                player.platformPlayer.getInventory().getChestplate();
+                player.platformPlayer.getPlayerInventory().getChestplate();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getLeggings() {
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getLeggings() :
-                player.platformPlayer.getInventory().getLeggings();
+                player.platformPlayer.getPlayerInventory().getLeggings();
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getBoots() {
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getBoots() :
-                player.platformPlayer.getInventory().getBoots();
+                player.platformPlayer.getPlayerInventory().getBoots();
         return item == null ? ItemStack.EMPTY : item;
     }
 
@@ -198,7 +198,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             return inventory.hasItemType(type);
 
         // Fall back to platform inventories
-        for (ItemStack itemStack : player.platformPlayer.getInventory().getContents()) {
+        for (ItemStack itemStack : player.platformPlayer.getPlayerInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == type) return true;
         }
         return false;

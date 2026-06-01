@@ -23,11 +23,7 @@ dependencies {
 
     // NMS-free Fabric platform code shared with fabric-official lives here.
     implementation(project(":fabric-common"))
-    // PE is JiJ'd at the top-level fabric/ aggregator (so it loads on every MC range
-    // the aggregator covers, not just the intermediary range). Here PE is compile-only:
-    // declaring modImplementation/modApi would also nest the api/transitive jars inside
-    // grimac-fabric-intermediary's published jar, which on a 26.1.2 server would never
-    // load because the intermediary mod itself is gated <26.
+    // PE is JiJ'd once at the fabric/ aggregator; compileOnly here avoids re-nesting it.
     compileOnly(libs.packetevents.fabric)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")

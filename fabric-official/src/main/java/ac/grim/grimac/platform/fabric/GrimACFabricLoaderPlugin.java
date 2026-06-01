@@ -22,7 +22,7 @@ import ac.grim.grimac.platform.fabric.manager.FabricPlatformPluginManager;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.resolver.FabricResolverRegistrar;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
-import ac.grim.grimac.platform.fabric.sender.NoopFabricSenderFactory;
+import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -39,16 +39,16 @@ import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
 import org.jetbrains.annotations.NotNull;
 
-// fabric-official variant — mirrors the intermediary loader. cloud-fabric and
-// fabric-permissions-api are mojmap on 26.1, so /grim commands (CloudCommandService
-// below) and permission checks (NoopFabricSenderFactory) are fully wired here.
+// fabric-official variant, mirrors the intermediary loader. cloud-fabric and
+// fabric-permissions-api use official mappings on 26.1, so /grim commands
+// (CloudCommandService below) and permission checks (FabricSenderFactory) are wired here.
 public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
     public static GrimACFabricLoaderPlugin LOADER;
 
     protected final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
     protected final PacketEventsAPI<?> packetEvents = PacketEvents.getAPI();
-    protected final LazyHolder<NoopFabricSenderFactory> senderFactory = LazyHolder.simple(NoopFabricSenderFactory::new);
+    protected final LazyHolder<FabricSenderFactory> senderFactory = LazyHolder.simple(FabricSenderFactory::new);
     protected final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(FabricItemResetHandler::new);
     protected final LazyHolder<CloudCommandAdapter> commandAdapter = LazyHolder.simple(FabricParserDescriptorFactory::new);
     protected final LazyHolder<CommandService> commandService = LazyHolder.simple(this::createCommandService);
@@ -101,10 +101,10 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
 
     // Isolates the hard references to the Cloud command framework so they are only
     // class-loaded when accessed (see createCommandService's try/catch). cloud-fabric
-    // 2.0.0-beta.16 is mojmap on 26.1, so FabricServerCommandManager's native source
-    // type is the Mojang-named CommandSourceStack this module already uses — no remap.
+    // 2.0.0-beta.16 uses official mappings on 26.1, so FabricServerCommandManager's native
+    // source type is the official-mapped CommandSourceStack this module uses: no remap.
     private static final class CloudHelper {
-        static CommandService create(NoopFabricSenderFactory factory, CloudCommandAdapter commandAdapter) {
+        static CommandService create(FabricSenderFactory factory, CloudCommandAdapter commandAdapter) {
             SenderMapper<CommandSourceStack, Sender> mapper = SenderMapper.create(
                     factory::wrap,
                     factory::unwrap
@@ -157,7 +157,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
         return (name, defaultValue) -> {}; // No-op; fabric-permissions-api not ported.
     }
 
-    public NoopFabricSenderFactory getFabricSenderFactory() {
+    public FabricSenderFactory getFabricSenderFactory() {
         return senderFactory.get();
     }
 

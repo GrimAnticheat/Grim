@@ -26,9 +26,9 @@ public interface PlatformPlayer extends GrimEntity, OfflinePlatformPlayer {
 
     Vector3d getPosition();
 
-    PlatformInventory getInventory();
+    PlatformInventory getPlayerInventory();
 
-    @Nullable GrimEntity getVehicle();
+    @Nullable GrimEntity getVehicleEntity();
 
     GameMode getGameMode();
 

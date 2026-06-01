@@ -9,7 +9,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 public class Fabric1216ConversionUtil extends ac.grim.grimac.platform.fabric.mc1205.convert.Fabric1205ConversionUtil {
 
     @Override
-    public net.minecraft.network.chat.Component toNativeText(Component component) {
+    public Object toNativeText(Component component) {
         return ComponentSerialization.CODEC.decode(
                 RegistryAccess.EMPTY.createSerializationContext(JsonOps.INSTANCE),
                 GsonComponentSerializer.gson().serializeToTree(component)

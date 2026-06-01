@@ -3,18 +3,9 @@ import versioning.BuildConfig
 val minecraft_version: String by project
 val fabric_version: String by project
 
-// Plugin choice rationale:
-//   This module uses the short `fabric-loom` plugin (LoomGradlePlugin, the remap
-//   variant) with `mappings(intermediary:0.0.0:v2)` — a published empty intermediary
-//   stub. Because the stub has zero entries, the named→intermediary remap pass is
-//   effectively a no-op, leaving Mojang-named bytecode untouched in remapJar output.
-//   This is intentional and matches the practical effect of LoomNoRemap
-//   (LoomNoRemapGradlePlugin via the fully-qualified `net.fabricmc.fabric-loom` id)
-//   without requiring the different jar/task/configuration plumbing that PE's
-//   fabric-official uses. See PE's fabric-official build.gradle.kts for the
-//   alternative pattern. Both produce equivalent jars when source contains no
-//   intermediary refs, which is the case here (and will remain the case when real
-//   26.X-mojmap anticheat code lands — see KNOWN BLOCKERS comment below).
+// WHY the empty `intermediary:0.0.0:v2` mappings stub: it makes the named->intermediary
+// remap a no-op, so the official-mapped 26.X bytecode is left untouched in remapJar (the
+// 26.X anticheat code is official-mappings-only, so there is nothing to remap).
 plugins {
     `maven-publish`
     alias(libs.plugins.fabric.loom)
@@ -34,59 +25,23 @@ loom {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-    // 26.X anticheat lives here. Compiles directly against the Mojang-named
-    // 26.1.2 jar via the empty `intermediary:0.0.0:v2` stub (the named→
-    // intermediary remap is a no-op since the stub has zero entries). Source
-    // is the fabric-intermediary platform layer ported to 26.X mojmap:
-    //
-    //   - cloud-fabric (commands), fabric-permissions-api (permission checks)
-    //     and fabric-api (TriState / event util) are published in the Fabric
-    //     `official` (mojmap) namespace at the versions pinned below for MC 26.1
-    //     (verified: `Fabric-Mapping-Namespace: official`, zero `class_NNNN`
-    //     intermediary refs, public APIs typed on mojmap MinecraftServer /
-    //     CommandSourceStack / ServerPlayer). Because they already reference
-    //     Minecraft by Mojang names they link against the empty-stub mojmap
-    //     classpath with no remap, so they use PLAIN configs
-    //     (implementation/compileOnly) rather than the mod* (remap) configs the
-    //     fabric-intermediary world needs for its yarn-remapped intermediary
-    //     deps. /grim commands (CloudHelper + FabricCommandAdapter) and
-    //     permission checks (NoopFabricSenderFactory) are fully wired here.
-    //   - Server lifecycle / tick events are driven by MinecraftServerMixin
-    //     into FabricServerEvents (see src/main/java/.../FabricServerEvents.java)
-    //     instead of fabric-api's ServerLifecycleEvents + ServerTickEvents. This
-    //     is a deliberate choice to avoid a hard fabric-api dependency for two
-    //     lifecycle hooks the mixin already provides — NOT a namespace limit
-    //     (fabric-api's ServerTickEvents is mojmap on 26.1 and would link).
-    //   - 26.X mojmap drift is handled inline (Permission.HasCommandLevel,
-    //     services().profileResolver(), Inventory.getSelectedItem(),
-    //     ResourceKey.identifier(), Player.sendSystemMessage, etc.). AW
-    //     widens the same private fields the intermediary side does.
-    //
-    // mc261 covers the full 26.1.X family — mojmap is empirically signature-
-    // stable across 26.1 / 26.1.1 / 26.1.2 (0 of 300 random classes drift,
-    // 6 of 6 critical classes bit-identical). When 26.2 ships a release a
-    // sibling mc262 breakpoint joins it.
+    // cloud-fabric, fabric-permissions-api and fabric-api are published in Fabric's
+    // `official` (Mojang) mapping namespace for MC 26.1, so they link against the
+    // empty-stub classpath with no remap and use PLAIN configs (implementation/
+    // compileOnly), not the mod* remap configs the yarn-mapped intermediary module needs.
     mappings("net.fabricmc:intermediary:0.0.0:v2")
     modImplementation(libs.fabric.loader)
 
-    // Command framework (cloud-fabric is mojmap on 26.1). PLAIN implementation,
-    // NOT modImplementation: the jar is already Mojang-named so Loom has nothing
-    // to remap. beta.16 is pinned explicitly (catalog tracks beta.15 for the
-    // intermediary line). Exclude the transitive fabric-api so it doesn't pull a
-    // second, unpinned copy. cloud-minecraft-extras (AudienceProvider /
-    // MinecraftExceptionHandler used by FabricCommandAdapter) arrives transitively.
+    // Command framework. beta.16 pinned here (catalog tracks beta.15 for the intermediary
+    // line); exclude transitive fabric-api so it doesn't pull a second unpinned copy.
     implementation("org.incendo:cloud-fabric:2.0.0-beta.16") {
         exclude(group = "net.fabricmc.fabric-api")
     }
     implementation(libs.cloud.core)
 
-    // Permission checks (fabric-permissions-api is mojmap on 26.1). compileOnly:
-    // optional soft dependency, guarded at runtime by
-    // FabricLoader.isModLoaded("fabric-permissions-api-v0") in NoopFabricSenderFactory.
+    // Optional soft dependency, guarded at runtime by isModLoaded(...) in FabricSenderFactory.
     compileOnly("me.lucko:fabric-permissions-api:0.7.0")
-    // fabric-permissions-api's Permissions.getPermissionValue returns fabric-api's
-    // TriState, so the permission wiring compiles against fabric-api (mojmap on
-    // 26.1). compileOnly; only the util/TriState surface is referenced.
+    // fabric-permissions-api's getPermissionValue returns fabric-api's TriState.
     compileOnly("net.fabricmc.fabric-api:fabric-api:$fabric_version")
 
     implementation(project(":common"))

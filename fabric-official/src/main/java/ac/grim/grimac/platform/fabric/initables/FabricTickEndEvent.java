@@ -14,11 +14,8 @@ public class FabricTickEndEvent extends AbstractTickEndEvent {
             return;
         }
 
-        // 26.X: end-of-tick is delivered by the FabricServerEvents shim, driven by the
-        // active MinecraftServer.tickServer() mixin, in lieu of taking a fabric-api
-        // dependency for ServerTickEvents.END_SERVER_TICK (fabric-api is mojmap on 26.1
-        // and would link; this just avoids the extra dep). The mixin is registered, so
-        // this listener fires every server tick.
+        // End-of-tick is delivered by the FabricServerEvents shim (MinecraftServerMixin on
+        // tickServer()), avoiding a fabric-api dependency for ServerTickEvents.END_SERVER_TICK.
         FabricServerEvents.onEndTick(this::onEndServerTick);
     }
 

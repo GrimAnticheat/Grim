@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.fabric.mc1216.player;
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
 
 public class Fabric1215PlatformInventory extends Fabric1193PlatformInventory {
@@ -17,6 +18,6 @@ public class Fabric1215PlatformInventory extends Fabric1193PlatformInventory {
 
     @Override
     protected boolean isPlayerCreative() {
-        return fabricPlatformPlayer.getNative().isCreative();
+        return ((ServerPlayer) fabricPlatformPlayer.getNative()).isCreative();
     }
 }

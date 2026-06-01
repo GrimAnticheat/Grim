@@ -1,94 +1,97 @@
 package ac.grim.grimac.platform.fabric.mixins;
 
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.fabric.inject.GrimInjectedServerPlayer;
-import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
-import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3d;
+import ac.grim.grimac.platform.fabric.inject.FabricServerPlayerHandle;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.spongepowered.asm.mixin.Implements;
 import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
 
 /**
- * PROTOTYPE addition (refactor/fabric-dedupe spike), OFFICIAL/Mojang mappings.
+ * OFFICIAL/Mojang mappings (Minecraft 26.x). Supplies the {@link FabricServerPlayerHandle}
+ * bodies on {@code ServerPlayer}, exactly mirroring the proven {@code LevelMixin} ->
+ * {@code PlatformWorld} pattern (which uses prefix {@code grimac$}). The interface methods
+ * are BARE-named; each body below is {@code grim$}-prefixed and Mixin strips the prefix,
+ * validates the bare name against {@link FabricServerPlayerHandle}, and grafts it onto
+ * {@code ServerPlayer}.
  *
- * <p>The {@code @Implements(@Interface(prefix = "grim$"))} grafts the
- * {@link GrimInjectedServerPlayer} bridge onto {@code ServerPlayer}, exactly mirroring
- * the existing proven {@code LevelMixin} pattern (which uses prefix {@code grimac$} for
- * {@code PlatformWorld}). The bodies below are the Mojang-mapped NMS calls; the
- * intermediary copy of this mixin is identical except for the mapped names
- * (e.g. {@code isShiftKeyDown} vs the yarn equivalent, {@code sendSystemMessage} etc).
+ * <p>The intermediary copy of this mixin differs only where the NMS API renamed across
+ * mappings: {@code sendSystemMessage} vs {@code displayClientMessage} for the system
+ * message, and {@code getSelectedItem} vs {@code getSelected} for the held item. Both
+ * resolve to the same behaviour per family.
+ *
+ * <p>No {@code grim$}-prefixed helper method is declared: Mixin would strip the prefix off
+ * such a helper and fail to find the bare name in the interface. The cast
+ * {@code (ServerPlayer) (Object) this} is used inline instead, matching {@code LevelMixin}.
  */
 @Mixin(ServerPlayer.class)
-@Implements(@Interface(iface = GrimInjectedServerPlayer.class, prefix = "grim$"))
+@Implements(@Interface(iface = FabricServerPlayerHandle.class, prefix = "grim$"))
 abstract class ServerPlayerMixin {
-    @Inject(method = "restoreFrom", at = @At("TAIL"))
-    private void onRestoreFrom(ServerPlayer oldPlayer, boolean alive, CallbackInfo ci) {
-        ((FabricPlatformPlayerFactory) GrimAPI.INSTANCE.getPlatformPlayerFactory()).replaceNativePlayer(oldPlayer.getUUID(), (ServerPlayer) (Object) this);
-    }
-
-    // --- PROTOTYPE: GrimInjectedServerPlayer bridge bodies (prefix-stripped to grim$*) ---
-
-    // SPIKE FINDING: containerMenu is declared on the Player superclass. The access
-    // widener marks it accessible for the *main* source set, but inside a mixin javac
-    // does not see the inherited widened field through a ServerPlayer static type, so it
-    // must be @Shadow-ed (the idiomatic mixin approach, same as LevelMixin shadows
-    // dimension()). gameMode below needs no shadow because the AW widens it directly on
-    // ServerPlayer, not on a superclass.
-    @Shadow
-    public AbstractContainerMenu containerMenu;
-
-    private ServerPlayer grim$self() {
-        return (ServerPlayer) (Object) this;
-    }
 
     public boolean grim$isSneaking() {
-        return grim$self().isShiftKeyDown();
+        return ((ServerPlayer) (Object) this).isShiftKeyDown();
     }
 
     public void grim$setSneaking(boolean sneaking) {
-        grim$self().setShiftKeyDown(sneaking);
+        ((ServerPlayer) (Object) this).setShiftKeyDown(sneaking);
     }
 
-    public boolean grim$isOnline() {
-        return !grim$self().hasDisconnected();
+    // Bare name is isDead (not isDeadOrDying): a bridge named isDeadOrDying would override
+    // LivingEntity.isDeadOrDying()Z and recurse. isDead has no vanilla collision.
+    public boolean grim$isDead() {
+        return ((ServerPlayer) (Object) this).isDeadOrDying();
     }
 
-    public String grim$name() {
-        return grim$self().getName().getString();
+    // Official 26.x non-overlay system message. nativeComponent is the NMS Component
+    // (Object in the NMS-free interface); cast it back here.
+    public void grim$sendSystemText(Object nativeComponent) {
+        ((ServerPlayer) (Object) this).sendSystemMessage((Component) nativeComponent, false);
+    }
+
+    public boolean grim$isDisconnected() {
+        return ((ServerPlayer) (Object) this).hasDisconnected();
+    }
+
+    public String grim$usernameString() {
+        return ((ServerPlayer) (Object) this).getName().getString();
     }
 
     public void grim$broadcastInventoryChanges() {
-        this.containerMenu.broadcastChanges();
+        ((ServerPlayer) (Object) this).containerMenu.broadcastChanges();
     }
 
-    public Vector3d grim$position() {
-        ServerPlayer p = grim$self();
-        return new Vector3d(p.getX(), p.getY(), p.getZ());
+    public double grim$posX() {
+        return ((ServerPlayer) (Object) this).getX();
     }
 
-    public GameMode grim$gameMode() {
-        return FabricConversionUtil.fromFabricGameMode(grim$self().gameMode.getGameModeForPlayer());
+    public double grim$posY() {
+        return ((ServerPlayer) (Object) this).getY();
     }
 
-    public void grim$setGameMode(GameMode gameMode) {
-        grim$self().setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
+    public double grim$posZ() {
+        return ((ServerPlayer) (Object) this).getZ();
     }
 
     public UUID grim$uuid() {
-        return grim$self().getUUID();
+        return ((ServerPlayer) (Object) this).getUUID();
     }
 
-    public boolean grim$isDead() {
-        return grim$self().isDeadOrDying();
+    public Object grim$vehicleEntity() {
+        return ((ServerPlayer) (Object) this).getVehicle();
+    }
+
+    // 26.x: Inventory.getSelected() was renamed getSelectedItem(). This is the #14 divergence.
+    public Object grim$heldItemStack() {
+        return ((ServerPlayer) (Object) this).inventory.getSelectedItem();
+    }
+
+    public Object grim$inventoryItemAt(int slot) {
+        return ((ServerPlayer) (Object) this).inventory.getItem(slot);
+    }
+
+    public int grim$inventorySlotCount() {
+        return ((ServerPlayer) (Object) this).inventory.getContainerSize();
     }
 }

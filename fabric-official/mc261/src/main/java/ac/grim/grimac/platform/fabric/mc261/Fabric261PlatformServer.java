@@ -8,9 +8,7 @@ import net.minecraft.commands.CommandSourceStack;
 public class Fabric261PlatformServer extends AbstractFabricPlatformServer {
     @Override
     public double getTPS() {
-        // 26.X retains the 1.20.3+ accessors. tickRateManager().tickrate() = the
-        // configured tickrate cap (default 20.0); smoothed-tick-time gives the
-        // actual achieved cadence in ms — take the min so we never report > cap.
+        // Clamp to the configured tickrate cap so we never report a TPS above it.
         return Math.min(1000.0 / GrimACFabricLoaderPlugin.FABRIC_SERVER.getCurrentSmoothedTickTime(),
                 GrimACFabricLoaderPlugin.FABRIC_SERVER.tickRateManager().tickrate());
     }

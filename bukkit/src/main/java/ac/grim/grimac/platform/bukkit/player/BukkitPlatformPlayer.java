@@ -37,14 +37,14 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Getter
     private final Player bukkitPlayer;
     @Getter
-    private final PlatformInventory inventory;
+    private final PlatformInventory playerInventory;
 
     private final @Nullable User user;
 
     public BukkitPlatformPlayer(@NotNull Player bukkitPlayer) {
         super(bukkitPlayer);
         this.bukkitPlayer = bukkitPlayer;
-        this.inventory = new BukkitPlatformInventory(bukkitPlayer);
+        this.playerInventory = new BukkitPlatformInventory(bukkitPlayer);
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
             Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(bukkitPlayer.getUniqueId());
             this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
@@ -102,7 +102,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public String getName() {
+    public String getUsername() {
         return bukkitPlayer.getName();
     }
 
@@ -122,7 +122,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public @Nullable GrimEntity getVehicle() {
+    public @Nullable GrimEntity getVehicleEntity() {
         return bukkitPlayer.getVehicle() == null ? null : new BukkitGrimEntity(bukkitPlayer.getVehicle());
     }
 

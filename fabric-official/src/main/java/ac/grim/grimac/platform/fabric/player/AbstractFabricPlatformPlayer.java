@@ -6,7 +6,9 @@ import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
+import ac.grim.grimac.platform.fabric.inject.FabricServerPlayerHandle;
 import ac.grim.grimac.platform.fabric.utils.PolymerHook;
+import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -15,55 +17,66 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+// NOT in fabric-common (the dedup target): this class extends AbstractFabricGrimEntity,
+// whose single source-of-truth field is typed net.minecraft.world.entity.Entity (kept as
+// Entity per maintainer), and it still needs the raw ServerPlayer for the per-version bits
+// the subclasses override (getSender / teleportAsync) plus PolymerHook.createTranslator at
+// construction. A fabric-common (java-library, NMS-free) class cannot extend an NMS-bound
+// one, so the wrapper stays per-version. The version-stable reads, however, no longer
+// duplicate an NMS call per aggregator: they route through handle() (the Loom-injected
+// FabricServerPlayerHandle), so the two copies of this file are byte-identical and the
+// only real per-version code lives in the thin Fabric<ver>PlatformPlayer subclasses.
 public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEntity implements PlatformPlayer {
-    protected volatile ServerPlayer fabricPlayer;
     protected final AbstractFabricPlatformInventory inventory;
     private final @Nullable User user;
     @Getter private final BlockTranslator blockTranslator;
 
     public AbstractFabricPlatformPlayer(ServerPlayer player) {
         super(player);
-        this.fabricPlayer = player;
         this.inventory = GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformInventory(this);
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
-            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(fabricPlayer.getUUID());
+            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(player.getUUID());
             this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
         } else {
             this.user = null;
         }
 
-        this.blockTranslator = PolymerHook.createTranslator(this.fabricPlayer);
+        this.blockTranslator = PolymerHook.createTranslator(player);
+    }
+
+    /** The single native handle, narrowed to ServerPlayer (the inherited entity is always one for players). */
+    protected ServerPlayer serverPlayer() {
+        return (ServerPlayer) this.entity;
+    }
+
+    /**
+     * The current native player viewed through the Loom-injected {@link FabricServerPlayerHandle}.
+     * Resolved fresh from the (volatile) inherited entity each call, so it tracks a
+     * respawn/dimension-change rebind, and removes the repeated inline
+     * {@code ((FabricServerPlayerHandle) (Object) serverPlayer())} casts (maintainer request).
+     */
+    protected FabricServerPlayerHandle handle() {
+        return (FabricServerPlayerHandle) (Object) this.entity;
     }
 
     @Override
     public void kickPlayer(String textReason) {
-        fabricPlayer.connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
-    }
-
-    // PROTOTYPE (refactor/fabric-dedupe spike): the methods below now delegate to the
-    // Loom-injected GrimInjectedServerPlayer bridge instead of calling NMS directly.
-    // After this change their bodies are byte-identical to the intermediary aggregator's
-    // copy (the bridge hides the only difference -- message-send -- which is NOT routed
-    // through the bridge and stays below). The cast mirrors AbstractFabricGrimEntity's
-    // proven `(PlatformWorld) (Object) entity.level()` pattern.
-    private ac.grim.grimac.platform.fabric.inject.GrimInjectedServerPlayer grim$injected() {
-        return (ac.grim.grimac.platform.fabric.inject.GrimInjectedServerPlayer) (Object) fabricPlayer;
+        serverPlayer().connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
     }
 
     @Override
     public boolean isSneaking() {
-        return grim$injected().grim$isSneaking();
+        return handle().isSneaking();
     }
 
     @Override
     public void setSneaking(boolean isSneaking) {
-        grim$injected().grim$setSneaking(isSneaking);
+        handle().setSneaking(isSneaking);
     }
 
     @Override
@@ -81,8 +94,8 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
-            var messageUtils = GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils();
-            messageUtils.sendSystemMessageToPlayer(fabricPlayer, messageUtils.textLiteral(message));
+            var nativeText = GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(message);
+            handle().sendSystemText(nativeText);
         }
     }
 
@@ -91,57 +104,60 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
-            GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils()
-                    .sendSystemMessageToPlayer(fabricPlayer, GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message));
+            var nativeText = GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message);
+            handle().sendSystemText(nativeText);
         }
     }
 
     @Override
     public boolean isOnline() {
-        return grim$injected().grim$isOnline();
+        return !handle().isDisconnected();
     }
 
     @Override
-    public String getName() {
-        // getName() clash dodged: the bridge method is grim$name(), never getName(),
-        // so it cannot collide with NMS ServerPlayer.getName():Component.
-        return grim$injected().grim$name();
+    public String getUsername() {
+        return handle().usernameString();
     }
 
     @Override
     public void updateInventory() {
-        grim$injected().grim$broadcastInventoryChanges();
+        handle().broadcastInventoryChanges();
     }
 
     @Override
     public Vector3d getPosition() {
-        return grim$injected().grim$position();
+        FabricServerPlayerHandle handle = handle();
+        return new Vector3d(handle.posX(), handle.posY(), handle.posZ());
     }
 
     @Override
-    public PlatformInventory getInventory() {
+    public PlatformInventory getPlayerInventory() {
         return inventory;
     }
 
     @Override
-    public GrimEntity getVehicle() {
-        Entity vehicle = fabricPlayer.getVehicle();
+    public GrimEntity getVehicleEntity() {
+        // vehicleEntity() returns the NMS Entity as Object; wrap it through the platform factory.
+        net.minecraft.world.entity.Entity vehicle = (net.minecraft.world.entity.Entity) handle().vehicleEntity();
         return vehicle != null ? GrimACFabricLoaderPlugin.LOADER.getPlatformPlayerFactory().getPlatformEntity(vehicle) : null;
     }
 
     @Override
     public GameMode getGameMode() {
-        return grim$injected().grim$gameMode();
+        // Per-version NMS: not bridged because ServerPlayer.setGameMode's return type
+        // differs across the intermediary line (void on 1.16.1, boolean on 1.17+), so the
+        // setter cannot be a single shared mixin body. Kept symmetric with setGameMode.
+        return FabricConversionUtil.fromFabricGameMode(serverPlayer().gameMode.getGameModeForPlayer());
     }
 
     @Override
     public void setGameMode(GameMode gameMode) {
-        grim$injected().grim$setGameMode(gameMode);
+        serverPlayer().setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
     }
 
     @Override
     public UUID getUniqueId() {
-        return grim$injected().grim$uuid();
+        return handle().uuid();
     }
 
     @Override
@@ -156,22 +172,23 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 //                Identifier.of(channelName),
 //                new PacketByteBuf(Unpooled.wrappedBuffer(byteArray))
 //        );
-//        fabricPlayer.networkHandler.sendPacket(packet);
+//        serverPlayer().networkHandler.sendPacket(packet);
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void replaceNativePlayer(Object nativePlayerObject) {
-        this.fabricPlayer = (ServerPlayer) nativePlayerObject;
+        // Rebinds the ONE native field (inherited entity); handle() reads it fresh afterwards.
+        setNativeEntity((ServerPlayer) nativePlayerObject);
     }
 
     @Override
     public @NotNull ServerPlayer getNative() {
-        return this.fabricPlayer;
+        return serverPlayer();
     }
 
     @Override
     public boolean isDead() {
-        return grim$injected().grim$isDead();
+        return handle().isDead();
     }
 }

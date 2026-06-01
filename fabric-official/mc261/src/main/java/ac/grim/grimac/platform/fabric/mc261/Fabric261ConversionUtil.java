@@ -13,12 +13,14 @@ import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
-// 26.X conversion. Same shape as Fabric1205ConversionUtil — ItemStack.STREAM_CODEC
-// (encode → PE packet wrapper → readItemStack) survived the 1.21.11 → 26.1.2
+// 26.X conversion. Same shape as Fabric1205ConversionUtil: ItemStack.STREAM_CODEC
+// (encode -> PE packet wrapper -> readItemStack) survived the 1.21.11 -> 26.1.2
 // transition unchanged.
 public class Fabric261ConversionUtil implements IFabricConversionUtil {
     @Override
-    public ItemStack fromFabricItemStack(net.minecraft.world.item.ItemStack fabricStack) {
+    public ItemStack fromFabricItemStack(Object fabricItemStack) {
+        // NMS-free interface (fabric-common) hands the native stack as Object; cast it back.
+        net.minecraft.world.item.ItemStack fabricStack = (net.minecraft.world.item.ItemStack) fabricItemStack;
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -40,13 +42,13 @@ public class Fabric261ConversionUtil implements IFabricConversionUtil {
     }
 
     @Override
-    public net.minecraft.network.chat.Component toNativeText(Component component) {
-        // 26.X removed Component.Serializer in favor of ComponentSerialization.CODEC
-        // with the DFU JsonOps path, which would need server registry context to
-        // round-trip styled adventure components properly. For alerts + console
-        // messages (the only callers today) plain-text flatten is good enough —
-        // proper styled conversion lands when an adventure-platform-fabric build
-        // ships for 26.X.
+    public Object toNativeText(Component component) {
+        // PLAIN-TEXT ONLY: ComponentFlattener.basic() drops all styling/colours/events,
+        // emitting a single unstyled literal. Adequate for the only callers (alerts +
+        // console); full styled conversion is pending a multiversion adventure-platform
+        // -fabric build for 26.X (would otherwise need server registry context to
+        // round-trip via ComponentSerialization.CODEC). Same limitation as the
+        // intermediary FabricSenderFactory flatten path.
         StringBuilder out = new StringBuilder();
         ComponentFlattener.basic().flatten(component, out::append);
         return net.minecraft.network.chat.Component.literal(out.toString());

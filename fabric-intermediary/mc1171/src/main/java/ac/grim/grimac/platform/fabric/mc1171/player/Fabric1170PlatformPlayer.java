@@ -12,6 +12,6 @@ public class Fabric1170PlatformPlayer extends Fabric1161PlatformPlayer {
 
     @Override
     public void setGameMode(GameMode gameMode) {
-        fabricPlayer.setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
+        serverPlayer().setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
     }
 }

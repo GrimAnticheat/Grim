@@ -8,12 +8,9 @@ import org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector;
 import java.util.Collection;
 import java.util.Collections;
 
-// 26.X mojmap adapter from cloud's SinglePlayerSelector to Grim's PlayerSelector.
-// fabric-official targets a single MC family (26.1), so unlike fabric-intermediary
-// (which splits this per yarn version) the adapter lives in the main module. Uses the
-// 1.21.2+ form fabricSelector.single().createCommandSourceStack(): single() returns the
-// mojmap net.minecraft.server.level.ServerPlayer and createCommandSourceStack() is a
-// mojmap MC method on 26.1, so this resolves on the empty-stub classpath with no remap.
+// Adapts cloud's SinglePlayerSelector to Grim's PlayerSelector. fabric-official targets a
+// single MC family, so (unlike the intermediary per-yarn-version split) it lives here. Uses
+// the 1.21.2+ form single().createCommandSourceStack() (official mappings, no remap).
 public class FabricPlayerSelectorAdapter implements PlayerSelector {
     private final SinglePlayerSelector fabricSelector;
 

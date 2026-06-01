@@ -1,14 +1,18 @@
-// Cross-variant Grim Fabric library. Holds the Fabric platform code that is
-// NMS-free (no net.minecraft.* on the compile classpath) and therefore identical
-// across the intermediary (1.16.1-1.21.11) and official (26.X) variants, so it
-// lives here once instead of being duplicated in both.
+// Shared Grim code for the Fabric platform.
 //
-// HARD CONSTRAINT: this module must NOT depend on any version-specific Minecraft
-// artifact and does not apply fabric-loom. It is a plain java-library that the
-// fabric/ aggregator JiJ's via `include(project(":fabric-common"))`. Any Fabric
-// class that references a net.minecraft type (even via an un-imported
-// MinecraftServer/ServerPlayer method call) cannot live here; it stays in the
-// MC-typed variant modules.
+// Grim ships two Fabric variants: fabric-intermediary (Minecraft 1.16.1 through
+// 1.21.11) and fabric-official (Minecraft 26.X). A lot of the Fabric platform
+// code is the same in both because it never touches Minecraft's own classes. That
+// shared, Minecraft-free code lives here once so we don't have to keep two copies
+// in sync.
+//
+// The rule that makes that possible: nothing in this module may use a Minecraft
+// (net.minecraft.*) type, and the module deliberately does NOT apply the
+// fabric-loom plugin. It is an ordinary java-library that the top-level fabric/
+// build bundles into the final mod jar via `include(project(":fabric-common"))`.
+// If a class needs to call into Minecraft at all (even an un-imported method on
+// MinecraftServer or ServerPlayer), it cannot live here and instead belongs in
+// one of the version-specific variant modules.
 
 plugins {
     `java-library`
@@ -40,16 +44,15 @@ dependencies {
     compileOnly(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
 
+    // PacketEvents (ItemStack/Vector3d/GameMode/User in the shared player + inventory
+    // wrappers and the conversion-util interface). compileOnly, never bundled here: PE is
+    // JiJ'd once at the top-level fabric/ aggregator, matching :common's own compileOnly.
+    // adventure (net.kyori.*) flows transitively from :common's api(adventure-text-minimessage).
+    compileOnly(libs.packetevents.api)
+
     // fabric-loader API (net.fabricmc.loader.api.*) used by the metrics/resolver code.
     // Plain jar — not a Minecraft artifact — so it is fine on a java-library.
     compileOnly(libs.fabric.loader)
-
-    // PROTOTYPE (refactor/fabric-dedupe spike): packetevents is a plain (non-Minecraft)
-    // library, so it is allowed on this NMS-free java-library (see header: grim-api /
-    // packetevents / adventure / JDK). The injected ServerPlayer bridge returns PE
-    // GameMode / Vector3d, which are the version-invariant types the duplicated player
-    // wrapper already used. Needed for GrimInjectedServerPlayer + InjectedFabricPlatformPlayerBase.
-    compileOnly(libs.packetevents.api)
 
     // Vendored bStats + JUL logging bridges pull these.
     compileOnly("org.yaml:snakeyaml:2.2")

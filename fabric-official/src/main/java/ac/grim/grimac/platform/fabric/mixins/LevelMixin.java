@@ -25,7 +25,7 @@ abstract class LevelMixin implements LevelAccessor {
     // Route through ChunkSource (via LevelChunkUtil trampoline) so the call resolves to
     // method_12123, not Level.method_8393. Otherwise the prefix-stripped bridge ends up
     // overriding method_8393 on the target on versions where the runtime mapping aliases
-    // isChunkLoaded(II)Z to it, and the body recurses through itself — see issue #2568.
+    // isChunkLoaded(II)Z to it, and the body recurses through itself (see issue #2568).
     public boolean grimac$isChunkLoaded(int chunkX, int chunkZ) {
         return LevelChunkUtil.hasChunkAt((Level) (Object) this, chunkX, chunkZ);
     }

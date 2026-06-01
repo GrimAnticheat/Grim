@@ -27,7 +27,10 @@
         "ac/grim/grimac/platform/api/world/PlatformWorld"
       ],
       "net/minecraft/server/level/ServerPlayer": [
-        "ac/grim/grimac/platform/fabric/inject/GrimInjectedServerPlayer"
+        "ac/grim/grimac/platform/fabric/inject/FabricServerPlayerHandle"
+      ],
+      "net/minecraft/server/MinecraftServer": [
+        "ac/grim/grimac/platform/fabric/inject/FabricMinecraftServerHandle"
       ]
     }
   },

@@ -8,6 +8,7 @@
         "LevelMixin",
         "MinecraftServerMixin",
         "PistonBaseBlockMixin",
+        "ServerMixin",
         "ServerPlayerMixin"
     ],
     "injectors": {

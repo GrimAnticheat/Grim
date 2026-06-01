@@ -15,9 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-// 26.X mojmap port of fabric-intermediary's FabricParserDescriptorFactory: the
-// CloudCommandAdapter that Grim's CloudCommandService uses to register player-target
-// command arguments (single-player parser + online-player suggestions).
+// CloudCommandAdapter for registering player-target command arguments (single-player
+// parser + online-player suggestions).
 public class FabricParserDescriptorFactory implements CloudCommandAdapter {
 
     private final FabricPlayerSelectorParser<Sender> fabricPlayerSelectorParser =

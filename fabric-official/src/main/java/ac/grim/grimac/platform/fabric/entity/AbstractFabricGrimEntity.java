@@ -11,9 +11,17 @@ import net.minecraft.world.entity.Entity;
 
 public abstract class AbstractFabricGrimEntity implements GrimEntity {
 
-    protected final Entity entity;
+    // Single source of truth for the native handle (the player wrapper reuses this exact
+    // field, since ServerPlayer IS-A Entity). volatile + non-final: rebound off-thread on
+    // respawn/dimension change via replaceNativePlayer. See #2691.
+    protected volatile Entity entity;
 
     public AbstractFabricGrimEntity(Entity entity) {
+        this.entity = Objects.requireNonNull(entity);
+    }
+
+    /** Rebinds the single native handle on entity recreation (respawn / dimension change). */
+    protected void setNativeEntity(Entity entity) {
         this.entity = Objects.requireNonNull(entity);
     }
 

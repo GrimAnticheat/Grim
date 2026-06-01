@@ -19,13 +19,13 @@ public class Fabric261PlatformPlayer extends AbstractFabricPlatformPlayer {
 
     @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().wrap(fabricPlayer.createCommandSourceStack());
+        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().wrap(serverPlayer().createCommandSourceStack());
     }
 
     @Override
     public CompletableFuture<Boolean> teleportAsync(Location location) {
         return FabricFutureUtil.supplySync(() -> {
-            fabricPlayer.teleportTo(
+            serverPlayer().teleportTo(
                     (ServerLevel) location.getWorld(),
                     location.getX(),
                     location.getY(),

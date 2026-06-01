@@ -6,13 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-// Local shim standing in for fabric-api's ServerLifecycleEvents + ServerTickEvents.
-// These listener lists are driven by the registered MinecraftServerMixin, which
-// injects at MinecraftServer runServer/stopServer/tickServer and fires the lists
-// below. Using the mixin instead of fabric-api's events is a deliberate choice to
-// avoid a hard fabric-api dependency for the two lifecycle hooks Grim needs — NOT a
-// namespace limitation (fabric-api's events are mojmap on 26.1 and would link). The
-// mixin is active, so these events fire at runtime; fireEndTick runs every server tick.
+// Local shim for fabric-api's ServerLifecycleEvents + ServerTickEvents, driven by the
+// registered MinecraftServerMixin (avoids a hard fabric-api dependency for two hooks).
 public final class FabricServerEvents {
 
     private FabricServerEvents() {}

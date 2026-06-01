@@ -32,7 +32,8 @@ repositories {
 }
 
 dependencies {
-    // Bind to the lowest supported MC version so Loom is happy.
+    // The aggregator itself only needs a Minecraft to satisfy Loom; bind the lowest
+    // supported version. The shipped variant mods carry their own per-version deps.
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings(loom.officialMojangMappings())
     modImplementation(libs.fabric.loader)

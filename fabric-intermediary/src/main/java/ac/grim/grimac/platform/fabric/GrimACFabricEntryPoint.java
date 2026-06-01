@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.fabric;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.fabric.initables.FabricBStats;
 import ac.grim.grimac.platform.fabric.initables.FabricTickEndEvent;
+import ac.grim.grimac.platform.fabric.inject.FabricServerHolder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -39,6 +40,9 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             GrimACFabricLoaderPlugin.FABRIC_SERVER = server;
+            // Mirror into the NMS-free holder so shared fabric-common code (e.g.
+            // FabricOfflinePlatformPlayer) can reach the server via FabricMinecraftServerHandle.
+            FabricServerHolder.set(server);
             GrimAPI.INSTANCE.start();
         });
 

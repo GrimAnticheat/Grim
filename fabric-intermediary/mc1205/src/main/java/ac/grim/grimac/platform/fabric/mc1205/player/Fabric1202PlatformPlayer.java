@@ -9,8 +9,10 @@ public class Fabric1202PlatformPlayer extends Fabric1170PlatformPlayer {
         super(player);
     }
 
+    // disconnect(Component) signature changed at 1.20.2; recompiled here so 1.20.2+ resolves
+    // the current overload (the 1.16.1-compiled base body targets the pre-1.20.2 one).
     @Override
     public void kickPlayer(String textReason) {
-        fabricPlayer.connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
+        serverPlayer().connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
     }
 }

@@ -14,7 +14,10 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public class Fabric1205ConversionUtil implements IFabricConversionUtil {
-    public ItemStack fromFabricItemStack(net.minecraft.world.item.ItemStack fabricStack) {
+    @Override
+    public ItemStack fromFabricItemStack(Object fabricItemStack) {
+        // NMS-free interface (fabric-common) hands the native stack as Object; cast it back.
+        net.minecraft.world.item.ItemStack fabricStack = (net.minecraft.world.item.ItemStack) fabricItemStack;
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -45,7 +48,8 @@ public class Fabric1205ConversionUtil implements IFabricConversionUtil {
     }
 
     // TODO proper registry support?
-    public net.minecraft.network.chat.Component toNativeText(Component component) {
+    @Override
+    public Object toNativeText(Component component) {
         return net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component), RegistryAccess.EMPTY);
     }
 }

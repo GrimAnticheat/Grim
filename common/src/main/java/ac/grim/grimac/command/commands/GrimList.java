@@ -108,8 +108,8 @@ public class GrimList implements BuildableCommand {
             } else {
                 after = true;
             }
-            builder.append(Component.text(platformPlayer.getName()).color(NamedTextColor.LIGHT_PURPLE)
-                    .clickEvent(ClickEvent.suggestCommand(platformPlayer.getName()))
+            builder.append(Component.text(platformPlayer.getUsername()).color(NamedTextColor.LIGHT_PURPLE)
+                    .clickEvent(ClickEvent.suggestCommand(platformPlayer.getUsername()))
                     .hoverEvent(HoverEvent.showText(playerHoverComponent(platformPlayer.getUniqueId(), platformPlayer.isOnline(), false, false)))
             );
         }

@@ -16,12 +16,11 @@ import net.minecraft.server.rcon.RconConsoleSource;
 
 import java.util.UUID;
 
-// fabric-official SenderFactory. Uses fabric-permissions-api (mojmap on 26.1) for
-// permission checks when the mod is installed, mirroring fabric-intermediary's
-// FabricSenderFactory, and falls back to the vanilla op level otherwise. The
-// legacy "Noop" class name is retained because GrimACFabricLoaderPlugin and the
-// command wiring reference it; permission checks are no longer no-op.
-public class NoopFabricSenderFactory extends SenderFactory<CommandSourceStack> {
+// fabric-official SenderFactory. Uses fabric-permissions-api (official mappings on 26.1)
+// for permission checks when the mod is installed, mirroring fabric-intermediary's
+// FabricSenderFactory, and falls back to the vanilla op level otherwise. (Renamed from
+// NoopFabricSenderFactory: it was never a no-op — it does real op-level / permission checks.)
+public class FabricSenderFactory extends SenderFactory<CommandSourceStack> {
 
     // fabric-permissions-api is an optional soft dependency; when its mod is absent
     // we fall back to the vanilla op-level check (hasCommandLevel) below.
@@ -52,8 +51,8 @@ public class NoopFabricSenderFactory extends SenderFactory<CommandSourceStack> {
 
     @Override
     protected void sendMessage(CommandSourceStack source, Component message) {
-        // Flatten via ComponentFlattener (no formatting, but text-only is enough for now
-        // — adventure-platform-fabric isn't available for 26.X).
+        // Flatten via ComponentFlattener (no formatting, but text-only is enough for now;
+        // adventure-platform-fabric isn't available for 26.X).
         StringBuilder out = new StringBuilder();
         ComponentFlattener.basic().flatten(message, out::append);
         sendMessage(source, out.toString());

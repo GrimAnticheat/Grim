@@ -3,7 +3,7 @@
   "id": "grimac-fabric-official",
   "version": "${version}",
   "name": "GrimAC (Fabric, official mappings)",
-  "description": "GrimAC anticheat for Minecraft 26.1.X. Mojang-named platform compiled directly against the deobfuscated 26.X jar — sibling to fabric-intermediary, which covers 1.16.1-1.21.11. Per-version submodules contribute grim26MainLoad entrypoints.",
+  "description": "GrimAC anticheat for Minecraft 26.1.X. Official-mapped platform compiled directly against the deobfuscated 26.X jar, sibling to fabric-intermediary, which covers 1.16.1-1.21.11. Per-version submodules contribute grim26MainLoad entrypoints.",
   "license": "GPLv3",
   "environment": "server",
   "entrypoints": {
@@ -24,7 +24,10 @@
         "ac/grim/grimac/platform/api/world/PlatformWorld"
       ],
       "net/minecraft/server/level/ServerPlayer": [
-        "ac/grim/grimac/platform/fabric/inject/GrimInjectedServerPlayer"
+        "ac/grim/grimac/platform/fabric/inject/FabricServerPlayerHandle"
+      ],
+      "net/minecraft/server/MinecraftServer": [
+        "ac/grim/grimac/platform/fabric/inject/FabricMinecraftServerHandle"
       ]
     }
   },

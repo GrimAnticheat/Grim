@@ -11,10 +11,8 @@ import org.incendo.cloud.parser.ParserDescriptor;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-// 26.X mojmap port of fabric-intermediary's command.FabricPlayerSelectorParser (verbatim).
-// cloud-minecraft-modded's VanillaArgumentParsers + SinglePlayerSelector are mojmap on 26.1
-// (SinglePlayerSelector extends Selector.Single<net.minecraft.server.level.ServerPlayer>), so
-// this resolves on the empty-stub mojmap classpath with no remap.
+// cloud-minecraft-modded's VanillaArgumentParsers + SinglePlayerSelector use official
+// mappings on 26.1, so this resolves on the empty-stub classpath with no remap.
 @RequiredArgsConstructor
 public class FabricPlayerSelectorParser<C> extends AbstractPlayerSelectorParser<C> {
 

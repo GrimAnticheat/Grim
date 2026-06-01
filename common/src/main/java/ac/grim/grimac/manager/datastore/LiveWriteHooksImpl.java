@@ -99,7 +99,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
     @Override
     public void onJoinFromUserLogin(@NotNull PlatformPlayer player, @NotNull User user, long now) {
         GrimPlayer gp = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
-        onJoin(player.getUniqueId(), player.getName(), now, LiveWriteHooks.clientMetaFor(user, gp));
+        onJoin(player.getUniqueId(), player.getUsername(), now, LiveWriteHooks.clientMetaFor(user, gp));
     }
 
     @Override

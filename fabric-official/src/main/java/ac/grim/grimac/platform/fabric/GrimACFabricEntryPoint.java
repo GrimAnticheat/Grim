@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.fabric;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.fabric.initables.FabricBStats;
 import ac.grim.grimac.platform.fabric.initables.FabricTickEndEvent;
+import ac.grim.grimac.platform.fabric.inject.FabricServerHolder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -33,17 +34,15 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
                 new FabricTickEndEvent()
         );
 
-        // 26.X: cloud-fabric (mojmap on 26.1) is wired; getCommandService() is the real
-        // CloudCommandService, so this registers /grim with the server.
         GrimAPI.INSTANCE.getCommandService().registerCommands();
 
         // Server lifecycle is driven by MinecraftServerMixin into the FabricServerEvents
-        // shim rather than fabric-api's ServerLifecycleEvents — a deliberate choice to
-        // avoid a hard fabric-api dependency for two hooks the mixin already provides
-        // (not a namespace limitation). The registered mixin fires the listener lists
-        // below at the matching MinecraftServer lifecycle points.
+        // shim (avoids a hard fabric-api dependency for two hooks the mixin provides).
         FabricServerEvents.onServerStarting(server -> {
             GrimACFabricLoaderPlugin.FABRIC_SERVER = server;
+            // Mirror into the NMS-free holder so shared fabric-common code (e.g.
+            // FabricOfflinePlatformPlayer) can reach the server via FabricMinecraftServerHandle.
+            FabricServerHolder.set(server);
             GrimAPI.INSTANCE.start();
         });
 

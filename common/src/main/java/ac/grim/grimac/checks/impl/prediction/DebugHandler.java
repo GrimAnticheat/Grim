@@ -78,7 +78,7 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
                 .append(O_PREFIX.color(NamedTextColor.NAMES.value(color)))
                 .append(Component.text(offset));
 
-        String prefix = player.platformPlayer == null ? "null" : player.platformPlayer.getName() + " ";
+        String prefix = player.platformPlayer == null ? "null" : player.platformPlayer.getUsername() + " ";
         Component prefixComponent = Component.text(prefix);
 
         boolean thisFlag = !color.equals("gray") && !color.equals("green");

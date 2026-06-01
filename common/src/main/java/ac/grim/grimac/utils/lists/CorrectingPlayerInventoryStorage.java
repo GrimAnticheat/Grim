@@ -110,7 +110,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
         if (bukkitSlot != -1) {
             ItemStack existing = getItem(slot);
-            ItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
+            ItemStack toPE = player.platformPlayer.getPlayerInventory().getStack(bukkitSlot, slot);
 
             if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
                 GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
@@ -141,7 +141,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
                 // Potential race condition doing this multiple times
                 if (!player.inventory.needResend) return;
 
-                if (SUPPORTED_INVENTORIES.contains(player.platformPlayer.getInventory().getOpenInventoryKey().toUpperCase(Locale.ROOT))) {
+                if (SUPPORTED_INVENTORIES.contains(player.platformPlayer.getPlayerInventory().getOpenInventoryKey().toUpperCase(Locale.ROOT))) {
                     player.inventory.needResend = false;
                     player.platformPlayer.updateInventory();
                 }
