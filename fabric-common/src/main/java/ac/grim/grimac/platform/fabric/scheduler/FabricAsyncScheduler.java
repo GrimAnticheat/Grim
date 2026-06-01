@@ -6,8 +6,8 @@ import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,13 +16,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
 
-    // Bukkit's runTaskAsynchronously() hands work to a shared, reused thread pool rather than
-    // creating a fresh thread per task. We mirror that with one scheduled pool so Grim's async
-    // work (a handful of runNow / runAtFixedRate callers) reuses threads instead of leaking a new
-    // one for every task. As before, this task map is only touched while scheduling/cancelling on
-    // the main thread (the pool threads never touch it), so a plain HashMap is sufficient.
+    // Bukkit's runTaskAsynchronously() hands work to a shared, growable thread pool
+    // (CraftAsyncScheduler uses a ThreadPoolExecutor, core 4 / max unbounded), and its scheduler is
+    // explicitly built for dispatch from ANY thread: CraftScheduler tracks live tasks in a
+    // ConcurrentHashMap (runners), mints ids with an AtomicInteger, and enqueues through a lock-free
+    // AtomicReference tail. So callers may schedule/cancel off the main thread. We mirror that
+    // contract: a pooled ScheduledExecutorService for execution and a ConcurrentHashMap for tracking.
     private final ScheduledExecutorService executor;
-    private final Map<Future<?>, GrimPlugin> tasks = new HashMap<>();
+    private final Map<Future<?>, GrimPlugin> tasks = new ConcurrentHashMap<>();
 
     public FabricAsyncScheduler() {
         AtomicInteger threadCount = new AtomicInteger();
