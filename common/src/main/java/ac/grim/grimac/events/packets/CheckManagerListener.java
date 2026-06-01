@@ -546,10 +546,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // Stop inventory desync from cancelling place
                     if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                            ItemStack mainHand = player.platformPlayer.getPlayerInventory().getItemInHand();
+                            ItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
                             player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.inventory.stateID, 36 + player.packetStateData.lastSlotSelected, mainHand));
                         } else {
-                            ItemStack offHand = player.platformPlayer.getPlayerInventory().getItemInOffHand();
+                            ItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
                             player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.inventory.stateID, 45, offHand));
                         }
                     }

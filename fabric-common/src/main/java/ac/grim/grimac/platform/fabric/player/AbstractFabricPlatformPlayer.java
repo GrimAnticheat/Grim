@@ -102,12 +102,12 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     }
 
     @Override
-    public PlatformInventory getPlayerInventory() {
+    public PlatformInventory getInventory() {
         return inventory;
     }
 
     @Override
-    public GrimEntity getVehicleEntity() {
+    public GrimEntity getVehicle() {
         Object vehicle = handle().vehicleEntity();
         return vehicle != null ? FabricPlatformServices.createEntity(vehicle) : null;
     }
