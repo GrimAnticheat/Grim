@@ -33,13 +33,15 @@ public class GrimACFabricEntryPoint implements PreLaunchEntrypoint, ModInitializ
                 new FabricTickEndEvent()
         );
 
-        // 26.X: cloud-fabric not yet ported, so getCommandService() returns no-op
-        // (registerCommands is still safe to call but does nothing).
+        // 26.X: cloud-fabric (mojmap on 26.1) is wired; getCommandService() is the real
+        // CloudCommandService, so this registers /grim with the server.
         GrimAPI.INSTANCE.getCommandService().registerCommands();
 
-        // fabric-api event modules are intermediary-bound; FabricServerEvents is the
-        // local replacement. A mixin into MinecraftServer (Phase B) drives the
-        // listener lists below at the corresponding lifecycle points.
+        // Server lifecycle is driven by MinecraftServerMixin into the FabricServerEvents
+        // shim rather than fabric-api's ServerLifecycleEvents — a deliberate choice to
+        // avoid a hard fabric-api dependency for two hooks the mixin already provides
+        // (not a namespace limitation). The registered mixin fires the listener lists
+        // below at the matching MinecraftServer lifecycle points.
         FabricServerEvents.onServerStarting(server -> {
             GrimACFabricLoaderPlugin.FABRIC_SERVER = server;
             GrimAPI.INSTANCE.start();

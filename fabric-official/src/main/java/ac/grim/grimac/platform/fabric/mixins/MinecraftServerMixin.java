@@ -9,10 +9,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
 
-// Drives the FabricServerEvents shim from MinecraftServer lifecycle points.
-// Replaces fabric-api's ServerLifecycleEvents / ServerTickEvents, which ship
-// intermediary-bound bytecode and don't link against the 26.X Mojang-named MC.
-// Hook points mirror fabric-api's:
+// Drives the FabricServerEvents shim from MinecraftServer lifecycle points,
+// standing in for fabric-api's ServerLifecycleEvents / ServerTickEvents so Grim
+// doesn't take a hard fabric-api dependency for two lifecycle hooks. (Dependency-
+// surface choice, not a namespace one: fabric-api's events are mojmap on 26.1 and
+// would link fine.) Hook points mirror fabric-api's:
 //   STARTING fires at @Inject HEAD of runServer() — fabric-api's SERVER_STARTING
 //     also fires before initServer() runs (initServer is the first instruction
 //     inside runServer in 26.1.2 bytecode). For "after init succeeds, before

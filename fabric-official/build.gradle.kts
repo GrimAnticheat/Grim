@@ -37,18 +37,26 @@ dependencies {
     // 26.X anticheat lives here. Compiles directly against the Mojang-named
     // 26.1.2 jar via the empty `intermediary:0.0.0:v2` stub (the named→
     // intermediary remap is a no-op since the stub has zero entries). Source
-    // is the fabric-intermediary platform layer with the intermediary-bound
-    // surface stripped:
+    // is the fabric-intermediary platform layer ported to 26.X mojmap:
     //
-    //   - cloud-fabric / fabric-permissions-api / fabric-api event modules
-    //     all ship intermediary-bound bytecode that won't link against 26.X
-    //     Mojang names. They are NOT on the classpath. /grim commands and
-    //     fabric-permissions-api lookups are no-op on this build by design
-    //     (matches the catch path the intermediary chain takes when cloud
-    //     is unavailable on older MC).
+    //   - cloud-fabric (commands), fabric-permissions-api (permission checks)
+    //     and fabric-api (TriState / event util) are published in the Fabric
+    //     `official` (mojmap) namespace at the versions pinned below for MC 26.1
+    //     (verified: `Fabric-Mapping-Namespace: official`, zero `class_NNNN`
+    //     intermediary refs, public APIs typed on mojmap MinecraftServer /
+    //     CommandSourceStack / ServerPlayer). Because they already reference
+    //     Minecraft by Mojang names they link against the empty-stub mojmap
+    //     classpath with no remap, so they use PLAIN configs
+    //     (implementation/compileOnly) rather than the mod* (remap) configs the
+    //     fabric-intermediary world needs for its yarn-remapped intermediary
+    //     deps. /grim commands (CloudHelper + FabricCommandAdapter) and
+    //     permission checks (NoopFabricSenderFactory) are fully wired here.
     //   - Server lifecycle / tick events are driven by MinecraftServerMixin
     //     into FabricServerEvents (see src/main/java/.../FabricServerEvents.java)
-    //     replacing fabric-api's ServerLifecycleEvents + ServerTickEvents.
+    //     instead of fabric-api's ServerLifecycleEvents + ServerTickEvents. This
+    //     is a deliberate choice to avoid a hard fabric-api dependency for two
+    //     lifecycle hooks the mixin already provides — NOT a namespace limit
+    //     (fabric-api's ServerTickEvents is mojmap on 26.1 and would link).
     //   - 26.X mojmap drift is handled inline (Permission.HasCommandLevel,
     //     services().profileResolver(), Inventory.getSelectedItem(),
     //     ResourceKey.identifier(), Player.sendSystemMessage, etc.). AW
@@ -60,6 +68,26 @@ dependencies {
     // sibling mc262 breakpoint joins it.
     mappings("net.fabricmc:intermediary:0.0.0:v2")
     modImplementation(libs.fabric.loader)
+
+    // Command framework (cloud-fabric is mojmap on 26.1). PLAIN implementation,
+    // NOT modImplementation: the jar is already Mojang-named so Loom has nothing
+    // to remap. beta.16 is pinned explicitly (catalog tracks beta.15 for the
+    // intermediary line). Exclude the transitive fabric-api so it doesn't pull a
+    // second, unpinned copy. cloud-minecraft-extras (AudienceProvider /
+    // MinecraftExceptionHandler used by FabricCommandAdapter) arrives transitively.
+    implementation("org.incendo:cloud-fabric:2.0.0-beta.16") {
+        exclude(group = "net.fabricmc.fabric-api")
+    }
+    implementation(libs.cloud.core)
+
+    // Permission checks (fabric-permissions-api is mojmap on 26.1). compileOnly:
+    // optional soft dependency, guarded at runtime by
+    // FabricLoader.isModLoaded("fabric-permissions-api-v0") in NoopFabricSenderFactory.
+    compileOnly("me.lucko:fabric-permissions-api:0.7.0")
+    // fabric-permissions-api's Permissions.getPermissionValue returns fabric-api's
+    // TriState, so the permission wiring compiles against fabric-api (mojmap on
+    // 26.1). compileOnly; only the util/TriState surface is referenced.
+    compileOnly("net.fabricmc.fabric-api:fabric-api:$fabric_version")
 
     implementation(project(":common"))
     // NMS-free Fabric platform code shared with fabric-intermediary lives here.

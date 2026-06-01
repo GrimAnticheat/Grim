@@ -2,6 +2,9 @@ package ac.grim.grimac.platform.fabric.sender;
 
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.fabricmc.fabric.api.util.TriState;
+import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.minecraft.commands.CommandSourceStack;
@@ -13,9 +16,17 @@ import net.minecraft.server.rcon.RconConsoleSource;
 
 import java.util.UUID;
 
-// fabric-official SenderFactory. Avoids fabric-permissions-api (intermediary-bound)
-// and falls back to vanilla op level for permission checks.
+// fabric-official SenderFactory. Uses fabric-permissions-api (mojmap on 26.1) for
+// permission checks when the mod is installed, mirroring fabric-intermediary's
+// FabricSenderFactory, and falls back to the vanilla op level otherwise. The
+// legacy "Noop" class name is retained because GrimACFabricLoaderPlugin and the
+// command wiring reference it; permission checks are no longer no-op.
 public class NoopFabricSenderFactory extends SenderFactory<CommandSourceStack> {
+
+    // fabric-permissions-api is an optional soft dependency; when its mod is absent
+    // we fall back to the vanilla op-level check (hasCommandLevel) below.
+    private static final boolean HAS_PERMISSIONS_API =
+            FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
 
     @Override
     protected UUID getUniqueId(CommandSourceStack source) {
@@ -50,15 +61,31 @@ public class NoopFabricSenderFactory extends SenderFactory<CommandSourceStack> {
 
     @Override
     protected boolean hasPermission(CommandSourceStack source, String node) {
-        // 26.X: hasPermission(int) → permissions().hasPermission(Permission).
-        // Fall back to op level 2 since fabric-permissions-api isn't ported.
-        return source.permissions().hasPermission(
-                new Permission.HasCommandLevel(PermissionLevel.byId(2)));
+        if (HAS_PERMISSIONS_API) {
+            // 0.7.0: getPermissionValue returns fabric-api's TriState; only defer to
+            // the op-level fallback when the node is unset (TriState.DEFAULT).
+            TriState permissionValue = Permissions.getPermissionValue(source, node);
+            if (permissionValue != TriState.DEFAULT) {
+                return permissionValue.get();
+            }
+        }
+        return hasCommandLevel(source);
     }
 
     @Override
     protected boolean hasPermission(CommandSourceStack source, String node, boolean defaultIfUnset) {
-        return defaultIfUnset ? true : hasPermission(source, node);
+        if (HAS_PERMISSIONS_API) {
+            // 0.7.0: Permissions.check honors defaultIfUnset when the node is unset.
+            return Permissions.check(source, node, defaultIfUnset);
+        }
+        return defaultIfUnset || hasCommandLevel(source);
+    }
+
+    // Vanilla op-level fallback used when fabric-permissions-api is not installed.
+    // 26.X: hasPermission(int) → permissions().hasPermission(Permission).
+    private boolean hasCommandLevel(CommandSourceStack source) {
+        return source.permissions().hasPermission(
+                new Permission.HasCommandLevel(PermissionLevel.byId(2)));
     }
 
     @Override
