@@ -28,25 +28,42 @@ java {
     }
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/grimac.accesswidener")
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-    // 26.X status — KNOWN BLOCKERS preventing a functional Grim anticheat engine on
-    // this branch (tracked as scaffold until they resolve):
-    //   1. FabricMC has not published a tiny intermediary mapping for 26.X. The 0.0.0:v2
-    //      stub is the only mapping the maven currently serves.
-    //   2. Switching to net.fabricmc.fabric-loom (LoomNoRemap) lets source compile
-    //      against the pre-deobfuscated 26.X jar's Mojang names — that works fine for
-    //      PE because PE has no fabric-ecosystem deps. Grim has hard deps on
-    //      cloud-fabric, fabric-permissions-api, and fabric-api event modules, ALL of
-    //      which ship intermediary-named bytecode. With LoomNoRemap there's no
-    //      runtime intermediary remap, so those refs are dead.
-    //   3. Re-enable in steps once any of: FabricMC publishes a 26.X intermediary;
-    //      cloud-fabric / fabric-permissions-api publish 26.X-native builds; or we
-    //      write Mojang-name shims for each missing dep.
+    // 26.X anticheat lives here. Compiles directly against the Mojang-named
+    // 26.1.2 jar via the empty `intermediary:0.0.0:v2` stub (the named→
+    // intermediary remap is a no-op since the stub has zero entries). Source
+    // is the fabric-intermediary platform layer with the intermediary-bound
+    // surface stripped:
+    //
+    //   - cloud-fabric / fabric-permissions-api / fabric-api event modules
+    //     all ship intermediary-bound bytecode that won't link against 26.X
+    //     Mojang names. They are NOT on the classpath. /grim commands and
+    //     fabric-permissions-api lookups are no-op on this build by design
+    //     (matches the catch path the intermediary chain takes when cloud
+    //     is unavailable on older MC).
+    //   - Server lifecycle / tick events are driven by MinecraftServerMixin
+    //     into FabricServerEvents (see src/main/java/.../FabricServerEvents.java)
+    //     replacing fabric-api's ServerLifecycleEvents + ServerTickEvents.
+    //   - 26.X mojmap drift is handled inline (Permission.HasCommandLevel,
+    //     services().profileResolver(), Inventory.getSelectedItem(),
+    //     ResourceKey.identifier(), Player.sendSystemMessage, etc.). AW
+    //     widens the same private fields the intermediary side does.
+    //
+    // mc261 covers the full 26.1.X family — mojmap is empirically signature-
+    // stable across 26.1 / 26.1.1 / 26.1.2 (0 of 300 random classes drift,
+    // 6 of 6 critical classes bit-identical). When 26.2 ships a release a
+    // sibling mc262 breakpoint joins it.
     mappings("net.fabricmc:intermediary:0.0.0:v2")
     modImplementation(libs.fabric.loader)
 
+    implementation(project(":common"))
     compileOnly(libs.packetevents.api)
+    compileOnly(libs.packetevents.fabric)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 }
@@ -133,8 +150,10 @@ allprojects {
 subprojects {
     dependencies {
         implementation(project(":fabric-official", configuration = "namedElements"))
+        compileOnly(project(":common"))
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
         compileOnly(libsx.findLibrary("packetevents-api").get())
+        compileOnly(libsx.findLibrary("packetevents-fabric").get())
     }
 }
 

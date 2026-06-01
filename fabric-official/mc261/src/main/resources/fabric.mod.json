@@ -7,8 +7,8 @@
   "license": "GPLv3",
   "environment": "server",
   "entrypoints": {
-    "grim26ChainLoad": [
-      "ac.grim.grimac.platform.fabric.mc261.Grim26ChainEntrypoint"
+    "grim26MainLoad": [
+      "ac.grim.grimac.platform.fabric.mc261.Fabric261LoaderPlugin"
     ]
   },
   "depends": {

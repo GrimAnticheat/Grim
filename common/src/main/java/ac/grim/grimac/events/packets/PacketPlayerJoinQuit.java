@@ -46,6 +46,14 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     public void onUserLogin(UserLoginEvent event) {
         // fake channel (NPC / spoofer / EmbeddedChannel) — no PacketUser, nothing to track
         if (event.getUser() == null) return;
+
+        // 26.X fallback: ensure GrimPlayer exists at login time. On the
+        // fabric-official chain, addUser via onPacketSend(LOGIN_SUCCESS) may
+        // not fire reliably due to PE pipeline timing.
+        if (GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser()) == null) {
+            GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser());
+        }
+
         Object nativePlayerObject = Objects.requireNonNull(event.getPlayer());
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order

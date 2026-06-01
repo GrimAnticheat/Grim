@@ -559,7 +559,13 @@ public class GrimPlayer implements GrimUser {
             timedOut();
         }
 
-        if (!GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user)) {
+        // shouldCheck() also returns false transiently (channel briefly !isOpen) during
+        // the CONFIGURATION->PLAY pipeline rebuild, and pollData runs on every netty tick
+        // — evicting here on that transient state races the join and drops a legitimate
+        // player (which the CheckManagerListener forcePut band-aid then resurrected with a
+        // null dimensionType -> PlayerBaseTick NPE). Only evict *permanently* exempt users.
+        if (!GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user)
+                && GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.contains(user)) {
             GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
         }
 

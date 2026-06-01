@@ -1,8 +1,5 @@
-// Pure-Java shared library for Grim's Fabric variants. Currently sparse —
-// most of Grim's Fabric code is MC-typed (mixins, scheduler, platform) and
-// lives in fabric-intermediary or (eventually) fabric-official. This module
-// exists to host any cross-variant API that emerges (chain-loader-style
-// interfaces, version-agnostic types) and to mirror PE's structure.
+// Cross-variant Grim Fabric library. Currently sparse — most Fabric code is
+// MC-typed and lives in fabric-intermediary/-official.
 
 plugins {
     `java-library`
