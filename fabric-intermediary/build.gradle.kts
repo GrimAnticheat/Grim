@@ -20,6 +20,9 @@ dependencies {
 
     modImplementation(libs.cloud.fabric)
     modImplementation(libs.fabric.loader)
+
+    // NMS-free Fabric platform code shared with fabric-official lives here.
+    implementation(project(":fabric-common"))
     // PE is JiJ'd at the top-level fabric/ aggregator (so it loads on every MC range
     // the aggregator covers, not just the intermediary range). Here PE is compile-only:
     // declaring modImplementation/modApi would also nest the api/transitive jars inside
@@ -131,6 +134,9 @@ subprojects {
     dependencies {
         // configuration = "namedElements" required when depending on another loom project
         implementation(project(":fabric-intermediary", configuration = "namedElements"))
+        // Shared NMS-free Fabric code (e.g. FabricFutureUtil) lives in fabric-common;
+        // the per-version submodules reference it, so it must be on their compile path.
+        compileOnly(project(":fabric-common"))
         // PE is JiJ'd at fabric/ (aggregator); per-version submodules just need it on
         // the compile classpath. compileOnly avoids re-nesting PE inside each mcXXXX jar.
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")

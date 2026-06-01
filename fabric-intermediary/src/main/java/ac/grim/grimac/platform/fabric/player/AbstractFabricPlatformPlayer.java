@@ -7,7 +7,6 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.PolymerHook;
-import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -47,14 +46,24 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         fabricPlayer.connection.disconnect(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(textReason));
     }
 
+    // PROTOTYPE (refactor/fabric-dedupe spike): the methods below now delegate to the
+    // Loom-injected GrimInjectedServerPlayer bridge instead of calling NMS directly.
+    // After this change their bodies are byte-identical to the intermediary aggregator's
+    // copy (the bridge hides the only difference -- message-send -- which is NOT routed
+    // through the bridge and stays below). The cast mirrors AbstractFabricGrimEntity's
+    // proven `(PlatformWorld) (Object) entity.level()` pattern.
+    private ac.grim.grimac.platform.fabric.inject.GrimInjectedServerPlayer grim$injected() {
+        return (ac.grim.grimac.platform.fabric.inject.GrimInjectedServerPlayer) (Object) fabricPlayer;
+    }
+
     @Override
     public boolean isSneaking() {
-        return fabricPlayer.isShiftKeyDown();
+        return grim$injected().grim$isSneaking();
     }
 
     @Override
     public void setSneaking(boolean isSneaking) {
-        fabricPlayer.setShiftKeyDown(isSneaking);
+        grim$injected().grim$setSneaking(isSneaking);
     }
 
     @Override
@@ -72,7 +81,8 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
-            fabricPlayer.displayClientMessage(GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils().textLiteral(message), false);
+            var messageUtils = GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils();
+            messageUtils.sendSystemMessageToPlayer(fabricPlayer, messageUtils.textLiteral(message));
         }
     }
 
@@ -81,28 +91,31 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
         } else {
-            fabricPlayer.displayClientMessage(GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message), false);
+            GrimACFabricLoaderPlugin.LOADER.getFabricMessageUtils()
+                    .sendSystemMessageToPlayer(fabricPlayer, GrimACFabricLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message));
         }
     }
 
     @Override
     public boolean isOnline() {
-        return !fabricPlayer.hasDisconnected();
+        return grim$injected().grim$isOnline();
     }
 
     @Override
     public String getName() {
-        return fabricPlayer.getName().getString();
+        // getName() clash dodged: the bridge method is grim$name(), never getName(),
+        // so it cannot collide with NMS ServerPlayer.getName():Component.
+        return grim$injected().grim$name();
     }
 
     @Override
     public void updateInventory() {
-        fabricPlayer.containerMenu.broadcastChanges();
+        grim$injected().grim$broadcastInventoryChanges();
     }
 
     @Override
     public Vector3d getPosition() {
-        return new Vector3d(fabricPlayer.getX(), fabricPlayer.getY(), fabricPlayer.getZ());
+        return grim$injected().grim$position();
     }
 
     @Override
@@ -118,17 +131,17 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public GameMode getGameMode() {
-        return FabricConversionUtil.fromFabricGameMode(fabricPlayer.gameMode.getGameModeForPlayer());
+        return grim$injected().grim$gameMode();
     }
 
     @Override
     public void setGameMode(GameMode gameMode) {
-        fabricPlayer.setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
+        grim$injected().grim$setGameMode(gameMode);
     }
 
     @Override
     public UUID getUniqueId() {
-        return fabricPlayer.getUUID();
+        return grim$injected().grim$uuid();
     }
 
     @Override
@@ -159,6 +172,6 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
 
     @Override
     public boolean isDead() {
-        return fabricPlayer.isDeadOrDying();
+        return grim$injected().grim$isDead();
     }
 }

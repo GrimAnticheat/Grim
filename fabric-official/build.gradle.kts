@@ -62,6 +62,8 @@ dependencies {
     modImplementation(libs.fabric.loader)
 
     implementation(project(":common"))
+    // NMS-free Fabric platform code shared with fabric-intermediary lives here.
+    implementation(project(":fabric-common"))
     compileOnly(libs.packetevents.api)
     compileOnly(libs.packetevents.fabric)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
@@ -151,6 +153,9 @@ subprojects {
     dependencies {
         implementation(project(":fabric-official", configuration = "namedElements"))
         compileOnly(project(":common"))
+        // Shared NMS-free Fabric code (e.g. FabricFutureUtil) lives in fabric-common;
+        // the per-version submodules reference it, so it must be on their compile path.
+        compileOnly(project(":fabric-common"))
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
         compileOnly(libsx.findLibrary("packetevents-api").get())
         compileOnly(libsx.findLibrary("packetevents-fabric").get())

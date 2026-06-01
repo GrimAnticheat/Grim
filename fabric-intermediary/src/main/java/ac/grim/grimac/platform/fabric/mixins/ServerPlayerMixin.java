@@ -19,14 +19,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.UUID;
 
 /**
- * PROTOTYPE addition (refactor/fabric-dedupe spike), OFFICIAL/Mojang mappings.
+ * PROTOTYPE addition (refactor/fabric-dedupe spike), INTERMEDIARY/Yarn mappings.
  *
- * <p>The {@code @Implements(@Interface(prefix = "grim$"))} grafts the
- * {@link GrimInjectedServerPlayer} bridge onto {@code ServerPlayer}, exactly mirroring
- * the existing proven {@code LevelMixin} pattern (which uses prefix {@code grimac$} for
- * {@code PlatformWorld}). The bodies below are the Mojang-mapped NMS calls; the
- * intermediary copy of this mixin is identical except for the mapped names
- * (e.g. {@code isShiftKeyDown} vs the yarn equivalent, {@code sendSystemMessage} etc).
+ * <p>FINDING worth noting: although this module compiles against Yarn mappings, Loom
+ * remaps NMS members to the SAME source-level names the official module uses
+ * (isShiftKeyDown, getName, containerMenu, gameMode, isDeadOrDying, ...). So the bridge
+ * bodies below are byte-for-byte identical to the official ServerPlayerMixin -- the
+ * only thing that genuinely differs between the two aggregators' player code is the
+ * message-send call (sendSystemMessage vs displayClientMessage), which the spike
+ * deliberately leaves OUT of the injected bridge.
  */
 @Mixin(ServerPlayer.class)
 @Implements(@Interface(iface = GrimInjectedServerPlayer.class, prefix = "grim$"))
@@ -38,12 +39,8 @@ abstract class ServerPlayerMixin {
 
     // --- PROTOTYPE: GrimInjectedServerPlayer bridge bodies (prefix-stripped to grim$*) ---
 
-    // SPIKE FINDING: containerMenu is declared on the Player superclass. The access
-    // widener marks it accessible for the *main* source set, but inside a mixin javac
-    // does not see the inherited widened field through a ServerPlayer static type, so it
-    // must be @Shadow-ed (the idiomatic mixin approach, same as LevelMixin shadows
-    // dimension()). gameMode below needs no shadow because the AW widens it directly on
-    // ServerPlayer, not on a superclass.
+    // See official ServerPlayerMixin: containerMenu (declared on Player) must be
+    // @Shadow-ed for mixin-context access; the access widener alone is not enough here.
     @Shadow
     public AbstractContainerMenu containerMenu;
 

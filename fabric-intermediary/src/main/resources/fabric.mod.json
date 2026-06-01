@@ -25,6 +25,9 @@
     "loom:injected_interfaces": {
       "net/minecraft/world/level/Level": [
         "ac/grim/grimac/platform/api/world/PlatformWorld"
+      ],
+      "net/minecraft/server/level/ServerPlayer": [
+        "ac/grim/grimac/platform/fabric/inject/GrimInjectedServerPlayer"
       ]
     }
   },
