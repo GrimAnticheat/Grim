@@ -102,7 +102,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public String getUsername() {
+    public String getName() {
         return bukkitPlayer.getName();
     }
 

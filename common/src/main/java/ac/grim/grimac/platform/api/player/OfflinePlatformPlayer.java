@@ -6,5 +6,5 @@ public interface OfflinePlatformPlayer extends GrimIdentity {
 
     boolean isOnline();
 
-    String getUsername();
+    String getName();
 }

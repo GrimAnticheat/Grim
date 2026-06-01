@@ -86,7 +86,7 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     }
 
     @Override
-    public String getUsername() {
+    public String getName() {
         return handle().usernameString();
     }
 
