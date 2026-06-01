@@ -11,7 +11,7 @@ import net.minecraft.world.entity.Relative;
 import java.util.EnumSet;
 import java.util.concurrent.CompletableFuture;
 
-public class Fabric261GrimEntity extends AbstractFabricGrimEntity {
+public class Fabric261GrimEntity extends AbstractFabricGrimEntity<Entity> {
     public Fabric261GrimEntity(Entity entity) {
         super(entity);
     }

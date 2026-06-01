@@ -16,11 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
     private final Map<Thread, Pair<GrimPlugin, Runnable>> asyncTasks = new HashMap<>();
-    private final GrimPlugin plugin;
-
-    public FabricAsyncScheduler(GrimPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
@@ -42,7 +37,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
                 Thread.sleep(delayMillis);
                 task.run();
             } catch (InterruptedException e) {
-                // Handle interruption
+                Thread.currentThread().interrupt();
             }
         });
         Runnable cancellationTask = () -> {
@@ -51,7 +46,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
         };
         asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
         thread.start();
-        return new FabricTaskHandle(cancellationTask, false); // false for async
+        return new FabricTaskHandle(cancellationTask, false);
     }
 
     @Override
@@ -66,7 +61,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
                     Thread.sleep(periodMillis);
                 }
             } catch (InterruptedException e) {
-                // Handle interruption
+                Thread.currentThread().interrupt();
             }
         });
         Runnable cancellationTask = () -> {
@@ -75,7 +70,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
         };
         asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
         thread.start();
-        return new FabricTaskHandle(cancellationTask, false); // false for async
+        return new FabricTaskHandle(cancellationTask, false);
     }
 
     @Override
@@ -83,12 +78,11 @@ public class FabricAsyncScheduler implements AsyncScheduler {
         return runAtFixedRate(plugin, task,
                 PlatformScheduler.convertTicksToTime(initialDelayTicks, TimeUnit.MILLISECONDS),
                 PlatformScheduler.convertTicksToTime(periodTicks, TimeUnit.MILLISECONDS),
-            TimeUnit.MILLISECONDS); // Convert ticks to milliseconds
+                TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        // Cancel tasks only for the specified plugin
         Iterator<Map.Entry<Thread, Pair<GrimPlugin, Runnable>>> iterator = asyncTasks.entrySet().iterator();
         List<Runnable> cancellationTasks = new ArrayList<>();
 

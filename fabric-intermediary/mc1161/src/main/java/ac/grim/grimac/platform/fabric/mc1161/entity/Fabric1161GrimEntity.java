@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public class Fabric1161GrimEntity extends AbstractFabricGrimEntity {
+public class Fabric1161GrimEntity extends AbstractFabricGrimEntity<Entity> {
 
     public Fabric1161GrimEntity(Entity entity) {
         super(entity);

@@ -11,10 +11,10 @@
   "environment": "server",
   "entrypoints": {
     "main": [
-      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+      "ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryEntryPoint"
     ],
     "preLaunch": [
-      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
+      "ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryEntryPoint"
     ]
   },
   "mixins": [
@@ -26,11 +26,17 @@
       "net/minecraft/world/level/Level": [
         "ac/grim/grimac/platform/api/world/PlatformWorld"
       ],
+      "net/minecraft/world/entity/Entity": [
+        "ac/grim/grimac/platform/fabric/inject/FabricEntityHandle"
+      ],
       "net/minecraft/server/level/ServerPlayer": [
         "ac/grim/grimac/platform/fabric/inject/FabricServerPlayerHandle"
       ],
       "net/minecraft/server/MinecraftServer": [
         "ac/grim/grimac/platform/fabric/inject/FabricMinecraftServerHandle"
+      ],
+      "net/minecraft/commands/CommandSourceStack": [
+        "ac/grim/grimac/platform/api/sender/Sender"
       ]
     }
   },

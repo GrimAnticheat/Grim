@@ -67,8 +67,6 @@ jobs:
             - name: Set up JDK 25
               uses: actions/setup-java@v4
               with:
-                  # Java 25 for the Gradle JVM itself: Loom configures fabric-official at
-                  # config time, before the toolchain is selected.
                   java-version: '25'
                   distribution: 'temurin'
                   server-id: github

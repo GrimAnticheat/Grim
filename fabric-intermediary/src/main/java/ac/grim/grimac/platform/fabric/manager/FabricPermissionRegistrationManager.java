@@ -2,15 +2,15 @@ package ac.grim.grimac.platform.fabric.manager;
 
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
-import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
+import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
+import ac.grim.grimac.platform.fabric.sender.FabricIntermediarySenderFactory;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
-import static ac.grim.grimac.platform.fabric.sender.FabricSenderFactory.HAS_PERMISSIONS_API;
+import static ac.grim.grimac.platform.fabric.sender.FabricIntermediarySenderFactory.HAS_PERMISSIONS_API;
 
 public class FabricPermissionRegistrationManager implements PermissionRegistrationManager {
 
-    private final FabricSenderFactory fabricSenderFactory = GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory();
+    private final FabricIntermediarySenderFactory fabricSenderFactory = GrimACFabricIntermediaryLoaderPlugin.LOADER.getFabricSenderFactory();
 
     public FabricPermissionRegistrationManager() {
         registerPermission("grim.exempt", PermissionDefaultValue.FALSE);
@@ -29,6 +29,6 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
     public void registerPermission(String name, PermissionDefaultValue defaultValue) {
         fabricSenderFactory.registerPermissionDefault(name, defaultValue);
         if (HAS_PERMISSIONS_API)
-            Permissions.check(GrimACFabricLoaderPlugin.FABRIC_SERVER.createCommandSourceStack(), name);
+            Permissions.check(GrimACFabricIntermediaryLoaderPlugin.FABRIC_SERVER.createCommandSourceStack(), name);
     }
 }

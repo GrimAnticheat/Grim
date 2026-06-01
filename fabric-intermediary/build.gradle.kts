@@ -6,7 +6,7 @@ val fabric_version: String by project
 
 plugins {
     `maven-publish`
-    alias(libs.plugins.fabric.loom)
+    alias(libs.plugins.fabric.loom.remap)
     grim.`base-conventions`
     grim.`jij-conventions`
 }
@@ -31,7 +31,7 @@ dependencies {
 
 // The configurations below will only apply to :fabric and its submodules, not its siblings or the root project
 allprojects {
-    apply(plugin = "fabric-loom")
+    apply(plugin = "net.fabricmc.fabric-loom-remap")
     apply(plugin = "grim.base-conventions")
     apply(plugin = "maven-publish")
 

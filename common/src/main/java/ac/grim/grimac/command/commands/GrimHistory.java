@@ -18,7 +18,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.render.HistoryComponentRenderer;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.manager.datastore.DataStoreLifecycle;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
@@ -74,11 +74,11 @@ public class GrimHistory implements BuildableCommand {
     private static final String LATEST_ALIAS = "latest";
 
     @Override
-    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
+    public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         SuggestionProvider<Sender> listPageNumberSuggestions = listPageSuggestions();
         SuggestionProvider<Sender> sessionOrdinalSuggestions = sessionSuggestions();
         SuggestionProvider<Sender> violationPageSuggestions = violationPageSuggestions();
-        SuggestionProvider<Sender> targetSuggestions = targetSuggestions(adapter);
+        SuggestionProvider<Sender> targetSuggestions = targetSuggestions(arguments);
 
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
@@ -661,8 +661,8 @@ public class GrimHistory implements BuildableCommand {
      * (sorted by {@code last_seen} desc). Empty prefix skips the offline
      * lookup. Capped at {@link #MAX_PLAYER_SUGGESTIONS}.
      */
-    private static SuggestionProvider<Sender> targetSuggestions(CloudCommandAdapter adapter) {
-        SuggestionProvider<Sender> onlineProvider = adapter.onlinePlayerSuggestions();
+    private static SuggestionProvider<Sender> targetSuggestions(CloudPlatformCommandArguments arguments) {
+        SuggestionProvider<Sender> onlineProvider = arguments.onlinePlayerSuggestions();
         return SuggestionProvider.blocking((ctx, in) -> {
             String partial = in.remainingInput();
             String partialLower = partial == null ? "" : partial.toLowerCase(Locale.ROOT);

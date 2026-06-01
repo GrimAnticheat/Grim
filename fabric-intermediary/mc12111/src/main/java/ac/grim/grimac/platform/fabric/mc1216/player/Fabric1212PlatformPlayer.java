@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1216.player;
 
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
+import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1205.player.Fabric1202PlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.utils.math.Location;
@@ -18,7 +18,7 @@ public class Fabric1212PlatformPlayer extends Fabric1202PlatformPlayer {
 
     @Override
     public Sender getSender() {
-        return GrimACFabricLoaderPlugin.LOADER.getFabricSenderFactory().wrap(serverPlayer().createCommandSourceStack());
+        return GrimACFabricIntermediaryLoaderPlugin.LOADER.getFabricSenderFactory().wrap(serverPlayer().createCommandSourceStack());
     }
 
     @Override

@@ -1,25 +1,27 @@
 package ac.grim.grimac.platform.fabric.mc261;
 
-import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
+import ac.grim.grimac.platform.fabric.GrimACFabricOfficialLoaderPlugin;
+import ac.grim.grimac.platform.fabric.utils.convert.FabricOfficialConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import com.mojang.serialization.JsonOps;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.world.level.GameType;
 
-// 26.X conversion. Same shape as Fabric1205ConversionUtil: ItemStack.STREAM_CODEC
-// (encode -> PE packet wrapper -> readItemStack) survived the 1.21.11 -> 26.1.2
-// transition unchanged.
 public class Fabric261ConversionUtil implements IFabricConversionUtil {
     @Override
     public ItemStack fromFabricItemStack(Object fabricItemStack) {
-        // NMS-free interface (fabric-common) hands the native stack as Object; cast it back.
         net.minecraft.world.item.ItemStack fabricStack = (net.minecraft.world.item.ItemStack) fabricItemStack;
         if (fabricStack.isEmpty()) {
             return ItemStack.EMPTY;
@@ -27,7 +29,7 @@ public class Fabric261ConversionUtil implements IFabricConversionUtil {
 
         ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
         try {
-            RegistryAccess registryManager = GrimACFabricLoaderPlugin.FABRIC_SERVER.registryAccess();
+            RegistryAccess registryManager = GrimACFabricOfficialLoaderPlugin.FABRIC_SERVER.registryAccess();
             RegistryFriendlyByteBuf registryByteBuf = new RegistryFriendlyByteBuf(buffer, registryManager);
             net.minecraft.world.item.ItemStack.STREAM_CODEC.encode(registryByteBuf, fabricStack);
 
@@ -43,14 +45,24 @@ public class Fabric261ConversionUtil implements IFabricConversionUtil {
 
     @Override
     public Object toNativeText(Component component) {
-        // PLAIN-TEXT ONLY: ComponentFlattener.basic() drops all styling/colours/events,
-        // emitting a single unstyled literal. Adequate for the only callers (alerts +
-        // console); full styled conversion is pending a multiversion adventure-platform
-        // -fabric build for 26.X (would otherwise need server registry context to
-        // round-trip via ComponentSerialization.CODEC). Same limitation as the
-        // intermediary FabricSenderFactory flatten path.
-        StringBuilder out = new StringBuilder();
-        ComponentFlattener.basic().flatten(component, out::append);
-        return net.minecraft.network.chat.Component.literal(out.toString());
+        return ComponentSerialization.CODEC.decode(
+                RegistryAccess.EMPTY.createSerializationContext(JsonOps.INSTANCE),
+                GsonComponentSerializer.gson().serializeToTree(component)
+        ).getOrThrow(IllegalArgumentException::new).getFirst();
+    }
+
+    @Override
+    public GameMode fromNativeGameMode(Object gameMode) {
+        return FabricOfficialConversionUtil.fromFabricGameMode((GameType) gameMode);
+    }
+
+    @Override
+    public Object toNativeGameMode(GameMode gameMode) {
+        return FabricOfficialConversionUtil.toFabricGameMode(gameMode);
+    }
+
+    @Override
+    public InteractionHand fromFabricInteractionHand(Object hand) {
+        return FabricOfficialConversionUtil.fromFabricInteractionHand((net.minecraft.world.InteractionHand) hand);
     }
 }

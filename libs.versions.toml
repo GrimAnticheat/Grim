@@ -84,7 +84,8 @@ shadow = { "group" = "com.gradleup.shadow", name = "shadow-gradle-plugin", versi
 cloud-api = ["cloud-core", "cloud-processors-requirements"]
 
 [plugins]
-fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
+fabric-loom-remap = { id = "net.fabricmc.fabric-loom-remap", version.ref = "fabric-loom" }
+fabric-loom-unobfuscated = { id = "net.fabricmc.fabric-loom", version.ref = "fabric-loom" }
 lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

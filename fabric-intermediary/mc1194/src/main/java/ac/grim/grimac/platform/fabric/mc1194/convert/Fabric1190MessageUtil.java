@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 
 public class Fabric1190MessageUtil extends Fabric1161MessageUtil {
     @Override
-    public Component textLiteral(String message) {
+    public Object textLiteral(String message) {
         return Component.literal(message);
     }
 }

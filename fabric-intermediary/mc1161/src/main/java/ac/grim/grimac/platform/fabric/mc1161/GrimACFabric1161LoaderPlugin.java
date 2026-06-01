@@ -1,10 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1161;
 
 import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
-import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
-import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;
-import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
+import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1161.entity.Fabric1161GrimEntity;
 import ac.grim.grimac.platform.fabric.mc1161.player.Fabric1161PlatformInventory;
 import ac.grim.grimac.platform.fabric.mc1161.player.Fabric1161PlatformPlayer;
@@ -15,7 +12,7 @@ import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-public class GrimACFabric1161LoaderPlugin extends GrimACFabricLoaderPlugin {
+public class GrimACFabric1161LoaderPlugin extends GrimACFabricIntermediaryLoaderPlugin {
 
     public GrimACFabric1161LoaderPlugin() {
         this(
@@ -36,7 +33,7 @@ public class GrimACFabric1161LoaderPlugin extends GrimACFabricLoaderPlugin {
             IFabricMessageUtil fabricMessageUtil,
             IFabricConversionUtil fabricConversionUtil
     ) {
-        super(() -> new FabricParserDescriptorFactory(new FabricPlayerSelectorParser<>(Fabric1161PlayerSelectorAdapter::new)),
+        super(GrimACFabricIntermediaryLoaderPlugin::createCommandArguments,
             playerFactory,
             platformServer,
             fabricMessageUtil,

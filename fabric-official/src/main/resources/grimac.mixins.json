@@ -4,12 +4,13 @@
     "package": "ac.grim.grimac.platform.fabric.mixins",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
-        "LevelChunkMixin",
-        "LevelMixin",
-        "MinecraftServerMixin",
-        "PistonBaseBlockMixin",
-        "ServerMixin",
-        "ServerPlayerMixin"
+        "FabricOfficialCommandSourceStackMixin",
+        "FabricOfficialLevelChunkMixin",
+        "FabricOfficialLevelMixin",
+        "FabricOfficialPistonBaseBlockMixin",
+        "FabricOfficialServerMixin",
+        "FabricOfficialServerPlayerMixin",
+        "FabricOfficialEntityMixin"
     ],
     "injectors": {
         "defaultRequire": 1
