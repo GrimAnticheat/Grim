@@ -43,11 +43,12 @@ repositories {
 
 
 dependencies {
-    if (BuildConfig.shadePE) {
-        api(libs.packetevents.api)
-    } else {
-        compileOnly(libs.packetevents.api)
-    }
+    // PE-api stays compileOnly even when shadePE=true: each platform module
+    // bundles PE through its own JiJ path (fabric/ aggregator JiJs the
+    // packetevents-fabric meta-jar; spigot/ shades PE-api separately). Declaring
+    // api() here would let Grim's jij-conventions plugin nest packetevents-api
+    // a second time inside grimac-fabric-intermediary, doubling ~4.2MB.
+    compileOnly(libs.packetevents.api)
     api(libs.cloud.core)
     api(libs.cloud.processors.requirements)
     api(libs.configuralize) {

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-official",
+  "version": "${version}",
+  "name": "GrimAC (Fabric, official mappings)",
+  "description": "GrimAC variant for Minecraft 26.X. Hosts the chain-loader scaffold; per-version subprojects contribute grim26ChainLoad entrypoints. Anticheat is inactive on this branch — see source for status.",
+  "license": "GPLv3",
+  "environment": "server",
+  "entrypoints": {
+    "preLaunch": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricOfficialEntryPoint"
+    ],
+    "main": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricOfficialEntryPoint"
+    ]
+  },
+  "depends": {
+    "minecraft": ">=26.1.2 <26.2",
+    "java": ">=25",
+    "fabricloader": ">=0.19",
+    "packetevents": "*"
+  }
+}
