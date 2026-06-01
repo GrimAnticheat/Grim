@@ -7,20 +7,29 @@ import ac.grim.grimac.platform.fabric.sender.AbstractFabricSenderFactory;
 import java.util.function.Consumer;
 
 /**
- * Registers Grim's static permission defaults into the shared
- * {@link AbstractFabricSenderFactory} registry, identically for every mapping
- * family. {@code onRegister} is a per-variant hook that primes the node with the
- * permissions-API provider (it touches {@code net.minecraft} command sources, so
- * it cannot live in fabric-common); pass a no-op when there is nothing to prime.
+ * Registers Grim's permission defaults the same way for every Fabric mapping family.
+ *
+ * <p>Each call does two things:
+ * <ul>
+ *   <li>{@code fabricSenderFactory.registerPermissionDefault(...)} records Grim's default
+ *       (e.g. {@code grim.exempt = FALSE}) in the shared registry, so an unset permission
+ *       resolves to that default instead of silently granting access.</li>
+ *   <li>{@code onRegister.accept(name)} runs the per-variant permissions-API hook. That hook is
+ *       exactly the old {@code if (HAS_PERMISSIONS_API) Permissions.check(commandSource, name)}
+ *       line -- it was not removed, only lifted out to the loader plugins, because it touches
+ *       {@code net.minecraft} command sources and the {@code Permissions} API and so cannot live
+ *       in the NMS-free fabric-common module. Each loader plugin passes that lambda in; a variant
+ *       with nothing to prime passes a no-op.</li>
+ * </ul>
  */
 public class FabricPermissionRegistrationManager implements PermissionRegistrationManager {
 
-    private final AbstractFabricSenderFactory<?> senderFactory;
+    private final AbstractFabricSenderFactory<?> fabricSenderFactory;
     private final Consumer<String> onRegister;
 
-    public FabricPermissionRegistrationManager(AbstractFabricSenderFactory<?> senderFactory,
+    public FabricPermissionRegistrationManager(AbstractFabricSenderFactory<?> fabricSenderFactory,
                                                Consumer<String> onRegister) {
-        this.senderFactory = senderFactory;
+        this.fabricSenderFactory = fabricSenderFactory;
         this.onRegister = onRegister;
         registerPermission("grim.exempt", PermissionDefaultValue.FALSE);
         registerPermission("grim.nosetback", PermissionDefaultValue.FALSE);
@@ -35,7 +44,7 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
 
     @Override
     public void registerPermission(String name, PermissionDefaultValue defaultValue) {
-        senderFactory.registerPermissionDefault(name, defaultValue);
+        fabricSenderFactory.registerPermissionDefault(name, defaultValue);
         onRegister.accept(name);
     }
 }

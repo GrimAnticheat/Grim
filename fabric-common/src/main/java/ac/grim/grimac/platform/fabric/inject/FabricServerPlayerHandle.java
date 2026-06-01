@@ -18,10 +18,14 @@ public interface FabricServerPlayerHandle {
 
     void broadcastInventoryChanges();
 
-    // Mirror vanilla names. Per-runtime asymmetry is REQUIRED: official mixin must NOT body these
-    // (vanilla ServerPlayer.isUsingItem satisfies the interface; a same-named body self-recurses),
-    // intermediary mixin MUST body them (vanilla is method_6115/method_6021, no clash). TODO: if a
-    // future MC renames these, update the intermediary ServerPlayerMixin bodies.
+    // isUsingItem()/stopUsingItem() deliberately reuse vanilla's own method names, which forces the
+    // two runtimes to behave differently:
+    //   - Official (Mojang-mapped) builds: ServerPlayer already declares these names, so vanilla's
+    //     own methods satisfy this interface for free. The official mixin must NOT add bodies for
+    //     them -- a method with the same name would just call itself and StackOverflow.
+    //   - Intermediary builds: the real methods are obfuscated (method_6115 / method_6021), so these
+    //     names clash with nothing, and the mixin MUST add bodies that forward to vanilla.
+    // TODO: if a future Minecraft version renames these, update the intermediary ServerPlayerMixin.
     void stopUsingItem();
 
     boolean isUsingItem();

@@ -4,73 +4,50 @@ import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.scheduler.TaskHandle;
-import ac.grim.grimac.utils.data.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
-    private final Map<Thread, Pair<GrimPlugin, Runnable>> asyncTasks = new HashMap<>();
+
+    // Bukkit's runTaskAsynchronously() hands work to a shared, reused thread pool rather than
+    // creating a fresh thread per task. We mirror that with one scheduled pool so Grim's async
+    // work (a handful of runNow / runAtFixedRate callers) reuses threads instead of leaking a new
+    // one for every task. As before, this task map is only touched while scheduling/cancelling on
+    // the main thread (the pool threads never touch it), so a plain HashMap is sufficient.
+    private final ScheduledExecutorService executor;
+    private final Map<Future<?>, GrimPlugin> tasks = new HashMap<>();
+
+    public FabricAsyncScheduler() {
+        AtomicInteger threadCount = new AtomicInteger();
+        this.executor = Executors.newScheduledThreadPool(
+                Math.max(4, Runtime.getRuntime().availableProcessors() / 2),
+                runnable -> {
+                    Thread thread = new Thread(runnable, "Grim-Async-" + threadCount.incrementAndGet());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+    }
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        Thread thread = new Thread(task);
-        Runnable cancellationTask = () -> {
-            thread.interrupt();
-            asyncTasks.remove(thread);
-        };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
-        thread.start();
-        return new FabricTaskHandle(cancellationTask, false);
+        return track(plugin, executor.submit(task));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
-        long delayMillis = timeUnit.toMillis(delay);
-        Thread thread = new Thread(() -> {
-            try {
-                Thread.sleep(delayMillis);
-                task.run();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        });
-        Runnable cancellationTask = () -> {
-            thread.interrupt();
-            asyncTasks.remove(thread);
-        };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
-        thread.start();
-        return new FabricTaskHandle(cancellationTask, false);
+        return track(plugin, executor.schedule(task, delay, timeUnit));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
-        long delayMillis = timeUnit.toMillis(delay);
-        long periodMillis = timeUnit.toMillis(period);
-        Thread thread = new Thread(() -> {
-            try {
-                Thread.sleep(delayMillis);
-                while (!Thread.currentThread().isInterrupted()) {
-                    task.run();
-                    Thread.sleep(periodMillis);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        });
-        Runnable cancellationTask = () -> {
-            thread.interrupt();
-            asyncTasks.remove(thread);
-        };
-        asyncTasks.put(thread, new Pair<>(plugin, cancellationTask));
-        thread.start();
-        return new FabricTaskHandle(cancellationTask, false);
+        return track(plugin, executor.scheduleAtFixedRate(task, delay, period, timeUnit));
     }
 
     @Override
@@ -81,32 +58,27 @@ public class FabricAsyncScheduler implements AsyncScheduler {
                 TimeUnit.MILLISECONDS);
     }
 
+    private TaskHandle track(GrimPlugin plugin, Future<?> future) {
+        tasks.put(future, plugin);
+        return new FabricTaskHandle(() -> {
+            future.cancel(true);
+            tasks.remove(future);
+        }, false);
+    }
+
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        Iterator<Map.Entry<Thread, Pair<GrimPlugin, Runnable>>> iterator = asyncTasks.entrySet().iterator();
-        List<Runnable> cancellationTasks = new ArrayList<>();
-
-        while (iterator.hasNext()) {
-            Map.Entry<Thread, Pair<GrimPlugin, Runnable>> entry = iterator.next();
-            if (entry.getValue().first().equals(plugin)) {
-                cancellationTasks.add(entry.getValue().second());
-                iterator.remove();
+        tasks.entrySet().removeIf(entry -> {
+            if (entry.getValue().equals(plugin)) {
+                entry.getKey().cancel(true);
+                return true;
             }
-        }
-
-        for (Runnable cancellationTask : cancellationTasks) {
-            cancellationTask.run();
-        }
+            return false;
+        });
     }
 
     public void cancelAll() {
-        List<Runnable> cancellationTasks = asyncTasks.values().stream()
-                .map(Pair::second)
-                .toList();
-        asyncTasks.clear();
-
-        for (Runnable cancellationTask : cancellationTasks) {
-            cancellationTask.run();
-        }
+        tasks.keySet().forEach(future -> future.cancel(true));
+        tasks.clear();
     }
 }
