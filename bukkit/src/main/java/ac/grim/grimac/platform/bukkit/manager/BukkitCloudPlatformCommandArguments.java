@@ -12,6 +12,7 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -27,11 +28,12 @@ public class BukkitCloudPlatformCommandArguments implements CloudPlatformCommand
     @Override
     public SuggestionProvider<Sender> onlinePlayerSuggestions() {
         return (context, input) -> {
-            List<Suggestion> suggestions = new ArrayList<>();
+            Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+            List<Suggestion> suggestions = new ArrayList<>(players.size());
 
             Player sender = context.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER) instanceof Player player ? player : null;
 
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (Player player : players) {
                 if (sender == null || sender.canSee(player)) {
                     suggestions.add(Suggestion.suggestion(player.getName()));
                 }

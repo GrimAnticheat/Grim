@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Mixin(MinecraftServer.class)
-@Implements(@Interface(iface = FabricMinecraftServerHandle.class, prefix = "grim$"))
+@Implements(@Interface(iface = FabricMinecraftServerHandle.class, prefix = "grim$", remap = Interface.Remap.NONE))
 abstract class FabricIntermediaryServerMixin {
 
     public boolean grim$isPlayerOnline(UUID uuid) {

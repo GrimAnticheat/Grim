@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Mixin(MinecraftServer.class)
-@Implements(@Interface(iface = FabricMinecraftServerHandle.class, prefix = "grim$"))
+@Implements(@Interface(iface = FabricMinecraftServerHandle.class, prefix = "grim$", remap = Interface.Remap.NONE))
 abstract class FabricOfficialServerMixin {
 
     public boolean grim$isPlayerOnline(UUID uuid) {
@@ -49,6 +49,13 @@ abstract class FabricOfficialServerMixin {
         }
         return uuids;
     }
+
+    // getTickCount/getServerVersion/usesAuthentication/isRunning/getPlayerCount are NOT bodied
+    // here: on the mojmap runtime the vanilla MinecraftServer methods of the same name satisfy
+    // the injected interface directly. A grim$ body would graft a same-named synonym and the
+    // ((MinecraftServer)this).getTickCount() call would resolve to it -> self-recursion ->
+    // StackOverflow on the first server tick. The intermediary mixin DOES body them (vanilla is
+    // method_3780 etc. there, so the grim$-stripped name doesn't clash).
 
     public Sender grim$createCommandSender() {
         return (Sender) (Object) ((MinecraftServer) (Object) this).createCommandSourceStack();

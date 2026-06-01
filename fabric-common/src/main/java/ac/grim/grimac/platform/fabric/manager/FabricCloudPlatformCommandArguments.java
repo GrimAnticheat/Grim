@@ -12,6 +12,7 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,9 +29,10 @@ public class FabricCloudPlatformCommandArguments implements CloudPlatformCommand
     @Override
     public SuggestionProvider<Sender> onlinePlayerSuggestions() {
         return (context, input) -> {
-            List<Suggestion> suggestions = new ArrayList<>();
+            Collection<FabricServerPlayerHandle> players = AbstractGrimACFabricEntryPoint.server().onlinePlayers();
+            List<Suggestion> suggestions = new ArrayList<>(players.size());
 
-            for (FabricServerPlayerHandle player : AbstractGrimACFabricEntryPoint.server().onlinePlayers()) {
+            for (FabricServerPlayerHandle player : players) {
                 suggestions.add(Suggestion.suggestion(player.usernameString()));
             }
 

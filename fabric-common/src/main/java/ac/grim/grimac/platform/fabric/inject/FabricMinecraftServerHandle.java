@@ -16,6 +16,10 @@ public interface FabricMinecraftServerHandle {
 
     Collection<UUID> savedPlayerUuids();
 
+    // These mirror vanilla MinecraftServer names. The ServerMixin @Interface uses
+    // remap = NONE so the injected member names are NOT obf-remapped (a remapped name
+    // wouldn't match this interface and would fail to apply on intermediary); the mixin
+    // bodies' NMS calls are still remapped normally.
     int getTickCount();
 
     String getServerVersion();

@@ -79,4 +79,9 @@ abstract class FabricOfficialServerPlayerMixin {
     public int grim$inventorySlotCount() {
         return ((ServerPlayer) (Object) this).inventory.getContainerSize();
     }
+
+    // NOTE: isUsingItem()/stopUsingItem() are intentionally NOT bodied here. On the mojmap
+    // runtime the vanilla ServerPlayer methods of the same name satisfy the injected interface
+    // directly; a grim$ body would graft a same-named method and self-recurse (StackOverflow).
+    // The intermediary mixin DOES body them (vanilla is method_6115/method_6021 there, so no clash).
 }
