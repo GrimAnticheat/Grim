@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 public class FabricOfflinePlatformPlayer implements OfflinePlatformPlayer {
     private final @NotNull UUID uniqueId;
-    private final @NotNull String username;
+    private final @NotNull String name;
 
     @Override
     public boolean isOnline() {
