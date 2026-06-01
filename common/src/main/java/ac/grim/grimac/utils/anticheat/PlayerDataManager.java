@@ -81,10 +81,6 @@ public class PlayerDataManager {
         }
     }
 
-    public void forcePut(@NotNull User user, @NotNull GrimPlayer player) {
-        playerDataMap.put(user, player);
-    }
-
     public GrimPlayer remove(final @NotNull User user) {
         return playerDataMap.remove(user);
     }
