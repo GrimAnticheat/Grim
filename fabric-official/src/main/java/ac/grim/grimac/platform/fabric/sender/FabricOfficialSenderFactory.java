@@ -1,14 +1,12 @@
 package ac.grim.grimac.platform.fabric.sender;
 
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.fabric.GrimACFabricOfficialLoaderPlugin;
+import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.util.TriState;
-import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,16 +14,15 @@ import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.rcon.RconConsoleSource;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class FabricOfficialSenderFactory extends SenderFactory<CommandSourceStack> {
-
-    private static final boolean HAS_PERMISSIONS_API =
-            FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
+public class FabricOfficialSenderFactory extends AbstractFabricSenderFactory<CommandSourceStack> {
 
     private final AbstractFabricPlatformServer platformServer = GrimACFabricOfficialLoaderPlugin.LOADER.getPlatformServer();
+    private final IFabricMessageUtil fabricMessageUtils = GrimACFabricOfficialLoaderPlugin.LOADER.getFabricMessageUtils();
 
     @Override
     public @NotNull Sender wrap(@NotNull CommandSourceStack source) {
@@ -51,43 +48,36 @@ public class FabricOfficialSenderFactory extends SenderFactory<CommandSourceStac
 
     @Override
     public void sendMessage(CommandSourceStack source, String message) {
-        System.out.println(message);
+        fabricMessageUtils.sendMessage((Sender) (Object) source, fabricMessageUtils.textLiteral(message), false);
     }
 
     @Override
     public void sendMessage(CommandSourceStack source, Component message) {
-        StringBuilder out = new StringBuilder();
-        ComponentFlattener.basic().flatten(message, out::append);
-        sendMessage(source, out.toString());
+        net.minecraft.network.chat.Component nativeText =
+                (net.minecraft.network.chat.Component) GrimACFabricOfficialLoaderPlugin.LOADER.getFabricConversionUtil().toNativeText(message);
+        fabricMessageUtils.sendMessage((Sender) (Object) source, nativeText, false);
     }
 
     @Override
-    public boolean hasPermission(CommandSourceStack source, String node) {
-        if (HAS_PERMISSIONS_API) {
-            TriState permissionValue = Permissions.getPermissionValue(source, node);
-            if (permissionValue != TriState.DEFAULT) {
-                return permissionValue.get();
-            }
-        }
-        return hasCommandLevel(source);
+    protected @Nullable Boolean queryPermissionValue(CommandSourceStack source, String node) {
+        TriState value = Permissions.getPermissionValue(source, node);
+        return value == TriState.DEFAULT ? null : value.get();
     }
 
     @Override
-    public boolean hasPermission(CommandSourceStack source, String node, boolean defaultIfUnset) {
-        if (HAS_PERMISSIONS_API) {
-            return Permissions.check(source, node, defaultIfUnset);
-        }
-        return defaultIfUnset || hasCommandLevel(source);
+    protected boolean queryPermission(CommandSourceStack source, String node, boolean defaultIfUnset) {
+        return Permissions.check(source, node, defaultIfUnset);
     }
 
-    private boolean hasCommandLevel(CommandSourceStack source) {
+    @Override
+    protected boolean isOperator(CommandSourceStack source) {
         return source.permissions().hasPermission(
                 new Permission.HasCommandLevel(PermissionLevel.byId(2)));
     }
 
     @Override
     public void performCommand(CommandSourceStack source, String command) {
-        platformServer.dispatchCommand((Sender) (Object) source, command);
+        platformServer.dispatchCommand(source, command);
     }
 
     @Override

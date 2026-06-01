@@ -1,6 +1,7 @@
 package ac.grim.grimac.platform.fabric.utils;
 
 import ac.grim.grimac.platform.api.player.BlockTranslator;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
@@ -45,8 +46,7 @@ public class FabricIntermediaryPolymerHook {
                 getState = rawGet.asType(MethodType.methodType(BlockState.class, BlockState.class, Object.class));
 
             } catch (Throwable t) {
-                System.err.println("[GrimAC] Failed to hook Polymer translation API. Custom blocks may not render correctly or crash client when re-synchronizing.");
-                t.printStackTrace();
+                LogUtil.error("Failed to hook Polymer translation API. Custom blocks may not render correctly or crash client when re-synchronizing.", t);
             }
         }
 

@@ -2,21 +2,29 @@ package ac.grim.grimac.platform.fabric.manager;
 
 import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
-import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
-import ac.grim.grimac.platform.fabric.sender.FabricIntermediarySenderFactory;
-import me.lucko.fabric.api.permissions.v0.Permissions;
+import ac.grim.grimac.platform.fabric.sender.AbstractFabricSenderFactory;
 
-import static ac.grim.grimac.platform.fabric.sender.FabricIntermediarySenderFactory.HAS_PERMISSIONS_API;
+import java.util.function.Consumer;
 
+/**
+ * Registers Grim's static permission defaults into the shared
+ * {@link AbstractFabricSenderFactory} registry, identically for every mapping
+ * family. {@code onRegister} is a per-variant hook that primes the node with the
+ * permissions-API provider (it touches {@code net.minecraft} command sources, so
+ * it cannot live in fabric-common); pass a no-op when there is nothing to prime.
+ */
 public class FabricPermissionRegistrationManager implements PermissionRegistrationManager {
 
-    private final FabricIntermediarySenderFactory fabricSenderFactory = GrimACFabricIntermediaryLoaderPlugin.LOADER.getFabricSenderFactory();
+    private final AbstractFabricSenderFactory<?> senderFactory;
+    private final Consumer<String> onRegister;
 
-    public FabricPermissionRegistrationManager() {
+    public FabricPermissionRegistrationManager(AbstractFabricSenderFactory<?> senderFactory,
+                                               Consumer<String> onRegister) {
+        this.senderFactory = senderFactory;
+        this.onRegister = onRegister;
         registerPermission("grim.exempt", PermissionDefaultValue.FALSE);
         registerPermission("grim.nosetback", PermissionDefaultValue.FALSE);
         registerPermission("grim.nomodifypacket", PermissionDefaultValue.FALSE);
-        registerPermission("grim.nosetback", PermissionDefaultValue.FALSE);
         registerPermission("grim.alerts.enable-on-join", PermissionDefaultValue.FALSE);
         registerPermission("grim.verbose.enable-on-join", PermissionDefaultValue.FALSE);
         registerPermission("grim.brand.enable-on-join", PermissionDefaultValue.FALSE);
@@ -27,8 +35,7 @@ public class FabricPermissionRegistrationManager implements PermissionRegistrati
 
     @Override
     public void registerPermission(String name, PermissionDefaultValue defaultValue) {
-        fabricSenderFactory.registerPermissionDefault(name, defaultValue);
-        if (HAS_PERMISSIONS_API)
-            Permissions.check(GrimACFabricIntermediaryLoaderPlugin.FABRIC_SERVER.createCommandSourceStack(), name);
+        senderFactory.registerPermissionDefault(name, defaultValue);
+        onRegister.accept(name);
     }
 }

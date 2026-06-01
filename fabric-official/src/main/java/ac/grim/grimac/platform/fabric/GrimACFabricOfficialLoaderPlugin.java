@@ -2,10 +2,13 @@ package ac.grim.grimac.platform.fabric;
 
 import ac.grim.grimac.platform.fabric.manager.FabricItemResetHandler;
 import ac.grim.grimac.platform.fabric.manager.FabricCloudPlatformCommandArguments;
+import ac.grim.grimac.platform.fabric.manager.FabricPermissionRegistrationManager;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
+import ac.grim.grimac.platform.fabric.sender.AbstractFabricSenderFactory;
 import ac.grim.grimac.platform.fabric.sender.FabricOfficialSenderFactory;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import ac.grim.grimac.platform.fabric.utils.FabricOfficialPolymerHook;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
@@ -35,7 +38,13 @@ public abstract class GrimACFabricOfficialLoaderPlugin extends AbstractGrimACFab
                 LazyHolder.simple(FabricOfficialSenderFactory::new),
                 LazyHolder.simple(() -> new FabricItemResetHandler(fabricConversionUtil)),
                 LazyHolder.simple(GrimACFabricOfficialLoaderPlugin::createCommandArguments),
-                LazyHolder.simple(() -> (name, defaultValue) -> {}),
+                LazyHolder.simple(() -> new FabricPermissionRegistrationManager(
+                        LOADER.getFabricSenderFactory(),
+                        name -> {
+                            if (AbstractFabricSenderFactory.HAS_PERMISSIONS_API) {
+                                Permissions.check(FABRIC_SERVER.createCommandSourceStack(), name);
+                            }
+                        })),
                 playerFactory,
                 platformServer,
                 fabricMessageUtil,
