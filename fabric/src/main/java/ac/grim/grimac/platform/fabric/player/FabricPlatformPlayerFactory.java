@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.fabric.player;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import com.mojang.authlib.GameProfile;
 import lombok.RequiredArgsConstructor;
@@ -117,7 +118,10 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
 
     @Override
     public void replaceNativePlayer(@NotNull UUID uuid, @NotNull ServerPlayer serverPlayerEntity) {
-        super.cache.getPlayer(uuid).replaceNativePlayer(serverPlayerEntity);
+        PlatformPlayer cachedPlayer = super.cache.getPlayer(uuid);
+        if (cachedPlayer != null) {
+            cachedPlayer.replaceNativePlayer(serverPlayerEntity);
+        }
     }
 
     public AbstractFabricPlatformInventory getPlatformInventory(AbstractFabricPlatformPlayer serverPlayerEntity) {
