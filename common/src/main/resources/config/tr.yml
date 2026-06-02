@@ -55,6 +55,11 @@ disable-pong-cancelling: false
 # Bu, API aracılığıyla özel bir tane sağlanmadıkça bir "NoOp" (İşlemsiz) işleyicisinin kullanılmasını zorlar.
 disable-default-resync-handler: false
 
+# Grim, özel blokları çevirmek için Polymer'e bağlanmalı mı?
+# Bu yalnızca Polymer kurulu olan Fabric sunucularında geçerlidir.
+# Etkinleştirilirse, Grim yeniden senkronizasyon gerçekleştirirken istemci tarafındaki blok durumunu Polymer'den isteyecektir.
+polymer-hook: true
+
 # Kopya hareket paketinin iptal edilip edilmemesi gerektiği
 # Mojang bu sorunu 1.21'de çözdü. Bu, "kova senkronizasyonu" sorununu düzeltme girişimiydi. https://bugs.mojang.com/browse/MC-12363
 # Bu ayar yalnızca 1.17-1.20.5 istemcileri için 1.8 sunucularında geçerlidir.

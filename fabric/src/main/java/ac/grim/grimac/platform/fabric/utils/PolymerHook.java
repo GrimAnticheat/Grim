@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.fabric.utils;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.player.BlockTranslator;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,7 +57,7 @@ public class PolymerHook {
     }
 
     public static BlockTranslator createTranslator(ServerPlayer player) {
-        if (!HAS_POLYMER || CREATE_CONTEXT == null || GET_STATE == null) {
+        if (!HAS_POLYMER || !GrimAPI.INSTANCE.getConfigManager().isPolymerHook() || CREATE_CONTEXT == null || GET_STATE == null) {
             return BlockTranslator.IDENTITY;
         }
 

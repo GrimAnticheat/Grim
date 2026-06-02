@@ -56,6 +56,11 @@ disable-pong-cancelling: false
 # Isso força o uso de um manipulador "NoOp" (Sem Operação), a menos que um personalizado seja fornecido via API.
 disable-default-resync-handler: false
 
+# O Grim deve se conectar ao Polymer para traduzir blocos personalizados?
+# Isso é aplicável apenas em servidores Fabric com Polymer instalado.
+# Se ativado, o Grim solicitará ao Polymer o estado do bloco do lado do cliente ao realizar a ressincronização.
+polymer-hook: true
+
 # Deve-se cancelar o pacote de movimento duplicado?
 # A Mojang arrumou esse erro na 1.21, sendo sua tentativa de concertar a dessincronização do balde. https://bugs.mojang.com/browse/MC-12363
 # Isso só se aplica à clientes da 1.17-1.20.5 em servidores da 1.8.

@@ -58,6 +58,11 @@ disable-pong-cancelling: false
 # 除非通过 API 提供了自定义处理程序，否则这将强制使用 "NoOp"（无操作）处理程序。
 disable-default-resync-handler: false
 
+# Grim是否应该挂钩到Polymer以翻译自定义方块？
+# 这仅适用于安装了Polymer的Fabric服务器。
+# 如果启用，Grim在进行重新同步时会向Polymer请求客户端侧的方块状态。
+polymer-hook: true
+
 # 是否对重复的移动数据包进行撤销?
 # 这可以修复 "bucket desync"（桶不同步问题）. https://bugs.mojang.com/browse/MC-12363,不过Mojang已经在1.21修复了这个问题
 # 这仅仅适用于1.8服务器中使用1.17-1.20.5版本的玩家

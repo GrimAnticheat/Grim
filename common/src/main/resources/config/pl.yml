@@ -55,6 +55,11 @@ disable-pong-cancelling: false
 # Wymusza to użycie procedury obsługi „NoOp” (No Operation), chyba że zostanie ona udostępniona za pośrednictwem API.
 disable-default-resync-handler: false
 
+# Czy Grim powinien podłączyć się do Polymer, aby tłumaczyć niestandardowe bloki?
+# Dotyczy to tylko serwerów Fabric z zainstalowanym Polymer.
+# Jeśli włączone, Grim zapyta Polymer o stan bloku po stronie klienta podczas wykonywania resynchronizacji.
+polymer-hook: true
+
 # Czy zduplikowany pakiet ruchu powinien zostać anulowany?
 # Mojang naprawił ten problem w wersji 1.21. To była ich próba naprawienia „desynchronizacji kontenera”. https://bugs.mojang.com/browse/MC-12363
 # To ustawienie dotyczy tylko klientów 1.17-1.20.5 na serwerach 1.8.

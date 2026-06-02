@@ -57,6 +57,11 @@ disable-pong-cancelling: false
 # これにより、API経由でカスタムハンドラーが提供されない限り、"NoOp"（何もしない）ハンドラーの使用が強制されます。
 disable-default-resync-handler: false
 
+# Grimはカスタムブロックを翻訳するためにPolymerにフックすべきですか？
+# これはPolymerがインストールされているFabricサーバーにのみ適用されます。
+# 有効にすると、Grimは再同期を実行する際にクライアント側のブロック状態をPolymerに要求します。
+polymer-hook: true
+
 # 重複した移動パケットをキャンセルしますか？
 # 1.21でこの問題は修正されました。重複パケットの問題は、Mojangが「バケツの同期ズレ」を修正しようとしたことに起因するものでした。 https://bugs.mojang.com/browse/MC-12363
 # この設定は、V1.17-1.20.5クライアントが、V1.8サーバーに接続している際にのみ適用されます。
