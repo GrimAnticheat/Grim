@@ -13,6 +13,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class FabricAsyncScheduler implements AsyncScheduler {
 
@@ -23,7 +24,20 @@ public class FabricAsyncScheduler implements AsyncScheduler {
     // AtomicReference tail. So callers may schedule/cancel off the main thread. We mirror that
     // contract: a pooled ScheduledExecutorService for execution and a ConcurrentHashMap for tracking.
     private final ScheduledExecutorService executor;
-    private final Map<Future<?>, GrimPlugin> tasks = new ConcurrentHashMap<>();
+
+    // Live tasks, kept so cancel(plugin)/cancelAll() can reach them. Keyed by a per-task token
+    // rather than the Future so a one-shot task can drop itself the moment it finishes without
+    // racing the Future being stored back here (the token is registered before the task can run).
+    private final Map<Object, Tracked> tasks = new ConcurrentHashMap<>();
+
+    private static final class Tracked {
+        private final GrimPlugin plugin;
+        private volatile Future<?> future;
+
+        private Tracked(GrimPlugin plugin) {
+            this.plugin = plugin;
+        }
+    }
 
     public FabricAsyncScheduler() {
         AtomicInteger threadCount = new AtomicInteger();
@@ -38,17 +52,17 @@ public class FabricAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return track(plugin, executor.submit(task));
+        return schedule(plugin, task, true, body -> executor.submit(body));
     }
 
     @Override
     public TaskHandle runDelayed(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, @NotNull TimeUnit timeUnit) {
-        return track(plugin, executor.schedule(task, delay, timeUnit));
+        return schedule(plugin, task, true, body -> executor.schedule(body, delay, timeUnit));
     }
 
     @Override
     public TaskHandle runAtFixedRate(@NotNull GrimPlugin plugin, @NotNull Runnable task, long delay, long period, @NotNull TimeUnit timeUnit) {
-        return track(plugin, executor.scheduleAtFixedRate(task, delay, period, timeUnit));
+        return schedule(plugin, task, false, body -> executor.scheduleAtFixedRate(body, delay, period, timeUnit));
     }
 
     @Override
@@ -59,19 +73,39 @@ public class FabricAsyncScheduler implements AsyncScheduler {
                 TimeUnit.MILLISECONDS);
     }
 
-    private TaskHandle track(GrimPlugin plugin, Future<?> future) {
-        tasks.put(future, plugin);
+    // One-shot tasks remove themselves from the map once they finish, so it can't grow unbounded;
+    // repeating tasks stay tracked until they're cancelled.
+    private TaskHandle schedule(GrimPlugin plugin, Runnable task, boolean oneShot, Function<Runnable, Future<?>> submit) {
+        Object token = new Object();
+        Tracked tracked = new Tracked(plugin);
+        tasks.put(token, tracked);
+
+        Runnable body = oneShot ? () -> {
+            try {
+                task.run();
+            } finally {
+                tasks.remove(token);
+            }
+        } : task;
+
+        tracked.future = submit.apply(body);
+
         return new FabricTaskHandle(() -> {
-            future.cancel(true);
-            tasks.remove(future);
+            Tracked removed = tasks.remove(token);
+            if (removed != null && removed.future != null) {
+                removed.future.cancel(true);
+            }
         }, false);
     }
 
     @Override
     public void cancel(@NotNull GrimPlugin plugin) {
-        tasks.entrySet().removeIf(entry -> {
-            if (entry.getValue().equals(plugin)) {
-                entry.getKey().cancel(true);
+        tasks.values().removeIf(tracked -> {
+            if (tracked.plugin.equals(plugin)) {
+                Future<?> future = tracked.future;
+                if (future != null) {
+                    future.cancel(true);
+                }
                 return true;
             }
             return false;
@@ -79,7 +113,12 @@ public class FabricAsyncScheduler implements AsyncScheduler {
     }
 
     public void cancelAll() {
-        tasks.keySet().forEach(future -> future.cancel(true));
+        tasks.values().forEach(tracked -> {
+            Future<?> future = tracked.future;
+            if (future != null) {
+                future.cancel(true);
+            }
+        });
         tasks.clear();
     }
 }
