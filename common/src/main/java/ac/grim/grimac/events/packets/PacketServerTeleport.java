@@ -30,6 +30,11 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
