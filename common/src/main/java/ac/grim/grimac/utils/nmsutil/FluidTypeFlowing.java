@@ -25,16 +25,16 @@ public class FluidTypeFlowing {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         if (fluidLevel == 0) return new Vector3dm();
 
-        double d0 = 0.0D;
-        double d1 = 0.0D;
-        for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-            int modifiedX = originalX + enumdirection.getModX();
-            int modifiedZ = originalZ + enumdirection.getModZ();
+        double modX = 0.0D;
+        double modZ = 0.0D;
+        for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            int modifiedX = originalX + direction.getModX();
+            int modifiedZ = originalZ + direction.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
-                float f1 = 0.0F;
-                if (f == 0.0F) {
+                float adjacentLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
+                float flow = 0.0F;
+                if (adjacentLevel == 0.0F) {
                     StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
@@ -42,32 +42,32 @@ public class FluidTypeFlowing {
                     // Use method call to support 1.13-1.15 clients and banner oddity
                     if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
-                            if (f > 0.0F) {
-                                f1 = fluidLevel - (f - 0.8888889F);
+                            adjacentLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
+                            if (adjacentLevel > 0.0F) {
+                                flow = fluidLevel - (adjacentLevel - 0.8888889F);
                             }
                         }
                     }
 
-                } else if (f > 0.0F) {
-                    f1 = fluidLevel - f;
+                } else if (adjacentLevel > 0.0F) {
+                    flow = fluidLevel - adjacentLevel;
                 }
 
-                if (f1 != 0.0F) {
-                    d0 += (float) enumdirection.getModX() * f1;
-                    d1 += (float) enumdirection.getModZ() * f1;
+                if (flow != 0.0F) {
+                    modX += (float) direction.getModX() * flow;
+                    modZ += (float) direction.getModZ() * flow;
                 }
             }
         }
 
-        Vector3dm vec3d = new Vector3dm(d0, 0.0D, d1);
+        Vector3dm vec3d = new Vector3dm(modX, 0.0D, modZ);
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
         WrappedBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
-            for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-                if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
+            for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+                if (isSolidFace(player, originalX, originalY, originalZ, direction) || isSolidFace(player, originalX, originalY + 1, originalZ, direction)) {
                     vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
                     break;
                 }
