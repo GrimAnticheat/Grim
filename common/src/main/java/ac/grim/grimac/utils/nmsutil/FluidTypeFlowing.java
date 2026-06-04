@@ -53,8 +53,8 @@ public class FluidTypeFlowing {
                 }
 
                 if (flow != 0.0F) {
-                    modX += (float) direction.getModX() * flow;
-                    modZ += (float) direction.getModZ() * flow;
+                    modX += direction.getModX() * flow;
+                    modZ += direction.getModZ() * flow;
                 }
             }
         }
