@@ -11,9 +11,8 @@ public record FloatInput(float sideways, float vertical, float forward) implemen
 
     @Override
     public Input normalize(GrimPlayer player) {
-        // this does nothing because of the way input is later used in FloatInputTransformer#getMovementResultFromInput
-        // in 1.13 and below the result is calculated based on clean transformed input and later normalized
-        // while in 1.14+ the input can be normalized earlier because getMovementResultFromInput does not depend on the clean input
+        // this does nothing because FloatInputTransformer#getMovementResultFromInput normalizes legacy input while applying speed
+        // in 1.14+ DoubleInput can be normalized earlier because getMovementResultFromInput only rotates the input and scales it by speed
         return this;
     }
 }
