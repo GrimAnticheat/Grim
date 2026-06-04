@@ -15,10 +15,14 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class FluidTypeFlowing {
-    public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
-        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
-        ClientVersion version = player.getClientVersion();
 
+    public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
+        ClientVersion version = player.getClientVersion();
+        return version.isOlderThan(ClientVersion.V_1_13) ? legacy$getFlow(player, version, originalX, originalY, originalZ) : modern$getFlow(player, version, originalX, originalY, originalZ);
+    }
+
+    private static Vector3dm modern$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
+        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         if (fluidLevel == 0) return new Vector3dm();
 
         double d0 = 0.0D;
@@ -70,6 +74,61 @@ public class FluidTypeFlowing {
             }
         }
         return VectorUtils.normalize(player, vec3d);
+    }
+
+    private static Vector3dm legacy$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
+        WrappedBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
+        boolean water = Materials.isWater(player.getClientVersion(), state);
+        if (!water && state.getType() != StateTypes.LAVA) return new Vector3dm();
+
+        int fluidLevel = legacy$getLiquidDepth(player, originalX, originalY, originalZ, water);
+        if (fluidLevel < 0) return new Vector3dm();
+
+        double modX = 0.0D;
+        double modZ = 0.0D;
+        for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            int modifiedX = originalX + direction.getModX();
+            int modifiedZ = originalZ + direction.getModZ();
+            int adjacentLevel = legacy$getLiquidDepth(player, modifiedX, originalY, modifiedZ, water);
+
+            if (adjacentLevel < 0) {
+                StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
+                if (Materials.isSolidBlockingBlacklist(mat, version)) {
+                    adjacentLevel = legacy$getLiquidDepth(player, modifiedX, originalY - 1, modifiedZ, water);
+                    if (adjacentLevel >= 0) {
+                        int flow = adjacentLevel - (fluidLevel - 8);
+                        modX += direction.getModX() * flow;
+                        modZ += direction.getModZ() * flow;
+                    }
+                }
+            } else {
+                int flow = adjacentLevel - fluidLevel;
+                modX += direction.getModX() * flow;
+                modZ += direction.getModZ() * flow;
+            }
+        }
+
+        Vector3dm vec3d = new Vector3dm(modX, 0.0D, modZ);
+        if (state.getLevel() >= 8) {
+            for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+                if (isSolidFace(player, originalX, originalY, originalZ, direction) || isSolidFace(player, originalX, originalY + 1, originalZ, direction)) {
+                    vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
+                    break;
+                }
+            }
+        }
+
+        return VectorUtils.normalize(player, vec3d);
+    }
+
+    private static int legacy$getLiquidDepth(GrimPlayer player, int x, int y, int z, boolean water) {
+        WrappedBlockState state = player.compensatedWorld.getBlock(x, y, z);
+        if (water ? !Materials.isWater(player.getClientVersion(), state) : state.getType() != StateTypes.LAVA) {
+            return -1;
+        }
+
+        int level = state.getLevel();
+        return level >= 8 ? 0 : level;
     }
 
     private static boolean affectsFlow(GrimPlayer player, int originalX, int originalY, int originalZ, int x2, int y2, int z2) {
