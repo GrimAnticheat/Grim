@@ -22,7 +22,7 @@ public class FluidTypeFlowing {
     }
 
     private static Vector3dm modern$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
-        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
+        float fluidLevel = Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9f);
         if (fluidLevel == 0) return new Vector3dm();
 
         double modX = 0.0D;
@@ -32,7 +32,7 @@ public class FluidTypeFlowing {
             int modifiedZ = originalZ + direction.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float adjacentLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
+                float adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9f);
                 float flow = 0.0F;
                 if (adjacentLevel == 0.0F) {
                     StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
@@ -42,13 +42,12 @@ public class FluidTypeFlowing {
                     // Use method call to support 1.13-1.15 clients and banner oddity
                     if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            adjacentLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
+                            adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9f);
                             if (adjacentLevel > 0.0F) {
                                 flow = fluidLevel - (adjacentLevel - 0.8888889F);
                             }
                         }
                     }
-
                 } else if (adjacentLevel > 0.0F) {
                     flow = fluidLevel - adjacentLevel;
                 }
@@ -73,6 +72,7 @@ public class FluidTypeFlowing {
                 }
             }
         }
+
         return VectorUtils.normalize(player, vec3d);
     }
 
