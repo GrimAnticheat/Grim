@@ -1,16 +1,16 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableLava;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWater;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWaterLegacy;
-import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
-    protected Vector3dm movementInput = new Vector3dm();
+    protected Input movementInput;
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);

@@ -441,8 +441,7 @@ public final class PlayerBaseTick {
                     if (fluidHeight == 0)
                         continue;
 
-                    double d0 = (float) (y + 1) - fluidHeight;
-
+                    double d0 = y + 1 - fluidHeight;
                     if (!player.isFlying && ceilY >= d0) {
                         hasPushed = true;
                         vec3.add(FluidTypeFlowing.getFlow(player, x, y, z));

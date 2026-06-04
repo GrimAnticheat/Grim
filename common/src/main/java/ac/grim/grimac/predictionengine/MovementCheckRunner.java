@@ -358,7 +358,11 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Sprinting status itself does not desync, only the attribute as mojang forgot that the server
         // can change the attribute
         if (!player.inVehicle()) {
-            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
+            double movementSpeed = player.speed;
+            if (player.compensatedEntities.hasSprintingAttributeEnabled) {
+                movementSpeed += movementSpeed * 0.3F;
+            }
+            player.speed = (float) movementSpeed;
         }
 
         boolean clientClaimsRiptide = player.packetStateData.tryingToRiptide;

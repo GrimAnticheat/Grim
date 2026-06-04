@@ -21,22 +21,30 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class BlockProperties {
-    public static float getFrictionInfluencedSpeed(float f, GrimPlayer player) {
+    public static float getFrictionInfluencedSpeed(float blockFriction, GrimPlayer player) {
+        float movementSpeed = (float) player.speed;
+
         if (player.lastOnGround) {
-            return (float) (player.speed * (0.21600002f / (f * f * f)));
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+                float friction = blockFriction * 0.91F;
+                float acceleration = player.getClientVersion().isOlderThan(ClientVersion.V_1_13) ? 0.16277136F : 0.16277137F;
+                return movementSpeed * (acceleration / (friction * friction * friction));
+            }
+
+            return movementSpeed * (0.21600002f / (blockFriction * blockFriction * blockFriction));
         }
 
         // The game uses values known as flyingSpeed for some vehicles in the air
         if (player.inVehicle()) {
             PacketEntity riding = player.compensatedEntities.self.getRiding();
             if (riding.getType() == EntityTypes.PIG || riding instanceof PacketEntityNautilus || riding instanceof PacketEntityHorse) {
-                return (float) (player.speed * 0.1f);
+                return movementSpeed * 0.1f;
             }
 
             if (riding instanceof PacketEntityStrider strider) {
                 // Unsure which version the speed changed in
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
-                    return (float) player.speed * 0.1f;
+                    return movementSpeed * 0.1f;
                 }
 
                 // Vanilla multiplies by 0.1 to calculate speed

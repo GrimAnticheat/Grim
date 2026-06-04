@@ -99,7 +99,7 @@ public class PointThreeEstimator {
     // If a player places a ladder in a worldguard region etc.
     @Getter
     private boolean isNearClimbable = false;
-    // If a player stops and star gliding all within 0.03
+    // If a player stops and start gliding all within 0.03
     private boolean isGliding = false;
     // If the player's gravity has changed
     private boolean gravityChanged = false;
@@ -474,13 +474,13 @@ public class PointThreeEstimator {
         final OptionalInt levitation = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.LEVITATION);
         if (levitation.isPresent()) {
             // This supports both positive and negative levitation
-            y += (0.05 * (levitation.getAsInt() + 1) - y * 0.2);
+            y += (0.05 * (levitation.getAsInt() + 1) - y) * 0.2;
         } else if (player.hasGravity) {
             // Simulate gravity
             y -= player.gravity;
         }
 
         // Simulate end of tick friction
-        return y * 0.98;
+        return y * 0.98F;
     }
 }

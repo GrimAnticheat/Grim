@@ -475,7 +475,7 @@ public class MovementTicker {
                     doNormalMove(blockFriction);
 
                     player.isGliding = false;
-                    player.pointThreeEstimator.updatePlayerGliding(); // TODO: should this be true even if player stopped gliding?
+                    player.pointThreeEstimator.updatePlayerGliding();
                 } else {
                     player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
                     // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
