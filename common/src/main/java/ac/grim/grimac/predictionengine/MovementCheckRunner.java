@@ -580,6 +580,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         player.wasLastPredictionCompleteChecked = wasChecked;
 
+        player.updateNetherPortalState();
+
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
