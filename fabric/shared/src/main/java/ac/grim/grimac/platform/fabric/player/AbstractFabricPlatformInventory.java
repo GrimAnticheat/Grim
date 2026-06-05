@@ -20,10 +20,16 @@ public abstract class AbstractFabricPlatformInventory implements PlatformInvento
     }
 
     /**
-     * Converts a native item into a PacketEvents {@link ItemStack} while a {@code PacketContext} for the
-     * inventory owner is bound, so Polymer can encode the item instead of crashing (GrimAnticheat/Grim#2701).
+     * Converts a native item into a PacketEvents {@link ItemStack}. When Polymer's item codec needs it
+     * (see {@link FabricItemContextHook#ACTIVE}), the encode runs with a {@code PacketContext} for the
+     * inventory owner bound so Polymer can encode the item instead of crashing (GrimAnticheat/Grim#2701).
+     * Otherwise it is the original direct read: the {@code ACTIVE} check folds away and no capturing
+     * lambda is allocated, keeping this hot path (held item / armour reads during predictions) allocation-free.
      */
     private ItemStack convert(Object nativeItemStack) {
+        if (!FabricItemContextHook.ACTIVE) {
+            return FabricPlatformServices.conversionUtil().fromFabricItemStack(nativeItemStack);
+        }
         return FabricItemContextHook.supply(
                 fabricPlatformPlayer.getNative(),
                 () -> FabricPlatformServices.conversionUtil().fromFabricItemStack(nativeItemStack));
@@ -66,14 +72,19 @@ public abstract class AbstractFabricPlatformInventory implements PlatformInvento
 
     @Override
     public ItemStack[] getContents() {
+        if (!FabricItemContextHook.ACTIVE) {
+            return readContents();
+        }
         // Bind the context once for the whole inventory sweep rather than per slot.
-        return FabricItemContextHook.supply(fabricPlatformPlayer.getNative(), () -> {
-            FabricServerPlayerHandle handle = handle();
-            ItemStack[] items = new ItemStack[handle.inventorySlotCount()];
-            for (int i = 0; i < items.length; i++) {
-                items[i] = FabricPlatformServices.conversionUtil().fromFabricItemStack(handle.inventoryItemAt(i));
-            }
-            return items;
-        });
+        return FabricItemContextHook.supply(fabricPlatformPlayer.getNative(), this::readContents);
+    }
+
+    private ItemStack[] readContents() {
+        FabricServerPlayerHandle handle = handle();
+        ItemStack[] items = new ItemStack[handle.inventorySlotCount()];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = FabricPlatformServices.conversionUtil().fromFabricItemStack(handle.inventoryItemAt(i));
+        }
+        return items;
     }
 }

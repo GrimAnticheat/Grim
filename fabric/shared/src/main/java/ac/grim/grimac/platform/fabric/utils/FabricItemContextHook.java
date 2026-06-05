@@ -37,6 +37,16 @@ import java.util.function.Supplier;
 public final class FabricItemContextHook {
     private static final MethodHandle SUPPLY_WITH_CONTEXT;
 
+    /**
+     * True only when Polymer is present and the fabric-api context API resolved, i.e. when binding is
+     * actually needed. It is a {@code static final} primitive so the JIT folds it to a constant and
+     * dead-code-eliminates the binding path on the (overwhelmingly common) servers without Polymer —
+     * letting callers keep their original allocation-free direct read on hot paths. Check this at the
+     * call site <em>before</em> building the {@link Supplier} so the lambda is never allocated when
+     * inactive.
+     */
+    public static final boolean ACTIVE;
+
     static {
         MethodHandle supplyWithContext = null;
 
@@ -60,6 +70,7 @@ public final class FabricItemContextHook {
         }
 
         SUPPLY_WITH_CONTEXT = supplyWithContext;
+        ACTIVE = supplyWithContext != null;
     }
 
     private FabricItemContextHook() {
