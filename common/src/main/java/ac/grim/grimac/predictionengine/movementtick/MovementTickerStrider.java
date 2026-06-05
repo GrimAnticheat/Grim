@@ -1,7 +1,7 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.predictions.input.InputTransformer;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
@@ -22,7 +22,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
-        this.movementInput = InputTransformer.createInput(player, 0, 0, 1);
+        this.movementInput = Input.createInput(player, 0, 0, 1);
     }
 
     public static void floatStrider(GrimPlayer player) {

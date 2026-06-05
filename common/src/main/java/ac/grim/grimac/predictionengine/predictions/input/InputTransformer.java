@@ -17,14 +17,6 @@ public interface InputTransformer<INPUT extends Input> {
 
     Vector3dm getMovementResultFromInput(GrimPlayer player, Input inputVector, float speed, float yaw);
 
-    static Input createInput(GrimPlayer player, float sideways, float vertical, float forward) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            return new DoubleInput(sideways, vertical, forward);
-        } else {
-            return new FloatInput(sideways, vertical, forward);
-        }
-    }
-
     static InputTransformer<?> getTransformer(GrimPlayer player) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
             return FLOAT_INPUT_TRANSFORMER;

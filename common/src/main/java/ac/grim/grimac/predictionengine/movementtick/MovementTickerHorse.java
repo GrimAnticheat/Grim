@@ -1,7 +1,7 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.predictions.input.InputTransformer;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -25,7 +25,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             forwardsInput *= 0.25F;
         }
 
-        this.movementInput = InputTransformer.createInput(player, horizInput, 0, forwardsInput).normalize(player);
+        this.movementInput = Input.createInput(player, horizInput, 0, forwardsInput).normalize(player);
     }
 
     @Override

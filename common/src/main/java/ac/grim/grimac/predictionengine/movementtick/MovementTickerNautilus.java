@@ -1,7 +1,7 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.predictions.input.InputTransformer;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineNautilusWater;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -33,7 +33,7 @@ public class MovementTickerNautilus extends MovementTickerLivingVehicle {
             forward = calcForward;
         }
 
-        this.movementInput = InputTransformer.createInput(player, sideways, upAndDown, forward).normalize(player);
+        this.movementInput = Input.createInput(player, sideways, upAndDown, forward).normalize(player);
     }
 
     @Override
