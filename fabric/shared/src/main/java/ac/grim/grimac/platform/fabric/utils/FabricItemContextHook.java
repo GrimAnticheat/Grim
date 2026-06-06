@@ -58,8 +58,11 @@ public final class FabricItemContextHook {
 
                 MethodHandle raw = lookup.findStatic(contextClass, "supplyWithContext",
                         MethodType.methodType(Object.class, providerClass, Supplier.class));
-                // ServerPlayer implements PacketContextProvider via Polymer's mixin; accept it as a plain
-                // Object and let the handle's runtime checkcast validate it.
+                // The inventory owner (ServerPlayer) implements PacketContextProvider at runtime via
+                // fabric-api's own net.fabricmc.fabric.mixin.networking.ServerPlayerMixin (it delegates
+                // getPacketContext() to player.connection). We accept it as a plain Object here and let
+                // the handle's runtime checkcast validate it, so the parent module needn't compile against
+                // the API. Verified live: the bind resolves "via net.minecraft.server.level.ServerPlayer".
                 supplyWithContext = raw.asType(MethodType.methodType(Object.class, Object.class, Supplier.class));
             } catch (Throwable t) {
                 // Older fabric-api/Polymer (PacketTweaker-based) tolerates a missing context, so failing to
