@@ -82,14 +82,15 @@ public final class FabricItemContextHook {
      * player. Falls back to running the supplier directly when the hook is inactive, the player is
      * unavailable, or the context cannot be bound.
      */
+    @SuppressWarnings("unchecked")
     public static <T> T supply(Object player, Supplier<T> supplier) {
         if (SUPPLY_WITH_CONTEXT == null || player == null) {
             return supplier.get();
         }
         try {
-            Object result = SUPPLY_WITH_CONTEXT.invoke(player, supplier);
-            //noinspection unchecked
-            return (T) result;
+            // The handle is pre-shaped to (Object, Supplier)Object in <clinit>, so invokeExact matches the
+            // call-site descriptor exactly and skips the per-call argument adaptation plain invoke() does.
+            return (T) (Object) SUPPLY_WITH_CONTEXT.invokeExact(player, (Supplier<Object>) supplier);
         } catch (Throwable t) {
             // Binding failed (e.g. the player is not yet a context provider). Run without it; the encode's
             // own try/catch handles any downstream Polymer failure.
