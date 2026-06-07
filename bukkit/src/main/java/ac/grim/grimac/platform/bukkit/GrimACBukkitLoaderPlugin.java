@@ -25,6 +25,7 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
+import ac.grim.grimac.platform.bukkit.initables.BukkitLuckPermsInitable;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
 import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
@@ -53,7 +54,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
-
     public static GrimACBukkitLoaderPlugin LOADER;
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
@@ -88,6 +88,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
+                new BukkitLuckPermsInitable(),
                 (StartableInitable) () -> {
                     if (BukkitMessagePlaceHolderManager.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();

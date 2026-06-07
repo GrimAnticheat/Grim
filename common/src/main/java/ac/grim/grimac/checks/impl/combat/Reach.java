@@ -132,6 +132,7 @@ public class Reach extends Check implements PacketCheck {
         boolean hasRange = false;
         float maxReach = 0f;
         float hitboxMargin = 0f;
+        Vector3dm attackRangeMovement = null;
 
         boolean clientAttackRangeExists = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11);
         boolean clientAndServerAgrees = clientAttackRangeExists && ATTACK_RANGE_COMPONENT_EXISTS;
@@ -162,7 +163,10 @@ public class Reach extends Check implements PacketCheck {
                 hasRange = true;
                 if (currentRange == null) {
                     // Range (Start) -> No Range (Current)
-                    // Client logic uses Start Range
+                    // Client logic uses Start Range, including the attack_range movement projection.
+                    if (!clientAndViaVersion) {
+                        attackRangeMovement = player.clientVelocity.clone();
+                    }
                     maxReach = startRange.getMaxRange();
                     hitboxMargin = startRange.getHitboxMargin();
                 } else {
@@ -178,11 +182,11 @@ public class Reach extends Check implements PacketCheck {
         if (!tooManyAttacks) {
             playerAttackQueue.put(entityId, new InteractionData(
                     player.x, player.y, player.z,
-                    hasRange, maxReach, hitboxMargin
+                    hasRange, maxReach, hitboxMargin, attackRangeMovement
             )); // Queue for next tick for very precise check
         }
 
-        boolean knownInvalid = isKnownInvalid(entity, hasRange, maxReach, hitboxMargin);
+        boolean knownInvalid = attackRangeMovement == null && isKnownInvalid(entity, hasRange, maxReach, hitboxMargin);
 
         if ((shouldModifyPackets() && cancelImpossibleHits && knownInvalid) || tooManyAttacks) {
             event.setCancelled(true);
@@ -209,7 +213,7 @@ public class Reach extends Check implements PacketCheck {
 
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
-            CheckResult result = checkReach(reachEntity, player.x, player.y, player.z, hasAttackRange, itemMaxReach, itemHitboxMargin, true);
+            CheckResult result = checkReach(reachEntity, player.x, player.y, player.z, hasAttackRange, itemMaxReach, itemHitboxMargin, null, true);
             return result.isFlag();
         } else {
             SimpleCollisionBox targetBox = getTargetBox(reachEntity);
@@ -225,7 +229,7 @@ public class Reach extends Check implements PacketCheck {
             if (reachEntity == null) continue;
 
             InteractionData interactionData = attack.getValue();
-            CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, false);
+            CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> {
                     String added = ", type=" + reachEntity.getType().getName().getKey();
@@ -248,10 +252,11 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @NotNull
-    private CheckResult checkReach(PacketEntity reachEntity, double x, double y, double z, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin, boolean isPrediction) {
+    private CheckResult checkReach(PacketEntity reachEntity, double x, double y, double z, boolean hasAttackRange, float itemMaxReach, float itemHitboxMargin, Vector3dm attackRangeMovement, boolean isPrediction) {
         SimpleCollisionBox targetBox = getTargetBox(reachEntity);
 
-        double maxReach = applyReachModifiers(targetBox, hasAttackRange, itemMaxReach, itemHitboxMargin, !player.packetStateData.didLastLastMovementIncludePosition);
+        double movementAllowance = attackRangeMovement == null ? 0 : getAttackRangeMovementAllowance(attackRangeMovement);
+        double maxReach = applyReachModifiers(targetBox, hasAttackRange, itemMaxReach, itemHitboxMargin, !player.packetStateData.didLastLastMovementIncludePosition) + movementAllowance;
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
@@ -301,7 +306,11 @@ public class Reach extends Check implements PacketCheck {
                 return new CheckResult(ResultType.HITBOX, "");
             } else if (minDistance > maxReach) {
                 cancelBuffer = 1;
-                return new CheckResult(ResultType.REACH, String.format("%.5f", minDistance) + " blocks");
+                String verbose = String.format("%.5f", minDistance) + " blocks";
+                if (attackRangeMovement != null) {
+                    verbose += String.format(", extraMovement=%.5f", movementAllowance);
+                }
+                return new CheckResult(ResultType.REACH, verbose);
             } else {
                 cancelBuffer = Math.max(0, cancelBuffer - 0.25);
             }
@@ -315,6 +324,18 @@ public class Reach extends Check implements PacketCheck {
             return new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
         }
         return reachEntity.getPossibleCollisionBoxes();
+    }
+
+    private double getAttackRangeMovementAllowance(Vector3dm attackRangeMovement) {
+        if (attackRangeMovement.lengthSquared() == 0) {
+            return 0;
+        }
+
+        return getForwardMovement(attackRangeMovement, player.yaw, player.pitch);
+    }
+
+    private double getForwardMovement(Vector3dm movement, float yaw, float pitch) {
+        return Math.max(0, movement.dot(ReachUtils.getLook(player, yaw, pitch)));
     }
 
     private static final boolean ATTACK_RANGE_COMPONENT_EXISTS = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
@@ -367,5 +388,5 @@ public class Reach extends Check implements PacketCheck {
     }
 
     private record InteractionData(double x, double y, double z, boolean hasAttackRange,
-                                   float maxReach, float hitboxMargin) {}
+                                   float maxReach, float hitboxMargin, Vector3dm attackRangeMovement) {}
 }

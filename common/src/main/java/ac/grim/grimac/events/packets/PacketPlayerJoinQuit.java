@@ -37,7 +37,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     public void onUserConnect(UserConnectEvent event) {
         // Player connected too soon, perhaps late bind is off
         // Don't kick everyone on reload
-        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.contains(event.getUser())) {
+        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().isExemptUser(event.getUser())) {
             event.setCancelled(true);
         }
     }

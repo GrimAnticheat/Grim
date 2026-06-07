@@ -43,6 +43,7 @@ repositories {
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.placeholderapi)
+    compileOnly(libs.luckperms)
 
     if (BuildConfig.shadePE) {
         implementation(libs.packetevents.spigot)
@@ -80,6 +81,7 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
+        "LuckPerms",
         // Driver holder mods — softdepend so each backend's driver class
         // resolves through the linked classloader.
         "sqlite-jdbc",
@@ -132,6 +134,11 @@ bukkit {
 
         register("grim.nomodifypacket") {
             description = "Disable modifying packets"
+            default = Permission.Default.FALSE
+        }
+
+        register("grim.disabled") {
+            description = "Disable Grim checks while keeping player state tracked"
             default = Permission.Default.FALSE
         }
 

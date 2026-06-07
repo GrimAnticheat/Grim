@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,14 +26,30 @@ public class PlayerDataManager {
         static final GrimQuitEvent.Channel QUIT = GrimAPI.INSTANCE.getEventBus().get(GrimQuitEvent.class);
     }
 
-    public final Collection<User> exemptUsers = ConcurrentHashMap.newKeySet();
+    private final Set<User> exemptUsers = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
+
+    public boolean isExemptUser(@Nullable User user) {
+        return user != null && exemptUsers.contains(user);
+    }
+
+    public void exemptUser(@Nullable User user) {
+        if (user == null) return;
+        exemptUsers.add(user);
+    }
+
+    public boolean clearExemptions(@Nullable User user) {
+        if (user == null) return false;
+        return exemptUsers.remove(user);
+    }
 
     @Nullable
     public GrimPlayer getPlayer(final @NotNull UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
         Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(uuid);
+        if (channel == null) return null;
         User user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        if (user == null) return null;
         return getPlayer(user);
     }
 
@@ -45,27 +62,27 @@ public class PlayerDataManager {
     }
 
     public boolean shouldCheck(@NotNull User user) {
-        if (exemptUsers.contains(user)) return false;
+        if (isExemptUser(user)) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
         if (user.getUUID() != null) {
             // Bedrock players don't have Java movement
             if (GeyserUtil.isBedrockPlayer(user.getUUID())) {
-                exemptUsers.add(user);
+                exemptUser(user);
                 return false;
             }
 
             // Has exempt permission
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
             if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
-                exemptUsers.add(user);
+                exemptUser(user);
                 return false;
             }
 
             // Geyser formatted player string
             // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
             if (user.getUUID().toString().startsWith("00000000-0000-0000-0009")) {
-                exemptUsers.add(user);
+                exemptUser(user);
                 return false;
             }
         }
@@ -88,7 +105,7 @@ public class PlayerDataManager {
     public void onDisconnect(User user) {
         GrimPlayer grimPlayer = remove(user);
         if (grimPlayer != null) Channels.QUIT.fire(grimPlayer);
-        exemptUsers.remove(user);
+        clearExemptions(user);
 
         UUID uuid = user.getProfile().getUUID();
 

@@ -49,6 +49,7 @@
   },
   "recommends": {
     "cloud": "*",
-    "fabric-permissions-api-v0": "*"
+    "fabric-permissions-api-v0": "*",
+    "luckperms": "*"
   }
 }

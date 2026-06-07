@@ -24,7 +24,7 @@ public class CrashC extends Check implements PacketCheck {
                     || !Float.isFinite(pos.getYaw()) || !Float.isFinite(pos.getPitch())
                    ) {
                     flagAndAlert("xyzYP=" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ", " + pos.getYaw() + ", " + pos.getPitch());
-                    player.getSetbackTeleportUtil().executeViolationSetback();
+                    executeViolationSetback();
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

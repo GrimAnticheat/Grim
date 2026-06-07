@@ -227,5 +227,16 @@ max-ping-firework-boost: 1000
 #   config-version: wird bei jeder inkompatiblen Schemaänderung erhöht. Alte
 #                   Configs werden beim nächsten Start automatisch vom
 #                   mitgelieferten Updater migriert.
+# Grim aktualisiert zwischengespeicherte Berechtigungen immer, wenn ein Spieler beitritt
+# und wenn Grim neu geladen wird, unabhängig davon, ob LuckPerms installiert ist.
+# LuckPerms-Event-Hooks aktualisieren zwischengespeicherte Grim-Berechtigungen
+# in normalen Setups ebenfalls sofort.
+# Dieser periodische Fallback wird nur für Online-Berechtigungsänderungen benötigt,
+# die nicht von diesen Events abgedeckt werden, z. B. ein benutzerdefinierter
+# LuckPerms-Kontext, der signalContextUpdate nicht aufruft, Lücken bei Fabric-Kontexten
+# oder ein Nicht-LuckPerms-Berechtigungsanbieter, der Berechtigungen live ändert.
+# Setze auf -1, um Polling zu deaktivieren. Setze einen positiven Wert, um alle X Ticks zu aktualisieren.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

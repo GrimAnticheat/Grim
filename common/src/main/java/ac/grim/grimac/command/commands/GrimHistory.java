@@ -10,6 +10,7 @@ import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.history.SessionDetail;
 import ac.grim.grimac.api.storage.history.SessionSummary;
 import ac.grim.grimac.api.storage.history.ViolationEntry;
+import ac.grim.grimac.api.storage.identity.NameResolver;
 import ac.grim.grimac.api.storage.model.PlayerIdentity;
 import ac.grim.grimac.api.storage.query.Cursor;
 import ac.grim.grimac.api.storage.query.Page;
@@ -19,7 +20,7 @@ import ac.grim.grimac.command.render.HistoryComponentRenderer;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.manager.datastore.DataStoreLifecycle;
 import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
-import ac.grim.grimac.platform.api.player.OfflinePlatformPlayer;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -43,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -211,12 +213,11 @@ public class GrimHistory implements BuildableCommand {
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) -> {
             Integer ordinal = resolveSessionOrdinal(sessionRaw, uuid, history);
             if (ordinal == null) {
-                sender.sendMessage(message("grim-history-session-not-found",
+                return List.of(message("grim-history-session-not-found",
                         "%prefix% &cSession &f%ordinal%&c not found for &f%player%&c.",
                         Map.of("player", displayName, "ordinal", sessionRaw)));
-                return;
             }
-            renderDetail(sender, lifecycle, history, uuid, displayName,
+            return renderDetail(sender, lifecycle, history, uuid, displayName,
                     ordinal, detailed, verbose, /*pageArg*/ null, filter);
         });
     }
@@ -233,12 +234,11 @@ public class GrimHistory implements BuildableCommand {
         runWithPrelude(sender, target, (uuid, displayName, lifecycle, history) -> {
             Integer ordinal = resolveSessionOrdinal(sessionRaw, uuid, history);
             if (ordinal == null) {
-                sender.sendMessage(message("grim-history-session-not-found",
+                return List.of(message("grim-history-session-not-found",
                         "%prefix% &cSession &f%ordinal%&c not found for &f%player%&c.",
                         Map.of("player", displayName, "ordinal", sessionRaw)));
-                return;
             }
-            renderDetail(sender, lifecycle, history, uuid, displayName,
+            return renderDetail(sender, lifecycle, history, uuid, displayName,
                     ordinal, detailed, verbose, Math.max(1, page), filter);
         });
     }
@@ -364,7 +364,7 @@ public class GrimHistory implements BuildableCommand {
 
     @FunctionalInterface
     private interface HistoryAction {
-        void run(UUID uuid, String displayName, DataStoreLifecycle lifecycle, HistoryService history) throws Exception;
+        List<Component> run(UUID uuid, String displayName, DataStoreLifecycle lifecycle, HistoryService history) throws Exception;
     }
 
     private void runWithPrelude(Sender sender, String target, HistoryAction action) {
@@ -372,7 +372,7 @@ public class GrimHistory implements BuildableCommand {
         // enabled=false when database.yml turns the feature off; loaded=false
         // when start() caught an init failure. Distinguish in the message so
         // the operator knows whether to flip config or check the log.
-        if (!lifecycle.isEnabled()) {
+        if (lifecycle == null || !lifecycle.isEnabled()) {
             sender.sendMessage(message("grim-history-disabled",
                     "%prefix% &cHistory subsystem is disabled!", Map.of()));
             return;
@@ -383,33 +383,40 @@ public class GrimHistory implements BuildableCommand {
             return;
         }
 
-        HistoryService history = lifecycle.historyService();
+        UUID onlineUuid = onlineUuid(target);
+        GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(
+                GrimAPI.INSTANCE.getGrimPlugin(),
+                () -> runWithPreludeAsync(sender, target, onlineUuid, lifecycle, action));
+    }
 
+    private void runWithPreludeAsync(Sender sender, String target, @Nullable UUID onlineUuid,
+                                     DataStoreLifecycle lifecycle, HistoryAction action) {
         try {
-            OfflinePlatformPlayer targetPlayer =
-                    GrimAPI.INSTANCE.getPlatformPlayerFactory().getOfflineFromName(target);
-            // getOfflineFromName returns null when the platform doesn't know
-            // the name (never logged in, typo). getUniqueId() comes back null
-            // on some platforms when the offline player exists only as a
-            // name-cache miss — treat both as "unknown player".
-            if (targetPlayer == null || targetPlayer.getUniqueId() == null) {
-                sender.sendMessage(message("grim-history-unknown-player",
+            HistoryService history = lifecycle.historyService();
+            if (history == null) {
+                sendHistoryMessage(sender, message("grim-history-disabled",
+                        "%prefix% &cHistory subsystem is disabled!", Map.of()));
+                return;
+            }
+            UUID targetUuid = resolveUuid(target, lifecycle, onlineUuid);
+            if (targetUuid == null) {
+                sendHistoryMessage(sender, message("grim-history-unknown-player",
                         "%prefix% &cUnknown player: &f%player%", Map.of("player", target)));
                 return;
             }
-            action.run(targetPlayer.getUniqueId(), target, lifecycle, history);
+            sendHistoryMessages(sender, action.run(targetUuid, target, lifecycle, history));
         } catch (Exception e) {
             // Some exception types carry a null message; fall back to the
             // class name so operators still see *something* useful.
-            sender.sendMessage(message("grim-history-failed",
+            sendHistoryMessage(sender, message("grim-history-failed",
                     "%prefix% &cFailed to load history: &7%error%",
                     Map.of("error", e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage())));
         }
     }
 
-    private void renderList(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
-                            UUID uuid, String displayName, int page,
-                            @Nullable Predicate<ViolationEntry> filter) throws Exception {
+    private List<Component> renderList(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
+                                       UUID uuid, String displayName, int page,
+                                       @Nullable Predicate<ViolationEntry> filter) throws Exception {
         int entriesPerPage = lifecycle.config().history().entriesPerPage();
         long totalSessions = history.countSessions(uuid).toCompletableFuture().get(5, TimeUnit.SECONDS);
         int maxPages = Math.max(1, (int) ((totalSessions + entriesPerPage - 1) / Math.max(1, entriesPerPage)));
@@ -427,9 +434,8 @@ public class GrimHistory implements BuildableCommand {
         if (filter != null) result = filterSessionsByDetail(history, uuid, result, filter);
 
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
-        List<Component> components = HistoryComponentRenderer.renderSessionList(
+        return HistoryComponentRenderer.renderSessionList(
                 sender, uuid, displayName, page, maxPages, result, ongoingSessionId);
-        for (Component c : components) sender.sendMessage(c);
     }
 
     private static Page<SessionSummary> filterSessionsByDetail(HistoryService history, UUID uuid,
@@ -450,31 +456,29 @@ public class GrimHistory implements BuildableCommand {
         return new Page<>(kept, result.nextCursor());
     }
 
-    private void renderDetail(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
-                              UUID uuid, String displayName, int sessionOrdinal,
-                              boolean detailed, boolean verbose, @Nullable Integer violationPage,
-                              @Nullable Predicate<ViolationEntry> filter) throws Exception {
+    private List<Component> renderDetail(Sender sender, DataStoreLifecycle lifecycle, HistoryService history,
+                                         UUID uuid, String displayName, int sessionOrdinal,
+                                         boolean detailed, boolean verbose, @Nullable Integer violationPage,
+                                         @Nullable Predicate<ViolationEntry> filter) throws Exception {
         SessionDetail detail = null;
         if (history instanceof ac.grim.grimac.internal.storage.history.HistoryServiceImpl impl) {
             detail = impl.getSessionDetailByOrdinal(uuid, sessionOrdinal)
                     .toCompletableFuture().get(10, TimeUnit.SECONDS);
         }
         if (detail == null) {
-            sender.sendMessage(message("grim-history-session-not-found",
+            return List.of(message("grim-history-session-not-found",
                     "%prefix% &cSession &f%ordinal%&c not found for &f%player%&c.",
                     Map.of(
                             "player", displayName,
                             "ordinal", Integer.toString(sessionOrdinal))));
-            return;
         }
         if (filter != null) detail = HistoryComponentRenderer.applyFilter(detail, filter);
         int pageSize = lifecycle.config().history().entriesPerPage();
         UUID ongoingSessionId = ongoingSessionIdFor(lifecycle, uuid);
         boolean isOngoing = ongoingSessionId != null && ongoingSessionId.equals(detail.sessionId());
-        List<Component> components = HistoryComponentRenderer.renderSessionDetail(
+        return HistoryComponentRenderer.renderSessionDetail(
                 sender, displayName, detail, detailed, verbose,
                 violationPage, pageSize, isOngoing);
-        for (Component c : components) sender.sendMessage(c);
     }
 
     private void handleRepairCheckIds(CommandContext<Sender> context) {
@@ -616,6 +620,19 @@ public class GrimHistory implements BuildableCommand {
             int catalogIdCollisions) {}
 
     private record CheckDefinition(String stableKey, String display, String description) {}
+
+    private static void sendHistoryMessage(Sender sender, Component message) {
+        sendHistoryMessages(sender, List.of(message));
+    }
+
+    private static void sendHistoryMessages(Sender sender, List<Component> messages) {
+        if (messages.isEmpty()) return;
+        runOnGlobalThread(() -> {
+            for (Component message : messages) {
+                sender.sendMessage(message);
+            }
+        });
+    }
 
     private static void runOnGlobalThread(Runnable task) {
         GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(
@@ -790,8 +807,42 @@ public class GrimHistory implements BuildableCommand {
     private static @Nullable UUID resolveTargetUuid(CommandContext<Sender> ctx) {
         String target = ctx.<String>getOrDefault("target", null);
         if (target == null) return null;
-        OfflinePlatformPlayer p = GrimAPI.INSTANCE.getPlatformPlayerFactory().getOfflineFromName(target);
-        return p == null ? null : p.getUniqueId();
+        return resolveUuid(target, GrimAPI.INSTANCE.getDataStoreLifecycle(), null);
+    }
+
+    /**
+     * Resolve history targets without platform offline-player lookups. Those
+     * can synchronously hit profile storage and miss names known only through a
+     * shared history backend.
+     */
+    private static @Nullable UUID resolveUuid(String name, @Nullable DataStoreLifecycle lifecycle) {
+        return resolveUuid(name, lifecycle, onlineUuid(name));
+    }
+
+    private static @Nullable UUID resolveUuid(String name, @Nullable DataStoreLifecycle lifecycle, @Nullable UUID onlineUuid) {
+        if (onlineUuid != null) return onlineUuid;
+        if (lifecycle != null && lifecycle.isLoaded()) {
+            NameResolver resolver = lifecycle.nameResolver();
+            if (resolver != null) {
+                try {
+                    Optional<UUID> hit = resolver.resolveByName(name)
+                            .toCompletableFuture().get(2, TimeUnit.SECONDS);
+                    if (hit.isPresent()) return hit.get();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        try {
+            return UUID.fromString(name);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private static @Nullable UUID onlineUuid(String name) {
+        PlatformPlayer online = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromName(name);
+        return online == null ? null : online.getUniqueId();
     }
 
     private static List<Suggestion> rangeSuggestions(int fromInclusive, int toInclusive) {

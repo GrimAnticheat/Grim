@@ -36,6 +36,7 @@ dependencies {
     compileOnly(libs.fabric.loader)
 
     compileOnly(libs.cloud.fabric)
+    compileOnly(libs.luckperms)
 
     compileOnly("org.yaml:snakeyaml:2.2")
     compileOnly("org.slf4j:slf4j-api:2.0.17")

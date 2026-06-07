@@ -5,8 +5,8 @@ import ac.grim.grimac.command.handler.GrimCommandFailureHandler;
 import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import io.leangen.geantyref.TypeToken;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.incendo.cloud.CommandManager;
@@ -17,6 +17,7 @@ import org.incendo.cloud.processors.requirements.RequirementApplicable.Requireme
 import org.incendo.cloud.processors.requirements.RequirementPostprocessor;
 import org.incendo.cloud.processors.requirements.Requirements;
 
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -67,8 +68,32 @@ public class CloudCommandService implements CommandService {
                 new GrimCommandFailureHandler()
         );
         commandManager.registerCommandPostProcessor(senderRequirementPostprocessor);
-        registerExceptionHandler(commandManager, InvalidSyntaxException.class, e -> MessageUtil.miniMessage(e.correctSyntax()));
+        registerInvalidSyntaxHandler(commandManager);
         commandsRegistered = true;
+    }
+
+    private void registerInvalidSyntaxHandler(CommandManager<Sender> commandManager) {
+        commandManager.exceptionController().registerHandler(InvalidSyntaxException.class, context -> {
+            Sender sender = context.context().sender();
+            if (isHistoryInput(context.context().rawInput().input())) {
+                sender.sendMessage(Component.text("Invalid history syntax.", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Use: /grim history <player> [page <N>]", NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("Use: /grim history <player> session <N|latest> [page <N>] [-d] [-v]", NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("Tip: /grim history <player> session shows filter and detail options.", NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("Use /grim history player <player> ... for names that collide with history subcommands.", NamedTextColor.GRAY));
+                return;
+            }
+            sender.sendMessage(Component.text(context.exception().correctSyntax(), NamedTextColor.RED));
+        });
+    }
+
+    private static boolean isHistoryInput(String rawInput) {
+        String input = rawInput.strip();
+        if (input.startsWith("/")) input = input.substring(1).strip();
+        String[] tokens = input.toLowerCase(Locale.ROOT).split("\\s+");
+        return tokens.length >= 2
+                && (tokens[0].equals("grim") || tokens[0].equals("grimac"))
+                && (tokens[1].equals("history") || tokens[1].equals("hist"));
     }
 
     protected <E extends Exception> void registerExceptionHandler(CommandManager<Sender> commandManager, Class<E> ex, Function<E, ComponentLike> toComponent) {

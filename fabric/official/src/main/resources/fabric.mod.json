@@ -43,5 +43,8 @@
     "fabricloader": ">=0.19",
     "fabric-lifecycle-events-v1": "*",
     "packetevents": "*"
+  },
+  "recommends": {
+    "luckperms": "*"
   }
 }

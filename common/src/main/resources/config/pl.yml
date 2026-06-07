@@ -228,5 +228,16 @@ max-ping-firework-boost: 1000
 #   config-version: zwiększany przy każdej niekompatybilnej zmianie formatu.
 #                   Stare configi są automatycznie migrowane przez wbudowany
 #                   updater przy następnym starcie.
+# Grim zawsze odświeża uprawnienia w pamięci podręcznej, gdy gracz dołącza i gdy
+# Grim jest przeładowywany, niezależnie od tego, czy LuckPerms jest zainstalowany.
+# Hooki zdarzeń LuckPerms w typowych konfiguracjach również natychmiast odświeżają
+# uprawnienia Grim w pamięci podręcznej.
+# Ten okresowy fallback jest potrzebny tylko dla zmian uprawnień online, których
+# nie obejmują te zdarzenia, np. niestandardowego kontekstu LuckPerms, który nie
+# wywołuje signalContextUpdate, luk w kontekstach Fabric albo dostawcy uprawnień
+# innego niż LuckPerms, który zmienia uprawnienia na żywo.
+# Ustaw -1, aby wyłączyć odpytywanie. Ustaw wartość dodatnią, aby odświeżać co X ticków.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

@@ -9,40 +9,76 @@ import ac.grim.grimac.api.storage.backend.Backend;
 import ac.grim.grimac.api.storage.backend.BackendConfig;
 import ac.grim.grimac.api.storage.backend.BackendContext;
 import ac.grim.grimac.api.storage.backend.BackendException;
-import ac.grim.grimac.api.storage.backend.BackendProvider;
 import ac.grim.grimac.api.storage.backend.BackendRegistry;
+import ac.grim.grimac.api.storage.backend.BackendV2;
 import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Category;
+import ac.grim.grimac.api.storage.check.CheckCatalogPersistence;
 import ac.grim.grimac.api.storage.config.DataStoreConfig;
 import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.identity.NameResolver;
 import ac.grim.grimac.api.storage.identity.NameResolverLink;
+import ac.grim.grimac.api.storage.registry.MigrationContext;
+import ac.grim.grimac.api.storage.registry.StoreId;
 import ac.grim.grimac.api.storage.submit.ViolationSink;
+import ac.grim.grimac.internal.storage.backend.mongo.MongoBackendConfig;
+import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoBackendV2;
+import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoMigrationContext;
+import ac.grim.grimac.internal.storage.backend.mysql.MysqlBackendConfig;
+import ac.grim.grimac.internal.storage.backend.mysql.v2.MysqlBackendV2;
+import ac.grim.grimac.internal.storage.backend.postgres.PostgresBackendConfig;
+import ac.grim.grimac.internal.storage.backend.postgres.v2.PostgresBackendV2;
+import ac.grim.grimac.internal.storage.backend.redis.RedisBackendConfig;
+import ac.grim.grimac.internal.storage.backend.redis.v2.RedisBackendV2;
 import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackend;
+import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackendConfig;
+import ac.grim.grimac.internal.storage.backend.sqlite.v2.SqliteBackendV2;
+import ac.grim.grimac.internal.storage.category.V2BuiltinKinds;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.checks.InMemoryCheckCatalogPersistence;
-import ac.grim.grimac.internal.storage.core.CapabilityValidator;
+import ac.grim.grimac.internal.storage.checks.JdbcCheckCatalogPersistence;
 import ac.grim.grimac.internal.storage.core.CategoryRouter;
 import ac.grim.grimac.internal.storage.core.DataStoreImpl;
+import ac.grim.grimac.internal.storage.core.V2BackendBootstrap;
+import ac.grim.grimac.internal.storage.core.V2Routes;
 import ac.grim.grimac.internal.storage.history.HistoryServiceImpl;
 import ac.grim.grimac.internal.storage.identity.LocalCacheLink;
 import ac.grim.grimac.internal.storage.identity.NameResolverChain;
 import ac.grim.grimac.internal.storage.identity.OfflineModeUuidLink;
 import ac.grim.grimac.internal.storage.identity.PlayerIdentityService;
+import ac.grim.grimac.internal.storage.instance.HeartbeatScheduler;
 import ac.grim.grimac.internal.storage.migrate.LegacyMigrator;
 import ac.grim.grimac.internal.storage.migrate.V0Reader;
 import ac.grim.grimac.internal.storage.retention.RetentionSweeper;
 import ac.grim.grimac.internal.storage.submit.ViolationSinkImpl;
+import ac.grim.grimac.internal.storage.verbose.VerboseManifest;
+import com.mongodb.client.MongoDatabase;
+import org.bson.BsonBinarySubType;
+import org.bson.Document;
+import org.bson.types.Binary;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.sql.DriverManager;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,9 +106,17 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private SessionTracker sessionTracker;
     private LiveWriteHooks liveWriteHooks;
     private PlayerToggleStore playerToggleStore;
+    private V2InstanceRegistry instanceRegistry;
+    private HeartbeatScheduler heartbeatScheduler;
+    private UUID instanceId;
+    private UUID startupId;
+    private long startupStartedEpochMs;
+    private ScheduledExecutorService duplicateWarningExecutor;
 
     private boolean enabled = true;
     private boolean loaded;
+
+    private final List<BackendV2> v2Backends = new ArrayList<>();
 
     public DataStoreLifecycle(@NotNull GrimPlugin plugin, @NotNull BackendRegistry backendRegistry) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
@@ -108,8 +152,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
 
         try {
-            buildAndStart(dataFolder);
-            this.loaded = true;
+            this.loaded = buildAndStart(dataFolder);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage — falling back to disabled", e);
             this.enabled = false;
@@ -117,79 +160,421 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
-    private void buildAndStart(Path dataFolder) throws Exception {
-        Map<String, Backend> backendsById = new LinkedHashMap<>();
+    private boolean buildAndStart(Path dataFolder) throws Exception {
+        V2Routes.Builder routesBuilder = V2Routes.builder();
+        int allFailures = 0;
+
+        Map<String, BackendV2> v2ById = new LinkedHashMap<>();
         for (Map.Entry<String, BackendConfig> entry : config.backends().entrySet()) {
-            Backend b = buildBackend(entry.getKey(), entry.getValue());
-            b.init(new SimpleContext(entry.getValue(), logger, dataFolder));
-            backendsById.put(entry.getKey(), b);
+            String backendId = entry.getKey();
+            BackendConfig backendConfig = entry.getValue();
+            BackendV2 v2 = constructV2Direct(backendId, backendConfig);
+            if (v2 == null) {
+                logger.warning("[grim-datastore] no v2 backend for id '" + backendId
+                        + "' — categories routed here will be unavailable");
+                continue;
+            }
+            try {
+                v2.init(new SimpleContext(backendConfig, logger, dataFolder));
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "[grim-datastore] v2 backend init failed for '" + backendId + "'", e);
+                continue;
+            }
+            this.v2Backends.add(v2);
+            v2ById.put(backendId, v2);
         }
 
-        Map<Category<?>, Backend> routing = new LinkedHashMap<>();
+        ensureCheckCatalogStore(v2ById);
+        this.checkRegistry = buildCheckRegistry(dataFolder);
+
         for (Map.Entry<Category<?>, String> r : config.routing().entrySet()) {
-            Backend b = backendsById.get(r.getValue());
-            if (b == null) continue; // routing target was "none" or an unknown id — skip this category
-            routing.put(r.getKey(), b);
+            Category<?> cat = r.getKey();
+            String backendId = r.getValue();
+            if ("none".equals(backendId)) continue;
+            BackendV2 v2 = v2ById.get(backendId);
+            if (v2 == null) continue;
+
+            Map<Category<?>, V2BackendBootstrap.Binding<?>> bindings = bindingsForCategory(cat);
+            if (bindings.isEmpty()) continue;
+
+            MigrationContext mctx = buildMigrationContext(v2);
+            if (mctx == null) mctx = NO_OP_MIGRATION_CONTEXT;
+
+            V2BackendBootstrap.Result result = V2BackendBootstrap.install(
+                    bindings, v2, mctx, routesBuilder, logger);
+            allFailures += result.failures().size();
+            if (!result.ok()) {
+                logger.warning("[grim-datastore] v2 bootstrap for '" + backendId
+                        + "' had " + result.failures().size() + " failure(s):\n  - "
+                        + String.join("\n  - ", result.failures()));
+            }
         }
 
-        CapabilityValidator.validate(routing);
+        boolean startupRouteInstalled = false;
+        String sessionBackendId = config.routing().get(Categories.SESSION);
+        if (sessionBackendId != null && !"none".equals(sessionBackendId)) {
+            BackendV2 sessionBackend = v2ById.get(sessionBackendId);
+            if (sessionBackend != null) {
+                MigrationContext mctx = buildMigrationContext(sessionBackend);
+                if (mctx == null) mctx = NO_OP_MIGRATION_CONTEXT;
 
-        Backend violationBackend = routing.get(Categories.VIOLATION);
-        if (violationBackend != null) {
-            this.checkRegistry = new CheckRegistry(violationBackend.checkCatalog());
-        } else {
-            this.checkRegistry = new CheckRegistry(new InMemoryCheckCatalogPersistence());
+                Map<Category<?>, V2BackendBootstrap.Binding<?>> bindings = Map.of(
+                        V2InstanceRegistry.STARTUPS,
+                        new V2BackendBootstrap.Binding<>(
+                                StoreId.grim("server_startups"), V2BuiltinKinds.serverStartups()));
+                V2BackendBootstrap.Result result = V2BackendBootstrap.install(
+                        bindings, sessionBackend, mctx, routesBuilder, logger);
+                allFailures += result.failures().size();
+                if (result.ok()) {
+                    startupRouteInstalled = true;
+                } else {
+                    logger.warning("[grim-datastore] v2 bootstrap for server startup registry on '"
+                            + sessionBackendId + "' had " + result.failures().size() + " failure(s):\n  - "
+                            + String.join("\n  - ", result.failures()));
+                }
+            }
         }
-        this.checkRegistry.reload();
 
-        SqliteBackend sqliteMigrationTarget = violationBackend instanceof SqliteBackend s ? s : null;
-        maybeMigrateLegacy(dataFolder, sqliteMigrationTarget);
+        if (allFailures > 0) {
+            logger.severe("[grim-datastore] v2 cutover had " + allFailures
+                    + " failure(s) — aborting storage init");
+            closeV2Backends();
+            throw new RuntimeException("v2 cutover failed with " + allFailures + " error(s)");
+        }
 
-        CategoryRouter router = new CategoryRouter(routing);
+        V2Routes routes = routesBuilder.build();
+        CategoryRouter router = startupRouteInstalled
+                ? new CategoryRouter(Map.of(V2InstanceRegistry.STARTUPS, V2InstanceRegistry.ROUTER_SENTINEL_BACKEND))
+                : new CategoryRouter(Map.of());
         this.dataStore = new DataStoreImpl(router, config.writePath(), logger);
+        this.dataStore.withV2Routes(routes);
         this.dataStore.start();
 
+        logger.info("[grim-datastore] v2 cutover complete: " + v2ById.size()
+                + " v2 backend(s), " + routes + " routes installed, 0 legacy backends");
+
+        if (!buildServices()) {
+            disableStorageAfterDuplicate();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean buildServices() {
+        V2InstanceRegistry.StartupClaim claim = startInstanceRegistry();
+        if (claim != null && claim.duplicate()) {
+            startDuplicateWarning(claim.warningMessage());
+            return false;
+        }
+
         this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
-                config.history().entriesPerPage(), config.history().groupIntervalMs());
+                config.history().entriesPerPage(), config.history().groupIntervalMs())
+                .withV2Startups(Categories.SERVER_STARTUP);
         this.playerIdentityService = new PlayerIdentityService(dataStore);
         this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain());
         this.violationSink = new ViolationSinkImpl(dataStore);
         this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
         this.sessionTracker = new SessionTrackerImpl(
-                dataStore, config.serverName(), config.session().heartbeatIntervalMs());
+                dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
         this.liveWriteHooks = new LiveWriteHooksImpl(
                 dataStore, playerIdentityService, checkRegistry, sessionTracker);
         this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        return true;
+    }
 
-        // Crash sweep — mark every session whose closed_at is still null as
-        // crashed by stamping closed_at = last_activity. SessionTracker has
-        // no in-memory state at this point (we're pre-first-join), so any
-        // open row is by definition orphaned. Per-backend implementations
-        // do this in one UPDATE; default no-op for backends without a
-        // session table.
-        for (Backend b : router.allBackends()) {
-            try {
-                long affected = b.markCrashedSessions();
-                if (affected > 0) {
-                    logger.info("[grim-datastore] marked " + affected
-                            + " open session(s) on backend '" + b.id()
-                            + "' as crashed (server didn't shut down cleanly last run)");
+    private @Nullable V2InstanceRegistry.StartupClaim startInstanceRegistry() {
+        long heartbeatMs = instanceHeartbeatIntervalMs();
+        this.instanceId = loadPersistentInstanceId(plugin.getDataFolder().toPath());
+        this.startupId = UUID.randomUUID();
+        this.startupStartedEpochMs = System.currentTimeMillis();
+
+        this.instanceRegistry = V2InstanceRegistry.create(dataStore, dataStore.v2Routes(), logger);
+        if (instanceRegistry == null) {
+            logger.warning("[grim-datastore] v2 server startup registry route missing; "
+                    + "startup ownership and instance heartbeats are disabled");
+            return null;
+        }
+
+        byte[] verboseManifest = VerboseManifest.textOnly(VerboseManifest.FLAVOR_V2_PUBLIC);
+        V2InstanceRegistry.StartupClaim claim = instanceRegistry.claimStartup(
+                config.serverName(),
+                instanceId,
+                startupId,
+                startupStartedEpochMs,
+                hostname(),
+                GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
+                serverVersionString(),
+                verboseManifest,
+                heartbeatMs);
+        if (!claim.storageEnabled()) return claim;
+
+        this.heartbeatScheduler = new HeartbeatScheduler(
+                startupId,
+                instanceId,
+                config.serverName(),
+                startupStartedEpochMs,
+                hostname(),
+                GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
+                serverVersionString(),
+                verboseManifest,
+                Duration.ofMillis(heartbeatMs),
+                instanceRegistry::publish,
+                logger);
+        heartbeatScheduler.start();
+        return claim;
+    }
+
+    private long instanceHeartbeatIntervalMs() {
+        long configured = config.session().heartbeatIntervalMs();
+        return configured > 0L ? configured : 30_000L;
+    }
+
+    private @NotNull UUID loadPersistentInstanceId(@NotNull Path dataFolder) {
+        Path file = dataFolder.resolve("data").resolve("storage-instance.uuid");
+        try {
+            Files.createDirectories(file.getParent());
+            if (Files.exists(file)) {
+                String raw = Files.readString(file, StandardCharsets.UTF_8).trim();
+                try {
+                    return UUID.fromString(raw);
+                } catch (IllegalArgumentException e) {
+                    Path backup = file.resolveSibling(file.getFileName() + ".invalid-" + System.currentTimeMillis());
+                    Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+                    logger.warning("[grim-datastore] invalid storage instance UUID in " + file
+                            + "; moved it to " + backup + " and generated a new persistent id");
                 }
-            } catch (Exception e) {
-                logger.log(Level.WARNING,
-                        "[grim-datastore] markCrashedSessions failed on backend '"
-                                + b.id() + "' — sessions may show as ongoing forever", e);
+            }
+
+            UUID generated = UUID.randomUUID();
+            Files.writeString(
+                    file,
+                    generated + System.lineSeparator(),
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW);
+            return generated;
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to load persistent storage instance id from " + file, e);
+        }
+    }
+
+    private @Nullable String serverVersionString() {
+        return GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString();
+    }
+
+    private void disableStorageAfterDuplicate() {
+        logger.warning("[grim-datastore] storage disabled for this boot because another live Grim startup "
+                + "is using this storage instance id. Runtime checks remain active.");
+        if (heartbeatScheduler != null) {
+            heartbeatScheduler.stop();
+            heartbeatScheduler = null;
+        }
+        if (dataStore != null) {
+            dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
+        }
+        closeV2Backends();
+        dataStore = null;
+        historyService = null;
+        playerIdentityService = null;
+        nameResolver = null;
+        violationSink = null;
+        retentionSweeper = null;
+        sessionTracker = null;
+        liveWriteHooks = null;
+        playerToggleStore = null;
+        instanceRegistry = null;
+        loaded = false;
+        enabled = false;
+    }
+
+    private void startDuplicateWarning(@NotNull String message) {
+        stopDuplicateWarning();
+        logger.warning(message);
+        duplicateWarningExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "grim-storage-duplicate-warning");
+            t.setDaemon(true);
+            return t;
+        });
+        duplicateWarningExecutor.scheduleAtFixedRate(
+                () -> logger.warning(message),
+                60L,
+                60L,
+                TimeUnit.SECONDS);
+    }
+
+    private void stopDuplicateWarning() {
+        if (duplicateWarningExecutor != null) {
+            duplicateWarningExecutor.shutdownNow();
+            duplicateWarningExecutor = null;
+        }
+    }
+
+    private @Nullable String hostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return null;
+        }
+    }
+
+    private @NotNull CheckRegistry buildCheckRegistry(@NotNull Path dataFolder) {
+        String backendId = config.routing().get(Categories.VIOLATION);
+        BackendConfig backendConfig = backendId == null ? null : config.backends().get(backendId);
+        CheckCatalogPersistence persistence = checkCatalogPersistenceFor(dataFolder, backendConfig);
+        if (persistence == null) {
+            logger.warning("[grim-datastore] no persisted check catalog available for v2 backend '"
+                    + backendId + "' — check names will be process-local only");
+            persistence = new InMemoryCheckCatalogPersistence();
+        }
+        CheckRegistry registry = new CheckRegistry(persistence);
+        try {
+            registry.reload();
+            return registry;
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING,
+                    "[grim-datastore] failed to load persisted check catalog for backend '"
+                            + backendId + "' — falling back to process-local check names", e);
+            CheckRegistry fallback = new CheckRegistry(new InMemoryCheckCatalogPersistence());
+            fallback.reload();
+            return fallback;
+        }
+    }
+
+    private @Nullable CheckCatalogPersistence checkCatalogPersistenceFor(
+            @NotNull Path dataFolder, @Nullable BackendConfig backendConfig) {
+        if (backendConfig instanceof SqliteBackendConfig c) {
+            Path dbFile = dataFolder.resolve(c.path());
+            return new JdbcCheckCatalogPersistence(
+                    () -> DriverManager.getConnection("jdbc:sqlite:" + dbFile.toAbsolutePath()),
+                    c.tableNames().checks());
+        }
+        if (backendConfig instanceof MysqlBackendConfig c) {
+            return new JdbcCheckCatalogPersistence(
+                    () -> DriverManager.getConnection(c.jdbcUrl(), c.user(),
+                            c.password() == null ? "" : c.password()),
+                    c.tableNames().checks());
+        }
+        if (backendConfig instanceof PostgresBackendConfig c) {
+            return new JdbcCheckCatalogPersistence(
+                    () -> DriverManager.getConnection(c.jdbcUrl(), c.user(),
+                            c.password() == null ? "" : c.password()),
+                    c.tableNames().checks());
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void ensureCheckCatalogStore(@NotNull Map<String, BackendV2> v2ById) {
+        String backendId = config.routing().get(Categories.VIOLATION);
+        if (backendId == null) return;
+        BackendV2 backend = v2ById.get(backendId);
+        if (backend == null) return;
+        var kind = V2BuiltinKinds.checks();
+        var adapterOpt = backend.adapterFor(kind);
+        if (adapterOpt.isEmpty()) return;
+        try {
+            var adapter = (ac.grim.grimac.api.storage.backend.KindAdapter) adapterOpt.get();
+            StoreId storeId = StoreId.grim("grim_checks");
+            adapter.ensureStore(storeId, kind);
+            MigrationContext mctx = buildMigrationContext(backend);
+            if (mctx == null) mctx = NO_OP_MIGRATION_CONTEXT;
+            for (Object mo : adapter.migrations(kind)) {
+                ac.grim.grimac.api.storage.registry.Migration m =
+                        (ac.grim.grimac.api.storage.registry.Migration) mo;
+                m.apply(mctx, storeId, kind);
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING,
+                    "[grim-datastore] failed to ensure v2 check catalog store on backend '"
+                            + backendId + "'", e);
+        }
+    }
+
+    private @Nullable BackendV2 constructV2Direct(@NotNull String backendId,
+                                                  @NotNull BackendConfig config) {
+        return switch (backendId) {
+            case "mongo" -> config instanceof MongoBackendConfig c ? new MongoBackendV2(c) : null;
+            case "postgres" -> config instanceof PostgresBackendConfig c ? new PostgresBackendV2(c) : null;
+            case "mysql" -> config instanceof MysqlBackendConfig c ? new MysqlBackendV2(c) : null;
+            case "sqlite" -> config instanceof SqliteBackendConfig c ? new SqliteBackendV2(c) : null;
+            case "redis" -> config instanceof RedisBackendConfig c ? new RedisBackendV2(c) : null;
+            default -> null;
+        };
+    }
+
+    private @NotNull Map<Category<?>, V2BackendBootstrap.Binding<?>> bindingsForCategory(
+            @NotNull Category<?> cat) {
+        Map<Category<?>, V2BackendBootstrap.Binding<?>> out = new LinkedHashMap<>();
+        if (cat == Categories.VIOLATION) {
+            out.put(cat, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim("grim_violations"), V2BuiltinKinds.violations()));
+        } else if (cat == Categories.SESSION) {
+            out.put(cat, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim("grim_sessions"), V2BuiltinKinds.sessions()));
+        } else if (cat == Categories.PLAYER_IDENTITY) {
+            out.put(cat, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim("grim_players"), V2BuiltinKinds.players()));
+        } else if (cat == Categories.SETTING) {
+            out.put(cat, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim("grim_settings"), V2BuiltinKinds.settings()));
+        }
+        return out;
+    }
+
+    private @Nullable MigrationContext buildMigrationContext(@NotNull BackendV2 backend) {
+        if (backend instanceof MongoBackendV2 mongo) {
+            MongoDatabase db = mongo.unwrap(MongoDatabase.class).orElse(null);
+            if (db == null) return null;
+            maybeWarnUnexpectedIdShape(db);
+            return new MongoMigrationContext(db, logger);
+        }
+        if (backend instanceof PostgresBackendV2
+                || backend instanceof MysqlBackendV2
+                || backend instanceof SqliteBackendV2
+                || backend instanceof RedisBackendV2) {
+            return NO_OP_MIGRATION_CONTEXT;
+        }
+        return null;
+    }
+
+    private static final MigrationContext NO_OP_MIGRATION_CONTEXT =
+            new MigrationContext() {};
+
+    private void maybeWarnUnexpectedIdShape(@NotNull MongoDatabase db) {
+        for (String coll : new String[]{"grim_sessions", "grim_players"}) {
+            try {
+                Document first = db.getCollection(coll).find().limit(1).first();
+                if (first == null) continue;
+                Object id = first.get("_id");
+                if (id instanceof java.util.UUID) continue;
+                if (id instanceof Binary b
+                        && (b.getType() == BsonBinarySubType.BINARY.getValue()
+                        || b.getType() == BsonBinarySubType.UUID_STANDARD.getValue())
+                        && b.getData().length == 16) continue;
+                String idClass = id == null ? "null" : id.getClass().getSimpleName();
+                logger.warning(() -> "[grim-datastore] " + coll + " first-doc _id is "
+                        + idClass + ", expected UUID-shaped binary —"
+                        + " entity migration will not handle this row correctly."
+                        + " Halt and inspect before proceeding if this is unexpected.");
+            } catch (RuntimeException e) {
+                logger.fine(() -> "[grim-datastore] _id sanity probe failed for " + coll
+                        + ": " + e.getMessage());
             }
         }
     }
 
-    private Backend buildBackend(String id, BackendConfig cfg) {
-        BackendProvider provider = backendRegistry.lookup(id);
-        if (provider == null) {
-            throw new IllegalArgumentException("no backend provider registered for id '" + id
-                    + "' (registered: " + backendRegistry.registeredIds() + ")");
+    private void closeV2Backends() {
+        for (BackendV2 v2 : v2Backends) {
+            try { v2.flush(); }
+            catch (Exception e) {
+                logger.log(Level.WARNING, "[grim-datastore] v2 flush failed for " + v2.id(), e);
+            }
+            try { v2.close(); }
+            catch (Exception e) {
+                logger.log(Level.WARNING, "[grim-datastore] v2 close failed for " + v2.id(), e);
+            }
         }
-        return provider.create(cfg);
+        v2Backends.clear();
     }
 
     private NameResolver buildNameResolver(DataStore store, List<String> chain) {
@@ -279,16 +664,23 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
      * from the freshly-loaded ConfigManager.
      */
     private void teardown() {
+        stopDuplicateWarning();
         // violationSink drains in-flight writes; dataStore drains per-category
         // rings and closes each backend. Both null-guarded because a failure
         // during buildAndStart can tear down mid-initialisation — start()'s
         // catch calls teardown() before any of these fields were assigned.
+        if (heartbeatScheduler != null) {
+            heartbeatScheduler.stop();
+            heartbeatScheduler = null;
+        }
+        shutdownInstanceRegistry();
         if (playerToggleStore != null) playerToggleStore.shutdown();
         if (violationSink != null) violationSink.shutDown();
         if (dataStore != null) {
             long drainMs = config != null ? config.writePath().shutdownDrainTimeoutMs() : 5000L;
             dataStore.flushAndClose(drainMs);
         }
+        closeV2Backends();
         dataStore = null;
         historyService = null;
         playerIdentityService = null;
@@ -298,15 +690,34 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         sessionTracker = null;
         liveWriteHooks = null;
         playerToggleStore = null;
+        instanceRegistry = null;
+        instanceId = null;
+        startupId = null;
+        startupStartedEpochMs = 0L;
         checkRegistry = null;
         config = null;
         loaded = false;
     }
 
+    private void shutdownInstanceRegistry() {
+        if (instanceRegistry == null || startupId == null || config == null) return;
+        long now = System.currentTimeMillis();
+        try {
+            long closed = instanceRegistry.closeCurrentStartup(startupId, now);
+            if (closed > 0) {
+                logger.info("[grim-datastore] closed " + closed
+                        + " still-open session(s) for this server startup");
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING,
+                    "[grim-datastore] failed to close sessions for this server startup", e);
+        }
+    }
+
     public boolean isEnabled() { return enabled; }
     public boolean isLoaded() { return loaded; }
 
-    public @Nullable DataStore dataStore() { return dataStore; }
+    public @Nullable DataStore dataStore() { return loaded ? dataStore : null; }
     public @Nullable HistoryService historyService() { return historyService; }
     public @Nullable NameResolver nameResolver() { return nameResolver; }
     public @Nullable ViolationSink violationSink() { return violationSink; }
@@ -369,6 +780,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         if (dataStore == null) return Map.of();
         Map<String, Backend> out = new LinkedHashMap<>();
         for (Backend b : dataStore.router().allBackends()) {
+            if (b == V2InstanceRegistry.ROUTER_SENTINEL_BACKEND) continue;
             out.put(b.id(), b);
         }
         return out;

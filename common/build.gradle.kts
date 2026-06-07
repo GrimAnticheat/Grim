@@ -64,6 +64,7 @@ dependencies {
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
+    compileOnly(libs.mongoDriverSync)
 
     compileOnly(libs.geyser.base.api) {
         isTransitive = false // messes with guava otherwise
@@ -73,6 +74,7 @@ dependencies {
     compileOnly(libs.viaversion)
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
+    compileOnly(libs.luckperms)
 }
 
 publishing.publications.create<MavenPublication>("maven") {

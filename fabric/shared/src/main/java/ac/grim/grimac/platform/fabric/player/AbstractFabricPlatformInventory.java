@@ -4,6 +4,7 @@ import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.FabricPlatformServices;
 import ac.grim.grimac.platform.fabric.inject.FabricServerPlayerHandle;
+import ac.grim.grimac.platform.fabric.utils.FabricItemContextHook;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public abstract class AbstractFabricPlatformInventory implements PlatformInventory {
@@ -18,43 +19,67 @@ public abstract class AbstractFabricPlatformInventory implements PlatformInvento
         return (FabricServerPlayerHandle) fabricPlatformPlayer.getNative();
     }
 
+    /**
+     * Converts a native item into a PacketEvents {@link ItemStack}. When Polymer's item codec needs it
+     * (see {@link FabricItemContextHook#ACTIVE}), the encode runs with a {@code PacketContext} for the
+     * inventory owner bound so Polymer can encode the item instead of crashing (GrimAnticheat/Grim#2701).
+     * Otherwise it is the original direct read: the {@code ACTIVE} check folds away and no capturing
+     * lambda is allocated, keeping this hot path (held item / armour reads during predictions) allocation-free.
+     */
+    private ItemStack convert(Object nativeItemStack) {
+        if (!FabricItemContextHook.ACTIVE) {
+            return FabricPlatformServices.conversionUtil().fromFabricItemStack(nativeItemStack);
+        }
+        return FabricItemContextHook.supply(
+                fabricPlatformPlayer.getNative(),
+                () -> FabricPlatformServices.conversionUtil().fromFabricItemStack(nativeItemStack));
+    }
+
     @Override
     public ItemStack getItemInHand() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().heldItemStack());
+        return convert(handle().heldItemStack());
     }
 
     @Override
     public ItemStack getItemInOffHand() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(40));
+        return convert(handle().inventoryItemAt(40));
     }
 
     @Override
     public ItemStack getStack(int bukkitSlot, int vanillaSlot) {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(bukkitSlot));
+        return convert(handle().inventoryItemAt(bukkitSlot));
     }
 
     @Override
     public ItemStack getHelmet() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(39));
+        return convert(handle().inventoryItemAt(39));
     }
 
     @Override
     public ItemStack getChestplate() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(38));
+        return convert(handle().inventoryItemAt(38));
     }
 
     @Override
     public ItemStack getLeggings() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(37));
+        return convert(handle().inventoryItemAt(37));
     }
 
     @Override
     public ItemStack getBoots() {
-        return FabricPlatformServices.conversionUtil().fromFabricItemStack(handle().inventoryItemAt(36));
+        return convert(handle().inventoryItemAt(36));
     }
 
     @Override
     public ItemStack[] getContents() {
+        if (!FabricItemContextHook.ACTIVE) {
+            return readContents();
+        }
+        // Bind the context once for the whole inventory sweep rather than per slot.
+        return FabricItemContextHook.supply(fabricPlatformPlayer.getNative(), this::readContents);
+    }
+
+    private ItemStack[] readContents() {
         FabricServerPlayerHandle handle = handle();
         ItemStack[] items = new ItemStack[handle.inventorySlotCount()];
         for (int i = 0; i < items.length; i++) {

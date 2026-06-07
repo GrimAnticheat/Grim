@@ -73,11 +73,11 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public final void updatePermissions() {
-        if (configName == null || player.platformPlayer == null) return;
+        if (configName == null) return;
         final String id = configName.toLowerCase();
-        exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
-        noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
-        noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
+        exemptPermission = player.hasPermission("grim.exempt." + id);
+        noSetbackPermission = player.hasPermission("grim.nosetback." + id);
+        noModifyPacketPermission = player.hasPermission("grim.nomodifypacket." + id);
     }
 
     public final boolean flagAndAlert(String verbose) {
@@ -165,6 +165,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
     public boolean shouldSetback() {
         return !noSetbackPermission && violations > setbackVL;
+    }
+
+    public boolean executeViolationSetback() {
+        return !noSetbackPermission && player.getSetbackTeleportUtil().executeViolationSetback();
     }
 
     public String formatOffset(double offset) {
