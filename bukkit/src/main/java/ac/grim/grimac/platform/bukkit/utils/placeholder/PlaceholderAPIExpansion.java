@@ -3,6 +3,7 @@ package ac.grim.grimac.platform.bukkit.utils.placeholder;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.reflection.GeyserUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -46,11 +47,18 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         for (String s : variableReplacements) {
             placeholders.add(s.equals("%player%") ? "%grim_player%" : "%grim_player_" + s.replace("%", "") + "%");
         }
+        placeholders.add("%grim_isbedrock%");
         return placeholders;
     }
 
     @Override
     public String onRequest(OfflinePlayer offlinePlayer, @NotNull String params) {
+        // Resolved straight from the username prefix so it still works for Bedrock
+        // players, who are exempted and therefore have no tracked GrimPlayer.
+        if (params.equalsIgnoreCase("isbedrock")) {
+            return String.valueOf(GeyserUtil.isBedrockName(offlinePlayer.getName()));
+        }
+
         for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
             String key = entry.getKey().equals("%grim_version%")
                     ? "version"

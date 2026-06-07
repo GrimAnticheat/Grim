@@ -65,6 +65,13 @@ public class PlayerDataManager {
         if (isExemptUser(user)) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
+        // Bedrock players (Geyser/Floodgate) are prefixed with "." by default and don't
+        // have Java movement, so exempt them based on their username prefix as well.
+        if (GeyserUtil.isBedrockName(user.getName())) {
+            exemptUser(user);
+            return false;
+        }
+
         if (user.getUUID() != null) {
             // Bedrock players don't have Java movement
             if (GeyserUtil.isBedrockPlayer(user.getUUID())) {
