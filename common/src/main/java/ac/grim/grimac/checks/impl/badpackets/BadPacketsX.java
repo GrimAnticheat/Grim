@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "BadPacketsX", stableKey = "grim.badpackets.extra_input_actions", experimental = true)
+@CheckData(name = "BadPacketsX", stableKey = "grim.badpackets.extra_input_actions", description = "Sent duplicate sneak or sprint input actions before the next movement packet", experimental = true)
 public class BadPacketsX extends Check implements PostPredictionCheck {
     private boolean sprint;
     private boolean sneak;
