@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 // This works around 1.3 timer, to prevent too high abuse - maybe there's a better solution?
-@CheckData(name = "TimerLimit", stableKey = "grim.timer.limit", setback = 10)
+@CheckData(name = "TimerLimit", stableKey = "grim.timer.limit", description = "The player has sent too many packets after high latency", setback = 10)
 public class TimerLimit extends Timer {
 
     // At what ping should we start to limit the balance advantage? (nanos)
