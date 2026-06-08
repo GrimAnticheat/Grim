@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b")
+@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", description = "Cancelled block breaking with an invalid block face")
 public class PositionBreakB extends Check implements BlockBreakCheck {
     private final boolean allowLegacyFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
     private BlockFace lastFace;
