@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
-@CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", experimental = true)
+@CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", description = "Sent offhand entity interaction before the matching mainhand interaction", experimental = true)
 public class PacketOrderD extends Check implements PacketCheck {
     public PacketOrderD(final GrimPlayer player) {
         super(player);
