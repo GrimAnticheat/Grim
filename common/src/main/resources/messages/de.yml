@@ -41,8 +41,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen von der Prüfung, nicht alle Prüfungen liefern zusätzliche Informationen
-alerts-format: "%prefix% &f%player% &bbestand &f%check_name%%experimental% &bnicht &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bbestand &f%check_name%%experimental% &bnicht &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bbestand <hover:show_text:\"&b%check_name%%experimental%\n&8Beschreibung: &f%description%\">&f%check_name%%experimental%</hover> &bnicht &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bbestand <hover:show_text:\"&b%check_name%%experimental%\n&8Beschreibung: &f%description%\">&f%check_name%%experimental%</hover> &bnicht &f(x&c%vl%&f) &7%verbose%"
 experimental-symbol: "*"
 
 profile:

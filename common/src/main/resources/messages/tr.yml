@@ -42,8 +42,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - ihlal uyarıları
 # %verbose% - detaylı olarak verilen tüm uyarılar, checkler tüm bilgileri vermez
-alerts-format: "%prefix% &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet &b%check_name%%experimental% &ftespit edildi: &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet &b%check_name%%experimental% &ftespit edildi: &7%verbose%"
+alerts-format: "%prefix% &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
 experimental-symbol: "*"
 
 profile:
