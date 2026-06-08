@@ -10,7 +10,7 @@ import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.math.GrimMath;
 
 // This check has been patched by Baritone for a long time, and it also seems to false with cinematic camera now, so it is disabled.
-@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone")
+@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone", description = "Detected Baritone like behavior")
 public class Baritone extends Check implements RotationCheck {
     private int verbose;
 
