@@ -21,13 +21,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PunishmentManager implements ConfigReloadable {
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final CommandExecuteEvent.Channel COMMAND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CommandExecuteEvent.class);
     private final GrimPlayer player;
     private final List<PunishGroup> groups = new ArrayList<>();
     private String experimentalSymbol = "*";
     private String alertString;
     private boolean testMode;
     private String proxyAlertString = "";
-    private static final CommandExecuteEvent.Channel COMMAND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CommandExecuteEvent.class);
 
     public PunishmentManager(GrimPlayer player) {
         this.player = player;
@@ -37,9 +38,19 @@ public class PunishmentManager implements ConfigReloadable {
     public void reload(ConfigManager config) {
         List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
         experimentalSymbol = config.getStringElse("experimental-symbol", "*");
-        alertString = config.getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+
+        alertString = config.getStringElse(
+                "alerts-format",
+                "%prefix% &f%player% &bfailed <hover:show_text:\"&b%check_name%%experimental%\\n&8Description: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+        );
+
         testMode = config.getBooleanElse("test-mode", false);
-        proxyAlertString = config.getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+
+        proxyAlertString = config.getStringElse(
+                "alerts-format-proxy",
+                "%prefix% &f[&cproxy&f] &f%player% &bfailed <hover:show_text:\"&b%check_name%%experimental%\\n&8Description: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+        );
+
         try {
             groups.clear();
 
@@ -68,7 +79,7 @@ public class PunishmentManager implements ConfigReloadable {
                     for (AbstractCheck check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
-                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
+                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) {
                             if (exclude) {
                                 excluded.add(check);
                             } else {
@@ -102,11 +113,16 @@ public class PunishmentManager implements ConfigReloadable {
         return MessageUtil.replacePlaceholders(player, original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", proxyAlertString)
-                .replace("%check_name%", check.getDisplayName())
-                .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
+                .replace("%check_name%", miniSafe(check.getDisplayName()))
+                .replace("%experimental%", miniSafe(check.isExperimental() ? experimentalSymbol : ""))
                 .replace("%vl%", Integer.toString(vl))
-                .replace("%description%", check.getDescription())
-        ).replace("%verbose%", MiniMessage.miniMessage().escapeTags(verbose));
+                .replace("%description%", miniSafe(check.getDescription()))
+                .replace("%stable_key%", miniSafe(check.getStableKey()))
+        ).replace("%verbose%", miniSafe(verbose));
+    }
+
+    private static String miniSafe(@Nullable String string) {
+        return string == null ? "" : MINI_MESSAGE.escapeTags(string);
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
