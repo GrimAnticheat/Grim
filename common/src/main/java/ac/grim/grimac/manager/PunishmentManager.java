@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PunishmentManager implements ConfigReloadable {
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private static final CommandExecuteEvent.Channel COMMAND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CommandExecuteEvent.class);
     private final GrimPlayer player;
     private final List<PunishGroup> groups = new ArrayList<>();
@@ -113,16 +112,12 @@ public class PunishmentManager implements ConfigReloadable {
         return MessageUtil.replacePlaceholders(player, original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", proxyAlertString)
-                .replace("%check_name%", miniSafe(check.getDisplayName()))
-                .replace("%experimental%", miniSafe(check.isExperimental() ? experimentalSymbol : ""))
+                .replace("%check_name%", MessageUtil.miniMessageSafe(check.getDisplayName()))
+                .replace("%experimental%", MessageUtil.miniMessageSafe(check.isExperimental() ? experimentalSymbol : ""))
                 .replace("%vl%", Integer.toString(vl))
-                .replace("%description%", miniSafe(check.getDescription()))
-                .replace("%stable_key%", miniSafe(check.getStableKey()))
-        ).replace("%verbose%", miniSafe(verbose));
-    }
-
-    private static String miniSafe(@Nullable String string) {
-        return string == null ? "" : MINI_MESSAGE.escapeTags(string);
+                .replace("%description%", MessageUtil.miniMessageSafe(check.getDescription()))
+                .replace("%stable_key%", MessageUtil.miniMessageSafe(check.getStableKey()))
+        ).replace("%verbose%", MessageUtil.miniMessageSafe(verbose));
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
