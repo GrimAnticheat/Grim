@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
-@CheckData(name = "ChatA", stableKey = "grim.exploit.blank_tab_complete", experimental = true)
+@CheckData(name = "ChatA", stableKey = "grim.exploit.blank_tab_complete", description = "Sent a tab complete packet with no command or input text", experimental = true)
 public class ChatA extends Check implements PacketCheck {
 
     public ChatA(GrimPlayer player) {
