@@ -103,9 +103,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private NameResolver nameResolver;
     private ViolationSinkImpl violationSink;
     private RetentionSweeper retentionSweeper;
-    private SessionTracker sessionTracker;
-    private LiveWriteHooks liveWriteHooks;
-    private PlayerToggleStore playerToggleStore;
+    private SessionTracker sessionTracker = SessionTracker.NOOP;
+    private LiveWriteHooks liveWriteHooks = LiveWriteHooks.NOOP;
+    private PlayerToggleStore playerToggleStore = PlayerToggleStore.NOOP;
     private V2InstanceRegistry instanceRegistry;
     private HeartbeatScheduler heartbeatScheduler;
     private UUID instanceId;
@@ -179,6 +179,12 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "[grim-datastore] v2 backend init failed for '" + backendId + "'", e);
+                try { v2.close(); }
+                catch (Exception closeFailure) {
+                    logger.log(Level.WARNING,
+                            "[grim-datastore] v2 backend close after failed init failed for '"
+                                    + backendId + "'", closeFailure);
+                }
                 continue;
             }
             this.v2Backends.add(v2);
@@ -244,6 +250,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
 
         V2Routes routes = routesBuilder.build();
+        if (routes.isEmpty()) {
+            throw new RuntimeException("no v2 routes installed");
+        }
         CategoryRouter router = startupRouteInstalled
                 ? new CategoryRouter(Map.of(V2InstanceRegistry.STARTUPS, V2InstanceRegistry.ROUTER_SENTINEL_BACKEND))
                 : new CategoryRouter(Map.of());
@@ -254,33 +263,67 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         logger.info("[grim-datastore] v2 cutover complete: " + v2ById.size()
                 + " v2 backend(s), " + routes + " routes installed, 0 legacy backends");
 
-        if (!buildServices()) {
+        if (!buildServices(routes)) {
             disableStorageAfterDuplicate();
             return false;
         }
         return true;
     }
 
-    private boolean buildServices() {
+    private boolean buildServices(@NotNull V2Routes routes) {
         V2InstanceRegistry.StartupClaim claim = startInstanceRegistry();
         if (claim != null && claim.duplicate()) {
             startDuplicateWarning(claim.warningMessage());
             return false;
         }
 
-        this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
-                config.history().entriesPerPage(), config.history().groupIntervalMs())
-                .withV2Startups(Categories.SERVER_STARTUP);
+        boolean sessionRouted = routes.contains(Categories.SESSION);
+        boolean violationRouted = routes.contains(Categories.VIOLATION);
+        boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
+        boolean settingRouted = routes.contains(Categories.SETTING);
+
+        if (sessionRouted && violationRouted) {
+            this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
+                    config.history().entriesPerPage(), config.history().groupIntervalMs())
+                    .withV2Startups(Categories.SERVER_STARTUP);
+        } else {
+            logger.warning("[grim-datastore] history disabled; missing "
+                    + missingRoutes(sessionRouted, "session", violationRouted, "violation"));
+        }
         this.playerIdentityService = new PlayerIdentityService(dataStore);
-        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain());
-        this.violationSink = new ViolationSinkImpl(dataStore);
+        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
+        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
         this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
-        this.sessionTracker = new SessionTrackerImpl(
-                dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
-        this.liveWriteHooks = new LiveWriteHooksImpl(
-                dataStore, playerIdentityService, checkRegistry, sessionTracker);
-        this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        if (sessionRouted) {
+            this.sessionTracker = new SessionTrackerImpl(
+                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
+        } else {
+            this.sessionTracker = SessionTracker.NOOP;
+            logger.warning("[grim-datastore] session tracking disabled; missing session route");
+        }
+        if (sessionRouted && violationRouted) {
+            this.liveWriteHooks = new LiveWriteHooksImpl(
+                    dataStore, playerIdentityService, checkRegistry, sessionTracker);
+        } else if (playerIdentityRouted) {
+            this.liveWriteHooks = new IdentityLiveWriteHooks(playerIdentityService);
+        } else {
+            this.liveWriteHooks = LiveWriteHooks.NOOP;
+        }
+        if (settingRouted) {
+            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        } else {
+            this.playerToggleStore = PlayerToggleStore.NOOP;
+            logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
+        }
         return true;
+    }
+
+    private static @NotNull String missingRoutes(
+            boolean firstPresent, @NotNull String first,
+            boolean secondPresent, @NotNull String second) {
+        if (!firstPresent && !secondPresent) return first + " and " + second + " routes";
+        if (!firstPresent) return first + " route";
+        return second + " route";
     }
 
     private @Nullable V2InstanceRegistry.StartupClaim startInstanceRegistry() {
@@ -379,9 +422,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         nameResolver = null;
         violationSink = null;
         retentionSweeper = null;
-        sessionTracker = null;
-        liveWriteHooks = null;
-        playerToggleStore = null;
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
         instanceRegistry = null;
         loaded = false;
         enabled = false;
@@ -577,11 +620,21 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         v2Backends.clear();
     }
 
-    private NameResolver buildNameResolver(DataStore store, List<String> chain) {
+    private NameResolver buildNameResolver(
+            DataStore store,
+            List<String> chain,
+            boolean playerIdentityRouted) {
         List<NameResolverLink> links = new ArrayList<>();
         for (String id : chain) {
             switch (id) {
-                case "local-cache" -> links.add(new LocalCacheLink(store));
+                case "local-cache" -> {
+                    if (playerIdentityRouted) {
+                        links.add(new LocalCacheLink(store));
+                    } else {
+                        logger.warning("[grim-datastore] name resolver local-cache disabled; "
+                                + "missing player-identity route");
+                    }
+                }
                 case "offline-mode-uuid" -> links.add(new OfflineModeUuidLink());
                 default -> logger.warning("[grim-datastore] unknown name-resolver link: " + id);
             }
@@ -674,7 +727,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             heartbeatScheduler = null;
         }
         shutdownInstanceRegistry();
-        if (playerToggleStore != null) playerToggleStore.shutdown();
+        playerToggleStore.shutdown();
         if (violationSink != null) violationSink.shutDown();
         if (dataStore != null) {
             long drainMs = config != null ? config.writePath().shutdownDrainTimeoutMs() : 5000L;
@@ -687,9 +740,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         nameResolver = null;
         violationSink = null;
         retentionSweeper = null;
-        sessionTracker = null;
-        liveWriteHooks = null;
-        playerToggleStore = null;
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
         instanceRegistry = null;
         instanceId = null;
         startupId = null;
@@ -728,20 +781,20 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
      * {@code PacketPlayerJoinQuit}. Returns {@link LiveWriteHooks#NOOP} when
      * the datastore is disabled or its init failed — callers don't null-check.
      */
-    public @NotNull LiveWriteHooks liveWriteHooks() { return loaded ? liveWriteHooks : LiveWriteHooks.NOOP; }
+    public @NotNull LiveWriteHooks liveWriteHooks() { return liveWriteHooks; }
 
     /**
      * The live session tracker. Returns {@link SessionTracker#NOOP} when the
      * datastore is disabled or its init failed.
      */
-    public @NotNull SessionTracker sessionTracker() { return loaded ? sessionTracker : SessionTracker.NOOP; }
+    public @NotNull SessionTracker sessionTracker() { return sessionTracker; }
 
     /**
      * Persistence layer for the per-player /grim alerts | verbose | brands
      * toggles. Returns {@link PlayerToggleStore#NOOP} when the datastore is
      * disabled or its init failed.
      */
-    public @NotNull PlayerToggleStore playerToggleStore() { return loaded ? playerToggleStore : PlayerToggleStore.NOOP; }
+    public @NotNull PlayerToggleStore playerToggleStore() { return playerToggleStore; }
 
     /**
      * Admin-command escape hatch used by {@code /grim history migrate} to target

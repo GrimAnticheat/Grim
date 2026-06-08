@@ -11,7 +11,7 @@ cloud-processors-requirements = "1.0.0-rc.1"
 # --- Minecraft-Specific APIs ---
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.6.0.0"
+grim-api = "1.6.0.1"
 packetevents = "2.12.3+e18eca8-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
