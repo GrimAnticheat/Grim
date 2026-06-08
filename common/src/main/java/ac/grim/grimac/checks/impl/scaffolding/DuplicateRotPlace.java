@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
-@CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", experimental = true)
+@CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", description = "Repeated the same rotation delta while placing blocks", experimental = true)
 public class DuplicateRotPlace extends BlockPlaceCheck {
 
     private float deltaX, deltaY;
