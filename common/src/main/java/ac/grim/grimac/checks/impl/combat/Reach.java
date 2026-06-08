@@ -54,7 +54,7 @@ import java.util.Collections;
 import java.util.List;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", stableKey = "grim.combat.reach", setback = 10)
+@CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away", setback = 10)
 public class Reach extends Check implements PacketCheck {
 
     private static final List<EntityType> blacklisted = Arrays.asList(
