@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", experimental = true)
+@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", description = "Sent sprinting and sneaking state changes in an invalid packet order", experimental = true)
 public class PacketOrderH extends Check implements PostPredictionCheck {
     public PacketOrderH(final GrimPlayer player) {
         super(player);

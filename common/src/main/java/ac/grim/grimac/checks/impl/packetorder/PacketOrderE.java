@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", experimental = true)
+@CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", description = "Changed held item slot during another conflicting action", experimental = true)
 public class PacketOrderE extends Check implements PostPredictionCheck {
     public PacketOrderE(final GrimPlayer player) {
         super(player);

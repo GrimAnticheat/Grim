@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", experimental = true)
+@CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", description = "Managed hotbar or inventory while performing another conflicting action", experimental = true)
 public class PacketOrderG extends Check implements PostPredictionCheck {
     public PacketOrderG(GrimPlayer player) {
         super(player);
