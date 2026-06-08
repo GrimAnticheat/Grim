@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Cli
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
-@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump")
+@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump", description = "Sent a horse jump packet with an invalid entity, action, or boost value")
 public class BadPacketsQ extends Check implements PacketCheck {
     public BadPacketsQ(final GrimPlayer player) {
         super(player);
