@@ -15,7 +15,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -112,11 +111,11 @@ public class PunishmentManager implements ConfigReloadable {
         return MessageUtil.replacePlaceholders(player, original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", proxyAlertString)
-                .replace("%check_name%", MessageUtil.miniMessageSafe(check.getDisplayName()))
-                .replace("%experimental%", MessageUtil.miniMessageSafe(check.isExperimental() ? experimentalSymbol : ""))
+                .replace("%check_name%", check.getDisplayName())
+                .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
                 .replace("%vl%", Integer.toString(vl))
-                .replace("%description%", MessageUtil.miniMessageSafe(check.getDescription()))
-                .replace("%stable_key%", MessageUtil.miniMessageSafe(check.getStableKey()))
+                .replace("%description%", check.getDescription())
+                .replace("%stable_key%", check.getStableKey())
         ).replace("%verbose%", MessageUtil.miniMessageSafe(verbose));
     }
 
