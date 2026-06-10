@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.vehicle;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,8 +11,10 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "VehicleD", stableKey = "grim.vehicle.spoofed_jump", experimental = true, description = "Jumped in a vehicle that cannot jump")
+@CheckData(name = "VehicleD", stableKey = "grim.vehicle.spoofed_jump", experimental = true, description = "Jumped in a vehicle that cannot jump", verboseVersion = 1)
 public class VehicleD extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("present:bool", "entity:vi");
+
     public VehicleD(GrimPlayer player) {
         super(player);
     }
@@ -22,7 +25,7 @@ public class VehicleD extends Check implements PacketCheck {
             final EntityType vehicle = player.getVehicleType();
 
             if (!EntityTypes.isTypeInstanceOf(vehicle, EntityTypes.ABSTRACT_HORSE) && !EntityTypes.isTypeInstanceOf(vehicle, EntityTypes.ABSTRACT_NAUTILUS)) {
-                if (flagAndAlert("vehicle=" + (vehicle == null ? "null" : vehicle.getName().getKey().toLowerCase())) && shouldModifyPackets()) {
+                if (flagAndAlert(V.write(verbose()).bool(vehicle != null).vi(vehicle == null ? 0 : vehicle.getId(player.getClientVersion()))) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

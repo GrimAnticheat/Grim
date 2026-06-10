@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.chat;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
@@ -16,8 +17,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-@CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", description = "Moving while chatting", experimental = true)
+@CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", verboseVersion = 1, description = "Moving while chatting", experimental = true)
 public class ChatC extends Check implements PacketCheck {
+    public static final VerboseSchema V = MultiActionsC.verboseSchema();
+
     public ChatC(GrimPlayer player) {
         super(player);
     }
@@ -45,8 +48,12 @@ public class ChatC extends Check implements PacketCheck {
             return;
         }
 
-        String verbose = MultiActionsC.getVerbose(player);
-        if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
+        boolean sprinting = MultiActionsC.isVerboseSprinting(player);
+        boolean sneaking = MultiActionsC.isVerboseSneaking(player);
+        boolean input = MultiActionsC.isVerboseInput(player);
+        if ((sprinting || sneaking || input)
+                && flagAndAlert(V.write(verbose()).bool(sprinting).bool(sneaking).bool(input))
+                && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }

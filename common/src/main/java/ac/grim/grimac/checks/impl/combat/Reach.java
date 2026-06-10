@@ -16,6 +16,7 @@
 package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -53,15 +54,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-// You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away", setback = 10)
+@CheckData(name = "Reach", stableKey = "grim.combat.reach", verboseVersion = 1, description = "Attacked an entity from too far away", setback = 10)
 public class Reach extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("reach:f64", "entity:vi");
 
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
-    private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
+    private static final CheckResult NONE = new CheckResult(ResultType.NONE, 0, 0, false);
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
     private final Int2ObjectMap<InteractionData> playerAttackQueue = new Int2ObjectOpenHashMap<>();
@@ -232,11 +233,15 @@ public class Reach extends Check implements PacketCheck {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> {
-                    String added = ", type=" + reachEntity.getType().getName().getKey();
-                    if (reachEntity instanceof PacketEntitySizeable sizeable) {
-                        added += ", size=" + sizeable.size;
-                    }
-                    flagAndAlert(result.verbose() + added);
+                    flagAndAlert(
+                            V.write(verbose()).f64(result.minDistance()).vi(reachEntity.getType().getId(player.getClientVersion())),
+                            () -> {
+                                String added = ", type=" + reachEntity.getType().getName().getKey();
+                                if (reachEntity instanceof PacketEntitySizeable sizeable) {
+                                    added += ", size=" + sizeable.size;
+                                }
+                                return result.verbose() + added;
+                            });
                 }
                 case HITBOX -> {
                     String added = "type=" + reachEntity.getType().getName().getKey();
@@ -303,14 +308,10 @@ public class Reach extends Check implements PacketCheck {
         if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity) || reachEntity.getType() == EntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
-                return new CheckResult(ResultType.HITBOX, "");
+                return new CheckResult(ResultType.HITBOX, 0, 0, false);
             } else if (minDistance > maxReach) {
                 cancelBuffer = 1;
-                String verbose = String.format("%.5f", minDistance) + " blocks";
-                if (attackRangeMovement != null) {
-                    verbose += String.format(", extraMovement=%.5f", movementAllowance);
-                }
-                return new CheckResult(ResultType.REACH, verbose);
+                return new CheckResult(ResultType.REACH, minDistance, movementAllowance, attackRangeMovement != null);
             } else {
                 cancelBuffer = Math.max(0, cancelBuffer - 0.25);
             }
@@ -381,9 +382,21 @@ public class Reach extends Check implements PacketCheck {
         REACH, HITBOX, NONE
     }
 
-    private record CheckResult(ResultType type, String verbose) {
+    private record CheckResult(ResultType type, double minDistance, double extraMovement, boolean hasExtraMovement) {
         public boolean isFlag() {
             return type != ResultType.NONE;
+        }
+
+        public String verbose() {
+            if (type != ResultType.REACH) {
+                return "";
+            }
+
+            String verbose = String.format("%.5f", minDistance) + " blocks";
+            if (hasExtraMovement) {
+                verbose += String.format(", extraMovement=%.5f", extraMovement);
+            }
+            return verbose;
         }
     }
 

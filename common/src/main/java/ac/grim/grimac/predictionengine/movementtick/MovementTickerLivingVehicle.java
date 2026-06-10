@@ -14,6 +14,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);
+        this.movementInput = Input.createInput(player, 0, 0, 0);
     }
 
     @Override

@@ -156,12 +156,12 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
             Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimReloadEvent(success));
         });
 
-        eventBus.get(ac.grim.grimac.api.event.events.FlagEvent.class).onFlag(plugin, (user, check, verbose, cancelled) -> {
+        eventBus.subscribe(plugin, ac.grim.grimac.api.event.events.FlagEvent.class, event -> {
             ac.grim.grimac.api.events.FlagEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.FlagEvent(user, check, verbose);
+                    new ac.grim.grimac.api.events.FlagEvent(event.getUser(), event.getCheck(), event::getVerbose);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-            return cancelled || bukkitEvent.isCancelled();
-        });
+            event.setCancelled(event.isCancelled() || bukkitEvent.isCancelled());
+        }, 0, false, GrimACBukkitLoaderPlugin.class);
 
         eventBus.get(ac.grim.grimac.api.event.events.CommandExecuteEvent.class).onCommandExecute(plugin, (user, check, verbose, command, cancelled) -> {
             ac.grim.grimac.api.events.CommandExecuteEvent bukkitEvent =

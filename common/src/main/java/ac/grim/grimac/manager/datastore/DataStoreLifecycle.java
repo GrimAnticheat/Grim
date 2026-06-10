@@ -2,6 +2,27 @@ package ac.grim.grimac.manager.datastore;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsVerbose;
+import ac.grim.grimac.checks.impl.baritone.BaritoneVerbose;
+import ac.grim.grimac.checks.impl.breaking.BreakingVerbose;
+import ac.grim.grimac.checks.impl.chat.ChatVerbose;
+import ac.grim.grimac.checks.impl.combat.CombatVerbose;
+import ac.grim.grimac.checks.impl.combat.Reach;
+import ac.grim.grimac.checks.impl.crash.CrashVerbose;
+import ac.grim.grimac.checks.impl.elytra.ElytraVerbose;
+import ac.grim.grimac.checks.impl.exploit.ExploitVerbose;
+import ac.grim.grimac.checks.impl.misc.MiscVerbose;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsVerbose;
+import ac.grim.grimac.checks.impl.packetorder.PacketOrderVerbose;
+import ac.grim.grimac.checks.impl.prediction.GroundSpoof;
+import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
+import ac.grim.grimac.checks.impl.scaffolding.ScaffoldingVerbose;
+import ac.grim.grimac.checks.impl.sprint.SprintVerbose;
+import ac.grim.grimac.checks.impl.timer.TimerVerbose;
+import ac.grim.grimac.checks.impl.vehicle.VehicleVerbose;
+import ac.grim.grimac.checks.impl.velocity.VelocityVerbose;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.api.storage.DataStore;
@@ -21,6 +42,11 @@ import ac.grim.grimac.api.storage.identity.NameResolverLink;
 import ac.grim.grimac.api.storage.registry.MigrationContext;
 import ac.grim.grimac.api.storage.registry.StoreId;
 import ac.grim.grimac.api.storage.submit.ViolationSink;
+import ac.grim.grimac.api.storage.verbose.VerboseBuf;
+import ac.grim.grimac.api.storage.verbose.VerboseFormatter;
+import ac.grim.grimac.api.storage.verbose.VerboseRenderContext;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.internal.storage.backend.mongo.MongoBackendConfig;
 import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoBackendV2;
 import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoMigrationContext;
@@ -52,6 +78,11 @@ import ac.grim.grimac.internal.storage.migrate.V0Reader;
 import ac.grim.grimac.internal.storage.retention.RetentionSweeper;
 import ac.grim.grimac.internal.storage.submit.ViolationSinkImpl;
 import ac.grim.grimac.internal.storage.verbose.VerboseManifest;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistryImpl;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BsonBinarySubType;
 import org.bson.Document;
@@ -98,14 +129,15 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private DataStoreConfig config;
     private DataStoreImpl dataStore;
     private CheckRegistry checkRegistry;
+    private VerboseRegistry verboseRegistry;
     private HistoryServiceImpl historyService;
     private PlayerIdentityService playerIdentityService;
     private NameResolver nameResolver;
     private ViolationSinkImpl violationSink;
     private RetentionSweeper retentionSweeper;
-    private SessionTracker sessionTracker;
-    private LiveWriteHooks liveWriteHooks;
-    private PlayerToggleStore playerToggleStore;
+    private SessionTracker sessionTracker = SessionTracker.NOOP;
+    private LiveWriteHooks liveWriteHooks = LiveWriteHooks.NOOP;
+    private PlayerToggleStore playerToggleStore = PlayerToggleStore.NOOP;
     private V2InstanceRegistry instanceRegistry;
     private HeartbeatScheduler heartbeatScheduler;
     private UUID instanceId;
@@ -141,6 +173,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         if (!builder.enabled()) {
             logger.info("[grim-datastore] disabled in database.yml — skipping storage init");
             this.enabled = false;
+            installLocalVerboseRegistry();
             return;
         }
         try {
@@ -148,6 +181,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "[grim-datastore] database.yml rejected — storage disabled", e);
             this.enabled = false;
+            installLocalVerboseRegistry();
             return;
         }
 
@@ -157,6 +191,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage — falling back to disabled", e);
             this.enabled = false;
             try { teardown(); } catch (Exception ignore) {}
+            installLocalVerboseRegistry();
         }
     }
 
@@ -179,6 +214,12 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "[grim-datastore] v2 backend init failed for '" + backendId + "'", e);
+                try { v2.close(); }
+                catch (Exception closeFailure) {
+                    logger.log(Level.WARNING,
+                            "[grim-datastore] v2 backend close after failed init failed for '"
+                                    + backendId + "'", closeFailure);
+                }
                 continue;
             }
             this.v2Backends.add(v2);
@@ -244,43 +285,82 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
 
         V2Routes routes = routesBuilder.build();
+        if (routes.isEmpty()) {
+            throw new RuntimeException("no v2 routes installed");
+        }
         CategoryRouter router = startupRouteInstalled
                 ? new CategoryRouter(Map.of(V2InstanceRegistry.STARTUPS, V2InstanceRegistry.ROUTER_SENTINEL_BACKEND))
                 : new CategoryRouter(Map.of());
         this.dataStore = new DataStoreImpl(router, config.writePath(), logger);
         this.dataStore.withV2Routes(routes);
         this.dataStore.start();
+        this.verboseRegistry = buildVerboseRegistry();
 
         logger.info("[grim-datastore] v2 cutover complete: " + v2ById.size()
                 + " v2 backend(s), " + routes + " routes installed, 0 legacy backends");
 
-        if (!buildServices()) {
+        if (!buildServices(routes)) {
             disableStorageAfterDuplicate();
             return false;
         }
         return true;
     }
 
-    private boolean buildServices() {
+    private boolean buildServices(@NotNull V2Routes routes) {
         V2InstanceRegistry.StartupClaim claim = startInstanceRegistry();
         if (claim != null && claim.duplicate()) {
             startDuplicateWarning(claim.warningMessage());
             return false;
         }
 
-        this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
-                config.history().entriesPerPage(), config.history().groupIntervalMs())
-                .withV2Startups(Categories.SERVER_STARTUP);
+        boolean sessionRouted = routes.contains(Categories.SESSION);
+        boolean violationRouted = routes.contains(Categories.VIOLATION);
+        boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
+        boolean settingRouted = routes.contains(Categories.SETTING);
+
+        if (sessionRouted && violationRouted) {
+            this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
+                    config.history().entriesPerPage(), config.history().groupIntervalMs())
+                    .withV2Startups(Categories.SERVER_STARTUP)
+                    .withVerboseRegistry(verboseRegistry);
+        } else {
+            logger.warning("[grim-datastore] history disabled; missing "
+                    + missingRoutes(sessionRouted, "session", violationRouted, "violation"));
+        }
         this.playerIdentityService = new PlayerIdentityService(dataStore);
-        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain());
-        this.violationSink = new ViolationSinkImpl(dataStore);
+        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
+        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
         this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
-        this.sessionTracker = new SessionTrackerImpl(
-                dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
-        this.liveWriteHooks = new LiveWriteHooksImpl(
-                dataStore, playerIdentityService, checkRegistry, sessionTracker);
-        this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        if (sessionRouted) {
+            this.sessionTracker = new SessionTrackerImpl(
+                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
+        } else {
+            this.sessionTracker = SessionTracker.NOOP;
+            logger.warning("[grim-datastore] session tracking disabled; missing session route");
+        }
+        if (sessionRouted && violationRouted) {
+            this.liveWriteHooks = new LiveWriteHooksImpl(
+                    dataStore, playerIdentityService, checkRegistry, sessionTracker);
+        } else if (playerIdentityRouted) {
+            this.liveWriteHooks = new IdentityLiveWriteHooks(playerIdentityService);
+        } else {
+            this.liveWriteHooks = LiveWriteHooks.NOOP;
+        }
+        if (settingRouted) {
+            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        } else {
+            this.playerToggleStore = PlayerToggleStore.NOOP;
+            logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
+        }
         return true;
+    }
+
+    private static @NotNull String missingRoutes(
+            boolean firstPresent, @NotNull String first,
+            boolean secondPresent, @NotNull String second) {
+        if (!firstPresent && !secondPresent) return first + " and " + second + " routes";
+        if (!firstPresent) return first + " route";
+        return second + " route";
     }
 
     private @Nullable V2InstanceRegistry.StartupClaim startInstanceRegistry() {
@@ -296,7 +376,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             return null;
         }
 
-        byte[] verboseManifest = VerboseManifest.textOnly(VerboseManifest.FLAVOR_V2_PUBLIC);
+        byte[] verboseManifest = VerboseManifest.encode(
+                VerboseManifest.FLAVOR_V2_PUBLIC,
+                verboseRegistry.checkIdVersions(checkRegistry));
         V2InstanceRegistry.StartupClaim claim = instanceRegistry.claimStartup(
                 config.serverName(),
                 instanceId,
@@ -323,6 +405,161 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                 logger);
         heartbeatScheduler.start();
         return claim;
+    }
+
+    private @NotNull VerboseRegistry buildVerboseRegistry() {
+        VerboseRegistry registry = new VerboseRegistryImpl(
+                dataStore,
+                checkRegistry,
+                VerboseManifest.FLAVOR_V2_PUBLIC);
+        BadPacketsVerbose.register(registry, checkRegistry);
+        BaritoneVerbose.register(registry, checkRegistry);
+        BreakingVerbose.register(registry, checkRegistry);
+        CrashVerbose.register(registry, checkRegistry);
+        ScaffoldingVerbose.register(registry, checkRegistry);
+        MultiActionsVerbose.register(registry, checkRegistry);
+        ChatVerbose.register(registry, checkRegistry);
+        CombatVerbose.register(registry, checkRegistry);
+        VehicleVerbose.register(registry, checkRegistry);
+        VelocityVerbose.register(registry, checkRegistry);
+        TimerVerbose.register(registry, checkRegistry);
+        ExploitVerbose.register(registry, checkRegistry);
+        SprintVerbose.register(registry, checkRegistry);
+        MiscVerbose.register(registry, checkRegistry);
+        ElytraVerbose.register(registry, checkRegistry);
+        PacketOrderVerbose.register(registry, checkRegistry);
+        registerVerboseSchema(registry, OffsetHandler.class, OffsetHandler.V);
+        registerVerboseFormatter(registry, OffsetHandler.class, simulationFormatter());
+        registerVerboseSchema(registry, GroundSpoof.class, GroundSpoof.V);
+        registerVerboseFormatter(registry, GroundSpoof.class, groundSpoofFormatter());
+        registerVerboseSchema(registry, Reach.class, Reach.V);
+        registerVerboseFormatter(registry, Reach.class, reachFormatter());
+        return registry;
+    }
+
+    private void installLocalVerboseRegistry() {
+        try {
+            CheckRegistry localChecks = new CheckRegistry(new InMemoryCheckCatalogPersistence());
+            localChecks.reload();
+            this.checkRegistry = localChecks;
+            this.verboseRegistry = buildVerboseRegistry();
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING,
+                    "[grim-datastore] failed to initialise local verbose registry", e);
+        }
+    }
+
+    private static @NotNull VerboseFormatter simulationFormatter() {
+        return new VerboseFormatter() {
+            @Override
+            public int version() {
+                return OffsetHandler.V.version();
+            }
+
+            @Override
+            public void render(
+                    @NotNull VerboseBuf in,
+                    @NotNull VerboseRenderContext ctx,
+                    @NotNull VerboseSink out) {
+                out.text(OffsetHandler.humanFormattedOffset(in.rf64()));
+            }
+        };
+    }
+
+    private static @NotNull VerboseFormatter groundSpoofFormatter() {
+        return new VerboseFormatter() {
+            @Override
+            public int version() {
+                return GroundSpoof.V.version();
+            }
+
+            @Override
+            public void render(
+                    @NotNull VerboseBuf in,
+                    @NotNull VerboseRenderContext ctx,
+                    @NotNull VerboseSink out) {
+                out.text("claimed ").bool(in.rbool());
+            }
+        };
+    }
+
+    private static @NotNull VerboseFormatter reachFormatter() {
+        return new VerboseFormatter() {
+            @Override
+            public int version() {
+                return Reach.V.version();
+            }
+
+            @Override
+            public void render(
+                    @NotNull VerboseBuf in,
+                    @NotNull VerboseRenderContext ctx,
+                    @NotNull VerboseSink out) {
+                double reach = in.rf64();
+                int entityId = in.rvi();
+                out.text(String.format("%.5f", reach))
+                        .text(" blocks")
+                        .text(", type=")
+                        .text(resolveEntityName(ctx.clientVersionPvn(), entityId));
+            }
+        };
+    }
+
+    private static @NotNull String resolveEntityName(int clientVersionPvn, int entityId) {
+        EntityType entityType = EntityTypes.getById(ClientVersion.getById(clientVersionPvn), entityId);
+        return entityType == null ? "unknown" : entityType.getName().getKey();
+    }
+
+    private void registerVerboseFormatter(
+            @NotNull VerboseRegistry registry,
+            @NotNull Class<? extends Check> checkClass,
+            @NotNull VerboseFormatter formatter) {
+        CheckData data = checkClass.getAnnotation(CheckData.class);
+        if (data == null) {
+            throw new IllegalStateException(checkClass.getName() + " is missing @CheckData");
+        }
+        if (data.stableKey().isBlank()) {
+            throw new IllegalStateException(checkClass.getName() + " is missing a stableKey");
+        }
+        if (formatter.version() != data.verboseVersion()) {
+            throw new IllegalStateException(checkClass.getName() + " verbose formatter v"
+                    + formatter.version() + " does not match @CheckData verboseVersion="
+                    + data.verboseVersion());
+        }
+
+        registry.registerFormatter(data.stableKey(), formatter);
+    }
+
+    private void registerVerboseSchema(
+            @NotNull VerboseRegistry registry,
+            @NotNull Class<? extends Check> checkClass,
+            @NotNull VerboseSchema schema) {
+        CheckData data = checkClass.getAnnotation(CheckData.class);
+        if (data == null) {
+            throw new IllegalStateException(checkClass.getName() + " is missing @CheckData");
+        }
+        if (data.stableKey().isBlank()) {
+            throw new IllegalStateException(checkClass.getName() + " is missing a stableKey");
+        }
+        if (data.verboseVersion() < 1) {
+            throw new IllegalStateException(checkClass.getName() + " is missing verboseVersion");
+        }
+        if (schema.version() != data.verboseVersion()) {
+            throw new IllegalStateException(checkClass.getName() + " verbose schema v"
+                    + schema.version() + " does not match @CheckData verboseVersion="
+                    + data.verboseVersion());
+        }
+
+        checkRegistry.intern(data.stableKey(), data.name(), data.description(), safePluginVersion());
+        registry.register(data.stableKey(), schema);
+    }
+
+    private @Nullable String safePluginVersion() {
+        try {
+            return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     private long instanceHeartbeatIntervalMs() {
@@ -379,10 +616,11 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         nameResolver = null;
         violationSink = null;
         retentionSweeper = null;
-        sessionTracker = null;
-        liveWriteHooks = null;
-        playerToggleStore = null;
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
         instanceRegistry = null;
+        verboseRegistry = null;
         loaded = false;
         enabled = false;
     }
@@ -508,6 +746,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         if (cat == Categories.VIOLATION) {
             out.put(cat, new V2BackendBootstrap.Binding<>(
                     StoreId.grim("grim_violations"), V2BuiltinKinds.violations()));
+            out.put(Categories.VERBOSE_SCHEMA, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim("verbose_schemas"), V2BuiltinKinds.verboseSchemas()));
         } else if (cat == Categories.SESSION) {
             out.put(cat, new V2BackendBootstrap.Binding<>(
                     StoreId.grim("grim_sessions"), V2BuiltinKinds.sessions()));
@@ -577,11 +817,21 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         v2Backends.clear();
     }
 
-    private NameResolver buildNameResolver(DataStore store, List<String> chain) {
+    private NameResolver buildNameResolver(
+            DataStore store,
+            List<String> chain,
+            boolean playerIdentityRouted) {
         List<NameResolverLink> links = new ArrayList<>();
         for (String id : chain) {
             switch (id) {
-                case "local-cache" -> links.add(new LocalCacheLink(store));
+                case "local-cache" -> {
+                    if (playerIdentityRouted) {
+                        links.add(new LocalCacheLink(store));
+                    } else {
+                        logger.warning("[grim-datastore] name resolver local-cache disabled; "
+                                + "missing player-identity route");
+                    }
+                }
                 case "offline-mode-uuid" -> links.add(new OfflineModeUuidLink());
                 default -> logger.warning("[grim-datastore] unknown name-resolver link: " + id);
             }
@@ -674,7 +924,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             heartbeatScheduler = null;
         }
         shutdownInstanceRegistry();
-        if (playerToggleStore != null) playerToggleStore.shutdown();
+        playerToggleStore.shutdown();
         if (violationSink != null) violationSink.shutDown();
         if (dataStore != null) {
             long drainMs = config != null ? config.writePath().shutdownDrainTimeoutMs() : 5000L;
@@ -687,10 +937,11 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         nameResolver = null;
         violationSink = null;
         retentionSweeper = null;
-        sessionTracker = null;
-        liveWriteHooks = null;
-        playerToggleStore = null;
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
         instanceRegistry = null;
+        verboseRegistry = null;
         instanceId = null;
         startupId = null;
         startupStartedEpochMs = 0L;
@@ -722,26 +973,27 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     public @Nullable NameResolver nameResolver() { return nameResolver; }
     public @Nullable ViolationSink violationSink() { return violationSink; }
     public @Nullable DataStoreConfig config() { return config; }
+    public @Nullable VerboseRegistry verboseRegistry() { return verboseRegistry; }
 
     /**
      * The live-writes facade used by {@code PunishmentManager} and
      * {@code PacketPlayerJoinQuit}. Returns {@link LiveWriteHooks#NOOP} when
      * the datastore is disabled or its init failed — callers don't null-check.
      */
-    public @NotNull LiveWriteHooks liveWriteHooks() { return loaded ? liveWriteHooks : LiveWriteHooks.NOOP; }
+    public @NotNull LiveWriteHooks liveWriteHooks() { return liveWriteHooks; }
 
     /**
      * The live session tracker. Returns {@link SessionTracker#NOOP} when the
      * datastore is disabled or its init failed.
      */
-    public @NotNull SessionTracker sessionTracker() { return loaded ? sessionTracker : SessionTracker.NOOP; }
+    public @NotNull SessionTracker sessionTracker() { return sessionTracker; }
 
     /**
      * Persistence layer for the per-player /grim alerts | verbose | brands
      * toggles. Returns {@link PlayerToggleStore#NOOP} when the datastore is
      * disabled or its init failed.
      */
-    public @NotNull PlayerToggleStore playerToggleStore() { return loaded ? playerToggleStore : PlayerToggleStore.NOOP; }
+    public @NotNull PlayerToggleStore playerToggleStore() { return playerToggleStore; }
 
     /**
      * Admin-command escape hatch used by {@code /grim history migrate} to target

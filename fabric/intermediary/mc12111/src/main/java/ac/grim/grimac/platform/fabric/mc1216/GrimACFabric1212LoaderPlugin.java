@@ -1,6 +1,8 @@
 package ac.grim.grimac.platform.fabric.mc1216;
 
 import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
+import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
+import ac.grim.grimac.platform.fabric.manager.FabricCloudPlatformCommandArguments;
 import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin;
 import ac.grim.grimac.platform.fabric.mc1194.entity.Fabric1194GrimEntity;
 import ac.grim.grimac.platform.fabric.mc1194.player.Fabric1193PlatformInventory;
@@ -18,7 +20,7 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
 
     public GrimACFabric1212LoaderPlugin() {
         super(
-                GrimACFabricIntermediaryLoaderPlugin::createCommandArguments,
+                GrimACFabric1212LoaderPlugin::createCommandArguments,
                 new FabricPlatformPlayerFactory(
                         Fabric1212PlatformPlayer::new,
                         Fabric1194GrimEntity::new,
@@ -31,6 +33,13 @@ public class GrimACFabric1212LoaderPlugin extends GrimACFabric1190LoaderPlugin {
                 PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_21_5)
                         ? new Fabric1216ConversionUtil() : new Fabric1205ConversionUtil()
         );
+    }
+
+    public static FabricCloudPlatformCommandArguments createCommandArguments() {
+        return new FabricCloudPlatformCommandArguments(new FabricPlayerSelectorParser<>(
+                selector -> LOADER.getFabricSenderFactory().wrap(selector.single().createCommandSourceStack()),
+                selector -> selector.inputString()
+        ));
     }
 
     @Override

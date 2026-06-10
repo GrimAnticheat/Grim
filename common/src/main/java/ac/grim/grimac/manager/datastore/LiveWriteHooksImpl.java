@@ -97,6 +97,32 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
     }
 
     @Override
+    public void recordFlagData(
+            @NotNull UUID playerUuid,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData,
+            long now,
+            @NotNull SessionTracker.ClientMeta meta) {
+        UUID sessionId = sessionTracker.currentSessionId(playerUuid);
+        if (sessionId == null) {
+            // See recordFlag(): binary verbose uses the same synthesized-session fallback.
+            sessionId = sessionTracker.observeActivity(playerUuid, now, meta);
+        }
+        final int checkId = resolveCheckId(check);
+        final UUID sid = sessionId;
+        final byte[] payload = verboseData == null ? null : verboseData.clone();
+        store.submit(Categories.VIOLATION, e -> e
+                .sessionId(sid)
+                .playerUuid(playerUuid)
+                .checkId(checkId)
+                .vl(vl)
+                .occurredEpochMs(now)
+                .verboseData(payload)
+                .verboseFormat(VerboseFormat.STRUCTURED_V1));
+    }
+
+    @Override
     public void onJoinFromUserLogin(@NotNull PlatformPlayer player, @NotNull User user, long now) {
         GrimPlayer gp = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         onJoin(player.getUniqueId(), player.getName(), now, LiveWriteHooks.clientMetaFor(user, gp));
@@ -127,6 +153,20 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
         } catch (RuntimeException e) {
             // Don't let a datastore issue break the alert path; the legacy
             // write already ran when we got here. One warn, then swallow.
+            LogUtil.warn("v1 datastore recordFlag failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void recordFlagDataFromCheck(
+            @NotNull GrimPlayer player,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData) {
+        try {
+            recordFlagData(player.uuid, check, vl, verboseData, System.currentTimeMillis(), SessionTracker.ClientMeta.empty());
+        } catch (RuntimeException e) {
+            // Don't let a datastore issue break the check path.
             LogUtil.warn("v1 datastore recordFlag failed: " + e.getMessage());
         }
     }
