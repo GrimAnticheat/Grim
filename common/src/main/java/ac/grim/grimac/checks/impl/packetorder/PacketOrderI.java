@@ -17,7 +17,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
+<<<<<<< HEAD
 @CheckData(name = "PacketOrderI", stableKey = "grim.packetorder.input_tick_order", verboseVersion = 1, description = "Sent combat, use, release, or digging packets in an invalid tick order", experimental = true)
+=======
+@CheckData(name = "PacketOrderI", stableKey = "grim.packetorder.input_tick_order", experimental = true, verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class PacketOrderI extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of(
             "type:vi",

@@ -8,7 +8,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
+<<<<<<< HEAD
 @CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", verboseVersion = 1, description = "Sent movement packets slower than the expected client tick rate", setback = -1, experimental = true)
+=======
+@CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", setback = -1, experimental = true, verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class NegativeTimer extends Timer implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("lostMS:vl");
 

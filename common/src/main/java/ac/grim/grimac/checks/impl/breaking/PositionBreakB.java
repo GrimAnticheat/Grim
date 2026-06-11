@@ -11,7 +11,11 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
+<<<<<<< HEAD
 @CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", verboseVersion = 2, description = "Cancelled block breaking with an invalid block face")
+=======
+@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", verboseVersion = 2)
+>>>>>>> upstream/2.0
 public class PositionBreakB extends Check implements BlockBreakCheck {
     public static final VerboseSchema V = VerboseSchema.of(2, "lastFace:enum", "action:enum");
 

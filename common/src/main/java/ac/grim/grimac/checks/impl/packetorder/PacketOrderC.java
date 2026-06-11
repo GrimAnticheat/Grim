@@ -15,7 +15,11 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
+<<<<<<< HEAD
 @CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", verboseVersion = 2, description = "Sent INTERACT and INTERACT_AT entity packets in the wrong order")
+=======
+@CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", verboseVersion = 2)
+>>>>>>> upstream/2.0
 public class PacketOrderC extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of(2,
             "kind:vi",

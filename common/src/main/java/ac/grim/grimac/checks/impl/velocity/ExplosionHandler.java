@@ -28,7 +28,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Deque;
 import java.util.LinkedList;
 
+<<<<<<< HEAD
 @CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", verboseVersion = 1, description = "Did not take the expected explosion knockback", setback = 10)
+=======
+@CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", setback = 10, verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class ExplosionHandler extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("ignored:bool", "offset:f64");
 

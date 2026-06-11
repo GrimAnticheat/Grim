@@ -23,7 +23,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+<<<<<<< HEAD
 @CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", verboseVersion = 2, description = "Tried to break a block without looking at it", experimental = true)
+=======
+@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", verboseVersion = 2, experimental = true)
+>>>>>>> upstream/2.0
 public class RotationBreak extends Check implements BlockBreakCheck {
     public static final VerboseSchema V = VerboseSchema.of(2, "preFlying:bool", "action:enum");
 

@@ -10,7 +10,11 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
+<<<<<<< HEAD
 @CheckData(name = "GroundSpoof", stableKey = "grim.groundspoof.fake", verboseVersion = 1, description = "Claimed to be on ground when predicted otherwise", setback = 10, decay = 0.01)
+=======
+@CheckData(name = "GroundSpoof", stableKey = "grim.groundspoof.fake", verboseVersion = 1, setback = 10, decay = 0.01)
+>>>>>>> upstream/2.0
 public class GroundSpoof extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("claimed:bool");
 

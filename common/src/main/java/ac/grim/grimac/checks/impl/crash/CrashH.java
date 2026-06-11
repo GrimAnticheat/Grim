@@ -9,7 +9,11 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
+<<<<<<< HEAD
 @CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete", verboseVersion = 1, description = "Sent a tab complete request with invalid or excessive length")
+=======
+@CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete", verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class CrashH extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("lengthLimit:bool", "length:zz");
 

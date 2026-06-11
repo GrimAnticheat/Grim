@@ -14,7 +14,11 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
+<<<<<<< HEAD
 @CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", verboseVersion = 1, description = "Sent an entity interaction vector outside the target player's hitbox")
+=======
+@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class BadPacketsT extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("x:f64", "y:f64", "z:f64");
 

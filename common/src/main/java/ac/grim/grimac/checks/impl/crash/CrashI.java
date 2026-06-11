@@ -9,7 +9,11 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSelectBundleItem;
 
+<<<<<<< HEAD
 @CheckData(name = "CrashI", stableKey = "grim.crash.invalid_bundle_slot", verboseVersion = 1, description = "Sent a bundle item selection with an invalid negative slot index")
+=======
+@CheckData(name = "CrashI", stableKey = "grim.crash.invalid_bundle_slot", verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class CrashI extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("selectedItemIndex:zz");
 

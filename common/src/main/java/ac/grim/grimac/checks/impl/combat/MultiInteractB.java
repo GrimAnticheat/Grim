@@ -14,7 +14,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 import java.util.ArrayList;
 
+<<<<<<< HEAD
 @CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", verboseVersion = 1, description = "Sent multiple entity interaction packets with different hit positions in one tick", experimental = true)
+=======
+@CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", verboseVersion = 1, experimental = true)
+>>>>>>> upstream/2.0
 public class MultiInteractB extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of(
             "posX:f64", "posY:f64", "posZ:f64", "lastPosX:f64", "lastPosY:f64", "lastPosZ:f64");
@@ -80,4 +84,8 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             double lastPosY,
             double lastPosZ) {
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> upstream/2.0

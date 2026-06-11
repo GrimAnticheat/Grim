@@ -14,7 +14,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
+<<<<<<< HEAD
 @CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", verboseVersion = 1, description = "Managed hotbar or inventory while performing another conflicting action", experimental = true)
+=======
+@CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", experimental = true, verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class PacketOrderG extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of(
             "action:vi",
@@ -132,4 +136,8 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
             boolean picking,
             boolean digging) {
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> upstream/2.0

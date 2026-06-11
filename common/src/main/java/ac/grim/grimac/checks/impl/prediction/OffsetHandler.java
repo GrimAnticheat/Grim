@@ -12,7 +12,11 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+<<<<<<< HEAD
 @CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", verboseVersion = 1, description = "Moved differently than predicted movement simulation", decay = 0.02)
+=======
+@CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", verboseVersion = 1, decay = 0.02)
+>>>>>>> upstream/2.0
 public class OffsetHandler extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("offset:f64");
 

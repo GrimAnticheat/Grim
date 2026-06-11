@@ -12,7 +12,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 
 import java.util.ArrayDeque;
 
+<<<<<<< HEAD
 @CheckData(name = "PacketOrderK", stableKey = "grim.packetorder.inventory_open_order", verboseVersion = 1, description = "Opened, clicked, or closed inventory in the wrong packet order", experimental = true)
+=======
+@CheckData(name = "PacketOrderK", stableKey = "grim.packetorder.inventory_open_order", experimental = true, verboseVersion = 1)
+>>>>>>> upstream/2.0
 public class PacketOrderK extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("kind:vi", "clicking:bool", "closing:bool");
 

@@ -16,7 +16,11 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
+<<<<<<< HEAD
 @CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", verboseVersion = 2, description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
+=======
+@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", verboseVersion = 2, experimental = true)
+>>>>>>> upstream/2.0
 public class MultiBreak extends Check implements BlockBreakCheck {
     public static final VerboseSchema V = VerboseSchema.of(2,
             "face:enum", "lastFace:enum", "posXZ:vl", "posY:zz", "lastPosXZ:vl", "lastPosY:zz");
@@ -81,4 +85,8 @@ public class MultiBreak extends Check implements BlockBreakCheck {
 
     private record FlagData(int face, int previousFace, Vector3i pos, Vector3i previousPos) {
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> upstream/2.0
