@@ -7,11 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
-<<<<<<< HEAD
 @CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", verboseVersion = 1, description = "Repeated the same rotation delta while placing blocks", experimental = true)
-=======
-@CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", verboseVersion = 1, experimental = true)
->>>>>>> upstream/2.0
 public class DuplicateRotPlace extends BlockPlaceCheck {
     public static final VerboseSchema V = VerboseSchema.of("x:f64", "xdots:f64", "y:f64");
 

@@ -12,11 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-<<<<<<< HEAD
 @CheckData(name = "PacketOrderO", stableKey = "grim.packetorder.tick_end_order", verboseVersion = 2, description = "Sent packets after movement before the expected client tick end", experimental = true)
-=======
-@CheckData(name = "PacketOrderO", stableKey = "grim.packetorder.tick_end_order", experimental = true, verboseVersion = 2)
->>>>>>> upstream/2.0
 public class PacketOrderO extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of(2, "packetId:zz");
 

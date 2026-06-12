@@ -9,11 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
-<<<<<<< HEAD
 @CheckData(name = "CrashE", stableKey = "grim.crash.low_view_distance", verboseVersion = 1, description = "Sent a client view distance below the minimum allowed value")
-=======
-@CheckData(name = "CrashE", stableKey = "grim.crash.low_view_distance", verboseVersion = 1)
->>>>>>> upstream/2.0
 public class CrashE extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("distance:zz");
 

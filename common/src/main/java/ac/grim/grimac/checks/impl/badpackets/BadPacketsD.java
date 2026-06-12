@@ -9,11 +9,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-<<<<<<< HEAD
 @CheckData(name = "BadPacketsD", stableKey = "grim.badpackets.invalid_pitch", verboseVersion = 1, description = "Sent an invalid rotation pitch outside the -90 to 90 range")
-=======
-@CheckData(name = "BadPacketsD", stableKey = "grim.badpackets.invalid_pitch", verboseVersion = 1, description = "Impossible pitch")
->>>>>>> upstream/2.0
 public class BadPacketsD extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("pitch:f32");
 

@@ -8,11 +8,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-<<<<<<< HEAD
 @CheckData(name = "BadPacketsR", stableKey = "grim.badpackets.position_starvation", verboseVersion = 1, description = "Stopped sending position updates while still responding to transactions", decay = 0.25, experimental = true)
-=======
-@CheckData(name = "BadPacketsR", stableKey = "grim.badpackets.position_starvation", verboseVersion = 1, decay = 0.25, experimental = true)
->>>>>>> upstream/2.0
 public class BadPacketsR extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("timeMs:vl", "lastTransactionMs:vl", "positions:vi");
 

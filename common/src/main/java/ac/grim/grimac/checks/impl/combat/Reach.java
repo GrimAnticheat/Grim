@@ -54,12 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-<<<<<<< HEAD
 @CheckData(name = "Reach", stableKey = "grim.combat.reach", verboseVersion = 1, description = "Attacked an entity from too far away", setback = 10)
-=======
-// You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", stableKey = "grim.combat.reach", verboseVersion = 1, setback = 10)
->>>>>>> upstream/2.0
 public class Reach extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("reach:f64", "entity:vi");
 

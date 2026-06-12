@@ -11,11 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.ArrayDeque;
 
-<<<<<<< HEAD
 @CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", verboseVersion = 2, description = "Changed held item slot during another conflicting action", experimental = true)
-=======
-@CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", experimental = true, verboseVersion = 2)
->>>>>>> upstream/2.0
 public class PacketOrderE extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of(2, "flags:vi");
 
@@ -103,8 +99,4 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
     private static boolean has(int flags, int flag) {
         return (flags & flag) != 0;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> upstream/2.0

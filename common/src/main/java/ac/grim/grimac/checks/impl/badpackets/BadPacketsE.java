@@ -12,11 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-<<<<<<< HEAD
 @CheckData(name = "BadPacketsE", stableKey = "grim.badpackets.invalid_position", verboseVersion = 1, description = "Sent too many movement packets without updating position")
-=======
-@CheckData(name = "BadPacketsE", stableKey = "grim.badpackets.invalid_position", verboseVersion = 1)
->>>>>>> upstream/2.0
 public class BadPacketsE extends Check implements PacketCheck {
     public static final VerboseSchema V = VerboseSchema.of("ticks:vi");
 

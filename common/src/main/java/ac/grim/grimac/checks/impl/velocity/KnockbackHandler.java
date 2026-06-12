@@ -22,11 +22,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-<<<<<<< HEAD
 @CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", verboseVersion = 1, description = "Did not take the expected entity knockback", setback = 10, decay = 0.025)
-=======
-@CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025, verboseVersion = 1)
->>>>>>> upstream/2.0
 public class KnockbackHandler extends Check implements PostPredictionCheck {
     public static final VerboseSchema V = VerboseSchema.of("ignored:bool", "offset:f64");
 
