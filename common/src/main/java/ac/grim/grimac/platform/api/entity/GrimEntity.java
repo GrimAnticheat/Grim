@@ -3,7 +3,6 @@ package ac.grim.grimac.platform.api.entity;
 import ac.grim.grimac.api.GrimIdentity;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
 import ac.grim.grimac.utils.math.Location;
-import com.github.retrooper.packetevents.util.Vector3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -28,8 +27,4 @@ public interface GrimEntity extends GrimIdentity {
     Location getLocation();
 
     double distanceSquared(double x, double y, double z);
-
-    default boolean addVelocity(@NotNull Vector3d velocity) {
-        return false;
-    }
 }

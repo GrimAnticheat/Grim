@@ -8,9 +8,7 @@ import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -102,11 +100,5 @@ public class BukkitGrimEntity implements GrimEntity {
             double distZ = (z - oZ) * (z - oZ);
             return distX + distY + distZ;
         }
-    }
-
-    @Override
-    public boolean addVelocity(@NotNull Vector3d velocity) {
-        entity.setVelocity(entity.getVelocity().add(new Vector(velocity.getX(), velocity.getY(), velocity.getZ())));
-        return true;
     }
 }
