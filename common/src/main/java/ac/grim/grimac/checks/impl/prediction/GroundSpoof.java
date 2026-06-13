@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.prediction;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -9,8 +10,9 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "GroundSpoof", stableKey = "grim.groundspoof.fake", setback = 10, decay = 0.01)
+@CheckData(name = "GroundSpoof", stableKey = "grim.groundspoof.fake", verboseVersion = 1, setback = 10, decay = 0.01)
 public class GroundSpoof extends Check implements PostPredictionCheck {
+    public static final VerboseSchema V = VerboseSchema.of("claimed:bool");
 
     public GroundSpoof(GrimPlayer player) {
         super(player);
@@ -29,8 +31,9 @@ public class GroundSpoof extends Check implements PostPredictionCheck {
         // Viaversion sends wrong ground status... (doesn't matter but is annoying)
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        if (player.clientClaimsLastOnGround != player.onGround) {
-            flagAndAlertWithSetback("claimed " + player.clientClaimsLastOnGround);
+        boolean claimed = player.clientClaimsLastOnGround;
+        if (claimed != player.onGround) {
+            flagAndAlertWithSetback(V.write(verbose()).bool(claimed));
             player.checkManager.getNoFall().flipPlayerGroundStatus = true;
         }
     }

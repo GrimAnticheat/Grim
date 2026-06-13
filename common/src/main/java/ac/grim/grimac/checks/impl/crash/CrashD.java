@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -13,8 +14,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "CrashD", stableKey = "grim.crash.lectern", description = "Clicking slots in lectern window")
+@CheckData(name = "CrashD", stableKey = "grim.crash.lectern", verboseVersion = 1, description = "Clicking slots in lectern window")
 public class CrashD extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("clickType:zz", "button:zz");
 
     private MenuType type = MenuType.UNKNOWN;
     private int lecternId = -1;
@@ -41,7 +43,7 @@ public class CrashD extends Check implements PacketCheck {
             int windowId = click.getWindowId();
 
             if (type == MenuType.LECTERN && windowId > 0 && windowId == lecternId) {
-                if (flagAndAlert("clickType=" + clickType + " button=" + button)) {
+                if (flagAndAlert(V.write(verbose()).zz(clickType).zz(button))) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

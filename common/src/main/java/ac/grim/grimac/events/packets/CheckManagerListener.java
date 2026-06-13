@@ -25,7 +25,6 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -47,9 +46,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class CheckManagerListener extends PacketListenerAbstract {
@@ -420,24 +416,27 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
             if (flying.hasRotationChanged() && !flying.hasPositionChanged() && !flying.isOnGround() && !flying.isHorizontalCollision()) {
-                List<RotationData> rotations = new ArrayList<>();
+                RotationData last = null;
+                int transaction = player.getLastTransactionReceived();
+                float yaw = flying.getLocation().getYaw();
+                float pitch = flying.getLocation().getPitch();
 
                 for (RotationData data : player.pendingRotations) {
-                    rotations.add(data);
+                    if (transaction == data.getTransaction()
+                            && (data.isRelativeYaw() || data.getYaw() == yaw)
+                            // TODO: pitch bounds?
+                            && (data.isRelativePitch() || data.getPitch() == pitch)) {
+                        last = data;
+                    }
+
                     if (!data.isAccepted()) {
                         break;
                     }
                 }
 
-                // reverse to handle the unaccepted possibility first
-                Collections.reverse(rotations);
-
-                for (RotationData data : rotations) {
-                    if (data.getYaw() == flying.getLocation().getYaw() && data.getPitch() == flying.getLocation().getPitch() && data.getTransaction() == player.getLastTransactionReceived()) {
-                        player.packetStateData.lastPacketWasTeleport = true;
-                        data.accept(); // we could be wrong (especially in vehicles), don't remove this
-                        break;
-                    }
+                if (last != null) {
+                    player.packetStateData.lastPacketWasTeleport = true;
+                    last.accept(); // we could be wrong (especially in vehicles), don't remove this
                 }
             }
 
@@ -617,16 +616,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
-
-        final PacketTypeCommon packetType = event.getPacketType();
-        if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
-        }
-
-        if (packetType == PacketType.Play.Server.BUNDLE) {
-            player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
-        }
-
         player.checkManager.onPacketSend(event);
     }
 

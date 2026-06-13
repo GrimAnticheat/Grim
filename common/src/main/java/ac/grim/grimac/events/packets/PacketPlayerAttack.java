@@ -30,6 +30,11 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);

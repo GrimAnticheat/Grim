@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -11,10 +12,23 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
-@CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", experimental = true)
+@CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", experimental = true, verboseVersion = 1)
 public class PacketOrderD extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of(
+            "kind:vi", "requiredEntity:zz", "entity:zz", "requiredSneaking:bool", "sneaking:bool");
+
+    static final int KIND_SKIPPED_MAINHAND = 0;
+    static final int KIND_MISMATCH = 1;
+
     public PacketOrderD(final GrimPlayer player) {
         super(player);
+    }
+
+    static String literal(int kind) {
+        return switch (kind) {
+            case KIND_SKIPPED_MAINHAND -> "Skipped Mainhand";
+            default -> "unknown";
+        };
     }
 
     private boolean sentMainhand;
@@ -30,13 +44,15 @@ public class PacketOrderD extends Check implements PacketCheck {
                 final boolean sneaking = packet.isSneaking().orElse(false);
                 final int entity = packet.getEntityId();
 
-                // via inserts these wrong...
-                if (action == InteractAction.INTERACT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return;
-
                 if (packet.getHand() == InteractionHand.OFF_HAND) {
                     if (action == InteractAction.INTERACT || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) {
                         if (!sentMainhand) {
-                            if (flagAndAlert("Skipped Mainhand") && shouldModifyPackets()) {
+                            if (flagAndAlert(V.write(verbose())
+                                    .vi(KIND_SKIPPED_MAINHAND)
+                                    .zz(0)
+                                    .zz(0)
+                                    .bool(false)
+                                    .bool(false)) && shouldModifyPackets()) {
                                 event.setCancelled(true);
                                 player.onPacketCancel();
                             }
@@ -46,9 +62,12 @@ public class PacketOrderD extends Check implements PacketCheck {
 
                     if (action == InteractAction.INTERACT_AT) {
                         if (sneaking != requiredSneaking || entity != requiredEntity) {
-                            String verbose = "requiredEntity=" + requiredEntity + ", entity=" + entity
-                                    + ", requiredSneaking=" + requiredSneaking + ", sneaking=" + sneaking;
-                            if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                            if (flagAndAlert(V.write(verbose())
+                                    .vi(KIND_MISMATCH)
+                                    .zz(requiredEntity)
+                                    .zz(entity)
+                                    .bool(requiredSneaking)
+                                    .bool(sneaking)) && shouldModifyPackets()) {
                                 event.setCancelled(true);
                                 player.onPacketCancel();
                             }

@@ -1,13 +1,15 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
-@CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", experimental = true)
+@CheckData(name = "DuplicateRotPlace", stableKey = "grim.scaffolding.duplicate_rot_place", verboseVersion = 1, experimental = true)
 public class DuplicateRotPlace extends BlockPlaceCheck {
+    public static final VerboseSchema V = VerboseSchema.of("x:f64", "xdots:f64", "y:f64");
 
     private float deltaX, deltaY;
     private float lastPlacedDeltaX;
@@ -35,7 +37,7 @@ public class DuplicateRotPlace extends BlockPlaceCheck {
                 double xDiffDots = Math.abs(deltaDotsX - lastPlacedDeltaDotsX);
 
                 if (xDiff < 0.0001) {
-                    flagAndAlert("x=" + xDiff + " xdots=" + xDiffDots + " y=" + deltaY);
+                    flagAndAlert(V.write(verbose()).f64(xDiff).f64(xDiffDots).f64(deltaY));
                 } else {
                     reward();
                 }

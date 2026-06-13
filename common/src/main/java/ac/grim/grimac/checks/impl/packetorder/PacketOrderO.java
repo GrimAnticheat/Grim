@@ -1,7 +1,9 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -10,8 +12,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-@CheckData(name = "PacketOrderO", stableKey = "grim.packetorder.tick_end_order", experimental = true)
+@CheckData(name = "PacketOrderO", stableKey = "grim.packetorder.tick_end_order", experimental = true, verboseVersion = 2)
 public class PacketOrderO extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of(2, "packetId:zz");
+
     public PacketOrderO(final GrimPlayer player) {
         super(player);
     }
@@ -37,7 +41,8 @@ public class PacketOrderO extends Check implements PacketCheck {
                 }
             }
 
-            flagAndAlert("type=" + event.getPacketType());
+            int packetId = VerboseCodecs.packetId(event.getPacketType(), player.getClientVersion());
+            flagAndAlert(V.write(verbose()).zz(packetId));
         }
     }
 }

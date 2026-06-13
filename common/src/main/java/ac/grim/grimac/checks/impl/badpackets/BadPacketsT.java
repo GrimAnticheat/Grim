@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -13,8 +14,9 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector")
+@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", verboseVersion = 1)
 public class BadPacketsT extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("x:f64", "y:f64", "z:f64");
 
     private final double maxHorizontalDisplacement;
     private final double minVerticalDisplacement;
@@ -65,10 +67,8 @@ public class BadPacketsT extends Check implements PacketCheck {
             }
 
             // Log the vector
-            final String verbose = String.format("%.5f/%.5f/%.5f",
-                    targetVector.x, targetVector.y, targetVector.z);
             // We could pretty much ban the player at this point
-            flagAndAlert(verbose);
+            flagAndAlert(V.write(verbose()).f64(targetVector.x).f64(targetVector.y).f64(targetVector.z));
         }
     }
 }

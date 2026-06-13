@@ -1,12 +1,11 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -16,24 +15,17 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", description = "Did not swing for attack")
+@CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", verboseVersion = 1, description = "Did not swing for attack")
 public class PacketOrderB extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("action:vi");
+
+    static final int ACTION_POST_ATTACK = 0;
+    static final int ACTION_PRE_ATTACK = 1;
+
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT
     // I personally think 1.8 made much more sense. You swing and THEN you hit!
     private final boolean is1_9 = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
-
-    // There is a "bug" in ViaRewind
-    // 1.8 packet order: ANIMATION -> INTERACT
-    // 1.9 packet order: INTERACT -> ANIMATION
-    // ViaRewind, on 1.9+ servers, delays a 1.8 client's ANIMATION to be after INTERACT (but before flying).
-    // Which means we see 1.9 packet order for 1.8 clients
-    // Due to ViaRewind also delaying the swings, we then see packet order above 20CPS like:
-    // INTERACT -> INTERACT -> ANIMATION -> ANIMATION
-    // I will simply disable this check for 1.8- clients on 1.9+ servers as I can't be bothered to find a way around this.
-    // Stop supporting such old clients on modern servers!
-    private final boolean exempt = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
-            && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
 
     private boolean sentAnimationSinceLastAttack = player.getClientVersion().isNewerThan(ClientVersion.V_1_8);
     private boolean sentAttack, sentAnimation, sentSlotSwitch;
@@ -42,10 +34,16 @@ public class PacketOrderB extends Check implements PacketCheck {
         super(player);
     }
 
+    static String verbose(int action) {
+        return switch (action) {
+            case ACTION_POST_ATTACK -> "post-attack";
+            case ACTION_PRE_ATTACK -> "pre-attack";
+            default -> "unknown";
+        };
+    }
+
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (exempt) return;
-
         if (event.getPacketType() == PacketType.Play.Client.ANIMATION
             && new WrapperPlayClientAnimation(event).getHand() == InteractionHand.MAIN_HAND) {
             sentAnimationSinceLastAttack = sentAnimation = true;
@@ -81,7 +79,7 @@ public class PacketOrderB extends Check implements PacketCheck {
 
         if (!isAsync(event.getPacketType())) {
             if (sentAttack && is1_9) {
-                flagAndAlert("post-attack");
+                flagAndAlert(V.write(verbose()).vi(ACTION_POST_ATTACK));
             }
 
             sentAttack = sentAnimation = sentSlotSwitch = false;
@@ -95,7 +93,7 @@ public class PacketOrderB extends Check implements PacketCheck {
 
         if (is1_9 ? !sentAnimationSinceLastAttack : !sentAnimation) {
             sentAttack = false; // don't flag twice
-            if (flagAndAlert("pre-attack") && shouldModifyPackets()) {
+            if (flagAndAlert(V.write(verbose()).vi(ACTION_PRE_ATTACK)) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

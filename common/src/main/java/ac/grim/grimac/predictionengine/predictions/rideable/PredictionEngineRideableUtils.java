@@ -1,8 +1,9 @@
 package ac.grim.grimac.predictionengine.predictions.rideable;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
+import ac.grim.grimac.predictionengine.predictions.input.InputTransformer;
 import ac.grim.grimac.utils.data.IntToObjectPair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
@@ -40,18 +41,15 @@ public final class PredictionEngineRideableUtils {
         return possibleVectors;
     }
 
-    public static List<VectorData> applyInputsToVelocityPossibilities(Vector3dm movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        return applyInputsToVelocityPossibilities(new PredictionEngine(), movementVector, player, possibleVectors, speed);
-    }
-
-    public static List<VectorData> applyInputsToVelocityPossibilities(PredictionEngine predictionEngine, Vector3dm movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+    public static List<VectorData> applyInputsToVelocityPossibilities(Input movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
 
+        InputTransformer<?> inputTransformer = InputTransformer.getTransformer(player);
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int applyStuckSpeed = 1; applyStuckSpeed >= 0; applyStuckSpeed--) {
                 if (applyStuckSpeed == 0 && player.isForceStuckSpeed()) break;
 
-                VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(predictionEngine.getMovementResultFromInput(player, movementVector, speed, player.yaw)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(inputTransformer.getMovementResultFromInput(player, movementVector, speed, player.yaw)), possibleLastTickOutput, VectorData.VectorType.InputResult);
                 result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
                 Vector3dm vector = result.vector.clone();
                 if (applyStuckSpeed != 0) vector.multiply(player.stuckSpeedMultiplier);

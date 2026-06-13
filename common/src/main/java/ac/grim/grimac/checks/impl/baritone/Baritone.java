@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.baritone;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -10,8 +11,10 @@ import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.math.GrimMath;
 
 // This check has been patched by Baritone for a long time, and it also seems to false with cinematic camera now, so it is disabled.
-@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone")
+@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone", verboseVersion = 1)
 public class Baritone extends Check implements RotationCheck {
+    public static final VerboseSchema V = VerboseSchema.of("divisor:f64");
+
     private int verbose;
 
     public Baritone(GrimPlayer playerData) {
@@ -30,7 +33,8 @@ public class Baritone extends Check implements RotationCheck {
             if (rotationUpdate.getProcessor().divisorY < GrimMath.MINIMUM_DIVISOR) {
                 verbose++;
                 if (verbose > 8) {
-                    flagAndAlert("Divisor " + AimProcessor.convertToSensitivity(rotationUpdate.getProcessor().divisorX));
+                    double divisor = AimProcessor.convertToSensitivity(rotationUpdate.getProcessor().divisorX);
+                    flagAndAlert(V.write(verbose()).f64(divisor));
                 }
             } else {
                 verbose = 0;

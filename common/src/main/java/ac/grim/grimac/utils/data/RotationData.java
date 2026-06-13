@@ -13,11 +13,17 @@ import org.jetbrains.annotations.Contract;
 public final class RotationData {
     private final float yaw;
     private final float pitch;
+    private final boolean relativeYaw;
+    private final boolean relativePitch;
     private final int transaction;
     private boolean accepted;
 
     @Contract(mutates = "this")
     public void accept() {
         this.accepted = true;
+    }
+
+    public boolean allowRotation(float yaw, float pitch) {
+        return (this.relativeYaw || this.yaw == yaw) && (this.relativePitch || this.pitch == pitch);
     }
 }

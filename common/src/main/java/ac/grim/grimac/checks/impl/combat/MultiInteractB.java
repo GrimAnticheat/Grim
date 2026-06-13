@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -13,9 +14,12 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", experimental = true)
+@CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", verboseVersion = 1, experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
-    private final ArrayList<String> flags = new ArrayList<>();
+    public static final VerboseSchema V = VerboseSchema.of(
+            "posX:f64", "posY:f64", "posZ:f64", "lastPosX:f64", "lastPosY:f64", "lastPosZ:f64");
+
+    private final ArrayList<FlagData> flags = new ArrayList<>();
     private Vector3d lastPos;
     private boolean hasInteracted;
 
@@ -33,14 +37,14 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             if (pos == null) return; // shouldn't ever happen, but whatever
 
             if (hasInteracted && !pos.equals(lastPos)) {
-                String verbose = "pos=" + MessageUtil.toUnlabledString(pos) + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                    if (flagAndAlert(V.write(verbose()).f64(pos.x).f64(pos.y).f64(pos.z).f64(lastPos.x).f64(lastPos.y).f64(lastPos.z))
+                            && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
                 } else {
-                    flags.add(verbose);
+                    flags.add(new FlagData(pos.x, pos.y, pos.z, lastPos.x, lastPos.y, lastPos.z));
                 }
             }
 
@@ -58,11 +62,22 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (String verbose : flags) {
-                flagAndAlert(verbose);
+            for (FlagData data : flags) {
+                flagAndAlert(V.write(verbose())
+                        .f64(data.posX()).f64(data.posY()).f64(data.posZ())
+                        .f64(data.lastPosX()).f64(data.lastPosY()).f64(data.lastPosZ()));
             }
         }
 
         flags.clear();
+    }
+
+    private record FlagData(
+            double posX,
+            double posY,
+            double posZ,
+            double lastPosX,
+            double lastPosY,
+            double lastPosZ) {
     }
 }

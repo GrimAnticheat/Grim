@@ -15,13 +15,10 @@ public class VehicleB extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
-            if (!player.inVehicle()) {
-                if (flagAndAlert() && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-            }
+        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE && !player.inVehicle()
+                && flagAndAlert() && shouldModifyPackets()) {
+            event.setCancelled(true);
+            player.onPacketCancel();
         }
     }
 }

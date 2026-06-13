@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -8,8 +9,9 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
-@CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete")
+@CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete", verboseVersion = 1)
 public class CrashH extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("lengthLimit:bool", "length:zz");
 
     public CrashH(GrimPlayer player) {
         super(player);
@@ -27,7 +29,7 @@ public class CrashH extends Check implements PacketCheck {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
-                flagAndAlert("(length) length=" + length);
+                flagAndAlert(V.write(verbose()).bool(true).zz(length));
                 return;
             }
             // paper's patch
@@ -37,7 +39,7 @@ public class CrashH extends Check implements PacketCheck {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
-                flagAndAlert("(invalid) length=" + length);
+                flagAndAlert(V.write(verbose()).bool(false).zz(length));
             }
         }
     }

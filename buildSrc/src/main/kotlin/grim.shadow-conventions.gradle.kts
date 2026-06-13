@@ -6,7 +6,12 @@ plugins {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    minimize()
+    minimize {
+        // adventure's DataComponentValueConverter gson provider is only referenced via
+        // ServiceLoader, so minimize() strips it and adventure's static init then throws
+        // (ServiceConfigurationError) on enable. Keep the gson serializer's classes.
+        exclude(dependency("net.kyori:adventure-text-serializer-gson:.*"))
+    }
     archiveFileName = "${rootProject.name}-${project.name}-${rootProject.version}.jar"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 

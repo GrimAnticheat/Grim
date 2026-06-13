@@ -3,12 +3,15 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "BadPacketsR", stableKey = "grim.badpackets.position_starvation", decay = 0.25, experimental = true)
+@CheckData(name = "BadPacketsR", stableKey = "grim.badpackets.position_starvation", verboseVersion = 1, decay = 0.25, experimental = true)
 public class BadPacketsR extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("timeMs:vl", "lastTransactionMs:vl", "positions:vi");
+
     private int positions = 0;
     private long clock = 0;
     private long lastTransTime;
@@ -25,7 +28,7 @@ public class BadPacketsR extends Check implements PacketCheck {
             long diff = (System.currentTimeMillis() - lastTransTime);
             if (diff > 2000 && ms > 2000) {
                 if (positions == 0 && clock != 0 && player.cameraEntity.isSelf() && !player.compensatedEntities.self.isDead) {
-                    flag("time=" + ms + "ms, " + "lst=" + diff + "ms, positions=" + positions);
+                    flag(V.write(verbose()).vl(ms).vl(diff).vi(positions));
                 } else {
                     reward();
                 }

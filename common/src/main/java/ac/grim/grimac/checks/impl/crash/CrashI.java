@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -8,8 +9,10 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSelectBundleItem;
 
-@CheckData(name = "CrashI", stableKey = "grim.crash.invalid_bundle_slot")
+@CheckData(name = "CrashI", stableKey = "grim.crash.invalid_bundle_slot", verboseVersion = 1)
 public class CrashI extends Check implements PacketCheck {
+    public static final VerboseSchema V = VerboseSchema.of("selectedItemIndex:zz");
+
     public CrashI(GrimPlayer player) {
         super(player);
     }
@@ -30,7 +33,7 @@ public class CrashI extends Check implements PacketCheck {
             }
 
             if (selectedItemIndex < -1) {
-                flagAndAlert("selectedItemIndex=" + selectedItemIndex);
+                flagAndAlert(V.write(verbose()).zz(selectedItemIndex));
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

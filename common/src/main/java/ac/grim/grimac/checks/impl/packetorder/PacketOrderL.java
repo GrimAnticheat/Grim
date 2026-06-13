@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -13,13 +14,26 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderL", stableKey = "grim.packetorder.drop_item_order", experimental = true)
+@CheckData(name = "PacketOrderL", stableKey = "grim.packetorder.drop_item_order", experimental = true, verboseVersion = 1)
 public class PacketOrderL extends Check implements PostPredictionCheck {
+    public static final VerboseSchema V = VerboseSchema.of("action:vi");
+
+    static final int ACTION_INVENTORY = 0;
+    static final int ACTION_SWAP = 1;
+
     public PacketOrderL(final GrimPlayer player) {
         super(player);
     }
 
-    private final ArrayDeque<String> flags = new ArrayDeque<>();
+    private final ArrayDeque<Integer> flags = new ArrayDeque<>();
+
+    static String verbose(int action) {
+        return switch (action) {
+            case ACTION_INVENTORY -> "inventory";
+            case ACTION_SWAP -> "swap";
+            default -> "unknown";
+        };
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -27,12 +41,12 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
             if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 if (player.packetOrderProcessor.isDropping()) {
                     if (!player.canSkipTicks()) {
-                        if (flagAndAlert("inventory") && shouldModifyPackets()) {
+                        if (flagAndAlert(V.write(verbose()).vi(ACTION_INVENTORY)) && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
                         }
                     } else {
-                        flags.add("inventory");
+                        flags.add(ACTION_INVENTORY);
                     }
                 }
             }
@@ -42,12 +56,12 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
             if (new WrapperPlayClientPlayerDigging(event).getAction() == DiggingAction.SWAP_ITEM_WITH_OFFHAND) {
                 if (player.packetOrderProcessor.isDropping()) {
                     if (!player.canSkipTicks()) {
-                        if (flagAndAlert("swap") && shouldModifyPackets()) {
+                        if (flagAndAlert(V.write(verbose()).vi(ACTION_SWAP)) && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
                         }
                     } else {
-                        flags.add("swap");
+                        flags.add(ACTION_SWAP);
                     }
                 }
             }
@@ -59,8 +73,8 @@ public class PacketOrderL extends Check implements PostPredictionCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (String verbose : flags) {
-                flagAndAlert(verbose);
+            for (int action : flags) {
+                flagAndAlert(V.write(verbose()).vi(action));
             }
         }
 

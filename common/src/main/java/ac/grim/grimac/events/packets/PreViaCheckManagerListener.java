@@ -7,6 +7,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import org.jetbrains.annotations.NotNull;
 
 public class PreViaCheckManagerListener extends PacketListenerAbstract {
@@ -48,6 +50,16 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
+
+        final PacketTypeCommon packetType = event.getPacketType();
+        if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
+            player.sendTransaction();
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
+        }
+
+        if (packetType == PacketType.Play.Server.BUNDLE) {
+            player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
+        }
 
         player.checkManager.onPreViaPacketSend(event);
     }

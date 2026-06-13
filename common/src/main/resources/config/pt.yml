@@ -233,5 +233,16 @@ max-ping-firework-boost: 1000
 #   config-version: incrementado a cada mudança de forma incompatível. Configs
 #                   antigas são migradas automaticamente pelo updater embutido
 #                   na próxima inicialização.
+# O Grim sempre atualiza as permissões em cache quando um jogador entra e quando
+# o Grim é recarregado, esteja o LuckPerms instalado ou não.
+# Os hooks de eventos do LuckPerms também atualizam imediatamente as permissões
+# do Grim em cache em configurações normais.
+# Este fallback periódico só é necessário para mudanças de permissões online não
+# cobertas por esses eventos, como um contexto personalizado do LuckPerms que não
+# chama signalContextUpdate, lacunas de contexto no Fabric ou um provedor de
+# permissões diferente do LuckPerms que altera permissões ao vivo.
+# Defina -1 para desativar a verificação periódica. Use um valor positivo para atualizar a cada X ticks.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

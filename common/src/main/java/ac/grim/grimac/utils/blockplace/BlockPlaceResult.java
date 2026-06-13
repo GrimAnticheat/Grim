@@ -792,7 +792,7 @@ public enum BlockPlaceResult {
             }
         }
 
-        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9d) {
+        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9f) {
             place.set(place.material);
         }
     }, ItemTypes.KELP),
