@@ -300,6 +300,7 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
+        // This is a section where I hack around current issues with Grim itself...
         if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.inVehicle())) {
             offset -= 0.03;
         }
