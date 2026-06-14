@@ -151,6 +151,7 @@ public class CheckManager {
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
 //                .put(PacketOrderP.class, new PacketOrderP(player))
+                .put(PacketOrderQ.class, new PacketOrderQ(player))
                 .put(SprintA.class, new SprintA(player))
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
