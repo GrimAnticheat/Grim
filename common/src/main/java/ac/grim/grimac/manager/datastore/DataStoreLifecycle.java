@@ -2,27 +2,7 @@ package ac.grim.grimac.manager.datastore;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsVerbose;
-import ac.grim.grimac.checks.impl.baritone.BaritoneVerbose;
-import ac.grim.grimac.checks.impl.breaking.BreakingVerbose;
-import ac.grim.grimac.checks.impl.chat.ChatVerbose;
-import ac.grim.grimac.checks.impl.combat.CombatVerbose;
-import ac.grim.grimac.checks.impl.combat.Reach;
-import ac.grim.grimac.checks.impl.crash.CrashVerbose;
-import ac.grim.grimac.checks.impl.elytra.ElytraVerbose;
-import ac.grim.grimac.checks.impl.exploit.ExploitVerbose;
-import ac.grim.grimac.checks.impl.misc.MiscVerbose;
-import ac.grim.grimac.checks.impl.multiactions.MultiActionsVerbose;
-import ac.grim.grimac.checks.impl.packetorder.PacketOrderVerbose;
-import ac.grim.grimac.checks.impl.prediction.GroundSpoof;
-import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
-import ac.grim.grimac.checks.impl.scaffolding.ScaffoldingVerbose;
-import ac.grim.grimac.checks.impl.sprint.SprintVerbose;
-import ac.grim.grimac.checks.impl.timer.TimerVerbose;
-import ac.grim.grimac.checks.impl.vehicle.VehicleVerbose;
-import ac.grim.grimac.checks.impl.velocity.VelocityVerbose;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.api.storage.DataStore;
@@ -35,6 +15,7 @@ import ac.grim.grimac.api.storage.backend.BackendV2;
 import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.check.CheckCatalogPersistence;
+import ac.grim.grimac.api.storage.check.CheckCatalogRow;
 import ac.grim.grimac.api.storage.config.DataStoreConfig;
 import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.identity.NameResolver;
@@ -42,11 +23,6 @@ import ac.grim.grimac.api.storage.identity.NameResolverLink;
 import ac.grim.grimac.api.storage.registry.MigrationContext;
 import ac.grim.grimac.api.storage.registry.StoreId;
 import ac.grim.grimac.api.storage.submit.ViolationSink;
-import ac.grim.grimac.api.storage.verbose.VerboseBuf;
-import ac.grim.grimac.api.storage.verbose.VerboseFormatter;
-import ac.grim.grimac.api.storage.verbose.VerboseRenderContext;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
-import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.internal.storage.backend.mongo.MongoBackendConfig;
 import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoBackendV2;
 import ac.grim.grimac.internal.storage.backend.mongo.v2.MongoMigrationContext;
@@ -61,6 +37,7 @@ import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackendConfig;
 import ac.grim.grimac.internal.storage.backend.sqlite.v2.SqliteBackendV2;
 import ac.grim.grimac.internal.storage.category.V2BuiltinKinds;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
+import ac.grim.grimac.internal.storage.checks.DataStoreCheckCatalogPersistence;
 import ac.grim.grimac.internal.storage.checks.InMemoryCheckCatalogPersistence;
 import ac.grim.grimac.internal.storage.checks.JdbcCheckCatalogPersistence;
 import ac.grim.grimac.internal.storage.core.CategoryRouter;
@@ -80,9 +57,6 @@ import ac.grim.grimac.internal.storage.submit.ViolationSinkImpl;
 import ac.grim.grimac.internal.storage.verbose.VerboseManifest;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistryImpl;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BsonBinarySubType;
 import org.bson.Document;
@@ -99,7 +73,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.sql.DriverManager;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -112,6 +85,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
 
 /**
  * Wires the shared DataStore + associated services to the plugin's
@@ -121,6 +95,8 @@ import java.util.logging.Logger;
  * {@link GrimAPI#start()} after this.
  */
 public final class DataStoreLifecycle implements StartableInitable, StoppableInitable {
+
+    private static final String CHECKS_STORE = "grim_checks";
 
     private final GrimPlugin plugin;
     private final Logger logger;
@@ -226,9 +202,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             v2ById.put(backendId, v2);
         }
 
-        ensureCheckCatalogStore(v2ById);
-        this.checkRegistry = buildCheckRegistry(dataFolder);
-
         for (Map.Entry<Category<?>, String> r : config.routing().entrySet()) {
             Category<?> cat = r.getKey();
             String backendId = r.getValue();
@@ -294,6 +267,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         this.dataStore = new DataStoreImpl(router, config.writePath(), logger);
         this.dataStore.withV2Routes(routes);
         this.dataStore.start();
+        this.checkRegistry = buildCheckRegistry(v2ById);
         this.verboseRegistry = buildVerboseRegistry();
 
         logger.info("[grim-datastore] v2 cutover complete: " + v2ById.size()
@@ -376,9 +350,15 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             return null;
         }
 
-        byte[] verboseManifest = VerboseManifest.encode(
-                VerboseManifest.FLAVOR_V2_PUBLIC,
-                verboseRegistry.checkIdVersions(checkRegistry));
+        // Checks intern templates lazily on first flag, so the manifest is
+        // re-encoded per heartbeat and republished immediately whenever a
+        // new template registers — rows stay decodable from their startup.
+        VerboseRegistry manifestRegistry = this.verboseRegistry;
+        java.util.function.Supplier<byte[]> verboseManifest = () -> manifestRegistry == null
+                ? VerboseManifest.textOnly(VerboseManifest.FLAVOR_V2_PUBLIC)
+                : VerboseManifest.encode(
+                        VerboseManifest.FLAVOR_V2_PUBLIC,
+                        manifestRegistry.checkIdVersions(checkRegistry));
         V2InstanceRegistry.StartupClaim claim = instanceRegistry.claimStartup(
                 config.serverName(),
                 instanceId,
@@ -387,7 +367,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                 hostname(),
                 GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
                 serverVersionString(),
-                verboseManifest,
+                verboseManifest.get(),
                 heartbeatMs);
         if (!claim.storageEnabled()) return claim;
 
@@ -404,37 +384,21 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                 instanceRegistry::publish,
                 logger);
         heartbeatScheduler.start();
+        HeartbeatScheduler scheduler = this.heartbeatScheduler;
+        if (manifestRegistry != null) {
+            manifestRegistry.onChange(scheduler::publishNowAndWait);
+        }
         return claim;
     }
 
     private @NotNull VerboseRegistry buildVerboseRegistry() {
-        VerboseRegistry registry = new VerboseRegistryImpl(
+        // Templates intern themselves on a check's first flag; the registry
+        // only needs Grim's tag set available before anything parses/renders.
+        VerboseCodecs.ensureRegistered();
+        return new VerboseRegistryImpl(
                 dataStore,
                 checkRegistry,
                 VerboseManifest.FLAVOR_V2_PUBLIC);
-        BadPacketsVerbose.register(registry, checkRegistry);
-        BaritoneVerbose.register(registry, checkRegistry);
-        BreakingVerbose.register(registry, checkRegistry);
-        CrashVerbose.register(registry, checkRegistry);
-        ScaffoldingVerbose.register(registry, checkRegistry);
-        MultiActionsVerbose.register(registry, checkRegistry);
-        ChatVerbose.register(registry, checkRegistry);
-        CombatVerbose.register(registry, checkRegistry);
-        VehicleVerbose.register(registry, checkRegistry);
-        VelocityVerbose.register(registry, checkRegistry);
-        TimerVerbose.register(registry, checkRegistry);
-        ExploitVerbose.register(registry, checkRegistry);
-        SprintVerbose.register(registry, checkRegistry);
-        MiscVerbose.register(registry, checkRegistry);
-        ElytraVerbose.register(registry, checkRegistry);
-        PacketOrderVerbose.register(registry, checkRegistry);
-        registerVerboseSchema(registry, OffsetHandler.class, OffsetHandler.V);
-        registerVerboseFormatter(registry, OffsetHandler.class, simulationFormatter());
-        registerVerboseSchema(registry, GroundSpoof.class, GroundSpoof.V);
-        registerVerboseFormatter(registry, GroundSpoof.class, groundSpoofFormatter());
-        registerVerboseSchema(registry, Reach.class, Reach.V);
-        registerVerboseFormatter(registry, Reach.class, reachFormatter());
-        return registry;
     }
 
     private void installLocalVerboseRegistry() {
@@ -446,119 +410,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         } catch (RuntimeException e) {
             logger.log(Level.WARNING,
                     "[grim-datastore] failed to initialise local verbose registry", e);
-        }
-    }
-
-    private static @NotNull VerboseFormatter simulationFormatter() {
-        return new VerboseFormatter() {
-            @Override
-            public int version() {
-                return OffsetHandler.V.version();
-            }
-
-            @Override
-            public void render(
-                    @NotNull VerboseBuf in,
-                    @NotNull VerboseRenderContext ctx,
-                    @NotNull VerboseSink out) {
-                out.text(OffsetHandler.humanFormattedOffset(in.rf64()));
-            }
-        };
-    }
-
-    private static @NotNull VerboseFormatter groundSpoofFormatter() {
-        return new VerboseFormatter() {
-            @Override
-            public int version() {
-                return GroundSpoof.V.version();
-            }
-
-            @Override
-            public void render(
-                    @NotNull VerboseBuf in,
-                    @NotNull VerboseRenderContext ctx,
-                    @NotNull VerboseSink out) {
-                out.text("claimed ").bool(in.rbool());
-            }
-        };
-    }
-
-    private static @NotNull VerboseFormatter reachFormatter() {
-        return new VerboseFormatter() {
-            @Override
-            public int version() {
-                return Reach.V.version();
-            }
-
-            @Override
-            public void render(
-                    @NotNull VerboseBuf in,
-                    @NotNull VerboseRenderContext ctx,
-                    @NotNull VerboseSink out) {
-                double reach = in.rf64();
-                int entityId = in.rvi();
-                out.text(String.format("%.5f", reach))
-                        .text(" blocks")
-                        .text(", type=")
-                        .text(resolveEntityName(ctx.clientVersionPvn(), entityId));
-            }
-        };
-    }
-
-    private static @NotNull String resolveEntityName(int clientVersionPvn, int entityId) {
-        EntityType entityType = EntityTypes.getById(ClientVersion.getById(clientVersionPvn), entityId);
-        return entityType == null ? "unknown" : entityType.getName().getKey();
-    }
-
-    private void registerVerboseFormatter(
-            @NotNull VerboseRegistry registry,
-            @NotNull Class<? extends Check> checkClass,
-            @NotNull VerboseFormatter formatter) {
-        CheckData data = checkClass.getAnnotation(CheckData.class);
-        if (data == null) {
-            throw new IllegalStateException(checkClass.getName() + " is missing @CheckData");
-        }
-        if (data.stableKey().isBlank()) {
-            throw new IllegalStateException(checkClass.getName() + " is missing a stableKey");
-        }
-        if (formatter.version() != data.verboseVersion()) {
-            throw new IllegalStateException(checkClass.getName() + " verbose formatter v"
-                    + formatter.version() + " does not match @CheckData verboseVersion="
-                    + data.verboseVersion());
-        }
-
-        registry.registerFormatter(data.stableKey(), formatter);
-    }
-
-    private void registerVerboseSchema(
-            @NotNull VerboseRegistry registry,
-            @NotNull Class<? extends Check> checkClass,
-            @NotNull VerboseSchema schema) {
-        CheckData data = checkClass.getAnnotation(CheckData.class);
-        if (data == null) {
-            throw new IllegalStateException(checkClass.getName() + " is missing @CheckData");
-        }
-        if (data.stableKey().isBlank()) {
-            throw new IllegalStateException(checkClass.getName() + " is missing a stableKey");
-        }
-        if (data.verboseVersion() < 1) {
-            throw new IllegalStateException(checkClass.getName() + " is missing verboseVersion");
-        }
-        if (schema.version() != data.verboseVersion()) {
-            throw new IllegalStateException(checkClass.getName() + " verbose schema v"
-                    + schema.version() + " does not match @CheckData verboseVersion="
-                    + data.verboseVersion());
-        }
-
-        checkRegistry.intern(data.stableKey(), data.name(), data.description(), safePluginVersion());
-        registry.register(data.stableKey(), schema);
-    }
-
-    private @Nullable String safePluginVersion() {
-        try {
-            return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
-        } catch (RuntimeException e) {
-            return null;
         }
     }
 
@@ -655,19 +506,21 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
-    private @NotNull CheckRegistry buildCheckRegistry(@NotNull Path dataFolder) {
+    private @NotNull CheckRegistry buildCheckRegistry(@NotNull Map<String, BackendV2> v2ById) {
         String backendId = config.routing().get(Categories.VIOLATION);
         BackendConfig backendConfig = backendId == null ? null : config.backends().get(backendId);
-        CheckCatalogPersistence persistence = checkCatalogPersistenceFor(dataFolder, backendConfig);
-        if (persistence == null) {
-            logger.warning("[grim-datastore] no persisted check catalog available for v2 backend '"
+        BackendV2 backend = backendId == null ? null : v2ById.get(backendId);
+        if (backend == null || !dataStore.v2Routes().contains(Categories.CHECK_CATALOG)) {
+            logger.warning("[grim-datastore] no routed check catalog available for v2 backend '"
                     + backendId + "' — check names will be process-local only");
-            persistence = new InMemoryCheckCatalogPersistence();
+            CheckRegistry fallback = new CheckRegistry(new InMemoryCheckCatalogPersistence());
+            fallback.reload();
+            return fallback;
         }
-        CheckRegistry registry = new CheckRegistry(persistence);
+
+        List<CheckCatalogRow> initialRows;
         try {
-            registry.reload();
-            return registry;
+            initialRows = loadExistingCheckCatalogRows(backend, backendConfig);
         } catch (RuntimeException e) {
             logger.log(Level.WARNING,
                     "[grim-datastore] failed to load persisted check catalog for backend '"
@@ -676,55 +529,134 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             fallback.reload();
             return fallback;
         }
+
+        CheckCatalogPersistence persistence =
+                new DataStoreCheckCatalogPersistence(initialRows, dataStore, logger);
+        CheckRegistry registry = new CheckRegistry(persistence);
+        registry.reload();
+        return registry;
     }
 
-    private @Nullable CheckCatalogPersistence checkCatalogPersistenceFor(
-            @NotNull Path dataFolder, @Nullable BackendConfig backendConfig) {
-        if (backendConfig instanceof SqliteBackendConfig c) {
-            Path dbFile = dataFolder.resolve(c.path());
-            return new JdbcCheckCatalogPersistence(
-                    () -> DriverManager.getConnection("jdbc:sqlite:" + dbFile.toAbsolutePath()),
-                    c.tableNames().checks());
+    private @NotNull List<CheckCatalogRow> loadExistingCheckCatalogRows(
+            @NotNull BackendV2 backend,
+            @Nullable BackendConfig backendConfig) {
+        DataSource dataSource = backend.unwrap(DataSource.class).orElse(null);
+        if (dataSource != null) {
+            return rowsFrom(new JdbcCheckCatalogPersistence(dataSource::getConnection, CHECKS_STORE).loadAll());
         }
-        if (backendConfig instanceof MysqlBackendConfig c) {
-            return new JdbcCheckCatalogPersistence(
-                    () -> DriverManager.getConnection(c.jdbcUrl(), c.user(),
-                            c.password() == null ? "" : c.password()),
-                    c.tableNames().checks());
-        }
-        if (backendConfig instanceof PostgresBackendConfig c) {
-            return new JdbcCheckCatalogPersistence(
-                    () -> DriverManager.getConnection(c.jdbcUrl(), c.user(),
-                            c.password() == null ? "" : c.password()),
-                    c.tableNames().checks());
-        }
-        return null;
-    }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private void ensureCheckCatalogStore(@NotNull Map<String, BackendV2> v2ById) {
-        String backendId = config.routing().get(Categories.VIOLATION);
-        if (backendId == null) return;
-        BackendV2 backend = v2ById.get(backendId);
-        if (backend == null) return;
-        var kind = V2BuiltinKinds.checks();
-        var adapterOpt = backend.adapterFor(kind);
-        if (adapterOpt.isEmpty()) return;
-        try {
-            var adapter = (ac.grim.grimac.api.storage.backend.KindAdapter) adapterOpt.get();
-            StoreId storeId = StoreId.grim("grim_checks");
-            adapter.ensureStore(storeId, kind);
-            MigrationContext mctx = buildMigrationContext(backend);
-            if (mctx == null) mctx = NO_OP_MIGRATION_CONTEXT;
-            for (Object mo : adapter.migrations(kind)) {
-                ac.grim.grimac.api.storage.registry.Migration m =
-                        (ac.grim.grimac.api.storage.registry.Migration) mo;
-                m.apply(mctx, storeId, kind);
+        MongoDatabase mongo = backend.unwrap(MongoDatabase.class).orElse(null);
+        if (mongo != null) {
+            List<CheckCatalogRow> out = new ArrayList<>();
+            for (Document d : mongo.getCollection(CHECKS_STORE).find()) {
+                CheckCatalogRow row = checkCatalogRowFromDocument(d);
+                if (row != null) out.add(row);
             }
+            return out;
+        }
+
+        if (backendConfig instanceof RedisBackendConfig redisConfig) {
+            List<CheckCatalogRow> rows = loadRedisCheckCatalogRows(backend, redisConfig.keyPrefix());
+            if (rows != null) return rows;
+        }
+
+        logger.warning("[grim-datastore] no persisted check catalog loader available for v2 backend '"
+                + backend.id() + "' — starting with an empty routed catalog view");
+        return List.of();
+    }
+
+    private static @NotNull List<CheckCatalogRow> rowsFrom(@NotNull Iterable<CheckCatalogRow> rows) {
+        List<CheckCatalogRow> out = new ArrayList<>();
+        rows.forEach(out::add);
+        return out;
+    }
+
+    private static @Nullable CheckCatalogRow checkCatalogRowFromDocument(@NotNull Document d) {
+        Number id = d.get("check_id", Number.class);
+        String stableKey = d.getString("stable_key");
+        if (stableKey == null) {
+            Object rawId = d.get("_id");
+            if (rawId instanceof String s) stableKey = s;
+        }
+        if (id == null || stableKey == null) return null;
+        Number introducedAt = d.get("introduced_at", Number.class);
+        return new CheckCatalogRow(
+                id.intValue(),
+                stableKey,
+                d.getString("display"),
+                d.getString("description"),
+                d.getString("introduced_version"),
+                introducedAt == null ? 0L : introducedAt.longValue());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static @Nullable List<CheckCatalogRow> loadRedisCheckCatalogRows(
+            @NotNull BackendV2 backend,
+            @NotNull String keyPrefix) {
+        try {
+            Class<?> poolClass = Class.forName("redis.clients.jedis.JedisPool");
+            Object pool = backend.unwrap((Class<Object>) poolClass).orElse(null);
+            if (pool == null) return null;
+
+            Class<?> scanParamsClass = Class.forName("redis.clients.jedis.params.ScanParams");
+            Object params = scanParamsClass.getConstructor().newInstance();
+            String rowPrefix = keyPrefix + CHECKS_STORE + ":";
+            scanParamsClass.getMethod("match", String.class).invoke(params, rowPrefix + "*");
+            scanParamsClass.getMethod("count", int.class).invoke(params, 1000);
+
+            List<CheckCatalogRow> out = new ArrayList<>();
+            Object jedis = poolClass.getMethod("getResource").invoke(pool);
+            try {
+                String cursor = "0";
+                do {
+                    Object result = jedis.getClass()
+                            .getMethod("scan", String.class, scanParamsClass)
+                            .invoke(jedis, cursor, params);
+                    List<String> keys = (List<String>) result.getClass()
+                            .getMethod("getResult")
+                            .invoke(result);
+                    for (String key : keys) {
+                        if (key.startsWith(rowPrefix + "__idx:")) continue;
+                        Map<String, String> hash = (Map<String, String>) jedis.getClass()
+                                .getMethod("hgetAll", String.class)
+                                .invoke(jedis, key);
+                        CheckCatalogRow row = checkCatalogRowFromRedis(hash);
+                        if (row != null) out.add(row);
+                    }
+                    cursor = (String) result.getClass().getMethod("getCursor").invoke(result);
+                } while (!"0".equals(cursor));
+            } finally {
+                if (jedis instanceof AutoCloseable closeable) closeable.close();
+            }
+            return out;
+        } catch (ClassNotFoundException e) {
+            return null;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("failed to scan Redis check catalog", e);
         } catch (Exception e) {
-            logger.log(Level.WARNING,
-                    "[grim-datastore] failed to ensure v2 check catalog store on backend '"
-                            + backendId + "'", e);
+            throw new IllegalStateException("failed to close Redis resource while scanning check catalog", e);
+        }
+    }
+
+    private static @Nullable CheckCatalogRow checkCatalogRowFromRedis(@NotNull Map<String, String> h) {
+        String id = h.get("check_id");
+        String stableKey = h.get("stable_key");
+        if (id == null || stableKey == null) return null;
+        return new CheckCatalogRow(
+                Integer.parseInt(id),
+                stableKey,
+                h.get("display"),
+                h.get("description"),
+                h.get("introduced_version"),
+                parseLong(h.get("introduced_at")));
+    }
+
+    private static long parseLong(@Nullable String raw) {
+        if (raw == null) return 0L;
+        try {
+            return Long.parseLong(raw);
+        } catch (NumberFormatException ignored) {
+            return 0L;
         }
     }
 
@@ -746,6 +678,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         if (cat == Categories.VIOLATION) {
             out.put(cat, new V2BackendBootstrap.Binding<>(
                     StoreId.grim("grim_violations"), V2BuiltinKinds.violations()));
+            out.put(Categories.CHECK_CATALOG, new V2BackendBootstrap.Binding<>(
+                    StoreId.grim(CHECKS_STORE), V2BuiltinKinds.checks()));
             out.put(Categories.VERBOSE_SCHEMA, new V2BackendBootstrap.Binding<>(
                     StoreId.grim("verbose_schemas"), V2BuiltinKinds.verboseSchemas()));
         } else if (cat == Categories.SESSION) {

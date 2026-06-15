@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -11,9 +11,11 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", experimental = true, verboseVersion = 2)
+@CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", description = "Changed held item slot during another conflicting action", experimental = true)
 public class PacketOrderE extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2, "flags:vi");
+    private static final Verbose V = Verbose.of(
+            "attacking={bool}, rightClicking={bool}, openingInventory={bool}, releasing={bool}"
+                    + ", sneaking={bool}, sprinting={bool}, bed={bool}, gliding={bool}, mountJumping={bool}");
 
     private static final int ATTACKING = 1 << 0;
     private static final int RIGHT_CLICKING = 1 << 1;
@@ -32,17 +34,18 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
     private final ArrayDeque<Integer> flags = new ArrayDeque<>();
     private boolean setback;
 
-    static String verbose(int flags) {
-        return "attacking=" + has(flags, ATTACKING)
-                + ", rightClicking=" + has(flags, RIGHT_CLICKING)
-                + ", openingInventory=" + has(flags, OPENING_INVENTORY)
-                + ", releasing=" + has(flags, RELEASING)
-                + ", sneaking=" + has(flags, SNEAKING)
-                + ", sprinting=" + has(flags, SPRINTING)
-                + ", bed=" + has(flags, LEAVING_BED)
-                + ", sprinting=" + has(flags, SPRINTING)
-                + ", gliding=" + has(flags, GLIDING)
-                + ", mountJumping=" + has(flags, MOUNT_JUMPING);
+    /** Expands the flag bitmask into the template's individual bool fields. */
+    private Verbose.Writer write(int flags) {
+        return V.write(verbose())
+                .bool(has(flags, ATTACKING))
+                .bool(has(flags, RIGHT_CLICKING))
+                .bool(has(flags, OPENING_INVENTORY))
+                .bool(has(flags, RELEASING))
+                .bool(has(flags, SNEAKING))
+                .bool(has(flags, SPRINTING))
+                .bool(has(flags, LEAVING_BED))
+                .bool(has(flags, GLIDING))
+                .bool(has(flags, MOUNT_JUMPING));
     }
 
     @Override
@@ -50,7 +53,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             int currentFlags = currentFlags();
             if (currentFlags != 0) {
-                if (player.canSkipTicks() && flags.add(currentFlags) || flagAndAlert(V.write(verbose()).vi(currentFlags))) {
+                if (player.canSkipTicks() && flags.add(currentFlags) || flag(write(currentFlags))) {
                     if (player.packetOrderProcessor.isUsing()) {
                         setback = true;
                     }
@@ -71,7 +74,7 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (int currentFlags : flags) {
-                if (flagAndAlert(V.write(verbose()).vi(currentFlags)) && setback) {
+                if (flag(write(currentFlags)) && setback) {
                     setback = false;
                     setbackIfAboveSetbackVL();
                 }

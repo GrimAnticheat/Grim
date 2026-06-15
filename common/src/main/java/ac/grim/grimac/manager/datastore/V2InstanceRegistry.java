@@ -74,7 +74,7 @@ final class V2InstanceRegistry {
     }
 
     void publish(@NotNull ServerStartupEvent source) {
-        store.submit(STARTUPS, target -> copy(source, target));
+        writeStartup(source);
     }
 
     StartupClaim claimStartup(
@@ -290,8 +290,12 @@ final class V2InstanceRegistry {
                 .verboseManifest(source.verboseManifest())
                 .closedAtEpochMs(source.closedAtEpochMs())
                 .closeReason(source.closeReason());
+        writeStartup(event);
+    }
+
+    private void writeStartup(@NotNull ServerStartupEvent source) {
         try {
-            directStartupWriter.onEvent(event, 0L, true);
+            directStartupWriter.onEvent(source, 0L, true);
         } catch (Exception e) {
             throw new RuntimeException("server startup write failed for " + source.startupId(), e);
         }
@@ -357,20 +361,6 @@ final class V2InstanceRegistry {
             Thread.currentThread().interrupt();
             logger.warning("[grim-datastore] interrupted while observing storage heartbeat; treating holder as frozen");
         }
-    }
-
-    private static void copy(@NotNull ServerStartupEvent source, @NotNull ServerStartupEvent target) {
-        target.startupId(source.startupId())
-                .instanceId(source.instanceId())
-                .serverName(source.serverName())
-                .startedEpochMs(source.startedEpochMs())
-                .lastHeartbeatEpochMs(source.lastHeartbeatEpochMs())
-                .hostname(source.hostname())
-                .grimVersion(source.grimVersion())
-                .serverVersionString(source.serverVersionString())
-                .verboseManifest(source.verboseManifest())
-                .closedAtEpochMs(source.closedAtEpochMs())
-                .closeReason(source.closeReason());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

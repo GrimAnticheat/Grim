@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -11,10 +11,10 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 
-@CheckData(name = "CrashF", stableKey = "grim.crash.button_crash", verboseVersion = 2)
+@CheckData(name = "CrashF", stableKey = "grim.crash.button_crash", description = "Sent an inventory click with an invalid button or slot value")
 public class CrashF extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "clickType:enum", "button:zz", "hasSlot:bool", "slot:zz");
+    private static final Verbose V =
+            Verbose.of("clickType={clicktype}, button={sint}[, slot={sint}]");
 
     public CrashF(GrimPlayer playerData) {
         super(playerData);
@@ -30,14 +30,14 @@ public class CrashF extends Check implements PacketCheck {
             int slot = click.getSlot();
 
             if ((clickType == WindowClickType.QUICK_MOVE || clickType == WindowClickType.SWAP) && windowId >= 0 && button < 0) {
-                int clickTypeId = VerboseCodecs.enumOrdinal(clickType);
-                if (flagAndAlert(V.write(verbose()).vi(clickTypeId).zz(button).bool(false).zz(0))) {
+                int clickTypeId = VerboseCodecs.enumId(clickType);
+                if (flag(V.write(verbose()).uint(clickTypeId).sint(button).bool(false).sint(0))) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
             } else if (windowId >= 0 && clickType == WindowClickType.SWAP && slot < 0) {
-                int clickTypeId = VerboseCodecs.enumOrdinal(clickType);
-                if (flagAndAlert(V.write(verbose()).vi(clickTypeId).zz(button).bool(true).zz(slot))) {
+                int clickTypeId = VerboseCodecs.enumId(clickType);
+                if (flag(V.write(verbose()).uint(clickTypeId).sint(button).bool(true).sint(slot))) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

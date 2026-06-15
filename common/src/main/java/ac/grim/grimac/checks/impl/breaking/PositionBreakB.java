@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -11,9 +11,9 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", verboseVersion = 2)
+@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", description = "Cancelled block breaking with an invalid block face")
 public class PositionBreakB extends Check implements BlockBreakCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2, "lastFace:enum", "action:enum");
+    private static final Verbose V = Verbose.of("lastFace={face}, action={digging}");
 
     private final boolean allowLegacyFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
     private BlockFace lastFace;
@@ -31,9 +31,9 @@ public class PositionBreakB extends Check implements BlockBreakCheck {
         }
 
         if (lastFace != null) {
-            int lastFaceId = VerboseCodecs.enumOrdinal(lastFace);
-            int action = VerboseCodecs.enumOrdinal(blockBreak.action);
-            flagAndAlert(V.write(verbose()).vi(lastFaceId).vi(action));
+            flag(V.write(verbose())
+                    .uint(VerboseCodecs.enumId(lastFace))
+                    .uint(VerboseCodecs.enumId(blockBreak.action)));
         }
 
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {

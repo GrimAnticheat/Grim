@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -11,9 +11,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Cli
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
-@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump", verboseVersion = 2)
+@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump", description = "Sent a horse jump packet with an invalid entity, action, or boost value")
 public class BadPacketsQ extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2, "boost:zz", "action:enum", "entity:zz");
+    private static final Verbose V = Verbose.of("boost={sint}, action={entityaction}, entity={sint}");
 
     public BadPacketsQ(final GrimPlayer player) {
         super(player);
@@ -28,9 +28,9 @@ public class BadPacketsQ extends Check implements PacketCheck {
                     || wrapper.getEntityId() != player.entityID
                     || wrapper.getAction() != Action.START_JUMPING_WITH_HORSE && wrapper.getJumpBoost() != 0) {
                 int boost = wrapper.getJumpBoost();
-                int action = VerboseCodecs.enumOrdinal(wrapper.getAction());
+                int action = VerboseCodecs.enumId(wrapper.getAction());
                 int entity = wrapper.getEntityId();
-                if (flagAndAlert(V.write(verbose()).zz(boost).vi(action).zz(entity)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).sint(boost).uint(action).sint(entity)) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

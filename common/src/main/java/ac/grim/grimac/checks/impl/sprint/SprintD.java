@@ -32,7 +32,7 @@ public class SprintD extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (player.compensatedEntities.self.hasPotionEffect(BLINDNESS) && !startedSprintingBeforeBlind) {
             if (player.isSprinting) {
-                flagAndAlertWithSetback();
+                flagWithSetback();
             } else reward();
         }
     }

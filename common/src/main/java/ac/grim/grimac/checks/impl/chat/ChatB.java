@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.chat;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -14,9 +14,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCh
 
 // this can false from click events, but I doubt this would actually
 // happen unless they're trying to flag, or if the server is set up badly
-@CheckData(name = "ChatB", stableKey = "grim.exploit.spigot_antispam_bypass", verboseVersion = 1, description = "Invalid chat message")
+@CheckData(name = "ChatB", stableKey = "grim.exploit.spigot_antispam_bypass", description = "Invalid chat message")
 public class ChatB extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("message:str");
+    private static final Verbose V = Verbose.of("[message|command]={str}");
 
     public ChatB(GrimPlayer player) {
         super(player);
@@ -28,8 +28,7 @@ public class ChatB extends Check implements PacketCheck {
             String message = new WrapperPlayClientChatMessage(event).getMessage();
             if (message.isEmpty() || !message.trim().equals(message)
                     || message.startsWith("/") && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                String verbose = "message=" + message;
-                if (flagAndAlert(V.write(verbose()).str(verbose)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).bool(true).str(message)) && shouldModifyPackets()) {
                     player.onPacketCancel();
                     event.setCancelled(true);
                 }
@@ -39,8 +38,7 @@ public class ChatB extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND_UNSIGNED) {
             String command = "/" + new WrapperPlayClientChatCommandUnsigned(event).getCommand();
             if (!command.stripTrailing().equals(command)) {
-                String verbose = "command=" + command;
-                if (flagAndAlert(V.write(verbose()).str(verbose))) {
+                if (flag(V.write(verbose()).bool(false).str(command))) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
@@ -50,8 +48,7 @@ public class ChatB extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
             String command = "/" + new WrapperPlayClientChatCommand(event).getCommand();
             if (!command.trim().equals(command)) {
-                String verbose = "command=" + command;
-                if (flagAndAlert(V.write(verbose()).str(verbose))) {
+                if (flag(V.write(verbose()).bool(false).str(command))) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

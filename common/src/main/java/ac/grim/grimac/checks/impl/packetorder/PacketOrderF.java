@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -13,9 +13,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.ArrayDeque;
 
-@CheckData(name = "PacketOrderF", stableKey = "grim.packetorder.input_tick_to_sneak_sprint_order", experimental = true, verboseVersion = 1)
+@CheckData(name = "PacketOrderF", stableKey = "grim.packetorder.input_tick_to_sneak_sprint_order", description = "Sent action packets after sneak or sprint input in an invalid order", experimental = true)
 public class PacketOrderF extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of("action:vi", "sprinting:bool", "sneaking:bool");
+    private static final Verbose V = Verbose.of("action={str}, sprinting={bool}, sneaking={bool}");
 
     static final int ACTION_INTERACT = 0;
     static final int ACTION_ATTACK = 1;
@@ -46,10 +46,6 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
         };
     }
 
-    static String verbose(int action, boolean sprinting, boolean sneaking) {
-        return "action=" + actionName(action) + ", sprinting=" + sprinting + ", sneaking=" + sneaking;
-    }
-
     private static int action(PacketReceiveEvent event) {
         return event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY ? ACTION_INTERACT
                 : event.getPacketType() == PacketType.Play.Client.ATTACK ? ACTION_ATTACK
@@ -77,7 +73,7 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
             boolean sprinting = player.packetOrderProcessor.isSprinting();
             boolean sneaking = player.packetOrderProcessor.isSneaking();
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(V.write(verbose()).vi(action).bool(sprinting).bool(sneaking)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).str(actionName(action)).bool(sprinting).bool(sneaking)) && shouldModifyPackets()) {
                     if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING
                             && !canCancel(new WrapperPlayClientPlayerDigging(event).getAction())
                     ) return; // don't cause a noslow
@@ -97,7 +93,7 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                flagAndAlert(V.write(verbose()).vi(data.action()).bool(data.sprinting()).bool(data.sneaking()));
+                flag(V.write(verbose()).str(actionName(data.action())).bool(data.sprinting()).bool(data.sneaking()));
             }
         }
 

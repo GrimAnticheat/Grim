@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -13,9 +13,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
-@CheckData(name = "BadPacketsH", stableKey = "grim.badpackets.unexpected_sequence", verboseVersion = 1, description = "Sent unexpected sequence id", experimental = true)
+@CheckData(name = "BadPacketsH", stableKey = "grim.badpackets.unexpected_sequence", description = "Sent unexpected sequence id", experimental = true)
 public class BadPacketsH extends BlockPlaceCheck {
-    public static final VerboseSchema V = VerboseSchema.of("expected:zz", "id:zz");
+    private static final Verbose V = Verbose.of("expected={sint}, id={sint}");
 
     private int lastSequence;
     private final boolean isSupportedVersion = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
@@ -65,7 +65,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     }
 
     private boolean flagSequence(int expected, int sequence) {
-        return flagAndAlert(V.write(verbose()).zz(expected).zz(sequence));
+        return flag(V.write(verbose()).sint(expected).sint(sequence));
     }
 
     public void onWorldChange() {

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -9,9 +9,9 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 
-@CheckData(name = "BadPacketsY", stableKey = "grim.badpackets.oob_slot", verboseVersion = 1, description = "Sent out of bounds slot id")
+@CheckData(name = "BadPacketsY", stableKey = "grim.badpackets.oob_slot", description = "Sent out of bounds slot id")
 public class BadPacketsY extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("slot:zz");
+    private static final Verbose V = Verbose.of("slot={sint}");
 
     public BadPacketsY(GrimPlayer player) {
         super(player);
@@ -22,7 +22,7 @@ public class BadPacketsY extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
             if (slot > 8 || slot < 0) { // ban
-                if (flagAndAlert(V.write(verbose()).zz(slot)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).sint(slot)) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

@@ -290,7 +290,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 vehicleControlDetected = true;
                 if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
-                    if (vehicleC.flaggedLastTick) vehicleC.flagAndAlert();
+                    if (vehicleC.flaggedLastTick) vehicleC.flag();
                     vehicleC.flaggedLastTick = true;
                 } else {
                     vehicleC.flaggedLastTick = false;

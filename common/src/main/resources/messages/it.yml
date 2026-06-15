@@ -34,8 +34,8 @@ webhook-test-message: "test message"
 webhook-test-succeeded: "Discord webhook test succeeded!"
 webhook-test-failed: "Discord webhook test failed!"
 
-alerts-format: "%prefix% &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfallito &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bfallito <hover:show_text:\"&b%check_name%%experimental%\n&8Descrizione: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfallito <hover:show_text:\"&b%check_name%%experimental%\n&8Descrizione: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
 experimental-symbol: "*"
 
 profile:

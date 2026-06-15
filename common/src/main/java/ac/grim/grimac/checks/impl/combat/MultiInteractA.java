@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -14,10 +14,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSp
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractA", stableKey = "grim.multiinteract.multiple_targets", verboseVersion = 1, description = "Interacted with multiple entities in the same tick", experimental = true)
+@CheckData(name = "MultiInteractA", stableKey = "grim.multiinteract.multiple_targets", description = "Interacted with multiple entities in the same tick", experimental = true)
 public class MultiInteractA extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of(
-            "lastEntity:zz", "entity:zz", "lastSneaking:bool", "sneaking:bool");
+    private static final Verbose V =
+            Verbose.of("lastEntity={sint}, entity={sint}, lastSneaking={bool}, sneaking={bool}");
 
     private final ArrayList<FlagData> flags = new ArrayList<>();
     private int lastEntity;
@@ -55,7 +55,7 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
     private void onInteract(PacketReceiveEvent event, int entity, boolean sneaking) {
         if (hasInteracted && (entity != lastEntity || sneaking != lastSneaking)) {
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(V.write(verbose()).zz(lastEntity).zz(entity).bool(lastSneaking).bool(sneaking)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).sint(lastEntity).sint(entity).bool(lastSneaking).bool(sneaking)) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
@@ -75,7 +75,7 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                flagAndAlert(V.write(verbose()).zz(data.lastEntity()).zz(data.entity()).bool(data.lastSneaking()).bool(data.sneaking()));
+                flag(V.write(verbose()).sint(data.lastEntity()).sint(data.entity()).bool(data.lastSneaking()).bool(data.sneaking()));
             }
         }
 

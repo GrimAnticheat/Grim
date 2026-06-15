@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -22,9 +22,9 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-@CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", setback = 10, decay = 0.025, verboseVersion = 1)
+@CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", description = "Did not take the expected entity knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of("ignored:bool", "offset:f64");
+    private static final Verbose V = Verbose.of("[ignored knockback|o: {offset}]");
 
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
@@ -213,7 +213,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                     }
                 } else {
                     boolean ignored = player.likelyKB.offset == Integer.MAX_VALUE;
-                    if (flagAndAlert(V.write(verbose()).bool(ignored).f64(player.likelyKB.offset))) { // This velocity was sent by the server.
+                    if (flag(V.write(verbose()).bool(ignored).f64(player.likelyKB.offset))) { // This velocity was sent by the server.
                         if (player.likelyKB.offset >= immediate || threshold >= maxAdv) {
                             setbackIfAboveSetbackVL();
                         }

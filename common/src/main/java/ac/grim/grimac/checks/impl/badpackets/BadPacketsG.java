@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -9,9 +9,9 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "BadPacketsG", stableKey = "grim.badpackets.duplicate_sneak", verboseVersion = 1, description = "Sent duplicate sneaking status")
+@CheckData(name = "BadPacketsG", stableKey = "grim.badpackets.duplicate_sneak", description = "Sent duplicate sneaking status")
 public class BadPacketsG extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("state:bool");
+    private static final Verbose V = Verbose.of("state={bool}");
 
     private boolean lastSneaking, respawn;
 
@@ -28,7 +28,7 @@ public class BadPacketsG extends Check implements PacketCheck {
                 // The player may send two START_SNEAKING packets if they respawned
                 if (lastSneaking && !respawn) {
                     boolean state = true;
-                    if (flagAndAlert(V.write(verbose()).bool(state)) && shouldModifyPackets()) {
+                    if (flag(V.write(verbose()).bool(state)) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -39,7 +39,7 @@ public class BadPacketsG extends Check implements PacketCheck {
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
                 if (!lastSneaking && !respawn) {
                     boolean state = false;
-                    if (flagAndAlert(V.write(verbose()).bool(state)) && shouldModifyPackets()) {
+                    if (flag(V.write(verbose()).bool(state)) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }

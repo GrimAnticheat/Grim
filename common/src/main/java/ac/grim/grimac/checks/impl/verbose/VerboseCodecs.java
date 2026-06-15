@@ -1,167 +1,141 @@
 package ac.grim.grimac.checks.impl.verbose;
 
-import ac.grim.grimac.api.storage.verbose.VerboseBuf;
-import ac.grim.grimac.api.storage.verbose.VerboseRenderContext;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.VerboseTags;
+import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
+/**
+ * Grim's verbose template tags plus the write-side value encoders that pair
+ * with them. Registered once; checks declare templates referencing these tag
+ * names and write values through the matching {@code VerboseCodecs.x(...)}
+ * encoder.
+ */
 public final class VerboseCodecs {
+    /** {@code {packet}} sentinel for "no packet". */
     public static final int PACKET_NONE = Integer.MIN_VALUE;
+    /** {@code {packet}} sentinel for transaction/pong. */
     public static final int PACKET_TRANSACTION = Integer.MIN_VALUE + 1;
 
-    private static final int MC_XZ_BITS = 26;
-    private static final int MC_XZ_MASK = (1 << MC_XZ_BITS) - 1;
-    private static final List<StateType> STATE_TYPE_VALUES = List.copyOf(StateTypes.values());
-    private static final Map<StateType, Integer> STATE_TYPE_ORDINALS = stateTypeOrdinals();
+    static {
+        VerboseTags.registerEnum("face", BlockFace.values());
+        VerboseTags.registerEnum("digging", DiggingAction.values());
+        VerboseTags.registerEnumLower("digging_lower", DiggingAction.values());
+        VerboseTags.registerEnum("clicktype", WindowClickType.values());
+        VerboseTags.registerEnumLower("clicktype_lower", WindowClickType.values());
+        VerboseTags.registerEnum("entityaction", Action.values());
+        VerboseTags.registerEnum("hand", InteractionHand.values());
+        VerboseTags.register("block", List.of(VerboseSchema.TypeTag.ZZ),
+                (in, ctx, out, fmt) -> out.append(blockName(ctx.clientVersionPvn(), in.rzz())));
+        VerboseTags.register("item", List.of(VerboseSchema.TypeTag.ZZ),
+                (in, ctx, out, fmt) -> out.append(itemTypeName(ctx.clientVersionPvn(), in.rzz())));
+        VerboseTags.register("packet", List.of(VerboseSchema.TypeTag.ZZ),
+                (in, ctx, out, fmt) -> out.append(packetName(ctx.clientVersionPvn(), in.rzz())));
+        VerboseTags.register("entity", List.of(VerboseSchema.TypeTag.VI),
+                (in, ctx, out, fmt) -> out.append(entityTypeName(ctx.clientVersionPvn(), in.rvi())));
+        VerboseTags.register("offset", List.of(VerboseSchema.TypeTag.F64),
+                (in, ctx, out, fmt) -> out.append(OffsetHandler.humanFormattedOffset(in.rf64())));
+        VerboseTags.register("stdnum", List.of(VerboseSchema.TypeTag.F64),
+                (in, ctx, out, fmt) -> out.append(formatNumberStandard(in.rf64())));
+    }
 
     private VerboseCodecs() {
     }
 
-    public static int enumOrdinal(@Nullable Enum<?> value) {
-        return value == null ? 0 : value.ordinal() + 1;
+    /**
+     * Force tag registration. Call before templates parse and before history
+     * rows render; class initialization performs the actual work once.
+     */
+    public static void ensureRegistered() {
+        // Static initializer has run by the time this returns.
     }
 
-    public static @NotNull VerboseBuf enumOrdinal(@NotNull VerboseBuf out, @Nullable Enum<?> value) {
-        return out.vi(enumOrdinal(value));
+    /** Null-safe enum encoding for the {@code registerEnum} family of tags. */
+    public static int enumId(@Nullable Enum<?> value) {
+        return VerboseTags.enumId(value);
     }
 
-    public static @NotNull String enumName(int encoded, Enum<?> @NotNull [] values) {
-        if (encoded == 0) return "null";
-        int ordinal = encoded - 1;
-        return ordinal >= 0 && ordinal < values.length ? values[ordinal].name() : "unknown(" + encoded + ")";
-    }
-
-    public static @NotNull String lowerEnumName(int encoded, Enum<?> @NotNull [] values) {
-        return enumName(encoded, values).toLowerCase(Locale.ROOT);
-    }
-
-    public static @NotNull VerboseBuf mcBlockPos(@NotNull VerboseBuf out, @NotNull Vector3i pos) {
-        return out.vl(packMcBlockXZ(pos.x, pos.z)).zz(pos.y);
-    }
-
-    public static @NotNull VerboseBuf nullableMcBlockPos(@NotNull VerboseBuf out, @Nullable Vector3i pos) {
-        if (pos == null) {
-            return out.bool(false).vl(0L).zz(0);
+    /**
+     * Encoder for {@code {block}}: the protocol-defined per-version block id,
+     * so any product following the MC protocol decodes the same name.
+     * {@code -1} when the block has no id in the player's version
+     * (server-only states render as {@code unknown}).
+     */
+    public static int block(@NotNull StateType type, @NotNull ClientVersion version) {
+        try {
+            StateType.Mapped mapped = type.getMapped();
+            return mapped == null ? -1 : mapped.getId(version);
+        } catch (RuntimeException e) {
+            return -1;
         }
-        return out.bool(true).vl(packMcBlockXZ(pos.x, pos.z)).zz(pos.y);
     }
 
-    public static @NotNull String rMcBlockPos(@NotNull VerboseBuf in) {
-        long xz = in.rvl();
-        int y = in.rzz();
-        return formatMcBlockPos(unpackMcBlockX(xz), y, unpackMcBlockZ(xz));
-    }
-
-    public static @NotNull String rNullableMcBlockPos(@NotNull VerboseBuf in) {
-        boolean present = in.rbool();
-        long xz = in.rvl();
-        int y = in.rzz();
-        return present ? formatMcBlockPos(unpackMcBlockX(xz), y, unpackMcBlockZ(xz)) : "null";
-    }
-
-    public static @NotNull VerboseBuf cursor3f(@NotNull VerboseBuf out, @NotNull Vector3f cursor) {
-        return out.f32(cursor.x).f32(cursor.y).f32(cursor.z);
-    }
-
-    public static @NotNull String rCursor3f(@NotNull VerboseBuf in) {
-        return formatVector3f(in.rf32(), in.rf32(), in.rf32());
-    }
-
-    public static @NotNull String rCursor3fObject(@NotNull VerboseBuf in) {
-        return formatVector3fObject(in.rf32(), in.rf32(), in.rf32());
-    }
-
-    public static int stateTypeOrdinal(@NotNull StateType type) {
-        Integer ordinal = STATE_TYPE_ORDINALS.get(type);
-        return ordinal == null ? 0 : ordinal + 1;
-    }
-
-    public static @NotNull String stateTypeName(int encoded) {
-        if (encoded == 0) return "unknown(0)";
-        int ordinal = encoded - 1;
-        return ordinal >= 0 && ordinal < STATE_TYPE_VALUES.size()
-                ? STATE_TYPE_VALUES.get(ordinal).getName()
-                : "unknown(" + encoded + ")";
-    }
-
-    public static int itemTypeId(@NotNull ItemType type, @NotNull ClientVersion version) {
+    /** Encoder for {@code {item}}. */
+    public static int item(@NotNull ItemType type, @NotNull ClientVersion version) {
         return type.getId(version);
     }
 
-    public static @NotNull String itemTypeName(@NotNull VerboseRenderContext ctx, int id) {
+    /** Encoder for {@code {packet}}; see {@link #PACKET_NONE} / {@link #PACKET_TRANSACTION}. */
+    public static int packet(@NotNull PacketTypeCommon type, @NotNull ClientVersion version) {
+        return type.getId(version);
+    }
+
+    /** Encoder for {@code {entity}}. */
+    public static int entity(@NotNull EntityType type, @NotNull ClientVersion version) {
+        return type.getId(version);
+    }
+
+    private static @NotNull String blockName(int clientVersionPvn, int id) {
+        if (id < 0) return "unknown";
+        StateType type = StateTypes.getById(ClientVersion.getById(clientVersionPvn), id);
+        return type == null ? "unknown(" + id + ")" : type.getName();
+    }
+
+    private static @NotNull String itemTypeName(int clientVersionPvn, int id) {
         if (id < 0) return "";
-        ItemType type = ItemTypes.getById(ClientVersion.getById(ctx.clientVersionPvn()), id);
+        ItemType type = ItemTypes.getById(ClientVersion.getById(clientVersionPvn), id);
         return type == null ? "unknown(" + id + ")" : type.getName().getKey();
     }
 
-    public static @NotNull VerboseBuf signedLong(@NotNull VerboseBuf out, long value) {
-        return out.zz((int) (value >> 32)).zz((int) value);
-    }
-
-    public static long rSignedLong(@NotNull VerboseBuf in) {
-        int high = in.rzz();
-        int low = in.rzz();
-        return ((long) high << 32) | (low & 0xFFFF_FFFFL);
-    }
-
-    public static int packetId(@NotNull PacketTypeCommon type, @NotNull ClientVersion version) {
-        return type.getId(version);
-    }
-
-    public static @NotNull String packetName(@NotNull VerboseRenderContext ctx, int packetId) {
+    private static @NotNull String packetName(int clientVersionPvn, int packetId) {
         if (packetId == PACKET_NONE) return "";
         if (packetId == PACKET_TRANSACTION) return "TRANSACTION";
-        PacketTypeCommon type = PacketType.Play.Client.getById(ClientVersion.getById(ctx.clientVersionPvn()), packetId);
+        PacketTypeCommon type = PacketType.Play.Client.getById(ClientVersion.getById(clientVersionPvn), packetId);
         return type == null ? "unknown(" + packetId + ")" : type.getName();
     }
 
-    private static long packMcBlockXZ(int x, int z) {
-        return ((long) (x & MC_XZ_MASK) << MC_XZ_BITS) | (z & MC_XZ_MASK);
+    private static @NotNull String entityTypeName(int clientVersionPvn, int entityId) {
+        EntityType entityType = EntityTypes.getById(ClientVersion.getById(clientVersionPvn), entityId);
+        return entityType == null ? "unknown" : entityType.getName().getKey();
     }
 
-    private static int unpackMcBlockX(long xz) {
-        return signExtend26((int) (xz >>> MC_XZ_BITS));
-    }
-
-    private static int unpackMcBlockZ(long xz) {
-        return signExtend26((int) xz & MC_XZ_MASK);
-    }
-
-    private static int signExtend26(int value) {
-        return (value << (Integer.SIZE - MC_XZ_BITS)) >> (Integer.SIZE - MC_XZ_BITS);
-    }
-
-    private static @NotNull Map<StateType, Integer> stateTypeOrdinals() {
-        IdentityHashMap<StateType, Integer> ordinals = new IdentityHashMap<>(STATE_TYPE_VALUES.size());
-        for (int i = 0; i < STATE_TYPE_VALUES.size(); i++) {
-            ordinals.put(STATE_TYPE_VALUES.get(i), i);
+    private static @NotNull String formatNumberStandard(double value) {
+        double abs = Math.abs(value);
+        if (abs < 1e-7) return "0";
+        String formatted;
+        if (abs < 0.001) {
+            formatted = String.format("%.4E", value);
+            return formatted.replace("E-0", "E-");
         }
-        return ordinals;
+        formatted = String.format("%6f", value);
+        return formatted.replace("0.", ".");
     }
 
-    private static @NotNull String formatMcBlockPos(int x, int y, int z) {
-        return x + ", " + y + ", " + z;
-    }
-
-    private static @NotNull String formatVector3f(float x, float y, float z) {
-        return x + ", " + y + ", " + z;
-    }
-
-    private static @NotNull String formatVector3fObject(float x, float y, float z) {
-        return "X: " + x + ", Y: " + y + ", Z: " + z;
-    }
 }

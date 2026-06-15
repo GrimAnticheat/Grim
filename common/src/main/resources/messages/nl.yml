@@ -42,8 +42,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - overtredingen
 # %verbose% - extra informatie van de controle zoals offsets, niet alle controles voegen informatie toe
-alerts-format: "%prefix% &f%player% &bmislukt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bmislukt &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bmislukt <hover:show_text:\"&b%check_name%%experimental%\n&8Beschrijving: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bmislukt <hover:show_text:\"&b%check_name%%experimental%\n&8Beschrijving: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
 experimental-symbol: "*"
 
 profile:

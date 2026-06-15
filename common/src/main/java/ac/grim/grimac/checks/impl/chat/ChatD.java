@@ -22,7 +22,7 @@ public class ChatD extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE
                 || event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND_UNSIGNED
                 || event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
-            if (hidden && flagAndAlert() && shouldModifyPackets()) {
+            if (hidden && flag() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

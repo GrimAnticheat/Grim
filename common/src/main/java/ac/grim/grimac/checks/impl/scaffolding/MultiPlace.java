@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
@@ -15,13 +15,10 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiPlace", stableKey = "grim.scaffolding.multi_place", verboseVersion = 2, description = "Placed multiple blocks in a tick", experimental = true)
+@CheckData(name = "MultiPlace", stableKey = "grim.scaffolding.multi_place", description = "Placed multiple blocks in a tick", experimental = true)
 public class MultiPlace extends BlockPlaceCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "face:enum", "lastFace:enum",
-            "cursorX:f32", "cursorY:f32", "cursorZ:f32",
-            "lastCursorX:f32", "lastCursorY:f32", "lastCursorZ:f32",
-            "posXZ:vl", "posY:zz", "lastPosXZ:vl", "lastPosY:zz");
+    private static final Verbose V =
+            Verbose.of("face={face}, lastFace={face}, cursor={cursor}, lastCursor={cursor}, pos={mcpos}, lastPos={mcpos}");
 
     private final List<FlagData> flags = new ArrayList<>();
     private boolean hasPlaced;
@@ -40,15 +37,15 @@ public class MultiPlace extends BlockPlaceCheck {
         final Vector3i pos = place.position;
 
         if (hasPlaced && (face != lastFace || !cursor.equals(lastCursor) || !pos.equals(lastPos))) {
-            final int faceId = VerboseCodecs.enumOrdinal(face);
-            final int lastFaceId = VerboseCodecs.enumOrdinal(lastFace);
+            final int faceId = VerboseCodecs.enumId(face);
+            final int lastFaceId = VerboseCodecs.enumId(lastFace);
             if (!player.canSkipTicks()) {
-                var buf = V.write(verbose()).vi(faceId).vi(lastFaceId);
-                VerboseCodecs.cursor3f(buf, cursor);
-                VerboseCodecs.cursor3f(buf, lastCursor);
-                VerboseCodecs.mcBlockPos(buf, pos);
-                VerboseCodecs.mcBlockPos(buf, lastPos);
-                if (flagAndAlert(buf)
+                var buf = V.write(verbose()).uint(faceId).uint(lastFaceId)
+                        .cursor(cursor.x, cursor.y, cursor.z)
+                        .cursor(lastCursor.x, lastCursor.y, lastCursor.z)
+                        .mcPos(pos.x, pos.y, pos.z)
+                        .mcPos(lastPos.x, lastPos.y, lastPos.z);
+                if (flag(buf)
                         && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
@@ -76,12 +73,11 @@ public class MultiPlace extends BlockPlaceCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                var buf = V.write(verbose()).vi(data.face()).vi(data.lastFace());
-                VerboseCodecs.cursor3f(buf, data.cursor());
-                VerboseCodecs.cursor3f(buf, data.lastCursor());
-                VerboseCodecs.mcBlockPos(buf, data.pos());
-                VerboseCodecs.mcBlockPos(buf, data.lastPos());
-                flagAndAlert(buf);
+                flag(V.write(verbose()).uint(data.face()).uint(data.lastFace())
+                        .cursor(data.cursor().x, data.cursor().y, data.cursor().z)
+                        .cursor(data.lastCursor().x, data.lastCursor().y, data.lastCursor().z)
+                        .mcPos(data.pos().x, data.pos().y, data.pos().z)
+                        .mcPos(data.lastPos().x, data.lastPos().y, data.lastPos().z));
             }
         }
 

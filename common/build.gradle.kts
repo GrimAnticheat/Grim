@@ -75,6 +75,13 @@ dependencies {
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
     compileOnly(libs.luckperms)
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 publishing.publications.create<MavenPublication>("maven") {

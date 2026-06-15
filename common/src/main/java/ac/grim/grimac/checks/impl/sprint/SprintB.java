@@ -43,7 +43,7 @@ public class SprintB extends Check implements PostPredictionCheck {
             }
 
             if (player.isSprinting) {
-                flagAndAlertWithSetback();
+                flagWithSetback();
             } else reward();
         }
     }

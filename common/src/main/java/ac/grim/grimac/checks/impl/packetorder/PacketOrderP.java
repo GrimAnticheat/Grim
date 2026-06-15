@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -12,12 +12,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBundle;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-@CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_response_order", experimental = true, verboseVersion = 2)
+@CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_response_order", description = "Responded to chunk batch packets in an invalid transaction order", experimental = true)
 public class PacketOrderP extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2, "kind:vi", "packetId:zz");
-
-    static final int KIND_INVALID_RESPONSE = 0;
-    static final int KIND_SKIPPED_RESPONSE = 1;
+    private static final Verbose V = Verbose.of("[invalid response|skipped response, type={packet}]");
 
     public PacketOrderP(final GrimPlayer player) {
         super(player);
@@ -30,22 +27,14 @@ public class PacketOrderP extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHUNK_BATCH_ACK) {
             if (!transactions.rem(player.getLastTransactionReceived())) {
-                flagAndAlert(V.write(verbose()).vi(KIND_INVALID_RESPONSE).zz(VerboseCodecs.PACKET_NONE));
+                flag(V.write(verbose()).bool(true).sint(VerboseCodecs.PACKET_NONE));
             }
         } else if (!isAsync(event.getPacketType()) && !isTransaction(event.getPacketType())) {
             if (transactions.rem(player.getLastTransactionReceived())) {
-                int packetId = VerboseCodecs.packetId(event.getPacketType(), player.getClientVersion());
-                flagAndAlert(V.write(verbose()).vi(KIND_SKIPPED_RESPONSE).zz(packetId));
+                int packetId = VerboseCodecs.packet(event.getPacketType(), player.getClientVersion());
+                flag(V.write(verbose()).bool(false).sint(packetId));
             }
         }
-    }
-
-    static String verbose(int kind, String packetType) {
-        return switch (kind) {
-            case KIND_INVALID_RESPONSE -> "invalid response";
-            case KIND_SKIPPED_RESPONSE -> "skipped response, type=" + packetType;
-            default -> "unknown";
-        };
     }
 
     public void onPacketSend(PacketSendEvent event) {
@@ -59,7 +48,7 @@ public class PacketOrderP extends Check implements PacketCheck {
             if (++trimTimer == 0) transactions.trim();
             player.addRealTimeTaskNext(() -> {
                 if (transactions.rem(transaction)) {
-                    flagAndAlert(V.write(verbose()).vi(KIND_SKIPPED_RESPONSE).zz(VerboseCodecs.PACKET_TRANSACTION));
+                    flag(V.write(verbose()).bool(false).sint(VerboseCodecs.PACKET_TRANSACTION));
                 }
             });
 

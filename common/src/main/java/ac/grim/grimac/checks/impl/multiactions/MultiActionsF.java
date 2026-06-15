@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,13 +14,14 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiActionsF", stableKey = "grim.multiactions.block_and_entity_interact", verboseVersion = 1, description = "Interacting with a block and an entity in the same tick", experimental = true)
+@CheckData(name = "MultiActionsF", stableKey = "grim.multiactions.block_and_entity_interact", description = "Interacting with a block and an entity in the same tick", experimental = true)
 public class MultiActionsF extends BlockPlaceCheck {
-    public static final VerboseSchema V = VerboseSchema.of("action:vi");
+    // Shape index == ACTION_* constant value.
+    private static final Verbose V = Verbose.of("action=place").or("action=entity").or("action=dig");
 
-    static final int ACTION_PLACE = 0;
-    static final int ACTION_ENTITY = 1;
-    static final int ACTION_DIG = 2;
+    private static final int ACTION_PLACE = 0;
+    private static final int ACTION_ENTITY = 1;
+    private static final int ACTION_DIG = 2;
 
     private final List<FlagData> flags = new ArrayList<>();
     private boolean entity, block;
@@ -29,13 +30,8 @@ public class MultiActionsF extends BlockPlaceCheck {
         super(player);
     }
 
-    static String verbose(int action) {
-        return switch (action) {
-            case ACTION_PLACE -> "place";
-            case ACTION_ENTITY -> "entity";
-            case ACTION_DIG -> "dig";
-            default -> "unknown";
-        };
+    private Verbose.Writer writeAction(int action) {
+        return V.write(verbose(), action);
     }
 
     @Override
@@ -43,7 +39,7 @@ public class MultiActionsF extends BlockPlaceCheck {
         block = true;
         if (entity) {
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(V.write(verbose()).vi(ACTION_PLACE)) && shouldModifyPackets() && shouldCancel()) {
+                if (flag(writeAction(ACTION_PLACE)) && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
             } else {
@@ -60,7 +56,7 @@ public class MultiActionsF extends BlockPlaceCheck {
             entity = true;
             if (block) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert(V.write(verbose()).vi(ACTION_ENTITY)) && shouldModifyPackets()) {
+                    if (flag(writeAction(ACTION_ENTITY)) && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -81,7 +77,7 @@ public class MultiActionsF extends BlockPlaceCheck {
             block = true;
             if (entity) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert(V.write(verbose()).vi(ACTION_DIG)) && shouldModifyPackets()) {
+                    if (flag(writeAction(ACTION_DIG)) && shouldModifyPackets()) {
                         blockBreak.cancel();
                     }
                 } else {
@@ -97,7 +93,7 @@ public class MultiActionsF extends BlockPlaceCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                flagAndAlert(V.write(verbose()).vi(data.action()));
+                flag(writeAction(data.action()));
             }
         }
 

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -10,12 +10,13 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "BadPacketsL", stableKey = "grim.badpackets.invalid_dig", verboseVersion = 2, description = "Sent impossible dig packet")
+@CheckData(name = "BadPacketsL", stableKey = "grim.badpackets.invalid_dig", description = "Sent impossible dig packet")
 public class BadPacketsL extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "posXZ:vl", "posY:zz", "face:zz", "sequence:zz", "action:enum");
+    private static final Verbose V =
+            Verbose.of("pos={mcpos}, face={sint}, sequence={sint}, action={digging_lower}");
 
     public BadPacketsL(GrimPlayer player) {
         super(player);
@@ -43,14 +44,13 @@ public class BadPacketsL extends Check implements PacketCheck {
                     || packet.getBlockPosition().getZ() != 0
                     || packet.getSequence() != 0
             ) {
-                int face = packet.getBlockFaceId();
-                int sequence = packet.getSequence();
-                var buf = V.write(verbose());
-                VerboseCodecs.mcBlockPos(buf, packet.getBlockPosition())
-                        .zz(face)
-                        .zz(sequence)
-                        .vi(VerboseCodecs.enumOrdinal(packet.getAction()));
-                if (flagAndAlert(buf)
+                final Vector3i pos = packet.getBlockPosition();
+                var buf = V.write(verbose())
+                        .mcPos(pos.getX(), pos.getY(), pos.getZ())
+                        .sint(packet.getBlockFaceId())
+                        .sint(packet.getSequence())
+                        .uint(VerboseCodecs.enumId(packet.getAction()));
+                if (flag(buf)
                         && shouldModifyPackets() && canCancel(packet.getAction())) {
                     event.setCancelled(true);
                     player.onPacketCancel();
