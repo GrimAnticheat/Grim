@@ -41,8 +41,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - Verstöße
 # %verbose% - zusätzliche Informationen von der Prüfung, nicht alle Prüfungen liefern zusätzliche Informationen
-alerts-format: "%prefix% &f%player% &bbestand <hover:show_text:\"&b%check_name%%experimental%\n&8Beschreibung: &f%description%\">&f%check_name%%experimental%</hover> &bnicht &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bbestand <hover:show_text:\"&b%check_name%%experimental%\n&8Beschreibung: &f%description%\">&f%check_name%%experimental%</hover> &bnicht &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
+alerts-format-proxy: "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
 experimental-symbol: "*"
 
 profile:
@@ -125,4 +125,4 @@ grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Schema-Marker — siehe Kopf-Kommentar in config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

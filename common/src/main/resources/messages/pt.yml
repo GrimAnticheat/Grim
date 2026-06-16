@@ -41,8 +41,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - violações
 # %verbose% - Informação extra da verificação, como os desalinhamentos, nem todas as verifiações terão essa informação.
-alerts-format: "%prefix% &f%player% &bfalhou em <hover:show_text:\"&b%check_name%%experimental%\n&8Descrição: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bfalhou em <hover:show_text:\"&b%check_name%%experimental%\n&8Descrição: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
+alerts-format-proxy: "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
 experimental-symbol: "*"
 profile:
     - "&7======================"
@@ -126,4 +126,4 @@ grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Marcadores de esquema — ver o comentário do cabeçalho em config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

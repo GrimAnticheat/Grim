@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 
 public class PunishmentManager implements ConfigReloadable {
     private static final CommandExecuteEvent.Channel COMMAND_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CommandExecuteEvent.class);
+    private static final String DEFAULT_ALERT_FORMAT = "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%";
+    private static final String DEFAULT_PROXY_ALERT_FORMAT = "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%";
     private final GrimPlayer player;
     private final List<PunishGroup> groups = new ArrayList<>();
     private String experimentalSymbol = "*";
@@ -40,14 +42,14 @@ public class PunishmentManager implements ConfigReloadable {
 
         alertString = config.getStringElse(
                 "alerts-format",
-                "%prefix% &f%player% &bfailed <hover:show_text:\"&b%check_name%%experimental%\\n&8Description: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+                DEFAULT_ALERT_FORMAT
         );
 
         testMode = config.getBooleanElse("test-mode", false);
 
         proxyAlertString = config.getStringElse(
                 "alerts-format-proxy",
-                "%prefix% &f[&cproxy&f] &f%player% &bfailed <hover:show_text:\"&b%check_name%%experimental%\\n&8Description: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+                DEFAULT_PROXY_ALERT_FORMAT
         );
 
         try {

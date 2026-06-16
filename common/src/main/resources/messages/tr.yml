@@ -42,8 +42,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - ihlal uyarıları
 # %verbose% - detaylı olarak verilen tüm uyarılar, checkler tüm bilgileri vermez
-alerts-format: "%prefix% &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
+alerts-format: "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
+alerts-format-proxy: "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
 experimental-symbol: "*"
 
 profile:
@@ -126,4 +126,4 @@ grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
 config-flavor: V2
-config-version: 1
+config-version: 2

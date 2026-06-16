@@ -39,8 +39,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - 違反回数
 # %verbose% - チェックからの追加情報（全てのチェックが情報を追加するわけではありません）
-alerts-format: "%prefix% &f%player% が <hover:show_text:\"&b%check_name%%experimental%\n&8説明: &f%description%\">&b%check_name%%experimental%</hover> &fに失敗しました (x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cプロキシ&f] &f%player% が <hover:show_text:\"&b%check_name%%experimental%\n&8説明: &f%description%\">&b%check_name%%experimental%</hover> &fに失敗しました (x&c%vl%&f) &7%verbose%"
+alerts-format: "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
+alerts-format-proxy: "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%"
 experimental-symbol: "*"
 
 profile:
@@ -123,4 +123,4 @@ grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # スキーマ用マーカー — config.yml のヘッダーコメントを参照。
 config-flavor: V2
-config-version: 1
+config-version: 2

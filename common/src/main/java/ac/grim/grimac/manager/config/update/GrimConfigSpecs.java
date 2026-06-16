@@ -37,6 +37,8 @@ import java.util.Locale;
  */
 @UtilityClass
 public final class GrimConfigSpecs {
+    private static final String AC_ALERT_FORMAT = "&9AC &8\u203A &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%";
+    private static final String AC_PROXY_ALERT_FORMAT = "&9AC &8\u203A &8[&9proxy&8] &3%player% &8| <hover:show_text:\"&9%check_name%%experimental%\\n&8Description: &f%description%\">&9%check_name%%experimental%</hover> &8| &3x%vl% &7%verbose%";
 
     /**
      * Spec for the main {@code config.yml}.
@@ -116,7 +118,11 @@ public final class GrimConfigSpecs {
     }
 
     public static @NotNull ConfigUpdater.Spec messages() {
-        return ConfigUpdater.Spec.builder("/messages/", 1, ConfigUpdater.ConfigFlavor.V2)
+        return ConfigUpdater.Spec.builder("/messages/", 2, ConfigUpdater.ConfigFlavor.V2)
+                .migration(2, ctx -> {
+                    ctx.output().put("alerts-format", AC_ALERT_FORMAT);
+                    ctx.output().put("alerts-format-proxy", AC_PROXY_ALERT_FORMAT);
+                })
                 .build();
     }
 
