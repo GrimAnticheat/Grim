@@ -228,5 +228,15 @@ max-ping-firework-boost: 1000
 #   config-version: wordt verhoogd bij elke incompatibele vormwijziging. Oude
 #                   configs worden bij de volgende start automatisch
 #                   gemigreerd door de meegeleverde updater.
+# Grim vernieuwt gecachete permissies altijd wanneer een speler joint en wanneer
+# Grim wordt herladen, ongeacht of LuckPerms is geïnstalleerd.
+# LuckPerms-eventhooks vernieuwen gecachete Grim-permissies in normale setups ook meteen.
+# Deze periodieke fallback is alleen nodig voor online permissiewijzigingen die niet
+# door die events worden gedekt, zoals een aangepaste LuckPerms-context die
+# signalContextUpdate niet aanroept, ontbrekende Fabric-contextupdates of een
+# permissieprovider anders dan LuckPerms die live permissies wijzigt.
+# Zet op -1 om polling uit te schakelen. Zet op een positieve waarde om elke X ticks te vernieuwen.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

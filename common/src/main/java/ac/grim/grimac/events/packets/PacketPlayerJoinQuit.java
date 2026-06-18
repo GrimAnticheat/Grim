@@ -37,7 +37,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     public void onUserConnect(UserConnectEvent event) {
         // Player connected too soon, perhaps late bind is off
         // Don't kick everyone on reload
-        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.contains(event.getUser())) {
+        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().isExemptUser(event.getUser())) {
             event.setCancelled(true);
         }
     }
@@ -46,6 +46,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     public void onUserLogin(UserLoginEvent event) {
         // fake channel (NPC / spoofer / EmbeddedChannel) — no PacketUser, nothing to track
         if (event.getUser() == null) return;
+
         Object nativePlayerObject = Objects.requireNonNull(event.getPlayer());
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order

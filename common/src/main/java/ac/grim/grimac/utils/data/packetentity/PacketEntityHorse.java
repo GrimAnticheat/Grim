@@ -105,7 +105,12 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
             forwardInput *= 0.25F;
         }
 
-        double jumpFactor = (float) this.getAttributeValue(Attributes.JUMP_STRENGTH) * this.getJumpPower() * JumpPower.getPlayerJumpFactor(player);
+        double jumpFactor;
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
+            jumpFactor = (float) this.getAttributeValue(Attributes.JUMP_STRENGTH) * this.getJumpPower() * JumpPower.getPlayerJumpFactor(player);
+        } else {
+            jumpFactor = this.getAttributeValue(Attributes.JUMP_STRENGTH) * this.getJumpPower() * JumpPower.getPlayerJumpFactor(player);
+        }
         double jumpVelocity;
 
         // This doesn't even work because vehicle jump boost has (likely) been
@@ -113,6 +118,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
         //
         // But plugins can still send this, so support it anyways
         final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
+        // this code changed in some version, if someone wants to decompile 12930898935 versions to fix this, feel free to do that
         if (jumpBoost.isPresent()) {
             jumpVelocity = jumpFactor + ((jumpBoost.getAsInt() + 1) * 0.1F);
         } else {

@@ -1,7 +1,9 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -21,8 +23,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", experimental = true)
+@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it", experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
+    private static final Verbose V = Verbose.of("[pre-flying|post-flying], action={digging}");
+
     private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
     private boolean ignorePost = false;
 
@@ -40,7 +44,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         if (flagBuffer > 0 && !didRayTraceHit(blockBreak)) {
             ignorePost = true;
             // If the player hit and has flagged this check recently
-            if (flagAndAlert("pre-flying, action=" + blockBreak.action) && shouldModifyPackets()) {
+            if (flag(V.write(verbose()).bool(true)
+                    .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
                 blockBreak.cancel();
             }
         }
@@ -63,7 +68,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
             flagBuffer = Math.max(0, flagBuffer - 0.1);
         } else {
             flagBuffer = 1;
-            flagAndAlert("post-flying, action=" + blockBreak.action);
+            flag(V.write(verbose()).bool(false)
+                    .uint(VerboseCodecs.enumId(blockBreak.action)));
         }
     }
 

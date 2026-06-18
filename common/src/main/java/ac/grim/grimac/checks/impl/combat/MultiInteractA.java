@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -15,7 +16,10 @@ import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractA", stableKey = "grim.multiinteract.multiple_targets", description = "Interacted with multiple entities in the same tick", experimental = true)
 public class MultiInteractA extends Check implements PostPredictionCheck {
-    private final ArrayList<String> flags = new ArrayList<>();
+    private static final Verbose V =
+            Verbose.of("lastEntity={sint}, entity={sint}, lastSneaking={bool}, sneaking={bool}");
+
+    private final ArrayList<FlagData> flags = new ArrayList<>();
     private int lastEntity;
     private boolean lastSneaking;
     private boolean hasInteracted = false;
@@ -50,15 +54,13 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
 
     private void onInteract(PacketReceiveEvent event, int entity, boolean sneaking) {
         if (hasInteracted && (entity != lastEntity || sneaking != lastSneaking)) {
-            String verbose = "lastEntity=" + lastEntity + ", entity=" + entity
-                    + ", lastSneaking=" + lastSneaking + ", sneaking=" + sneaking;
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).sint(lastEntity).sint(entity).bool(lastSneaking).bool(sneaking)) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
             } else {
-                flags.add(verbose);
+                flags.add(new FlagData(lastEntity, entity, lastSneaking, sneaking));
             }
         }
 
@@ -72,11 +74,14 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (String verbose : flags) {
-                flagAndAlert(verbose);
+            for (FlagData data : flags) {
+                flag(V.write(verbose()).sint(data.lastEntity()).sint(data.entity()).bool(data.lastSneaking()).bool(data.sneaking()));
             }
         }
 
         flags.clear();
+    }
+
+    private record FlagData(int lastEntity, int entity, boolean lastSneaking, boolean sneaking) {
     }
 }

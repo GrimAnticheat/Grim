@@ -152,7 +152,13 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             }
 
             player.sendTransaction();
-            player.pendingRotations.add(new RotationData(packet.getYaw(), GrimMath.clamp(packet.getPitch() % 360F, -90F, 90F), player.getLastTransactionSent()));
+            player.pendingRotations.add(new RotationData(
+                    packet.getYaw(),
+                    packet.isRelativePitch() ? packet.getPitch() : GrimMath.clamp(packet.getPitch() % 360F, -90F, 90F),
+                    packet.isRelativeYaw(),
+                    packet.isRelativePitch(),
+                    player.getLastTransactionSent()
+            ));
             event.getTasksAfterSend().add(player::sendTransaction);
         }
 

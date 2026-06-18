@@ -38,7 +38,7 @@ public class BadPacketsM extends Check implements PacketCheck {
         }
 
         if (!player.compensatedEntities.self.isDead && !menu) {
-            flagAndAlert(); // don't cancel in case of a false positive
+            flag(); // don't cancel in case of a false positive
         }
 
         // the client closes the menu and reopens it if dead

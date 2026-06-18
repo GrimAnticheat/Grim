@@ -97,7 +97,7 @@ database:
   # Отображаемый тег, проставляемый в новых записях сессий. Показывается
   # в заголовке сессии в `/grim history`. Безопасно менять во время
   # работы.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Маркеры схемы — см. шапку config.yml.
 config-flavor: V2

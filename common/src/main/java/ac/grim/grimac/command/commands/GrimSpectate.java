@@ -5,7 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.CloudCommandService;
 import ac.grim.grimac.command.requirements.PlayerSenderRequirement;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -18,12 +18,12 @@ import java.util.Objects;
 
 public class GrimSpectate implements BuildableCommand {
     @Override
-    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
+    public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("spectate")
                         .permission("grim.spectate")
-                        .required("target", adapter.singlePlayerSelectorParser())
+                        .required("target", arguments.singlePlayerSelectorParser())
                         .handler(this::handleSpectate)
                         .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.INSTANCE))
         );

@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,6 +10,8 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 @CheckData(name = "InvalidPlaceB", stableKey = "grim.scaffolding.invalid_place_b", description = "Sent impossible block face id")
 public class InvalidPlaceB extends BlockPlaceCheck {
+    private static final Verbose V = Verbose.of("direction={sint}");
+
     public InvalidPlaceB(GrimPlayer player) {
         super(player);
     }
@@ -21,7 +24,8 @@ public class InvalidPlaceB extends BlockPlaceCheck {
 
         if (place.getFaceId() < 0 || place.getFaceId() > 5) {
             // ban
-            if (flagAndAlert("direction=" + place.getFaceId()) && shouldModifyPackets() && shouldCancel()) {
+            int direction = place.getFaceId();
+            if (flag(V.write(verbose()).sint(direction)) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }

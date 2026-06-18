@@ -43,11 +43,9 @@ repositories {
 
 
 dependencies {
-    if (BuildConfig.shadePE) {
-        api(libs.packetevents.api)
-    } else {
-        compileOnly(libs.packetevents.api)
-    }
+    // compileOnly, not api: each platform bundles PE via its own JiJ/shade path,
+    // so api() here would nest packetevents-api a second time (~4.2MB) in the jars.
+    compileOnly(libs.packetevents.api)
     api(libs.cloud.core)
     api(libs.cloud.processors.requirements)
     api(libs.configuralize) {
@@ -66,6 +64,7 @@ dependencies {
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
+    compileOnly(libs.mongoDriverSync)
 
     compileOnly(libs.geyser.base.api) {
         isTransitive = false // messes with guava otherwise
@@ -75,6 +74,14 @@ dependencies {
     compileOnly(libs.viaversion)
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
+    compileOnly(libs.luckperms)
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 publishing.publications.create<MavenPublication>("maven") {

@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.sprint;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "SprintA", stableKey = "grim.sprint.hunger", description = "Sprinting with too low hunger", setback = 0)
 public class SprintA extends Check implements PacketCheck {
+    private static final Verbose V = Verbose.of("hunger={uint}");
 
     public SprintA(GrimPlayer player) {
         super(player);
@@ -25,7 +27,7 @@ public class SprintA extends Check implements PacketCheck {
 
         if (player.food <= 6.0F) {
             if (player.isSprinting) {
-                if (flagAndAlert("hunger=" + player.food)) {
+                if (flag(V.write(verbose()).uint(player.food))) {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();

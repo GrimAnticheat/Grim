@@ -693,6 +693,10 @@ public class CompensatedWorld implements PacketWorld {
         return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.LAVA);
     }
 
+    public boolean containsNetherPortal(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.NETHER_PORTAL);
+    }
+
     public float getWaterFluidLevelAt(double x, double y, double z) {
         return getWaterFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }

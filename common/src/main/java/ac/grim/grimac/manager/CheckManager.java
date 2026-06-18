@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -42,6 +43,7 @@ import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
@@ -296,7 +298,20 @@ public class CheckManager {
         blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
         postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
 
+        registerBuiltInVerboseTemplates();
         init();
+    }
+
+    private void registerBuiltInVerboseTemplates() {
+        VerboseRegistry registry = GrimAPI.INSTANCE.getDataStoreLifecycle().verboseRegistry();
+        if (registry == null) return;
+        registry.registerTemplates(() -> {
+            for (AbstractCheck check : allChecks.values()) {
+                if (check instanceof Check grimCheck) {
+                    grimCheck.registerVerboseTemplates(registry);
+                }
+            }
+        });
     }
 
     public <T extends AbstractCheck> T getCheck(Class<T> check) {

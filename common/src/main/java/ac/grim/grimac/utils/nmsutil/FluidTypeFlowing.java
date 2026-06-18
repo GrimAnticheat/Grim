@@ -15,22 +15,26 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class FluidTypeFlowing {
-    public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
-        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
-        ClientVersion version = player.getClientVersion();
 
+    public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
+        ClientVersion version = player.getClientVersion();
+        return version.isOlderThan(ClientVersion.V_1_13) ? legacy$getFlow(player, version, originalX, originalY, originalZ) : modern$getFlow(player, version, originalX, originalY, originalZ);
+    }
+
+    private static Vector3dm modern$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
+        float fluidLevel = Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9f);
         if (fluidLevel == 0) return new Vector3dm();
 
-        double d0 = 0.0D;
-        double d1 = 0.0D;
-        for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-            int modifiedX = originalX + enumdirection.getModX();
-            int modifiedZ = originalZ + enumdirection.getModZ();
+        double modX = 0.0D;
+        double modZ = 0.0D;
+        for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            int modifiedX = originalX + direction.getModX();
+            int modifiedZ = originalZ + direction.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
-                float f1 = 0.0F;
-                if (f == 0.0F) {
+                float adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9f);
+                float flow = 0.0F;
+                if (adjacentLevel == 0.0F) {
                     StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
@@ -38,38 +42,93 @@ public class FluidTypeFlowing {
                     // Use method call to support 1.13-1.15 clients and banner oddity
                     if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
-                            if (f > 0.0F) {
-                                f1 = fluidLevel - (f - 0.8888889F);
+                            adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9f);
+                            if (adjacentLevel > 0.0F) {
+                                flow = fluidLevel - (adjacentLevel - 0.8888889F);
                             }
                         }
                     }
-
-                } else if (f > 0.0F) {
-                    f1 = fluidLevel - f;
+                } else if (adjacentLevel > 0.0F) {
+                    flow = fluidLevel - adjacentLevel;
                 }
 
-                if (f1 != 0.0F) {
-                    d0 += (float) enumdirection.getModX() * f1;
-                    d1 += (float) enumdirection.getModZ() * f1;
+                if (flow != 0.0F) {
+                    modX += direction.getModX() * flow;
+                    modZ += direction.getModZ() * flow;
                 }
             }
         }
 
-        Vector3dm vec3d = new Vector3dm(d0, 0.0D, d1);
+        Vector3dm vec3d = new Vector3dm(modX, 0.0D, modZ);
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
         WrappedBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
         if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
-            for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-                if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
+            for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+                if (isSolidFace(player, originalX, originalY, originalZ, direction) || isSolidFace(player, originalX, originalY + 1, originalZ, direction)) {
                     vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
                     break;
                 }
             }
         }
+
         return VectorUtils.normalize(player, vec3d);
+    }
+
+    private static Vector3dm legacy$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
+        WrappedBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
+        boolean water = Materials.isWater(player.getClientVersion(), state);
+        if (!water && state.getType() != StateTypes.LAVA) return new Vector3dm();
+
+        int fluidLevel = legacy$getLiquidDepth(player, originalX, originalY, originalZ, water);
+        if (fluidLevel < 0) return new Vector3dm();
+
+        double modX = 0.0D;
+        double modZ = 0.0D;
+        for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            int modifiedX = originalX + direction.getModX();
+            int modifiedZ = originalZ + direction.getModZ();
+            int adjacentLevel = legacy$getLiquidDepth(player, modifiedX, originalY, modifiedZ, water);
+
+            if (adjacentLevel < 0) {
+                StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
+                if (Materials.isSolidBlockingBlacklist(mat, version)) {
+                    adjacentLevel = legacy$getLiquidDepth(player, modifiedX, originalY - 1, modifiedZ, water);
+                    if (adjacentLevel >= 0) {
+                        int flow = adjacentLevel - (fluidLevel - 8);
+                        modX += direction.getModX() * flow;
+                        modZ += direction.getModZ() * flow;
+                    }
+                }
+            } else {
+                int flow = adjacentLevel - fluidLevel;
+                modX += direction.getModX() * flow;
+                modZ += direction.getModZ() * flow;
+            }
+        }
+
+        Vector3dm vec3d = new Vector3dm(modX, 0.0D, modZ);
+        if (state.getLevel() >= 8) {
+            for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+                if (isSolidFace(player, originalX, originalY, originalZ, direction) || isSolidFace(player, originalX, originalY + 1, originalZ, direction)) {
+                    vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
+                    break;
+                }
+            }
+        }
+
+        return VectorUtils.normalize(player, vec3d);
+    }
+
+    private static int legacy$getLiquidDepth(GrimPlayer player, int x, int y, int z, boolean water) {
+        WrappedBlockState state = player.compensatedWorld.getBlock(x, y, z);
+        if (water ? !Materials.isWater(player.getClientVersion(), state) : state.getType() != StateTypes.LAVA) {
+            return -1;
+        }
+
+        int level = state.getLevel();
+        return level >= 8 ? 0 : level;
     }
 
     private static boolean affectsFlow(GrimPlayer player, int originalX, int originalY, int originalZ, int x2, int y2, int z2) {

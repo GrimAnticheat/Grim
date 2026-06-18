@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.prediction;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.CompletePredictionEvent;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -11,8 +12,10 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", decay = 0.02)
+@CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", description = "Moved differently than predicted movement simulation", decay = 0.02)
 public class OffsetHandler extends Check implements PostPredictionCheck {
+    private static final Verbose V = Verbose.of("{offset}");
+
     private static final AtomicInteger flags = new AtomicInteger(0);
     // Config
     private double setbackDecayMultiplier;
@@ -43,24 +46,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
             synchronized (flags) {
                 int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
 
-                String humanFormattedOffset;
-                if (offset < 0.001) { // 1.129E-3
-                    humanFormattedOffset = String.format("%.4E", offset);
-                    // Squeeze out an extra digit here by E-03 to E-3
-                    humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
-                } else {
-                    // 0.00112945678 -> .001129
-                    humanFormattedOffset = String.format("%6f", offset);
-                    // I like the leading zero, but removing it lets us add another digit to the end
-                    humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
-                }
-
-                String verbose = humanFormattedOffset + " /gl " + flagId;
-                if (flag(verbose)) {
-                    if (alert(verbose)) {
-                        flags.incrementAndGet(); // This debug was sent somewhere
-                        predictionComplete.setIdentifier(flagId);
-                    }
+                if (flag(V.write(verbose()).f64(offset), () -> humanFormattedOffset(offset) + " /gl " + flagId)) {
+                    flags.incrementAndGet();
+                    predictionComplete.setIdentifier(flagId);
 
                     if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
                             && !isNoSetbackPermission()
@@ -76,6 +64,21 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         }
 
         removeOffsetLenience();
+    }
+
+    public static String humanFormattedOffset(double offset) {
+        String humanFormattedOffset;
+        if (offset < 0.001) { // 1.129E-3
+            humanFormattedOffset = String.format("%.4E", offset);
+            // Squeeze out an extra digit here by E-03 to E-3
+            humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
+        } else {
+            // 0.00112945678 -> .001129
+            humanFormattedOffset = String.format("%6f", offset);
+            // I like the leading zero, but removing it lets us add another digit to the end
+            humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
+        }
+        return humanFormattedOffset;
     }
 
     private void giveOffsetLenienceNextTick(double offset) {
