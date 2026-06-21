@@ -92,7 +92,7 @@ database:
 
   # Display-only tag stamped on new session records. Shown in the session
   # header line of `/grim history`. Safe to change mid-operation.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Schema markers — see header comment in config.yml.
 config-flavor: V2

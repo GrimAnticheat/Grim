@@ -22,7 +22,7 @@ public class MultiActionsB extends Check implements BlockBreakCheck {
                 return;
             }
 
-            if (flagAndAlert() && shouldModifyPackets()) {
+            if (flag() && shouldModifyPackets()) {
                 blockBreak.cancel();
             }
         }

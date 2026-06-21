@@ -17,7 +17,7 @@ public class CompensatedCameraEntity extends Check implements PacketCheck {
 
     public CompensatedCameraEntity(GrimPlayer player) {
         super(player);
-        entities.add(player.compensatedEntities.self);
+        reset();
     }
 
     @Override
@@ -57,5 +57,10 @@ public class CompensatedCameraEntity extends Check implements PacketCheck {
 
     public List<PacketEntity> getPossibilities() {
         return new ArrayList<>(entities);
+    }
+
+    public void reset() {
+        entities.clear();
+        entities.add(player.compensatedEntities.self);
     }
 }

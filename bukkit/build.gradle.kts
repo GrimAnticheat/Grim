@@ -43,6 +43,7 @@ repositories {
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.placeholderapi)
+    compileOnly(libs.luckperms)
 
     if (BuildConfig.shadePE) {
         implementation(libs.packetevents.spigot)
@@ -80,6 +81,7 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
+        "LuckPerms",
         // Driver holder mods — softdepend so each backend's driver class
         // resolves through the linked classloader.
         "sqlite-jdbc",
@@ -135,6 +137,11 @@ bukkit {
             default = Permission.Default.FALSE
         }
 
+        register("grim.disabled") {
+            description = "Disable Grim checks while keeping player state tracked"
+            default = Permission.Default.FALSE
+        }
+
         register("grim.exempt") {
             description = "Exempt from all checks"
             default = Permission.Default.FALSE
@@ -165,16 +172,36 @@ publishing.publications.create<MavenPublication>("maven") {
 }
 
 tasks {
+    // 1.8.8 - 1.16.5   = Java 8
+    // 1.17             = Java 16
+    // 1.18 - 1.20.4    = Java 17
+    // 1.20.5 - 1.21.11 = Java 21
+    // 26.1+            = Java 25
+    val version = "26.1.2"
+    val javaVersion = JavaLanguageVersion.of(25)
+
+    val jvmArgsExternal = listOf(
+        "-Dcom.mojang.eula.agree=true",
+        "-Dpaper.explicit-flush=true",
+        "-DPaper.IgnoreJavaVersion=true"
+    )
+
     runServer {
+        minecraftVersion(version)
+        runDirectory = projectDir.resolve("run/$version")
+
         val javaToolchains = project.extensions.getByType<JavaToolchainService>()
         javaLauncher = javaToolchains.launcherFor {
             vendor = JvmVendorSpec.JETBRAINS
-            languageVersion = JavaLanguageVersion.of(25)
+            languageVersion = javaVersion
         }
-        minecraftVersion("26.1.2")
+
+        jvmArgs = jvmArgsExternal
     }
 
     shadowJar {
+        exclude("META-INF/services/javax.annotation.processing.Processor")
+
         manifest {
             attributes["paperweight-mappings-namespace"] = "mojang"
         }

@@ -11,15 +11,17 @@ cloud-processors-requirements = "1.0.0-rc.1"
 # --- Minecraft-Specific APIs ---
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.4.0.0"
-packetevents = "2.12.2+22c9961-SNAPSHOT"
+grim-api = "1.6.0.5"
+packetevents = "2.12.3+e18eca8-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
+luckperms = "5.5"
 
 # --- General Java Utilities ---
 fastutil = "8.5.15"
 hikaricp = "7.0.2"
 jetbrains-annotations = "24.1.0"
+mongoDriverSync = "5.3.1"
 netty = "4.1.85.Final"
 snakeyaml = "2.2"
 configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
@@ -43,6 +45,7 @@ cloud-processors-requirements = { group = "org.incendo", name = "cloud-processor
 # --- Minecraft Server APIs ---
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-api" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
+luckperms = { group = "net.luckperms", name = "api", version.ref = "luckperms" }
 
 # --- Minecraft-Specific Libraries ---
 configuralize = { group = "github.scarsz", name = "configuralize", version.ref = "configuralize" }
@@ -63,6 +66,7 @@ viabackwards = { group = "com.viaversion", name = "viabackwards", version.ref = 
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
 hikaricp = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikaricp" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+mongoDriverSync = { group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongoDriverSync" }
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 
@@ -84,7 +88,8 @@ shadow = { "group" = "com.gradleup.shadow", name = "shadow-gradle-plugin", versi
 cloud-api = ["cloud-core", "cloud-processors-requirements"]
 
 [plugins]
-fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
+fabric-loom-remap = { id = "net.fabricmc.fabric-loom-remap", version.ref = "fabric-loom" }
+fabric-loom-unobfuscated = { id = "net.fabricmc.fabric-loom", version.ref = "fabric-loom" }
 lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

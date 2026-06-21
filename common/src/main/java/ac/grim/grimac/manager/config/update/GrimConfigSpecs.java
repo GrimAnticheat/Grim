@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager.config.update;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +35,8 @@ import java.util.Locale;
  * <p>{@code punishments.yml} is intentionally absent — open-ended user-
  * defined data (operator-authored punishment groups), no schema versioning.
  */
+@UtilityClass
 public final class GrimConfigSpecs {
-
-    private GrimConfigSpecs() {}
 
     /**
      * Spec for the main {@code config.yml}.
@@ -48,9 +48,13 @@ public final class GrimConfigSpecs {
      * file. The bundled default at v10 has no {@code history:} block, so
      * the auto-lift naturally drops it from the new file; the migration
      * only needs to ferry the values over.
+     *
+     * <p>v10 → v11: adds {@code update-permission-ticks} to the bundled
+     * config. No explicit migration is needed; the updater's default rewrite
+     * adds the key, and auto-lift preserves an existing user value if present.
      */
     public static @NotNull ConfigUpdater.Spec mainConfig() {
-        return ConfigUpdater.Spec.builder("/config/", 10, ConfigUpdater.ConfigFlavor.V2)
+        return ConfigUpdater.Spec.builder("/config/", 11, ConfigUpdater.ConfigFlavor.V2)
                 .migration(10, ctx -> {
                     String typeRaw = ctx.input().getString("history.database.type");
                     String type = typeRaw == null ? null : typeRaw.trim().toUpperCase(Locale.ROOT);

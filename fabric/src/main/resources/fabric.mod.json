@@ -3,38 +3,12 @@
   "id": "grimac",
   "version": "${version}",
   "name": "GrimAC",
-  "description": "Libre simulation anticheat designed for 26.1 with 1.8-26.1 support, powered by PacketEvents 2.0.",
-  "authors": [
-    "GrimAC"
-  ],
-  "license": "GPLv3",
-  "environment": "server",
-  "entrypoints": {
-    "main": [
-      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
-    ],
-    "preLaunch": [
-      "ac.grim.grimac.platform.fabric.GrimACFabricEntryPoint"
-    ]
-  },
-  "mixins": [
-    "grimac.mixins.json"
-  ],
-  "custom": {
-    "loom:injected_interfaces": {
-      "net/minecraft/world/level/Level": [
-        "ac/grim/grimac/platform/api/world/PlatformWorld"
-      ]
-    }
-  },
-  "accessWidener": "grimac.accesswidener",
+  "description": "GrimAC — Fabric meta-mod aggregator. Loads the intermediary or official variant by MC version range.",
+  "license": "GPL-3.0",
+  "environment": "*",
   "depends": {
-    "fabricloader": "\u003e\u003d0.16",
-    "fabric-lifecycle-events-v1": "*",
-    "packetevents": "*"
-  },
-  "recommends": {
-    "cloud": "*",
-    "fabric-permissions-api-v0": "*"
+    "minecraft": [">=1.16.1 <26", ">=26.1.2 <26.2"],
+    "java": ">=17",
+    "fabricloader": ">=0.16"
   }
 }

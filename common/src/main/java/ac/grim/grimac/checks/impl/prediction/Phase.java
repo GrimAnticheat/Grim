@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "Phase", stableKey = "grim.prediction.phase", setback = 1, decay = 0.005)
+@CheckData(name = "Phase", stableKey = "grim.prediction.phase", description = "Moved into a solid block during movement prediction", setback = 1, decay = 0.005)
 public class Phase extends Check implements PostPredictionCheck {
     private SimpleCollisionBox oldBB;
 
@@ -41,7 +41,7 @@ public class Phase extends Check implements PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    flagAndAlertWithSetback();
+                    flagWithSetback();
                     return;
                 }
             }

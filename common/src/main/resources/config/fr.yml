@@ -225,5 +225,16 @@ max-ping-firework-boost: 1000
 #   config-version: incrémenté à chaque changement de forme incompatible. Les
 #                   anciennes configs sont migrées automatiquement par
 #                   l'updater intégré au prochain démarrage.
+# Grim actualise toujours les permissions mises en cache quand un joueur rejoint
+# le serveur et quand Grim est rechargé, que LuckPerms soit installé ou non.
+# Les hooks d'événements LuckPerms actualisent aussi immédiatement les permissions
+# Grim mises en cache dans les configurations normales.
+# Ce repli périodique n'est nécessaire que pour les changements de permissions en
+# ligne non couverts par ces événements, comme un contexte LuckPerms personnalisé
+# qui n'appelle pas signalContextUpdate, des lacunes de contexte sur Fabric ou un
+# fournisseur de permissions autre que LuckPerms qui change les permissions en direct.
+# Mettez -1 pour désactiver le sondage. Mettez une valeur positive pour actualiser tous les X ticks.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

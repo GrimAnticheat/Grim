@@ -15,12 +15,7 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.SetBackData;
-import ac.grim.grimac.utils.data.TeleportAcceptData;
-import ac.grim.grimac.utils.data.TeleportData;
-import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.Vector3dm;
@@ -339,7 +334,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
-                player.checkManager.getCheck(BadPacketsN.class).flagAndAlert();
+                player.checkManager.getCheck(BadPacketsN.class).flag();
                 pendingTeleports.poll();
                 requiredSetBack.setPlugin(false);
                 if (pendingTeleports.isEmpty()) {
@@ -364,7 +359,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
         int lastTransaction = player.lastTransactionReceived.get();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
+            IntToObjectPair<Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
             if (lastTransaction < teleportPos.first()) {
                 break;

@@ -45,14 +45,11 @@ public record CompiledDiscordTemplate(Segment[] segments) {
     // Identical to the existing pattern
     private static final Pattern PLACEHOLDER = Pattern.compile("%([a-zA-Z0-9_]+)%");
 
-    sealed interface Segment permits Literal, Placeholder {
-    }
+    private sealed interface Segment permits Literal, Placeholder {}
 
-    record Literal(String text) implements Segment {
-    }
+    private record Literal(String text) implements Segment {}
 
-    record Placeholder(String key, EscapeMode mode) implements Segment {
-    }
+    private record Placeholder(String key, EscapeMode mode) implements Segment {}
 
     // ──────────────────── COMPILE (once per config reload) ────────────────────
     public static CompiledDiscordTemplate compile(String template) {

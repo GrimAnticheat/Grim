@@ -16,13 +16,13 @@ BuildConfig.init(project)
 
 val baseVersion = "2.3.74"
 group = "ac.grim.grimac"
-version = VersionUtil.computeVersion(baseVersion)
+version = VersionUtil.computeVersion(project, baseVersion)
 description = "Libre simulation anticheat designed for 26.1 with 1.8–26.1 support, powered by PacketEvents 2.0."
 
 ext["timestamp"] = System.currentTimeMillis().toString()
-ext["git_branch"] = VersionUtil.getGitBranch(true)
-ext["git_commit"] = VersionUtil.getGitCommitHash(true)
-ext["git_org"] = System.getenv("GRIM_GIT_ORG") ?: VersionUtil.getGitUser()
+ext["git_branch"] = VersionUtil.getGitBranch(project, true)
+ext["git_commit"] = VersionUtil.getGitCommitHash(project, true)
+ext["git_org"] = System.getenv("GRIM_GIT_ORG") ?: VersionUtil.getGitUser(project)
 ext["git_repo"] = System.getenv("GRIM_GIT_REPO") ?: "Grim"
 
 println("Build configuration:")

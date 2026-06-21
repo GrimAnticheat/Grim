@@ -20,7 +20,7 @@ public class CrashB extends Check implements PacketCheck {
             if (player.gamemode != GameMode.CREATIVE) {
                 event.setCancelled(true);
                 player.onPacketCancel();
-                flagAndAlert(); // Could be transaction split, no need to setback though
+                flag(); // Could be transaction split, no need to setback though
             }
         }
     }

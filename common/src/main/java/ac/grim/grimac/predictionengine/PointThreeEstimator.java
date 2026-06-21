@@ -21,7 +21,6 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -100,7 +99,7 @@ public class PointThreeEstimator {
     // If a player places a ladder in a worldguard region etc.
     @Getter
     private boolean isNearClimbable = false;
-    // If a player stops and star gliding all within 0.03
+    // If a player stops and start gliding all within 0.03
     private boolean isGliding = false;
     // If the player's gravity has changed
     private boolean gravityChanged = false;
@@ -269,27 +268,25 @@ public class PointThreeEstimator {
         isNearFluid = false;
 
         // Check for flowing water
-        Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
-            final WrappedBlockState state = pair.first();
-            final StateType stateType = state.getType();
-            final Vector3i pos = pair.second();
+        Collisions.hasMaterial(player, pointThreeBox, (block, x, y, z) -> {
+            final StateType stateType = block.getType();
             if (player.tagManager.block(SyncedTags.CLIMBABLE).contains(stateType) || (stateType == StateTypes.POWDER_SNOW && !player.inVehicle() && player.inventory.getBoots().getType() == ItemTypes.LEATHER_BOOTS)) {
                 isNearClimbable = true;
             }
 
             if (BlockTags.TRAPDOORS.contains(stateType)) {
-                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pos.getX(), pos.getY(), pos.getZ(), state);
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, x, y, z, block);
             }
 
             if (stateType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                 isNearBubbleColumn = true;
             }
 
-            if (Materials.isWater(player.getClientVersion(), pair.first()) || pair.first().getType() == StateTypes.LAVA) {
+            if (Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA) {
                 isNearFluid = true;
             }
 
-            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, pos.getX(), pos.getY(), pos.getZ());
+            Vector3dm fluidVector = FluidTypeFlowing.getFlow(player, x, y, z);
             if (fluidVector.getX() != 0 || fluidVector.getZ() != 0) {
                 isNearHorizontalFlowingLiquid = true;
             }
@@ -477,13 +474,13 @@ public class PointThreeEstimator {
         final OptionalInt levitation = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.LEVITATION);
         if (levitation.isPresent()) {
             // This supports both positive and negative levitation
-            y += (0.05 * (levitation.getAsInt() + 1) - y * 0.2);
+            y += (0.05 * (levitation.getAsInt() + 1) - y) * 0.2;
         } else if (player.hasGravity) {
             // Simulate gravity
             y -= player.gravity;
         }
 
         // Simulate end of tick friction
-        return y * 0.98;
+        return y * 0.98F;
     }
 }

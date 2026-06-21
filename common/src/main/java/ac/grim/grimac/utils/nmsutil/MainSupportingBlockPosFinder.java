@@ -16,13 +16,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MainSupportingBlockPosFinder {
     public MainSupportingBlockData findMainSupportingBlockPos(GrimPlayer player, MainSupportingBlockData lastSupportingBlock, Vector3d lastMovement, SimpleCollisionBox maxPose, boolean isOnGround) {
         if (!isOnGround) {
-            return new MainSupportingBlockData(null, false);
+            return MainSupportingBlockData.AIR_OFF_GROUND;
         }
 
         SimpleCollisionBox slightlyBelowPlayer = new SimpleCollisionBox(maxPose.minX, maxPose.minY - 1.0E-6D, maxPose.minZ, maxPose.maxX, maxPose.minY, maxPose.maxZ);
 
         Vector3i supportingBlock = findSupportingBlock(player, slightlyBelowPlayer);
-        if (supportingBlock == null && (!lastSupportingBlock.lastOnGroundAndNoBlock())) {
+        if (supportingBlock == null && !lastSupportingBlock.lastOnGroundAndNoBlock()) {
             if (lastMovement != null) {
                 SimpleCollisionBox aabb2 = slightlyBelowPlayer.offset(-lastMovement.x, 0.0D, -lastMovement.z);
                 return new MainSupportingBlockData(findSupportingBlock(player, aabb2), true);
@@ -31,7 +31,7 @@ public class MainSupportingBlockPosFinder {
             return new MainSupportingBlockData(supportingBlock, true);
         }
 
-        return new MainSupportingBlockData(null, true);
+        return MainSupportingBlockData.AIR_ON_GROUND;
     }
 
     private @Nullable Vector3i findSupportingBlock(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox searchBox) {
@@ -40,12 +40,12 @@ public class MainSupportingBlockPosFinder {
         AtomicReference<Vector3i> bestBlockPos = new AtomicReference<>();
         AtomicDouble blockPosDistance = new AtomicDouble(Double.MAX_VALUE);
 
-        Collisions.forEachCollisionBox(player, searchBox, (data, blockPos) -> {
-            Vector3d center = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
+        Collisions.forEachCollisionBox(player, searchBox, (block, x, y, z) -> {
+            Vector3d center = new Vector3d(x + 0.5, y + 0.5, z + 0.5);
             double distance = playerPos.distanceSquared(center);
 
-            if (distance < blockPosDistance.get() || distance == blockPosDistance.get() && (bestBlockPos.get() == null || firstHasPriorityOverSecond(blockPos, bestBlockPos.get()))) {
-                bestBlockPos.set(blockPos);
+            if (distance < blockPosDistance.get() || distance == blockPosDistance.get() && (bestBlockPos.get() == null || firstHasPriorityOverSecond(x, y, z, bestBlockPos.get()))) {
+                bestBlockPos.set(new Vector3i(x, y, z));
                 blockPosDistance.set(distance);
             }
         });
@@ -53,7 +53,7 @@ public class MainSupportingBlockPosFinder {
         return bestBlockPos.get();
     }
 
-    private boolean firstHasPriorityOverSecond(@NotNull Vector3i first, @NotNull Vector3i second) {
+    private boolean firstHasPriorityOverSecond(int firstX, int firstY, int firstZ, @NotNull Vector3i second) {
         // Order of loop is X, Y, and Z
         // We prioritize lowest Y axis, then lowest X axis, then lowest Z axis
         // Ties among the X and Z positions are broken by the order of looping being X
@@ -66,10 +66,10 @@ public class MainSupportingBlockPosFinder {
         // X 0 0
         // 0 0 X
         // But the upper left would win here because of prioritizing negative X and negative Z
-        if (first.getY() < second.getY()) return true;
+        if (firstY < second.getY()) return true;
 
-        double sumX = second.getX() - first.getX();
-        double sumY = second.getZ() - first.getZ();
+        double sumX = second.getX() - firstX;
+        double sumY = second.getZ() - firstZ;
 
         double horizontalSumTotal = sumX + sumY;
         if (horizontalSumTotal == 0) {

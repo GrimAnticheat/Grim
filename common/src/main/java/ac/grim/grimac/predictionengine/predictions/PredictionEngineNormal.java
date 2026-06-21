@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -27,7 +28,12 @@ public class PredictionEngineNormal extends PredictionEngine {
             // Reset fall distance with levitation
             player.fallDistance = 0;
         } else if (player.hasGravity) {
-            adjustedY -= player.gravity;
+            double gravity = player.compensatedEntities.self.getAttributeValue(Attributes.GRAVITY);
+            if (vector.getY() <= 0 && player.compensatedEntities.getSlowFallingAmplifier().isPresent()) {
+                gravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(gravity, 0.01);
+            }
+
+            adjustedY -= gravity;
         }
 
         vector.setX(vector.getX() * player.friction);

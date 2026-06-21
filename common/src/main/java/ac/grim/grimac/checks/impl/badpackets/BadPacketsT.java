@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -13,8 +14,9 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector")
+@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target player's hitbox")
 public class BadPacketsT extends Check implements PacketCheck {
+    private static final Verbose V = Verbose.of("{f64:%.5f}/{f64:%.5f}/{f64:%.5f}");
 
     private final double maxHorizontalDisplacement;
     private final double minVerticalDisplacement;
@@ -47,7 +49,7 @@ public class BadPacketsT extends Check implements PacketCheck {
             }
 
             // Make sure our target entity is actually a player (Player NPCs work too)
-            if (!EntityTypes.PLAYER.equals(packetEntity.type)) {
+            if (!EntityTypes.PLAYER.equals(packetEntity.getType())) {
                 // We can't check for any entity that is not a player
                 return;
             }
@@ -65,10 +67,8 @@ public class BadPacketsT extends Check implements PacketCheck {
             }
 
             // Log the vector
-            final String verbose = String.format("%.5f/%.5f/%.5f",
-                    targetVector.x, targetVector.y, targetVector.z);
             // We could pretty much ban the player at this point
-            flagAndAlert(verbose);
+            flag(V.write(verbose()).f64(targetVector.x).f64(targetVector.y).f64(targetVector.z));
         }
     }
 }

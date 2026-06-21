@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 
-@CheckData(name = "PacketOrderA", stableKey = "grim.packetorder.window_click_order", experimental = true)
+@CheckData(name = "PacketOrderA", stableKey = "grim.packetorder.window_click_order", description = "Sent pickup and quick-move inventory clicks in an invalid order", experimental = true)
 public class PacketOrderA extends Check implements PostPredictionCheck {
     public PacketOrderA(final GrimPlayer player) {
         super(player);
@@ -26,7 +26,7 @@ public class PacketOrderA extends Check implements PostPredictionCheck {
             if ((clickType == WindowClickType.PICKUP || clickType == WindowClickType.PICKUP_ALL) && player.packetOrderProcessor.isQuickMoveClicking()
                     || clickType == WindowClickType.QUICK_MOVE && player.packetOrderProcessor.isPickUpClicking()) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert() && shouldModifyPackets()) {
+                    if (flag() && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -43,7 +43,7 @@ public class PacketOrderA extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

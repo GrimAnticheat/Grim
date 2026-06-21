@@ -195,12 +195,12 @@ public class CompensatedWorld implements PacketWorld {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
             // Pull the confirmation ID out of the packet
             int confirmationId = 0;
-            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement) {
-                confirmationId = ((WrapperPlayClientPlayerBlockPlacement) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientUseItem) {
-                confirmationId = ((WrapperPlayClientUseItem) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientPlayerDigging) {
-                confirmationId = ((WrapperPlayClientPlayerDigging) wrapper).getSequence();
+            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement playerBlockPlacement) {
+                confirmationId = playerBlockPlacement.getSequence();
+            } else if (wrapper instanceof WrapperPlayClientUseItem useItem) {
+                confirmationId = useItem.getSequence();
+            } else if (wrapper instanceof WrapperPlayClientPlayerDigging playerDigging) {
+                confirmationId = playerDigging.getSequence();
             }
 
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
@@ -222,7 +222,7 @@ public class CompensatedWorld implements PacketWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && player.compensatedEntities.self.getRiding() != entity) {
+            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && player.compensatedEntities.self.getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -624,6 +624,27 @@ public class CompensatedWorld implements PacketWorld {
         return chunks.containsKey(chunkPosition);
     }
 
+    public boolean areChunksUnloadedAt(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        if (maxY < minHeight || minY >= maxHeight) {
+            return true;
+        }
+
+        minX >>= 4;
+        minZ >>= 4;
+        maxX >>= 4;
+        maxZ >>= 4;
+
+        for (int i = minX; i <= maxX; i++) {
+            for (int j = minZ; j <= maxZ; j++) {
+                if (!isChunkLoaded(i, j)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.put(chunkPosition, chunk));
@@ -637,7 +658,7 @@ public class CompensatedWorld implements PacketWorld {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public double getFluidLevelAt(int x, int y, int z) {
+    public float getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
     }
 
@@ -646,16 +667,16 @@ public class CompensatedWorld implements PacketWorld {
         return Materials.isWaterSource(player.getClientVersion(), bukkitBlock);
     }
 
-    public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
+    public boolean containsLiquid(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA);
     }
 
-    public double getLavaFluidLevelAt(int x, int y, int z) {
+    public float getLavaFluidLevelAt(int x, int y, int z) {
         WrappedBlockState magicBlockState = getBlock(x, y, z);
         WrappedBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
 
-        if (magicBlockState.getType() != StateTypes.LAVA) return 0;
-        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1;
+        if (magicBlockState.getType() != StateTypes.LAVA) return 0f;
+        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1f;
 
         int level = magicBlockState.getLevel();
 
@@ -668,23 +689,27 @@ public class CompensatedWorld implements PacketWorld {
         return (8 - level) / 9f;
     }
 
-    public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
+    public boolean containsLava(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.LAVA);
     }
 
-    public double getWaterFluidLevelAt(double x, double y, double z) {
+    public boolean containsNetherPortal(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.NETHER_PORTAL);
+    }
+
+    public float getWaterFluidLevelAt(double x, double y, double z) {
         return getWaterFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }
 
-    public double getWaterFluidLevelAt(int x, int y, int z) {
+    public float getWaterFluidLevelAt(int x, int y, int z) {
         WrappedBlockState wrappedBlock = getBlock(x, y, z);
         boolean isWater = Materials.isWater(player.getClientVersion(), wrappedBlock);
 
-        if (!isWater) return 0;
+        if (!isWater) return 0f;
 
         // If water has water above it, it's block height is 1, even if it's waterlogged
         if (Materials.isWater(player.getClientVersion(), getBlock(x, y + 1, z))) {
-            return 1;
+            return 1f;
         }
 
         // If it is water or flowing water

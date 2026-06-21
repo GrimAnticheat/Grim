@@ -189,6 +189,11 @@ public class MessageUtil {
         return MiniMessage.miniMessage().deserialize(string).compact();
     }
 
+    @Contract("null -> !null; !null -> !null")
+    public @NotNull String miniMessageSafe(@Nullable String string) {
+        return string == null ? "" : MiniMessage.miniMessage().escapeTags(string);
+    }
+
     public Component getParsedComponent(Sender sender, String key, String fallbackText) {
         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse(key, fallbackText);
         message = MessageUtil.replacePlaceholders(sender, message);
