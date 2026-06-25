@@ -18,7 +18,7 @@
  <br>
 </div>
 
-GrimAC is an open source Minecraft anticheat designed to support the latest versions of Minecraft.
+GrimAC is an open-source Minecraft anticheat designed to support the latest versions of Minecraft.
 It currently supports minecraft versions 1.8–26.1. Geyser players are fully exempt from the anticheat to prevent false positives.
 This project is considered feature-complete for the 2.0 (open-source) branch. If you would like a bug fix or enhancement and cannot sponsor the work, pull requests are welcome.
 A premium version is planned, which will offer additional subscription-based paid checks, such as heuristics.
@@ -117,13 +117,12 @@ All client/server version combinations are supported, despite the significant te
 
 * World changes are queued until they reach the player
 * This means breaking blocks under a player does not false the anticheat
-* Everything from flying status to movement speed will be latency compensated
+* Everything from flying status to movement speed will be latency-compensated
 
 ### Inventory compensation
 
-* The player's inventory is tracked to prevent ghost blocks at high latency, and other errors
+* The player's inventory is tracked to prevent ghost blocks at high latency as well as other errors
 
 ### Secure by design, not obscurity
 
-* All systems are designed to be highly secure and mathematically impossible to bypass
-* For example, the prediction engine knows all possible movements and cannot be bypassed
+* All systems are designed to be highly secure and mathematically impossible to bypass, knowing all possible movements.
