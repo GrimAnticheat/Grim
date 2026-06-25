@@ -77,8 +77,12 @@ What makes Grim stand out against other anticheats?
     * This covers everything from basic walking, swimming, knockback, cobwebs, to bubble columns
     * It even covers riding entities from boats to pigs to striders
 * Built upon covering edge cases to confirm accuracy
-* 1.13+ clients on 1.13+ servers, 1.12- clients on 1.13+ servers, 1.13+ clients on 1.12- servers,
-  and 1.12- clients on 1.12- servers are all supported regardless of the large technical changes
+|               | Server 1.12- | Server 1.13+ |
+|---------------|--------------|--------------|
+| Client 1.12-  | ✅ Supported | ✅ Supported |
+| Client 1.13+  | ✅ Supported | ✅ Supported |
+
+All client/server version combinations are supported, despite the significant technical changes introduced in 1.13.
   between these versions.
 * The order of collisions depends on the client version and is correct
 * Accounts for minor bounding box differences between versions, for example:
