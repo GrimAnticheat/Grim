@@ -74,11 +74,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# Sitzungsbasierte Verlaufs-UI. Alle Zeilen unten sind frei konfigurierbar;
-# Platzhalter sind pro Schlüssel dokumentiert. Hover-Texte für Sitzungs- und
-# Verstoßzeilen werden vom Renderer aus den Rohdaten gebaut (verbose,
-# Check-Aufschlüsselung) und brauchen keine Vorlage — du kannst aber jeder
-# Zeile <hover:show_text:'...'> hinzufügen, um zusätzliche Tooltips zu legen.
+# Sitzungsbasierte Verlaufs-UI. Alle Zeilen unten sind konfigurierbare
+# MiniMessage-Vorlagen. Standard-Hover stehen in Inline-Tags
+# <hover:show_text:'...'> und den Hover-Fragment-Schlüsseln unten; entferne
+# den Inline-Hover, um den Renderer-Fallback zu verwenden.
 
 grim-history-load-failure: "%prefix% &cDas Verlaufs-Subsystem konnte nicht geladen werden! Überprüfe die Serverkonsole auf Fehler."
 grim-history-disabled: "%prefix% &cDas History-Subsystem ist deaktiviert!"
@@ -92,12 +91,12 @@ grim-history-header: "%prefix% &bZeige Sitzungs-Historie für &f%player% &8[&f%p
 # Einzelne Sitzungszeile — gültige Platzhalter:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% wird zu grim-history-crashed-marker erweitert für Sitzungen,
 # deren Verbindung ohne sauberes Schließen wegfiel (Server-Crash, kill -9,
 # Channel-RST ohne UserDisconnectEvent). Für laufende oder sauber geschlossene
 # Sitzungen leerer String.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSitzung &f%ordinal%&b, Dauer &f%duration%&b, &c%violations%&b Verstöße &8[&c%unique_checks%&8]%crashed_marker% &8(&7vor %timeago%&8)"
+grim-history-session: "<hover:show_text:'&bSitzung &7%session_uuid%<newline>&7Klicke oder führe &e%detail_command% &7aus<newline>&7um Sitzungsdetails anzuzeigen.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSitzung &f%ordinal%&b, Dauer &f%duration%&b, &c%violations%&b Verstöße &8[&c%unique_checks%&8]%crashed_marker% &8(&7vor %timeago%&8)</hover>"
 
 # Inline-Marker, der in %crashed_marker% eingesetzt wird bei Sitzungen mit
 # closed_at == last_activity (also vom Crash-Sweep beim nächsten Start
@@ -115,14 +114,21 @@ grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Marke: &f%c
 grim-history-detail-violations-header: "%prefix% &bVerstöße: &8(%violations% gesamt, %unique_checks% verschiedene)"
 grim-history-detail-empty: "%prefix% &7- (keine)"
 # Gruppenzeile (Standard) — gültige Platzhalter: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% wird gebaut aus grim-history-check-count-Einträgen, getrennt mit ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bVerstöße in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bVerstöße in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Einzelner Verstoß (--detailed) — gültige Platzhalter:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Inneres Format für jeden Check in einer Gruppen-%checks_list% — gültige Platzhalter: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Schema-Marker — siehe Kopf-Kommentar in config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

@@ -75,12 +75,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# UI de historial basada en sesiones. Todas las líneas siguientes son
-# configurables; los placeholders se documentan en cada clave. El texto en
-# hover de las líneas de sesión y violación lo construye el renderer a partir
-# de los datos brutos (verbose, desglose de checks) y no necesita plantilla;
-# pero puedes añadir <hover:show_text:'...'> a cualquier línea para sumar
-# tooltips adicionales.
+# UI de historial basada en sesiones. Todas las líneas siguientes son plantillas
+# MiniMessage configurables. Los hovers predeterminados viven en etiquetas inline
+# <hover:show_text:'...'> y en las claves de fragmentos de hover de abajo; quita
+# el hover inline para usar el fallback del renderer.
 
 grim-history-load-failure: "%prefix% &c¡El subsistema de historial no se pudo cargar! Revisa la consola del servidor en busca de errores."
 grim-history-disabled: "%prefix% &c¡El subsistema de historial está deshabilitado!"
@@ -94,12 +92,12 @@ grim-history-header: "%prefix% &bMostrando historial de sesiones de &f%player% &
 # Línea de resumen de una sesión — placeholders válidos:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% se expande a grim-history-crashed-marker para sesiones cuya
 # conexión cayó sin cierre limpio (caída del servidor, kill -9, RST de canal
 # que no disparó UserDisconnectEvent). Cadena vacía para sesiones en curso o
 # cerradas correctamente.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSesión &f%ordinal%&b, duración &f%duration%&b, con &c%violations%&b violaciones &8[&c%unique_checks%&8]%crashed_marker% &8(&7hace %timeago%&8)"
+grim-history-session: "<hover:show_text:'&bSesión &7%session_uuid%<newline>&7Haz clic o ejecuta &e%detail_command%<newline>&7para ver los detalles de la sesión.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSesión &f%ordinal%&b, duración &f%duration%&b, con &c%violations%&b violaciones &8[&c%unique_checks%&8]%crashed_marker% &8(&7hace %timeago%&8)</hover>"
 
 # Marcador en línea sustituido en %crashed_marker% para sesiones cuyo
 # closed_at == last_activity (es decir, marcadas por el barrido de cierre del
@@ -118,14 +116,21 @@ grim-history-detail-meta2: "%prefix% &bCliente: &f%client_version%&b, Marca: &f%
 grim-history-detail-violations-header: "%prefix% &bViolaciones: &8(%violations% en total, %unique_checks% únicas)"
 grim-history-detail-empty: "%prefix% &7- (ninguna)"
 # Fila agrupada (predeterminado) — placeholders válidos: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% se construye uniendo entradas grim-history-check-count con ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bViolaciones en &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bViolaciones en &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Fila de violación bruta (--detailed) — placeholders válidos:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Formato interno por check dentro de %checks_list% — placeholders válidos: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Marcadores de esquema — ver el comentario de cabecera en config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

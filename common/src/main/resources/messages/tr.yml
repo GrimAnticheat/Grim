@@ -75,11 +75,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# Oturum tabanlı geçmiş arayüzü. Aşağıdaki tüm satırlar tamamen yapılandırılabilir;
-# placeholder'lar her anahtarda belgelenmiştir. Oturum ve ihlal satırlarındaki
-# hover metni, ham verilerden (verbose, kontrol kırılımı) renderer tarafından
-# üretilir; bir şablona ihtiyaç yoktur. Yine de herhangi bir satıra
-# <hover:show_text:'...'> ekleyerek üzerine ek tooltip katmanı koyabilirsin.
+# Oturum tabanlı geçmiş arayüzü. Aşağıdaki tüm satırlar yapılandırılabilir
+# MiniMessage şablonlarıdır. Varsayılan hover'lar inline
+# <hover:show_text:'...'> taglerinde ve aşağıdaki hover parçası anahtarlarında
+# bulunur; renderer fallback'ini kullanmak için inline hover'ı kaldır.
 
 grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar için sunucu konsolunu kontrol edin."
 grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
@@ -93,12 +92,12 @@ grim-history-header: "%prefix% &b&f%player% &biçin oturum geçmişi &8[&f%page%
 # Tek oturum özeti satırı — geçerli placeholder'lar:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # Bağlantısı düzgün kapanmadan kopan oturumlar (sunucu çökmesi, kill -9,
 # UserDisconnectEvent tetiklemeyen channel RST gibi) için %crashed_marker%
 # grim-history-crashed-marker olarak genişler. Devam eden veya düzgün
 # kapatılmış oturumlarda boş string olur.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bOturum &f%ordinal%&b, süre &f%duration%&b, &c%violations%&b ihlal &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% önce&8)"
+grim-history-session: "<hover:show_text:'&bOturum &7%session_uuid%<newline>&7Tıkla veya &e%detail_command% &7komutunu çalıştır<newline>&7oturum detaylarını görmek için.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bOturum &f%ordinal%&b, süre &f%duration%&b, &c%violations%&b ihlal &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% önce&8)</hover>"
 
 # closed_at == last_activity olan oturumlar (yani disconnect yolu yerine bir
 # sonraki başlatmanın crash-sweep'i tarafından damgalananlar) için
@@ -116,14 +115,21 @@ grim-history-detail-meta2: "%prefix% &bİstemci: &f%client_version%&b, Marka: &f
 grim-history-detail-violations-header: "%prefix% &bİhlaller: &8(toplam %violations%, benzersiz %unique_checks%)"
 grim-history-detail-empty: "%prefix% &7- (yok)"
 # Gruplanmış satır (varsayılan) — geçerli placeholder'lar: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list%, grim-history-check-count girdileri ", " ile birleştirilerek oluşur
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&b%bucket_start%–%bucket_end% aralığındaki ihlaller:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&b%bucket_start%–%bucket_end% aralığındaki ihlaller:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Tek ham ihlal satırı (--detailed) — geçerli placeholder'lar:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # %checks_list% içinde her kontrol için iç biçim — geçerli placeholder'lar: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
 config-flavor: V2
-config-version: 1
+config-version: 2

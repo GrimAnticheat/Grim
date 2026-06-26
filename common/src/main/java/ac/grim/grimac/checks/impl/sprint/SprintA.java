@@ -3,14 +3,13 @@ package ac.grim.grimac.checks.impl.sprint;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "SprintA", stableKey = "grim.sprint.hunger", description = "Sprinting with too low hunger", setback = 0)
-public class SprintA extends Check implements PacketCheck {
+public class SprintA extends Check implements PostPredictionCheck {
     private static final Verbose V = Verbose.of("hunger={uint}");
 
     public SprintA(GrimPlayer player) {
@@ -18,8 +17,8 @@ public class SprintA extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (!WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate || player.packetStateData.lastPacketWasTeleport) return;
+    public void onPredictionComplete(PredictionComplete predictionComplete) {
+        if (!predictionComplete.isChecked()) return;
 
         // Players can sprint if they're able to fly
         // Players can also sprint if they are on a camel, regardless of their hunger level
@@ -29,7 +28,6 @@ public class SprintA extends Check implements PacketCheck {
             if (player.isSprinting) {
                 if (flag(V.write(verbose()).uint(player.food))) {
                     if (shouldModifyPackets()) {
-                        event.setCancelled(true);
                         player.onPacketCancel();
                     }
                     setbackIfAboveSetbackVL();

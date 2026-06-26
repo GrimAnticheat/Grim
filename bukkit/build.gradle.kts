@@ -10,10 +10,9 @@ plugins {
 }
 
 repositories {
-    // 1. Fallback for non-exclusive deps (e.g. Maven Central deps)
-    if (BuildConfig.mavenLocalOverride) mavenLocal()
+    val localOverride = if (BuildConfig.mavenLocalOverride) mavenLocal() else null
 
-    // 2. Exclusive Repositories (One HTTP request per dep)
+    // Exclusive Repositories (One HTTP request per dep)
     exclusive("https://repo.papermc.io/repository/maven-public/", { name = "papermc" }) {
         includeGroup("io.papermc.paper")
         includeGroup("net.md-5")
@@ -27,9 +26,19 @@ repositories {
         includeGroup("me.clip")
     }
 
-    exclusive("https://repo.grim.ac/snapshots") {
-        includeGroup("ac.grim.grimac")
-        includeGroup("com.github.retrooper")
+    val grimPublicReleases = maven("https://maven.grim.ac/public/releases") {
+        mavenContent { releasesOnly() }
+    }
+    val grimPublicSnapshots = maven("https://maven.grim.ac/public/snapshots") {
+        mavenContent { snapshotsOnly() }
+    }
+    val grimLegacySnapshots = maven("https://repo.grim.ac/snapshots")
+    exclusiveContent {
+        forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
+        filter {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
+        }
     }
 
     exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {

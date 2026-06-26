@@ -67,12 +67,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# UI cronologia basata sulle sessioni. Tutte le righe sotto sono pienamente
-# configurabili; i placeholder sono documentati per ciascuna chiave. Il testo
-# in hover delle righe di sessione e violazione è costruito dal renderer dai
-# dati grezzi (verbose, ripartizione check) e non richiede un template — ma
-# puoi aggiungere <hover:show_text:'...'> a qualsiasi riga per sovrapporre
-# tooltip aggiuntivi.
+# UI cronologia basata sulle sessioni. Tutte le righe sotto sono template
+# MiniMessage configurabili. Gli hover predefiniti sono nei tag inline
+# <hover:show_text:'...'> e nelle chiavi frammento hover qui sotto; rimuovi
+# l'hover inline per usare il fallback del renderer.
 
 grim-history-load-failure: "%prefix% &cImpossibile caricare il sottosistema della cronologia! Controlla la console del server per errori."
 grim-history-disabled: "%prefix% &cIl sottosistema cronologia è disabilitato!"
@@ -86,12 +84,12 @@ grim-history-header: "%prefix% &bMostrando cronologia sessioni per &f%player% &8
 # Riga di riepilogo singola sessione — placeholder validi:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% si espande in grim-history-crashed-marker per sessioni la
 # cui connessione è caduta senza chiusura pulita (crash del server, kill -9,
 # RST del canale che non ha attivato UserDisconnectEvent). Stringa vuota per
 # sessioni in corso o chiuse correttamente.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessione &f%ordinal%&b, durata &f%duration%&b, con &c%violations%&b violazioni &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% fa&8)"
+grim-history-session: "<hover:show_text:'&bSessione &7%session_uuid%<newline>&7Clicca o esegui &e%detail_command%<newline>&7per vedere i dettagli della sessione.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessione &f%ordinal%&b, durata &f%duration%&b, con &c%violations%&b violazioni &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% fa&8)</hover>"
 
 # Marcatore inline sostituito in %crashed_marker% per sessioni il cui
 # closed_at == last_activity (cioè marcate dallo sweep di crash al successivo
@@ -110,14 +108,21 @@ grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Marca: &f%c
 grim-history-detail-violations-header: "%prefix% &bViolazioni: &8(%violations% totali, %unique_checks% uniche)"
 grim-history-detail-empty: "%prefix% &7- (nessuna)"
 # Riga raggruppata (predefinito) — placeholder validi: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% è costruita unendo voci grim-history-check-count con ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bViolazioni in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bViolazioni in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Riga di violazione singola (--detailed) — placeholder validi:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Formato interno per ogni check in %checks_list% — placeholder validi: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Marcatori di schema — vedi il commento di intestazione in config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2
