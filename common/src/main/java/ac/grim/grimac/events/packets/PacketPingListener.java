@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimTransactionReceivedEvent;
 import ac.grim.grimac.api.event.events.GrimTransactionSendEvent;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.ShortToLongPair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -28,12 +28,12 @@ public class PacketPingListener extends PacketListenerAbstract {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
-            WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
-            short id = transaction.getActionId();
-
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.packetStateData.lastTransactionPacketWasValid = false;
+
+            WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
+            short id = transaction.getActionId();
 
             // Vanilla always uses an ID starting from 1
             // Check if we sent this packet before cancelling it
@@ -56,7 +56,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             // If it wasn't below 0, it wasn't us
             // If it wasn't in short range, it wasn't us either
             if (id == (short) id) {
-                short shortID = ((short) id);
+                short shortID = (short) id;
                 if (player.addTransactionResponse(shortID)) {
                     player.packetStateData.lastTransactionPacketWasValid = true;
                     boolean shouldCancel = !GrimAPI.INSTANCE.getConfigManager().isDisablePongCancelling();
@@ -81,7 +81,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             if (id <= 0) {
                 if (player.didWeSendThatTrans.remove(id)) {
                     player.packetStateData.lastServerTransWasValid = true;
-                    player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
+                    player.transactionsSent.add(new ShortToLongPair(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                     SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }
@@ -98,10 +98,10 @@ public class PacketPingListener extends PacketListenerAbstract {
             // Check if in the short range, we only use short range
             if (id == (short) id) {
                 // Cast ID twice so we can use the list
-                Short shortID = ((short) id);
+                short shortID = (short) id;
                 if (player.didWeSendThatTrans.remove(shortID)) {
                     player.packetStateData.lastServerTransWasValid = true;
-                    player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
+                    player.transactionsSent.add(new ShortToLongPair(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                     SEND_CHANNEL.fire(player, id, event.getTimestamp());
                 }

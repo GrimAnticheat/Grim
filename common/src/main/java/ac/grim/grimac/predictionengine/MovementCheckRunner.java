@@ -33,6 +33,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -296,7 +297,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (riding instanceof PacketEntityRideable) {
                 VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
 
-                ItemType requiredItem = riding.type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
+                ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.inventory.getHeldItem();
                 ItemStack offHand = player.inventory.getOffHand();
 
@@ -305,7 +306,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
                 if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
-                    vehicleC.flagAndAlert();
+                    vehicleC.flag();
                 } else {
                     vehicleC.reward();
                 }
@@ -346,7 +347,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.isSprinting &= riding instanceof PacketEntityCamel; // camels can sprint
             player.isSneaking = false;
 
-            if (riding.type != EntityTypes.PIG && riding.type != EntityTypes.STRIDER) {
+            if (riding.getType() != EntityTypes.PIG && riding.getType() != EntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
         }
@@ -358,7 +359,11 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Sprinting status itself does not desync, only the attribute as mojang forgot that the server
         // can change the attribute
         if (!player.inVehicle()) {
-            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
+            double movementSpeed = player.speed;
+            if (player.compensatedEntities.hasSprintingAttributeEnabled) {
+                movementSpeed += movementSpeed * 0.3F;
+            }
+            player.speed = (float) movementSpeed;
         }
 
         boolean clientClaimsRiptide = player.packetStateData.tryingToRiptide;
@@ -376,12 +381,12 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ)
                 .expand(player.getMovementThreshold())
                 .offset(0.0, player.getClientVersion().isOlderThan(ClientVersion.V_1_15) ? -1.0 : -0.2, 0.0);
-        Collisions.forEachCollisionBox(player, steppingOnBB, (data, pos) -> {
-            if (data.getType() == StateTypes.SLIME_BLOCK && Math.abs((pos.getY() + 1D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+        Collisions.forEachCollisionBox(player, steppingOnBB, (block, x, y, z) -> {
+            if (block.getType() == StateTypes.SLIME_BLOCK && Math.abs((y + 1D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
-            if (data.getType() == StateTypes.HONEY_BLOCK) {
+            if (block.getType() == StateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                     // TODO: is stepping on slime = true?
@@ -390,16 +395,16 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
             }
-            if (BlockTags.BEDS.contains(data.getType()) && Math.abs((pos.getY() + 0.5625D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+            if (BlockTags.BEDS.contains(block.getType()) && Math.abs((y + 0.5625D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
-            if (BlockTags.ICE.contains(data.getType())) {
+            if (BlockTags.ICE.contains(block.getType())) {
                 player.uncertaintyHandler.isSteppingOnIce = true;
             }
-            if (data.getType() == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            if (block.getType() == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                 player.uncertaintyHandler.isSteppingNearBubbleColumn = true;
             }
-            if (data.getType() == StateTypes.SCAFFOLDING) {
+            if (block.getType() == StateTypes.SCAFFOLDING) {
                 player.uncertaintyHandler.isSteppingNearScaffolding = true;
             }
         });
@@ -423,8 +428,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
-                checkData -> BlockTags.ANVIL.contains(checkData.first().getType())
-                        || checkData.first().getType() == StateTypes.CHEST || checkData.first().getType() == StateTypes.TRAPPED_CHEST);
+                (block, x, y, z) -> BlockTags.ANVIL.contains(block.getType())
+                        || block.getType() == StateTypes.CHEST || block.getType() == StateTypes.TRAPPED_CHEST);
 
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();
@@ -465,7 +470,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
-            player.friction = 0.91f;
+            player.friction = BlockProperties.getModifiedAirDrag(0.91f, player);
             PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
         } else if (riding == null) {
             wasChecked = true;
@@ -524,10 +529,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             } else if (riding instanceof PacketEntityHorse) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerHorse(player).livingEntityAIStep();
-            } else if (riding.type == EntityTypes.PIG) {
+            } else if (riding.getType() == EntityTypes.PIG) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerPig(player).livingEntityAIStep();
-            } else if (riding.type == EntityTypes.STRIDER) {
+            } else if (riding.getType() == EntityTypes.STRIDER) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);
@@ -579,6 +584,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
 
         player.wasLastPredictionCompleteChecked = wasChecked;
+
+        player.updateNetherPortalState();
 
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {

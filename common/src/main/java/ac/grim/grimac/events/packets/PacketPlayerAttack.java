@@ -30,6 +30,11 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
@@ -98,8 +103,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         ItemStack heldItem = player.inventory.getHeldItem();
         PacketEntity entity = player.compensatedEntities.getEntity(entityId);
 
-        if (entity != null && (!entity.isLivingEntity || entity.type == EntityTypes.PLAYER || entity.type == EntityTypes.PAINTING
-                || entity.type == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
+        if (entity != null && (!entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER || entity.getType() == EntityTypes.PAINTING
+                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
             int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                     ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                     : 0;
@@ -149,7 +154,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 // the list of entities used to raytrace isn't the same as the list of entities in the world in pre-1.14 (wtf mojang)
                 && (!player.compensatedEntities.entitiesRemovedThisTick.contains(entityId) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14))) {
             final BadPacketsW badPacketsW = player.checkManager.getCheck(BadPacketsW.class);
-            if (badPacketsW.flagAndAlert("entityId=" + entityId) && badPacketsW.shouldModifyPackets()) {
+            if (badPacketsW.flag("entityId=" + entityId) && badPacketsW.shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

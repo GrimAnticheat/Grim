@@ -651,19 +651,20 @@ public class BlockPlace {
         Vector3dm look = ReachUtils.getLook(player, player.yaw, player.pitch);
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 3;
-        Vector3dm eyePos = new Vector3dm(player.x, player.y + player.getEyeHeight(), player.z);
-        Vector3dm endReachPos = eyePos.clone().add(new Vector3dm(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
-        Vector3dm intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
+        Vector3d eyePos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
+        Vector3d endReachPos = eyePos.add(look.getX() * distance, look.getY() * distance, look.getZ() * distance);
+        Vector3d intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)
         if (intercept == null) return new Vector3dm();
 
-        intercept.setX(intercept.getX() - box.minX);
-        intercept.setY(intercept.getY() - box.minY);
-        intercept.setZ(intercept.getZ() - box.minZ);
+        // reuse look vector object
+        look.setX(intercept.getX() - box.minX);
+        look.setY(intercept.getY() - box.minY);
+        look.setZ(intercept.getZ() - box.minZ);
 
-        return intercept;
+        return look;
     }
 
     // Remember to use the next tick's look, which we handle elsewhere

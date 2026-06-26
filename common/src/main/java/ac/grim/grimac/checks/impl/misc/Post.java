@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.misc;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -23,8 +24,10 @@ import java.util.Locale;
 
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
-@CheckData(name = "Post", stableKey = "grim.post.invalid_order")
+@CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
 public class Post extends Check implements PacketCheck, PostPredictionCheck {
+    private static final Verbose V = Verbose.of("{str}");
+
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags
     // 1.8 clients will have the same logic for simplicity, although it's not needed
@@ -47,7 +50,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
         // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
         if (player.isTickingReliablyFor(3)) {
             for (String flag : flags) {
-                flagAndAlert(flag);
+                flag(V.write(verbose()).str(flag));
             }
         }
 

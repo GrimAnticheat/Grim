@@ -78,7 +78,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
         }
 
         if (placeAgainst.isAir() || Materials.isNoPlaceLiquid(placeAgainst)) { // fail
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            if (flag() && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }

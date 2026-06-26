@@ -13,8 +13,4 @@ public class ViaVersionUtil {
             LogUtil.error("Using unsupported ViaVersion 4.0 API, update ViaVersion to 5.0");
         }
     }
-
-    public static void injectHooks() {
-        if (isAvailable) ViaVersionHooks.load();
-    }
 }

@@ -14,19 +14,20 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
+import ac.grim.grimac.utils.common.PropertiesUtil;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-//This is used for grim's external API. It has its own class just for organization.
-
+// This is used for grim's external API. It has its own class just for organization.
 public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable {
 
     // Holder class — GrimExternalAPI is constructed inside GrimAPI's ctor,
@@ -43,11 +44,13 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
     private final Map<String, Function<Object, Object>> functions = new ConcurrentHashMap<>();
     private final ConfigManagerFileImpl configManagerFile = new ConfigManagerFileImpl();
+    private final String grimVersion;
     private ConfigManager configManager = null;
     private boolean started = false;
 
     public GrimExternalAPI(GrimAPI api) {
         this.api = api;
+        this.grimVersion = resolveGrimVersion(api);
     }
 
     @Override
@@ -85,7 +88,24 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public String getGrimVersion() {
-        return api.getGrimPlugin().getDescription().getVersion();
+        return grimVersion;
+    }
+
+    private static String resolveGrimVersion(GrimAPI api) {
+        try {
+            Properties properties = PropertiesUtil.readProperties(GrimExternalAPI.class, "grimac.properties");
+            String buildVersion = properties.getProperty("build.version");
+            if (buildVersion != null && !buildVersion.isBlank() && !buildVersion.startsWith("${")) {
+                return buildVersion;
+            }
+        } catch (RuntimeException ignored) {
+        }
+
+        try {
+            return api.getGrimPlugin().getDescription().getVersion();
+        } catch (RuntimeException e) {
+            return "unknown";
+        }
     }
 
     @Override

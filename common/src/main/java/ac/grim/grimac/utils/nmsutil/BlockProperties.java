@@ -21,22 +21,36 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class BlockProperties {
-    public static float getFrictionInfluencedSpeed(float f, GrimPlayer player) {
+    public static float getFrictionInfluencedSpeed(float blockFriction, GrimPlayer player) {
+        float movementSpeed = (float) player.speed;
+
         if (player.lastOnGround) {
-            return (float) (player.speed * (0.21600002f / (f * f * f)));
+            blockFriction = getModifiedFriction(blockFriction, player);
+
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+                float friction = blockFriction * 0.91F;
+                float acceleration = player.getClientVersion().isOlderThan(ClientVersion.V_1_13) ? 0.16277136F : 0.16277137F;
+                return movementSpeed * (acceleration / (friction * friction * friction));
+            }
+
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && blockFriction <= 0.6F) {
+                return movementSpeed;
+            }
+
+            return movementSpeed * (0.21600002f / (blockFriction * blockFriction * blockFriction));
         }
 
         // The game uses values known as flyingSpeed for some vehicles in the air
         if (player.inVehicle()) {
             PacketEntity riding = player.compensatedEntities.self.getRiding();
-            if (riding.type == EntityTypes.PIG || riding instanceof PacketEntityNautilus || riding instanceof PacketEntityHorse) {
-                return (float) (player.speed * 0.1f);
+            if (riding.getType() == EntityTypes.PIG || riding instanceof PacketEntityNautilus || riding instanceof PacketEntityHorse) {
+                return movementSpeed * 0.1f;
             }
 
             if (riding instanceof PacketEntityStrider strider) {
                 // Unsure which version the speed changed in
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
-                    return (float) player.speed * 0.1f;
+                    return movementSpeed * 0.1f;
                 }
 
                 // Vanilla multiplies by 0.1 to calculate speed
@@ -53,7 +67,7 @@ public class BlockProperties {
             return player.isSprinting ? 0.025999999F : 0.02f;
         }
 
-        return player.lastSprintingForSpeed ? (float) ((double) 0.02f + 0.005999999865889549D) : 0.02f;
+        return player.lastSprintingForSpeed ? player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? (0.02f + 0.006f) : (float) ((double) 0.02f + 0.005999999865889549D) : 0.02f;
     }
 
     /**
@@ -213,5 +227,97 @@ public class BlockProperties {
     private static float getModernVelocityMultiplier(GrimPlayer player, float blockSpeedFactor) {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) return blockSpeedFactor;
         return (float) GrimMath.lerp((float) player.compensatedEntities.self.getAttributeValue(Attributes.MOVEMENT_EFFICIENCY), blockSpeedFactor, 1.0F);
+    }
+
+    public static float getModifiedFriction(float friction, GrimPlayer player) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2)) {
+            return friction;
+        }
+
+        PacketEntity entity = player.inVehicle() ? player.compensatedEntities.self.getRiding() : player.compensatedEntities.self;
+        return GrimMath.clamp(1.0F - (1.0F - friction) * (float) entity.getAttributeValue(Attributes.FRICTION_MODIFIER), 0.0F, 1.0F);
+    }
+
+    public static float getModifiedAirDrag(float drag, GrimPlayer player) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2)) {
+            return drag;
+        }
+
+        PacketEntity entity = player.inVehicle() ? player.compensatedEntities.self.getRiding() : player.compensatedEntities.self;
+        return GrimMath.clamp(1.0F - (1.0F - drag) * (float) entity.getAttributeValue(Attributes.AIR_DRAG_MODIFIER), 0.0F, 1.0F);
+    }
+
+    public static float getEntityBounciness(GrimPlayer player) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2)) {
+            return 0.0F;
+        }
+
+        PacketEntity entity = player.inVehicle() ? player.compensatedEntities.self.getRiding() : player.compensatedEntities.self;
+        if (entity == player.compensatedEntities.self && player.isSneaking) {
+            return 0.0F;
+        }
+
+        if (!entity.isLivingEntity) {
+            return 0.0F;
+        }
+
+        return (float) entity.getAttributeValue(Attributes.BOUNCINESS);
+    }
+
+    public static double getVelocityAfterHorizontalCollision(GrimPlayer player, double velocity) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2)) {
+            return 0.0;
+        }
+
+        return -velocity * getEntityBounciness(player);
+    }
+
+    public static double getVelocityAfterVerticalCollision(GrimPlayer player, double velocity, double movementY) {
+        return getVelocityAfterVerticalCollision(player, velocity, movementY, getEntityBounciness(player));
+    }
+
+    public static double getVelocityAfterVerticalCollision(GrimPlayer player, double velocity, double movementY, double restitution) {
+        double gravity = getEffectiveGravity(player, velocity);
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2) || velocity < 0.0 && -velocity < gravity) {
+            return 0.0;
+        }
+
+        if (restitution <= 0.0F) {
+            return 0.0;
+        }
+
+        double portionWithMovement = velocity == 0.0 ? 0.0 : movementY / velocity;
+        double gravityCompensation = portionWithMovement * gravity;
+        double effectiveDrag = GrimMath.lerp(portionWithMovement, 1.0, getModifiedAirDrag(0.98F, player));
+        return (gravityCompensation - velocity) * effectiveDrag * restitution;
+    }
+
+    public static double getEffectiveGravity(GrimPlayer player, double deltaMovementY) {
+        PacketEntity entity = player.inVehicle() ? player.compensatedEntities.self.getRiding() : player.compensatedEntities.self;
+        double gravity = entity.getAttributeValue(Attributes.GRAVITY);
+
+        if (deltaMovementY <= 0.0 && player.compensatedEntities.getSlowFallingAmplifier().isPresent()) {
+            return player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(gravity, 0.01);
+        }
+
+        return gravity;
+    }
+
+    public static float getBlockBounceRestitution(StateType type, GrimPlayer player) {
+        if (type == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            return 1.0F;
+        }
+
+        if (BlockTags.BEDS.contains(type) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? 0.75F : 0.66F;
+        }
+
+        if (type == StateTypes.HONEY_BLOCK
+                && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            return 1.0F;
+        }
+
+        return 0.0F;
     }
 }

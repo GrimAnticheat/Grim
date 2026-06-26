@@ -99,7 +99,7 @@ database:
   # Yeni oturum kayıtlarına basılan, yalnızca görüntüleme amaçlı etiket.
   # `/grim history` çıktısının oturum başlık satırında gösterilir. Çalışma
   # sırasında değiştirmek güvenlidir.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
 config-flavor: V2

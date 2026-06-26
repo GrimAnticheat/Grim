@@ -57,7 +57,7 @@ public class ReachInterpolationData {
             interpolationSteps = 10;
         } else if (entity.isMinecart) {
             interpolationSteps = 5;
-        } else if (entity.type == EntityTypes.SHULKER) {
+        } else if (entity.getType() == EntityTypes.SHULKER) {
             interpolationSteps = 1;
         } else if (entity.isLivingEntity) {
             interpolationSteps = 3;
@@ -140,9 +140,6 @@ public class ReachInterpolationData {
     public SimpleCollisionBox getPossibleLocationCombined() {
         int interpSteps = getInterpolationSteps();
 
-//        int interpolationStepsLowBound = Math.min(this.interpolationStepsLowBound, this.cancelledLerpInterpolationStepsLowBound); // Temp test
-
-
         double stepMinX = (targetLocation.minX - startingLocation.minX) / (double) interpSteps;
         double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / (double) interpSteps;
         double stepMinY = (targetLocation.minY - startingLocation.minY) / (double) interpSteps;
@@ -150,25 +147,32 @@ public class ReachInterpolationData {
         double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / (double) interpSteps;
         double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / (double) interpSteps;
 
-        SimpleCollisionBox minimumInterpLocation = new SimpleCollisionBox(
-                startingLocation.minX + (interpolationStepsLowBound * stepMinX),
-                startingLocation.minY + (interpolationStepsLowBound * stepMinY),
-                startingLocation.minZ + (interpolationStepsLowBound * stepMinZ),
-                startingLocation.maxX + (interpolationStepsLowBound * stepMaxX),
-                startingLocation.maxY + (interpolationStepsLowBound * stepMaxY),
-                startingLocation.maxZ + (interpolationStepsLowBound * stepMaxZ));
+        // Each corner of B(s) is linear in s: c + s * stepDelta. Over the closed integer range
+        // [interpolationStepsLowBound, interpolationStepsHighBound], a linear function attains
+        // its extremes at the endpoints. So the axis-wise union of B(s) for all s in that range
+        // equals the axis-wise union of just B(low) and B(high).
 
-        for (int step = interpolationStepsLowBound + 1; step <= interpolationStepsHighBound; step++) {
-            minimumInterpLocation = combineCollisionBox(minimumInterpLocation, new SimpleCollisionBox(
-                    startingLocation.minX + (step * stepMinX),
-                    startingLocation.minY + (step * stepMinY),
-                    startingLocation.minZ + (step * stepMinZ),
-                    startingLocation.maxX + (step * stepMaxX),
-                    startingLocation.maxY + (step * stepMaxY),
-                    startingLocation.maxZ + (step * stepMaxZ)));
-        }
+        double loMinX = startingLocation.minX + interpolationStepsLowBound * stepMinX;
+        double loMinY = startingLocation.minY + interpolationStepsLowBound * stepMinY;
+        double loMinZ = startingLocation.minZ + interpolationStepsLowBound * stepMinZ;
+        double loMaxX = startingLocation.maxX + interpolationStepsLowBound * stepMaxX;
+        double loMaxY = startingLocation.maxY + interpolationStepsLowBound * stepMaxY;
+        double loMaxZ = startingLocation.maxZ + interpolationStepsLowBound * stepMaxZ;
 
-        return minimumInterpLocation;
+        double hiMinX = startingLocation.minX + interpolationStepsHighBound * stepMinX;
+        double hiMinY = startingLocation.minY + interpolationStepsHighBound * stepMinY;
+        double hiMinZ = startingLocation.minZ + interpolationStepsHighBound * stepMinZ;
+        double hiMaxX = startingLocation.maxX + interpolationStepsHighBound * stepMaxX;
+        double hiMaxY = startingLocation.maxY + interpolationStepsHighBound * stepMaxY;
+        double hiMaxZ = startingLocation.maxZ + interpolationStepsHighBound * stepMaxZ;
+
+        return new SimpleCollisionBox(
+                Math.min(loMinX, hiMinX),
+                Math.min(loMinY, hiMinY),
+                Math.min(loMinZ, hiMinZ),
+                Math.max(loMaxX, hiMaxX),
+                Math.max(loMaxY, hiMaxY),
+                Math.max(loMaxZ, hiMaxZ));
     }
 
     /**

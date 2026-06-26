@@ -20,6 +20,8 @@ build/
 gradle-app.setting
 !gradle-wrapper.jar
 buildSrc/.kotlin
+/gradle.user.properties
+!/gradle.user.properties.example
 
 ##############################
 ## IntelliJ

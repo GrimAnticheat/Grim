@@ -22,7 +22,6 @@ public class SimpleCollisionBox implements CollisionBox {
     public static final double COLLISION_EPSILON = 1.0E-7;
 
     public double minX, minY, minZ, maxX, maxY, maxZ;
-    private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
     private boolean isFullBlock = false;
 
     public SimpleCollisionBox() {
@@ -245,6 +244,7 @@ public class SimpleCollisionBox implements CollisionBox {
             return isIntersected((SimpleCollisionBox) other);
         }
 
+        SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
         int size = other.downCast(boxes);
 
         for (int i = 0; i < size; i++) {
@@ -412,16 +412,16 @@ public class SimpleCollisionBox implements CollisionBox {
     // Copied from hawk lol
     // I would like to point out that this is magic to me and I have not attempted to understand this code
     public Vector3dm intersectsRay(Ray ray, float minDist, float maxDist) {
-        Vector3dm invDir = new Vector3dm(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
+        Vector3dm invDir = new Vector3dm(1f / ray.direction().getX(), 1f / ray.direction().getY(), 1f / ray.direction().getZ());
 
         boolean signDirX = invDir.getX() < 0;
         boolean signDirY = invDir.getY() < 0;
         boolean signDirZ = invDir.getZ() < 0;
 
-        double tmin = ((signDirX ? maxX : minX) - ray.getOrigin().getX()) * invDir.getX();
-        double tmax = ((signDirX ? minX : maxX) - ray.getOrigin().getX()) * invDir.getX();
-        double tymin = ((signDirY ? maxY : minY) - ray.getOrigin().getY()) * invDir.getY();
-        double tymax = ((signDirY ? minY : maxY) - ray.getOrigin().getY()) * invDir.getY();
+        double tmin = ((signDirX ? maxX : minX) - ray.origin().getX()) * invDir.getX();
+        double tmax = ((signDirX ? minX : maxX) - ray.origin().getX()) * invDir.getX();
+        double tymin = ((signDirY ? maxY : minY) - ray.origin().getY()) * invDir.getY();
+        double tymax = ((signDirY ? minY : maxY) - ray.origin().getY()) * invDir.getY();
 
         if (tmin > tymax || tymin > tmax) {
             return null;
@@ -430,8 +430,8 @@ public class SimpleCollisionBox implements CollisionBox {
         if (tymin > tmin) tmin = tymin;
         if (tymax < tmax) tmax = tymax;
 
-        double tzmin = ((signDirZ ? maxZ : minZ) - ray.getOrigin().getZ()) * invDir.getZ();
-        double tzmax = ((signDirZ ? minZ : maxZ) - ray.getOrigin().getZ()) * invDir.getZ();
+        double tzmin = ((signDirZ ? maxZ : minZ) - ray.origin().getZ()) * invDir.getZ();
+        double tzmax = ((signDirZ ? minZ : maxZ) - ray.origin().getZ()) * invDir.getZ();
 
         if ((tmin > tzmax) || (tzmin > tmax)) {
             return null;
@@ -440,7 +440,7 @@ public class SimpleCollisionBox implements CollisionBox {
         if (tzmin > tmin) tmin = tzmin;
         if (tzmax < tmax) tmax = tzmax;
 
-        return tmin < maxDist && tmax > minDist ? ray.getPointAtDistance(tmin) : null;
+        return tmin < maxDist && tmax > minDist ? Vector3dm.from(ray.getPointAtDistance(tmin)) : null;
     }
 
     public Vector3dm max() {
@@ -593,14 +593,12 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public static Iterable<Vector3i> betweenCornersInDirection(SimpleCollisionBox boundingBox, Vector3d directionVector) {
-        Vector3d min = boundingBox.min().toVector3d();
-        int minX = GrimMath.floor(min.x);
-        int minY = GrimMath.floor(min.y);
-        int minZ = GrimMath.floor(min.z);
-        Vector3d max = boundingBox.max().toVector3d();
-        int maxX = GrimMath.floor(max.x);
-        int maxY = GrimMath.floor(max.y);
-        int maxZ = GrimMath.floor(max.z);
+        int minX = GrimMath.floor(boundingBox.minX);
+        int minY = GrimMath.floor(boundingBox.minY);
+        int minZ = GrimMath.floor(boundingBox.minZ);
+        int maxX = GrimMath.floor(boundingBox.maxX);
+        int maxY = GrimMath.floor(boundingBox.maxY);
+        int maxZ = GrimMath.floor(boundingBox.maxZ);
         return betweenCornersInDirection(minX, minY, minZ, maxX, maxY, maxZ, directionVector);
     }
 

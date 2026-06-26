@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -16,6 +17,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "BadPacketsU", stableKey = "grim.badpackets.invalid_block_placement", description = "Sent impossible use item packet")
 public class BadPacketsU extends Check implements PacketCheck {
+    private static final Verbose V =
+            Verbose.of("xyz={mcpos}, cursor={cursor}, item={bool}, sequence={sint}");
+
     public BadPacketsU(GrimPlayer player) {
         super(player);
     }
@@ -47,11 +51,12 @@ public class BadPacketsU extends Check implements PacketCheck {
                         || cursor.z != 0
                         || packet.getSequence() != 0
                 ) {
-                    final String verbose = String.format(
-                            "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s, sequence=%s",
-                            pos.x, pos.y, pos.z, cursor.x, cursor.y, cursor.z, !failedItemCheck, packet.getSequence()
-                    );
-                    if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                    var buf = V.write(verbose())
+                            .mcPos(pos.x, pos.y, pos.z)
+                            .cursor(cursor.x, cursor.y, cursor.z)
+                            .bool(!failedItemCheck).sint(packet.getSequence());
+                    if (flag(buf)
+                            && shouldModifyPackets()) {
                         player.onPacketCancel();
                         event.setCancelled(true);
                     }

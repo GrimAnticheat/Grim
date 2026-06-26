@@ -6,7 +6,7 @@ import ac.grim.grimac.api.storage.backend.BackendException;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.internal.storage.copy.BackendToBackendCopier;
 import ac.grim.grimac.manager.datastore.DataStoreLifecycle;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class GrimHistoryCopy implements BuildableCommand {
 
     @Override
-    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
+    public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("history")

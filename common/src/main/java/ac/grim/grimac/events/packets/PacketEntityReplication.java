@@ -550,9 +550,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 (player.compensatedEntities.serverPlayerVehicle != null && entityID == player.compensatedEntities.serverPlayerVehicle);
     }
 
-    public void onEndOfTickEvent() {
+    public void onEndOfTickEvent(boolean async, boolean flush) {
         // Only send a transaction at the end of the tick if we are tracking players
-        player.sendTransaction(true); // We injected before vanilla flushes :) we don't need to flush
+        player.sendTransaction(async);
+        if (flush) player.user.flushPackets();
     }
 
     public void tickStartTick() {

@@ -1,3 +1,15 @@
+// Local developer overrides, including private Maven credentials.
+run {
+    val userProps = rootDir.resolve("gradle.user.properties")
+    if (userProps.isFile) {
+        val loaded = java.util.Properties()
+        userProps.inputStream().use { loaded.load(it) }
+        for ((key, value) in loaded) {
+            System.setProperty(key.toString(), value.toString())
+        }
+    }
+}
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
@@ -63,11 +75,15 @@ if (gradle.startParameter.isBuildScan) {
 rootProject.name = "grimac"
 include("common")
 include("bukkit")
-include("fabric")
-include(":fabric:mc1161")
-include(":fabric:mc1171")
-include(":fabric:mc1194")
-include(":fabric:mc1205")
-include(":fabric:mc12111")
+//include("fabric")
+//include(":fabric:shared")
+//include(":fabric:intermediary")
+//include(":fabric:intermediary:mc1161")
+//include(":fabric:intermediary:mc1171")
+//include(":fabric:intermediary:mc1194")
+//include(":fabric:intermediary:mc1205")
+//include(":fabric:intermediary:mc12111")
+//include(":fabric:official")
+//include(":fabric:official:mc261")
 
 if (file("workspace.gradle.kts").exists()) apply(from = "workspace.gradle.kts")

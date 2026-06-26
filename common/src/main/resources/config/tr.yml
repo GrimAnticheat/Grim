@@ -227,5 +227,16 @@ max-ping-firework-boost: 1000
 #   config-version: her geriye dönük uyumsuz biçim değişikliğinde artırılır.
 #                   Eski config'ler bir sonraki başlatmada, pakete dahil
 #                   updater tarafından otomatik taşınır.
+# LuckPerms kurulu olsun ya da olmasın, bir oyuncu katıldığında ve Grim yeniden
+# yüklendiğinde Grim önbellekteki izinleri her zaman yeniler.
+# LuckPerms olay hook'ları normal kurulumlarda önbellekteki Grim izinlerini de
+# anında yeniler.
+# Bu periyodik yedek yalnızca bu olayların kapsamadığı çevrim içi izin
+# değişiklikleri için gereklidir; örneğin signalContextUpdate çağırmayan özel bir
+# LuckPerms context'i, Fabric context boşlukları veya LuckPerms dışında izinleri
+# canlı olarak değiştiren bir izin sağlayıcısı.
+# Yoklamayı devre dışı bırakmak için -1 kullanın. Her X tick'te yenilemek için pozitif bir değer kullanın.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

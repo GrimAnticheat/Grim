@@ -3,7 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.elytra.ElytraA;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.IntToObjectPair;
 import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.packetentity.JumpableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -91,7 +91,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     PacketEntity riding = player.compensatedEntities.self.getRiding();
                     if (riding instanceof JumpableEntity jumpable) {
                         if (player.vehicleData.pendingJumps.size() >= 20) return; // discard
-                        player.vehicleData.pendingJumps.add(new Pair<>(action.getJumpBoost(), jumpable));
+                        player.vehicleData.pendingJumps.add(new IntToObjectPair<>(action.getJumpBoost(), jumpable));
                     }
                     break;
             }

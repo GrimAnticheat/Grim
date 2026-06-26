@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-mc261",
+  "version": "${version}",
+  "name": "GrimAC mc261",
+  "description": "Per-version chain participant for Minecraft 26.1+. Registers a grim26ChainLoad entrypoint so fabric-official can dispatch into 26.X-specific code once compiled against official-mapped sources.",
+  "license": "GPLv3",
+  "environment": "server",
+  "entrypoints": {
+    "grim26MainLoad": [
+      "ac.grim.grimac.platform.fabric.mc261.Fabric261LoaderPlugin"
+    ]
+  },
+  "depends": {
+    "minecraft": ">=26.1.2 <26.2",
+    "java": ">=25",
+    "fabricloader": ">=0.19",
+    "packetevents": "*"
+  }
+}

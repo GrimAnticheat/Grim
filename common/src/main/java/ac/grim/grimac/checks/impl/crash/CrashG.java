@@ -24,7 +24,7 @@ public class CrashG extends BlockPlaceCheck {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isSupportedVersion()) {
             WrapperPlayClientUseItem use = new WrapperPlayClientUseItem(event);
             if (use.getSequence() < 0) {
-                flagAndAlert();
+                flag();
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
@@ -34,7 +34,7 @@ public class CrashG extends BlockPlaceCheck {
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
         if (blockBreak.sequence < 0 && isSupportedVersion()) {
-            flagAndAlert();
+            flag();
             blockBreak.cancel();
         }
     }
@@ -42,7 +42,7 @@ public class CrashG extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(BlockPlace place) {
         if (place.sequence < 0 && isSupportedVersion()) {
-            flagAndAlert();
+            flag();
             place.resync();
         }
     }

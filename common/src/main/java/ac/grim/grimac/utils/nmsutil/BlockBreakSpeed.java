@@ -61,8 +61,7 @@ public class BlockBreakSpeed {
 
     private static final boolean SERVER_USES_COMPONENTS_AND_RULES = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5);
 
-    record ToolSpeedData(float speedMultiplier, boolean isCorrectToolForDrop) {
-    }
+    record ToolSpeedData(float speedMultiplier, boolean isCorrectToolForDrop) {}
 
     public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
         ItemStack tool = player.inventory.getHeldItem();
@@ -306,6 +305,4 @@ public class BlockBreakSpeed {
         //
         return new ToolSpeedData(speedMultiplier, isCorrectToolForDrop);
     }
-
-
 }

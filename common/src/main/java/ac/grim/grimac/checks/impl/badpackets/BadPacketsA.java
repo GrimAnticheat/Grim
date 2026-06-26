@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,6 +11,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHe
 
 @CheckData(name = "BadPacketsA", stableKey = "grim.badpackets.duplicate_slot", description = "Sent duplicate slot id")
 public class BadPacketsA extends Check implements PacketCheck {
+    private static final Verbose V = Verbose.of("slot={sint}");
+
     private int lastSlot = -1;
 
     public BadPacketsA(final GrimPlayer player) {
@@ -21,9 +24,11 @@ public class BadPacketsA extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
-            if (slot == lastSlot && flagAndAlert("slot=" + slot) && shouldModifyPackets()) {
-                event.setCancelled(true);
-                player.onPacketCancel();
+            if (slot == lastSlot) {
+                if (flag(V.write(verbose()).sint(slot)) && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
             }
 
             lastSlot = slot;
