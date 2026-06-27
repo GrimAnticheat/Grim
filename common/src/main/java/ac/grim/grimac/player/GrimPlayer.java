@@ -12,6 +12,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderProcessor;
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
@@ -22,6 +23,8 @@ import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.manager.AttackCooldownHandler;
+import ac.grim.grimac.predictionengine.blockeffects.CompensatedGeysers;
+import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -212,9 +215,11 @@ public class GrimPlayer implements GrimUser {
     public final LastInstanceManager lastInstanceManager;
     public final CompensatedFireworks fireworks;
     public final CompensatedWorld compensatedWorld;
+    public final CompensatedGeysers compensatedGeysers;
     public final CompensatedEntities compensatedEntities;
     public final CompensatedDashableEntities dashableEntities;
     public final CompensatedInventory inventory;
+    public final PacketEntityReplication packetEntityReplication = new PacketEntityReplication(this);
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
     public final TrigHandler trigHandler = new TrigHandler(this);
@@ -289,6 +294,7 @@ public class GrimPlayer implements GrimUser {
         inventory = new CompensatedInventory(this);
 
         compensatedWorld = new CompensatedWorld(this);
+        compensatedGeysers = new CompensatedGeysers();
         compensatedEntities = new CompensatedEntities(this);
         dashableEntities = new CompensatedDashableEntities();
         cameraEntity = new CompensatedCameraEntity(this);
@@ -363,6 +369,10 @@ public class GrimPlayer implements GrimUser {
             Vector3dm vector = clientVelocity.clone().setY(0.30000001192092896 + (canFloatWhileRidden ? 0.03999999910593033 : 0.0));
             if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
                 Collisions.resolveBlockEffects(this, vector, true, finalMovementsThisTick);
+            }
+
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) {
+                PotentSulfurGeyser.launchEntityTicker(this, vector, false);
             }
 
             possibleMovements.add(new VectorData(vector, VectorData.VectorType.Swimhop));

@@ -72,11 +72,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# セッション単位の履歴 UI です。下記すべての行は自由に書き換え可能で、
-# プレースホルダはキーごとにコメントで説明しています。セッション行と違反行の
-# ホバー文は、生データ（verbose、チェック内訳）からレンダラーが自動生成するため
-# テンプレートは不要です。任意の行に <hover:show_text:'...'> を追加すると
-# ツールチップを重ねて表示できます。
+# セッション単位の履歴 UI です。下記すべての行は設定可能な MiniMessage
+# テンプレートです。既定のホバーはインラインの <hover:show_text:'...'> タグと
+# 下記のホバー断片キーにあります。インラインホバーを消すとレンダラーの
+# フォールバックが使われます。
 
 grim-history-load-failure: "%prefix% &c履歴サブシステムの読み込みに失敗しました！サーバーコンソールでエラーを確認してください。"
 grim-history-disabled: "%prefix% &c履歴サブシステムは無効です！"
@@ -90,12 +89,12 @@ grim-history-header: "%prefix% &b&f%player% &bのセッション履歴 &8[&f%pag
 # セッション概要行 — 有効なプレースホルダ:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # サーバークラッシュ・kill -9・UserDisconnectEvent を発火しないチャネル RST など、
 # 接続が正常終了せずに失われたセッションでは %crashed_marker% が
 # grim-history-crashed-marker に展開されます。継続中／正常終了したセッションでは
 # 空文字列になります。
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &b第 &f%ordinal% &b回セッション、時間 &f%duration%&b、違反 &c%violations%&b 件 &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% 前&8)"
+grim-history-session: "<hover:show_text:'&bセッション &7%session_uuid%<newline>&7クリックするか &e%detail_command% &7を実行<newline>&7してセッション詳細を表示します。'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &b第 &f%ordinal% &b回セッション、時間 &f%duration%&b、違反 &c%violations%&b 件 &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% 前&8)</hover>"
 
 # closed_at == last_activity のセッション（つまり次回起動時のクラッシュ掃引で
 # スタンプされ、切断パスを通っていない行）に対して %crashed_marker% に
@@ -113,14 +112,21 @@ grim-history-detail-meta2: "%prefix% &bクライアント: &f%client_version%&b,
 grim-history-detail-violations-header: "%prefix% &b違反: &8(合計 %violations% 件、ユニーク %unique_checks% 件)"
 grim-history-detail-empty: "%prefix% &7- (なし)"
 # グループ化された行（デフォルト） — 有効なプレースホルダ: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% は grim-history-check-count の項目を ", " で連結したものです
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&b%bucket_start%–%bucket_end% の違反:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&b%bucket_start%–%bucket_end% の違反:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # 単一の生違反行（--detailed） — 有効なプレースホルダ:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # %checks_list% の各チェック項目の内部書式 — 有効なプレースホルダ: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # スキーマ用マーカー — config.yml のヘッダーコメントを参照。
 config-flavor: V2
-config-version: 1
+config-version: 2

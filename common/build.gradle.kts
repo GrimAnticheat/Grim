@@ -6,13 +6,22 @@ plugins {
 }
 
 repositories {
-    // We still call mavenLocal() conditionally at the top for non-exclusive deps (general fallback)
-    if (BuildConfig.mavenLocalOverride) mavenLocal()
+    val localOverride = if (BuildConfig.mavenLocalOverride) mavenLocal() else null
 
     // Grim API & PacketEvents
-    exclusive("https://repo.grim.ac/snapshots") {
-        includeGroup("ac.grim.grimac")
-        includeGroup("com.github.retrooper")
+    val grimPublicReleases = maven("https://maven.grim.ac/public/releases") {
+        mavenContent { releasesOnly() }
+    }
+    val grimPublicSnapshots = maven("https://maven.grim.ac/public/snapshots") {
+        mavenContent { snapshotsOnly() }
+    }
+    val grimLegacySnapshots = maven("https://repo.grim.ac/snapshots")
+    exclusiveContent {
+        forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
+        filter {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
+        }
     }
 
     // ViaVersion
@@ -60,7 +69,6 @@ dependencies {
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
     api(libs.hikaricp)
-
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)

@@ -26,7 +26,9 @@ dependencies {
     // NMS-free Fabric platform code shared with fabric-official lives here.
     implementation(project(":fabric:shared"))
     // PE is JiJ'd once at the fabric/ aggregator; compileOnly here avoids re-nesting it.
-    compileOnly(libs.packetevents.fabric)
+    // Use the API artifact so intermediary Loom does not inspect PE's official-mapped nested mods.
+    compileOnly(libs.packetevents.api)
+    compileOnly(libs.packetevents.fabric.common)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 }
@@ -138,7 +140,8 @@ subprojects {
         // PE is JiJ'd at fabric/ (aggregator); per-version submodules just need it on
         // the compile classpath. compileOnly avoids re-nesting PE inside each mcXXXX jar.
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
-        compileOnly(libsx.findLibrary("packetevents-fabric").get())
+        compileOnly(libsx.findLibrary("packetevents-api").get())
+        compileOnly(libsx.findLibrary("packetevents-fabric-common").get())
     }
 }
 

@@ -96,6 +96,12 @@ public class PacketEntity extends TypedPacketEntity {
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GRAVITY, 0.08, -1, 1)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.AIR_DRAG_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.BOUNCINESS, 0.0, 0, 1)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.FRICTION_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
     }
 
     public double clampScale(double scale) {

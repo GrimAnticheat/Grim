@@ -75,13 +75,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# UI d'historique basée sur les sessions. Toutes les lignes ci-dessous sont
-# entièrement configurables ; les placeholders sont documentés à chaque clé.
-# Le texte au survol des lignes de session et de violation est construit par
-# le renderer à partir des données brutes (verbose, ventilation des checks)
-# et n'a pas besoin de modèle — mais vous pouvez ajouter
-# <hover:show_text:'...'> sur n'importe quelle ligne pour superposer des
-# tooltips supplémentaires.
+# UI d'historique basée sur les sessions. Toutes les lignes ci-dessous sont des
+# modèles MiniMessage configurables. Les hovers par défaut vivent dans les tags
+# inline <hover:show_text:'...'> et les clés de fragments de hover ci-dessous ;
+# retirez le hover inline pour utiliser le fallback du renderer.
 
 grim-history-load-failure: "%prefix% &cLe sous-système d'historique n'a pas pu être chargé ! Vérifiez la console du serveur pour les erreurs."
 grim-history-disabled: "%prefix% &cLe sous-système d'historique est désactivé !"
@@ -95,12 +92,12 @@ grim-history-header: "%prefix% &bAffichage de l'historique des sessions pour &f%
 # Ligne de résumé d'une session — placeholders valides :
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% s'étend en grim-history-crashed-marker pour les sessions
 # dont la connexion a disparu sans fermeture propre (crash serveur, kill -9,
 # RST de canal sans UserDisconnectEvent). Chaîne vide pour les sessions en
 # cours ou closes proprement.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b, durée &f%duration%&b, avec &c%violations%&b violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7il y a %timeago%&8)"
+grim-history-session: "<hover:show_text:'&bSession &7%session_uuid%<newline>&7Cliquez ou exécutez &e%detail_command%<newline>&7pour afficher les détails de la session.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b, durée &f%duration%&b, avec &c%violations%&b violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7il y a %timeago%&8)</hover>"
 
 # Marqueur en ligne substitué dans %crashed_marker% pour les sessions dont
 # closed_at == last_activity (c.-à-d. estampillées par le balayage de crash
@@ -119,14 +116,21 @@ grim-history-detail-meta2: "%prefix% &bClient : &f%client_version%&b, Marque : &
 grim-history-detail-violations-header: "%prefix% &bViolations : &8(%violations% au total, %unique_checks% uniques)"
 grim-history-detail-empty: "%prefix% &7- (aucune)"
 # Ligne groupée (par défaut) — placeholders valides : %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% est construite en joignant les entrées grim-history-check-count avec ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bViolations entre &f%bucket_start%–%bucket_end%&b :%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bViolations entre &f%bucket_start%–%bucket_end%&b :%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Ligne de violation brute (--detailed) — placeholders valides :
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Format interne pour chaque check dans %checks_list% — placeholders valides : %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Marqueurs de schéma — voir le commentaire d'en-tête dans config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

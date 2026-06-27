@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine.predictions.rideable;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -190,6 +191,7 @@ public class PredictionEngineBoat extends PredictionEngine {
         // yes, this is how mojank does it
         Collisions.applyEffectsFromBlocks(player);
         Collisions.applyEffectsFromBlocks(player);
+        PotentSulfurGeyser.launchEntityTicker(player, player.clientVelocity, true);
     }
 
     @Override

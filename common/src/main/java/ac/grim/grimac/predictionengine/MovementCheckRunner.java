@@ -33,6 +33,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -469,7 +470,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
-            player.friction = 0.91f;
+            player.friction = BlockProperties.getModifiedAirDrag(0.91f, player);
             PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
         } else if (riding == null) {
             wasChecked = true;

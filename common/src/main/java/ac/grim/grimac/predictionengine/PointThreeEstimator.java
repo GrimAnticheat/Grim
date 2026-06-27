@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -481,6 +482,6 @@ public class PointThreeEstimator {
         }
 
         // Simulate end of tick friction
-        return y * 0.98F;
+        return y * BlockProperties.getModifiedAirDrag(0.98F, player);
     }
 }

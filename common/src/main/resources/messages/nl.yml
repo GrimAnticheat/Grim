@@ -75,12 +75,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# Op sessies gebaseerde geschiedenis-UI. Alle regels hieronder zijn vrij
-# instelbaar; placeholders zijn per sleutel gedocumenteerd. Hover-tekst voor
-# sessie- en overtredingsregels wordt door de renderer opgebouwd uit de ruwe
-# data (verbose, check-uitsplitsing) en heeft geen template nodig — je kunt
-# echter <hover:show_text:'...'> aan elke regel toevoegen om extra tooltips
-# erbovenop te leggen.
+# Op sessies gebaseerde geschiedenis-UI. Alle regels hieronder zijn instelbare
+# MiniMessage-templates. Standaard hovers staan in inline
+# <hover:show_text:'...'>-tags en de hoverfragment-sleutels hieronder; verwijder
+# de inline hover om de renderer-fallback te gebruiken.
 
 grim-history-load-failure: "%prefix% &cGeschiedenissubsysteem kon niet worden geladen! Controleer de serverconsole op fouten."
 grim-history-disabled: "%prefix% &cHet geschiedenissubsysteem is uitgeschakeld!"
@@ -94,12 +92,12 @@ grim-history-header: "%prefix% &bSessiegeschiedenis tonen voor &f%player% &8[&f%
 # Samenvattingsregel per sessie — geldige placeholders:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% breidt uit naar grim-history-crashed-marker voor sessies
 # waarvan de verbinding zonder nette afsluiting wegviel (servercrash, kill -9,
 # kanaal-RST die geen UserDisconnectEvent vuurt). Lege string voor lopende of
 # netjes gesloten sessies.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessie &f%ordinal%&b, duur &f%duration%&b, met &c%violations%&b overtredingen &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% geleden&8)"
+grim-history-session: "<hover:show_text:'&bSessie &7%session_uuid%<newline>&7Klik of voer &e%detail_command% &7uit<newline>&7om sessiedetails te bekijken.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSessie &f%ordinal%&b, duur &f%duration%&b, met &c%violations%&b overtredingen &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% geleden&8)</hover>"
 
 # Inline-markering die in %crashed_marker% wordt geplaatst voor sessies met
 # closed_at == last_activity (d.w.z. gestempeld door de crash-sweep bij de
@@ -118,14 +116,21 @@ grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Merk: &f%cl
 grim-history-detail-violations-header: "%prefix% &bOvertredingen: &8(%violations% totaal, %unique_checks% uniek)"
 grim-history-detail-empty: "%prefix% &7- (geen)"
 # Gegroepeerde regel (standaard) — geldige placeholders: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% wordt gebouwd door grim-history-check-count-items te verbinden met ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bOvertredingen in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bOvertredingen in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Enkele ruwe overtredingsregel (--detailed) — geldige placeholders:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Intern formaat per check in %checks_list% — geldige placeholders: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Schemamarkers — zie de header-comment in config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2
