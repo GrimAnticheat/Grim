@@ -1,9 +1,9 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.input.DoubleInput;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 
 public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
@@ -37,8 +37,8 @@ public class MovementTickerHappyGhast extends MovementTickerLivingVehicle {
             upAndDown += 0.5F;
         }
 
-        this.movementInput = new Vector3dm(sideways, upAndDown, forward).multiply(3.9F * happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED));
-        if (this.movementInput.lengthSquared() > 1) this.movementInput.normalize();
+        double multiplier = 3.9F * happyGhastPacket.getAttributeValue(Attributes.FLYING_SPEED);
+        this.movementInput = new DoubleInput(sideways * multiplier, upAndDown * multiplier, forward * multiplier).normalize(player);
     }
 
     @Override

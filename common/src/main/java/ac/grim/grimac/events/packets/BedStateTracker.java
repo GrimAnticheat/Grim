@@ -17,6 +17,11 @@ public class BedStateTracker extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.USE_BED) {
             WrapperPlayServerUseBed bed = new WrapperPlayServerUseBed(event);
@@ -31,7 +36,6 @@ public class BedStateTracker extends PacketListenerAbstract {
             }
         }
 
-        // for some reason, doing this pre-via causes errors...
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
 

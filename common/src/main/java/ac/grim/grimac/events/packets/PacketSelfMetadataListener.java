@@ -213,8 +213,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // Vanilla update order: Receive this -> process new interacts
                         // Grim update order: Process new interacts -> receive this
                         if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
-                            PacketPlayerDigging.handleUseItem(player, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
-                            // The above line is a hack to fake activate use item
                             player.packetStateData.setSlowedByUsingItem(isActive);
 
                             if (isActive) {

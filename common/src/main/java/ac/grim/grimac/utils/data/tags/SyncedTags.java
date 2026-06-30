@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTa
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * This class stores tags that the client is aware of.
@@ -31,11 +31,10 @@ public final class SyncedTags {
     private static final ServerVersion VERSION = PacketEvents.getAPI().getServerManager().getVersion();
     private static final ResourceLocation BLOCK = VERSION.isNewerThanOrEquals(ServerVersion.V_1_21) ? ResourceLocation.minecraft("block") : ResourceLocation.minecraft("blocks");
     private final GrimPlayer player;
-    private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced;
+    private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced = new HashMap<>();;
 
     public SyncedTags(GrimPlayer player) {
         this.player = player;
-        this.synced = new HashMap<>();
         ClientVersion version = player.getClientVersion();
         trackTags(BLOCK, id -> StateTypes.getById(VERSION.toClientVersion(), id),
                 SyncedTag.<StateType>builder(CLIMBABLE).defaults(BlockTags.CLIMBABLE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_16)),
@@ -51,11 +50,10 @@ public final class SyncedTags {
     }
 
     @SafeVarargs
-    private <T> void trackTags(ResourceLocation location, Function<Integer, T> remapper, SyncedTag.Builder<T>... syncedTags) {
+    private <T> void trackTags(ResourceLocation location, IntFunction<T> remapper, SyncedTag.Builder<T>... syncedTags) {
         final Map<ResourceLocation, SyncedTag<?>> tags = new HashMap<>(syncedTags.length);
         for (SyncedTag.Builder<T> syncedTag : syncedTags) {
-            syncedTag.remapper(remapper);
-            final SyncedTag<T> built = syncedTag.build();
+            final SyncedTag<T> built = syncedTag.remapper(remapper).build();
             tags.put(built.location(), built);
         }
         synced.put(location, tags);

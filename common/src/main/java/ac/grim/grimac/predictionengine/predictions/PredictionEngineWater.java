@@ -55,7 +55,6 @@ public class PredictionEngineWater extends PredictionEngine {
 
                 //if (d > 0.0 && player.world.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
                 swimmingVelocities.add(vector.returnNewModified(vector.vector, VectorData.VectorType.SurfaceSwimming));
-
             }
             return swimmingVelocities;
         }
@@ -71,6 +70,10 @@ public class PredictionEngineWater extends PredictionEngine {
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        if (player.supportsEndTick() && !player.packetStateData.knownInput.jump()) {
+            return;
+        }
+
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             if (player.couldSkipTick && vector.isZeroPointZeroThree()) {
                 double extraVelFromVertTickSkipUpwards = GrimMath.clamp(player.actualMovement.getY(), vector.vector.clone().getY(), vector.vector.clone().getY() + 0.05f);

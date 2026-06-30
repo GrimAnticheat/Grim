@@ -101,7 +101,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (health.getHealth() <= 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     player.compensatedEntities.self.isDead = true;
-                    player.checkManager.getPacketCheck(BadPacketsM.class).onDeath();
+                    player.checkManager.getPreViaPacketCheck(BadPacketsM.class).onDeath();
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.self.isDead = false);
@@ -136,6 +136,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
+            player.sendTransaction();
             event.getTasksAfterSend().add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning
@@ -149,7 +150,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedEntities.serverPositionsMap.clear();
             }
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+            player.addRealTimeTaskNow(player.cameraEntity::reset);
+
+            player.addRealTimeTaskNext(() -> {
                 // From 1.16 to 1.19, this doesn't get set to false for whatever reason
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
                     player.isSneaking = false;
@@ -164,7 +167,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
 
-                player.checkManager.getPacketCheck(BadPacketsM.class).onRespawn();
+                player.checkManager.getPreViaPacketCheck(BadPacketsM.class).onRespawn();
 
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 
@@ -186,11 +189,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 }
 
                 player.checkManager.getPacketCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
-                player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
+                player.checkManager.getPreViaPacketCheck(BadPacketsG.class).handleRespawn();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-                    player.checkManager.getPacketCheck(BadPacketsF.class).exemptNext = true;
+                    player.checkManager.getPreViaPacketCheck(BadPacketsF.class).exemptNext = true;
                 }
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
@@ -199,6 +202,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
                     player.compensatedWorld.chunks.clear();
+                    player.compensatedGeysers.clear();
                     player.compensatedWorld.isRaining = false;
                     player.checkManager.getBlockPlaceCheck(BadPacketsH.class).onWorldChange();
                 }
@@ -209,16 +213,20 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedEntities.self = new PacketEntitySelf(player, player.compensatedEntities.self);
                 player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
 
+                player.cameraEntity.reset();
+
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
                     player.vehicleData.camelSprintingState = SprintingState.STOPPED;
-                    player.checkManager.getPacketCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
+                    player.checkManager.getPreViaPacketCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
                     // The server doesn't even use it... what do we do?
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;
                 }
                 player.pose = Pose.STANDING;
-                player.clientVelocity = new Vector3dm();
+                if (!keepTrackedData || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
+                    player.clientVelocity = new Vector3dm();
+                }
                 if (!GrimAPI.INSTANCE.getSpectateManager().isSpectating(player.uuid)) {
                     player.gamemode = respawn.getGameMode();
                 }

@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.chat;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
@@ -18,6 +19,9 @@ import java.util.regex.Pattern;
 
 @CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", description = "Moving while chatting", experimental = true)
 public class ChatC extends Check implements PacketCheck {
+    private static final Verbose V =
+            Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
+
     public ChatC(GrimPlayer player) {
         super(player);
     }
@@ -28,7 +32,6 @@ public class ChatC extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
-            // TODO make previa after making wrapper parse by client version instead of server version
             check(new WrapperPlayClientChatMessage(event).getMessage(), event);
         }
 
@@ -37,7 +40,6 @@ public class ChatC extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
-            // TODO make previa after making wrapper parse by client version instead of server version
             check("/" + new WrapperPlayClientChatCommand(event).getCommand(), event);
         }
     }
@@ -47,8 +49,12 @@ public class ChatC extends Check implements PacketCheck {
             return;
         }
 
-        String verbose = MultiActionsC.getVerbose(player);
-        if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
+        boolean sprinting = MultiActionsC.isVerboseSprinting(player);
+        boolean sneaking = MultiActionsC.isVerboseSneaking(player);
+        boolean input = MultiActionsC.isVerboseInput(player);
+        if ((sprinting || sneaking || input)
+                && flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(input))
+                && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }

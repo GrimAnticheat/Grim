@@ -21,13 +21,15 @@ public class MultiActionsE extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!dropping && player.packetStateData.isSlowedByUsingItem() && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND) && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (!dropping && player.packetStateData.isSlowedByUsingItem()
+                && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND)
+                && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
             // this is possible to false on 1.7
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
                 return;
             }
 
-            if (flagAndAlert() && shouldModifyPackets()) {
+            if (flag() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

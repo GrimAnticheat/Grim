@@ -12,28 +12,30 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import lombok.experimental.UtilityClass;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @UtilityClass
 public class Materials {
-    private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
+    private static final Set<StateType> NO_PLACE_LIQUIDS = Collections.newSetFromMap(new IdentityHashMap<>());
     // Includes iron panes in addition to glass panes
-    private static final Set<StateType> PANES = new HashSet<>();
-    private static final Set<StateType> WATER_LIQUIDS = new HashSet<>();
-    private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
-    private static final Set<StateType> WATER_SOURCES = new HashSet<>();
-    private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
+    private static final Set<StateType> PANES = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<StateType> WATER_LIQUIDS = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<StateType> WATER_LIQUIDS_LEGACY = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<StateType> WATER_SOURCES = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<StateType> WATER_SOURCES_LEGACY = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    public static final Set<StateType> CHESTS = new HashSet<>();
-    public static final Set<StateType> RODS = new HashSet<>();
-    public static final Set<StateType> CHAINS = new HashSet<>();
+    public static final Set<StateType> CHESTS = Collections.newSetFromMap(new IdentityHashMap<>());
+    public static final Set<StateType> RODS = Collections.newSetFromMap(new IdentityHashMap<>());
+    public static final Set<StateType> CHAINS = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private static final Set<StateType> COPPER_DOORS = new HashSet<>();
-    private static final Set<StateType> COPPER_TRAPDOORS = new HashSet<>();
+    private static final Set<StateType> COPPER_DOORS = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<StateType> COPPER_TRAPDOORS = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
+    private static final Set<StateType> CLIENT_SIDE = Collections.newSetFromMap(new IdentityHashMap<>());
 
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers

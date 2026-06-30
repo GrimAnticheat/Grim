@@ -17,7 +17,7 @@ import java.util.List;
 
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
-@CheckData(name = "NoFall", stableKey = "grim.groundspoof.no_fall", setback = 10)
+@CheckData(name = "NoFall", stableKey = "grim.groundspoof.no_fall", description = "Sent an on-ground packet while not colliding with the ground", setback = 10)
 public class NoFall extends Check implements PacketCheck {
 
     public boolean flipPlayerGroundStatus = false;
@@ -41,7 +41,7 @@ public class NoFall extends Check implements PacketCheck {
             if (wrapper.isOnGround() && !wrapper.hasPositionChanged()) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
-                    if (!GhostBlockDetector.isGhostBlock(player)) flagAndAlertWithSetback();
+                    if (!GhostBlockDetector.isGhostBlock(player)) flagWithSetback();
                     if (shouldModifyPackets()) {
                         wrapper.setOnGround(false);
                         event.markForReEncode(true);

@@ -27,6 +27,7 @@ body:
       label: Server version
       description: |
         Run `/version` on your server to check. Provide both the server type (ie Paper, Airplane, etc) & the Minecraft version.
+      placeholder: Paper 1.21.11
     validations:
       required: true
 

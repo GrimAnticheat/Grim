@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,6 +11,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "CrashC", stableKey = "grim.crash.nan_position", description = "Sent non-finite position or rotation")
 public class CrashC extends Check implements PacketCheck {
+    private static final Verbose V =
+            Verbose.of("xyzYP={f64}, {f64}, {f64}, {f32}, {f32}");
+
     public CrashC(GrimPlayer playerData) {
         super(playerData);
     }
@@ -23,8 +27,8 @@ public class CrashC extends Check implements PacketCheck {
                 if (!Double.isFinite(pos.getX()) || !Double.isFinite(pos.getY()) || !Double.isFinite(pos.getZ())
                     || !Float.isFinite(pos.getYaw()) || !Float.isFinite(pos.getPitch())
                    ) {
-                    flagAndAlert("xyzYP=" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ", " + pos.getYaw() + ", " + pos.getPitch());
-                    player.getSetbackTeleportUtil().executeViolationSetback();
+                    flag(V.write(verbose()).f64(pos.getX()).f64(pos.getY()).f64(pos.getZ()).f32(pos.getYaw()).f32(pos.getPitch()));
+                    executeViolationSetback();
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

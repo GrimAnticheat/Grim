@@ -46,6 +46,15 @@ public interface LiveWriteHooks {
             long now,
             @NotNull SessionTracker.ClientMeta meta);
 
+    /** Record a single flag whose verbose payload is already encoded as opaque bytes. */
+    void recordFlagData(
+            @NotNull UUID playerUuid,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData,
+            long now,
+            @NotNull SessionTracker.ClientMeta meta);
+
     /** Convenience for {@code PacketPlayerJoinQuit.onUserLogin}. Builds meta from the User + GrimPlayer internally. */
     void onJoinFromUserLogin(@NotNull PlatformPlayer player, @NotNull User user, long now);
 
@@ -65,6 +74,13 @@ public interface LiveWriteHooks {
             @NotNull AbstractCheck check,
             double vl,
             @Nullable String verbose);
+
+    /** Binary-verbose counterpart to {@link #recordFlagFromCheck(GrimPlayer, AbstractCheck, double, String)}. */
+    void recordFlagDataFromCheck(
+            @NotNull GrimPlayer player,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData);
 
     /**
      * Build the {@link SessionTracker.ClientMeta} stamped on session upserts
@@ -95,9 +111,11 @@ public interface LiveWriteHooks {
         @Override public void onQuit(@NotNull UUID u, long t, @NotNull SessionTracker.ClientMeta m) {}
         @Override public void observeBrand(@NotNull UUID u, long t, @NotNull SessionTracker.ClientMeta m) {}
         @Override public void recordFlag(@NotNull UUID u, @NotNull AbstractCheck c, double v, @Nullable String vb, long t, @NotNull SessionTracker.ClientMeta m) {}
+        @Override public void recordFlagData(@NotNull UUID u, @NotNull AbstractCheck c, double v, byte @Nullable [] d, long t, @NotNull SessionTracker.ClientMeta m) {}
         @Override public void onJoinFromUserLogin(@NotNull PlatformPlayer p, @NotNull User u, long t) {}
         @Override public void onQuitFromUserDisconnect(@NotNull User u, @Nullable GrimPlayer g, long t) {}
         @Override public void observeBrandFromCheck(@NotNull GrimPlayer g) {}
         @Override public void recordFlagFromCheck(@NotNull GrimPlayer p, @NotNull AbstractCheck c, double v, @Nullable String vb) {}
+        @Override public void recordFlagDataFromCheck(@NotNull GrimPlayer p, @NotNull AbstractCheck c, double v, byte @Nullable [] d) {}
     };
 }

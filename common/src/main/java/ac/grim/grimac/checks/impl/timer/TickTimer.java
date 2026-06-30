@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.timer;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -9,8 +10,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-@CheckData(name = "TickTimer", stableKey = "grim.timer.tick", setback = 1)
+@CheckData(name = "TickTimer", stableKey = "grim.timer.tick", description = "Did not send client tick end packet", setback = 1)
 public class TickTimer extends Check implements PacketCheck {
+    private static final Verbose V = Verbose.of("type=[end|flying], packets={uint}");
 
     private boolean receivedTickEnd = true;
     private int flyingPackets = 0;
@@ -23,14 +25,14 @@ public class TickTimer extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.supportsEndTick()) return;
         if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
-            if (!receivedTickEnd && flagAndAlertWithSetback("type=flying, packets=" + flyingPackets)) {
+            if (!receivedTickEnd && flagWithSetback(V.write(verbose()).bool(false).uint(flyingPackets))) {
                 handleViolation();
             }
             receivedTickEnd = false;
             flyingPackets++;
         } else if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
             receivedTickEnd = true;
-            if (flyingPackets > 1 && flagAndAlertWithSetback("type=end, packets=" + flyingPackets)) {
+            if (flyingPackets > 1 && flagWithSetback(V.write(verbose()).bool(true).uint(flyingPackets))) {
                 handleViolation();
             }
             flyingPackets = 0;
