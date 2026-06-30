@@ -8,8 +8,10 @@ import ac.grim.grimac.api.storage.backend.BackendRegistry;
 import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.config.DataStoreConfig;
+import ac.grim.grimac.api.storage.config.DuplicatePersistentUuidAction;
 import ac.grim.grimac.api.storage.config.HistoryConfig;
 import ac.grim.grimac.api.storage.config.MigrationConfig;
+import ac.grim.grimac.api.storage.config.OwnershipConfig;
 import ac.grim.grimac.api.storage.config.RetentionRule;
 import ac.grim.grimac.api.storage.config.SessionConfig;
 import ac.grim.grimac.api.storage.config.WaitStrategyType;
@@ -64,6 +66,8 @@ public final class DataStoreConfigBuilder {
                 config.getBooleanElse(NS + "session.scope-per-server", true),
                 config.getLongElse(NS + "session.heartbeat-interval-ms", 30_000L));
 
+        OwnershipConfig ownership = readOwnership();
+
         WritePathConfig writePath = readWritePath();
         Map<Category<?>, RetentionRule> retention = readRetention();
 
@@ -81,7 +85,31 @@ public final class DataStoreConfigBuilder {
         String serverName = config.getStringElse(NS + "server-name", "Unknown");
 
         return new DataStoreConfig(
-                routing, backends, session, writePath, retention, migration, chain, history, serverName);
+                routing, backends, session, ownership, writePath, retention, migration, chain, history, serverName);
+    }
+
+    private @NotNull OwnershipConfig readOwnership() {
+        String actionRaw = config.getStringElse(
+                NS + "ownership.duplicate-persistent-uuid-action", "disable-storage");
+        DuplicatePersistentUuidAction action;
+        try {
+            action = DuplicatePersistentUuidAction.valueOf(
+                    actionRaw.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "database.ownership.duplicate-persistent-uuid-action must be one of "
+                            + "disable-storage, fail-startup, allow-unsafe (got '" + actionRaw + "')");
+        }
+        return new OwnershipConfig(
+                config.getBooleanElse(NS + "ownership.enforce-persistent-uuid-ownership", true),
+                action,
+                config.getLongElse(NS + "ownership.lease-ttl-ms", 20_000L),
+                config.getLongElse(NS + "ownership.renew-interval-ms", 10_000L),
+                config.getLongElse(NS + "ownership.startup-wait-ms", 20_000L),
+                config.getLongElse(NS + "ownership.safety-margin-ms", 5_000L),
+                config.getLongElse(NS + "ownership.stale-startup-ttl-ms", 30_000L),
+                config.getLongElse(NS + "ownership.recovery-sweep-interval-ms", 10_000L),
+                config.getBooleanElse(NS + "ownership.cleanup-other-servers", true));
     }
 
     private Map<Category<?>, String> readRouting() {

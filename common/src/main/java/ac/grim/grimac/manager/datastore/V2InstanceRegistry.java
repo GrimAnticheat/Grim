@@ -7,8 +7,8 @@ import ac.grim.grimac.api.storage.backend.BackendContext;
 import ac.grim.grimac.api.storage.backend.BackendException;
 import ac.grim.grimac.api.storage.backend.KindAdapter;
 import ac.grim.grimac.api.storage.backend.StorageEventHandler;
-import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Capability;
+import ac.grim.grimac.api.storage.category.Categories;
 import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.check.CheckCatalogPersistence;
 import ac.grim.grimac.api.storage.check.CheckCatalogRepairResult;
@@ -26,12 +26,10 @@ import ac.grim.grimac.internal.storage.core.V2Routes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -45,7 +43,6 @@ final class V2InstanceRegistry {
     static final Backend ROUTER_SENTINEL_BACKEND = new RouterSentinelBackend();
 
     private static final int PAGE_SIZE = 512;
-    private static final long MIN_STALE_THRESHOLD_MS = 120_000L;
 
     private final DataStore store;
     private final StorageEventHandler<ServerStartupEvent> directStartupWriter;
@@ -77,20 +74,17 @@ final class V2InstanceRegistry {
         writeStartup(source);
     }
 
-    StartupClaim claimStartup(
+    StartupClaim openStartup(
             @NotNull String serverName,
             @NotNull UUID instanceId,
             @NotNull UUID startupId,
+            @NotNull UUID fence,
             long startedEpochMs,
+            long dbNowEpochMs,
             @Nullable String hostname,
             @Nullable String grimVersion,
             @Nullable String serverVersionString,
-            @Nullable byte[] verboseManifest,
-            long heartbeatIntervalMs) {
-        long staleThresholdMs = staleThresholdMs(heartbeatIntervalMs);
-        long observeMs = observeMs(heartbeatIntervalMs);
-        long now = System.currentTimeMillis();
-
+            @Nullable byte[] verboseManifest) {
         ServerStartupRecord current = new ServerStartupRecord(
                 startupId,
                 instanceId,
@@ -99,27 +93,17 @@ final class V2InstanceRegistry {
                 serverVersionString,
                 hostname,
                 startedEpochMs,
-                now,
+                dbNowEpochMs,
                 ServerStartupRecord.OPEN,
                 null,
                 verboseManifest);
         writeStartup(current);
-
-        RecoveryResult sameInstance = recoverPreviousStartupsForInstance(
-                current, now, staleThresholdMs, observeMs);
-        if (sameInstance.duplicate() != null) {
-            markStartupClosed(current, System.currentTimeMillis(), "duplicate");
-            return sameInstance.duplicate();
-        }
-
-        long staleClosed = recoverStaleStartups(current.startupId(), now, staleThresholdMs);
-        long closed = sameInstance.sessionsClosed() + staleClosed;
         String message = "[grim-datastore] storage startup claimed: serverName='" + serverName
                 + "' instanceId=" + instanceId
                 + " startupId=" + startupId
-                + "; recovered " + closed + " previous open session(s).";
-        logger.warning(message);
-        return StartupClaim.enabled(startupId, instanceId, closed, message);
+                + " fence=" + fence + ".";
+        logger.info(message);
+        return StartupClaim.enabled(startupId, instanceId, 0L, message);
     }
 
     long closeCurrentStartup(@NotNull UUID startupId, long closedAtEpochMs) {
@@ -129,47 +113,7 @@ final class V2InstanceRegistry {
         return closed;
     }
 
-    private @NotNull RecoveryResult recoverPreviousStartupsForInstance(
-            @NotNull ServerStartupRecord current,
-            long now,
-            long staleThresholdMs,
-            long observeMs) {
-        long closed = 0L;
-        for (ServerStartupRecord row : openStartupsForInstance(current.instanceId())) {
-            if (current.startupId().equals(row.startupId())) continue;
-            ServerStartupRecord recoverable = row;
-            if (!isStale(row, now, staleThresholdMs)) {
-                logger.warning("[grim-datastore] persistent storage instanceId=" + current.instanceId()
-                        + " has a fresh heartbeat from startupId=" + row.startupId()
-                        + " ageMs=" + heartbeatAgeMs(now, row)
-                        + "; observing for " + observeMs
-                        + "ms before deciding whether this is a live copied-data-folder duplicate.");
-                sleepObserve(observeMs);
-                long afterNow = System.currentTimeMillis();
-                Optional<ServerStartupRecord> after = startupById(row.startupId());
-                if (after.isEmpty() || after.get().isClosed()) continue;
-                recoverable = after.get();
-                if (heartbeatAdvanced(row, recoverable) && !isStale(recoverable, afterNow, staleThresholdMs)) {
-                    long conflictAge = heartbeatAgeMs(afterNow, recoverable);
-                    String message = "[grim-datastore] STORAGE DISABLED: live duplicate storage instanceId="
-                            + current.instanceId()
-                            + " detected. Existing startupId=" + recoverable.startupId()
-                            + " serverName='" + recoverable.serverName() + "'"
-                            + " heartbeatAgeMs=" + conflictAge
-                            + "; this startupId=" + current.startupId()
-                            + ". The data folder appears to be shared or copied between live servers.";
-                    logger.warning(message);
-                    return new RecoveryResult(closed,
-                            StartupClaim.duplicate(current.startupId(), current.instanceId(),
-                                    recoverable.startupId(), conflictAge, message));
-                }
-            }
-            closed += recoverStartup(recoverable, "crashed");
-        }
-        return new RecoveryResult(closed, null);
-    }
-
-    private long recoverStaleStartups(
+    long recoverStaleStartups(
             @NotNull UUID currentStartupId,
             long now,
             long staleThresholdMs) {
@@ -195,6 +139,11 @@ final class V2InstanceRegistry {
             cursor = stop ? null : page.nextCursor();
         } while (cursor != null);
         return closed;
+    }
+
+    long recoverStartup(@NotNull UUID startupId, @NotNull String reason) {
+        Optional<ServerStartupRecord> startup = startupById(startupId);
+        return startup.map(row -> recoverStartup(row, reason)).orElse(0L);
     }
 
     private long recoverStartup(@NotNull ServerStartupRecord startup, @NotNull String reason) {
@@ -306,61 +255,12 @@ final class V2InstanceRegistry {
                 STARTUPS, startupId)), "query server startup " + startupId);
     }
 
-    private @NotNull List<ServerStartupRecord> openStartupsForInstance(@NotNull UUID instanceId) {
-        List<ServerStartupRecord> out = new ArrayList<>();
-        Cursor cursor = null;
-        boolean reachedClosedRows;
-        do {
-            reachedClosedRows = false;
-            Page<ServerStartupRecord> page = await(store.execute(new EntityOps.FindByIndexOp<>(
-                    STARTUPS,
-                    "by_instance_open",
-                    instanceId,
-                    cursor,
-                    PAGE_SIZE)), "query server startups for instance " + instanceId);
-            for (ServerStartupRecord row : page.items()) {
-                if (!instanceId.equals(row.instanceId())) continue;
-                if (row.isClosed()) {
-                    reachedClosedRows = true;
-                    continue;
-                }
-                out.add(row);
-            }
-            cursor = reachedClosedRows ? null : page.nextCursor();
-        } while (cursor != null);
-        return out;
-    }
-
-    private static boolean heartbeatAdvanced(
-            @NotNull ServerStartupRecord before,
-            @NotNull ServerStartupRecord after) {
-        return Objects.equals(before.startupId(), after.startupId())
-                && after.lastHeartbeatEpochMs() > before.lastHeartbeatEpochMs();
-    }
-
     private static boolean isStale(@NotNull ServerStartupRecord row, long now, long staleThresholdMs) {
         return heartbeatAgeMs(now, row) > staleThresholdMs;
     }
 
     private static long heartbeatAgeMs(long now, @NotNull ServerStartupRecord row) {
         return Math.max(0L, now - row.lastHeartbeatEpochMs());
-    }
-
-    private static long staleThresholdMs(long heartbeatIntervalMs) {
-        return Math.max(MIN_STALE_THRESHOLD_MS, Math.max(1L, heartbeatIntervalMs) * 4L);
-    }
-
-    private static long observeMs(long heartbeatIntervalMs) {
-        return Math.max(1L, Math.max(1L, heartbeatIntervalMs) * 2L);
-    }
-
-    private void sleepObserve(long observeMs) {
-        try {
-            Thread.sleep(observeMs);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logger.warning("[grim-datastore] interrupted while observing storage heartbeat; treating holder as frozen");
-        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -414,8 +314,6 @@ final class V2InstanceRegistry {
                     heartbeatAgeMs, 0L, message);
         }
     }
-
-    private record RecoveryResult(long sessionsClosed, @Nullable StartupClaim duplicate) {}
 
     @SuppressWarnings("deprecation")
     private static final class RouterSentinelBackend implements Backend {

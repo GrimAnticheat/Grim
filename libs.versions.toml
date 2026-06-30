@@ -5,14 +5,15 @@ adventure-platform-bukkit = "4.4.0"
 paper-api = "1.20.6-R0.1-SNAPSHOT"
 cloud = "2.0.0"
 cloud-paper = "2.0.0-beta.16"
-cloud-fabric = "2.0.0-beta.16"
+cloud-fabric = "2.0.0-beta.15"
+cloud-fabric-official = "2.0.0-beta.17"
 cloud-processors-requirements = "1.0.0-rc.1"
 
 # --- Minecraft-Specific APIs ---
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.6.0.5"
-packetevents = "2.13.1+2bb4141-SNAPSHOT"
+grim-api = "1.6.0.7"
+packetevents = "2.13.1+8187e23-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
 luckperms = "5.5"
@@ -39,6 +40,7 @@ adventure-platform-bukkit = { group = "net.kyori", name = "adventure-platform-bu
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric" }
+cloud-fabric-official = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric-official" }
 cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-paper" }
 cloud-processors-requirements = { group = "org.incendo", name = "cloud-processors-requirements", version.ref = "cloud-processors-requirements" }
 
@@ -58,6 +60,7 @@ grim-bukkit-internal = { group = "ac.grim.grimac", name = "grim-bukkit-internal"
 grim-fabric-internal = { group = "ac.grim.grimac", name = "grim-fabric-internal", version.ref = "grim-api" }
 packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", version.ref = "packetevents" }
 packetevents-fabric = { group  = "com.github.retrooper", name = "packetevents-fabric", version.ref = "packetevents" }
+packetevents-fabric-common = { group = "com.github.retrooper", name = "packetevents-fabric-common", version.ref = "packetevents" }
 packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 viabackwards = { group = "com.viaversion", name = "viabackwards", version.ref = "viaversion" }

@@ -78,8 +78,6 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockBreakCheck> blockBreakChecks;
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
-    @Getter
-    private final PacketEntityReplication packetEntityReplication;
 
     private final List<PacketCheck> preViaPacketChecksValues;
     private final List<PacketCheck> packetChecksValues;
@@ -92,8 +90,6 @@ public class CheckManager {
     private final List<PostPredictionCheck> postPredictionChecksValues;
 
     public CheckManager(GrimPlayer player) {
-        packetEntityReplication = new PacketEntityReplication(player);
-
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
                 .put(ChatA.class, new ChatA(player))
@@ -124,7 +120,7 @@ public class CheckManager {
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
-                .put(PacketEntityReplication.class, packetEntityReplication)
+                .put(PacketEntityReplication.class, player.packetEntityReplication)
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
                 .put(CompensatedInventory.class, player.inventory)
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
@@ -502,8 +498,7 @@ public class CheckManager {
             if (check.getConfigName() == null) continue;
             final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
-                permissionName += id;
-                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName, PermissionDefaultValue.FALSE);
+                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName + id, PermissionDefaultValue.FALSE);
             }
         }
     }

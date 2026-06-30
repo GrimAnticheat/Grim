@@ -694,7 +694,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // This may need to be secured better, but limiting the new setback positions seems good enough for now...
             boolean canFeasiblyPointThree = Collisions.slowCouldPointThreeHitGround(player, player.x, player.y, player.z);
             if (!canFeasiblyPointThree && !player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))
-                    || player.clientVelocity.getY() > 0.06 && !player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+                    || player.clientVelocity.getY() > 0.06 && !player.uncertaintyHandler.wasAffectedByStuckSpeed()) { // TODO: still needed?
                 // Ghost block/0.03 abuse
                 player.getSetbackTeleportUtil().executeForceResync();
             } else {

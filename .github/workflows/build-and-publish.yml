@@ -139,18 +139,7 @@ jobs:
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
-            - name: Check Fabric Artifact
-              id: fabric_artifact
-              run: |
-                  FABRIC_JAR="${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar"
-                  if [[ -f "$FABRIC_JAR" ]]; then
-                    echo "exists=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "exists=false" >> "$GITHUB_OUTPUT"
-                  fi
-
             - name: Upload Fabric Artifact
-              if: ${{ steps.fabric_artifact.outputs.exists == 'true' }}
               uses: actions/upload-artifact@v6
               with:
                   name: grimac-fabric
@@ -263,7 +252,7 @@ jobs:
                   } >> "$GITHUB_OUTPUT"
 
             - name: Publish Fabric to Modrinth
-              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' && steps.fabric_artifact.outputs.exists == 'true' }}
+              if: ${{ inputs.publish-artifacts == true && env.MODRINTH_ID != '' && env.MODRINTH_TOKEN != '' }}
               uses: Kir-Antipov/mc-publish@v3.3
               with:
                   modrinth-id: ${{ secrets.MODRINTH_ID }}

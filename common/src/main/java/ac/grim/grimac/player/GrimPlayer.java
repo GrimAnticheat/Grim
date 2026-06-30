@@ -12,6 +12,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderProcessor;
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
@@ -46,6 +47,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -103,7 +105,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
-    public static final Vector3d DEFAULT_STUCK_SPEED = new Vector3d(1, 1, 1);
     public final UUID uuid;
     public final User user;
     public int entityID;
@@ -141,7 +142,8 @@ public class GrimPlayer implements GrimUser {
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
     public Vector3dm actualMovement = new Vector3dm();
-    public Vector3d stuckSpeedMultiplier = DEFAULT_STUCK_SPEED;
+    public IndexedVector3d stuckSpeedMultiplier = StuckSpeed.NONE;
+    public IndexedVector3d lastStuckSpeedMultiplier = StuckSpeed.NONE;
     public final UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -218,6 +220,7 @@ public class GrimPlayer implements GrimUser {
     public final CompensatedEntities compensatedEntities;
     public final CompensatedDashableEntities dashableEntities;
     public final CompensatedInventory inventory;
+    public final PacketEntityReplication packetEntityReplication = new PacketEntityReplication(this);
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
     public final TrigHandler trigHandler = new TrigHandler(this);
@@ -1048,6 +1051,15 @@ public class GrimPlayer implements GrimUser {
         }
 
         this.movementThisTick.add(movement);
+    }
+
+    public void setStuckSpeedMultiplier(IndexedVector3d stuckSpeedMultiplier) {
+        this.stuckSpeedMultiplier = stuckSpeedMultiplier;
+    }
+
+    public void resetStuckSpeedMultiplier() {
+        this.lastStuckSpeedMultiplier = this.stuckSpeedMultiplier;
+        this.stuckSpeedMultiplier = StuckSpeed.NONE;
     }
 
     public record Movement(Vector3d from, Vector3d to, Vector3d axisDependentOriginalMovement) {

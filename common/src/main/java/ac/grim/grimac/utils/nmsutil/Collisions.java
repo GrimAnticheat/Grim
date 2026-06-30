@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.functions.BlockAndPositionConsumer;
 import ac.grim.grimac.utils.functions.BlockAndPositionPredicate;
@@ -471,22 +472,25 @@ public final class Collisions {
     }
 
     public static void onInsideBlock(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ, boolean magic) {
+        PacketEntity riding = player.compensatedEntities.self.getRiding();
+        boolean stuckEntityIsLiving = riding == null || riding.isLivingEntity;
+
         if (!onlyApplyVelocity && blockType == StateTypes.COBWEB) {
-            if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.stuckSpeedMultiplier = new Vector3d(0.5, 0.25, 0.5);
+            if (stuckEntityIsLiving && player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
+                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB_WEAVING);
             } else {
-                player.stuckSpeedMultiplier = new Vector3d(0.25, 0.05f, 0.25);
+                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB);
             }
         }
 
-        if (!onlyApplyVelocity && blockType == StateTypes.SWEET_BERRY_BUSH
+        if (!onlyApplyVelocity && stuckEntityIsLiving && blockType == StateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.stuckSpeedMultiplier = new Vector3d(0.8f, 0.75, 0.8f);
+            player.setStuckSpeedMultiplier(StuckSpeed.SWEET_BERRY_BUSH);
         }
 
         if (!onlyApplyVelocity && blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.stuckSpeedMultiplier = new Vector3d(0.9f, 1.5, 0.9f);
+            player.setStuckSpeedMultiplier(StuckSpeed.POWDER_SNOW);
         }
 
         if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
@@ -557,7 +561,7 @@ public final class Collisions {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
-        player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
+        player.resetStuckSpeedMultiplier();
         player.finalMovementsThisTick.clear();
 
         Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
@@ -586,7 +590,7 @@ public final class Collisions {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.stuckSpeedMultiplier = GrimPlayer.DEFAULT_STUCK_SPEED;
+            player.setStuckSpeedMultiplier(StuckSpeed.NONE);
         }
     }
 
@@ -640,45 +644,6 @@ public final class Collisions {
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + COLLISION_EPSILON > d2 || d1 + COLLISION_EPSILON > d2;
         }
-    }
-
-    // 0.03 hack
-    public static boolean checkStuckSpeed(GrimPlayer player, double expand) {
-        // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox box = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
-
-        int minX = GrimMath.mojangFloor(box.minX);
-        int minY = GrimMath.mojangFloor(box.minY);
-        int minZ = GrimMath.mojangFloor(box.minZ);
-        int maxX = GrimMath.mojangFloor(box.maxX);
-        int maxY = GrimMath.mojangFloor(box.maxY);
-        int maxZ = GrimMath.mojangFloor(box.maxZ);
-
-        if (player.compensatedWorld.areChunksUnloadedAt(minX, minY, minZ, maxX, maxY, maxZ))
-            return false;
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(x, y, z);
-                    StateType blockType = block.getType();
-
-                    if (blockType == StateTypes.COBWEB) {
-                        return true;
-                    }
-
-                    if (blockType == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-                        return true;
-                    }
-
-                    if (blockType == StateTypes.POWDER_SNOW && x == Math.floor(player.x) && y == Math.floor(player.y) && z == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {

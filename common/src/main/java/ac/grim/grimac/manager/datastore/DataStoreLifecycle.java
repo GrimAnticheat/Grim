@@ -3,8 +3,6 @@ package ac.grim.grimac.manager.datastore;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.api.storage.DataStore;
 import ac.grim.grimac.api.storage.backend.Backend;
 import ac.grim.grimac.api.storage.backend.BackendConfig;
@@ -17,9 +15,15 @@ import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.check.CheckCatalogPersistence;
 import ac.grim.grimac.api.storage.check.CheckCatalogRow;
 import ac.grim.grimac.api.storage.config.DataStoreConfig;
+import ac.grim.grimac.api.storage.config.DuplicatePersistentUuidAction;
 import ac.grim.grimac.api.storage.history.HistoryService;
 import ac.grim.grimac.api.storage.identity.NameResolver;
 import ac.grim.grimac.api.storage.identity.NameResolverLink;
+import ac.grim.grimac.api.storage.instance.OwnershipClaimResult;
+import ac.grim.grimac.api.storage.instance.ServerOwnershipAdapter;
+import ac.grim.grimac.api.storage.instance.ServerOwnershipGate;
+import ac.grim.grimac.api.storage.instance.ServerOwnershipMetadata;
+import ac.grim.grimac.api.storage.instance.ServerOwnershipSnapshot;
 import ac.grim.grimac.api.storage.registry.MigrationContext;
 import ac.grim.grimac.api.storage.registry.StoreId;
 import ac.grim.grimac.api.storage.submit.ViolationSink;
@@ -57,6 +61,8 @@ import ac.grim.grimac.internal.storage.submit.ViolationSinkImpl;
 import ac.grim.grimac.internal.storage.verbose.VerboseManifest;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistryImpl;
+import ac.grim.grimac.manager.init.start.StartableInitable;
+import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BsonBinarySubType;
 import org.bson.Document;
@@ -65,6 +71,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -85,18 +92,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sql.DataSource;
 
 /**
- * Wires the shared DataStore + associated services to the plugin's
- * start/stop lifecycle. Owns the construction order: build backends → init →
- * capability-validate routing → migrate any legacy store → start writer
- * loops → register services. Accepting players happens in
- * {@link GrimAPI#start()} after this.
+ * Wires the shared DataStore and services to the plugin lifecycle. This path
+ * uses the v2 backend primitives so persistent UUID ownership, startup rows,
+ * and crash recovery all share the same backend under the session route.
  */
 public final class DataStoreLifecycle implements StartableInitable, StoppableInitable {
 
     private static final String CHECKS_STORE = "grim_checks";
+    private static final StoreId OWNERSHIP_STORE = StoreId.grim("server_ownership");
 
     private final GrimPlugin plugin;
     private final Logger logger;
@@ -116,10 +121,15 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private PlayerToggleStore playerToggleStore = PlayerToggleStore.NOOP;
     private V2InstanceRegistry instanceRegistry;
     private HeartbeatScheduler heartbeatScheduler;
+    private OwnershipHeartbeatScheduler ownershipHeartbeatScheduler;
+    private ServerOwnershipAdapter ownershipAdapter;
+    private ServerOwnershipGate ownershipGate = ServerOwnershipGate.disabled();
     private UUID instanceId;
     private UUID startupId;
+    private UUID ownershipFence;
     private long startupStartedEpochMs;
     private ScheduledExecutorService duplicateWarningExecutor;
+    private ScheduledExecutorService recoverySweepExecutor;
 
     private boolean enabled = true;
     private boolean loaded;
@@ -135,27 +145,22 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     @Override
     public void start() {
         Path dataFolder = plugin.getDataFolder().toPath();
-        // database.yml + per-backend files load through the shared
-        // ConfigManager (see ConfigManagerFileImpl). Their key paths are
-        // namespaced under `database:` / `<id>:` wrappers so Configuralize's
-        // flat-merge doesn't collide them with config.yml / discord.yml.
-        // The cross-version updater also runs there before this method is
-        // called, so the on-disk files are already migrated.
         DataStoreConfigBuilder builder = new DataStoreConfigBuilder(
                 backendRegistry,
                 dataFolder,
                 GrimAPI.INSTANCE.getConfigManager().getConfig());
 
         if (!builder.enabled()) {
-            logger.info("[grim-datastore] disabled in database.yml — skipping storage init");
+            logger.info("[grim-datastore] disabled in database.yml - skipping storage init");
             this.enabled = false;
             installLocalVerboseRegistry();
             return;
         }
+        this.enabled = true;
         try {
             this.config = builder.build();
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "[grim-datastore] database.yml rejected — storage disabled", e);
+            logger.log(Level.SEVERE, "[grim-datastore] database.yml rejected - storage disabled", e);
             this.enabled = false;
             installLocalVerboseRegistry();
             return;
@@ -163,10 +168,15 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
 
         try {
             this.loaded = buildAndStart(dataFolder);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage — falling back to disabled", e);
+        } catch (FatalStorageStartupException e) {
+            logger.log(Level.SEVERE, "[grim-datastore] fatal storage startup failure - shutting down server", e);
+            try { close(); } catch (Exception ignore) {}
             this.enabled = false;
-            try { teardown(); } catch (Exception ignore) {}
+            shutdownServerAfterFatalStorageStartup();
+        } catch (Exception | LinkageError e) {
+            logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage - falling back to disabled", e);
+            try { close(); } catch (Exception ignore) {}
+            this.enabled = false;
             installLocalVerboseRegistry();
         }
     }
@@ -182,7 +192,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             BackendV2 v2 = constructV2Direct(backendId, backendConfig);
             if (v2 == null) {
                 logger.warning("[grim-datastore] no v2 backend for id '" + backendId
-                        + "' — categories routed here will be unavailable");
+                        + "' - categories routed here will be unavailable");
                 continue;
             }
             try {
@@ -230,6 +240,17 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         if (sessionBackendId != null && !"none".equals(sessionBackendId)) {
             BackendV2 sessionBackend = v2ById.get(sessionBackendId);
             if (sessionBackend != null) {
+                this.ownershipAdapter = sessionBackend.ownershipAdapter().orElse(null);
+                if (ownershipAdapter != null) {
+                    try {
+                        ownershipAdapter.ensureStore(OWNERSHIP_STORE);
+                    } catch (Exception e) {
+                        allFailures++;
+                        logger.log(Level.WARNING,
+                                "[grim-datastore] failed to ensure server ownership store on '"
+                                        + sessionBackendId + "'", e);
+                    }
+                }
                 MigrationContext mctx = buildMigrationContext(sessionBackend);
                 if (mctx == null) mctx = NO_OP_MIGRATION_CONTEXT;
 
@@ -251,21 +272,24 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
 
         if (allFailures > 0) {
-            logger.severe("[grim-datastore] v2 cutover had " + allFailures
-                    + " failure(s) — aborting storage init");
-            closeV2Backends();
-            throw new RuntimeException("v2 cutover failed with " + allFailures + " error(s)");
+            logger.warning("[grim-datastore] v2 cutover skipped " + allFailures
+                    + " failed route(s); continuing with successfully installed routes");
         }
 
         V2Routes routes = routesBuilder.build();
         if (routes.isEmpty()) {
             throw new RuntimeException("no v2 routes installed");
         }
+
         CategoryRouter router = startupRouteInstalled
                 ? new CategoryRouter(Map.of(V2InstanceRegistry.STARTUPS, V2InstanceRegistry.ROUTER_SENTINEL_BACKEND))
                 : new CategoryRouter(Map.of());
+        boolean enforceOwnership = config.ownership().enforcePersistentUuidOwnership()
+                && config.ownership().duplicatePersistentUuidAction() != DuplicatePersistentUuidAction.ALLOW_UNSAFE;
+        this.ownershipGate = new ServerOwnershipGate(enforceOwnership);
         this.dataStore = new DataStoreImpl(router, config.writePath(), logger);
         this.dataStore.withV2Routes(routes);
+        this.dataStore.withOwnershipGate(ownershipGate);
         this.dataStore.start();
         this.checkRegistry = buildCheckRegistry(v2ById);
         this.verboseRegistry = buildVerboseRegistry();
@@ -280,239 +304,13 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         return true;
     }
 
-    private boolean buildServices(@NotNull V2Routes routes) {
-        V2InstanceRegistry.StartupClaim claim = startInstanceRegistry();
-        if (claim != null && claim.duplicate()) {
-            startDuplicateWarning(claim.warningMessage());
-            return false;
-        }
-
-        boolean sessionRouted = routes.contains(Categories.SESSION);
-        boolean violationRouted = routes.contains(Categories.VIOLATION);
-        boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
-        boolean settingRouted = routes.contains(Categories.SETTING);
-
-        if (sessionRouted && violationRouted) {
-            this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
-                    config.history().entriesPerPage(), config.history().groupIntervalMs())
-                    .withV2Startups(Categories.SERVER_STARTUP)
-                    .withVerboseRegistry(verboseRegistry);
-        } else {
-            logger.warning("[grim-datastore] history disabled; missing "
-                    + missingRoutes(sessionRouted, "session", violationRouted, "violation"));
-        }
-        this.playerIdentityService = new PlayerIdentityService(dataStore);
-        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
-        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
-        this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
-        if (sessionRouted) {
-            this.sessionTracker = new SessionTrackerImpl(
-                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
-        } else {
-            this.sessionTracker = SessionTracker.NOOP;
-            logger.warning("[grim-datastore] session tracking disabled; missing session route");
-        }
-        if (sessionRouted && violationRouted) {
-            this.liveWriteHooks = new LiveWriteHooksImpl(
-                    dataStore, playerIdentityService, checkRegistry, sessionTracker);
-        } else if (playerIdentityRouted) {
-            this.liveWriteHooks = new IdentityLiveWriteHooks(playerIdentityService);
-        } else {
-            this.liveWriteHooks = LiveWriteHooks.NOOP;
-        }
-        if (settingRouted) {
-            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
-        } else {
-            this.playerToggleStore = PlayerToggleStore.NOOP;
-            logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
-        }
-        return true;
-    }
-
-    private static @NotNull String missingRoutes(
-            boolean firstPresent, @NotNull String first,
-            boolean secondPresent, @NotNull String second) {
-        if (!firstPresent && !secondPresent) return first + " and " + second + " routes";
-        if (!firstPresent) return first + " route";
-        return second + " route";
-    }
-
-    private @Nullable V2InstanceRegistry.StartupClaim startInstanceRegistry() {
-        long heartbeatMs = instanceHeartbeatIntervalMs();
-        this.instanceId = loadPersistentInstanceId(plugin.getDataFolder().toPath());
-        this.startupId = UUID.randomUUID();
-        this.startupStartedEpochMs = System.currentTimeMillis();
-
-        this.instanceRegistry = V2InstanceRegistry.create(dataStore, dataStore.v2Routes(), logger);
-        if (instanceRegistry == null) {
-            logger.warning("[grim-datastore] v2 server startup registry route missing; "
-                    + "startup ownership and instance heartbeats are disabled");
-            return null;
-        }
-
-        // Checks intern templates lazily on first flag, so the manifest is
-        // re-encoded per heartbeat and republished immediately whenever a
-        // new template registers — rows stay decodable from their startup.
-        VerboseRegistry manifestRegistry = this.verboseRegistry;
-        java.util.function.Supplier<byte[]> verboseManifest = () -> manifestRegistry == null
-                ? VerboseManifest.textOnly(VerboseManifest.FLAVOR_V2_PUBLIC)
-                : VerboseManifest.encode(
-                        VerboseManifest.FLAVOR_V2_PUBLIC,
-                        manifestRegistry.checkIdVersions(checkRegistry));
-        V2InstanceRegistry.StartupClaim claim = instanceRegistry.claimStartup(
-                config.serverName(),
-                instanceId,
-                startupId,
-                startupStartedEpochMs,
-                hostname(),
-                GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
-                serverVersionString(),
-                verboseManifest.get(),
-                heartbeatMs);
-        if (!claim.storageEnabled()) return claim;
-
-        this.heartbeatScheduler = new HeartbeatScheduler(
-                startupId,
-                instanceId,
-                config.serverName(),
-                startupStartedEpochMs,
-                hostname(),
-                GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
-                serverVersionString(),
-                verboseManifest,
-                Duration.ofMillis(heartbeatMs),
-                instanceRegistry::publish,
-                logger);
-        heartbeatScheduler.start();
-        HeartbeatScheduler scheduler = this.heartbeatScheduler;
-        if (manifestRegistry != null) {
-            manifestRegistry.onChange(scheduler::publishNowAndWait);
-        }
-        return claim;
-    }
-
-    private @NotNull VerboseRegistry buildVerboseRegistry() {
-        // Templates intern themselves on a check's first flag; the registry
-        // only needs Grim's tag set available before anything parses/renders.
-        VerboseCodecs.ensureRegistered();
-        return new VerboseRegistryImpl(
-                dataStore,
-                checkRegistry,
-                VerboseManifest.FLAVOR_V2_PUBLIC);
-    }
-
-    private void installLocalVerboseRegistry() {
-        try {
-            CheckRegistry localChecks = new CheckRegistry(new InMemoryCheckCatalogPersistence());
-            localChecks.reload();
-            this.checkRegistry = localChecks;
-            this.verboseRegistry = buildVerboseRegistry();
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING,
-                    "[grim-datastore] failed to initialise local verbose registry", e);
-        }
-    }
-
-    private long instanceHeartbeatIntervalMs() {
-        long configured = config.session().heartbeatIntervalMs();
-        return configured > 0L ? configured : 30_000L;
-    }
-
-    private @NotNull UUID loadPersistentInstanceId(@NotNull Path dataFolder) {
-        Path file = dataFolder.resolve("data").resolve("storage-instance.uuid");
-        try {
-            Files.createDirectories(file.getParent());
-            if (Files.exists(file)) {
-                String raw = Files.readString(file, StandardCharsets.UTF_8).trim();
-                try {
-                    return UUID.fromString(raw);
-                } catch (IllegalArgumentException e) {
-                    Path backup = file.resolveSibling(file.getFileName() + ".invalid-" + System.currentTimeMillis());
-                    Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
-                    logger.warning("[grim-datastore] invalid storage instance UUID in " + file
-                            + "; moved it to " + backup + " and generated a new persistent id");
-                }
-            }
-
-            UUID generated = UUID.randomUUID();
-            Files.writeString(
-                    file,
-                    generated + System.lineSeparator(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE_NEW);
-            return generated;
-        } catch (IOException e) {
-            throw new IllegalStateException("failed to load persistent storage instance id from " + file, e);
-        }
-    }
-
-    private @Nullable String serverVersionString() {
-        return GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString();
-    }
-
-    private void disableStorageAfterDuplicate() {
-        logger.warning("[grim-datastore] storage disabled for this boot because another live Grim startup "
-                + "is using this storage instance id. Runtime checks remain active.");
-        if (heartbeatScheduler != null) {
-            heartbeatScheduler.stop();
-            heartbeatScheduler = null;
-        }
-        if (dataStore != null) {
-            dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
-        }
-        closeV2Backends();
-        dataStore = null;
-        historyService = null;
-        playerIdentityService = null;
-        nameResolver = null;
-        violationSink = null;
-        retentionSweeper = null;
-        sessionTracker = SessionTracker.NOOP;
-        liveWriteHooks = LiveWriteHooks.NOOP;
-        playerToggleStore = PlayerToggleStore.NOOP;
-        instanceRegistry = null;
-        verboseRegistry = null;
-        loaded = false;
-        enabled = false;
-    }
-
-    private void startDuplicateWarning(@NotNull String message) {
-        stopDuplicateWarning();
-        logger.warning(message);
-        duplicateWarningExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "grim-storage-duplicate-warning");
-            t.setDaemon(true);
-            return t;
-        });
-        duplicateWarningExecutor.scheduleAtFixedRate(
-                () -> logger.warning(message),
-                60L,
-                60L,
-                TimeUnit.SECONDS);
-    }
-
-    private void stopDuplicateWarning() {
-        if (duplicateWarningExecutor != null) {
-            duplicateWarningExecutor.shutdownNow();
-            duplicateWarningExecutor = null;
-        }
-    }
-
-    private @Nullable String hostname() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return null;
-        }
-    }
-
     private @NotNull CheckRegistry buildCheckRegistry(@NotNull Map<String, BackendV2> v2ById) {
         String backendId = config.routing().get(Categories.VIOLATION);
         BackendConfig backendConfig = backendId == null ? null : config.backends().get(backendId);
         BackendV2 backend = backendId == null ? null : v2ById.get(backendId);
         if (backend == null || !dataStore.v2Routes().contains(Categories.CHECK_CATALOG)) {
             logger.warning("[grim-datastore] no routed check catalog available for v2 backend '"
-                    + backendId + "' — check names will be process-local only");
+                    + backendId + "' - check names will be process-local only");
             CheckRegistry fallback = new CheckRegistry(new InMemoryCheckCatalogPersistence());
             fallback.reload();
             return fallback;
@@ -524,7 +322,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         } catch (RuntimeException e) {
             logger.log(Level.WARNING,
                     "[grim-datastore] failed to load persisted check catalog for backend '"
-                            + backendId + "' — falling back to process-local check names", e);
+                            + backendId + "' - falling back to process-local check names", e);
             CheckRegistry fallback = new CheckRegistry(new InMemoryCheckCatalogPersistence());
             fallback.reload();
             return fallback;
@@ -561,7 +359,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
 
         logger.warning("[grim-datastore] no persisted check catalog loader available for v2 backend '"
-                + backend.id() + "' — starting with an empty routed catalog view");
+                + backend.id() + "' - starting with an empty routed catalog view");
         return List.of();
     }
 
@@ -680,8 +478,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     StoreId.grim("grim_violations"), V2BuiltinKinds.violations()));
             out.put(Categories.CHECK_CATALOG, new V2BackendBootstrap.Binding<>(
                     StoreId.grim(CHECKS_STORE), V2BuiltinKinds.checks()));
-            out.put(Categories.VERBOSE_SCHEMA, new V2BackendBootstrap.Binding<>(
-                    StoreId.grim("verbose_schemas"), V2BuiltinKinds.verboseSchemas()));
         } else if (cat == Categories.SESSION) {
             out.put(cat, new V2BackendBootstrap.Binding<>(
                     StoreId.grim("grim_sessions"), V2BuiltinKinds.sessions()));
@@ -693,6 +489,449 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     StoreId.grim("grim_settings"), V2BuiltinKinds.settings()));
         }
         return out;
+    }
+
+    private boolean buildServices(@NotNull V2Routes routes) {
+        V2InstanceRegistry.StartupClaim claim = startInstanceRegistry();
+        if (claim != null && claim.duplicate()) {
+            startDuplicateWarning(claim.warningMessage());
+            return false;
+        }
+
+        boolean sessionRouted = routes.contains(Categories.SESSION);
+        boolean violationRouted = routes.contains(Categories.VIOLATION);
+        boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
+        boolean settingRouted = routes.contains(Categories.SETTING);
+
+        if (sessionRouted && violationRouted) {
+            this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
+                    config.history().entriesPerPage(), config.history().groupIntervalMs())
+                    .withV2Startups(Categories.SERVER_STARTUP)
+                    .withVerboseRegistry(verboseRegistry);
+        } else {
+            logger.warning("[grim-datastore] history disabled; missing "
+                    + missingRoutes(sessionRouted, "session", violationRouted, "violation"));
+        }
+        this.playerIdentityService = new PlayerIdentityService(dataStore);
+        this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
+        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
+        this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
+        if (sessionRouted) {
+            this.sessionTracker = new SessionTrackerImpl(
+                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
+        } else {
+            this.sessionTracker = SessionTracker.NOOP;
+            logger.warning("[grim-datastore] session tracking disabled; missing session route");
+        }
+        if (sessionRouted && violationRouted) {
+            this.liveWriteHooks = new LiveWriteHooksImpl(
+                    dataStore, playerIdentityService, checkRegistry, sessionTracker);
+        } else if (playerIdentityRouted) {
+            this.liveWriteHooks = new IdentityLiveWriteHooks(playerIdentityService);
+        } else {
+            this.liveWriteHooks = LiveWriteHooks.NOOP;
+        }
+        if (settingRouted) {
+            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+        } else {
+            this.playerToggleStore = PlayerToggleStore.NOOP;
+            logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
+        }
+        return true;
+    }
+
+    private static @NotNull String missingRoutes(
+            boolean firstPresent, @NotNull String first,
+            boolean secondPresent, @NotNull String second) {
+        if (!firstPresent && !secondPresent) return first + " and " + second + " routes";
+        if (!firstPresent) return first + " route";
+        return second + " route";
+    }
+
+    private @Nullable V2InstanceRegistry.StartupClaim startInstanceRegistry() {
+        long heartbeatMs = ownershipGate.enforced()
+                ? config.ownership().renewIntervalMs()
+                : instanceHeartbeatIntervalMs();
+        long leaseTtlMs = config.ownership().leaseTtlMs();
+        this.instanceId = loadPersistentInstanceId(plugin.getDataFolder().toPath());
+        this.startupId = UUID.randomUUID();
+        this.ownershipFence = UUID.randomUUID();
+        this.startupStartedEpochMs = System.currentTimeMillis();
+
+        this.instanceRegistry = V2InstanceRegistry.create(dataStore, dataStore.v2Routes(), logger);
+        if (instanceRegistry == null) {
+            String message = "[grim-datastore] v2 server startup registry route missing; "
+                    + "startup history and crash recovery are disabled";
+            logger.warning(message);
+            if (ownershipGate.enforced()) {
+                return ownershipDenied(message, null, -1L);
+            }
+            return null;
+        }
+
+        VerboseRegistry manifestRegistry = this.verboseRegistry;
+        java.util.function.Supplier<byte[]> verboseManifest = () -> manifestRegistry == null
+                ? VerboseManifest.textOnly(VerboseManifest.FLAVOR_V2_PUBLIC)
+                : VerboseManifest.encode(
+                        VerboseManifest.FLAVOR_V2_PUBLIC,
+                        manifestRegistry.checkIdVersions(checkRegistry));
+        ServerOwnershipMetadata metadata = new ServerOwnershipMetadata(
+                config.serverName(),
+                hostname(),
+                GrimAPI.INSTANCE.getExternalAPI().getGrimVersion(),
+                GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString());
+
+        boolean enforceOwnership = ownershipGate.enforced();
+        OwnershipClaimResult ownershipClaim = null;
+        if (enforceOwnership) {
+            if (ownershipAdapter == null) {
+                String message = "[grim-datastore] STORAGE DISABLED: backend for sessions does not expose "
+                        + "a server ownership adapter, but persistent UUID ownership is enforced.";
+                return ownershipDenied(message, null, -1L);
+            }
+            ownershipClaim = claimOwnershipWithOptionalWait(metadata);
+            if (!ownershipClaim.claimed()) {
+                ServerOwnershipSnapshot owner = ownershipClaim.currentOwner();
+                long remaining = owner == null ? -1L
+                        : Math.max(0L, owner.leaseExpiresAtEpochMs() - ownershipClaim.dbNowEpochMs());
+                String message = "[grim-datastore] STORAGE DISABLED: live duplicate persistent storage UUID "
+                        + instanceId + " detected. Existing startupId="
+                        + (owner == null ? "unknown" : owner.ownerStartupId())
+                        + " serverName='" + (owner == null ? "unknown" : owner.serverName()) + "'"
+                        + " leaseRemainingMs=" + remaining
+                        + "; this startupId=" + startupId
+                        + ". A server data folder or storage-instance.uuid appears to be copied.";
+                return ownershipDenied(message, owner == null ? null : owner.ownerStartupId(), remaining);
+            }
+            ownershipGate.open(startupId, ownershipFence, leaseTtlMs, config.ownership().safetyMarginMs());
+        }
+
+        long dbNow = ownershipClaim != null
+                ? ownershipClaim.dbNowEpochMs()
+                : dbNowBestEffort();
+        V2InstanceRegistry.StartupClaim claim = instanceRegistry.openStartup(
+                config.serverName(),
+                instanceId,
+                startupId,
+                ownershipFence,
+                startupStartedEpochMs,
+                dbNow,
+                metadata.hostname(),
+                metadata.grimVersion(),
+                metadata.serverVersionString(),
+                verboseManifest.get());
+
+        long recovered = recoverAfterStartupClaim(ownershipClaim, dbNow);
+        if (recovered > 0) {
+            logger.warning("[grim-datastore] recovered " + recovered
+                    + " open session(s) after claiming storage startup");
+        }
+
+        if (enforceOwnership) {
+            this.ownershipHeartbeatScheduler = new OwnershipHeartbeatScheduler(
+                    ownershipAdapter,
+                    OWNERSHIP_STORE,
+                    startupId,
+                    instanceId,
+                    ownershipFence,
+                    config.serverName(),
+                    startupStartedEpochMs,
+                    metadata.hostname(),
+                    metadata.grimVersion(),
+                    metadata.serverVersionString(),
+                    verboseManifest,
+                    leaseTtlMs,
+                    config.ownership().safetyMarginMs(),
+                    Duration.ofMillis(heartbeatMs),
+                    ownershipGate,
+                    instanceRegistry::publish,
+                    this::disablePersistenceAfterLostOwnership,
+                    logger);
+            ownershipHeartbeatScheduler.start();
+        } else {
+            this.heartbeatScheduler = new HeartbeatScheduler(
+                    startupId,
+                    instanceId,
+                    config.serverName(),
+                    startupStartedEpochMs,
+                    metadata.hostname(),
+                    metadata.grimVersion(),
+                    metadata.serverVersionString(),
+                    verboseManifest,
+                    Duration.ofMillis(heartbeatMs),
+                    instanceRegistry::publish,
+                    logger);
+            heartbeatScheduler.start();
+        }
+        if (manifestRegistry != null) {
+            if (ownershipHeartbeatScheduler != null) {
+                manifestRegistry.onChange(ownershipHeartbeatScheduler::publishNowAndWait);
+            } else if (heartbeatScheduler != null) {
+                manifestRegistry.onChange(heartbeatScheduler::publishNowAndWait);
+            }
+        }
+        startRecoverySweep();
+        return claim;
+    }
+
+    private @NotNull OwnershipClaimResult claimOwnershipWithOptionalWait(
+            @NotNull ServerOwnershipMetadata metadata) {
+        long ttlMs = config.ownership().leaseTtlMs();
+        OwnershipClaimResult first = claimOwnership(metadata, ttlMs);
+        if (first.claimed()) return first;
+        ServerOwnershipSnapshot owner = first.currentOwner();
+        long remaining = owner == null ? 0L
+                : Math.max(0L, owner.leaseExpiresAtEpochMs() - first.dbNowEpochMs());
+        long waitMs = Math.min(config.ownership().startupWaitMs(), remaining + 50L);
+        if (waitMs <= 0L || owner == null) return first;
+        logger.warning("[grim-datastore] persistent storage UUID " + instanceId
+                + " is owned by startupId=" + owner.ownerStartupId()
+                + "; waiting " + waitMs + "ms for the ownership lease to expire before retrying");
+        try {
+            Thread.sleep(waitMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return first;
+        }
+        return claimOwnership(metadata, ttlMs);
+    }
+
+    private @NotNull OwnershipClaimResult claimOwnership(
+            @NotNull ServerOwnershipMetadata metadata,
+            long ttlMs) {
+        try {
+            return ownershipAdapter.claimOwnership(
+                    OWNERSHIP_STORE, instanceId, startupId, ownershipFence, ttlMs, metadata);
+        } catch (Exception e) {
+            throw new RuntimeException("failed to claim server ownership", e);
+        }
+    }
+
+    private @Nullable V2InstanceRegistry.StartupClaim ownershipDenied(
+            @NotNull String message,
+            @Nullable UUID conflictingStartupId,
+            long leaseRemainingMs) {
+        if (config.ownership().duplicatePersistentUuidAction() == DuplicatePersistentUuidAction.FAIL_STARTUP) {
+            throw new FatalStorageStartupException(message);
+        }
+        logger.warning(message);
+        ownershipGate.close("duplicate-persistent-uuid");
+        return V2InstanceRegistry.StartupClaim.duplicate(
+                startupId, instanceId,
+                conflictingStartupId == null ? startupId : conflictingStartupId,
+                leaseRemainingMs,
+                message);
+    }
+
+    private void shutdownServerAfterFatalStorageStartup() {
+        Runnable stop = () -> GrimAPI.INSTANCE.getPlatformServer().dispatchCommand(
+                GrimAPI.INSTANCE.getPlatformServer().getConsoleSender(),
+                "stop");
+        try {
+            GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(plugin, stop);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "[grim-datastore] failed to schedule server shutdown after fatal storage startup", e);
+            try {
+                stop.run();
+            } catch (RuntimeException immediateFailure) {
+                logger.log(Level.SEVERE, "[grim-datastore] failed to dispatch stop command after fatal storage startup", immediateFailure);
+            }
+        }
+    }
+
+    private static final class FatalStorageStartupException extends RuntimeException {
+        FatalStorageStartupException(@NotNull String message) {
+            super(message);
+        }
+    }
+
+    private long recoverAfterStartupClaim(
+            @Nullable OwnershipClaimResult ownershipClaim,
+            long dbNow) {
+        long closed = 0L;
+        if (ownershipClaim != null && ownershipClaim.previousOwner() != null) {
+            ServerOwnershipSnapshot previous = ownershipClaim.previousOwner();
+            if (!startupId.equals(previous.ownerStartupId())
+                    && (previous.closedAtEpochMs() != ServerOwnershipSnapshot.OPEN
+                    || previous.leaseExpiresAtEpochMs() <= dbNow)) {
+                closed += instanceRegistry.recoverStartup(previous.ownerStartupId(), "expired-ownership");
+            }
+        }
+        if (config.ownership().cleanupOtherServers()) {
+            closed += instanceRegistry.recoverStaleStartups(
+                    startupId, dbNow, config.ownership().staleStartupTtlMs());
+        }
+        return closed;
+    }
+
+    private long dbNowBestEffort() {
+        if (ownershipAdapter != null) {
+            try {
+                return ownershipAdapter.dbNowEpochMs();
+            } catch (Exception e) {
+                logger.log(Level.FINE, "[grim-datastore] failed to read DB time; using local time", e);
+            }
+        }
+        return System.currentTimeMillis();
+    }
+
+    private void startRecoverySweep() {
+        if (!config.ownership().cleanupOtherServers() || instanceRegistry == null || startupId == null) return;
+        stopRecoverySweep();
+        recoverySweepExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "grim-storage-recovery-sweep");
+            t.setDaemon(true);
+            return t;
+        });
+        long intervalMs = config.ownership().recoverySweepIntervalMs();
+        recoverySweepExecutor.scheduleAtFixedRate(
+                this::runRecoverySweep,
+                intervalMs,
+                intervalMs,
+                TimeUnit.MILLISECONDS);
+    }
+
+    private void runRecoverySweep() {
+        V2InstanceRegistry registry = instanceRegistry;
+        UUID currentStartup = startupId;
+        if (registry == null || currentStartup == null) return;
+        if (ownershipGate.enforced() && !ownershipGate.allowWrites()) return;
+        try {
+            long closed = registry.recoverStaleStartups(
+                    currentStartup,
+                    dbNowBestEffort(),
+                    config.ownership().staleStartupTtlMs());
+            if (closed > 0) {
+                logger.warning("[grim-datastore] recovery sweep closed " + closed
+                        + " open session(s) from stale startup rows");
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "[grim-datastore] recovery sweep failed", e);
+        }
+    }
+
+    private void stopRecoverySweep() {
+        if (recoverySweepExecutor != null) {
+            recoverySweepExecutor.shutdownNow();
+            recoverySweepExecutor = null;
+        }
+    }
+
+    private long instanceHeartbeatIntervalMs() {
+        long configured = config.session().heartbeatIntervalMs();
+        return configured > 0L ? configured : 30_000L;
+    }
+
+    private @NotNull VerboseRegistry buildVerboseRegistry() {
+        VerboseCodecs.ensureRegistered();
+        return new VerboseRegistryImpl(
+                dataStore,
+                checkRegistry,
+                VerboseManifest.FLAVOR_V2_PUBLIC);
+    }
+
+    private void installLocalVerboseRegistry() {
+        try {
+            CheckRegistry localChecks = new CheckRegistry(new InMemoryCheckCatalogPersistence());
+            localChecks.reload();
+            this.checkRegistry = localChecks;
+            this.verboseRegistry = buildVerboseRegistry();
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING,
+                    "[grim-datastore] failed to initialise local verbose registry", e);
+        }
+    }
+
+    private @NotNull UUID loadPersistentInstanceId(@NotNull Path dataFolder) {
+        Path file = dataFolder.resolve("data").resolve("storage-instance.uuid");
+        try {
+            Files.createDirectories(file.getParent());
+            if (Files.exists(file)) {
+                String raw = Files.readString(file, StandardCharsets.UTF_8).trim();
+                try {
+                    return UUID.fromString(raw);
+                } catch (IllegalArgumentException e) {
+                    Path backup = file.resolveSibling(file.getFileName() + ".invalid-" + System.currentTimeMillis());
+                    Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+                    logger.warning("[grim-datastore] invalid storage instance UUID in " + file
+                            + "; moved it to " + backup + " and generated a new persistent id");
+                }
+            }
+
+            UUID generated = UUID.randomUUID();
+            Files.writeString(
+                    file,
+                    generated + System.lineSeparator(),
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW);
+            return generated;
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to load persistent storage instance id from " + file, e);
+        }
+    }
+
+    private void disableStorageAfterDuplicate() {
+        logger.warning("[grim-datastore] storage disabled for this boot because another live Grim startup "
+                + "is using this storage instance id. Runtime checks remain active.");
+        if (heartbeatScheduler != null) {
+            heartbeatScheduler.stop();
+            heartbeatScheduler = null;
+        }
+        if (ownershipHeartbeatScheduler != null) {
+            ownershipHeartbeatScheduler.stop();
+            ownershipHeartbeatScheduler = null;
+        }
+        ownershipGate.close("duplicate-persistent-uuid");
+        if (dataStore != null) {
+            dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
+        }
+        closeV2Backends();
+        dataStore = null;
+        historyService = null;
+        playerIdentityService = null;
+        nameResolver = null;
+        violationSink = null;
+        retentionSweeper = null;
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
+        instanceRegistry = null;
+        verboseRegistry = null;
+        ownershipAdapter = null;
+        ownershipFence = null;
+        ownershipGate = ServerOwnershipGate.disabled();
+        loaded = false;
+        enabled = false;
+    }
+
+    private void startDuplicateWarning(@NotNull String message) {
+        stopDuplicateWarning();
+        logger.warning(message);
+        duplicateWarningExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "grim-storage-duplicate-warning");
+            t.setDaemon(true);
+            return t;
+        });
+        duplicateWarningExecutor.scheduleAtFixedRate(
+                () -> logger.warning(message),
+                60L,
+                60L,
+                TimeUnit.SECONDS);
+    }
+
+    private void stopDuplicateWarning() {
+        if (duplicateWarningExecutor != null) {
+            duplicateWarningExecutor.shutdownNow();
+            duplicateWarningExecutor = null;
+        }
+    }
+
+    private @Nullable String hostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return null;
+        }
     }
 
     private @Nullable MigrationContext buildMigrationContext(@NotNull BackendV2 backend) {
@@ -727,7 +966,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                         && b.getData().length == 16) continue;
                 String idClass = id == null ? "null" : id.getClass().getSimpleName();
                 logger.warning(() -> "[grim-datastore] " + coll + " first-doc _id is "
-                        + idClass + ", expected UUID-shaped binary —"
+                        + idClass + ", expected UUID-shaped binary -"
                         + " entity migration will not handle this row correctly."
                         + " Halt and inspect before proceeding if this is unexpected.");
             } catch (RuntimeException e) {
@@ -762,7 +1001,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     if (playerIdentityRouted) {
                         links.add(new LocalCacheLink(store));
                     } else {
-                        logger.warning("[grim-datastore] name resolver local-cache disabled; "
+                        logger.warning("[grim-datastore] local-cache name resolver disabled; "
                                 + "missing player-identity route");
                     }
                 }
@@ -774,9 +1013,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     }
 
     private void maybeMigrateLegacy(Path dataFolder, SqliteBackend sqliteBackend) {
-        // The V0 reader/import path is SQLite-only. Only run it when the
-        // violation route itself is SQLite; mixed routing should not import
-        // legacy violations into an unrelated local side database.
         if (sqliteBackend == null) return;
         if (config.migration().skip()) {
             logger.info("[grim-datastore] migration.skip=true; leaving legacy v0 un-migrated");
@@ -785,7 +1021,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         V0Sources.V0Source source = V0Sources.detect(
                 dataFolder,
                 GrimAPI.INSTANCE.getConfigManager().getConfig());
-        // No legacy store on disk — fresh install or migration already done.
         if (source == null) {
             logger.info("[grim-datastore] no legacy v0 store detected; nothing to migrate");
             return;
@@ -810,60 +1045,28 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
-    // Source detection moved to V0Sources so the /grim history migrate command
-    // can reuse the same routing logic. See that class for per-type builders.
-
     @Override
     public void stop() {
-        teardown();
+        close();
     }
 
-    /**
-     * Hot-reload from a freshly-refreshed ConfigManager. Drains in-flight
-     * writes within the configured {@code shutdown-drain-timeout-ms},
-     * drops anything still pending, then rebuilds backends + routing
-     * from the new {@code database.yml} / {@code databases/&lt;id&gt;.yml}.
-     *
-     * <p>Operators can swap the backend (e.g. SQLite → MySQL after a
-     * {@code /grim history migrate}) without bouncing the server. Brief
-     * unavailability between the drain and the new backend's init —
-     * writes during that window get dropped on the floor; the user
-     * accepts that tradeoff.
-     *
-     * <p>Stale references held by callers (e.g. a check that cached
-     * {@link LiveWriteHooks} in a local variable mid-event) keep working
-     * against the old, closed dataStore — those writes drop too. New
-     * lookups via {@link #liveWriteHooks()} resolve to the new instance.
-     */
     public synchronized void reload() {
         logger.info("[grim-datastore] /grim reload: tearing down datastore...");
-        teardown();
+        close();
         start();
     }
 
-    /**
-     * Idempotent teardown — drains writers, closes backends, nulls every
-     * service field. Used by both {@link #stop()} and {@link #reload()}.
-     * Doesn't touch {@code enabled}; {@link #start()} re-evaluates that
-     * from the freshly-loaded ConfigManager.
-     */
-    private void teardown() {
+    private synchronized void close() {
         stopDuplicateWarning();
-        // violationSink drains in-flight writes; dataStore drains per-category
-        // rings and closes each backend. Both null-guarded because a failure
-        // during buildAndStart can tear down mid-initialisation — start()'s
-        // catch calls teardown() before any of these fields were assigned.
-        if (heartbeatScheduler != null) {
-            heartbeatScheduler.stop();
-            heartbeatScheduler = null;
-        }
-        shutdownInstanceRegistry();
+        stopRecoverySweep();
+        if (!enabled) return;
+        stopHeartbeatSchedulersForShutdown();
         playerToggleStore.shutdown();
         if (violationSink != null) violationSink.shutDown();
-        if (dataStore != null) {
-            long drainMs = config != null ? config.writePath().shutdownDrainTimeoutMs() : 5000L;
-            dataStore.flushAndClose(drainMs);
-        }
+        shutdownInstanceRegistry();
+        if (dataStore != null && config != null) dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
+        closeOwnership("graceful");
+        ownershipGate.close("shutdown");
         closeV2Backends();
         dataStore = null;
         historyService = null;
@@ -875,7 +1078,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         liveWriteHooks = LiveWriteHooks.NOOP;
         playerToggleStore = PlayerToggleStore.NOOP;
         instanceRegistry = null;
-        verboseRegistry = null;
+        ownershipAdapter = null;
+        ownershipFence = null;
+        ownershipGate = ServerOwnershipGate.disabled();
         instanceId = null;
         startupId = null;
         startupStartedEpochMs = 0L;
@@ -884,9 +1089,26 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         loaded = false;
     }
 
+    private void stopHeartbeatSchedulersForShutdown() {
+        if (ownershipHeartbeatScheduler != null) {
+            ownershipHeartbeatScheduler.publishNowAndWait();
+            ownershipHeartbeatScheduler.stop();
+            ownershipHeartbeatScheduler = null;
+        }
+        if (heartbeatScheduler != null) {
+            heartbeatScheduler.publishNowAndWait();
+            heartbeatScheduler.stop();
+            heartbeatScheduler = null;
+        }
+    }
+
     private void shutdownInstanceRegistry() {
         if (instanceRegistry == null || startupId == null || config == null) return;
-        long now = System.currentTimeMillis();
+        if (ownershipGate.enforced() && !ownershipGate.allowWrites()) {
+            logger.warning("[grim-datastore] skipping startup/session shutdown writes because DB ownership is no longer held");
+            return;
+        }
+        long now = dbNowBestEffort();
         try {
             long closed = instanceRegistry.closeCurrentStartup(startupId, now);
             if (closed > 0) {
@@ -896,6 +1118,26 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         } catch (RuntimeException e) {
             logger.log(Level.WARNING,
                     "[grim-datastore] failed to close sessions for this server startup", e);
+        }
+    }
+
+    private void closeOwnership(@NotNull String reason) {
+        if (ownershipAdapter == null || instanceId == null || startupId == null || ownershipFence == null) return;
+        try {
+            ownershipAdapter.closeOwnership(OWNERSHIP_STORE, instanceId, startupId, ownershipFence, reason);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "[grim-datastore] failed to close server ownership row", e);
+        }
+    }
+
+    private synchronized void disablePersistenceAfterLostOwnership() {
+        stopRecoverySweep();
+        sessionTracker = SessionTracker.NOOP;
+        liveWriteHooks = LiveWriteHooks.NOOP;
+        playerToggleStore = PlayerToggleStore.NOOP;
+        if (violationSink != null) {
+            violationSink.shutDown();
+            violationSink = null;
         }
     }
 
@@ -909,67 +1151,23 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     public @Nullable DataStoreConfig config() { return config; }
     public @Nullable VerboseRegistry verboseRegistry() { return verboseRegistry; }
 
-    /**
-     * The live-writes facade used by {@code PunishmentManager} and
-     * {@code PacketPlayerJoinQuit}. Returns {@link LiveWriteHooks#NOOP} when
-     * the datastore is disabled or its init failed — callers don't null-check.
-     */
     public @NotNull LiveWriteHooks liveWriteHooks() { return liveWriteHooks; }
-
-    /**
-     * The live session tracker. Returns {@link SessionTracker#NOOP} when the
-     * datastore is disabled or its init failed.
-     */
     public @NotNull SessionTracker sessionTracker() { return sessionTracker; }
-
-    /**
-     * Persistence layer for the per-player /grim alerts | verbose | brands
-     * toggles. Returns {@link PlayerToggleStore#NOOP} when the datastore is
-     * disabled or its init failed.
-     */
     public @NotNull PlayerToggleStore playerToggleStore() { return playerToggleStore; }
 
-    /**
-     * Admin-command escape hatch used by {@code /grim history migrate} to target
-     * SQLite directly. Scans the active router for a {@link SqliteBackend}
-     * instance; returns null when routing doesn't include one (e.g. pure-memory
-     * test setups, or a site that routes everything to a non-SQL backend). The
-     * migration command degrades gracefully in that case.
-     */
     @ApiStatus.Internal
     public @Nullable SqliteBackend sqliteBackendForCommands() {
-        if (dataStore == null) return null;
-        for (Backend b : dataStore.router().allBackends()) {
-            if (b instanceof SqliteBackend s) return s;
-        }
         return null;
     }
 
-    /**
-     * Admin-command escape hatch. Returns the shared {@code CheckRegistry}
-     * instance so {@code /grim history migrate} can intern stable keys through
-     * the same registry the migrator uses at startup.
-     */
     @ApiStatus.Internal
     public @Nullable CheckRegistry checkRegistryForCommands() {
         return checkRegistry;
     }
 
-    /**
-     * Admin-command escape hatch. Returns all backends currently wired into the
-     * router, keyed by backend id. {@code /grim history copy} uses this to
-     * resolve {@code <src>} / {@code <dst>} arguments against the same backend
-     * instances the write path uses.
-     */
     @ApiStatus.Internal
     public @NotNull Map<String, Backend> allBackendsForCommands() {
-        if (dataStore == null) return Map.of();
-        Map<String, Backend> out = new LinkedHashMap<>();
-        for (Backend b : dataStore.router().allBackends()) {
-            if (b == V2InstanceRegistry.ROUTER_SENTINEL_BACKEND) continue;
-            out.put(b.id(), b);
-        }
-        return out;
+        return Map.of();
     }
 
     private record SimpleContext(BackendConfig config, Logger logger, Path dataDirectory) implements BackendContext {}
