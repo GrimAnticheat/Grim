@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
-@CheckData(name = "PacketOrderN", stableKey = "grim.packetorder.place_use_order", experimental = true)
+@CheckData(name = "PacketOrderN", stableKey = "grim.packetorder.place_use_order", description = "Sent use item and block place packets in an invalid order", experimental = true)
 public class PacketOrderN extends BlockPlaceCheck {
     public PacketOrderN(final GrimPlayer player) {
         super(player);
@@ -24,7 +24,7 @@ public class PacketOrderN extends BlockPlaceCheck {
         placing = true;
         if (usingWithoutPlacing) {
             if (!player.canSkipTicks()) {
-                if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+                if (flag() && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
             } else {
@@ -56,7 +56,7 @@ public class PacketOrderN extends BlockPlaceCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

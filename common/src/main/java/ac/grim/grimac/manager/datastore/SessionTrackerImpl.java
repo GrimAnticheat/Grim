@@ -48,7 +48,7 @@ public final class SessionTrackerImpl implements SessionTracker {
                 if (candidateSessionId == null) candidateSessionId = UUID.randomUUID();
                 State fresh = new State(candidateSessionId, now, now, now, meta);
                 if (states.putIfAbsent(playerUuid, fresh) == null) {
-                    emit(fresh, playerUuid, now, SessionRecord.OPEN);
+                    emit(fresh, playerUuid, now, null); // closed_at stays OPEN while alive
                     return fresh.sessionId;
                 }
                 // Lost the insert race — someone inserted between get and putIfAbsent. Retry as update.
@@ -57,7 +57,7 @@ public final class SessionTrackerImpl implements SessionTracker {
             State next = new State(current.sessionId, current.startedEpochMs, now, now,
                     mergeMeta(current.cachedMeta, meta));
             if (states.replace(playerUuid, current, next)) {
-                emit(next, playerUuid, now, SessionRecord.OPEN);
+                emit(next, playerUuid, now, null);
                 return next.sessionId;
             }
             // CAS lost — state changed (close removed it, or another observe replaced it). Retry.
@@ -74,7 +74,7 @@ public final class SessionTrackerImpl implements SessionTracker {
         // CAS the new state in. If another thread (rare — pollData runs on a
         // single tick scheduler per player) beat us, just skip — they'll emit.
         if (states.replace(playerUuid, current, next)) {
-            emit(next, playerUuid, now, SessionRecord.OPEN);
+            emit(next, playerUuid, now, null);
         }
     }
 
@@ -84,8 +84,7 @@ public final class SessionTrackerImpl implements SessionTracker {
         if (prev == null) return;
         // Emit last_activity from the prev state (the last actual observation),
         // closed_at = now (the disconnect timestamp). They diverge by design so
-        // SessionSummary.endedUnexpectedly (closed_at == last_activity) reads
-        // false on graceful close and true on crash sweep.
+        // crash recovery can stamp closed_at = last_activity for orphaned rows.
         State closed = new State(prev.sessionId, prev.startedEpochMs, prev.lastActivityEpochMs, now,
                 mergeMeta(prev.cachedMeta, meta));
         emit(closed, playerUuid, prev.lastActivityEpochMs, now);
@@ -97,7 +96,7 @@ public final class SessionTrackerImpl implements SessionTracker {
         return s == null ? null : s.sessionId;
     }
 
-    private void emit(State s, UUID playerUuid, long now, long closedAt) {
+    private void emit(State s, UUID playerUuid, long now, @Nullable Long closedAt) {
         final UUID sessionId = s.sessionId;
         final long started = s.startedEpochMs;
         final ClientMeta meta = s.cachedMeta;
@@ -106,7 +105,7 @@ public final class SessionTrackerImpl implements SessionTracker {
                 .playerUuid(playerUuid)
                 .startedEpochMs(started)
                 .lastActivityEpochMs(now)
-                .closedAtEpochMs(closedAt)
+                .closedAtEpochMs(closedAt == null ? SessionRecord.OPEN : closedAt)
                 .clientBrand(meta.clientBrand())
                 .clientVersion(meta.clientVersion())
                 .startupId(startupId));

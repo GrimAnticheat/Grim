@@ -16,7 +16,7 @@
 package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -55,9 +55,9 @@ import java.util.Collections;
 import java.util.List;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", stableKey = "grim.combat.reach", verboseVersion = 1, setback = 10)
+@CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away", setback = 10)
 public class Reach extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("reach:f64", "entity:vi");
+    private static final Verbose V = Verbose.of("{f64:%.5f} blocks, type={entity}");
 
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
@@ -234,8 +234,8 @@ public class Reach extends Check implements PacketCheck {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> {
-                    flagAndAlert(
-                            V.write(verbose()).f64(result.minDistance()).vi(reachEntity.getType().getId(player.getClientVersion())),
+                    flag(
+                            V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
                             () -> {
                                 String added = ", type=" + reachEntity.getType().getName().getKey();
                                 if (reachEntity instanceof PacketEntitySizeable sizeable) {
@@ -249,7 +249,7 @@ public class Reach extends Check implements PacketCheck {
                     if (reachEntity instanceof PacketEntitySizeable sizeable) {
                         added += ", size=" + sizeable.size;
                     }
-                    player.checkManager.getCheck(Hitboxes.class).flagAndAlert(result.verbose() + added);
+                    player.checkManager.getCheck(Hitboxes.class).flag(result.verbose() + added);
                 }
             }
         }

@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
@@ -202,9 +203,15 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             }
             position = position.withZ(position.getZ() + collide.getZ());
 
-            if (clientVel.getX() != collide.getX()) clientVel.setX(0);
-            if (clientVel.getY() != collide.getY()) clientVel.setY(0);
-            if (clientVel.getZ() != collide.getZ()) clientVel.setZ(0);
+            if (clientVel.getX() != collide.getX()) {
+                clientVel.setX(BlockProperties.getVelocityAfterHorizontalCollision(player, clientVel.getX()));
+            }
+            if (clientVel.getY() != collide.getY()) {
+                clientVel.setY(BlockProperties.getVelocityAfterVerticalCollision(player, clientVel.getY(), collide.getY()));
+            }
+            if (clientVel.getZ() != collide.getZ()) {
+                clientVel.setZ(BlockProperties.getVelocityAfterHorizontalCollision(player, clientVel.getZ()));
+            }
 
             simulateFriction(clientVel);
         }
@@ -334,7 +341,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
-                player.checkManager.getCheck(BadPacketsN.class).flagAndAlert();
+                player.checkManager.getCheck(BadPacketsN.class).flag();
                 pendingTeleports.poll();
                 requiredSetBack.setPlugin(false);
                 if (pendingTeleports.isEmpty()) {

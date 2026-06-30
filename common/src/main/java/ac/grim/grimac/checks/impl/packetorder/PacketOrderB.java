@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -15,12 +15,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-@CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", verboseVersion = 1, description = "Did not swing for attack")
+@CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", description = "Did not swing for attack")
 public class PacketOrderB extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("action:vi");
-
-    static final int ACTION_POST_ATTACK = 0;
-    static final int ACTION_PRE_ATTACK = 1;
+    private static final Verbose V = Verbose.of("[pre-attack|post-attack]");
 
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT
@@ -32,14 +29,6 @@ public class PacketOrderB extends Check implements PacketCheck {
 
     public PacketOrderB(final GrimPlayer player) {
         super(player);
-    }
-
-    static String verbose(int action) {
-        return switch (action) {
-            case ACTION_POST_ATTACK -> "post-attack";
-            case ACTION_PRE_ATTACK -> "pre-attack";
-            default -> "unknown";
-        };
     }
 
     @Override
@@ -79,7 +68,7 @@ public class PacketOrderB extends Check implements PacketCheck {
 
         if (!isAsync(event.getPacketType())) {
             if (sentAttack && is1_9) {
-                flagAndAlert(V.write(verbose()).vi(ACTION_POST_ATTACK));
+                flag(V.write(verbose()).bool(false));
             }
 
             sentAttack = sentAnimation = sentSlotSwitch = false;
@@ -93,7 +82,7 @@ public class PacketOrderB extends Check implements PacketCheck {
 
         if (is1_9 ? !sentAnimationSinceLastAttack : !sentAnimation) {
             sentAttack = false; // don't flag twice
-            if (flagAndAlert(V.write(verbose()).vi(ACTION_PRE_ATTACK)) && shouldModifyPackets()) {
+            if (flag(V.write(verbose()).bool(true)) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

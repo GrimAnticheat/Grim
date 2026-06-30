@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -16,10 +16,10 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", verboseVersion = 2, experimental = true)
+@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
 public class MultiBreak extends Check implements BlockBreakCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "face:enum", "lastFace:enum", "posXZ:vl", "posY:zz", "lastPosXZ:vl", "lastPosY:zz");
+    private static final Verbose V =
+            Verbose.of("face={face}, lastFace={face}, pos={mcpos}, lastPos={mcpos}");
 
     private final List<FlagData> flags = new ArrayList<>();
     private boolean hasBroken;
@@ -37,13 +37,13 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         }
 
         if (hasBroken && (blockBreak.face != lastFace || !blockBreak.position.equals(lastPos))) {
-            final int face = VerboseCodecs.enumOrdinal(blockBreak.face);
-            final int previousFace = VerboseCodecs.enumOrdinal(lastFace);
+            final int face = VerboseCodecs.enumId(blockBreak.face);
+            final int previousFace = VerboseCodecs.enumId(lastFace);
             if (!player.canSkipTicks()) {
-                var buf = V.write(verbose()).vi(face).vi(previousFace);
-                VerboseCodecs.mcBlockPos(buf, blockBreak.position);
-                VerboseCodecs.mcBlockPos(buf, lastPos);
-                if (flagAndAlert(buf) && shouldModifyPackets()) {
+                var buf = V.write(verbose()).uint(face).uint(previousFace)
+                        .mcPos(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z)
+                        .mcPos(lastPos.x, lastPos.y, lastPos.z);
+                if (flag(buf) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             } else {
@@ -69,10 +69,9 @@ public class MultiBreak extends Check implements BlockBreakCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                var buf = V.write(verbose()).vi(data.face()).vi(data.previousFace());
-                VerboseCodecs.mcBlockPos(buf, data.pos());
-                VerboseCodecs.mcBlockPos(buf, data.previousPos());
-                flagAndAlert(buf);
+                flag(V.write(verbose()).uint(data.face()).uint(data.previousFace())
+                        .mcPos(data.pos().x, data.pos().y, data.pos().z)
+                        .mcPos(data.previousPos().x, data.previousPos().y, data.previousPos().z));
             }
         }
 

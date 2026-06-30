@@ -42,8 +42,8 @@ webhook-test-failed: "Discord webhook test failed!"
 # %experimental%
 # %vl% - нарушения
 # %verbose% - дополнительная информация от проверки, например, смещения, не все проверки добавляют информацию.
-alerts-format: "%prefix% &f%player% &bпровалил &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bпровалил &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format: "%prefix% &f%player% &bпровалил <hover:show_text:\"&b%check_name%%experimental%\n&8Описание: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bпровалил <hover:show_text:\"&b%check_name%%experimental%\n&8Описание: &f%description%\">&f%check_name%%experimental%</hover> &f(x&c%vl%&f) &7%verbose%"
 experimental-symbol: "*"
 
 profile:
@@ -75,11 +75,10 @@ help:
     - "&7======================"
 
 # === /grim history ===
-# UI истории на основе сессий. Все строки ниже полностью настраиваются;
-# плейсхолдеры задокументированы у каждого ключа. Текст hover для строк
-# сессий и нарушений собирает рендерер из сырых данных (verbose, разбивка
-# по чекам), шаблон для него не нужен — но в любую строку можно добавить
-# <hover:show_text:'...'> и наложить дополнительный тултип.
+# UI истории на основе сессий. Все строки ниже являются настраиваемыми
+# шаблонами MiniMessage. Ховеры по умолчанию находятся в inline-тегах
+# <hover:show_text:'...'> и ключах hover-фрагментов ниже; удалите inline-hover,
+# чтобы использовать fallback рендерера.
 
 grim-history-load-failure: "%prefix% &cНе удалось загрузить подсистему истории! Проверьте консоль сервера на наличие ошибок."
 grim-history-disabled: "%prefix% &cПодсистема истории отключена!"
@@ -93,12 +92,12 @@ grim-history-header: "%prefix% &bИстория сессий для &f%player% &
 # Сводная строка одной сессии — допустимые плейсхолдеры:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
-#   %violations% %unique_checks% %crashed_marker%
+#   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
 # %crashed_marker% разворачивается в grim-history-crashed-marker для сессий,
 # чьё соединение оборвалось без штатного закрытия (краш сервера, kill -9,
 # RST канала, не вызвавший UserDisconnectEvent). Для активных или штатно
 # закрытых сессий — пустая строка.
-grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bСессия &f%ordinal%&b, длительность &f%duration%&b, нарушений &c%violations%&b &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% назад&8)"
+grim-history-session: "<hover:show_text:'&bСессия &7%session_uuid%<newline>&7Нажмите или выполните &e%detail_command%<newline>&7чтобы посмотреть детали сессии.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bСессия &f%ordinal%&b, длительность &f%duration%&b, нарушений &c%violations%&b &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% назад&8)</hover>"
 
 # Встроенный маркер, подставляемый в %crashed_marker% для сессий с
 # closed_at == last_activity (то есть проставленных при следующем запуске
@@ -117,14 +116,21 @@ grim-history-detail-meta2: "%prefix% &bКлиент: &f%client_version%&b, бр�
 grim-history-detail-violations-header: "%prefix% &bНарушения: &8(всего %violations%, уникальных %unique_checks%)"
 grim-history-detail-empty: "%prefix% &7- (нет)"
 # Сгруппированная строка (по умолчанию) — допустимые плейсхолдеры: %prefix% %offset% %checks_list%
+#   %bucket_start% %bucket_end% %bucket_hover_entries%
 #   %checks_list% строится склейкой записей grim-history-check-count через ", "
-grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+grim-history-detail-group: "<hover:show_text:'&bНарушения за &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bНарушения за &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
+grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
+grim-history-hover-description: " — &f%description%"
+grim-history-detail-group-hover-verbose: " — &7%verbose%"
 # Одиночная строка нарушения (--detailed) — допустимые плейсхолдеры:
-#   %prefix% %offset% %check% %vl% %verbose%
+#   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
+grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
 # Внутренний формат каждой записи в %checks_list% — допустимые плейсхолдеры: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
 # Маркеры схемы — см. шапку config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

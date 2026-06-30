@@ -26,7 +26,7 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     compileOnly(libs.fabric.loader)
 
-    implementation("org.incendo:cloud-fabric:2.0.0-beta.16") {
+    implementation(libs.cloud.fabric.official) {
         exclude(group = "net.fabricmc.fabric-api")
     }
     implementation(libs.cloud.core)
@@ -38,7 +38,6 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":fabric:shared"))
     compileOnly(libs.packetevents.api)
-    compileOnly(libs.packetevents.fabric)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 }
@@ -122,9 +121,9 @@ subprojects {
         implementation(project(":fabric:official"))
         compileOnly(project(":common"))
         compileOnly(project(":fabric:shared"))
+        compileOnly(fabricApi.module("fabric-lifecycle-events-v1", fabric_version))
         val libsx = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
         compileOnly(libsx.findLibrary("packetevents-api").get())
-        compileOnly(libsx.findLibrary("packetevents-fabric").get())
     }
 }
 

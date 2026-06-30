@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -28,9 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Deque;
 import java.util.LinkedList;
 
-@CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", setback = 10, verboseVersion = 1)
+@CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", description = "Did not take the expected explosion knockback", setback = 10)
 public class ExplosionHandler extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of("ignored:bool", "offset:f64");
+    private static final Verbose V = Verbose.of("[ignored explosion|o: {offset}]");
 
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
 
@@ -208,7 +208,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         if (player.likelyExplosions != null && !player.compensatedEntities.self.isDead) {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 boolean ignored = player.likelyExplosions.offset == Integer.MAX_VALUE;
-                flagAndAlertWithSetback(V.write(verbose()).bool(ignored).f64(offset));
+                flagWithSetback(V.write(verbose()).bool(ignored).f64(offset));
             } else {
                 reward();
             }

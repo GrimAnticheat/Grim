@@ -35,7 +35,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
                 if (player.canSkipTicks()) {
                     flags++;
                 } else {
-                    if (flagAndAlert()) {
+                    if (flag()) {
                         setback = true;
                         if (shouldModifyPackets()) {
                             event.setCancelled(true);
@@ -60,7 +60,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
         if (player.canSkipTicks()) {
             if (player.isTickingReliablyFor(3)) {
                 for (; flags > 0; flags--) {
-                    flagAndAlert();
+                    flag();
                 }
             }
 

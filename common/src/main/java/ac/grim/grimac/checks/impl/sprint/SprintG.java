@@ -22,7 +22,7 @@ public class SprintG extends Check implements PostPredictionCheck {
                 && !EntityTypes.isTypeInstanceOf(player.getVehicleType(), EntityTypes.CAMEL)
                 && !player.isSwimming) {
             if (player.isSprinting) {
-                flagAndAlertWithSetback();
+                flagWithSetback();
             } else {
                 reward();
             }

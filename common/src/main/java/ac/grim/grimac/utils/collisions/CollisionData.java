@@ -904,7 +904,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return box;
-    }, StateTypes.POINTED_DRIPSTONE),
+    }, StateTypes.POINTED_DRIPSTONE, StateTypes.SULFUR_SPIKE),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))

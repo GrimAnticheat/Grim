@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -11,53 +11,48 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "MultiActionsG", stableKey = "grim.multiactions.action_while_rowing", verboseVersion = 1, description = "Attacking or using items while rowing a boat", experimental = true)
+@CheckData(name = "MultiActionsG", stableKey = "grim.multiactions.action_while_rowing", description = "Attacking or using items while rowing a boat", experimental = true)
 public class MultiActionsG extends BlockPlaceCheck {
-    public static final VerboseSchema V = VerboseSchema.of("action:vi");
+    private static final Verbose V =
+            Verbose.of("action=interact").or("action=attack").or("action=spectateEntity")
+                    .or("action=use").or("action=place"); // shape index == ACTION_* value
 
-    static final int ACTION_INTERACT = 0;
-    static final int ACTION_ATTACK = 1;
-    static final int ACTION_SPECTATE_ENTITY = 2;
-    static final int ACTION_USE = 3;
-    static final int ACTION_PLACE = 4;
+    private static final int ACTION_INTERACT = 0;
+    private static final int ACTION_ATTACK = 1;
+    private static final int ACTION_SPECTATE_ENTITY = 2;
+    private static final int ACTION_USE = 3;
+    private static final int ACTION_PLACE = 4;
 
     public MultiActionsG(GrimPlayer player) {
         super(player);
     }
 
-    static String verbose(int action) {
-        return switch (action) {
-            case ACTION_INTERACT -> "interact";
-            case ACTION_ATTACK -> "attack";
-            case ACTION_SPECTATE_ENTITY -> "spectateEntity";
-            case ACTION_USE -> "use";
-            case ACTION_PLACE -> "place";
-            default -> "unknown";
-        };
+    private Verbose.Writer writeAction(int action) {
+        return V.write(verbose(), action);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && isCheckActive()
-                && flagAndAlert(V.write(verbose()).vi(ACTION_INTERACT)) && shouldModifyPackets()) {
+                && flag(writeAction(ACTION_INTERACT)) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
 
         if (event.getPacketType() == PacketType.Play.Client.ATTACK && isCheckActive()
-                && flagAndAlert(V.write(verbose()).vi(ACTION_ATTACK)) && shouldModifyPackets()) {
+                && flag(writeAction(ACTION_ATTACK)) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
 
         if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY && isCheckActive()
-                && flagAndAlert(V.write(verbose()).vi(ACTION_SPECTATE_ENTITY)) && shouldModifyPackets()) {
+                && flag(writeAction(ACTION_SPECTATE_ENTITY)) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isCheckActive()
-                && flagAndAlert(V.write(verbose()).vi(ACTION_USE)) && shouldModifyPackets()) {
+                && flag(writeAction(ACTION_USE)) && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
@@ -66,7 +61,7 @@ public class MultiActionsG extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(BlockPlace place) {
         int action = place.getFace() == BlockFace.OTHER ? ACTION_USE : ACTION_PLACE;
-        if (isCheckActive() && flagAndAlert(V.write(verbose()).vi(action)) && shouldModifyPackets() && shouldCancel()) {
+        if (isCheckActive() && flag(writeAction(action)) && shouldModifyPackets() && shouldCancel()) {
             place.resync();
         }
     }

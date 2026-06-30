@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -16,9 +16,9 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", verboseVersion = 2, description = "Breaking a block that cannot be broken")
+@CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", description = "Breaking a block that cannot be broken")
 public class AirLiquidBreak extends Check implements BlockBreakCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2, "block:vi", "action:enum");
+    private static final Verbose V = Verbose.of("block={block}, type={digging}");
 
     public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
     private int lastTick;
@@ -66,9 +66,9 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
                 || block.getHardness() == -1.0f && blockBreak.action == DiggingAction.FINISHED_DIGGING;
 
         if (invalid) {
-            int blockId = VerboseCodecs.stateTypeOrdinal(block);
-            int action = VerboseCodecs.enumOrdinal(blockBreak.action);
-            if (flagAndAlert(V.write(verbose()).vi(blockId).vi(action)) && shouldModifyPackets()) {
+            if (flag(V.write(verbose())
+                    .sint(VerboseCodecs.block(block, player.getClientVersion()))
+                    .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
                 didLastFlag = true;
                 blockBreak.cancel();
             } else {

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
@@ -26,10 +26,10 @@ import java.util.Set;
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
-@CheckData(name = "FastBreak", stableKey = "grim.breaking.fast_break", verboseVersion = 2, description = "Breaking blocks too quickly")
+@CheckData(name = "FastBreak", stableKey = "grim.breaking.fast_break", description = "Breaking blocks too quickly")
 public class FastBreak extends Check implements BlockBreakCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "delayMode:bool", "delayMs:vl", "diffMs:f64", "balanceMs:f64", "type:vi");
+    private static final Verbose V =
+            Verbose.of("[delay={ulong}ms|diff={f64:%.1f}ms, balance={f64:%.1f}ms], type={block}");
 
     // For some reason these states flag and I don't know why.
     // Better to just exempt to not annoy legit players.
@@ -85,8 +85,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             if (blockDelayBalance > 1000) { // If more than a second of advantage
-                int type = VerboseCodecs.stateTypeOrdinal(blockBreak.block.getType());
-                if (flagAndAlert(V.write(verbose()).bool(true).vl((long) breakDelay).f64(0).f64(0).vi(type)) && shouldModifyPackets()) {
+                int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
+                if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             }
@@ -108,8 +108,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             if (blockBreakBalance > 1000) { // If more than a second of advantage
-                int type = VerboseCodecs.stateTypeOrdinal(blockBreak.block.getType());
-                if (flagAndAlert(V.write(verbose()).bool(false).vl(0).f64(diff).f64(blockBreakBalance).vi(type)) && shouldModifyPackets()) {
+                int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
+                if (flag(V.write(verbose()).bool(false).ulong(0).f64(diff).f64(blockBreakBalance).sint(type)) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             }
@@ -123,7 +123,10 @@ public class FastBreak extends Check implements BlockBreakCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
-        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockPosition != null) {
+        //
+        // listen for flying packets because some block breaks can happen before the next animation (somehow???), causing onGround desync
+        boolean flying = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
+        if ((flying || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && event.getPacketType() == PacketType.Play.Client.ANIMATION)) && targetBlockPosition != null) {
             maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockPosition)));
         }
     }

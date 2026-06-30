@@ -46,6 +46,24 @@ database:
     # 0 disables.
     heartbeat-interval-ms: 30000
 
+  ownership:
+    # Prevent two live servers with the same persistent storage UUID from
+    # writing to the same DB. Turn this off only if you intentionally accept
+    # duplicate writers.
+    enforce-persistent-uuid-ownership: true
+    # Options:
+    # - disable-storage: keep checks running but disable DB writes for this boot.
+    # - fail-startup: fail Grim storage startup on a live duplicate UUID.
+    # - allow-unsafe: expert-only; bypasses ownership enforcement.
+    duplicate-persistent-uuid-action: disable-storage
+    renew-interval-ms: 10000
+    lease-ttl-ms: 20000
+    startup-wait-ms: 20000
+    safety-margin-ms: 5000
+    stale-startup-ttl-ms: 30000
+    recovery-sweep-interval-ms: 10000
+    cleanup-other-servers: true
+
   write-path:
     # queue-capacity must be a positive power of two (ring-buffer requirement).
     # Typical values: 4096, 8192, 16384, 32768, 65536.

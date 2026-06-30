@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -42,6 +43,7 @@ import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
@@ -76,8 +78,6 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockBreakCheck> blockBreakChecks;
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
-    @Getter
-    private final PacketEntityReplication packetEntityReplication;
 
     private final List<PacketCheck> preViaPacketChecksValues;
     private final List<PacketCheck> packetChecksValues;
@@ -90,8 +90,6 @@ public class CheckManager {
     private final List<PostPredictionCheck> postPredictionChecksValues;
 
     public CheckManager(GrimPlayer player) {
-        packetEntityReplication = new PacketEntityReplication(player);
-
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
                 .put(ChatA.class, new ChatA(player))
@@ -122,7 +120,7 @@ public class CheckManager {
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
-                .put(PacketEntityReplication.class, packetEntityReplication)
+                .put(PacketEntityReplication.class, player.packetEntityReplication)
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
                 .put(CompensatedInventory.class, player.inventory)
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
@@ -149,7 +147,6 @@ public class CheckManager {
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
 //                .put(PacketOrderP.class, new PacketOrderP(player))
-                .put(SprintA.class, new SprintA(player))
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
                 .put(VehicleF.class, new VehicleF(player))
@@ -198,6 +195,7 @@ public class CheckManager {
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(NoSlow.class, new NoSlow(player))
+                .put(SprintA.class, new SprintA(player))
                 .put(SprintB.class, new SprintB(player))
                 .put(SprintC.class, new SprintC(player))
                 .put(SprintD.class, new SprintD(player))
@@ -296,7 +294,20 @@ public class CheckManager {
         blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
         postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
 
+        registerBuiltInVerboseTemplates();
         init();
+    }
+
+    private void registerBuiltInVerboseTemplates() {
+        VerboseRegistry registry = GrimAPI.INSTANCE.getDataStoreLifecycle().verboseRegistry();
+        if (registry == null) return;
+        registry.registerTemplates(() -> {
+            for (AbstractCheck check : allChecks.values()) {
+                if (check instanceof Check grimCheck) {
+                    grimCheck.registerVerboseTemplates(registry);
+                }
+            }
+        });
     }
 
     public <T extends AbstractCheck> T getCheck(Class<T> check) {
@@ -487,8 +498,7 @@ public class CheckManager {
             if (check.getConfigName() == null) continue;
             final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
-                permissionName += id;
-                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName, PermissionDefaultValue.FALSE);
+                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName + id, PermissionDefaultValue.FALSE);
             }
         }
     }

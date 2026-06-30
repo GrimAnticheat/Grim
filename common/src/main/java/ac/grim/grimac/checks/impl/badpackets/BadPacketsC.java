@@ -20,7 +20,7 @@ public class BadPacketsC extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
                 && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.LEAVE_BED
                 && !player.isInBed) {
-            flagAndAlert();
+            flag();
         }
     }
 }

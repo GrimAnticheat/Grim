@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -37,7 +38,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         }
 
         vector.setX(vector.getX() * player.friction);
-        vector.setY(adjustedY * 0.98F);
+        vector.setY(adjustedY * BlockProperties.getModifiedAirDrag(0.98F, player));
         vector.setZ(vector.getZ() * player.friction);
     }
 

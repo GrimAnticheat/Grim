@@ -1,9 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -16,10 +15,10 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
-@CheckData(name = "BadPacketsU", stableKey = "grim.badpackets.invalid_block_placement", verboseVersion = 2, description = "Sent impossible use item packet")
+@CheckData(name = "BadPacketsU", stableKey = "grim.badpackets.invalid_block_placement", description = "Sent impossible use item packet")
 public class BadPacketsU extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(2,
-            "posXZ:vl", "posY:zz", "cursorX:f32", "cursorY:f32", "cursorZ:f32", "item:bool", "sequence:zz");
+    private static final Verbose V =
+            Verbose.of("xyz={mcpos}, cursor={cursor}, item={bool}, sequence={sint}");
 
     public BadPacketsU(GrimPlayer player) {
         super(player);
@@ -52,11 +51,11 @@ public class BadPacketsU extends Check implements PacketCheck {
                         || cursor.z != 0
                         || packet.getSequence() != 0
                 ) {
-                    var buf = V.write(verbose());
-                    VerboseCodecs.mcBlockPos(buf, pos)
-                            .f32(cursor.x).f32(cursor.y).f32(cursor.z)
-                            .bool(!failedItemCheck).zz(packet.getSequence());
-                    if (flagAndAlert(buf)
+                    var buf = V.write(verbose())
+                            .mcPos(pos.x, pos.y, pos.z)
+                            .cursor(cursor.x, cursor.y, cursor.z)
+                            .bool(!failedItemCheck).sint(packet.getSequence());
+                    if (flag(buf)
                             && shouldModifyPackets()) {
                         player.onPacketCancel();
                         event.setCancelled(true);

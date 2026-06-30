@@ -182,6 +182,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (entityType == EntityTypes.SULFUR_CUBE) {
+            packetEntity = new PacketEntitySizeable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (entityType == EntityTypes.SLIME || entityType == EntityTypes.MAGMA_CUBE || entityType == EntityTypes.PHANTOM) {
             packetEntity = new PacketEntitySizeable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.PIG.equals(entityType)) {

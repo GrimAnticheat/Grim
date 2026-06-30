@@ -31,7 +31,7 @@ public class SprintC extends Check implements PostPredictionCheck {
             }
 
             if (player.isSprinting) {
-                if (flaggedLastTick) flagAndAlertWithSetback();
+                if (flaggedLastTick) flagWithSetback();
                 flaggedLastTick = true;
             } else {
                 reward();

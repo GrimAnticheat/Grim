@@ -49,7 +49,7 @@ public class BadPacketsJ extends Check implements PacketCheck {
                     continue;
                 }
 
-                flagAndAlert();
+                flag();
             }
 
             rotations.clear();

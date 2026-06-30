@@ -1,16 +1,16 @@
 package ac.grim.grimac.checks.impl.timer;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-@CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", setback = -1, experimental = true, verboseVersion = 1)
+@CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", description = "Sent movement packets slower than the expected client tick rate", setback = -1, experimental = true)
 public class NegativeTimer extends Timer implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of("lostMS:vl");
+    private static final Verbose V = Verbose.of("-{ulong}ms");
 
     public NegativeTimer(GrimPlayer player) {
         super(player);
@@ -26,7 +26,7 @@ public class NegativeTimer extends Timer implements PostPredictionCheck {
 
         if (timerBalanceRealTime < lastMovementPlayerClock - clockDrift) {
             int lostMS = (int) ((System.nanoTime() - timerBalanceRealTime) / 1e6);
-            flagAndAlertWithSetback(V.write(verbose()).vl(lostMS));
+            flagWithSetback(V.write(verbose()).ulong(lostMS));
             timerBalanceRealTime += 50e6;
         }
     }

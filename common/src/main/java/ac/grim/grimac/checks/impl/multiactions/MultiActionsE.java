@@ -29,7 +29,7 @@ public class MultiActionsE extends Check implements PacketCheck {
                 return;
             }
 
-            if (flagAndAlert() && shouldModifyPackets()) {
+            if (flag() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

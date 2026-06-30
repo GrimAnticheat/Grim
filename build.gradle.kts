@@ -17,7 +17,7 @@ BuildConfig.init(project)
 val baseVersion = "2.3.74"
 group = "ac.grim.grimac"
 version = VersionUtil.computeVersion(project, baseVersion)
-description = "Libre simulation anticheat designed for 26.1 with 1.8–26.1 support, powered by PacketEvents 2.0."
+description = "Libre simulation anticheat designed for 26.2 with 1.8–26.2 support, powered by PacketEvents 2.0."
 
 ext["timestamp"] = System.currentTimeMillis().toString()
 ext["git_branch"] = VersionUtil.getGitBranch(project, true)

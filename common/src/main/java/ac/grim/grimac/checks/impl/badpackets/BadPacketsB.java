@@ -19,7 +19,7 @@ public class BadPacketsB extends Check implements PacketCheck {
             player.pendingRotations.removeIf(data -> {
                 if (player.getLastTransactionReceived() > data.getTransaction()) {
                     if (!data.isAccepted()) {
-                        flagAndAlert();
+                        flag();
                     }
 
                     return true;

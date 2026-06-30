@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.baritone;
 
-import ac.grim.grimac.api.storage.verbose.VerboseSchema;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -11,9 +11,9 @@ import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.math.GrimMath;
 
 // This check has been patched by Baritone for a long time, and it also seems to false with cinematic camera now, so it is disabled.
-@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone", verboseVersion = 1)
+@CheckData(name = "Baritone", stableKey = "grim.baritone.baritone", description = "Detected Baritone like behavior")
 public class Baritone extends Check implements RotationCheck {
-    public static final VerboseSchema V = VerboseSchema.of("divisor:f64");
+    private static final Verbose V = Verbose.of("divisor={f64}");
 
     private int verbose;
 
@@ -34,7 +34,7 @@ public class Baritone extends Check implements RotationCheck {
                 verbose++;
                 if (verbose > 8) {
                     double divisor = AimProcessor.convertToSensitivity(rotationUpdate.getProcessor().divisorX);
-                    flagAndAlert(V.write(verbose()).f64(divisor));
+                    flag(V.write(verbose()).f64(divisor));
                 }
             } else {
                 verbose = 0;
