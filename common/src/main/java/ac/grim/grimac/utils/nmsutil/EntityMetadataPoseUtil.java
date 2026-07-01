@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.TypedPacketEntity;
 import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -19,8 +19,8 @@ public class EntityMetadataPoseUtil {
     private static final boolean SERVER_HAS_POSE = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
     private static final int POSE_METADATA_INDEX = 6;
 
-    public static boolean usesPoseMetadata(@Nullable PacketEntity entity) {
-        return entity != null && usesPoseMetadata(entity.type);
+    public static boolean usesPoseMetadata(TypedPacketEntity entity) {
+        return entity != null && usesPoseMetadata(entity.getType());
     }
 
     public static boolean usesPoseMetadata(@Nullable EntityType entityType) {
