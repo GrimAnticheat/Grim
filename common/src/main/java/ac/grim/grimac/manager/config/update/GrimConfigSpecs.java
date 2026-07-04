@@ -138,8 +138,40 @@ public final class GrimConfigSpecs {
      * key collisions across backends.
      */
     public static @NotNull ConfigUpdater.Spec backend(@NotNull String backendId) {
-        return ConfigUpdater.Spec.builder("/databases/" + backendId + "/", 1,
-                        ConfigUpdater.ConfigFlavor.V2)
-                .build();
+        ConfigUpdater.Spec.Builder builder = ConfigUpdater.Spec.builder(
+                "/databases/" + backendId + "/",
+                backendVersion(backendId),
+                ConfigUpdater.ConfigFlavor.V2);
+        if (backendSupportsHikariPoolSettings(backendId)) {
+            builder.migration(2, ctx -> preservePoolSettingOverrides(ctx, backendId));
+        }
+        return builder.build();
+    }
+
+    private static int backendVersion(@NotNull String backendId) {
+        return backendSupportsHikariPoolSettings(backendId) ? 2 : 1;
+    }
+
+    private static boolean backendSupportsHikariPoolSettings(@NotNull String backendId) {
+        return backendId.equals("mysql") || backendId.equals("postgres");
+    }
+
+    private static void preservePoolSettingOverrides(
+            @NotNull MigrationContext ctx,
+            @NotNull String backendId) {
+        // v1 did not ship these keys, but preserve values if an operator
+        // already added them by hand before the bundled defaults caught up.
+        String prefix = backendId + ".pool-settings.";
+        for (String key : new String[]{
+                "maximum-pool-size",
+                "minimum-idle",
+                "maximum-lifetime-ms",
+                "keepalive-time-ms",
+                "connection-timeout-ms"}) {
+            Object value = ctx.input().get(prefix + key);
+            if (value != null) {
+                ctx.output().put(prefix + key, value);
+            }
+        }
     }
 }
