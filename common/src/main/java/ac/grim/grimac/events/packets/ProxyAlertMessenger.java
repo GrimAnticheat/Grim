@@ -75,8 +75,8 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
             Object current = new Yaml().load(in);
 
             for (String part : pathToValue.split("\\.")) {
-                if (!(current instanceof Map)) return false;
-                current = ((Map<?, ?>) current).get(part);
+                if (!(current instanceof Map map)) return false;
+                current = map.get(part);
             }
 
             return Boolean.TRUE.equals(current);
