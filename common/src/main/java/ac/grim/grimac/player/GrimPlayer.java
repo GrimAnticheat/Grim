@@ -47,6 +47,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.NetherPortalMovement;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -865,7 +866,16 @@ public class GrimPlayer implements GrimUser {
     public void updateNetherPortalState() {
         // Like the client (Entity#checkInsideBlocks), test the whole tick's movement, not just the
         // resolved position, so a fast run-through through a portal is still detected.
-        SimpleCollisionBox movementThisTick = GetBoundingBox.getCollisionBoxForPlayer(this, x, y, z).expandToCoordinate(lastX - x, lastY - y, lastZ - z);
+        SimpleCollisionBox movementThisTick = GetBoundingBox.getCollisionBoxForPlayer(this, x, y, z);
+        double deltaX = lastX - x;
+        double deltaY = lastY - y;
+        double deltaZ = lastZ - z;
+
+        // Very large deltas are server teleports or corrections, not client movement through blocks.
+        // Sweeping them can span millions of chunks and run inside the Netty event loop.
+        if (NetherPortalMovement.shouldSweep(deltaX, deltaY, deltaZ)) {
+            movementThisTick.expandToCoordinate(deltaX, deltaY, deltaZ);
+        }
         isInNetherPortal = compensatedWorld.containsNetherPortal(movementThisTick);
     }
 
