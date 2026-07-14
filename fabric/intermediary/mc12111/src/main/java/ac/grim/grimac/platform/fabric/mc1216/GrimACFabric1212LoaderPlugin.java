@@ -1,6 +1,5 @@
 package ac.grim.grimac.platform.fabric.mc1216;
 
-import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricCloudPlatformCommandArguments;
 import ac.grim.grimac.platform.fabric.mc1194.GrimACFabric1190LoaderPlugin;
