@@ -376,7 +376,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
                 // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
                 // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
-                // Regardless, the client does accept this packet and update its inventory, so we must do the same.
+                // Regardless, the client does accept this packet and updates its inventory, so we must do the same.
                 boolean forceUpdate = slots.size() == cachedPacketInvSize || items.getWindowId() == 0;
                 if (!isPacketInventoryActive && forceUpdate) {
                     isPacketInventoryActive = true;

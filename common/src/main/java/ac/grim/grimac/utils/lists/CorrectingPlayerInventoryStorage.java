@@ -142,7 +142,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             // 0 -> 9 are hotbar slots in bukkit
             return packetSlot - 36;
         }
-        // 45 is offhand is packet, it is 40 in bukkit
+        // 45 is offhand in packet, it is 40 in bukkit
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && packetSlot == 45) {
             return 40;
         }
