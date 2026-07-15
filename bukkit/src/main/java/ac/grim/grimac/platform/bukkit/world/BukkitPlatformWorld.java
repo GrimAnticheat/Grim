@@ -5,6 +5,7 @@ import ac.grim.grimac.platform.api.world.PlatformWorld;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -30,6 +31,7 @@ public record BukkitPlatformWorld(@NotNull World bukkitWorld) implements Platfor
             int blockId = (block.getType().getId() << 4) | block.getData();
             return WrappedBlockState.getByGlobalId(blockId);
         } else {
+            if (BukkitPlatformChunk.isIllegalY(bukkitWorld, y)) return WrappedBlockState.getDefaultState(StateTypes.AIR);
             return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());
         }
     }

@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", experimental = true)
+@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", description = "Sent sprinting and sneaking state changes in an invalid packet order", experimental = true)
 public class PacketOrderH extends Check implements PostPredictionCheck {
     public PacketOrderH(final GrimPlayer player) {
         super(player);
@@ -25,7 +25,7 @@ public class PacketOrderH extends Check implements PostPredictionCheck {
                 case START_SPRINTING, STOP_SPRINTING -> {
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) && player.packetOrderProcessor.isSneaking()) {
                         if (!player.canSkipTicks()) {
-                            flagAndAlert();
+                            flag();
                         } else {
                             invalid++;
                         }
@@ -34,7 +34,7 @@ public class PacketOrderH extends Check implements PostPredictionCheck {
                 case START_SNEAKING, STOP_SNEAKING -> {
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.packetOrderProcessor.isSprinting()) {
                         if (!player.canSkipTicks()) {
-                            flagAndAlert();
+                            flag();
                         } else {
                             invalid++;
                         }
@@ -50,7 +50,7 @@ public class PacketOrderH extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

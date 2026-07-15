@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager.config.update;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +35,8 @@ import java.util.Locale;
  * <p>{@code punishments.yml} is intentionally absent — open-ended user-
  * defined data (operator-authored punishment groups), no schema versioning.
  */
+@UtilityClass
 public final class GrimConfigSpecs {
-
-    private GrimConfigSpecs() {}
 
     /**
      * Spec for the main {@code config.yml}.
@@ -48,9 +48,13 @@ public final class GrimConfigSpecs {
      * file. The bundled default at v10 has no {@code history:} block, so
      * the auto-lift naturally drops it from the new file; the migration
      * only needs to ferry the values over.
+     *
+     * <p>v10 → v11: adds {@code update-permission-ticks} to the bundled
+     * config. No explicit migration is needed; the updater's default rewrite
+     * adds the key, and auto-lift preserves an existing user value if present.
      */
     public static @NotNull ConfigUpdater.Spec mainConfig() {
-        return ConfigUpdater.Spec.builder("/config/", 10, ConfigUpdater.ConfigFlavor.V2)
+        return ConfigUpdater.Spec.builder("/config/", 11, ConfigUpdater.ConfigFlavor.V2)
                 .migration(10, ctx -> {
                     String typeRaw = ctx.input().getString("history.database.type");
                     String type = typeRaw == null ? null : typeRaw.trim().toUpperCase(Locale.ROOT);
@@ -112,7 +116,7 @@ public final class GrimConfigSpecs {
     }
 
     public static @NotNull ConfigUpdater.Spec messages() {
-        return ConfigUpdater.Spec.builder("/messages/", 1, ConfigUpdater.ConfigFlavor.V2)
+        return ConfigUpdater.Spec.builder("/messages/", 2, ConfigUpdater.ConfigFlavor.V2)
                 .build();
     }
 
@@ -134,8 +138,40 @@ public final class GrimConfigSpecs {
      * key collisions across backends.
      */
     public static @NotNull ConfigUpdater.Spec backend(@NotNull String backendId) {
-        return ConfigUpdater.Spec.builder("/databases/" + backendId + "/", 1,
-                        ConfigUpdater.ConfigFlavor.V2)
-                .build();
+        ConfigUpdater.Spec.Builder builder = ConfigUpdater.Spec.builder(
+                "/databases/" + backendId + "/",
+                backendVersion(backendId),
+                ConfigUpdater.ConfigFlavor.V2);
+        if (backendSupportsHikariPoolSettings(backendId)) {
+            builder.migration(2, ctx -> preservePoolSettingOverrides(ctx, backendId));
+        }
+        return builder.build();
+    }
+
+    private static int backendVersion(@NotNull String backendId) {
+        return backendSupportsHikariPoolSettings(backendId) ? 2 : 1;
+    }
+
+    private static boolean backendSupportsHikariPoolSettings(@NotNull String backendId) {
+        return backendId.equals("mysql") || backendId.equals("postgres");
+    }
+
+    private static void preservePoolSettingOverrides(
+            @NotNull MigrationContext ctx,
+            @NotNull String backendId) {
+        // v1 did not ship these keys, but preserve values if an operator
+        // already added them by hand before the bundled defaults caught up.
+        String prefix = backendId + ".pool-settings.";
+        for (String key : new String[]{
+                "maximum-pool-size",
+                "minimum-idle",
+                "maximum-lifetime-ms",
+                "keepalive-time-ms",
+                "connection-timeout-ms"}) {
+            Object value = ctx.input().get(prefix + key);
+            if (value != null) {
+                ctx.output().put(prefix + key, value);
+            }
+        }
     }
 }

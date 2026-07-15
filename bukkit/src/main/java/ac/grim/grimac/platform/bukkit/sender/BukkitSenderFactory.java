@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.RemoteConsoleCommandSender;
@@ -60,7 +61,7 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
 
     @Override
     protected void performCommand(CommandSender sender, String command) {
-        throw new UnsupportedOperationException();
+        Bukkit.dispatchCommand(sender, command);
     }
 
     @Override

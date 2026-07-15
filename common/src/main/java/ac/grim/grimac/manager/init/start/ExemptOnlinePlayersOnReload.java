@@ -13,7 +13,7 @@ public class ExemptOnlinePlayersOnReload implements StartableInitable {
     public void start() {
         for (PlatformPlayer player : GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers()) {
             User user = PacketEvents.getAPI().getPlayerManager().getUser(player.getNative());
-            GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.add(user);
+            GrimAPI.INSTANCE.getPlayerDataManager().exemptUser(user);
         }
     }
 }

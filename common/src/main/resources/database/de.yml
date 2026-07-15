@@ -98,7 +98,7 @@ database:
   # Anzeige-Tag, der auf neue Session-Datensätze gestempelt wird. Wird in der
   # Sitzungs-Header-Zeile von `/grim history` angezeigt. Im laufenden Betrieb
   # gefahrlos änderbar.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Schema-Marker — siehe Kopf-Kommentar in config.yml.
 config-flavor: V2

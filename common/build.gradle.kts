@@ -6,13 +6,22 @@ plugins {
 }
 
 repositories {
-    // We still call mavenLocal() conditionally at the top for non-exclusive deps (general fallback)
-    if (BuildConfig.mavenLocalOverride) mavenLocal()
+    val localOverride = if (BuildConfig.mavenLocalOverride) mavenLocal() else null
 
     // Grim API & PacketEvents
-    exclusive("https://repo.grim.ac/snapshots") {
-        includeGroup("ac.grim.grimac")
-        includeGroup("com.github.retrooper")
+    val grimPublicReleases = maven("https://maven.grim.ac/public/releases") {
+        mavenContent { releasesOnly() }
+    }
+    val grimPublicSnapshots = maven("https://maven.grim.ac/public/snapshots") {
+        mavenContent { snapshotsOnly() }
+    }
+    val grimLegacySnapshots = maven("https://repo.grim.ac/snapshots")
+    exclusiveContent {
+        forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
+        filter {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
+        }
     }
 
     // ViaVersion
@@ -43,11 +52,9 @@ repositories {
 
 
 dependencies {
-    if (BuildConfig.shadePE) {
-        api(libs.packetevents.api)
-    } else {
-        compileOnly(libs.packetevents.api)
-    }
+    // compileOnly, not api: each platform bundles PE via its own JiJ/shade path,
+    // so api() here would nest packetevents-api a second time (~4.2MB) in the jars.
+    compileOnly(libs.packetevents.api)
     api(libs.cloud.core)
     api(libs.cloud.processors.requirements)
     api(libs.configuralize) {
@@ -62,10 +69,10 @@ dependencies {
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
     api(libs.hikaricp)
-
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
+    compileOnly(libs.mongoDriverSync)
 
     compileOnly(libs.geyser.base.api) {
         isTransitive = false // messes with guava otherwise
@@ -73,7 +80,16 @@ dependencies {
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.viaversion)
+    compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
+    compileOnly(libs.luckperms)
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 publishing.publications.create<MavenPublication>("maven") {

@@ -34,7 +34,7 @@ public abstract class SenderFactory<T> {
         return isConsole(sender);
     }
 
-    public final @NotNull Sender wrap(@NotNull T sender) {
+    public @NotNull Sender wrap(@NotNull T sender) {
         Objects.requireNonNull(sender, "sender");
         return new AbstractSender<>(this, sender);
     }

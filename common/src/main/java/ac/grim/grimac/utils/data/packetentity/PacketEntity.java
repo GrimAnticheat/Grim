@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.data.TrackedPosition;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
+import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
@@ -60,6 +61,8 @@ public class PacketEntity extends TypedPacketEntity {
     private Object2IntMap<PotionType> potionsMap = null;
     public boolean trackEntityEquipment = false;
     private EnumMap<EquipmentSlot, ItemStack> equipment = null;
+    public Pose currentPose = Pose.STANDING;
+    public Pose transitionalPose = null;
 
     public PacketEntity(GrimPlayer player, EntityType type) {
         super(type);
@@ -96,6 +99,12 @@ public class PacketEntity extends TypedPacketEntity {
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GRAVITY, 0.08, -1, 1)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.AIR_DRAG_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.BOUNCINESS, 0.0, 0, 1)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.FRICTION_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
     }
 
     public double clampScale(double scale) {
@@ -110,15 +119,24 @@ public class PacketEntity extends TypedPacketEntity {
     public void setAttribute(Attribute attribute, double value) {
         ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + type.getName() + "!");
+            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName() + "!");
         }
         property.override(value);
+    }
+
+    public void beginPoseTransition(Pose targetPose) {
+        this.transitionalPose = targetPose;
+    }
+
+    public void completePoseTransition(Pose finalPose) {
+        this.currentPose = finalPose;
+        this.transitionalPose = null;
     }
 
     public double getAttributeValue(Attribute attribute) {
         final ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + type.getName() + "!");
+            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName() + "!");
         }
         return property.get();
     }

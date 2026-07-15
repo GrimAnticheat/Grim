@@ -64,10 +64,10 @@ jobs:
                   persist-credentials: false
                   fetch-depth: 0
 
-            - name: Set up JDK 21
+            - name: Set up JDK 25
               uses: actions/setup-java@v4
               with:
-                  java-version: '21'
+                  java-version: '25'
                   distribution: 'temurin'
                   server-id: github
                   settings-path: ${{ github.workspace }}
@@ -266,7 +266,10 @@ jobs:
                   changelog: ${{ steps.changelog.outputs.notes }}
                   loaders: |
                       fabric
-                  game-versions: '>=1.16.1'
+                  # Union of both shipped variants (mc-publish reads the multi-line
+                  # scalar as OR). Keep in sync with fabric.mod.json depends.minecraft.
+                  game-versions: |
+                      >=1.16.1 <=26.2
                   dependencies: 'fabric-api'
 
             #------------------------------------------------------------------
@@ -291,7 +294,7 @@ jobs:
                     paper
                     folia
                     purpur
-                  game-versions: '>=1.7 <=26.1.2'
+                  game-versions: '>=1.7 <=26.2'
 
             - name: Publish to API
               if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' && inputs.is-release-build == false }}

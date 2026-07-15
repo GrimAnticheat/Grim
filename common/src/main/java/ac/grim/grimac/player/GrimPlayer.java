@@ -12,6 +12,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderProcessor;
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
@@ -22,6 +23,8 @@ import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.manager.AttackCooldownHandler;
+import ac.grim.grimac.predictionengine.blockeffects.CompensatedGeysers;
+import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -44,6 +47,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -108,7 +112,7 @@ public class GrimPlayer implements GrimUser {
     // Start transaction handling stuff
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
-    public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    public final Queue<ShortToLongPair> transactionsSent = new ConcurrentLinkedQueue<>();
     public final Set<Short> didWeSendThatTrans = ConcurrentHashMap.newKeySet();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public final AtomicInteger lastTransactionSent = new AtomicInteger(0);
@@ -138,7 +142,8 @@ public class GrimPlayer implements GrimUser {
     public boolean playerEntityHasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector3dm(), VectorData.VectorType.Normal);
     public Vector3dm actualMovement = new Vector3dm();
-    public Vector3dm stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+    public IndexedVector3d stuckSpeedMultiplier = StuckSpeed.NONE;
+    public IndexedVector3d lastStuckSpeedMultiplier = StuckSpeed.NONE;
     public final UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
@@ -212,9 +217,11 @@ public class GrimPlayer implements GrimUser {
     public final LastInstanceManager lastInstanceManager;
     public final CompensatedFireworks fireworks;
     public final CompensatedWorld compensatedWorld;
+    public final CompensatedGeysers compensatedGeysers;
     public final CompensatedEntities compensatedEntities;
     public final CompensatedDashableEntities dashableEntities;
     public final CompensatedInventory inventory;
+    public final PacketEntityReplication packetEntityReplication = new PacketEntityReplication(this);
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
     public final TrigHandler trigHandler = new TrigHandler(this);
@@ -250,6 +257,8 @@ public class GrimPlayer implements GrimUser {
     @Getter @Setter private ResyncHandler resyncHandler = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-default-resync-handler", false) ? NoOpResyncHandler.INSTANCE : new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
+    // Whether this tick's movement intersected a nether portal block (see MultiActionsD)
+    public boolean isInNetherPortal;
     // start config
     private boolean debugPacketCancel = false;
     private int spamThreshold = 100;
@@ -279,6 +288,7 @@ public class GrimPlayer implements GrimUser {
     public boolean isJumping;
     public boolean lastJumping;
     public EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
+    public boolean canFloatWhileRidden = false;
 
     public GrimPlayer(@NotNull User user) {
         this.user = user;
@@ -287,6 +297,7 @@ public class GrimPlayer implements GrimUser {
         inventory = new CompensatedInventory(this);
 
         compensatedWorld = new CompensatedWorld(this);
+        compensatedGeysers = new CompensatedGeysers();
         compensatedEntities = new CompensatedEntities(this);
         dashableEntities = new CompensatedDashableEntities();
         cameraEntity = new CompensatedCameraEntity(this);
@@ -358,7 +369,16 @@ public class GrimPlayer implements GrimUser {
         // A player cannot swim hop (> 0 y vel) and be on the ground
         // Fixes bug with underwater stepping movement being confused with swim hopping movement
         if (canSwimHop && !onGround) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
+            Vector3dm vector = clientVelocity.clone().setY(0.30000001192092896 + (canFloatWhileRidden ? 0.03999999910593033 : 0.0));
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+                Collisions.resolveBlockEffects(this, vector, true, finalMovementsThisTick);
+            }
+
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) {
+                PotentSulfurGeyser.launchEntityTicker(this, vector, false);
+            }
+
+            possibleMovements.add(new VectorData(vector, VectorData.VectorType.Swimhop));
         }
 
         // If the player has that client sided riptide thing and has colliding with an entity
@@ -394,10 +414,10 @@ public class GrimPlayer implements GrimUser {
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
     public boolean addTransactionResponse(short id) {
-        Pair<Short, Long> data = null;
+        ShortToLongPair data = null;
         boolean hasID = false;
         int skipped = 0;
-        for (Pair<Short, Long> iterator : transactionsSent) {
+        for (ShortToLongPair iterator : transactionsSent) {
             if (iterator.first() == id) {
                 hasID = true;
                 break;
@@ -410,7 +430,7 @@ public class GrimPlayer implements GrimUser {
             if (viaPacketTracker != null) viaPacketTracker.setIntervalPackets(viaPacketTracker.getIntervalPackets() - 1);
 
             if (skipped > 0 && System.currentTimeMillis() - joinTime > 5000)
-                checkManager.getCheck(TransactionOrder.class).flagAndAlert("skipped=" + skipped);
+                checkManager.getCheck(TransactionOrder.class).flag("skipped=" + skipped);
 
             do {
                 data = transactionsSent.poll();
@@ -608,20 +628,28 @@ public class GrimPlayer implements GrimUser {
     // TODO: Create a configurable timer for this
     @Override
     public void updatePermissions() {
-        if (platformPlayer == null) return;
-        try {
-            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-                this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
-                this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
+        runSafely(() -> {
+            try {
+                boolean noModifyPacketPermission = hasPermission("grim.nomodifypacket");
+                boolean noSetbackPermission = hasPermission("grim.nosetback");
+                boolean disabledPermission = hasPermission("grim.disabled");
+                boolean exemptPermission = hasPermission("grim.exempt");
                 for (AbstractCheck check : checkManager.allChecks.values()) {
                     if (check instanceof Check c) {
                         c.updatePermissions();
                     }
                 }
-            }, null, 0);
-        } catch (Exception e) {
-            LogUtil.error("Failed to update permissions for " + getName() + "!", e);
-        }
+
+                this.noModifyPacketPermission = noModifyPacketPermission;
+                this.noSetbackPermission = noSetbackPermission;
+                this.disableGrim = disabledPermission;
+                if (exemptPermission) {
+                    GrimAPI.INSTANCE.getPlayerDataManager().exemptUser(user);
+                }
+            } catch (Exception e) {
+                LogUtil.error("Failed to update permissions for " + getName() + "!", e);
+            }
+        });
     }
 
     public boolean isPointThree() {
@@ -667,7 +695,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public EntityType getVehicleType() {
-        return inVehicle() ? getVehicle().type : null;
+        return inVehicle() ? getVehicle().getType() : null;
     }
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
@@ -833,12 +861,29 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean isInWaterOrRain() {
-        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
+        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block, x, y, z) -> Materials.isWater(CompensatedWorld.blockVersion, block));
+    }
+
+    public void updateNetherPortalState() {
+        // Like the client (Entity#checkInsideBlocks), test the whole tick's movement, not just the
+        // resolved position, so a fast run-through through a portal is still detected.
+        SimpleCollisionBox movementThisTick = GetBoundingBox.getCollisionBoxForPlayer(this, x, y, z).expandToCoordinate(lastX - x, lastY - y, lastZ - z);
+        isInNetherPortal = compensatedWorld.containsNetherPortal(movementThisTick);
+    }
+
+    @Contract(pure = true)
+    public boolean supportsEndTickPreVia() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2);
     }
 
     @Contract(pure = true)
     public boolean supportsEndTick() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+        return supportsEndTickPreVia() && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+    }
+
+    @Contract(pure = true)
+    public boolean canSkipTicksPreVia() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !supportsEndTickPreVia();
     }
 
     @Contract(pure = true)
@@ -1009,6 +1054,15 @@ public class GrimPlayer implements GrimUser {
         }
 
         this.movementThisTick.add(movement);
+    }
+
+    public void setStuckSpeedMultiplier(IndexedVector3d stuckSpeedMultiplier) {
+        this.stuckSpeedMultiplier = stuckSpeedMultiplier;
+    }
+
+    public void resetStuckSpeedMultiplier() {
+        this.lastStuckSpeedMultiplier = this.stuckSpeedMultiplier;
+        this.stuckSpeedMultiplier = StuckSpeed.NONE;
     }
 
     public record Movement(Vector3d from, Vector3d to, Vector3d axisDependentOriginalMovement) {

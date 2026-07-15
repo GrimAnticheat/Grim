@@ -36,7 +36,7 @@ public class SprintE extends Check implements PostPredictionCheck {
                 && (!player.wasTouchingWater || player.getClientVersion().isOlderThan(ClientVersion.V_1_13))
                 && player.wasLastPredictionCompleteChecked) {
             if (player.isSprinting) {
-                flagAndAlertWithSetback();
+                flagWithSetback();
             } else {
                 reward();
             }

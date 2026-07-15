@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,6 +15,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUs
 
 @CheckData(name = "BadPacketsH", stableKey = "grim.badpackets.unexpected_sequence", description = "Sent unexpected sequence id", experimental = true)
 public class BadPacketsH extends BlockPlaceCheck {
+    private static final Verbose V = Verbose.of("expected={sint}, id={sint}");
+
     private int lastSequence;
     private final boolean isSupportedVersion = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
 
@@ -46,7 +49,7 @@ public class BadPacketsH extends BlockPlaceCheck {
                 }
             }
             case CANCELLED_DIGGING -> { // other actions will be checked by BadPacketsL
-                if (blockBreak.sequence != 0 && flagAndAlert("expected=0, id=" + blockBreak.sequence) && shouldModifyPackets()) {
+                if (blockBreak.sequence != 0 && flagSequence(0, blockBreak.sequence) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             }
@@ -57,8 +60,12 @@ public class BadPacketsH extends BlockPlaceCheck {
         int expected = lastSequence + 1;
         lastSequence = sequence;
         return isSupportedVersion && sequence != expected
-                && flagAndAlert("expected=" + expected + ", id=" + sequence)
+                && flagSequence(expected, sequence)
                 && shouldModifyPackets();
+    }
+
+    private boolean flagSequence(int expected, int sequence) {
+        return flag(V.write(verbose()).sint(expected).sint(sequence));
     }
 
     public void onWorldChange() {

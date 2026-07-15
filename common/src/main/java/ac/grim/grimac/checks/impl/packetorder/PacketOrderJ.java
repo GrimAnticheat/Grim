@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "PacketOrderJ", stableKey = "grim.packetorder.attack_interact_use_order", experimental = true)
+@CheckData(name = "PacketOrderJ", stableKey = "grim.packetorder.attack_interact_use_order", description = "Sent use item after attacking without the expected interaction packet", experimental = true)
 public class PacketOrderJ extends Check implements PostPredictionCheck {
     public PacketOrderJ(final GrimPlayer player) {
         super(player);
@@ -22,7 +22,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
             // we don't check stabbing here because you don't need to target an entity to stab
             if (player.packetOrderProcessor.isAttacking() && !player.packetOrderProcessor.isInteracting()) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert() && shouldModifyPackets()) {
+                    if (flag() && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -39,7 +39,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

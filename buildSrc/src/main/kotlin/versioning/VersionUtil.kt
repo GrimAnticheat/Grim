@@ -1,38 +1,25 @@
 package versioning
 
-import java.io.ByteArrayOutputStream
+import org.gradle.api.Project
 
 /**
  * Utility for computing the version string of GrimAC artifacts.
  *
- * The version string is constructed based on:
- * - A base semantic version (e.g., "2.3.72")
- * - Git commit hash (unless in release mode)
- * - Git branch name (unless in release mode or main)
- * - Modifiers (e.g., lite, no_relocate) for non-default build configurations
- *
- * Example outputs:
- * - `2.3.72` (release build)
- * - `2.3.72-a4f8b21+lite` (preview build without PE shading)
- * - `2.3.72-feature_branch-a4f8b21+lite-no_relocate`
- *
- * @see BuildConfig for controlling the release/modifier behavior
+ * Uses Gradle's providers.exec for git invocations so that
+ * org.gradle.configuration-cache=true can serialize the task graph.
+ * Each helper takes a Project so the git workingDir is anchored to the
+ * project root (was ambient JVM cwd before; flaky when invoked from
+ * the workspace composite root).
  */
 object VersionUtil {
 
-    /**
-     * Computes the full version string for the build.
-     *
-     * @param baseVersion The base semantic version (e.g., "2.3.72")
-     * @return Full version string including commit hash, branch, and modifiers if applicable
-     */
-    fun computeVersion(baseVersion: String): String {
+    fun computeVersion(project: Project, baseVersion: String): String {
         if (BuildConfig.release) {
             return baseVersion
         }
 
-        val commitHash = getGitCommitHash()
-        val branch = getGitBranch()
+        val commitHash = getGitCommitHash(project)
+        val branch = getGitBranch(project)
 
         val modifiers = buildList {
             if (!BuildConfig.shadePE) add("lite")
@@ -48,41 +35,35 @@ object VersionUtil {
         }
     }
 
-    /**
-     * Retrieves the current Git commit
-     */
-    fun getGitCommitHash(full: Boolean = false): String {
-        val stdout = ByteArrayOutputStream()
-        val command = listOfNotNull("git", "rev-parse", if (full) null else "--short", "HEAD")
-        ProcessBuilder(command)
-            .redirectErrorStream(true)
-            .start()
-            .apply { waitFor() }
-            .inputStream
-            .use { stdout.writeBytes(it.readAllBytes()) }
-        val fullCommit = stdout.toString().trim()
-        return fullCommit.take(minOf(fullCommit.length, 7))
+    fun getGitCommitHash(project: Project, full: Boolean = false): String {
+        return try {
+            val args = if (full) listOf("git", "rev-parse", "HEAD")
+                       else listOf("git", "rev-parse", "--short", "HEAD")
+            val out = project.providers.exec {
+                commandLine(args)
+                workingDir(project.projectDir)
+                isIgnoreExitValue = true
+            }.standardOutput.asText.get().trim()
+            out.take(minOf(out.length, 7))
+        } catch (e: Exception) {
+            "unknown"
+        }
     }
 
-    /**
-     * Returns the current Git branch, sanitised for use in file names.
-     * If the branch is "main" or "2.0", returns null.
-     *
-     * Any slash (/) in the branch name is replaced with an underscore (_)
-     * to avoid filesystem issues.
-     */
-    fun getGitBranch(raw: Boolean = false): String? {
-        val stdout = ByteArrayOutputStream()
+    fun getGitBranch(project: Project, raw: Boolean = false): String? {
+        val rawBranch = try {
+            project.providers.exec {
+                commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
+                workingDir(project.projectDir)
+                isIgnoreExitValue = true
+            }.standardOutput.asText.get().trim()
+        } catch (e: Exception) {
+            return null
+        }
 
-        ProcessBuilder("git", "rev-parse", "--abbrev-ref", "HEAD")
-            .redirectErrorStream(true)
-            .start()
-            .apply { waitFor() }
-            .inputStream.use { stdout.writeBytes(it.readAllBytes()) }
+        if (raw) return rawBranch
 
-        if (raw) return stdout.toString().trim()
-
-        val branch = stdout.toString().trim()
+        val branch = rawBranch
             .replace(Regex("[^a-zA-Z0-9_.-]+"), "_")
             .replace(Regex("_{2,}"), "_")
             .trim(' ', '.', '_', '-')
@@ -91,22 +72,20 @@ object VersionUtil {
         val mainBranch = System.getenv("GRIM_MAIN_BRANCH") ?: "2.0"
 
         return when (branch) {
-            "main", mainBranch -> null                    // ← ignore these branches
+            "main", mainBranch -> null
             else -> branch
         }
     }
 
-    fun getGitUser(): String {
-        try {
-            val stdout = ByteArrayOutputStream()
-            ProcessBuilder("git", "config", "user.name")
-                .redirectErrorStream(true)
-                .start()
-                .apply { waitFor() }
-                .inputStream.use { stdout.writeBytes(it.readAllBytes()) }
-            return stdout.toString().trim()
+    fun getGitUser(project: Project): String {
+        return try {
+            project.providers.exec {
+                commandLine("git", "config", "user.name")
+                workingDir(project.projectDir)
+                isIgnoreExitValue = true
+            }.standardOutput.asText.get().trim().ifEmpty { "unknown" }
         } catch (_: Exception) {
-            return "unknown"
+            "unknown"
         }
     }
 
