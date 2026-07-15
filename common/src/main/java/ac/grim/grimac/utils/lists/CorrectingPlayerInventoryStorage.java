@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 import java.util.Arrays;
@@ -106,18 +108,45 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         if (!player.inventory.isPacketInventoryActive) return;
 
         // Bukkit uses different slot ID's to vanilla
-        int bukkitSlot = player.inventory.getBukkitSlot(slot); // 8 -> 39, should be 36
+        int bukkitSlot = getBukkitSlot(slot); // 8 -> 39, should be 36
 
         if (bukkitSlot != -1) {
             ItemStack existing = getItem(slot);
-            ItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
+            ItemStack serverside = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
 
-            if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
+            if (existing.getType() != serverside.getType() || existing.getAmount() != serverside.getAmount()) {
                 GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
                         () -> player.platformPlayer.updateInventory(), null, 0);
-                setItem(slot, toPE);
+                setItem(slot, serverside);
             }
         }
+    }
+
+    // Taken from https://www.spigotmc.org/threads/mapping-protocol-to-bukkit-slots.577724/
+    public static int getBukkitSlot(int packetSlot) {
+        // 0 -> 5 are crafting slots, don't exist in bukkit
+        if (packetSlot <= 4) {
+            return -1;
+        }
+        // 5 -> 8 are armor slots in protocol, ordered helmets to boots
+        if (packetSlot <= 8) {
+            // 36 -> 39 are armor slots in bukkit, ordered boots to helmet. tbh I got this from trial and error.
+            return (7 - packetSlot) + 36;
+        }
+        // By a coincidence, non-hotbar inventory slots match.
+        if (packetSlot <= 35) {
+            return packetSlot;
+        }
+        // 36 -> 44 are hotbar slots in protocol
+        if (packetSlot <= 44) {
+            // 0 -> 9 are hotbar slots in bukkit
+            return packetSlot - 36;
+        }
+        // 45 is offhand is packet, it is 40 in bukkit
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && packetSlot == 45) {
+            return 40;
+        }
+        return -1;
     }
 
     public void tickWithBukkit() {

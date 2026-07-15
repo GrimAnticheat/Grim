@@ -72,33 +72,6 @@ public class CompensatedInventory extends Check implements PacketCheck {
         menu = inventory;
     }
 
-    // Taken from https://www.spigotmc.org/threads/mapping-protocol-to-bukkit-slots.577724/
-    public int getBukkitSlot(int packetSlot) {
-        // 0 -> 5 are crafting slots, don't exist in bukkit
-        if (packetSlot <= 4) {
-            return -1;
-        }
-        // 5 -> 8 are armor slots in protocol, ordered helmets to boots
-        if (packetSlot <= 8) {
-            // 36 -> 39 are armor slots in bukkit, ordered boots to helmet. tbh I got this from trial and error.
-            return (7 - packetSlot) + 36;
-        }
-        // By a coincidence, non-hotbar inventory slots match.
-        if (packetSlot <= 35) {
-            return packetSlot;
-        }
-        // 36 -> 44 are hotbar slots in protocol
-        if (packetSlot <= 44) {
-            // 0 -> 9 are hotbar slots in bukkit
-            return packetSlot - 36;
-        }
-        // 45 is offhand is packet, it is 40 in bukkit
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && packetSlot == 45) {
-            return 40;
-        }
-        return -1;
-    }
-
     // Meant for 1.17+ clients who send changed slots, making the server not send the entire inventory
     private void markPlayerSlotAsChanged(int clicked) {
         // Player inventory
