@@ -85,10 +85,6 @@ public class Inventory extends AbstractContainerMenu {
         inventoryStorage.setItem(selected + HOTBAR_OFFSET, item);
     }
 
-    public ItemStack getOffhandItem() {
-        return inventoryStorage.getItem(SLOT_OFFHAND);
-    }
-
     public boolean add(ItemStack p_36055_) {
         return this.add(-1, p_36055_);
     }
@@ -106,7 +102,7 @@ public class Inventory extends AbstractContainerMenu {
     public int getSlotWithRemainingSpace(ItemStack toAdd) {
         if (this.hasRemainingSpaceForItem(getHeldItem(), toAdd)) {
             return this.selected;
-        } else if (this.hasRemainingSpaceForItem(getOffhandItem(), toAdd)) {
+        } else if (this.hasRemainingSpaceForItem(getOffhand(), toAdd)) {
             return 40;
         } else {
             for (int i = ITEMS_START; i <= ITEMS_END; ++i) {
