@@ -157,6 +157,7 @@ public class Location implements Cloneable {
         return this.set(base.x - x, base.y - y, base.z - z);
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) {
             return false;
@@ -171,6 +172,7 @@ public class Location implements Cloneable {
         }
     }
 
+    @Override
     public int hashCode() {
         int hash = 3;
         PlatformWorld world = this.world == null ? null : this.world.get();
@@ -183,6 +185,7 @@ public class Location implements Cloneable {
         return hash;
     }
 
+    @Override
     public String toString() {
         return "Location{world=" + (this.world == null ? null : this.world.get()) + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + "}";
     }
