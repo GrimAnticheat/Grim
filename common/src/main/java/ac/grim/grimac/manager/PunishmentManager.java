@@ -207,7 +207,7 @@ public class PunishmentManager implements ConfigReloadable {
         try {
             String value = supplier.get();
             return value == null ? "" : value;
-        } catch (Throwable ignored) {
+        } catch (RuntimeException ignored) {
             return "";
         }
     }
