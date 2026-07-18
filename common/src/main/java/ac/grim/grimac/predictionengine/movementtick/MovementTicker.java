@@ -258,6 +258,10 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
+        if (player.jumpDelay > 0) {
+            player.jumpDelay--;
+        }
+
         handleEntityCollisions(player);
 
         SimpleCollisionBox oldBB = player.boundingBox.copy();

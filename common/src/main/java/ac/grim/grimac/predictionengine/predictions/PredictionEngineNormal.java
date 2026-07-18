@@ -45,6 +45,7 @@ public class PredictionEngineNormal extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         if (player.supportsEndTick() && !player.packetStateData.knownInput.jump()) {
+            player.jumpDelay = 0;
             return;
         }
 
@@ -52,6 +53,10 @@ public class PredictionEngineNormal extends PredictionEngine {
             Vector3dm jump = vector.vector.clone();
 
             if (!player.isFlying) {
+                if (player.jumpDelay != 0) {
+                    return;
+                }
+
                 // Negative jump boost does not allow the player to leave the ground
                 // Negative jump boost doesn't seem to work in water/lava
                 // If the player didn't try to jump
@@ -67,11 +72,11 @@ public class PredictionEngineNormal extends PredictionEngine {
                 if (!player.wasFlying) {
                     Vector3dm edgeCaseJump = jump.clone();
                     JumpPower.jumpFromGround(player, edgeCaseJump);
-                    existingVelocities.add(vector.returnNewModified(edgeCaseJump, VectorData.VectorType.Jump));
+                    existingVelocities.add(vector.returnNewModified(edgeCaseJump, VectorData.VectorType.JumpFromGround));
                 }
             }
 
-            existingVelocities.add(vector.returnNewModified(jump, VectorData.VectorType.Jump));
+            existingVelocities.add(vector.returnNewModified(jump, player.isFlying ? VectorData.VectorType.Jump : VectorData.VectorType.JumpFromGround));
         }
     }
 
