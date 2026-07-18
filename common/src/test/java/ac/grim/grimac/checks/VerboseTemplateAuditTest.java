@@ -270,8 +270,7 @@ class VerboseTemplateAuditTest {
     }
 
     /** A writer chain anchored at {@code V.write(verbose()} with its method names in order. */
-    private record Chain(String shapeExpr, List<String> methods) {
-    }
+    private record Chain(String shapeExpr, List<String> methods) {}
 
     static List<Chain> extractChains(String source) {
         List<Chain> chains = new ArrayList<>();
