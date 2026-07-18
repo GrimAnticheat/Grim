@@ -36,6 +36,7 @@ public class VectorData {
             isFlipSneaking = lastVector.isFlipSneaking;
             isFlipItem = lastVector.isFlipItem;
             isJump = lastVector.isJump;
+            isJumpFromGround = lastVector.isJumpFromGround;
             preUncertainty = lastVector.preUncertainty;
             isAttackSlow = lastVector.isAttackSlow;
             input = lastVector.input;
