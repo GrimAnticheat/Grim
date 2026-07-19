@@ -31,10 +31,18 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+        // TODO: smart way to optimise this?
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        if (player == null) return;
 
+        if (player.packetStateData.awaitingVehicleMoveAfterSteer) {
+            player.packetStateData.awaitingVehicleMoveAfterSteer = false;
+            if (event.getPacketType() != PacketType.Play.Client.VEHICLE_MOVE) {
+                this.tickPlayerWorld(player);
+            }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
             WrapperPlayClientSteerVehicle steer = new WrapperPlayClientSteerVehicle(event);
 
             float forwards = steer.getForward();
@@ -43,11 +51,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.vehicleData.nextVehicleForward = forwards;
             player.vehicleData.nextVehicleHorizontal = sideways;
 
-            this.tickPlayerWorld(player);
+            player.packetStateData.awaitingVehicleMoveAfterSteer = true;
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
-
             WrapperPlayClientPlayerInput input = new WrapperPlayClientPlayerInput(event);
             byte forward = 0;
             byte sideways = 0;
@@ -81,21 +86,20 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             player.packetStateData.knownInput = new KnownInput(input.isForward(), input.isBackward(), input.isLeft(), input.isRight(), input.isJump(), input.isShift(), input.isSprint());
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null || !player.inVehicle() || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) return;
+            if (!player.inVehicle() || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) return;
 
             // player_input is not sent every tick, so we need to stick to this packet
-            this.tickPlayerWorld(player);
+            player.packetStateData.awaitingVehicleMoveAfterSteer = true;
         }
     }
 
     private void tickPlayerWorld(GrimPlayer player) {
         PacketEntity riding = player.compensatedEntities.self.getRiding();
 
-        // Multiple steer vehicles in a row, the player is not in control of their vehicle
+        // A steer/rotation packet not followed by vehicle movement means the player is not in control of their vehicle
         // We must do this SYNC! to netty, as to get the packet location of the vehicle
         // Otherwise other checks may false because the player's position is unknown.
-        if (player.packetStateData.receivedSteerVehicle && riding != null) {
+        if (riding != null) {
             // Horse and boat have first passenger in control
             // If the player is the first passenger, disregard this attempt to have the server control the entity
             if ((riding.isBoat || riding.isHappyGhast || (riding instanceof JumpableEntity jumpable && jumpable.hasSaddle())) &&
@@ -143,7 +147,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             player.lastY = player.y;
             player.lastZ = player.z;
 
-            SimpleCollisionBox vehiclePos = player.compensatedEntities.self.getRiding().getPossibleCollisionBoxes();
+            SimpleCollisionBox vehiclePos = player.compensatedEntities.self.getRiding().getPossibleLocationBoxes();
 
             player.x = (vehiclePos.minX + vehiclePos.maxX) / 2;
             player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
@@ -153,9 +157,12 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
             }
             player.lastSprinting = player.isSprinting;
-        }
 
-        player.packetStateData.receivedSteerVehicle = true;
+            // 1.21.5+ sprint desync
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                player.compensatedEntities.hasSprintingAttributeEnabled = false;
+            }
+        }
     }
 
 }

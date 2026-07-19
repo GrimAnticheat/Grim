@@ -6,9 +6,12 @@ import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.change.BlockModification;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -39,7 +42,9 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
 import java.util.function.Predicate;
 
@@ -455,6 +460,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.checkManager.onPrePredictionReceivePacket(event);
 
+        if (!event.isCancelled() && event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.inVehicle() && player.vehicleData.lastDummy && !player.packetStateData.lastPacketWasTeleport) {
+            WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
+            Vector3d position = move.getPosition();
+            event.setCancelled(true);
+
+            final PacketEntity riding = player.compensatedEntities.self.getRiding();
+            SimpleCollisionBox interTruePositions = riding.getPossibleLocationBoxes();
+            Vector3dm cutTo = VectorUtils.cutBoxToVector(position.getX(), position.getY(), position.getZ(), interTruePositions);
+
+            player.user.sendPacket(new WrapperPlayServerEntityVelocity(player.getRidingVehicleId(), new Vector3d()));
+            player.user.sendPacket(new WrapperPlayServerVehicleMove(new Vector3d(cutTo.getX(), cutTo.getY(), cutTo.getZ()), move.getYaw(), move.getPitch()));
+        }
+
         // The player flagged crasher or timer checks, therefore we must protect predictions against these attacks
         if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)) {
             player.packetStateData.cancelDuplicatePacket = false;
@@ -486,8 +504,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), move.isOnGround(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
-
-            player.packetStateData.receivedSteerVehicle = false;
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {

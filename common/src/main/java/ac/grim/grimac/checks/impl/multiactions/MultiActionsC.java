@@ -22,7 +22,7 @@ public class MultiActionsC extends Check implements PacketCheck {
 
     @Contract(pure = true)
     public static boolean isVerboseSprinting(@NotNull GrimPlayer player) {
-        return player.isSprinting && (!player.isSwimming || !player.clientClaimsLastOnGround);
+        return player.isSprinting && (!player.isSwimming || !player.clientClaimsLastOnGround) && !(player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && player.inVehicle());
     }
 
     @Contract(pure = true)

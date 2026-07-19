@@ -51,6 +51,9 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
 public class MovementCheckRunner extends Check implements PositionCheck {
     // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
@@ -98,13 +101,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
-        //
-        // In version 1.21.2+, the new teleport system can modify the player's velocity
-        // even while the player is in a vehicle
-        //
-        // However, for some reason, this behaviour does not work correctly in Grim
-        // to work around this, we remove the velocity data from the teleport packet
-        // in PacketServerTeleport#onPacketSend
         if (!player.inVehicle()) {
             if (update.getTeleportData() == null) {
                 player.clientVelocity.setX(0);
@@ -126,6 +122,14 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         }
 
         player.uncertaintyHandler.lastTeleportTicks.reset();
+
+        if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
+            if (player.vehicleData.lastDummy) player.clientVelocity.multiply(0.98); // This is vanilla, do not touch
+            player.vehicleData.wasVehicleSwitch = false;
+            player.vehicleData.lastDummy = false;
+
+            player.uncertaintyHandler.lastVehicleSwitch.reset();
+        }
 
         // Teleports OVERRIDE explosions and knockback
         player.checkManager.getExplosionHandler().forceExempt();
@@ -199,27 +203,12 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.uncertaintyHandler.lastVehicleSwitch.reset();
         }
 
-        if (player.vehicleData.lastDummy) {
-            player.clientVelocity.multiply(0.98); // This is vanilla, do not touch
-        }
-
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
-            player.vehicleData.lastDummy = false;
-            player.vehicleData.wasVehicleSwitch = false;
-
             if (riding != null) {
-                SimpleCollisionBox interTruePositions = riding.getPossibleCollisionBoxes();
-
-                // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
-                final float scale = (float) riding.getAttributeValue(Attributes.SCALE);
-                float width = BoundingBoxSize.getWidth(player, riding) * scale;
-                float height = BoundingBoxSize.getHeight(player, riding) * scale;
-                interTruePositions.expand(-width, 0, -width);
-                interTruePositions.expandMax(0, -height, 0);
-
+                SimpleCollisionBox interTruePositions = riding.getPossibleLocationBoxes();
                 Vector3dm cutTo = VectorUtils.cutBoxToVector(player.x, player.y, player.z, interTruePositions);
 
                 // Now we need to simulate a tick starting at the most optimal position
@@ -236,12 +225,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
                 player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             } else {
-                // Server always teleports the player when they eject anyways,
-                // so just let the player control where they eject within reason, they get set back anyways
-                if (new Vector3dm(player.lastX, player.lastY, player.lastZ).distance(new Vector3dm(player.x, player.y, player.z)) > 3) {
-                    player.getSetbackTeleportUtil().executeForceResync(); // Too far! (I think this value is sane)
-                }
-
+                player.getSetbackTeleportUtil().executeForceResync();
                 handleTeleport(update);
 
                 if (player.isClimbing) {
@@ -277,6 +261,8 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // Again, the server knows to ignore this
         //
         // Therefore, we just assume that the client and server are modded or whatever.
+        boolean vehicleControlDetected = false;
+        VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
         if (player.inVehicle()) {
             // Players are unable to take explosions in vehicles
             player.checkManager.getExplosionHandler().forceExempt();
@@ -297,8 +283,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             if (riding instanceof PacketEntityRideable) {
-                VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
-
                 ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.inventory.getHeldItem();
                 ItemStack offHand = player.inventory.getOffHand();
@@ -306,13 +290,20 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 boolean correctMainHand = mainHand.getType() == requiredItem;
                 boolean correctOffhand = offHand.getType() == requiredItem;
 
+                vehicleControlDetected = true;
                 if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
-                    vehicleC.flag();
+                    if (vehicleC.flaggedLastTick) vehicleC.flag();
+                    vehicleC.flaggedLastTick = true;
                 } else {
+                    vehicleC.flaggedLastTick = false;
                     vehicleC.reward();
                 }
             }
+        }
+
+        if (!vehicleControlDetected) {
+            vehicleC.flaggedLastTick = false;
         }
 
         if (player.isFlying) {
