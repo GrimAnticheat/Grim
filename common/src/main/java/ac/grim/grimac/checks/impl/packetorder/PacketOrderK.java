@@ -81,6 +81,5 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
         flags.clear();
     }
 
-    private record FlagData(int kind, boolean clicking, boolean closing) {
-    }
+    private record FlagData(int kind, boolean clicking, boolean closing) {}
 }

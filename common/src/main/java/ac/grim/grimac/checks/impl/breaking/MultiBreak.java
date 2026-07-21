@@ -78,6 +78,5 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         flags.clear();
     }
 
-    private record FlagData(int face, int previousFace, Vector3i pos, Vector3i previousPos) {
-    }
+    private record FlagData(int face, int previousFace, Vector3i pos, Vector3i previousPos) {}
 }
