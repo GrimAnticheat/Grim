@@ -26,7 +26,7 @@ public class CommonGrimArguments {
      * <b>TRADE-OFF:</b> This completely bypasses the platform's event system (e.g., Bukkit's chat events).
      * Other plugins will NOT be able to see, format, or cancel these messages.
      * <p>
-     * This setting is opt-in (default: false) and requires a server restart to change.
+     * This setting is opt-out (default: true) and requires a server restart to change.
      */
     public final static SystemArgument<Boolean> USE_CHAT_FAST_BYPASS = FACTORY.create(string("ChatFastBypass", true));
 
