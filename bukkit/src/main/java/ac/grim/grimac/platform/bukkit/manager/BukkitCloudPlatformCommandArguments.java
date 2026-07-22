@@ -3,10 +3,11 @@ package ac.grim.grimac.platform.bukkit.manager;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
 import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.bukkit.command.BukkitPlayerSelectorParser;
+import ac.grim.grimac.platform.bukkit.command.BukkitPlayerSelectorAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.bukkit.BukkitCommandContextKeys;
+import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.incendo.cloud.parser.ParserDescriptor;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
@@ -18,11 +19,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class BukkitCloudPlatformCommandArguments implements CloudPlatformCommandArguments {
 
-    private final BukkitPlayerSelectorParser<Sender> bukkitPlayerSelectorParser = new BukkitPlayerSelectorParser<>();
-
     @Override
     public ParserDescriptor<Sender, PlayerSelector> singlePlayerSelectorParser() {
-        return bukkitPlayerSelectorParser.descriptor();
+        ParserDescriptor<Sender, ?> descriptor = SinglePlayerSelectorParser.singlePlayerSelectorParser();
+        return ParserDescriptor.of(
+                descriptor.parser().mapSuccess((context, selector) -> CompletableFuture.completedFuture(
+                        new BukkitPlayerSelectorAdapter((org.incendo.cloud.bukkit.data.SinglePlayerSelector) selector)
+                )),
+                PlayerSelector.class
+        );
     }
 
     @Override

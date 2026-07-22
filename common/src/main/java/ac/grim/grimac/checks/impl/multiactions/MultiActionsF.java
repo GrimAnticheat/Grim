@@ -100,6 +100,5 @@ public class MultiActionsF extends BlockPlaceCheck {
         flags.clear();
     }
 
-    private record FlagData(int action) {
-    }
+    private record FlagData(int action) {}
 }
