@@ -453,7 +453,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             player.lastDuplicateLocationThisTick = null;
-            player.lastDuplicateRotationThisTick = null;
         }
 
         if (player.packetStateData.isReceivingQueuedDuplicate) {
