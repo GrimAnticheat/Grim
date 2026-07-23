@@ -631,7 +631,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
 
         // positions and rotations must be the same for all duplicates sent in the same tick
-        if (player.isStrictDuplicateHandling() && flying.getLocation().equals(player.lastDuplicateLocationThisTick))
+        if (player.isStrictDuplicateHandling() && !flying.getLocation().equals(player.lastDuplicateLocationThisTick))
             return false;
 
         // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
