@@ -65,7 +65,7 @@ cancel-duplicate-packet: true
 ignore-duplicate-packet-rotation: false
 
 # queue potential duplicate packets until the next packet to check if it actually was a duplicate
-# and require the same head rotation for duplicates sent in the same tick
+# and require the same player position and head rotation for duplicates sent in the same tick
 strict-duplicate-handling: false
 
 Simulation:
