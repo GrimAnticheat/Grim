@@ -40,6 +40,7 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
@@ -378,78 +379,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static void handleDuplicate(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
-        final Location location = flying.getLocation();
-
-        // Mark that we want this packet to be cancelled from reaching the server
-        // Additionally, only yaw/pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
-        // 1.9+ isn't impacted by this packet as much.
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) && player.isCancelDuplicatePacket()) {
-            player.packetStateData.cancelDuplicatePacket = true;
-        } else {
-            // Override location to force it to use the last real position of the player. Prevents position-related bypasses like nofall.
-            flying.setLocation(new Location(player.filterMojangStupidityOnMojangStupidity.getX(), player.filterMojangStupidityOnMojangStupidity.getY(), player.filterMojangStupidityOnMojangStupidity.getZ(), location.getYaw(), location.getPitch()));
-            event.markForReEncode(true);
-        }
-
-        if (player.lastDuplicateRotationThisTick == null) {
-            player.lastDuplicateRotationThisTick = new HeadRotation(location.getYaw(), location.getPitch());
-        }
-
-        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
-
-        if (!player.isIgnoreDuplicatePacketRotation()) {
-            if (player.yaw != location.getYaw() || player.pitch != location.getPitch()) {
-                player.lastYaw = player.yaw;
-                player.lastPitch = player.pitch;
-            }
-
-            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.yaw = location.getYaw();
-            player.pitch = location.getPitch();
-        }
-
-        player.packetStateData.lastClaimedPosition = location.getPosition();
-    }
-
-    private boolean isMojangStupid(GrimPlayer player, PacketReceiveEvent event, WrapperPlayClientPlayerFlying flying) {
-        // Teleports are not stupidity packets.
-        if (player.packetStateData.lastPacketWasTeleport) return false;
-        // Mojang has become less stupid!
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
-
-        final Location location = flying.getLocation();
-        final double threshold = player.getMovementThreshold();
-
-        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
-        // Don't check rotation since it changes between these packets, with the second being irrelevant.
-        //
-        // removed a large rant, but I'm keeping this out of context insult below
-        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        if (flying.hasPositionChanged() && flying.hasRotationChanged() &&
-                // Ground status will never change in this stupidity packet
-                ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
-                        // rotations must be the same for all duplicates sent in the same tick
-                        && (player.lastDuplicateRotationThisTick == null || !player.isStrictDuplicateHandling()
-                        || player.lastDuplicateRotationThisTick.yaw() == location.getYaw()
-                        && player.lastDuplicateRotationThisTick.pitch() == location.getPitch())
-                        // Mojang added this stupid mechanic in 1.17
-                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                        // Due to 0.03, we can't check exact position, only within 0.03
-                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(location.getPosition()) < threshold * threshold))
-                        // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
-                        || player.inVehicle())) {
-            if (player.isStrictDuplicateHandling()) {
-                player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
-                event.setCancelled(true);
-            } else {
-                handleDuplicate(player, event, flying);
-            }
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -507,7 +436,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isDuplicatePacket(player, flying);
+
+            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                if (player.isStrictDuplicateHandling()) {
+                    player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
+                    event.setCancelled(true);
+                } else {
+                    handleDuplicatePacket(player, event, flying);
+                }
+            }
 
             // if this could be a duplicate, then queue it until the next (non-async) packet
             if (player.packetStateData.queuedDuplicate != null) {
@@ -686,6 +624,82 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketSend(event);
     }
 
+    private static boolean isDuplicatePacket(@NotNull GrimPlayer player, @NotNull WrapperPlayClientPlayerFlying flying) {
+        // teleports are not duplicate packets
+        if (player.packetStateData.lastPacketWasTeleport) return false;
+
+        // duplicate packets were added in 1.17 and removed in 1.21
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+
+        // duplicate packets always have position and rotation
+        if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
+
+        final float yaw = flying.getLocation().getYaw();
+        final float pitch = flying.getLocation().getPitch();
+
+        // rotations must be the same for all duplicates sent in the same tick
+        if (player.isStrictDuplicateHandling() && player.lastDuplicateRotationThisTick != null
+                && (player.lastDuplicateRotationThisTick.yaw() != yaw
+                || player.lastDuplicateRotationThisTick.pitch() != pitch)) return false;
+
+        // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
+        if (player.inVehicle()) return true;
+
+        final Vector3d position = flying.getLocation().getPosition();
+        final double threshold = player.getMovementThreshold();
+
+        // ground status will never change in duplicate packets
+        return flying.isOnGround() == player.packetStateData.packetPlayerOnGround
+                // due to 0.03, we can't check exact position, only within 0.03
+                && player.filterMojangStupidityOnMojangStupidity.distanceSquared(position) < threshold * threshold;
+    }
+
+    private static void handleDuplicatePacket(
+            @NotNull GrimPlayer player,
+            @NotNull PacketReceiveEvent event,
+            @NotNull WrapperPlayClientPlayerFlying flying) {
+        final float yaw = flying.getLocation().getYaw();
+        final float pitch = flying.getLocation().getPitch();
+        final Vector3d position = flying.getLocation().getPosition();
+
+        // Mark that we want this packet to be cancelled from reaching the server
+        // Additionally, only yaw and pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
+        // 1.9+ isn't impacted by this packet as much.
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) && player.isCancelDuplicatePacket()) {
+            player.packetStateData.cancelDuplicatePacket = true;
+        } else {
+            // Override location to force it to use the last real position of the player. Prevents position-related bypasses like NoFall.
+            flying.setLocation(new Location(
+                    player.filterMojangStupidityOnMojangStupidity.getX(),
+                    player.filterMojangStupidityOnMojangStupidity.getY(),
+                    player.filterMojangStupidityOnMojangStupidity.getZ(),
+                    yaw,
+                    pitch
+            ));
+            event.markForReEncode(true);
+        }
+
+        if (player.lastDuplicateRotationThisTick == null) {
+            player.lastDuplicateRotationThisTick = new HeadRotation(yaw, pitch);
+        }
+
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+        if (!player.isIgnoreDuplicatePacketRotation()) {
+            if (player.yaw != yaw || player.pitch != pitch) {
+                player.lastYaw = player.yaw;
+                player.lastPitch = player.pitch;
+            }
+
+            // Take the pitch and yaw, just in case we were wrong about this being a duplicate packet
+            player.yaw = yaw;
+            player.pitch = pitch;
+        }
+
+        player.packetStateData.lastClaimedPosition = position;
+    }
+
     private static void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData, PacketReceiveEvent event) {
         long now = System.currentTimeMillis();
 
@@ -695,7 +709,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.uncertaintyHandler.lastPointThree.reset();
         }
 
-        // We can't set the look if this is actually the stupidity packet
+        // We can't set the look if this is actually a duplicate packet
         // If the last packet wasn't stupid, then ignore this logic
         // If it was stupid, only change the look if it's different
         // Otherwise, reach and fireworks can false
@@ -754,7 +768,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d clampVector = VectorUtils.clampVector(position);
             final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
-            // Stupidity doesn't care about 0.03
+            // Duplicate packets don't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 player.filterMojangStupidityOnMojangStupidity = clampVector;
             }
