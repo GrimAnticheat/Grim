@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class PredictionEngine {
@@ -179,8 +180,8 @@ public class PredictionEngine {
             }
         }
 
-        assert beforeCollisionMovement != null;
-        assert realBeforeCollisionMovement != null;
+        Objects.requireNonNull(beforeCollisionMovement, "beforeCollisionMovement");
+        Objects.requireNonNull(realBeforeCollisionMovement, "realBeforeCollisionMovement");
 
         player.clientVelocity = realBeforeCollisionMovement.clone();
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
