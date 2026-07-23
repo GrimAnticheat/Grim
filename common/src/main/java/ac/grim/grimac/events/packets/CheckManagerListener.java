@@ -437,19 +437,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isDuplicatePacket(player, flying);
-
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 if (player.isStrictDuplicateHandling()) {
                     player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
                     event.setCancelled(true);
+                   return;
                 } else {
                     handleDuplicatePacket(player, event, flying);
                 }
-            }
-
-            // if this could be a duplicate, then queue it until the next non-async packet
-            if (player.packetStateData.queuedDuplicate != null) {
-                return;
             }
 
             player.lastDuplicateLocationThisTick = null;
