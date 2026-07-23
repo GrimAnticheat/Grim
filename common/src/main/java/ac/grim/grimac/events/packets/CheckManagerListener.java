@@ -441,7 +441,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 if (player.isStrictDuplicateHandling()) {
                     player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
                     event.setCancelled(true);
-                   return;
+                    return;
                 } else {
                     handleDuplicatePacket(player, event, flying);
                 }
