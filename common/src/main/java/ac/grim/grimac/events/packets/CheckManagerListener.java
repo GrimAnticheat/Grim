@@ -452,7 +452,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
             }
 
-            player.lastDuplicatePositionThisTick = null;
+            player.lastDuplicateLocationThisTick = null;
             player.lastDuplicateRotationThisTick = null;
         }
 
@@ -636,25 +636,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
 
-        final Vector3d position = flying.getLocation().getPosition();
-        final float yaw = flying.getLocation().getYaw();
-        final float pitch = flying.getLocation().getPitch();
-
-        if (player.isStrictDuplicateHandling()) {
-            // positions must be the same for all duplicates sent in the same tick
-            if (position.equals(player.lastDuplicatePositionThisTick)) return false;
-
-            // rotations must be the same for all duplicates sent in the same tick
-            if (player.lastDuplicateRotationThisTick != null
-                    && (player.lastDuplicateRotationThisTick.yaw() != yaw
-                    || player.lastDuplicateRotationThisTick.pitch() != pitch)) {
-                return false;
-            }
-        }
+        // positions and rotations must be the same for all duplicates sent in the same tick
+        if (player.isStrictDuplicateHandling() && flying.getLocation().equals(player.lastDuplicateLocationThisTick))
+            return false;
 
         // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
         if (player.inVehicle()) return true;
 
+        final Vector3d position = flying.getLocation().getPosition();
         final double threshold = player.getMovementThreshold();
 
         // ground status will never change in duplicate packets
@@ -671,6 +660,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         final float pitch = flying.getLocation().getPitch();
         final Vector3d position = flying.getLocation().getPosition();
 
+        if (player.lastDuplicateLocationThisTick == null) {
+            player.lastDuplicateLocationThisTick = flying.getLocation();
+        }
+
         // Mark that we want this packet to be cancelled from reaching the server
         // Additionally, only yaw and pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
         // 1.9+ isn't impacted by this packet as much.
@@ -686,14 +679,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     pitch
             ));
             event.markForReEncode(true);
-        }
-
-        if (player.lastDuplicatePositionThisTick == null) {
-            player.lastDuplicatePositionThisTick = position;
-        }
-
-        if (player.lastDuplicateRotationThisTick == null) {
-            player.lastDuplicateRotationThisTick = new HeadRotation(yaw, pitch);
         }
 
         player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
