@@ -34,21 +34,20 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
                 || player.packetStateData.isReceivingQueuedDuplicate) return;
 
         QueuedDuplicate queuedDuplicate = player.packetStateData.queuedDuplicate;
+        if (queuedDuplicate == null) return;
 
-        if (queuedDuplicate != null) {
-            player.packetStateData.isReceivingQueuedDuplicate = true;
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM;
+        player.packetStateData.isReceivingQueuedDuplicate = true;
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM;
 
-            WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
+        WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
 
-            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                CheckManagerListener.handleDuplicatePacket(player, queuedDuplicate.event(), packet);
-            }
-
-            player.user.receivePacket(packet);
-
-            player.packetStateData.queuedDuplicate = null;
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
+        if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+            CheckManagerListener.handleDuplicatePacket(player, queuedDuplicate.event(), packet);
         }
+
+        player.user.receivePacket(packet);
+
+        player.packetStateData.queuedDuplicate = null;
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
     }
 }
