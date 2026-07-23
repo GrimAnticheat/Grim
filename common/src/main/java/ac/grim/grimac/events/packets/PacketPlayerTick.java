@@ -31,7 +31,8 @@ public class PacketPlayerTick extends PacketListenerAbstract {
             border.tickBorder();
         } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2))
+            if (player == null || player.packetStateData.isReceivingQueuedDuplicate
+                    || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2))
                 return;
 
             PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
