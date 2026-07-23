@@ -148,6 +148,7 @@ public class GrimPlayer implements GrimUser {
     public double gravity;
     public float friction;
     public double speed;
+    public @Nullable Vector3d lastDuplicatePositionThisTick;
     public @Nullable HeadRotation lastDuplicateRotationThisTick;
     public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
     public double x;

@@ -447,11 +447,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            // if this could be a duplicate, then queue it until the next (non-async) packet
+            // if this could be a duplicate, then queue it until the next non-async packet
             if (player.packetStateData.queuedDuplicate != null) {
                 return;
             }
 
+            player.lastDuplicatePositionThisTick = null;
             player.lastDuplicateRotationThisTick = null;
         }
 
@@ -635,18 +636,25 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
 
+        final Vector3d position = flying.getLocation().getPosition();
         final float yaw = flying.getLocation().getYaw();
         final float pitch = flying.getLocation().getPitch();
 
-        // rotations must be the same for all duplicates sent in the same tick
-        if (player.isStrictDuplicateHandling() && player.lastDuplicateRotationThisTick != null
-                && (player.lastDuplicateRotationThisTick.yaw() != yaw
-                || player.lastDuplicateRotationThisTick.pitch() != pitch)) return false;
+        if (player.isStrictDuplicateHandling()) {
+            // positions must be the same for all duplicates sent in the same tick
+            if (position.equals(player.lastDuplicatePositionThisTick)) return false;
+
+            // rotations must be the same for all duplicates sent in the same tick
+            if (player.lastDuplicateRotationThisTick != null
+                    && (player.lastDuplicateRotationThisTick.yaw() != yaw
+                    || player.lastDuplicateRotationThisTick.pitch() != pitch)) {
+                return false;
+            }
+        }
 
         // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
         if (player.inVehicle()) return true;
 
-        final Vector3d position = flying.getLocation().getPosition();
         final double threshold = player.getMovementThreshold();
 
         // ground status will never change in duplicate packets
@@ -678,6 +686,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     pitch
             ));
             event.markForReEncode(true);
+        }
+
+        if (player.lastDuplicatePositionThisTick == null) {
+            player.lastDuplicatePositionThisTick = position;
         }
 
         if (player.lastDuplicateRotationThisTick == null) {
