@@ -655,7 +655,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 && player.filterMojangStupidityOnMojangStupidity.distanceSquared(position) < threshold * threshold;
     }
 
-    private static void handleDuplicatePacket(
+    public static void handleDuplicatePacket(
             @NotNull GrimPlayer player,
             @NotNull PacketReceiveEvent event,
             @NotNull WrapperPlayClientPlayerFlying flying) {

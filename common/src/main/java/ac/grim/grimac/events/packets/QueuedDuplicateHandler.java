@@ -45,7 +45,7 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
             WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
 
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                CheckManagerListener.handleDuplicate(player, queuedDuplicate.event(), packet);
+                CheckManagerListener.handleDuplicatePacket(player, queuedDuplicate.event(), packet);
             }
 
             player.user.receivePacket(packet);
