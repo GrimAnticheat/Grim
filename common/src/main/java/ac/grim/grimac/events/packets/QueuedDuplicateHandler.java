@@ -37,10 +37,7 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
 
         if (queuedDuplicate != null) {
             player.packetStateData.isReceivingQueuedDuplicate = true;
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM
-                    || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                    && new WrapperPlayClientPlayerBlockPlacement(event).getFaceId() == 255
-                    && event.getServerVersion().isOlderThan(ServerVersion.V_1_9);
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM;
 
             WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
 
