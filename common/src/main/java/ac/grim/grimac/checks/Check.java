@@ -328,6 +328,5 @@ public class Check extends GrimProcessor implements AbstractCheck {
         };
     }
 
-    private record BinaryVerbose(byte @NotNull [] data, @NotNull Supplier<String> rendered) {
-    }
+    private record BinaryVerbose(byte @NotNull [] data, @NotNull Supplier<String> rendered) {}
 }

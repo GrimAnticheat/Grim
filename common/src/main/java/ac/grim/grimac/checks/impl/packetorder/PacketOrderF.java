@@ -100,6 +100,5 @@ public class PacketOrderF extends Check implements PostPredictionCheck {
         flags.clear();
     }
 
-    private record FlagData(int action, boolean sprinting, boolean sneaking) {
-    }
+    private record FlagData(int action, boolean sprinting, boolean sneaking) {}
 }
