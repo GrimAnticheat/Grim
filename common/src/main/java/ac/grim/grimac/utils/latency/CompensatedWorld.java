@@ -110,8 +110,6 @@ public class CompensatedWorld implements PacketWorld {
             if (iter.getKey() <= prediction) {
                 applyBlockChanges(iter.getValue());
                 it.remove();
-            } else {
-                break;
             }
         }
     }
