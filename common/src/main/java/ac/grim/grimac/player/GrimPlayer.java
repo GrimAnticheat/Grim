@@ -149,7 +149,7 @@ public class GrimPlayer implements GrimUser {
     public double gravity;
     public float friction;
     public double speed;
-    public @NotNull Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
+    public final @NotNull Vector3dm filterMojangStupidityOnMojangStupidity = new Vector3dm();
     public double x;
     public double y;
     public double z;
@@ -227,8 +227,8 @@ public class GrimPlayer implements GrimUser {
     public final @NotNull TrigHandler trigHandler = new TrigHandler(this);
     public final @NotNull PacketStateData packetStateData = new PacketStateData();
     // Keep track of basetick stuff
-    public @NotNull Vector3dm baseTickAddition = new Vector3dm();
-    public @NotNull Vector3dm baseTickWaterPushing = new Vector3dm();
+    public final @NotNull Vector3dm baseTickAddition = new Vector3dm();
+    public final @NotNull Vector3dm baseTickWaterPushing = new Vector3dm();
     public @NotNull Vector3dm startTickClientVel = new Vector3dm();
     public @Nullable VelocityData firstBreadKB;
     public @Nullable VelocityData likelyKB;

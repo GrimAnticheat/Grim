@@ -738,7 +738,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Duplicate packets don't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                player.filterMojangStupidityOnMojangStupidity = clampVector;
+                player.filterMojangStupidityOnMojangStupidity.copy(clampVector);
             }
 
             if (!player.inVehicle() && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {

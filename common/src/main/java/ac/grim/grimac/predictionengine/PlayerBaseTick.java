@@ -45,8 +45,8 @@ public final class PlayerBaseTick {
 
     public static void doBaseTick(GrimPlayer player) {
         // Keep track of basetick stuff
-        player.baseTickAddition = new Vector3dm();
-        player.baseTickWaterPushing = new Vector3dm();
+        player.baseTickAddition.zero();
+        player.baseTickWaterPushing.zero();
 
         if (player.isFlying && player.isSneaking && !player.inVehicle()) {
             Vector3dm flyingShift = new Vector3dm(0, player.flySpeed * -3, 0);
