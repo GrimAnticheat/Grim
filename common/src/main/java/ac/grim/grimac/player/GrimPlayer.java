@@ -102,7 +102,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Everything in this class should be sync'd to the anticheat thread.
-// Put variables sync'd to the netty thread in PacketStateData
+// Put variables sync'd to the Netty thread in PacketStateData
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
@@ -156,7 +156,7 @@ public class GrimPlayer implements GrimUser {
     public double lastX;
     public double lastY;
     public double lastZ;
-    // mojang uses xRot pitch and yRot for yaw
+    // Mojang uses xRot pitch and yRot for yaw
     public float yaw;
     public float pitch;
     public float lastYaw;
@@ -230,8 +230,6 @@ public class GrimPlayer implements GrimUser {
     public @NotNull Vector3dm baseTickAddition = new Vector3dm();
     public @NotNull Vector3dm baseTickWaterPushing = new Vector3dm();
     public @NotNull Vector3dm startTickClientVel = new Vector3dm();
-    // For syncing the player's full swing in 1.9+
-    public int movementPackets;
     public @Nullable VelocityData firstBreadKB;
     public @Nullable VelocityData likelyKB;
     public @Nullable VelocityData firstBreadExplosion;

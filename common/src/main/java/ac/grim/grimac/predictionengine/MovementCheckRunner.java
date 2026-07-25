@@ -148,8 +148,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             return;
         }
 
-        player.movementPackets++;
-
         player.onGround = update.isOnGround();
 
         // This is here to prevent abuse of sneaking
