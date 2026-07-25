@@ -14,11 +14,11 @@ public abstract class AbstractFabricGrimEntity<T> implements GrimEntity {
     protected volatile T entity;
 
     public AbstractFabricGrimEntity(T entity) {
-        this.entity = Objects.requireNonNull(entity);
+        this.entity = Objects.requireNonNull(entity, "entity");
     }
 
     protected void setNativeEntity(T entity) {
-        this.entity = Objects.requireNonNull(entity);
+        this.entity = Objects.requireNonNull(entity, "entity");
     }
 
     protected FabricEntityHandle entityHandle() {

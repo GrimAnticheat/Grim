@@ -85,9 +85,7 @@ public class Slot {
         return this.container.removeItem(this.inventoryStorageSlot, amount);
     }
 
-    public void onTake(GrimPlayer player, ItemStack itemStack) {
-
-    }
+    public void onTake(GrimPlayer player, ItemStack itemStack) {}
 
     // No override
     public boolean allowModification(GrimPlayer player) {

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.Objects.requireNonNull;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -39,7 +39,7 @@ public class EmbedFooter implements JsonSerializable {
 
     @Contract(value = "_ -> this", mutates = "this")
     public @NotNull EmbedFooter text(@NotNull String text) {
-        requireNonNull(text, "Embed footer text cannot be null!");
+        Objects.requireNonNull(text, "Embed footer text cannot be null!");
         if (text.length() > MAX_TEXT_LENGTH) {
             throw new IllegalArgumentException("Embed footer text too long, " + text.length() + " > " + MAX_TEXT_LENGTH);
         }

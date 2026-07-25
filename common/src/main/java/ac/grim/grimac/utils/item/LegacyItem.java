@@ -82,7 +82,7 @@ public class LegacyItem extends ItemBehaviour {
                 && item.getDamageValue() < item.getMaxDamage() - 1 // Player can't use item if it's "about to break"
                 && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13_2)
                 || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
-            return item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0;
+            return item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0;
         }
 
         // Players in survival can't use a bow without an arrow

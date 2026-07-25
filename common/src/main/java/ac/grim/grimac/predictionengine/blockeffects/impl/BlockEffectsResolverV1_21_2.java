@@ -22,7 +22,7 @@ import java.util.Set;
 // 1.21.2-1.21.3
 public class BlockEffectsResolverV1_21_2 implements BlockEffectsResolver {
 
-    public static BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_2();
+    public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_2();
 
     @Override
     public void applyEffectsFromBlocks(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, List<GrimPlayer.Movement> movements) {
@@ -110,7 +110,7 @@ public class BlockEffectsResolverV1_21_2 implements BlockEffectsResolver {
             }
 
             Optional<Vector3d> collisionPoint = BlockCollisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
-            if (!collisionPoint.isEmpty()) {
+            if (collisionPoint.isPresent()) {
                 Vector3d collisionVec = collisionPoint.get();
                 double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
                 double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);

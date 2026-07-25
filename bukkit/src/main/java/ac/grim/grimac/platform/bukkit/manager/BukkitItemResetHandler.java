@@ -65,7 +65,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
             if (version.isNewerThanOrEquals(ServerVersion.V_1_10)) {
                 isUsingItem = Player::isHandRaised;
             } else {
-                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage, "nmsPackage")) {
                     case "v1_8_R3" -> "bS";
                     case "v1_9_R1" -> "cs";
                     case "v1_9_R2" -> "ct";
@@ -89,7 +89,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                           : InteractionHand.MAIN_HAND
                         : null;
             } else {
-                Method method = clazz.getMethod(nmsPackage != null ? switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(nmsPackage != null ? switch (Objects.requireNonNull(nmsPackage, "nmsPackage")) {
                     case "v1_9_R1" -> "ct";
                     case "v1_9_R2" -> "cu";
                     case "v1_10_R1" -> "cy";

@@ -477,20 +477,20 @@ public final class Collisions {
 
         if (!onlyApplyVelocity && blockType == StateTypes.COBWEB) {
             if (stuckEntityIsLiving && player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB_WEAVING);
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB_WEAVING;
             } else {
-                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB);
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB;
             }
         }
 
         if (!onlyApplyVelocity && stuckEntityIsLiving && blockType == StateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.setStuckSpeedMultiplier(StuckSpeed.SWEET_BERRY_BUSH);
+            player.stuckSpeedMultiplier = StuckSpeed.SWEET_BERRY_BUSH;
         }
 
         if (!onlyApplyVelocity && blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.setStuckSpeedMultiplier(StuckSpeed.POWDER_SNOW);
+            player.stuckSpeedMultiplier = StuckSpeed.POWDER_SNOW;
         }
 
         if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
@@ -590,7 +590,7 @@ public final class Collisions {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.setStuckSpeedMultiplier(StuckSpeed.NONE);
+            player.stuckSpeedMultiplier = StuckSpeed.NONE;
         }
     }
 

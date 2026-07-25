@@ -180,12 +180,13 @@ public class PredictionEngine {
             }
         }
 
+        Objects.requireNonNull(bestCollisionVel, "bestCollisionVel");
         Objects.requireNonNull(beforeCollisionMovement, "beforeCollisionMovement");
         Objects.requireNonNull(realBeforeCollisionMovement, "realBeforeCollisionMovement");
 
         player.clientVelocity = realBeforeCollisionMovement.clone();
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
-        player.setStuckSpeedMultiplier(bestCollisionVel.stuckSpeedMultiplier);
+        player.stuckSpeedMultiplier = bestCollisionVel.stuckSpeedMultiplier;
         player.boundingBox = originalBB;
 
         // If the closest vector is 0.03, consider it 0.03.

@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align: center;">
  <h1>GrimAC</h1>
 
  <div>
@@ -19,7 +19,7 @@
 </div>
 
 GrimAC is an open source Minecraft anticheat designed to support the latest versions of Minecraft.
-It currently supports minecraft versions 1.8–26.2. Geyser players are fully exempt from the anticheat to prevent false positives.
+It currently supports Minecraft versions 1.8–26.2. Geyser players are fully exempt from the anticheat to prevent false positives.
 This project is considered feature-complete for the 2.0 (open-source) branch. If you would like a bug fix or enhancement and cannot sponsor the work, pull requests are welcome.
 A premium version is planned, which will offer additional subscription-based paid checks, such as heuristics.
 
@@ -38,7 +38,7 @@ A premium version is planned, which will offer additional subscription-based pai
 - Java 17 or higher. *For more details, see [Updating-to-Java-17](https://github.com/GrimAnticheat/Grim/wiki/Updating-to-Java-17).*
 - A Spigot, Paper, Folia, or Fabric server environment. *For more details, see [Supported-environments](https://github.com/GrimAnticheat/Grim/wiki/Supported-environments).*
 
-If you use a proxy such as Velocity or Bungeecord:
+If you use a proxy such as Velocity or BungeeCord:
 - If you use Geyser, Floodgate must be installed on the backend server (where Grim is) so Grim can access the Floodgate API.
 - If you use ViaVersion, it must be installed on the backend server (where Grim is) ONLY.
   Grim does not support having ViaVersion installed on the proxy, even if it is also installed on the backend.
@@ -92,7 +92,7 @@ What makes Grim stand out against other anticheats?
 
 ### Fully asynchronous and multithreaded design
 
-* All movement checks and the overwhelming majority of listeners run on the netty thread
+* All movement checks and the overwhelming majority of listeners run on the Netty thread
 * The anticheat can scale to many hundreds of players, if not more
 * Thread safety is carefully thought out
 * The next core allows for this design

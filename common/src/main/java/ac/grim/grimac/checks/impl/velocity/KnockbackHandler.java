@@ -102,7 +102,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
         return new Pair<>(null, null);
     }
 
-    private void addPlayerKnockback(int entityID, int breadOne, Vector3dm knockback) {
+    private void addPlayerKnockback(int entityID, int breadOne, @NotNull Vector3dm knockback) {
         firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 
@@ -131,11 +131,13 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
                 //firstBreadMap.poll();
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
+                VelocityData velocityData = new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector);
+
                 if (firstBreadOnlyKnockback != null) { // Don't require kb twice
-                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector, data.isSetback, data.offset));
-                } else {
-                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector));
+                    velocityData.offset = data.offset;
                 }
+
+                lastKnockbackKnownTaken.add(velocityData);
 
                 // Knockback has been applied and is now required, remove it from first bread
                 firstBreadOnlyKnockback = null;

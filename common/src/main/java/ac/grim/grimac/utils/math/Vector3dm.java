@@ -121,6 +121,13 @@ public class Vector3dm implements Cloneable, Serializable {
         return this;
     }
 
+    public @NotNull Vector3dm copy(@NotNull Vector3d vec) {
+        this.x = vec.x;
+        this.y = vec.y;
+        this.z = vec.z;
+        return this;
+    }
+
     public double length() {
         return Math.sqrt(GrimMath.square(this.x) + GrimMath.square(this.y) + GrimMath.square(this.z));
     }
@@ -133,7 +140,15 @@ public class Vector3dm implements Cloneable, Serializable {
         return Math.sqrt(distanceSquared(o));
     }
 
+    public double distance(@NotNull Vector3d o) {
+        return Math.sqrt(distanceSquared(o));
+    }
+
     public double distanceSquared(@NotNull Vector3dm o) {
+        return distanceSquared(o.x, o.y, o.z);
+    }
+
+    public double distanceSquared(@NotNull Vector3d o) {
         return distanceSquared(o.x, o.y, o.z);
     }
 

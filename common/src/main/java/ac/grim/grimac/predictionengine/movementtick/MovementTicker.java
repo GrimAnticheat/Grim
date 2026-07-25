@@ -253,7 +253,7 @@ public class MovementTicker {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.setStuckSpeedMultiplier(StuckSpeed.NONE);
+            player.stuckSpeedMultiplier = StuckSpeed.NONE;
         }
     }
 

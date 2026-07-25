@@ -17,8 +17,8 @@ public class FloatInputTransformer implements InputTransformer<FloatInput> { // 
             bestPossibleX = sideways * player.sneakingSpeedMultiplier;
             bestPossibleZ = forward * player.sneakingSpeedMultiplier;
         } else {
-            bestPossibleX = Math.min(Math.max(-1f, Math.round(sideways)), 1f);
-            bestPossibleZ = Math.min(Math.max(-1f, Math.round(forward)), 1f);
+            bestPossibleX = GrimMath.clamp(sideways, -1, 1);
+            bestPossibleZ = GrimMath.clamp(forward, -1, 1);
         }
 
         if (player.packetStateData.isSlowedByUsingItem()) {

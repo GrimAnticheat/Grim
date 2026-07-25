@@ -28,12 +28,12 @@ public class GrimAlerts implements BuildableCommand {
     private void handleAlerts(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         if (sender.isPlayer()) {
-            PlatformPlayer p = Objects.requireNonNull(context.sender().getPlatformPlayer());
+            PlatformPlayer player = Objects.requireNonNull(context.sender().getPlatformPlayer(), "player");
             AlertManagerImpl am = GrimAPI.INSTANCE.getAlertManager();
-            boolean newState = !am.hasAlertsEnabled(p);
-            am.setAlertsEnabled(p, newState, false);
+            boolean newState = !am.hasAlertsEnabled(player);
+            am.setAlertsEnabled(player, newState, false);
             GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore()
-                    .applyUserToggle(p.getUniqueId(), PlayerToggleStore.KEY_ALERTS, newState);
+                    .applyUserToggle(player.getUniqueId(), PlayerToggleStore.KEY_ALERTS, newState);
         } else if (sender.isConsole()) {
             GrimAPI.INSTANCE.getAlertManager().toggleConsoleAlerts();
         }

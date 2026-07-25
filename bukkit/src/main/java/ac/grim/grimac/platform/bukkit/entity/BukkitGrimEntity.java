@@ -23,7 +23,7 @@ public class BukkitGrimEntity implements GrimEntity {
     private BukkitPlatformWorld bukkitPlatformWorld;
 
     public BukkitGrimEntity(Entity entity) {
-        this.entity = Objects.requireNonNull(entity);
+        this.entity = Objects.requireNonNull(entity, "entity");
     }
 
     public Entity getBukkitEntity() {

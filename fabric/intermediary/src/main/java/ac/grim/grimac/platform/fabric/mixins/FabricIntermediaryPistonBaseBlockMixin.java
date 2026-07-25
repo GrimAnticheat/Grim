@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3d;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -23,30 +25,30 @@ import java.util.List;
 @Mixin(PistonBaseBlock.class)
 public class FabricIntermediaryPistonBaseBlockMixin {
 
-    private static final double MAX_HORIZONTAL_DISTANCE = 24.0;
-    private static final double MAX_VERTICAL_DISTANCE = 64.0;
+    @Unique
+    private static final double grimac$MAX_HORIZONTAL_DISTANCE = 24.0;
+    @Unique
+    private static final double grimac$MAX_VERTICAL_DISTANCE = 64.0;
 
-
-    private static boolean isCloseEnough(int ax, int ay, int az, double bx, double by, double bz) {
-        return Math.abs(ax - bx) <= MAX_HORIZONTAL_DISTANCE
-                && Math.abs(ay - by) <= MAX_VERTICAL_DISTANCE
-                && Math.abs(az - bz) <= MAX_HORIZONTAL_DISTANCE;
+    @Unique
+    private static boolean grimac$isCloseEnough(int ax, int ay, int az, double bx, double by, double bz) {
+        return Math.abs(ax - bx) <= grimac$MAX_HORIZONTAL_DISTANCE
+                && Math.abs(ay - by) <= grimac$MAX_VERTICAL_DISTANCE
+                && Math.abs(az - bz) <= grimac$MAX_HORIZONTAL_DISTANCE;
     }
 
-    @Redirect(method = "moveBlocks",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/piston/PistonStructureResolver;resolve()Z"))
-    private boolean grimac$onPistonResolve(PistonStructureResolver resolver,
-                                           Level level, BlockPos pistonPos, Direction direction, boolean extending) {
+    @Redirect(method = "moveBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/piston/PistonStructureResolver;resolve()Z"))
+    private boolean grimac$onPistonResolve(PistonStructureResolver resolver, Level level, BlockPos pistonPos, Direction direction, boolean extending) {
         boolean resolved = resolver.resolve();
         if (resolved) {
-            handlePiston(resolver, level, pistonPos, direction, extending);
+            grimac$handlePiston(resolver, level, pistonPos, direction, extending);
         }
         return resolved;
     }
 
-    private static void handlePiston(PistonStructureResolver resolver, Level level,
-                                     BlockPos pistonPos, Direction direction, boolean extending) {
+    @Unique
+    private static void grimac$handlePiston(PistonStructureResolver resolver, Level level,
+                                            BlockPos pistonPos, Direction direction, boolean extending) {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
 
@@ -82,8 +84,8 @@ public class FabricIntermediaryPistonBaseBlockMixin {
         final int px = pistonPos.getX(), py = pistonPos.getY(), pz = pistonPos.getZ();
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            var pos = player.compensatedEntities.self.trackedServerPosition.getPos();
-            if (isCloseEnough(px, py, pz, pos.getX(), pos.getY(), pos.getZ()) && player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) {
+            Vector3d pos = player.compensatedEntities.self.trackedServerPosition.getPos();
+            if (grimac$isCloseEnough(px, py, pz, pos.getX(), pos.getY(), pos.getZ()) && player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) {
                 int lastTrans = player.lastTransactionSent.get();
                 PistonData data = new PistonData(blockFace, boxes, lastTrans, extending, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));

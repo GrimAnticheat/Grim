@@ -68,24 +68,22 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
     public SimpleCollisionBox offset(double x, double y, double z) {
         // In case you want to call .offset() again or get the box values without offset.
         resetBlockStateOffSet();
-        long l;
-        switch (offsetType) {
-            case NONE:
-                return super.offset(x, y, z);
-            case XZ:
-                l = GrimMath.hashCode(x, 0, z);
+        return switch (offsetType) {
+            case NONE -> super.offset(x, y, z);
+            case XZ -> {
+                long l = GrimMath.hashCode(x, 0, z);
                 offsetX = GrimMath.clamp(((double) ((float) (l & 15L) / 15.0F) - 0.5) * 0.5, -maxHorizontalModelOffset, maxHorizontalModelOffset);
                 offsetZ = GrimMath.clamp(((double) ((float) (l >> 8 & 15L) / 15.0F) - 0.5) * 0.5, -maxHorizontalModelOffset, maxHorizontalModelOffset);
-                return super.offset(x + offsetX, y, z + offsetZ);
-            case XYZ:
-                l = GrimMath.hashCode(x, 0, z);
+                yield super.offset(x + offsetX, y, z + offsetZ);
+            }
+            case XYZ -> {
+                long l = GrimMath.hashCode(x, 0, z);
                 offsetY = ((double) ((float) (l >> 4 & 15L) / 15.0F) - 1.0) * (double) maxVerticalModelOffset;
                 offsetX = GrimMath.clamp(((double) ((float) (l & 15L) / 15.0F) - 0.5) * 0.5, -maxHorizontalModelOffset, maxHorizontalModelOffset);
                 offsetZ = GrimMath.clamp(((double) ((float) (l >> 8 & 15L) / 15.0F) - 0.5) * 0.5, -maxHorizontalModelOffset, maxHorizontalModelOffset);
-                return super.offset(x + offsetX, offsetY, z + offsetZ);
-        }
-        // You *really* shouldn't be using this class if offsetType = null
-        return null;
+                yield super.offset(x + offsetX, offsetY, z + offsetZ);
+            }
+        };
     }
 
     public void resetBlockStateOffSet() {

@@ -401,31 +401,14 @@ public final class ConfigUpdater {
      * {@link #updateAll(Map)} batch (else the queued ops get dropped with a
      * warning at flush time).
      */
-    private static final class ContextImpl implements MigrationContext {
-        private final YamlMap input;
-        private final YamlMap output;
-        private final Map<String, File> filesByName;
-        private final Map<String, Map<String, Object>> siblingReadViews;
-        private final Map<String, List<WriteLog.Entry>> pendingCrossFile;
-        private final Logger logger;
-
-        ContextImpl(YamlMap input,
-                    YamlMap output,
-                    Map<String, File> filesByName,
-                    Map<String, Map<String, Object>> siblingReadViews,
-                    Map<String, List<WriteLog.Entry>> pendingCrossFile,
-                    Logger logger) {
-            this.input = input;
-            this.output = output;
-            this.filesByName = filesByName;
-            this.siblingReadViews = siblingReadViews;
-            this.pendingCrossFile = pendingCrossFile;
-            this.logger = logger;
-        }
-
-        @Override public @NotNull YamlMap input() { return input; }
-        @Override public @NotNull YamlMap output() { return output; }
-
+    private record ContextImpl(
+            @NotNull YamlMap input,
+            @NotNull YamlMap output,
+            Map<String, File> filesByName,
+            Map<String, Map<String, Object>> siblingReadViews,
+            Map<String, List<WriteLog.Entry>> pendingCrossFile,
+            Logger logger
+    ) implements MigrationContext {
         @Override
         public @NotNull YamlMap otherFile(@NotNull String fileName) {
             File f = filesByName.get(fileName);

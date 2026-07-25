@@ -6,9 +6,14 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @UtilityClass
 public class FluidFallingAdjustedMovement {
-    public static Vector3dm getFluidFallingAdjustedMovement(@NotNull GrimPlayer player, double gravity, boolean isFalling, Vector3dm velocity) {
+    public static @NotNull Vector3dm getFluidFallingAdjustedMovement(@NotNull GrimPlayer player, double gravity, boolean isFalling, @NotNull Vector3dm velocity) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(velocity, "velocity");
+
         if (!player.hasGravity || player.isSprinting) return velocity;
         isFalling = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? isFalling : velocity.getY() < 0;
         double newY = isFalling && Math.abs(velocity.getY() - 0.005) >= 0.003 && Math.abs(velocity.getY() - gravity / 16.0) < 0.003 ? -0.003 : velocity.getY() - gravity / 16.0;
