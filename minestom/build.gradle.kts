@@ -51,6 +51,7 @@ dependencies {
     // damit sie an alle Konsumenten (:anticheat / :game-*) propagieren. Beginn des Phase-3-„long
     // tail": bei jedem weiteren NoClassDefFound beim Grim-Boot kommt die nächste Lib dazu.
     runtimeOnly("com.google.guava:guava:33.4.0-jre") // GrimAPI.<init> nutzt guava (ClassToInstanceMap u.a.)
+    runtimeOnly("org.xerial:sqlite-jdbc:3.46.1.3") // Grims Default-Datastore (SqliteBackendV2) lädt org.sqlite.JDBC
 }
 
 tasks.withType<JavaCompile> {
