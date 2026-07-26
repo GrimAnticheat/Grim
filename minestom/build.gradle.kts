@@ -45,6 +45,12 @@ dependencies {
 
     // Minestom liefern die konsumierenden Module zur Laufzeit; hier nur zum Kompilieren.
     compileOnly("net.minestom:minestom:2026.07.22-26.2")
+
+    // Runtime-Libs, die Grims :common erwartet, dass die PLATTFORM sie liefert (auf Bukkit vom
+    // Paper-Server, auf Fabric vom Spiel) — Minestom bringt sie NICHT mit. Als runtimeOnly hier,
+    // damit sie an alle Konsumenten (:anticheat / :game-*) propagieren. Beginn des Phase-3-„long
+    // tail": bei jedem weiteren NoClassDefFound beim Grim-Boot kommt die nächste Lib dazu.
+    runtimeOnly("com.google.guava:guava:33.4.0-jre") // GrimAPI.<init> nutzt guava (ClassToInstanceMap u.a.)
 }
 
 tasks.withType<JavaCompile> {
