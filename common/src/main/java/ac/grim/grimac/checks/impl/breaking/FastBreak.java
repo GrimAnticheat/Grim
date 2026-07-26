@@ -74,6 +74,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
             targetBlockPosition = blockBreak.position;
 
+            // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
             double breakDelay = System.currentTimeMillis() - lastFinishBreak;

@@ -29,7 +29,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
         super(player);
     }
 
-    // The client sometimes sends a wierd cancel packet
+    // The client sometimes sends a weird cancel packet
     private boolean shouldExempt(final WrappedBlockState block, int yPos) {
         // lastLastBlock is always null when this happens, and lastBlock isn't
         if (lastLastBlock != null || lastBlock == null)
@@ -39,6 +39,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) && yPos != exemptedY)
             return false;
 
+        // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
         // and if this block is not an instant break
         return player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || getBlockDamage(player, block) < 1;
     }
@@ -48,6 +49,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
             final Vector3i pos = blockBreak.position;
 
+            // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
             lastBlockWasInstantBreak = getBlockDamage(player, blockBreak.block) >= 1;
             lastCancelledBlock = null;
             lastLastBlock = lastBlock;
