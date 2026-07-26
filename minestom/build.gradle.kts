@@ -2,7 +2,10 @@
 // Rein additiv: implementiert Grims platform.api gegen Minestom + das packetevents-minestom-
 // Binding, ohne :common / :api anzufassen → Upstream-Update bleibt ein konfliktfreies Rebase.
 plugins {
-    java
+    // java-library (nicht nur java): MinestomPlatformLoader implements PlatformLoader (aus :common),
+    // d.h. :common-Typen sind Teil der ÖFFENTLICHEN API dieses Moduls. Nur mit java-library gibt es
+    // die `api`-Konfiguration, die diese Typen an Konsumenten (:anticheat, :game-*) weiterreicht.
+    `java-library`
 }
 
 repositories {
@@ -29,9 +32,11 @@ java {
 }
 
 dependencies {
-    // Grims plattform-agnostischer Kern. implementation (nicht compileOnly), damit dessen
-    // api-Abhängigkeiten (cloud, configuralize, …) auf dem Compile-Classpath liegen.
-    implementation(project(":common"))
+    // Grims plattform-agnostischer Kern. api (nicht implementation), weil PlatformLoader &
+    // die übrigen platform.api-Typen in den Signaturen dieses Moduls auftauchen und daher auf
+    // dem Compile-Classpath der Konsumenten sichtbar sein müssen (sonst: "Kein Zugriff auf
+    // PlatformLoader" beim Kompilieren von AnticheatBootstrap).
+    api(project(":common"))
 
     // PacketEvents-API ist in :common nur compileOnly (jede Plattform bündelt PE selbst) → hier
     // explizit, weil die Adapter PE-Typen (ItemStack/GameMode/WrappedBlockState/Vector3d) nutzen.
