@@ -75,6 +75,7 @@ if (gradle.startParameter.isBuildScan) {
 rootProject.name = "grimac"
 include("common")
 include("bukkit")
+include("minestom") // additives Minestom-Platform-Modul (OnThePixel-Port), Geschwister zu bukkit/fabric
 include("fabric")
 include(":fabric:shared")
 include(":fabric:intermediary")
