@@ -33,6 +33,11 @@ dependencies {
     // api-Abhängigkeiten (cloud, configuralize, …) auf dem Compile-Classpath liegen.
     implementation(project(":common"))
 
+    // PacketEvents-API ist in :common nur compileOnly (jede Plattform bündelt PE selbst) → hier
+    // explizit, weil die Adapter PE-Typen (ItemStack/GameMode/WrappedBlockState/Vector3d) nutzen.
+    // Zur Laufzeit liefert das konsumierende Modul das packetevents-minestom-Binding.
+    compileOnly(libs.packetevents.api)
+
     // Minestom liefern die konsumierenden Module zur Laufzeit; hier nur zum Kompilieren.
     compileOnly("net.minestom:minestom:2026.07.22-26.2")
 }
