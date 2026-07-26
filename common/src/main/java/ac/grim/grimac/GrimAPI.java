@@ -76,6 +76,10 @@ public final class GrimAPI {
         if (ReflectionUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) return Platform.FOLIA;
         if (ReflectionUtils.hasClass("org.bukkit.Bukkit")) return Platform.BUKKIT;
         if (ReflectionUtils.hasClass("net.fabricmc.loader.api.FabricLoader")) return Platform.FABRIC;
+        // Minestom (OnThePixel additive port): no Bukkit/Fabric/Folia marker on the classpath.
+        // Report BUKKIT — single tick thread, non-region (FOLIA would imply region threading Minestom
+        // lacks). Lets Grim auto-detect Minestom with no -DGrimPlatformOverride launch flag required.
+        if (ReflectionUtils.hasClass("net.minestom.server.MinecraftServer")) return Platform.BUKKIT;
         throw new IllegalStateException("Unknown platform!");
     }
 
