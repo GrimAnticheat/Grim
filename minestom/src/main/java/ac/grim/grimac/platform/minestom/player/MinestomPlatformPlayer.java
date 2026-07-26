@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.api.player.PlatformInventory;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.platform.minestom.MinestomGrimBridge;
 import ac.grim.grimac.platform.minestom.sender.MinestomSenderFactory;
 import ac.grim.grimac.platform.minestom.world.MinestomPlatformWorld;
 import ac.grim.grimac.utils.math.Location;
@@ -26,9 +27,9 @@ import java.util.concurrent.CompletableFuture;
  * Grim {@link PlatformPlayer} over a Minestom {@link Player}. Wraps position, inventory,
  * game-mode, packet/message sending, etc.
  * <p>
- * TODO Phase 4: {@link #hasPermission} returns {@code false} (no bypass, no alerts) until the
- * monorepo's group system is bridged. TODO Phase 3: {@link #getVehicle} returns {@code null}
- * (vehicle-mount checks) pending a generic {@code MinestomGrimEntity} wrapper.
+ * {@link #hasPermission} routes through {@link MinestomGrimBridge} (installed by the monorepo glue
+ * to its custom group system; deny-all until installed). TODO Phase 3: {@link #getVehicle} returns
+ * {@code null} (vehicle-mount checks) pending a generic {@code MinestomGrimEntity} wrapper.
  */
 public final class MinestomPlatformPlayer implements PlatformPlayer {
 
@@ -125,12 +126,12 @@ public final class MinestomPlatformPlayer implements PlatformPlayer {
 
     @Override
     public boolean hasPermission(String s) {
-        return false; // TODO Phase 4: bridge to the monorepo group system
+        return MinestomGrimBridge.hasPermission(player, s);
     }
 
     @Override
     public boolean hasPermission(String s, boolean defaultIfUnset) {
-        return defaultIfUnset;
+        return MinestomGrimBridge.hasPermission(player, s) || defaultIfUnset;
     }
 
     @Override
