@@ -2,15 +2,25 @@ package ac.grim.grimac.platform.minestom;
 
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.minestom.sender.MinestomSenderFactory;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandSender;
 
 /**
- * First Minestom implementation of Grim's {@link PlatformServer} SPI — the scaffold that
- * proves the additive {@code grim-minestom} module compiles against Grim {@code common}
- * (Phase 2, Task 2.0). The remaining {@code platform.api} interfaces (PlatformLoader,
- * PlatformPlayerFactory, the schedulers, sender, command, world, …) are implemented in the
- * follow-up Phase 2 tasks; methods that need those are stubbed with a clear TODO for now.
+ * Minestom implementation of Grim's {@link PlatformServer}.
+ * <p>
+ * TODO Phase 3: {@link #getTPS} returns the fixed target rate; a measured TPS needs tick-time
+ * sampling. Minestom needs no outgoing plugin-channel registration, so that call is a no-op.
  */
 public final class MinestomPlatformServer implements PlatformServer {
+
+    private static final double MINESTOM_TARGET_TPS = 20.0D;
+
+    private final MinestomSenderFactory senderFactory;
+
+    public MinestomPlatformServer(MinestomSenderFactory senderFactory) {
+        this.senderFactory = senderFactory;
+    }
 
     @Override
     public String getPlatformImplementationString() {
@@ -19,22 +29,21 @@ public final class MinestomPlatformServer implements PlatformServer {
 
     @Override
     public void dispatchCommand(Sender sender, String command) {
-        throw new UnsupportedOperationException("TODO Phase 2: dispatch via MinestomCommands/CommandManager");
+        MinecraftServer.getCommandManager().execute((CommandSender) sender.getNativeSender(), command);
     }
 
     @Override
     public Sender getConsoleSender() {
-        throw new UnsupportedOperationException("TODO Phase 2: Minestom console Sender");
+        return senderFactory.wrap(MinecraftServer.getCommandManager().getConsoleSender());
     }
 
     @Override
     public void registerOutgoingPluginChannel(String name) {
-        throw new UnsupportedOperationException("TODO Phase 2: Minestom plugin messaging channel");
+        // Minestom does not require registering outgoing plugin-message channels.
     }
 
     @Override
     public double getTPS() {
-        // Minestom targets a fixed tick rate; a measured value comes with the scheduler work.
-        return 20.0D;
+        return MINESTOM_TARGET_TPS;
     }
 }
