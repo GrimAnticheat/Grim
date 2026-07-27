@@ -103,7 +103,12 @@ public final class BoundingBoxSize {
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0.98f;
         } else if (type == EntityTypes.PLAYER || type == EntityTypes.MANNEQUIN) {
-            return 0.6f;
+            float width = packetEntity.currentPose.width;
+            if (packetEntity.transitionalPose != null) {
+                width = Math.max(width, packetEntity.transitionalPose.width);
+            }
+
+            return width;
         } else if (type == EntityTypes.POLAR_BEAR) {
             return 1.4f;
         } else if (type == EntityTypes.RAVAGER) {
@@ -372,7 +377,12 @@ public final class BoundingBoxSize {
 
             return 1.8f;
         } else if (type == EntityTypes.PLAYER || type == EntityTypes.MANNEQUIN) {
-            return 1.8f;
+            float height = packetEntity.currentPose.height;
+            if (packetEntity.transitionalPose != null) {
+                height = Math.max(height, packetEntity.transitionalPose.height);
+            }
+
+            return height;
         } else if (type == EntityTypes.POLAR_BEAR) {
             return 1.4f;
         } else if (type == EntityTypes.PUFFERFISH) {

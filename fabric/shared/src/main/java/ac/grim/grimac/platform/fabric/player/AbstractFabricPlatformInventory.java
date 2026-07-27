@@ -5,9 +5,13 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.fabric.FabricPlatformServices;
 import ac.grim.grimac.platform.fabric.inject.FabricServerPlayerHandle;
 import ac.grim.grimac.platform.fabric.utils.FabricItemContextHook;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public abstract class AbstractFabricPlatformInventory implements PlatformInventory {
+
+    private static final boolean HAS_OFFHAND = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
 
     protected final PlatformPlayer fabricPlatformPlayer;
 
@@ -42,7 +46,7 @@ public abstract class AbstractFabricPlatformInventory implements PlatformInvento
 
     @Override
     public ItemStack getItemInOffHand() {
-        return convert(handle().inventoryItemAt(40));
+        return HAS_OFFHAND ? convert(handle().inventoryItemAt(40)) : ItemStack.EMPTY;
     }
 
     @Override

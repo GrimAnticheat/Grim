@@ -12,6 +12,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,15 +27,22 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Caches toggle messages for performance.
  */
 public final class AlertManagerImpl implements AlertManager, ConfigReloadable, StartableInitable {
-    private static @NotNull PlatformServer platformServer;
+    private static @MonotonicNonNull PlatformServer platformServer;
 
     private enum AlertType {
-        NORMAL, VERBOSE, BRAND;
+        NORMAL("%prefix% &fAlerts enabled", "%prefix% &fAlerts disabled"),
+        VERBOSE("%prefix% &fVerbose enabled", "%prefix% &fVerbose disabled"),
+        BRAND("%prefix% &fBrands enabled", "%prefix% &fBrands disabled");
 
-        public String enableMessage;
-        public String disableMessage;
-        public final Set<PlatformPlayer> players = new CopyOnWriteArraySet<>();
+        public @NotNull String enableMessage;
+        public @NotNull String disableMessage;
+        public final @NotNull Set<@NotNull PlatformPlayer> players = new CopyOnWriteArraySet<>();
         public boolean console;
+
+        AlertType(@NotNull String enableMessage, @NotNull String disableMessage) {
+            this.enableMessage = enableMessage;
+            this.disableMessage = disableMessage;
+        }
 
         @Contract(pure = true)
         public boolean hasListeners() {
@@ -42,7 +50,7 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         }
 
         @Contract(pure = true)
-        public String getToggleMessage(boolean enabled) {
+        public @NotNull String getToggleMessage(boolean enabled) {
             return enabled ? enableMessage : disableMessage;
         }
 
@@ -156,24 +164,28 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
         setPlayerStateAndNotify(requirePlatformPlayerFromUser(player), enabled, silent, AlertType.BRAND);
     }
 
+    @Deprecated
     @Override
     public boolean hasAlertsEnabled(Player player) {
         if (player == null) return false;
         return hasAlertsEnabled(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
     }
 
+    @Deprecated
     @Override
     public void toggleAlerts(Player player) {
         if (player == null) return;
         toggleAlerts(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
     }
 
+    @Deprecated
     @Override
     public boolean hasVerboseEnabled(Player player) {
         if (player == null) return false;
         return hasVerboseEnabled(GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player));
     }
 
+    @Deprecated
     @Override
     public void toggleVerbose(Player player) {
         if (player == null) return;

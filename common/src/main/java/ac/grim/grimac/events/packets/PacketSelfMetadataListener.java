@@ -138,20 +138,21 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 }
 
                 EntityData<?> bedObject = WatchableIndexUtil.getIndex(metadata, id);
-                if (bedObject != null) {
+                if (bedObject != null && bedObject.getValue() instanceof Optional<?> optional) {
                     if (!hasSendTransaction) player.sendTransaction();
                     hasSendTransaction = true;
 
-                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                        Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
-                        if (bed.isPresent()) {
-                            player.isInBed = true;
-                            Vector3i bedPos = bed.get();
-                            player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
-                        } else { // Run when we know the player is not in bed 100%
-                            player.isInBed = false;
+                    if (optional.isPresent()) {
+                        if (optional.get() instanceof Vector3i bedPos) {
+                            player.addRealTimeTaskNow(() -> {
+                                player.isInBed = true;
+                                player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
+                            });
                         }
-                    });
+                    } else {
+                        // Run when we know the player is not in bed 100%
+                        player.addRealTimeTaskNow(() -> player.isInBed = false);
+                    }
                 }
             }
 
@@ -213,8 +214,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // Vanilla update order: Receive this -> process new interacts
                         // Grim update order: Process new interacts -> receive this
                         if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
-                            PacketPlayerDigging.handleUseItem(player, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
-                            // The above line is a hack to fake activate use item
                             player.packetStateData.setSlowedByUsingItem(isActive);
 
                             if (isActive) {

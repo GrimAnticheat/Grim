@@ -52,7 +52,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private boolean lastFlagStoredBinaryVerbose;
 
     public Check(final @NotNull GrimPlayer player) {
-        this.player = Objects.requireNonNull(player);
+        this.player = Objects.requireNonNull(player, "player");
 
         final CheckData checkData = this.getClass().getAnnotation(CheckData.class);
         if (checkData != null) {
@@ -328,6 +328,5 @@ public class Check extends GrimProcessor implements AbstractCheck {
         };
     }
 
-    private record BinaryVerbose(byte @NotNull [] data, @NotNull Supplier<String> rendered) {
-    }
+    private record BinaryVerbose(byte @NotNull [] data, @NotNull Supplier<String> rendered) {}
 }

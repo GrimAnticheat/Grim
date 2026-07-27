@@ -44,9 +44,9 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
     }
 
     public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
-        return playerData.getUser() != null
-                && playerData.getUser().getUUID() != null
-                && shouldHidePlayer(receiver, playerData.getUser().getUUID());
+        return playerData.getUserProfile() != null
+                && playerData.getUserProfile().getUUID() != null
+                && shouldHidePlayer(receiver, playerData.getUserProfile().getUUID());
     }
 
     public boolean shouldHidePlayer(GrimPlayer receiver, UUID uuid) {
@@ -98,6 +98,5 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
         spectatingPlayers.remove(uuid);
     }
 
-    private record PreviousState(GameMode gameMode, Location location) {
-    }
+    private record PreviousState(GameMode gameMode, Location location) {}
 }

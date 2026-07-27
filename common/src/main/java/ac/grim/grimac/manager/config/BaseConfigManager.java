@@ -85,8 +85,7 @@ public class BaseConfigManager {
     }
 
     // ran on start, can be used to handle things that can't be done while loading
-    public void start() {
-    }
+    public void start() {}
 
     public boolean isIgnoredClient(String brand) {
         for (Pattern pattern : ignoredClientPatterns) {

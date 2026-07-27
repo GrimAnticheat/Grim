@@ -24,6 +24,7 @@ public final class RotationData {
     }
 
     public boolean allowRotation(float yaw, float pitch) {
+        // TODO: pitch bounds?
         return (this.relativeYaw || this.yaw == yaw) && (this.relativePitch || this.pitch == pitch);
     }
 }

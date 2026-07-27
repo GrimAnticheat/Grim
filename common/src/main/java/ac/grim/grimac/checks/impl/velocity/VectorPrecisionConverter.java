@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.util.LpVector3d;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.experimental.UtilityClass;
 
@@ -25,9 +26,14 @@ public class VectorPrecisionConverter {
     }
 
     public static Vector3d legacyToLp(Vector3d legacy) {
-        PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(Unpooled.buffer());
-        LpVector3d.write(wrapper, legacy);
-        return LpVector3d.read(wrapper);
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
+            LpVector3d.write(wrapper, legacy);
+            return LpVector3d.read(wrapper);
+        } finally {
+            buf.release();
+        }
     }
 
     private static final double PRECISION_LOSS_FIX = 1e-11d;

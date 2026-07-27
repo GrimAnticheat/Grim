@@ -31,7 +31,7 @@ public final class SyncedTags {
     private static final ServerVersion VERSION = PacketEvents.getAPI().getServerManager().getVersion();
     private static final ResourceLocation BLOCK = VERSION.isNewerThanOrEquals(ServerVersion.V_1_21) ? ResourceLocation.minecraft("block") : ResourceLocation.minecraft("blocks");
     private final GrimPlayer player;
-    private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced = new HashMap<>();;
+    private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced = new HashMap<>();
 
     public SyncedTags(GrimPlayer player) {
         this.player = player;

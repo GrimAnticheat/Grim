@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +83,7 @@ final class V2InstanceRegistry {
             @Nullable String hostname,
             @Nullable String grimVersion,
             @Nullable String serverVersionString,
-            @Nullable byte[] verboseManifest) {
+            byte @Nullable [] verboseManifest) {
         ServerStartupRecord current = new ServerStartupRecord(
                 startupId,
                 instanceId,
@@ -251,7 +250,7 @@ final class V2InstanceRegistry {
     }
 
     private @NotNull Optional<ServerStartupRecord> startupById(@NotNull UUID startupId) {
-        return await(store.execute(new EntityOps.GetByIdOp<UUID, ServerStartupRecord>(
+        return await(store.execute(new EntityOps.GetByIdOp<>(
                 STARTUPS, startupId)), "query server startup " + startupId);
     }
 

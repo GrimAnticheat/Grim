@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
 import ac.grim.grimac.api.event.events.GrimQuitEvent;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.platform.api.player.PlatformPlayerCache;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -126,9 +128,10 @@ public class PlayerDataManager {
         if (uuid == null)
             return; // folia doesn't like null getPlayer()
 
-        GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(
-                GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid)
-        );
+        PlatformPlayer quittingPlayer = PlatformPlayerCache.getInstance().getPlayer(uuid);
+        if (quittingPlayer != null) {
+            GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(quittingPlayer);
+        }
 
         GrimAPI.INSTANCE.getSpectateManager().onQuit(uuid);
 

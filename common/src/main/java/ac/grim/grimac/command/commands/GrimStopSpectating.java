@@ -5,6 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.CloudCommandService;
 import ac.grim.grimac.command.requirements.PlayerSenderRequirement;
 import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
+import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import org.incendo.cloud.CommandManager;
@@ -40,7 +41,8 @@ public class GrimStopSpectating implements BuildableCommand {
         String string = commandContext.getOrDefault("here", null);
         if (GrimAPI.INSTANCE.getSpectateManager().isSpectating(sender.getUniqueId())) {
             boolean teleportBack = string == null || !string.equalsIgnoreCase("here") || !sender.hasPermission("grim.spectate.stophere");
-            GrimAPI.INSTANCE.getSpectateManager().disable(Objects.requireNonNull(sender.getPlatformPlayer()), teleportBack);
+            PlatformPlayer player = Objects.requireNonNull(sender.getPlatformPlayer(), "player");
+            GrimAPI.INSTANCE.getSpectateManager().disable(player, teleportBack);
         } else {
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "cannot-spectate-return", "%prefix% &cYou can only do this after spectating a player."));
         }

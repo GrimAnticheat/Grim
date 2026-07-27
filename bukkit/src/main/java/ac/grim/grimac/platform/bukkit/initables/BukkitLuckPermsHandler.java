@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+/// @see BukkitLuckPermsInitable
 public class BukkitLuckPermsHandler extends AbstractLuckPermsHandler implements StartableInitable {
 
     @Override

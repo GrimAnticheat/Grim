@@ -149,7 +149,7 @@ public abstract class AbstractGrimACFabricLoaderPlugin<
             LogUtil.warn("IMPORTANT: Command Framework failed to load (Missing Cloud Library?). \n" +
                     "Grim will run without commands enabled!");
             if (!(t instanceof NoClassDefFoundError)) {
-                t.printStackTrace();
+                LogUtil.error(t);
             }
             return () -> {};
         }

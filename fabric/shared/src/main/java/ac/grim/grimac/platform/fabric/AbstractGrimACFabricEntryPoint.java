@@ -22,7 +22,7 @@ public abstract class AbstractGrimACFabricEntryPoint<P extends AbstractGrimACFab
     }
 
     public static FabricMinecraftServerHandle server() {
-        return Objects.requireNonNull(server);
+        return Objects.requireNonNull(server, "server");
     }
 
     public static FabricMinecraftServerHandle serverOrNull() {

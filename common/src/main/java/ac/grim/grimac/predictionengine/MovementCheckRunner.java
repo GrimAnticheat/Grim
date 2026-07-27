@@ -20,6 +20,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRide
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.IndexedVector3d;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -38,6 +39,7 @@ import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Riptide;
+import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -145,8 +147,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             handleTeleport(update);
             return;
         }
-
-        player.movementPackets++;
 
         player.onGround = update.isOnGround();
 
@@ -382,9 +382,16 @@ public class MovementCheckRunner extends Check implements PositionCheck {
                 .expand(player.getMovementThreshold())
                 .offset(0.0, player.getClientVersion().isOlderThan(ClientVersion.V_1_15) ? -1.0 : -0.2, 0.0);
         Collisions.forEachCollisionBox(player, steppingOnBB, (block, x, y, z) -> {
-            if (block.getType() == StateTypes.SLIME_BLOCK && Math.abs((y + 1D) - player.lastY) <= player.getMovementThreshold() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.uncertaintyHandler.isSteppingOnSlime = true;
-                player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+            if (block.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                double blockHeight = 1D;
+                double blockAboveHeight = BlockProperties.getBlockCollisionHeight(player, player.compensatedWorld.getBlock(x, y + 1, z));
+                if (blockAboveHeight > 0D && blockAboveHeight < 1D) {
+                    blockHeight += blockAboveHeight;
+                }
+                if (Math.abs((y + blockHeight) - player.lastY) <= player.getMovementThreshold()) {
+                    player.uncertaintyHandler.isSteppingOnSlime = true;
+                    player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+                }
             }
             if (block.getType() == StateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
@@ -445,9 +452,19 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.uncertaintyHandler.lastUnderwaterFlyingHack.reset();
         }
 
-        boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, player.getMovementThreshold());
-        boolean couldLeaveStuckSpeed = player.isPointThree() && Collisions.checkStuckSpeed(player, -player.getMovementThreshold());
-        player.uncertaintyHandler.claimingLeftStuckSpeed = !player.inVehicle() && player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
+        IndexedVector3d stuckSpeed = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) ? player.lastStuckSpeedMultiplier : player.stuckSpeedMultiplier;
+
+        int stuckSpeedIndex = stuckSpeed.getIndex();
+        int maxStuckSpeed = StuckSpeed.checkStuckSpeed(player, player.getMovementThreshold());
+        int minStuckSpeed = StuckSpeed.checkStuckSpeed(player, -player.getMovementThreshold());
+
+        boolean couldBeStuckSpeed = maxStuckSpeed != StuckSpeed.NONE.getIndex();
+        boolean hasDifferentStuckSpeeds = maxStuckSpeed != minStuckSpeed; // if 0.03 does not equal
+        boolean hasMultipleStuckSpeeds = Integer.bitCount(maxStuckSpeed) > 1; // or there are multiple possible stuck speeds
+        boolean lastStuckSpeedNotIncluded = (minStuckSpeed & stuckSpeedIndex) == 0 && (stuckSpeed != StuckSpeed.NONE); // or there is possibility of change since last tick
+
+        player.uncertaintyHandler.shouldSimulateStuckSpeed = hasDifferentStuckSpeeds || hasMultipleStuckSpeeds || lastStuckSpeedNotIncluded;
+        player.uncertaintyHandler.stuckSpeedMultiplierMask = maxStuckSpeed;
 
         if (couldBeStuckSpeed) {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
@@ -510,6 +527,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             PlayerBaseTick.updatePlayerPose(player);
         } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             wasChecked = true;
+            player.depthStriderLevel = 0f;
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)

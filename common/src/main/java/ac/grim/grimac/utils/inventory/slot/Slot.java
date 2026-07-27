@@ -40,26 +40,20 @@ public class Slot {
         return Math.min(itemStack.getMaxStackSize(), getMaxStackSize());
     }
 
-    // TODO: Implement for anvil and smithing table
-    // TODO: Implement curse of binding support
-    public boolean mayPickup() {
-        return true;
-    }
-
-    public ItemStack safeTake(int p_150648_, int p_150649_, GrimPlayer p_150650_) {
-        Optional<ItemStack> optional = this.tryRemove(p_150648_, p_150649_, p_150650_);
-        optional.ifPresent((p_150655_) -> this.onTake(p_150650_, p_150655_));
+    public ItemStack safeTake(int amount, int maxAmount, GrimPlayer player) {
+        Optional<ItemStack> optional = this.tryRemove(amount, maxAmount, player);
+        optional.ifPresent((p_150655_) -> this.onTake(player, p_150655_));
         return optional.orElse(ItemStack.EMPTY);
     }
 
-    public Optional<ItemStack> tryRemove(int p_150642_, int p_150643_, GrimPlayer player) {
+    public Optional<ItemStack> tryRemove(int amount, int maxAmount, GrimPlayer player) {
         if (!this.mayPickup(player)) {
             return Optional.empty();
-        } else if (!this.allowModification(player) && p_150643_ < this.getItem().getAmount()) {
+        } else if (!this.allowModification(player) && maxAmount < this.getItem().getAmount()) {
             return Optional.empty();
         } else {
-            p_150642_ = Math.min(p_150642_, p_150643_);
-            ItemStack itemstack = this.remove(p_150642_);
+            amount = Math.min(amount, maxAmount);
+            ItemStack itemstack = this.remove(amount);
             if (itemstack.isEmpty()) {
                 return Optional.empty();
             } else {
@@ -87,19 +81,18 @@ public class Slot {
         return stack;
     }
 
-    public ItemStack remove(int p_40227_) {
-        return this.container.removeItem(this.inventoryStorageSlot, p_40227_);
+    public ItemStack remove(int amount) {
+        return this.container.removeItem(this.inventoryStorageSlot, amount);
     }
 
-    public void onTake(GrimPlayer player, ItemStack itemStack) {
-
-    }
+    public void onTake(GrimPlayer player, ItemStack itemStack) {}
 
     // No override
     public boolean allowModification(GrimPlayer player) {
         return this.mayPickup(player) && this.mayPlace(this.getItem());
     }
 
+    // TODO: Implement for anvil and smithing table
     public boolean mayPickup(GrimPlayer player) {
         return true;
     }

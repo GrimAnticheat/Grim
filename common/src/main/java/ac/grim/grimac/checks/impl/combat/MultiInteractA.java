@@ -82,6 +82,5 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
         flags.clear();
     }
 
-    private record FlagData(int lastEntity, int entity, boolean lastSneaking, boolean sneaking) {
-    }
+    private record FlagData(int lastEntity, int entity, boolean lastSneaking, boolean sneaking) {}
 }

@@ -15,7 +15,6 @@ import java.util.Objects;
 
 import static ac.grim.grimac.utils.data.json.JsonSerializable.deserializeArray;
 import static ac.grim.grimac.utils.data.json.JsonSerializable.serializeArray;
-import static java.util.Objects.requireNonNull;
 
 @Getter
 @Setter
@@ -58,7 +57,7 @@ public class Embed implements JsonSerializable {
 
     @Contract(value = "_ -> this", mutates = "this")
     public @NotNull Embed description(@NotNull String description) {
-        requireNonNull(description, "Embed description cannot be null!");
+        Objects.requireNonNull(description, "Embed description cannot be null!");
         if (description.length() > MAX_DESCRIPTION_LENGTH) {
             throw new IllegalArgumentException("Embed description too long, " + description.length() + " > " + MAX_DESCRIPTION_LENGTH);
         }
@@ -85,7 +84,7 @@ public class Embed implements JsonSerializable {
             }
 
             for (EmbedField field : fields) {
-                Objects.requireNonNull(field);
+                Objects.requireNonNull(field, "field");
             }
         }
 

@@ -34,7 +34,7 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<F
     ) {
         this.getPlayerFunction = player -> getPlayerFunction.apply((P) player);
         this.getEntityFunction = entity -> getEntityFunction.apply((E) entity);
-        this.getPlayerInventoryFunction = Objects.requireNonNull(getPlayerInventoryFunction);
+        this.getPlayerInventoryFunction = Objects.requireNonNull(getPlayerInventoryFunction, "getPlayerInventoryFunction");
     }
 
     @Override
