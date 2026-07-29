@@ -610,7 +610,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // duplicate packets were added in 1.17 and removed in 1.21
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
-                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+                // Mojang has become less stupid!
+                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+
+        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
 
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
