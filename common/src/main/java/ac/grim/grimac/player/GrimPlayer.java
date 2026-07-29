@@ -256,7 +256,7 @@ public class GrimPlayer implements GrimUser {
     @Getter private final @NotNull FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
     // Whether this tick's movement intersected a nether portal block (see MultiActionsD)
-    public boolean isInNetherPortal;
+    public boolean intersectedWithNetherPortal;
     // start config
     private boolean debugPacketCancel;
     private int spamThreshold = 100;
@@ -857,13 +857,6 @@ public class GrimPlayer implements GrimUser {
 
     public boolean isInWaterOrRain() {
         return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block, x, y, z) -> Materials.isWater(CompensatedWorld.blockVersion, block));
-    }
-
-    public void updateNetherPortalState() {
-        // Like the client (Entity#checkInsideBlocks), test the whole tick's movement, not just the
-        // resolved position, so a fast run-through through a portal is still detected.
-        SimpleCollisionBox movementThisTick = GetBoundingBox.getCollisionBoxForPlayer(this, x, y, z).expandToCoordinate(lastX - x, lastY - y, lastZ - z);
-        isInNetherPortal = compensatedWorld.containsNetherPortal(movementThisTick);
     }
 
     @Contract(pure = true)
