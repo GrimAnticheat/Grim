@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
@@ -34,7 +35,10 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
     private boolean exemptPlacingWhileDigging;
 
     private boolean setback;
-    private boolean digging; // for placing
+    // for placing
+    private boolean cancelledDigging;
+    private WrappedBlockState startedDiggingBlock;
+    private boolean digging;
     private final ArrayDeque<FlagData> flags = new ArrayDeque<>();
 
     static String typeName(int type) {
@@ -90,6 +94,19 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT || event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+            digging |= cancelledDigging;
+
+            if (startedDiggingBlock != null && !digging) {
+                // Check this here because we don't know for certain what slot they were using until now.
+                // This is because the client doesn't notify the server when changing slots with the number keys,
+                // and that the client doesn't sync the hotbar slot when starting to dig.
+                // The client does sync on placing and using though, so this is safe.
+                double damage = BlockBreakSpeed.getBlockDamage(player, startedDiggingBlock);
+                if (damage < 1 && (damage > 0 || player.gamemode != GameMode.CREATIVE)) {
+                    digging = true;
+                }
+            }
+
             if (player.packetOrderProcessor.isReleasing() || digging) {
                 boolean releasing = player.packetOrderProcessor.isReleasing();
                 if (!player.canSkipTicks()) {
@@ -111,10 +128,8 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
             switch (packet.getAction()) {
-                case STAB:
-                    onAttack(event);
-                    break;
-                case RELEASE_USE_ITEM:
+                case STAB -> onAttack(event);
+                case RELEASE_USE_ITEM -> {
                     if (player.packetOrderProcessor.isAttackingOrStabbing() || player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isDigging()) {
                         boolean attacking = player.packetOrderProcessor.isAttackingOrStabbing();
                         boolean rightClicking = player.packetOrderProcessor.isRightClicking();
@@ -129,23 +144,26 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
                             setback = true;
                         }
                     }
-                    break;
-                case START_DIGGING:
-                    double damage = BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(packet.getBlockPosition()));
-                    if (damage >= 1 || damage <= 0 && player.gamemode == GameMode.CREATIVE) {
-                        return;
+                }
+                case START_DIGGING -> {
+                    if (shouldCheckPlacingWhileDigging()) {
+                        cancelledDigging = false; // we don't care about any cancels before this
+                        startedDiggingBlock = player.compensatedWorld.getBlock(packet.getBlockPosition());
                     }
-                case CANCELLED_DIGGING, FINISHED_DIGGING:
-                    if (exemptPlacingWhileDigging || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
-                        return;
-                    }
-                    digging = true;
+                }
+                case CANCELLED_DIGGING -> cancelledDigging = shouldCheckPlacingWhileDigging();
+                case FINISHED_DIGGING -> digging = shouldCheckPlacingWhileDigging();
             }
         }
 
         if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
-            digging = false;
+            cancelledDigging = digging = false;
+            startedDiggingBlock = null;
         }
+    }
+
+    private boolean shouldCheckPlacingWhileDigging() {
+        return !exemptPlacingWhileDigging && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8);
     }
 
     @Override
@@ -200,6 +218,5 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             boolean rightClicking,
             boolean picking,
             boolean releasing,
-            boolean digging) {
-    }
+            boolean digging) {}
 }

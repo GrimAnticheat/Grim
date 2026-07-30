@@ -801,6 +801,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (action == DiggingAction.START_DIGGING) {
+            // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
             double damage = BlockBreakSpeed.getBlockDamage(player, blockBreak.block);
 
             // Instant breaking, no damage means it is unbreakable by creative players (with swords)
