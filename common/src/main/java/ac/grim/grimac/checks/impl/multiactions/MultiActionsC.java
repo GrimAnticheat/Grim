@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "MultiActionsC", stableKey = "grim.multiactions.inventory_click_while_moving", description = "Clicked in inventory while moving")
 public class MultiActionsC extends Check implements PacketCheck {
-    private static final Verbose V =
-            Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
+    private static final Verbose V = Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
 
     public MultiActionsC(GrimPlayer player) {
         super(player);

@@ -20,8 +20,8 @@ import java.util.ArrayDeque;
 
 @CheckData(name = "PacketOrderI", stableKey = "grim.packetorder.input_tick_order", description = "Sent combat, use, release, or digging packets in an invalid tick order", experimental = true)
 public class PacketOrderI extends Check implements PostPredictionCheck {
-    private static final Verbose V = Verbose.of(
-            "type={str}[, attacking={bool}][, rightClicking={bool}][, picking={bool}][, releasing={bool}], digging={bool}");
+    private static final Verbose V = Verbose
+            .of("type={str}[, attacking={bool}][, rightClicking={bool}][, picking={bool}][, releasing={bool}], digging={bool}");
 
     static final int TYPE_INTERACT = 0;
     static final int TYPE_PLACE_USE = 1;

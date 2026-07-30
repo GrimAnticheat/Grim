@@ -34,14 +34,12 @@ public class ElytraC extends Check implements PostPredictionCheck {
             if (glideThisTick || glideLastTick) {
                 if (player.canSkipTicks()) {
                     flags++;
-                } else {
-                    if (flag()) {
-                        setback = true;
-                        if (shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                            player.resyncPose();
-                        }
+                } else if (flag()) {
+                    setback = true;
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                        player.resyncPose();
                     }
                 }
             }

@@ -68,15 +68,11 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
                 // or the player is holding a spear
                 || player.inventory.getHeldItem().hasComponent(ComponentTypes.PIERCING_WEAPON) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11);
 
-        if (invalid) {
-            if (flag(V.write(verbose())
-                    .sint(VerboseCodecs.block(block, player.getClientVersion()))
-                    .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
-                didLastFlag = true;
-                blockBreak.cancel();
-            } else {
-                didLastFlag = false;
-            }
+        if (invalid && flag(V.write(verbose())
+                .sint(VerboseCodecs.block(block, player.getClientVersion()))
+                .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
+            didLastFlag = true;
+            blockBreak.cancel();
         } else {
             didLastFlag = false;
         }

@@ -59,8 +59,7 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
                     || player.packetOrderProcessor.isReleasing()
                     || player.packetOrderProcessor.isRightClicking()
                     || player.packetOrderProcessor.isPicking()
-                    || player.packetOrderProcessor.isDigging()
-            ) {
+                    || player.packetOrderProcessor.isDigging()) {
                 int actionKind = action(action);
                 boolean attacking = player.packetOrderProcessor.isAttackingOrStabbing();
                 boolean releasing = player.packetOrderProcessor.isReleasing();

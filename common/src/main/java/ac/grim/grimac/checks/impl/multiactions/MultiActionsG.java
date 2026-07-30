@@ -13,9 +13,12 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 @CheckData(name = "MultiActionsG", stableKey = "grim.multiactions.action_while_rowing", description = "Attacking or using items while rowing a boat", experimental = true)
 public class MultiActionsG extends BlockPlaceCheck {
-    private static final Verbose V =
-            Verbose.of("action=interact").or("action=attack").or("action=spectateEntity")
-                    .or("action=use").or("action=place"); // shape index == ACTION_* value
+    private static final Verbose V = Verbose
+            .of("action=interact")
+            .or("action=attack")
+            .or("action=spectateEntity")
+            .or("action=use")
+            .or("action=place"); // shape index == ACTION_* value
 
     private static final int ACTION_INTERACT = 0;
     private static final int ACTION_ATTACK = 1;

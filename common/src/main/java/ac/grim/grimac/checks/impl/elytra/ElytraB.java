@@ -25,8 +25,7 @@ public class ElytraB extends Check implements PostPredictionCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
                 && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
-                && player.supportsEndTick()
-        ) {
+                && player.supportsEndTick()) {
             if (player.packetStateData.knownInput.jump()) {
                 if (flag(V.write(verbose()).bool(true))) {
                     setback = true;

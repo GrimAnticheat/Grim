@@ -11,8 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "MultiActionsD", stableKey = "grim.multiactions.inventory_close_while_moving", description = "Closed inventory while moving")
 public class MultiActionsD extends Check implements PacketCheck {
-    private static final Verbose V =
-            Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
+    private static final Verbose V = Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
 
     public MultiActionsD(GrimPlayer player) {
         super(player);
