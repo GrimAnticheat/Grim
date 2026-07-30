@@ -293,7 +293,6 @@ public class CheckManager {
         blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
         postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
 
-        registerBuiltInVerboseTemplates();
         init();
     }
 
@@ -486,6 +485,8 @@ public class CheckManager {
     private void init() {
         if (inited || initedAtomic.getAndSet(true)) return;
         inited = true;
+
+        registerBuiltInVerboseTemplates();
 
         final String[] permissions = {
                 "grim.exempt.",
