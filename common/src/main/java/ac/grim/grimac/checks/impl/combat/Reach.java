@@ -233,17 +233,15 @@ public class Reach extends Check implements PacketCheck {
             InteractionData interactionData = attack.getValue();
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
-                case REACH -> {
-                    flag(
-                            V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
-                            () -> {
-                                String added = ", type=" + reachEntity.getType().getName().getKey();
-                                if (reachEntity instanceof PacketEntitySizeable sizeable) {
-                                    added += ", size=" + sizeable.size;
-                                }
-                                return result.verbose() + added;
-                            });
-                }
+                case REACH -> flag(
+                        V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
+                        () -> {
+                            String added = ", type=" + reachEntity.getType().getName().getKey();
+                            if (reachEntity instanceof PacketEntitySizeable sizeable) {
+                                added += ", size=" + sizeable.size;
+                            }
+                            return result.verbose() + added;
+                        });
                 case HITBOX -> {
                     String added = "type=" + reachEntity.getType().getName().getKey();
                     if (reachEntity instanceof PacketEntitySizeable sizeable) {

@@ -157,8 +157,6 @@ final class OwnershipHeartbeatScheduler {
                     .serverVersionString(serverVersionString)
                     .verboseManifest(verboseManifest.get());
             publish.accept(event);
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING, "ownership heartbeat failed for startup " + startupId, e);
         } catch (Exception e) {
             logger.log(Level.WARNING, "ownership heartbeat failed for startup " + startupId, e);
         }

@@ -57,7 +57,7 @@ public class WebhookMessage implements JsonSerializable {
             }
 
             for (Embed embed : embeds) {
-                Objects.requireNonNull(embed);
+                Objects.requireNonNull(embed, "embed");
             }
         }
 

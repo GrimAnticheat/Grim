@@ -491,12 +491,10 @@ public class CompensatedEntities {
                 if (attachedEntityID == player.entityID) {
                     player.fireworks.addNewFirework(entityID);
                 }
-            } else { // 1.14+
-                Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
-
-                if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
-                    player.fireworks.addNewFirework(entityID);
-                }
+            } else if (fireworkWatchableObject.getValue() instanceof Optional<?> optional
+                    && optional.isPresent() && optional.get() instanceof Integer attachedEntityID
+                    && attachedEntityID.equals(player.entityID)) { // 1.14+
+                player.fireworks.addNewFirework(entityID);
             }
         }
 

@@ -101,9 +101,4 @@ public class BadPacketsM extends Check implements PacketCheck {
             menu = true;
         }
     }
-
-    // via sends a respawn packet for pre-1.15 clients on 1.15+ servers with the immediate_respawn gamerule enabled
-    public void exemptVia() {
-        exempt++;
-    }
 }

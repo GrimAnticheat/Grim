@@ -32,7 +32,7 @@ public class GrimProfile implements BuildableCommand {
         PlayerSelector target = context.get("target");
 
         PlatformPlayer targetPlatformPlayer = target.getSinglePlayer().getPlatformPlayer();
-        if (Objects.requireNonNull(targetPlatformPlayer).isExternalPlayer()) {
+        if (Objects.requireNonNull(targetPlatformPlayer, "targetPlatformPlayer").isExternalPlayer()) {
             sender.sendMessage(MessageUtil.getParsedComponent(sender,"player-not-this-server", "%prefix% &cThis player isn't on this server!"));
             return;
         }

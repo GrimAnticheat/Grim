@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.Objects.requireNonNull;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -43,7 +43,7 @@ public class EmbedAuthor implements JsonSerializable {
 
     @Contract(value = "_ -> this", mutates = "this")
     public @NotNull EmbedAuthor name(@NotNull String name) {
-        requireNonNull(name, "Embed author name cannot be null!");
+        Objects.requireNonNull(name, "Embed author name cannot be null!");
         if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException("Embed author name too long, " + name.length() + " > " + MAX_NAME_LENGTH);
         }

@@ -148,8 +148,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             return;
         }
 
-        player.movementPackets++;
-
+        player.intersectedWithNetherPortal = false;
         player.onGround = update.isOnGround();
 
         // This is here to prevent abuse of sneaking
@@ -604,8 +603,6 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, update, wasChecked));
 
         player.wasLastPredictionCompleteChecked = wasChecked;
-
-        player.updateNetherPortalState();
 
         // Patch sprint jumping with elytra exploit
         if (player.platformPlayer != null && player.isGliding && player.predictedVelocity.isJump() && player.isSprinting && !allowSprintJumpingWithElytra) {

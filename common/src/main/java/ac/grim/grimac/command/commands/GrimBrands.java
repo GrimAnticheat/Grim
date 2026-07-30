@@ -28,12 +28,12 @@ public class GrimBrands implements BuildableCommand {
     private void handleBrands(@NotNull CommandContext<Sender> context) {
         Sender sender = context.sender();
         if (sender.isPlayer()) {
-            PlatformPlayer p = Objects.requireNonNull(context.sender().getPlatformPlayer());
+            PlatformPlayer player = Objects.requireNonNull(context.sender().getPlatformPlayer(), "player");
             AlertManagerImpl am = GrimAPI.INSTANCE.getAlertManager();
-            boolean newState = !am.hasBrandsEnabled(p);
-            am.setBrandsEnabled(p, newState, false);
+            boolean newState = !am.hasBrandsEnabled(player);
+            am.setBrandsEnabled(player, newState, false);
             GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore()
-                    .applyUserToggle(p.getUniqueId(), PlayerToggleStore.KEY_BRANDS, newState);
+                    .applyUserToggle(player.getUniqueId(), PlayerToggleStore.KEY_BRANDS, newState);
         } else if (sender.isConsole()) {
             GrimAPI.INSTANCE.getAlertManager().toggleConsoleBrands();
         }

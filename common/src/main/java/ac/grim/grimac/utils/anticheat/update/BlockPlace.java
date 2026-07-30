@@ -623,9 +623,7 @@ public class BlockPlace {
         cascadeBlockUpdates(pos);
     }
 
-    private void cascadeBlockUpdates(Vector3i pos) {
-
-    }
+    private void cascadeBlockUpdates(Vector3i pos) {}
 
     public void set(WrappedBlockState state) {
         set(getPlacedBlockPos(), state);

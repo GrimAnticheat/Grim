@@ -418,10 +418,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 float pitch = flying.getLocation().getPitch();
 
                 for (RotationData data : player.pendingRotations) {
-                    if (transaction == data.getTransaction()
-                            && (data.isRelativeYaw() || data.getYaw() == yaw)
-                            // TODO: pitch bounds?
-                            && (data.isRelativePitch() || data.getPitch() == pitch)) {
+                    if (transaction == data.getTransaction() && data.allowRotation(yaw, pitch)) {
                         last = data;
                     }
 
@@ -481,7 +478,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             Location pos = flying.getLocation();
             boolean ignoreRotation = player.packetStateData.lastPacketWasOnePointSeventeenDuplicate && player.isIgnoreDuplicatePacketRotation();
-            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), ignoreRotation ? 0 : pos.getYaw(), ignoreRotation ? 0 : pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged() && !ignoreRotation, flying.isOnGround(), teleportData, event);
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), ignoreRotation ? 0 : pos.getYaw(), ignoreRotation ? 0 : pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged() && !ignoreRotation, flying.isOnGround(), teleportData);
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.inVehicle()) {
@@ -625,7 +622,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // duplicate packets were added in 1.17 and removed in 1.21
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
-                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+                // Mojang has become less stupid!
+                || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+
+        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
 
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
@@ -691,7 +691,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.packetStateData.lastClaimedPosition = position;
     }
 
-    private static void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData, PacketReceiveEvent event) {
+    private static void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData) {
         long now = System.currentTimeMillis();
 
         if (!hasPosition) {
@@ -761,7 +761,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Duplicate packets don't care about 0.03
             if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                player.filterMojangStupidityOnMojangStupidity = clampVector;
+                player.filterMojangStupidityOnMojangStupidity.copy(clampVector);
             }
 
             if (!player.inVehicle() && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
