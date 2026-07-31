@@ -60,8 +60,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckManager {
@@ -78,15 +76,15 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
 
-    private final List<PacketCheck> preViaPacketChecksValues;
-    private final List<PacketCheck> packetChecksValues;
-    private final List<PositionCheck> positionChecksValues;
-    private final List<RotationCheck> rotationChecksValues;
-    private final List<VehicleCheck> vehicleChecksValues;
-    private final List<PacketCheck> prePredictionChecksValues;
-    private final List<BlockBreakCheck> blockBreakChecksValues;
-    private final List<BlockPlaceCheck> blockPlaceChecksValues;
-    private final List<PostPredictionCheck> postPredictionChecksValues;
+    private final PacketCheck[] preViaPacketChecksValues;
+    private final PacketCheck[] packetChecksValues;
+    private final PositionCheck[] positionChecksValues;
+    private final RotationCheck[] rotationChecksValues;
+    private final VehicleCheck[] vehicleChecksValues;
+    private final PacketCheck[] prePredictionChecksValues;
+    private final BlockBreakCheck[] blockBreakChecksValues;
+    private final BlockPlaceCheck[] blockPlaceChecksValues;
+    private final PostPredictionCheck[] postPredictionChecksValues;
 
     public CheckManager(GrimPlayer player) {
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -283,15 +281,15 @@ public class CheckManager {
                 .putAll(noneModules)
                 .build();
 
-        preViaPacketChecksValues = new ArrayList<>(preViaPacketChecks.values());
-        packetChecksValues = new ArrayList<>(packetChecks.values());
-        positionChecksValues = new ArrayList<>(positionChecks.values());
-        rotationChecksValues = new ArrayList<>(rotationChecks.values());
-        vehicleChecksValues = new ArrayList<>(vehicleChecks.values());
-        prePredictionChecksValues = new ArrayList<>(prePredictionChecks.values());
-        blockBreakChecksValues = new ArrayList<>(blockBreakChecks.values());
-        blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
-        postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
+        preViaPacketChecksValues = preViaPacketChecks.values().toArray(new PacketCheck[0]);
+        packetChecksValues = packetChecks.values().toArray(new PacketCheck[0]);
+        positionChecksValues = positionChecks.values().toArray(new PositionCheck[0]);
+        rotationChecksValues = rotationChecks.values().toArray(new RotationCheck[0]);
+        vehicleChecksValues = vehicleChecks.values().toArray(new VehicleCheck[0]);
+        prePredictionChecksValues = prePredictionChecks.values().toArray(new PacketCheck[0]);
+        blockBreakChecksValues = blockBreakChecks.values().toArray(new BlockBreakCheck[0]);
+        blockPlaceChecksValues = blockPlaceChecks.values().toArray(new BlockPlaceCheck[0]);
+        postPredictionChecksValues = postPredictionChecks.values().toArray(new PostPredictionCheck[0]);
 
         init();
     }
