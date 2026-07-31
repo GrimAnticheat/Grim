@@ -248,7 +248,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         offsetToFlag = config.getDoubleElse("Knockback.threshold", 0.001);
         maxAdv = config.getDoubleElse("Knockback.max-advantage", 1);
         immediate = config.getDoubleElse("Knockback.immediate-setback-threshold", 0.1);

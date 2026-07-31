@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,18 +38,18 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private final VerboseBuf verbose = new VerboseBuf();
 
     // check data
-    private final String checkName;
-    private final String configName;
-    private final String alternativeName;
-    private final String stableKey;
+    private final @Nullable String checkName;
+    private final @Nullable String configName;
+    private final @Nullable String alternativeName;
+    private final @NotNull String stableKey;
     private final boolean experimental;
-    private final String defaultDescription;
+    private final @NotNull String defaultDescription;
     private final double defaultDecay;
     private final double defaultSetbackVL;
 
     // configurable
-    private String displayName;
-    private String description;
+    private @MonotonicNonNull String displayName;
+    private @MonotonicNonNull String description;
     private double decay;
     private double setbackVL;
     @Setter private boolean isEnabled;
@@ -229,20 +230,20 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     @Override
-    public final void reload(ConfigManager configuration) {
-        decay = configuration.getDoubleElse(configName + ".decay", defaultDecay);
-        setbackVL = configuration.getDoubleElse(configName + ".setbackvl", defaultSetbackVL);
-        displayName = configuration.getStringElse(configName + ".displayname", checkName);
-        description = configuration.getStringElse(configName + ".description", defaultDescription);
+    public final void reload(@NotNull ConfigManager configuration) {
+        if (configName != null) {
+            decay = configuration.getDoubleElse(configName + ".decay", defaultDecay);
+            setbackVL = configuration.getDoubleElse(configName + ".setbackvl", defaultSetbackVL);
+            displayName = configuration.getStringElse(configName + ".displayname", checkName);
+            description = configuration.getStringElse(configName + ".description", defaultDescription);
 
-        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+            if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+        }
         onReload(configuration);
     }
 
     @Override
-    public void onReload(ConfigManager config) {
-
-    }
+    public void onReload(@NotNull ConfigManager config) {}
 
     public boolean alert(String verbose) {
         return alert(constant(verbose));

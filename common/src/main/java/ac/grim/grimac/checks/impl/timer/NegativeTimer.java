@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", description = "Sent movement packets slower than the expected client tick rate", setback = -1, experimental = true)
 public class NegativeTimer extends Timer implements PostPredictionCheck {
@@ -38,7 +39,7 @@ public class NegativeTimer extends Timer implements PostPredictionCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         clockDrift = (long) (config.getDoubleElse(getConfigName() + ".drift", 1200.0) * 1e6);
     }
 }

@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "AirLiquidPlace", stableKey = "grim.scaffolding.air_liquid_place", description = "Placed a block against an invalid support")
 public class AirLiquidPlace extends BlockPlaceCheck {
@@ -85,7 +86,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 0);
     }
 }
