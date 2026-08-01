@@ -16,11 +16,11 @@ public class AxisUtil {
         boolean insideZ = toMerge.minZ <= base.minZ && toMerge.maxZ >= base.maxZ;
 
         if (insideX && insideY && !insideZ) {
-            return new SimpleCollisionBox(base.minX, base.maxY, Math.min(base.minZ, toMerge.minZ), base.minX, base.maxY, Math.max(base.maxZ, toMerge.maxZ));
+            return new SimpleCollisionBox(base.minX, base.minY, Math.min(base.minZ, toMerge.minZ), base.maxX, base.maxY, Math.max(base.maxZ, toMerge.maxZ));
         } else if (insideX && !insideY && insideZ) {
             return new SimpleCollisionBox(base.minX, Math.min(base.minY, toMerge.minY), base.minZ, base.maxX, Math.max(base.maxY, toMerge.maxY), base.maxZ);
         } else if (!insideX && insideY && insideZ) {
-            return new SimpleCollisionBox(Math.min(base.minX, toMerge.maxX), base.minY, base.maxZ, Math.max(base.minX, toMerge.minX), base.minY, base.maxZ);
+            return new SimpleCollisionBox(Math.min(base.minX, toMerge.minX), base.minY, base.minZ, Math.max(base.maxX, toMerge.maxX), base.maxY, base.maxZ);
         }
 
         return base;
