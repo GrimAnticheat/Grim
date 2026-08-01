@@ -54,30 +54,14 @@ public class MainSupportingBlockPosFinder {
     }
 
     private boolean firstHasPriorityOverSecond(int firstX, int firstY, int firstZ, @NotNull Vector3i second) {
-        // Order of loop is X, Y, and Z
-        // We prioritize lowest Y axis, then lowest X axis, then lowest Z axis
-        // Ties among the X and Z positions are broken by the order of looping being X
+        // Vanilla (CollisionGetter#findSupportingBlock) keeps the candidate over the current best
+        // when best.compareTo(candidate) < 0, and Vec3i#compareTo orders lexicographically by
+        // Y, then Z, then X. So on a distance tie the greatest block in that order wins.
         //
-        // X O O
-        // 0 X 0
-        // 0 0 X
-        // If the three blocks were this, the lowest right would win because of iteration order
-        //
-        // X 0 0
-        // 0 0 X
-        // But the upper left would win here because of prioritizing negative X and negative Z
-        if (firstY < second.getY()) return true;
-
-        double sumX = second.getX() - firstX;
-        double sumY = second.getZ() - firstZ;
-
-        double horizontalSumTotal = sumX + sumY;
-        if (horizontalSumTotal == 0) {
-            // If X is farther in the X direction, then it was found later and therefore won't override
-            return sumX < 0;
-        }
-
-        // Otherwise, lower X and lower Z have priority
-        return horizontalSumTotal < 0;
+        // This must be a strict lexicographic order, not a sum of the axis deltas: (0,y,5) vs
+        // (5,y,0) sums to zero on both axes while the Z comparison clearly separates them.
+        if (second.getY() != firstY) return second.getY() < firstY;
+        if (second.getZ() != firstZ) return second.getZ() < firstZ;
+        return second.getX() < firstX;
     }
 }
