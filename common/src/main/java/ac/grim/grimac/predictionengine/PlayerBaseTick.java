@@ -134,7 +134,7 @@ public final class PlayerBaseTick {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2))
             player.wasEyeInWater = false;
 
-        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
+        d1 = (float) Math.floor(d0) + player.compensatedWorld.getLavaFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
             player.fluidOnEyes = FluidTag.LAVA;
         }

@@ -679,6 +679,10 @@ public class CompensatedWorld implements PacketWorld {
         return Collisions.hasMaterial(player, box, (block, x, y, z) -> Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA);
     }
 
+    public float getLavaFluidLevelAt(double x, double y, double z) {
+        return getLavaFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
+    }
+
     public float getLavaFluidLevelAt(int x, int y, int z) {
         WrappedBlockState magicBlockState = getBlock(x, y, z);
         WrappedBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
