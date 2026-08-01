@@ -94,10 +94,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -115,7 +112,8 @@ public class GrimPlayer implements GrimUser {
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     public final @NotNull Queue<@NotNull ShortToLongPair> transactionsSent = new ConcurrentLinkedQueue<>();
     public final @NotNull Set<@NotNull Short> didWeSendThatTrans = ConcurrentHashMap.newKeySet();
-    private final @NotNull AtomicInteger transactionIDCounter = new AtomicInteger(0);
+    private final @NotNull AtomicInteger transactionIDCounter = new AtomicInteger(ThreadLocalRandom.current().nextInt(1, 32768));
+    private final int transactionIncrement = (ThreadLocalRandom.current().nextInt(1, 16384) * 2) + 1;
     public final @NotNull AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public final @NotNull AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // End transaction handling stuff
@@ -495,7 +493,7 @@ public class GrimPlayer implements GrimUser {
         }
 
         lastTransSent = System.currentTimeMillis();
-        short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
+        short transactionID = (short) -(transactionIDCounter.getAndAdd(transactionIncrement) & 0x7FFF);
         try {
 
             PacketWrapper<?> packet;
