@@ -400,10 +400,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         TeleportAcceptData teleportData = null;
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.isReceivingQueuedDuplicate) {
-            player.serverOpenedInventoryThisTick = false;
-
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) flying: {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
+
+            if (player.packetStateData.isReceivingQueuedDuplicate) {
+                teleportData = new TeleportAcceptData();
+                if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                    handleDuplicatePacket(player, event, flying);
+                }
+                break flying;
+            }
+
+            player.serverOpenedInventoryThisTick = false;
 
             Location location = flying.getLocation();
             Vector3d position = VectorUtils.clampVector(location.getPosition());
@@ -436,7 +444,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isDuplicatePacket(player, flying);
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 if (player.isStrictDuplicateHandling()) {
-                    player.packetStateData.queuedDuplicate = new QueuedDuplicate(event, flying.isOnGround(), flying.getLocation());
+                    player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
+                    player.packetStateData.queuedDuplicate = new QueuedDuplicate(flying.isOnGround(), flying.getLocation());
                     event.setCancelled(true);
                     return;
                 } else {
@@ -445,10 +454,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             player.lastDuplicateLocationThisTick = null;
-        }
-
-        if (player.packetStateData.isReceivingQueuedDuplicate) {
-            teleportData = new TeleportAcceptData();
         }
 
         if (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
