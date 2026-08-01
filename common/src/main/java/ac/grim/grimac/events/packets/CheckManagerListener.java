@@ -635,14 +635,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
 
+        Location location = flying.getLocation();
+
         // positions and rotations must be the same for all duplicates sent in the same tick
-        if (player.isStrictDuplicateHandling() && !flying.getLocation().equals(player.lastDuplicateLocationThisTick))
+        if (player.isStrictDuplicateHandling() && player.lastDuplicateLocationThisTick != null
+                // Location doesn't implement equals...
+                && (!player.lastDuplicateLocationThisTick.getPosition().equals(location.getPosition())
+                || player.lastDuplicateLocationThisTick.getYaw() != location.getYaw()
+                || player.lastDuplicateLocationThisTick.getPitch() != location.getPitch()))
             return false;
 
         // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
         if (player.inVehicle()) return true;
 
-        final Vector3d position = flying.getLocation().getPosition();
+        final Vector3d position = location.getPosition();
         final double threshold = player.getMovementThreshold();
 
         // ground status will never change in duplicate packets
