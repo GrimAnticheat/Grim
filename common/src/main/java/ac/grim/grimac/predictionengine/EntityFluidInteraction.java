@@ -46,7 +46,10 @@ public class EntityFluidInteraction {
         double aabbMinY = player.boundingBox.minY;
 
         int playerX = GrimMath.floor(player.lastX);
-        double playerEyeY = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
+        // Entity#getEyeY(), with no offset. The 0.1111111119389534 fudge belongs to the pre-1.21.12
+        // updateFluidOnEyes path (see PlayerBaseTick) and was dropped when Mojang rewrote this into
+        // EntityFluidInteraction; carrying it over here would sink the eye below where the client has it.
+        double playerEyeY = player.lastY + player.getEyeHeight();
         int playerZ = GrimMath.floor(player.lastZ);
 
         FluidTag fluid = null;
