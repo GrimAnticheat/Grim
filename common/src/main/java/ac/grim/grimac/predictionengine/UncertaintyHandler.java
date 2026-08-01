@@ -341,10 +341,11 @@ public class UncertaintyHandler {
 
     private boolean striderCollision(SimpleCollisionBox expandedBB) {
         // Stiders can walk on top of other striders
-        if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
+        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+        if (riding instanceof PacketEntityStrider) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
-                        && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                if (entity.getType() == EntityTypes.STRIDER && entity != riding
+                        && !riding.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
             }
