@@ -219,6 +219,13 @@ max-ping-out-of-flying: 1000
 # Dies verhindert, dass Spieler mit hoher Latenz einen einzigen Feuerwerks‑Boost mit Elytra unbegrenzt nutzen können.
 max-ping-firework-boost: 1000
 
+# Settings for transaction ID spoofing.
+spoof-transaction-id:
+    # Starting transaction ID.
+    start-transaction-id: 0
+    # Increment between transaction IDs. Set to 0 to use random increment.
+    increment: 1
+
 # Schema-Marker — nur ändern, wenn du weißt, was du tust.
 #   config-flavor:  V2 = Grim-2.x-Build, V3 = Grim-3.x. Das Plugin lehnt eine
 #                   Config ab, deren Flavor nicht zum eigenen Build passt —
