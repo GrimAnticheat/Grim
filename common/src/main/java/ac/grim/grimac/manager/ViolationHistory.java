@@ -6,11 +6,16 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectSortedMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+/**
+ * Stores violations in timestamp order for efficient expiry and maintains
+ * identity-based counts for constant-time per-check lookups.
+ */
 final class ViolationHistory<T> {
     private final Long2ObjectSortedMap<T> entries = new Long2ObjectRBTreeMap<>();
     private final Map<T, Integer> counts = new IdentityHashMap<>();
 
     void record(long timestamp, T value, long maxAge) {
+        // Keeps counts consistent when an entry with the same timestamp is replaced.
         T previous = entries.put(timestamp, value);
         if (previous != value) {
             if (previous != null) {
