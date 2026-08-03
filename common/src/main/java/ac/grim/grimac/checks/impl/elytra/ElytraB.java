@@ -22,10 +22,14 @@ public class ElytraB extends Check implements PostPredictionCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.supportsEndTick();
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
-                && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
-                && player.supportsEndTick()) {
+                && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA) {
             if (player.packetStateData.knownInput.jump()) {
                 if (flag(V.write(verbose()).bool(true))) {
                     setback = true;

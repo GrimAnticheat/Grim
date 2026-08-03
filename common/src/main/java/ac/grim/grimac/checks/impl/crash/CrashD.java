@@ -27,8 +27,13 @@ public class CrashD extends Check implements PacketCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
+    }
+
+    @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW && isSupportedVersion()) {
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
             this.type = MenuType.getMenuType(window.getType());
             if (type == MenuType.LECTERN) lecternId = window.getContainerId();
@@ -37,7 +42,7 @@ public class CrashD extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && isSupportedVersion()) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
             int clickType = VerboseCodecs.enumId(click.getWindowClickType());
             int button = click.getButton();
@@ -51,9 +56,4 @@ public class CrashD extends Check implements PacketCheck {
             }
         }
     }
-
-    private boolean isSupportedVersion() {
-        return PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
-    }
-
 }

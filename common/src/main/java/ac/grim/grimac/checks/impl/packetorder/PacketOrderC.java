@@ -29,8 +29,6 @@ public class PacketOrderC extends Check implements PacketCheck {
     static final int KIND_SKIPPED_INTERACT_TICK = 2;
     static final int KIND_MISMATCH = 3;
 
-    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) // 1.7 players do not send INTERACT_AT
-            || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1); // 26.1 players do not send INTERACT
     private boolean sentInteractAt = false;
     private int requiredEntity;
     private InteractionHand requiredHand;
@@ -40,16 +38,18 @@ public class PacketOrderC extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThan(ClientVersion.V_1_7_10) // 1.7 players do not send INTERACT_AT
+                || player.getClientVersion().isOlderThan(ClientVersion.V_26_1); // 26.1 players do not send INTERACT
+    }
+
     private Verbose.Writer writeKind(int kind) {
         return V.write(verbose(), kind);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (exempt) {
-            return;
-        }
-
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
 

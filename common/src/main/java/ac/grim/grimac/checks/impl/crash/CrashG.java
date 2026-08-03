@@ -20,8 +20,14 @@ public class CrashG extends BlockPlaceCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
+    }
+
+    @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isSupportedVersion()) {
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem use = new WrapperPlayClientUseItem(event);
             if (use.getSequence() < 0) {
                 flag();
@@ -33,7 +39,7 @@ public class CrashG extends BlockPlaceCheck {
 
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
-        if (blockBreak.sequence < 0 && isSupportedVersion()) {
+        if (blockBreak.sequence < 0) {
             flag();
             blockBreak.cancel();
         }
@@ -41,14 +47,9 @@ public class CrashG extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(BlockPlace place) {
-        if (place.sequence < 0 && isSupportedVersion()) {
+        if (place.sequence < 0) {
             flag();
             place.resync();
         }
     }
-
-    private boolean isSupportedVersion() {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
-    }
-
 }

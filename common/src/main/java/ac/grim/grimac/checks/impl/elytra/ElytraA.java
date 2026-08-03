@@ -16,11 +16,12 @@ public class ElytraA extends Check implements PostPredictionCheck {
         super(player);
     }
 
-    public void onStartGliding(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+    }
 
+    public void onStartGliding(PacketReceiveEvent event) {
         if (player.isGliding && flag()) {
             setback = true;
             if (shouldModifyPackets()) {
