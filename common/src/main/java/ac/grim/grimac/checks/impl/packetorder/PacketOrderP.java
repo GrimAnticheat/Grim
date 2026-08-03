@@ -4,7 +4,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -13,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBu
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 @CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_response_order", description = "Responded to chunk batch packets in an invalid transaction order", experimental = true)
-public class PacketOrderP extends Check implements PacketCheck {
+public class PacketOrderP extends Check implements PacketReceiveListener, PacketSendListener {
     private static final Verbose V = Verbose.of("[invalid response|skipped response, type={packet}]");
 
     public PacketOrderP(final GrimPlayer player) {

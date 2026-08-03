@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.chat;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.wrapper.common.client.WrapperCommonClie
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSettings;
 
 @CheckData(name = "ChatD", stableKey = "grim.exploit.chat_while_hidden", description = "Chatting while chat is hidden")
-public class ChatD extends Check implements PacketCheck {
+public class ChatD extends Check implements PreViaPacketReceiveListener {
     private boolean hidden;
 
     public ChatD(GrimPlayer player) {
@@ -18,7 +18,7 @@ public class ChatD extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE
                 || event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND_UNSIGNED
                 || event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {

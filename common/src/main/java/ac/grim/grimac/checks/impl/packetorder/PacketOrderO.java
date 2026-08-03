@@ -4,7 +4,7 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
 @CheckData(name = "PacketOrderO", stableKey = "grim.packetorder.tick_end_order", description = "Sent packets after movement before the expected client tick end", experimental = true)
-public class PacketOrderO extends Check implements PacketCheck {
+public class PacketOrderO extends Check implements PacketReceiveListener {
     private static final Verbose V = Verbose.of("type={packet}");
 
     public PacketOrderO(final GrimPlayer player) {

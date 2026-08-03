@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.elytra;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "ElytraB", stableKey = "grim.elytra.no_jump", description = "Started gliding without jumping")
-public class ElytraB extends Check implements PostPredictionCheck {
+public class ElytraB extends Check implements PacketReceiveListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("[no release|no jump]");
 
     private boolean glide;

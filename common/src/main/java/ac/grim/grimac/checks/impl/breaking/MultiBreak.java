@@ -4,7 +4,9 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.BlockBreakListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -17,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
-public class MultiBreak extends Check implements BlockBreakCheck {
+public class MultiBreak extends Check implements BlockBreakListener, PreViaPacketReceiveListener, PostPredictionListener {
     private static final Verbose V =
             Verbose.of("face={face}, lastFace={face}, pos={mcpos}, lastPos={mcpos}");
 
@@ -57,7 +59,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
             hasBroken = false;
         }

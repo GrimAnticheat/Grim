@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "BadPacketsE", stableKey = "grim.badpackets.invalid_position", description = "Sent too many movement packets without updating position")
-public class BadPacketsE extends Check implements PacketCheck {
+public class BadPacketsE extends Check implements PacketReceiveListener {
     private static final Verbose V = Verbose.of("ticks={uint}");
 
     private int noReminderTicks;

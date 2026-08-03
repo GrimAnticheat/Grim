@@ -2,13 +2,14 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 @CheckData(name = "PositionPlace", stableKey = "grim.scaffolding.position_place", description = "Placed a block against a hidden face")
-public class PositionPlace extends BlockPlaceCheck {
+public class PositionPlace extends BlockPlaceCheck implements BlockPlaceListener {
 
     public PositionPlace(GrimPlayer player) {
         super(player);

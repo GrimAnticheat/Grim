@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.chat;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCh
 // this can false from click events, but I doubt this would actually
 // happen unless they're trying to flag, or if the server is set up badly
 @CheckData(name = "ChatB", stableKey = "grim.exploit.spigot_antispam_bypass", description = "Invalid chat message")
-public class ChatB extends Check implements PacketCheck {
+public class ChatB extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of("[message|command]={str}");
 
     public ChatB(GrimPlayer player) {
@@ -23,7 +23,7 @@ public class ChatB extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
             String message = new WrapperPlayClientChatMessage(event).getMessage();
             if (message.isEmpty() || !message.trim().equals(message)

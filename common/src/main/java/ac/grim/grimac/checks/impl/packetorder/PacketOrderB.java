@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
 @CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", description = "Did not swing for attack")
-public class PacketOrderB extends Check implements PacketCheck {
+public class PacketOrderB extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of("[pre-attack|post-attack]");
 
     // 1.9 packet order: INTERACT -> ANIMATION
@@ -32,7 +32,7 @@ public class PacketOrderB extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.ANIMATION
             && new WrapperPlayClientAnimation(event).getHand() == InteractionHand.MAIN_HAND) {
             sentAnimationSinceLastAttack = sentAnimation = true;
