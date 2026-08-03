@@ -18,10 +18,15 @@ public class BadPacketsH extends BlockPlaceCheck {
     private static final Verbose V = Verbose.of("expected={sint}, id={sint}");
 
     private int lastSequence;
-    private final boolean isSupportedVersion = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
 
     public BadPacketsH(final GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
     }
 
     @Override
@@ -59,7 +64,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     public boolean shouldCancel(int sequence) {
         int expected = lastSequence + 1;
         lastSequence = sequence;
-        return isSupportedVersion && sequence != expected
+        return sequence != expected
                 && flagSequence(expected, sequence)
                 && shouldModifyPackets();
     }

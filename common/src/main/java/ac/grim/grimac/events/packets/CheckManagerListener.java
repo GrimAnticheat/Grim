@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsB;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
@@ -420,24 +421,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
             if (flying.hasRotationChanged() && !flying.hasPositionChanged() && !flying.isOnGround() && !flying.isHorizontalCollision()) {
-                RotationData last = null;
-                int transaction = player.getLastTransactionReceived();
-                float yaw = flying.getLocation().getYaw();
-                float pitch = flying.getLocation().getPitch();
+                RotationData data = player.pendingRotations.peek();
 
-                for (RotationData data : player.pendingRotations) {
-                    if (transaction == data.getTransaction() && data.allowRotation(yaw, pitch)) {
-                        last = data;
+                if (data != null && data.transaction() == player.getLastTransactionReceived()) {
+                    player.pendingRotations.remove();
+                    if (data.allowRotation(location.getYaw(), location.getPitch())) {
+                        player.packetStateData.lastPacketWasTeleport = true;
+                    } else {
+                        player.checkManager.getCheck(BadPacketsB.class).flag();
                     }
-
-                    if (!data.isAccepted()) {
-                        break;
-                    }
-                }
-
-                if (last != null) {
-                    player.packetStateData.lastPacketWasTeleport = true;
-                    last.accept(); // we could be wrong (especially in vehicles), don't remove this
                 }
             }
 
@@ -836,6 +828,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (action == DiggingAction.START_DIGGING) {
+            // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
             double damage = BlockBreakSpeed.getBlockDamage(player, blockBreak.block);
 
             // Instant breaking, no damage means it is unbreakable by creative players (with swords)

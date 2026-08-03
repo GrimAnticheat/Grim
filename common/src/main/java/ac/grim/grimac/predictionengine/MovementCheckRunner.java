@@ -4,7 +4,6 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.impl.vehicle.VehicleC;
-import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerCamel;
@@ -51,8 +50,9 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import org.jetbrains.annotations.NotNull;
 
-public class MovementCheckRunner extends Check implements PositionCheck {
+public class MovementCheckRunner extends Check {
     // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
     public static double predictionNanos = 0.3 * 1e6;
     // Averaged over 20000 predictions
@@ -701,7 +701,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         allowSprintJumpingWithElytra = config.getBooleanElse("exploit.allow-sprint-jumping-when-using-elytra", true);
     }
 }

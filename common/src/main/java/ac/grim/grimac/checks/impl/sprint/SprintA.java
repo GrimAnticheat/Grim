@@ -26,12 +26,7 @@ public class SprintA extends Check implements PostPredictionCheck {
 
         if (player.food <= 6.0F) {
             if (player.isSprinting) {
-                if (flag(V.write(verbose()).uint(player.food))) {
-                    if (shouldModifyPackets()) {
-                        player.onPacketCancel();
-                    }
-                    setbackIfAboveSetbackVL();
-                }
+                flagWithSetback(V.write(verbose()).uint(player.food));
             } else {
                 reward();
             }

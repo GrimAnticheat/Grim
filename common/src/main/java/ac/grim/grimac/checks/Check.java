@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,26 +31,33 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
     protected final @NotNull GrimPlayer player;
 
+    // violations
     public double violations;
-    private double decay;
-    private double setbackVL;
+    private long lastViolationTime;
+    private boolean lastFlagStoredBinaryVerbose;
     private final VerboseBuf verbose = new VerboseBuf();
 
-    private String checkName;
-    private String configName;
-    private String alternativeName;
-    private String displayName;
-    private String description;
-    private String stableKey = "";
+    // check data
+    private final @Nullable String checkName;
+    private final @Nullable String configName;
+    private final @Nullable String alternativeName;
+    private final @NotNull String stableKey;
+    private final boolean experimental;
+    private final @NotNull String defaultDescription;
+    private final double defaultDecay;
+    private final double defaultSetbackVL;
 
-    private boolean experimental;
+    // configurable
+    private @MonotonicNonNull String displayName;
+    private @MonotonicNonNull String description;
+    private double decay;
+    private double setbackVL;
     @Setter private boolean isEnabled;
 
+    // permissions
     private boolean exemptPermission;
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
-    private long lastViolationTime;
-    private boolean lastFlagStoredBinaryVerbose;
 
     public Check(final @NotNull GrimPlayer player) {
         this.player = Objects.requireNonNull(player, "player");
@@ -57,16 +65,25 @@ public class Check extends GrimProcessor implements AbstractCheck {
         final CheckData checkData = this.getClass().getAnnotation(CheckData.class);
         if (checkData != null) {
             this.checkName = checkData.name();
-            this.configName = checkData.configName();
-            // Fall back to check name
-            if (this.configName.equals("DEFAULT")) this.configName = this.checkName;
-            this.decay = checkData.decay();
-            this.setbackVL = checkData.setback();
+            this.configName = checkData.configName().equals("DEFAULT")
+                    ? this.checkName
+                    : checkData.configName();
+            this.defaultDecay = checkData.decay();
+            this.defaultSetbackVL = checkData.setback();
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
-            this.description = checkData.description();
+            this.defaultDescription = checkData.description();
             this.stableKey = checkData.stableKey();
             this.displayName = this.checkName;
+        } else {
+            this.defaultDescription = CheckData.DEFAULT_DESCRIPTION;
+            this.defaultDecay = CheckData.DEFAULT_DECAY;
+            this.defaultSetbackVL = CheckData.DEFAULT_SETBACK;
+            this.stableKey = "";
+            this.alternativeName = null;
+            this.checkName = null;
+            this.configName = null;
+            this.experimental = false;
         }
 
         reload();
@@ -78,6 +95,14 @@ public class Check extends GrimProcessor implements AbstractCheck {
                 && !player.noModifyPacketPermission
                 && !noModifyPacketPermission
                 && !exemptPermission;
+    }
+
+    /**
+     * Evaluated once when CheckManager builds the dispatch arrays.
+     * Implementations must only depend on immutable connection properties.
+     */
+    public boolean isApplicable() {
+        return true;
     }
 
     public final void updatePermissions() {
@@ -213,20 +238,20 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     @Override
-    public final void reload(ConfigManager configuration) {
-        decay = configuration.getDoubleElse(configName + ".decay", decay);
-        setbackVL = configuration.getDoubleElse(configName + ".setbackvl", setbackVL);
-        displayName = configuration.getStringElse(configName + ".displayname", checkName);
-        description = configuration.getStringElse(configName + ".description", description);
+    public final void reload(@NotNull ConfigManager configuration) {
+        if (configName != null) {
+            decay = configuration.getDoubleElse(configName + ".decay", defaultDecay);
+            setbackVL = configuration.getDoubleElse(configName + ".setbackvl", defaultSetbackVL);
+            displayName = configuration.getStringElse(configName + ".displayname", checkName);
+            description = configuration.getStringElse(configName + ".description", defaultDescription);
 
-        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+            if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+        }
         onReload(configuration);
     }
 
     @Override
-    public void onReload(ConfigManager config) {
-
-    }
+    public void onReload(@NotNull ConfigManager config) {}
 
     public boolean alert(String verbose) {
         return alert(constant(verbose));

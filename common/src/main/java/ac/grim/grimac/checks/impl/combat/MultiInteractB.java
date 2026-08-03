@@ -15,8 +15,7 @@ import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractB", stableKey = "grim.multiinteract.interact_at_position_changed", description = "Sent multiple entity interaction packets with different hit positions in one tick", experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
-    private static final Verbose V =
-            Verbose.of("pos={f64}, {f64}, {f64}, lastPos={f64}, {f64}, {f64}");
+    private static final Verbose V = Verbose.of("pos={f64}, {f64}, {f64}, lastPos={f64}, {f64}, {f64}");
 
     private final ArrayList<FlagData> flags = new ArrayList<>();
     private Vector3d lastPos;
@@ -77,6 +76,5 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
             double posZ,
             double lastPosX,
             double lastPosY,
-            double lastPosZ) {
-    }
+            double lastPosZ) {}
 }

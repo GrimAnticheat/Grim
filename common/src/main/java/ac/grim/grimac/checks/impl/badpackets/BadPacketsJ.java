@@ -24,14 +24,19 @@ public class BadPacketsJ extends Check implements PacketCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21);
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.cameraEntity.isSelf()) {
             rotations.clear();
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
-                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             rotations.add(new HeadRotation(packet.getYaw(), packet.getPitch()));
         }

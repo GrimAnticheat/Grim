@@ -58,12 +58,11 @@ public class PositionBreakA extends Check implements BlockBreakCheck {
             default -> false;
         };
 
-        if (flag) {
-            if (flag(V.write(verbose())
-                    .uint(VerboseCodecs.enumId(blockBreak.action))
-                    .uint(VerboseCodecs.enumId(blockBreak.face))) && shouldModifyPackets()) {
-                blockBreak.cancel();
-            }
+        if (flag && flag(V.write(verbose())
+                .uint(VerboseCodecs.enumId(blockBreak.action))
+                .uint(VerboseCodecs.enumId(blockBreak.face)))
+                && shouldModifyPackets()) {
+            blockBreak.cancel();
         }
     }
 }

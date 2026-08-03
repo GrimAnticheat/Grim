@@ -526,7 +526,8 @@ public class GrimPlayer implements GrimUser {
     }
 
     public double getEyeHeight() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? pose.eyeHeight
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ?
+                compensatedEntities.self.getAttributeValue(Attributes.SCALE) * pose.eyeHeight
                 : isSneaking ? 1.54f : 1.62f;
     }
 
@@ -999,6 +1000,7 @@ public class GrimPlayer implements GrimUser {
         for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
         // reload punishment manager
         punishmentManager.reload(config);
+        this.movementCheckRunner.reload(config);
     }
 
     @Override

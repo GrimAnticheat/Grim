@@ -52,6 +52,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -618,7 +619,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         maxFireworkBoostPing = config.getIntElse("max-ping-firework-boost", 1000);
     }
 

@@ -55,7 +55,7 @@ import java.util.Collections;
 import java.util.List;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away", setback = 10)
+@CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away")
 public class Reach extends Check implements PacketCheck {
     private static final Verbose V = Verbose.of("{f64:%.5f} blocks, type={entity}");
 
@@ -372,7 +372,7 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
     }

@@ -25,8 +25,7 @@ public class CrashC extends Check implements PacketCheck {
             if (flying.hasPositionChanged()) {
                 Location pos = flying.getLocation();
                 if (!Double.isFinite(pos.getX()) || !Double.isFinite(pos.getY()) || !Double.isFinite(pos.getZ())
-                    || !Float.isFinite(pos.getYaw()) || !Float.isFinite(pos.getPitch())
-                   ) {
+                    || !Float.isFinite(pos.getYaw()) || !Float.isFinite(pos.getPitch())) {
                     flag(V.write(verbose()).f64(pos.getX()).f64(pos.getY()).f64(pos.getZ()).f32(pos.getYaw()).f32(pos.getPitch()));
                     executeViolationSetback();
                     event.setCancelled(true);

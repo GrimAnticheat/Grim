@@ -55,8 +55,7 @@ public class BadPacketsU extends Check implements PacketCheck {
                             .mcPos(pos.x, pos.y, pos.z)
                             .cursor(cursor.x, cursor.y, cursor.z)
                             .bool(!failedItemCheck).sint(packet.getSequence());
-                    if (flag(buf)
-                            && shouldModifyPackets()) {
+                    if (flag(buf) && shouldModifyPackets()) {
                         player.onPacketCancel();
                         event.setCancelled(true);
                     }

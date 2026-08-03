@@ -21,11 +21,12 @@ public class ElytraC extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+    }
 
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.cameraEntity.isSelf()) {
             glideThisTick = glideLastTick = false;
         }
@@ -34,14 +35,12 @@ public class ElytraC extends Check implements PostPredictionCheck {
             if (glideThisTick || glideLastTick) {
                 if (player.canSkipTicks()) {
                     flags++;
-                } else {
-                    if (flag()) {
-                        setback = true;
-                        if (shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                            player.resyncPose();
-                        }
+                } else if (flag()) {
+                    setback = true;
+                    if (shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
+                        player.resyncPose();
                     }
                 }
             }

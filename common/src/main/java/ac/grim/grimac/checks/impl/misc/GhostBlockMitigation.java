@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.jetbrains.annotations.NotNull;
 
 public class GhostBlockMitigation extends BlockPlaceCheck {
 
@@ -23,7 +24,6 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
 
         PlatformWorld world = player.platformPlayer.getWorld();
         Vector3i pos = place.getPlacedBlockPos();
-        Vector3i posAgainst = place.position;
 
         int x = pos.getX();
         int y = pos.getY();
@@ -51,12 +51,11 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
             }
 
             place.resync();
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         allow = config.getBooleanElse("exploit.allow-building-on-ghostblocks", true);
         distance = config.getIntElse("exploit.distance-to-check-for-ghostblocks", 2);
 

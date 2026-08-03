@@ -60,9 +60,9 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 public class CheckManager {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
@@ -78,15 +78,15 @@ public class CheckManager {
     private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
     private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
 
-    private final List<PacketCheck> preViaPacketChecksValues;
-    private final List<PacketCheck> packetChecksValues;
-    private final List<PositionCheck> positionChecksValues;
-    private final List<RotationCheck> rotationChecksValues;
-    private final List<VehicleCheck> vehicleChecksValues;
-    private final List<PacketCheck> prePredictionChecksValues;
-    private final List<BlockBreakCheck> blockBreakChecksValues;
-    private final List<BlockPlaceCheck> blockPlaceChecksValues;
-    private final List<PostPredictionCheck> postPredictionChecksValues;
+    private final PacketCheck[] preViaPacketChecksValues;
+    private final PacketCheck[] packetChecksValues;
+    private final PositionCheck[] positionChecksValues;
+    private final RotationCheck[] rotationChecksValues;
+    private final VehicleCheck[] vehicleChecksValues;
+    private final PacketCheck[] prePredictionChecksValues;
+    private final BlockBreakCheck[] blockBreakChecksValues;
+    private final BlockPlaceCheck[] blockPlaceChecksValues;
+    private final PostPredictionCheck[] postPredictionChecksValues;
 
     public CheckManager(GrimPlayer player) {
         preViaPacketChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -96,7 +96,6 @@ public class CheckManager {
                 .put(ChatC.class, new ChatC(player))
                 .put(ChatD.class, new ChatD(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
-                .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
@@ -262,7 +261,8 @@ public class CheckManager {
         // All checks that have no listeners, generally invoked by other code to flag
         // TODO migrate more checks to here
         ClassToInstanceMap<AbstractCheck> noneModules = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                // BadPacketsN/W + VehicleC + TransactionOrder are packet checks with no listener
+                // BadPacketsB/N/W, VehicleC, and TransactionOrder are packet checks with no listener
+                .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
@@ -283,17 +283,16 @@ public class CheckManager {
                 .putAll(noneModules)
                 .build();
 
-        preViaPacketChecksValues = new ArrayList<>(preViaPacketChecks.values());
-        packetChecksValues = new ArrayList<>(packetChecks.values());
-        positionChecksValues = new ArrayList<>(positionChecks.values());
-        rotationChecksValues = new ArrayList<>(rotationChecks.values());
-        vehicleChecksValues = new ArrayList<>(vehicleChecks.values());
-        prePredictionChecksValues = new ArrayList<>(prePredictionChecks.values());
-        blockBreakChecksValues = new ArrayList<>(blockBreakChecks.values());
-        blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
-        postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
+        preViaPacketChecksValues = applicable(preViaPacketChecks.values()).toArray(PacketCheck[]::new);
+        packetChecksValues = applicable(packetChecks.values()).toArray(PacketCheck[]::new);
+        positionChecksValues = applicable(positionChecks.values()).toArray(PositionCheck[]::new);
+        rotationChecksValues = applicable(rotationChecks.values()).toArray(RotationCheck[]::new);
+        vehicleChecksValues = applicable(vehicleChecks.values()).toArray(VehicleCheck[]::new);
+        prePredictionChecksValues = applicable(prePredictionChecks.values()).toArray(PacketCheck[]::new);
+        blockBreakChecksValues = applicable(blockBreakChecks.values()).toArray(BlockBreakCheck[]::new);
+        blockPlaceChecksValues = applicable(blockPlaceChecks.values()).toArray(BlockPlaceCheck[]::new);
+        postPredictionChecksValues = applicable(postPredictionChecks.values()).toArray(PostPredictionCheck[]::new);
 
-        registerBuiltInVerboseTemplates();
         init();
     }
 
@@ -471,6 +470,10 @@ public class CheckManager {
         return getPositionCheck(CompensatedCooldown.class);
     }
 
+    private static <T> Stream<T> applicable(Collection<T> checks) {
+        return checks.stream().filter(check -> !(check instanceof Check grimCheck) || grimCheck.isApplicable());
+    }
+
     public NoSlow getNoSlow() {
         return getPostPredictionCheck(NoSlow.class);
     }
@@ -486,6 +489,8 @@ public class CheckManager {
     private void init() {
         if (inited || initedAtomic.getAndSet(true)) return;
         inited = true;
+
+        registerBuiltInVerboseTemplates();
 
         final String[] permissions = {
                 "grim.exempt.",

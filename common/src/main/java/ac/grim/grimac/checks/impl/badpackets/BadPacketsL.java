@@ -50,8 +50,7 @@ public class BadPacketsL extends Check implements PacketCheck {
                         .sint(packet.getBlockFaceId())
                         .sint(packet.getSequence())
                         .uint(VerboseCodecs.enumId(packet.getAction()));
-                if (flag(buf)
-                        && shouldModifyPackets() && canCancel(packet.getAction())) {
+                if (flag(buf) && shouldModifyPackets() && canCancel(packet.getAction())) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

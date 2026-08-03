@@ -20,6 +20,11 @@ public class PacketOrderO extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.supportsEndTick();
+    }
+
     private boolean flying;
 
     @Override
@@ -28,7 +33,7 @@ public class PacketOrderO extends Check implements PacketCheck {
             flying = false;
         }
 
-        if (isFlying(event.getPacketType()) && player.supportsEndTick() && !player.packetStateData.lastPacketWasTeleport) {
+        if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
             flying = true;
             return;
         }

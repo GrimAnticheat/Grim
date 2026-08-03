@@ -3,8 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.IntToObjectPair;
-import ac.grim.grimac.utils.data.RotationData;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -16,7 +14,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
@@ -133,33 +130,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ(), teleport.getYaw(), teleport.getPitch());
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
-
-            WrapperPlayServerPlayerRotation packet = new WrapperPlayServerPlayerRotation(event);
-
-            // I don't want to deal with this, so we'll prevent it
-            if (!Float.isFinite(packet.getPitch())) {
-                packet.setPitch(0);
-                event.markForReEncode(true);
-            }
-            if (!Float.isFinite(packet.getYaw())) {
-                packet.setYaw(0);
-                event.markForReEncode(true);
-            }
-
-            player.sendTransaction();
-            player.pendingRotations.add(new RotationData(
-                    packet.getYaw(),
-                    packet.isRelativePitch() ? packet.getPitch() : GrimMath.clamp(packet.getPitch() % 360F, -90F, 90F),
-                    packet.isRelativeYaw(),
-                    packet.isRelativePitch(),
-                    player.getLastTransactionSent()
-            ));
-            event.getTasksAfterSend().add(player::sendTransaction);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {

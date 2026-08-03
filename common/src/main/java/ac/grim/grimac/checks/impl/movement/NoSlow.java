@@ -7,11 +7,12 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "NoSlow", stableKey = "grim.movement.noslow", description = "Was not slowed while using an item", setback = 5)
 public class NoSlow extends Check implements PostPredictionCheck {
     // The player sends that they switched items the next tick if they switch from an item that can be used
-    // to another item that can be used.  What the fuck mojang.  Affects 1.8 (and most likely 1.7) clients.
+    // to another item that can be used.  What the fuck Mojang.  Affects 1.8 (and most likely 1.7) clients.
     public boolean didSlotChangeLastTick = false;
     public boolean flaggedLastTick = false;
     private double offsetToFlag;
@@ -51,7 +52,7 @@ public class NoSlow extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         offsetToFlag = config.getDoubleElse(getConfigName() + ".threshold", 0.001);
     }
 }

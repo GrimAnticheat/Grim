@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerAbilities;
+import org.jetbrains.annotations.NotNull;
 
 // The client can send ability packets out of order due to Mojang's excellent netcode design.
 // We must delay the second ability packet until the tick after the first is received
@@ -58,7 +59,7 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         maxFlyingPing = config.getIntElse("max-ping-out-of-flying", 1000);
     }
 

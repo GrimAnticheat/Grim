@@ -11,6 +11,8 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +59,15 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
     }
 
     @Override
-    public void onReload(ConfigManager config) {
-        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
+    public void onReload(@NotNull ConfigManager config) {
+        if (getConfigName() != null) {
+            this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", getDefaultCancelVL());
+        }
+    }
+
+    @Contract(pure = true)
+    protected int getDefaultCancelVL() {
+        return 5;
     }
 
     protected boolean shouldCancel() {

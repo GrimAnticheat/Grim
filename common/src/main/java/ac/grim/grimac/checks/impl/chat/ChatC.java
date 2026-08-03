@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -19,8 +20,7 @@ import java.util.regex.Pattern;
 
 @CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", description = "Moving while chatting", experimental = true)
 public class ChatC extends Check implements PacketCheck {
-    private static final Verbose V =
-            Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
+    private static final Verbose V = Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
 
     public ChatC(GrimPlayer player) {
         super(player);
@@ -61,7 +61,7 @@ public class ChatC extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         String regexString = config.getStringElse(getConfigName() + ".exempt-regex", null);
         exemptRegex = regexString == null ? null : Pattern.compile(regexString).asMatchPredicate();
     }

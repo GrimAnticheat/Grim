@@ -37,21 +37,17 @@ public class ChatB extends Check implements PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND_UNSIGNED) {
             String command = "/" + new WrapperPlayClientChatCommandUnsigned(event).getCommand();
-            if (!command.stripTrailing().equals(command)) {
-                if (flag(V.write(verbose()).bool(false).str(command))) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+            if (!command.stripTrailing().equals(command) && flag(V.write(verbose()).bool(false).str(command))) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
             String command = "/" + new WrapperPlayClientChatCommand(event).getCommand();
-            if (!command.trim().equals(command)) {
-                if (flag(V.write(verbose()).bool(false).str(command))) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
+            if (!command.trim().equals(command) && flag(V.write(verbose()).bool(false).str(command))) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
         }
     }
