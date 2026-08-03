@@ -21,6 +21,11 @@ public class PacketOrderD extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+    }
+
     private boolean sentMainhand;
     private int requiredEntity;
     private boolean requiredSneaking;

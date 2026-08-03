@@ -40,6 +40,11 @@ public class PacketOrderC extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return !exempt;
+    }
+
     private Verbose.Writer writeKind(int kind) {
         return V.write(verbose(), kind);
     }

@@ -60,7 +60,9 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 public class CheckManager {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
@@ -281,15 +283,15 @@ public class CheckManager {
                 .putAll(noneModules)
                 .build();
 
-        preViaPacketChecksValues = preViaPacketChecks.values().toArray(new PacketCheck[0]);
-        packetChecksValues = packetChecks.values().toArray(new PacketCheck[0]);
-        positionChecksValues = positionChecks.values().toArray(new PositionCheck[0]);
-        rotationChecksValues = rotationChecks.values().toArray(new RotationCheck[0]);
-        vehicleChecksValues = vehicleChecks.values().toArray(new VehicleCheck[0]);
-        prePredictionChecksValues = prePredictionChecks.values().toArray(new PacketCheck[0]);
-        blockBreakChecksValues = blockBreakChecks.values().toArray(new BlockBreakCheck[0]);
-        blockPlaceChecksValues = blockPlaceChecks.values().toArray(new BlockPlaceCheck[0]);
-        postPredictionChecksValues = postPredictionChecks.values().toArray(new PostPredictionCheck[0]);
+        preViaPacketChecksValues = applicable(preViaPacketChecks.values()).toArray(PacketCheck[]::new);
+        packetChecksValues = applicable(packetChecks.values()).toArray(PacketCheck[]::new);
+        positionChecksValues = applicable(positionChecks.values()).toArray(PositionCheck[]::new);
+        rotationChecksValues = applicable(rotationChecks.values()).toArray(RotationCheck[]::new);
+        vehicleChecksValues = applicable(vehicleChecks.values()).toArray(VehicleCheck[]::new);
+        prePredictionChecksValues = applicable(prePredictionChecks.values()).toArray(PacketCheck[]::new);
+        blockBreakChecksValues = applicable(blockBreakChecks.values()).toArray(BlockBreakCheck[]::new);
+        blockPlaceChecksValues = applicable(blockPlaceChecks.values()).toArray(BlockPlaceCheck[]::new);
+        postPredictionChecksValues = applicable(postPredictionChecks.values()).toArray(PostPredictionCheck[]::new);
 
         init();
     }
@@ -466,6 +468,10 @@ public class CheckManager {
 
     public CompensatedCooldown getCompensatedCooldown() {
         return getPositionCheck(CompensatedCooldown.class);
+    }
+
+    private static <T> Stream<T> applicable(Collection<T> checks) {
+        return checks.stream().filter(check -> !(check instanceof Check grimCheck) || grimCheck.isApplicable());
     }
 
     public NoSlow getNoSlow() {

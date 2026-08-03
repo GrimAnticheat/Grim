@@ -97,6 +97,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
                 && !exemptPermission;
     }
 
+    public boolean isApplicable() {
+        return true;
+    }
+
     public final void updatePermissions() {
         if (configName == null) return;
         final String id = configName.toLowerCase();

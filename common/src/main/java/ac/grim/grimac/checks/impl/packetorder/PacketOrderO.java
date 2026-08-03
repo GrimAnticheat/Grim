@@ -20,6 +20,11 @@ public class PacketOrderO extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.supportsEndTick();
+    }
+
     private boolean flying;
 
     @Override

@@ -25,6 +25,11 @@ public class BadPacketsH extends BlockPlaceCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return isSupportedVersion;
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM
                 && shouldCancel(new WrapperPlayClientUseItem(event).getSequence())) {

@@ -14,6 +14,11 @@ public class SprintF extends Check implements PostPredictionCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion() == ClientVersion.V_1_21_4;
+    }
+
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (player.wasGliding && player.isGliding && player.getClientVersion() == ClientVersion.V_1_21_4) {
             if (player.isSprinting) {

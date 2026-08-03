@@ -22,6 +22,11 @@ public class TickTimer extends Check implements PacketCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.supportsEndTick();
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.supportsEndTick()) return;
         if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {

@@ -20,6 +20,11 @@ public class CrashG extends BlockPlaceCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return isSupportedVersion();
+    }
+
+    @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isSupportedVersion()) {
             WrapperPlayClientUseItem use = new WrapperPlayClientUseItem(event);

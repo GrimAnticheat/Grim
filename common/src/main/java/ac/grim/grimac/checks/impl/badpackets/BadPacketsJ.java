@@ -24,6 +24,12 @@ public class BadPacketsJ extends Check implements PacketCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21);
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.cameraEntity.isSelf()) {
             rotations.clear();

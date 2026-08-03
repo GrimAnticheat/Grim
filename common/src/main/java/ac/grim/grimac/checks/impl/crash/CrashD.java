@@ -27,6 +27,11 @@ public class CrashD extends Check implements PacketCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return isSupportedVersion();
+    }
+
+    @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW && isSupportedVersion()) {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);

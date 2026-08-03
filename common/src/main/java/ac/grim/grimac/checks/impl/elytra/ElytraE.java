@@ -19,6 +19,11 @@ public class ElytraE extends Check implements PostPredictionCheck {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThan(ClientVersion.V_1_8);
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
