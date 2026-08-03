@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class PunishmentManager implements ConfigReloadable {
@@ -219,7 +220,7 @@ public class PunishmentManager implements ConfigReloadable {
     public void handleViolation(Check check) {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
-                long currentTime = System.currentTimeMillis();
+                long currentTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 
                 group.violations.record(currentTime, check, group.removeViolationsAfter);
             }

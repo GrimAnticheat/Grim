@@ -1,18 +1,15 @@
 package ac.grim.grimac.manager;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectSortedMap;
-
-import java.util.IdentityHashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 
 /**
- * Stores violations in timestamp order for efficient expiry and maintains
+ * Stores violations in monotonic timestamp order for constant-time expiry and maintains
  * identity-based counts for constant-time per-check lookups.
  */
 final class ViolationHistory<T> {
-    private final Long2ObjectSortedMap<T> entries = new Long2ObjectRBTreeMap<>();
-    private final Map<T, Integer> counts = new IdentityHashMap<>();
+    private final Long2ObjectLinkedOpenHashMap<T> entries = new Long2ObjectLinkedOpenHashMap<>();
+    private final Reference2IntOpenHashMap<T> counts = new Reference2IntOpenHashMap<>();
 
     void record(long timestamp, T value, long maxAge) {
         // Keeps counts consistent when an entry with the same timestamp is replaced.
@@ -21,11 +18,18 @@ final class ViolationHistory<T> {
             if (previous != null) {
                 decrement(previous);
             }
-            counts.merge(value, 1, Integer::sum);
+            counts.addTo(value, 1);
         }
 
+        int expired = 0;
         while (!entries.isEmpty() && timestamp - entries.firstLongKey() > maxAge) {
-            decrement(entries.remove(entries.firstLongKey()));
+            decrement(entries.removeFirst());
+            expired++;
+        }
+
+        // Release oversized backing arrays after most of the history expires.
+        if (expired > entries.size()) {
+            entries.trim();
         }
     }
 
@@ -34,13 +38,13 @@ final class ViolationHistory<T> {
     }
 
     int count(T value) {
-        return counts.getOrDefault(value, 0);
+        return counts.getInt(value);
     }
 
     private void decrement(T value) {
-        int count = counts.get(value);
+        int count = counts.getInt(value);
         if (count == 1) {
-            counts.remove(value);
+            counts.removeInt(value);
         } else {
             counts.put(value, count - 1);
         }
