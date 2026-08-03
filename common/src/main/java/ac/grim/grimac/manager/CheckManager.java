@@ -96,7 +96,6 @@ public class CheckManager {
                 .put(ChatC.class, new ChatC(player))
                 .put(ChatD.class, new ChatD(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
-                .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
@@ -262,7 +261,8 @@ public class CheckManager {
         // All checks that have no listeners, generally invoked by other code to flag
         // TODO migrate more checks to here
         ClassToInstanceMap<AbstractCheck> noneModules = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                // BadPacketsN/W + VehicleC + TransactionOrder are packet checks with no listener
+                // BadPacketsB/N/W, VehicleC, and TransactionOrder are packet checks with no listener
+                .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
