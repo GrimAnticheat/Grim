@@ -22,15 +22,11 @@ public class ElytraC extends Check implements PostPredictionCheck {
 
     @Override
     public boolean isApplicable() {
-        return player.getClientVersion().isNewerThan(ClientVersion.V_1_8);
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
-
         if (!player.cameraEntity.isSelf()) {
             glideThisTick = glideLastTick = false;
         }

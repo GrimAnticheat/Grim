@@ -28,7 +28,6 @@ public class ElytraI extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
                 && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
                 && player.wasTouchingWater
-                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)
                 && flag()) {
             setback = true;
             if (shouldModifyPackets()) {

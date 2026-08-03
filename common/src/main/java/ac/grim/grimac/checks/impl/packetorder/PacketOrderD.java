@@ -32,7 +32,7 @@ public class PacketOrderD extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             InteractAction action = packet.getAction();
             if (action != InteractAction.ATTACK) {

@@ -36,8 +36,7 @@ public class BadPacketsJ extends Check implements PacketCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
-                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             rotations.add(new HeadRotation(packet.getYaw(), packet.getPitch()));
         }
