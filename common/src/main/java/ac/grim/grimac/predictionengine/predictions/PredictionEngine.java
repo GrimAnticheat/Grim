@@ -79,7 +79,7 @@ public class PredictionEngine {
         // Computers are actually really fast at sorting, I don't see sorting as a problem
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
-        player.checkManager.getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
+        player.checkManager.getCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
 
         double bestInput = Double.MAX_VALUE;
 
@@ -609,7 +609,7 @@ public class PredictionEngine {
         box.combineToMinimum(box.minX, levitation, box.minZ);
 
 
-        SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
+        SneakingEstimator sneaking = player.checkManager.getCheck(SneakingEstimator.class);
         box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;
         box.minZ += sneaking.getSneakingPotentialHiddenVelocity().minZ;
         box.maxX += sneaking.getSneakingPotentialHiddenVelocity().maxX;
