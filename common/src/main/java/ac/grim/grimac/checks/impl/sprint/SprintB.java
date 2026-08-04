@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.sprint;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.enums.Pose;
@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import java.util.Collections;
 
 @CheckData(name = "SprintB", stableKey = "grim.sprint.sneaking", description = "Sprinting while sneaking or crawling", setback = 5, experimental = true)
-public class SprintB extends Check implements PostPredictionCheck {
+public class SprintB extends Check implements PostPredictionListener {
     public SprintB(GrimPlayer player) {
         super(player);
     }

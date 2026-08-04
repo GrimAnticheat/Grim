@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "BadPacketsU", stableKey = "grim.badpackets.invalid_block_placement", description = "Sent impossible use item packet")
-public class BadPacketsU extends Check implements PacketCheck {
+public class BadPacketsU extends Check implements PacketReceiveListener {
     private static final Verbose V =
             Verbose.of("xyz={mcpos}, cursor={cursor}, item={bool}, sequence={sint}");
 

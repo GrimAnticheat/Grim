@@ -4,7 +4,7 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", description = "Sent INTERACT and INTERACT_AT entity packets in the wrong order")
-public class PacketOrderC extends Check implements PacketCheck {
+public class PacketOrderC extends Check implements PreViaPacketReceiveListener {
     // Shape index == KIND_* constant value.
     private static final Verbose V = Verbose
             .of("Skipped Interact-At")
@@ -29,8 +29,6 @@ public class PacketOrderC extends Check implements PacketCheck {
     static final int KIND_SKIPPED_INTERACT_TICK = 2;
     static final int KIND_MISMATCH = 3;
 
-    private final boolean exempt = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) // 1.7 players do not send INTERACT_AT
-            || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1); // 26.1 players do not send INTERACT
     private boolean sentInteractAt = false;
     private int requiredEntity;
     private InteractionHand requiredHand;
@@ -40,16 +38,18 @@ public class PacketOrderC extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThan(ClientVersion.V_1_7_10) // 1.7 players do not send INTERACT_AT
+                && player.getClientVersion().isOlderThan(ClientVersion.V_26_1); // 26.1 players do not send INTERACT
+    }
+
     private Verbose.Writer writeKind(int kind) {
         return V.write(verbose(), kind);
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (exempt) {
-            return;
-        }
-
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
 

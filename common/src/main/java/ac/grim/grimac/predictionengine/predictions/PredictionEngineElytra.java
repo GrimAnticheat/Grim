@@ -69,7 +69,6 @@ public class PredictionEngineElytra extends PredictionEngine {
             Vector3dm currentLook = ReachUtils.getLook(player, player.yaw, player.pitch);
             for (VectorData data : possibleVectors) {
                 VectorData result = data.returnNewModified(getElytraMovement(player, data.vector.clone(), currentLook), VectorData.VectorType.InputResult);
-                result.input = new Vector3dm(0, 0, 0);
 
                 if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
                     // only simulate no stuck speed if player is leaving

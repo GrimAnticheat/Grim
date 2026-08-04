@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.team;
 
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 // Reminder: Entities use UUIDs, players use name, for setting teams.
-public class TeamHandler extends Check implements PacketCheck {
+public class TeamHandler extends Check implements PacketSendListener {
 
     private final Map<String, EntityTeam> entityTeams = new Object2ObjectOpenHashMap<>();
     private final Map<String, EntityTeam> entityToTeam = new Object2ObjectOpenHashMap<>();

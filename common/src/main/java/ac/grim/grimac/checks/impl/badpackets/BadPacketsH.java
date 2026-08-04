@@ -2,7 +2,10 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.BlockBreakListener;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -14,14 +17,19 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "BadPacketsH", stableKey = "grim.badpackets.unexpected_sequence", description = "Sent unexpected sequence id", experimental = true)
-public class BadPacketsH extends BlockPlaceCheck {
+public class BadPacketsH extends BlockPlaceCheck implements PacketReceiveListener, BlockPlaceListener, BlockBreakListener {
     private static final Verbose V = Verbose.of("expected={sint}, id={sint}");
 
     private int lastSequence;
-    private final boolean isSupportedVersion = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
 
     public BadPacketsH(final GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
     }
 
     @Override
@@ -59,7 +67,7 @@ public class BadPacketsH extends BlockPlaceCheck {
     public boolean shouldCancel(int sequence) {
         int expected = lastSequence + 1;
         lastSequence = sequence;
-        return isSupportedVersion && sequence != expected
+        return sequence != expected
                 && flagSequence(expected, sequence)
                 && shouldModifyPackets();
     }

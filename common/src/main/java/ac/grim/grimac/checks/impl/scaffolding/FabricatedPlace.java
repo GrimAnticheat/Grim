@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -10,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 
 @CheckData(name = "FabricatedPlace", stableKey = "grim.scaffolding.fabricated_place", description = "Sent out of bounds cursor position")
-public class FabricatedPlace extends BlockPlaceCheck {
+public class FabricatedPlace extends BlockPlaceCheck implements BlockPlaceListener {
     private static final Verbose V = Verbose.of("cursor={cursor} limit={f64:%.16f}");
 
     /**

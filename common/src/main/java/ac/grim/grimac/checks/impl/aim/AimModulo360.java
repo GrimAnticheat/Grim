@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.aim;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.RotationCheck;
+import ac.grim.grimac.checks.type.RotationListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 
@@ -10,7 +10,7 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 // I also discovered this flaw before open source Kauri, but did not want to open source its detection.
 // It works on clients who % 360 their rotation.
 @CheckData(name = "AimModulo360", stableKey = "grim.aim.modulo_360", description = "Sent a large yaw snap", decay = 0.005)
-public class AimModulo360 extends Check implements RotationCheck {
+public class AimModulo360 extends Check implements RotationListener {
 
     private float lastDeltaYaw;
 

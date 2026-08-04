@@ -95,7 +95,7 @@ public interface LiveWriteHooks {
         String serverVersion = GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString();
         String brand = null;
         if (gp != null) {
-            ClientBrand check = gp.checkManager.getPacketCheck(ClientBrand.class);
+            ClientBrand check = gp.checkManager.getCheck(ClientBrand.class);
             if (check != null && check.isHasBrand()) brand = check.getBrand();
         }
         return new SessionTracker.ClientMeta(grimVersion, brand, clientVersionPvn, serverVersion);
