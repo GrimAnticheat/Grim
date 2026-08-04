@@ -4,7 +4,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -16,7 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
 @CheckData(name = "CrashD", stableKey = "grim.crash.lectern", description = "Clicking slots in lectern window")
-public class CrashD extends Check implements PacketCheck {
+public class CrashD extends Check implements PacketReceiveListener, PacketSendListener {
     private static final Verbose V = Verbose.of("clickType={clicktype}, button={sint}");
 
     private MenuType type = MenuType.UNKNOWN;

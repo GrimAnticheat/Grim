@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PrePredictionPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "Timer", stableKey = "grim.timer.timer", configName = "TimerA", description = "The players game is running faster than normal", setback = 10)
-public class Timer extends Check implements PacketCheck {
+public class Timer extends Check implements PrePredictionPacketReceiveListener {
     protected long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time
@@ -56,7 +56,7 @@ public class Timer extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
+    public void onPrePredictionPacketReceive(final PacketReceiveEvent event) {
         if (hasGottenMovementAfterTransaction && checkForTransaction(event.getPacketType())) {
             knownPlayerClockTime = lastMovementPlayerClock;
             lastMovementPlayerClock = player.getPlayerClockAtLeast();

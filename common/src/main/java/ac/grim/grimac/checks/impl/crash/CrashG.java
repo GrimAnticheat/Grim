@@ -1,7 +1,10 @@
 package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.BlockBreakListener;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -13,7 +16,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "CrashG", stableKey = "grim.crash.negative_sequence", description = "Sent negative sequence id")
-public class CrashG extends BlockPlaceCheck {
+public class CrashG extends BlockPlaceCheck implements PacketReceiveListener, BlockPlaceListener, BlockBreakListener {
 
     public CrashG(GrimPlayer player) {
         super(player);

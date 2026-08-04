@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -15,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSp
 import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractA", stableKey = "grim.multiinteract.multiple_targets", description = "Interacted with multiple entities in the same tick", experimental = true)
-public class MultiInteractA extends Check implements PostPredictionCheck {
+public class MultiInteractA extends Check implements PacketReceiveListener, PostPredictionListener {
     private static final Verbose V =
             Verbose.of("lastEntity={sint}, entity={sint}, lastSneaking={bool}, sneaking={bool}");
 

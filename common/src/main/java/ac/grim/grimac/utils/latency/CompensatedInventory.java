@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
@@ -40,7 +41,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Updated to support modern 1.17 protocol
-public class CompensatedInventory extends Check implements PacketCheck {
+public class CompensatedInventory extends Check implements PacketReceiveListener, PacketSendListener {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     // "Temporarily" public for debugging

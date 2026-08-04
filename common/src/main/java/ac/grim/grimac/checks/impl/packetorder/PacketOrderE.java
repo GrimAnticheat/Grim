@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import java.util.ArrayDeque;
 
 @CheckData(name = "PacketOrderE", stableKey = "grim.packetorder.slot_order", description = "Changed held item slot during another conflicting action", experimental = true)
-public class PacketOrderE extends Check implements PostPredictionCheck {
+public class PacketOrderE extends Check implements PacketReceiveListener, PostPredictionListener {
     private static final Verbose V = Verbose.of(
             "attacking={bool}, rightClicking={bool}, openingInventory={bool}, releasing={bool}"
                     + ", sneaking={bool}, sprinting={bool}, bed={bool}, gliding={bool}, mountJumping={bool}");

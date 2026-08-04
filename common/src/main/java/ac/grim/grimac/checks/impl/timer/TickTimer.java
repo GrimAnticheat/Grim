@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PrePredictionPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
 @CheckData(name = "TickTimer", stableKey = "grim.timer.tick", description = "Did not send client tick end packet", setback = 1)
-public class TickTimer extends Check implements PacketCheck {
+public class TickTimer extends Check implements PrePredictionPacketReceiveListener {
     private static final Verbose V = Verbose.of("type=[end|flying], packets={uint}");
 
     private boolean receivedTickEnd = true;
@@ -27,7 +27,7 @@ public class TickTimer extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPrePredictionPacketReceive(PacketReceiveEvent event) {
         if (isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasTeleport) {
             if (!receivedTickEnd && flagWithSetback(V.write(verbose()).bool(false).uint(flyingPackets))) {
                 handleViolation();

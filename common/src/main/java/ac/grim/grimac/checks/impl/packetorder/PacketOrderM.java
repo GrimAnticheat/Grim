@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "PacketOrderM", stableKey = "grim.packetorder.interact_use_order", description = "Sent use item and entity interaction packets in an invalid order", experimental = true)
-public class PacketOrderM extends Check implements PostPredictionCheck {
+public class PacketOrderM extends Check implements PacketReceiveListener, PostPredictionListener {
     public PacketOrderM(final GrimPlayer player) {
         super(player);
     }

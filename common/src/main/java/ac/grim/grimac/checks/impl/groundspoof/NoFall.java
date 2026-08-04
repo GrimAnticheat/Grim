@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.groundspoof;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -18,7 +18,7 @@ import java.util.List;
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
 @CheckData(name = "NoFall", stableKey = "grim.groundspoof.no_fall", description = "Sent an on-ground packet while not colliding with the ground", setback = 10)
-public class NoFall extends Check implements PacketCheck {
+public class NoFall extends Check implements PacketReceiveListener {
 
     public boolean flipPlayerGroundStatus = false;
 
