@@ -33,6 +33,8 @@ public final class VerboseCodecs {
     public static final int PACKET_NONE = Integer.MIN_VALUE;
     /** {@code {packet}} sentinel for transaction/pong. */
     public static final int PACKET_TRANSACTION = Integer.MIN_VALUE + 1;
+    /** {@code {entity}} sentinel for types unavailable in the player's client version. */
+    public static final int ENTITY_UNKNOWN = Integer.MAX_VALUE;
 
     static {
         VerboseTags.registerEnum("face", BlockFace.values());
@@ -99,7 +101,15 @@ public final class VerboseCodecs {
 
     /** Encoder for {@code {entity}}. */
     public static int entity(@NotNull EntityType type, @NotNull ClientVersion version) {
-        return type.getId(version);
+        try {
+            return entityIdOrUnknown(type.getId(version));
+        } catch (RuntimeException e) {
+            return ENTITY_UNKNOWN;
+        }
+    }
+
+    static int entityIdOrUnknown(int id) {
+        return id < 0 ? ENTITY_UNKNOWN : id;
     }
 
     private static @NotNull String blockName(int clientVersionPvn, int id) {
@@ -122,6 +132,7 @@ public final class VerboseCodecs {
     }
 
     private static @NotNull String entityTypeName(int clientVersionPvn, int entityId) {
+        if (entityId == ENTITY_UNKNOWN) return "unknown";
         EntityType entityType = EntityTypes.getById(ClientVersion.getById(clientVersionPvn), entityId);
         return entityType == null ? "unknown" : entityType.getName().getKey();
     }

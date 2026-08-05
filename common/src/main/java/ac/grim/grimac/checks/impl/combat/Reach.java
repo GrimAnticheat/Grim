@@ -19,6 +19,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -234,7 +235,7 @@ public class Reach extends Check implements PacketReceiveListener {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> flag(
-                        V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
+                        V.write(verbose()).f64(result.minDistance()).uint(VerboseCodecs.entity(reachEntity.getType(), player.getClientVersion())),
                         () -> {
                             String added = ", type=" + reachEntity.getType().getName().getKey();
                             if (reachEntity instanceof PacketEntitySizeable sizeable) {
