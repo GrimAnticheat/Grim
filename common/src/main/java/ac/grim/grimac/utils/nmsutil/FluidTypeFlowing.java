@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -109,7 +110,7 @@ public class FluidTypeFlowing {
         }
 
         Vector3dm vec3d = new Vector3dm(modX, 0.0D, modZ);
-        if (state.getLevel() >= 8) {
+        if (state.hasProperty(StateValue.LEVEL) && state.getLevel() >= 8) {
             for (BlockFace direction : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, direction) || isSolidFace(player, originalX, originalY + 1, originalZ, direction)) {
                     vec3d = VectorUtils.normalize(player, vec3d).add(0.0D, -6.0D, 0.0D);
@@ -126,6 +127,10 @@ public class FluidTypeFlowing {
         if (water ? !Materials.isWater(player.getClientVersion(), state) : state.getType() != StateTypes.LAVA) {
             return -1;
         }
+
+        // Bubble columns count as water for legacy clients, but unlike water and lava
+        // they do not expose the LEVEL block-state property. They behave as sources.
+        if (!state.hasProperty(StateValue.LEVEL)) return 0;
 
         int level = state.getLevel();
         return level >= 8 ? 0 : level;
