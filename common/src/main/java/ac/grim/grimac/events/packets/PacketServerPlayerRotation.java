@@ -41,7 +41,10 @@ public class PacketServerPlayerRotation extends PacketListenerAbstract {
                 event.markForReEncode(true);
             }
 
-            ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+            if (!player.packetStateData.sendingBundlePacket) {
+                ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+                event.getTasksAfterSend().add(() -> ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle()));
+            }
             player.sendTransaction();
             player.pendingRotations.add(new RotationData(
                     packet.getYaw(),
@@ -50,7 +53,6 @@ public class PacketServerPlayerRotation extends PacketListenerAbstract {
                     packet.isRelativePitch(),
                     player.getLastTransactionSent()
             ));
-            event.getTasksAfterSend().add(() -> ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle()));
         }
     }
 }
