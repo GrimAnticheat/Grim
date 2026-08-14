@@ -70,17 +70,6 @@ public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
                 maxVertical += 1e-15;
             }
 
-            boolean yInTopBound = target.y <= maxVertical;
-            boolean yInBottomBound = target.y >= minVertical;
-            double xOffset = Math.abs(target.x) <= maxHorizontal ? 0 : Math.abs(target.x) - maxHorizontal;
-            double yOffset = yInTopBound && yInBottomBound ? 0 : yInTopBound ? minVertical - target.y : target.y - maxVertical;
-            double zOffset = Math.abs(target.z) <= maxHorizontal ? 0 : Math.abs(target.z) - maxHorizontal;
-            Component debug = MessageUtil.miniMessage("<white>hit=<#FF0000>" + target.x + "<white>/<#00FF00>" + target.y + "<white>/<#7F7FFF>" + target.z + "<white>"
-                            + "\noffset=<#FF0000>" + xOffset + "<white>/<#00FF00>" + yOffset + "<white>/<#7F7FFF>" + zOffset + "<white>"
-                            + "\nminY=<#00FF00>" + minVertical + "<white>, maxY=<#00FF00>" + maxVertical + "<white>, maxXZ=<#bf3f7f>" + maxHorizontal + "<white>")
-                    .appendNewline();
-            player.sendMessage(debug);
-
             if (target.y >= minVertical && target.y <= maxVertical
                     && Math.abs(target.x) <= maxHorizontal
                     && Math.abs(target.z) <= maxHorizontal) {
