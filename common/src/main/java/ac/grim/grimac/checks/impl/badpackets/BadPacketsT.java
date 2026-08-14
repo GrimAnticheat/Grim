@@ -42,6 +42,11 @@ public class BadPacketsT extends Check implements PacketReceiveListener {
             Vector3d targetVector = wrapper.getLocation();
             if (targetVector == null) return; // shouldn't ever happen, but whatever
 
+            if (!Double.isFinite(targetVector.x) || !Double.isFinite(targetVector.y) || !Double.isFinite(targetVector.z)) {
+                flag(V.write(verbose()).f64(targetVector.x).f64(targetVector.y).f64(targetVector.z));
+                return;
+            }
+
             final PacketEntity packetEntity = player.compensatedEntities.getEntity(wrapper.getEntityId());
             // Don't continue if the compensated entity hasn't been resolved
             if (packetEntity == null) {
