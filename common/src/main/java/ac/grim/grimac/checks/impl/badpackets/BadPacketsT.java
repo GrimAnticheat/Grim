@@ -3,38 +3,38 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.impl.velocity.VectorPrecisionConverter;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target player's hitbox")
-public class BadPacketsT extends Check implements PacketReceiveListener {
+public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of("{f64:%.5f}/{f64:%.5f}/{f64:%.5f}");
 
-    private final double maxHorizontalDisplacement;
-    private final double minVerticalDisplacement;
-    private final double maxVerticalDisplacement;
+    // pre-1.9 expands hit boxes by 0.1 on all sides; this is not lenience, it is vanilla.
+    // TODO: do we even need an epsilon?
+    private final double expansion = (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0);
+    private final boolean stupid = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1);
 
     public BadPacketsT(final GrimPlayer player) {
         super(player);
-        // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
-        // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
-        // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
-        double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1 : 0;
-        maxHorizontalDisplacement = 0.3001 + expansion;
-        minVerticalDisplacement = -0.0001 - expansion;
-        maxVerticalDisplacement = 1.8001 + expansion;
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8);
+    }
+
+    @Override
+    public void onPreViaPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
             final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             // Only INTERACT_AT actually has an interaction vector
@@ -47,27 +47,26 @@ public class BadPacketsT extends Check implements PacketReceiveListener {
                 return;
             }
 
-            final PacketEntity packetEntity = player.compensatedEntities.getEntity(wrapper.getEntityId());
-            // Don't continue if the compensated entity hasn't been resolved
-            if (packetEntity == null) {
-                return;
+            final PacketEntity entity = player.compensatedEntities.getEntity(wrapper.getEntityId());
+            if (entity == null) return;
+
+            if (stupid) {
+                targetVector = VectorPrecisionConverter.lpToLegacy(targetVector);
             }
 
-            // Make sure our target entity is actually a player (Player NPCs work too)
-            if (!EntityTypes.PLAYER.equals(packetEntity.getType())) {
-                // We can't check for any entity that is not a player
-                return;
-            }
+            final float scale = (float) entity.getAttributeValue(Attributes.SCALE);
+            final float height = BoundingBoxSize.getHeight(player, entity) * scale;
+            final float width = BoundingBoxSize.getWidth(player, entity) * scale;
+            final double minVertical = -expansion; // scale is irrelevant
+            final double maxVertical = height + expansion;
+            final double maxHorizontal = (width / 2f) + expansion;
 
-            // Perform the interaction vector check
-            // TODO:
-            //  27/12/2023 - Dynamic values for more than just one entity type?
-            //  28/12/2023 - Player-only is fine
-            //  30/12/2023 - Expansions differ in 1.9+
-            final float scale = (float) packetEntity.getAttributeValue(Attributes.SCALE);
-            if (targetVector.y > (minVerticalDisplacement * scale) && targetVector.y < (maxVerticalDisplacement * scale)
-                    && Math.abs(targetVector.x) < (maxHorizontalDisplacement * scale)
-                    && Math.abs(targetVector.z) < (maxHorizontalDisplacement * scale)) {
+            player.sendMessage(targetVector.x + "/" + targetVector.y + "/" + targetVector.z
+                    + ", minVertical=" + minVertical + ", maxVertical=" + maxVertical + ", maxHorizontal=" + maxHorizontal);
+
+            if (targetVector.y >= minVertical && targetVector.y <= maxVertical
+                    && Math.abs(targetVector.x) <= maxHorizontal
+                    && Math.abs(targetVector.z) <= maxHorizontal) {
                 return;
             }
 
