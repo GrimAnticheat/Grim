@@ -26,10 +26,18 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
+import org.jetbrains.annotations.Nullable;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
     private final SimpleCollisionBox targetLocation;
+    /**
+     * The exact position this interpolation is heading towards, or null when this
+     * interpolation targets a box rather than a tracked position (the riding and
+     * MC-255263 freeze constructor). Kept separate from {@link #targetLocation}
+     * because that box is expanded for < 1.9 packet precision loss.
+     */
+    private final Vector3d targetPosition;
     private final GrimPlayer player;
     private final PacketEntity entity;
     public SimpleCollisionBox startingLocation;
@@ -44,6 +52,7 @@ public class ReachInterpolationData {
         this.startingLocation = startingLocation;
         final Vector3d pos = position.getPos();
         this.targetLocation = new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false);
+        this.targetPosition = pos;
         this.player = player;
         this.entity = entity;
 
@@ -73,6 +82,7 @@ public class ReachInterpolationData {
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox finishedLoc, PacketEntity entity) {
         this.startingLocation = finishedLoc;
         this.targetLocation = finishedLoc;
+        this.targetPosition = null;
         this.entity = entity;
         this.player = player;
     }
@@ -117,6 +127,46 @@ public class ReachInterpolationData {
 
     private int getInterpolationSteps() {
         return interpolationSteps;
+    }
+
+    /**
+     * Equivalent of vanilla's {@code InterpolationHandler#hasActiveInterpolation}.
+     * <p>
+     * Uses the low bound so this is only true while every position the client could
+     * be at is still short of the target. Once the low bound has reached the step
+     * count the entity has converged, and restarting the interpolation is a no-op
+     * anyway because the new starting location would equal the target.
+     */
+    public boolean hasActiveInterpolation() {
+        return interpolationStepsLowBound < getInterpolationSteps();
+    }
+
+    /**
+     * Whether an incoming position/rotation update restates the target this
+     * interpolation is already heading towards.
+     * <p>
+     * Mirrors the guard in vanilla {@code InterpolationHandler#interpolateTo}: a
+     * component the packet did not carry is compared against the current target
+     * (vanilla defaults it through {@code Entity#moveOrInterpolateTo}'s
+     * {@code Optional#orElse}), so it can never force a restart on its own.
+     *
+     * @param pos        the position the update targets
+     * @param xRot       packet yaw, or null when the packet carried no rotation
+     * @param yRot       packet pitch, or null when the packet carried no rotation
+     * @param targetXRot yaw this interpolation is heading towards
+     * @param targetYRot pitch this interpolation is heading towards
+     */
+    public boolean restatesTarget(Vector3d pos, @Nullable Float xRot, @Nullable Float yRot,
+                                  float targetXRot, float targetYRot) {
+        if (targetPosition == null || !hasActiveInterpolation()) return false;
+        if (targetPosition.x != pos.x
+                || targetPosition.y != pos.y
+                || targetPosition.z != pos.z) {
+            return false;
+        }
+
+        // Vanilla compares boxed Floats here, so exact equality is the correct test.
+        return xRot == null || yRot == null || (targetXRot == xRot && targetYRot == yRot);
     }
 
     /**
