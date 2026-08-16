@@ -51,11 +51,10 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.EXPLOSION);
+        registry.registerHandler(this::onExplosion, PacketType.Play.Server.EXPLOSION);
     }
 
-    @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    private void onExplosion(final PacketSendEvent event) {
         WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
         // Since 1.21.2, the server will instead send these changes via block change packets

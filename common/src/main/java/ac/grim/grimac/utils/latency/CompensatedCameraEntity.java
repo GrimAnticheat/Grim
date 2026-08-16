@@ -23,11 +23,10 @@ public class CompensatedCameraEntity extends Check implements PreViaPacketSendLi
 
     @Override
     public void registerPreViaSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPreViaPacketSend, PacketType.Play.Server.CAMERA);
+        registry.registerHandler(this::onCamera, PacketType.Play.Server.CAMERA);
     }
 
-    @Override
-    public void onPreViaPacketSend(PacketSendEvent event) {
+    private void onCamera(PacketSendEvent event) {
         int camera = new WrapperPlayServerCamera(event).getCameraId();
         player.sendTransaction();
 

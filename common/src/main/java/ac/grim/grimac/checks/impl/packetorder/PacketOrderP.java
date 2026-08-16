@@ -41,11 +41,10 @@ public class PacketOrderP extends Check implements PacketReceiveListener, Packet
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.CHUNK_BATCH_END);
+        registry.registerHandler(this::onChunkBatchEnd, PacketType.Play.Server.CHUNK_BATCH_END);
     }
 
-    @Override
-    public void onPacketSend(PacketSendEvent event) {
+    private void onChunkBatchEnd(PacketSendEvent event) {
         boolean sendingBundlePacket = player.packetStateData.sendingBundlePacket;
         if (!sendingBundlePacket) player.user.sendPacket(new WrapperPlayServerBundle());
 

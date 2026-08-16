@@ -61,11 +61,10 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.ENTITY_ANIMATION);
+        registry.registerHandler(this::onEntityAnimation, PacketType.Play.Server.ENTITY_ANIMATION);
     }
 
-    @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    private void onEntityAnimation(final PacketSendEvent event) {
         WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
         if (animation.getEntityId() == player.entityID) {
             if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||

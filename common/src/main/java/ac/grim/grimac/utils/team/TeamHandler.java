@@ -44,11 +44,10 @@ public class TeamHandler extends Check implements PacketSendListener {
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.TEAMS);
+        registry.registerHandler(this::onTeams, PacketType.Play.Server.TEAMS);
     }
 
-    @Override
-    public void onPacketSend(PacketSendEvent event) {
+    private void onTeams(PacketSendEvent event) {
         WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
         final String teamName = teams.getTeamName();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {

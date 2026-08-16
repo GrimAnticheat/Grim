@@ -19,11 +19,10 @@ public class PacketChangeGameState extends Check implements PacketSendListener {
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.CHANGE_GAME_STATE);
+        registry.registerHandler(this::onChangeGameState, PacketType.Play.Server.CHANGE_GAME_STATE);
     }
 
-    @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    private void onChangeGameState(final PacketSendEvent event) {
         WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 
         switch (packet.getReason()) {

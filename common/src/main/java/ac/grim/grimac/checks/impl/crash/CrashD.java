@@ -35,11 +35,10 @@ public class CrashD extends Check implements PacketReceiveListener, PacketSendLi
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.OPEN_WINDOW);
+        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
     }
 
-    @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    private void onOpenWindow(final PacketSendEvent event) {
         WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
         this.type = MenuType.getMenuType(window.getType());
         if (type == MenuType.LECTERN) lecternId = window.getContainerId();

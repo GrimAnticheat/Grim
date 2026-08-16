@@ -46,11 +46,10 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.ENTITY_VELOCITY);
+        registry.registerHandler(this::onEntityVelocity, PacketType.Play.Server.ENTITY_VELOCITY);
     }
 
-    @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    private void onEntityVelocity(final PacketSendEvent event) {
         WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
         int entityId = velocity.getEntityId();
 

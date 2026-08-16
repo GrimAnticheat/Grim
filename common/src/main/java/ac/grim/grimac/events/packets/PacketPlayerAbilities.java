@@ -35,11 +35,10 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.PLAYER_ABILITIES);
+        registry.registerHandler(this::onPlayerAbilities, PacketType.Play.Server.PLAYER_ABILITIES);
     }
 
-    @Override
-    public void onPacketSend(PacketSendEvent event) {
+    private void onPlayerAbilities(PacketSendEvent event) {
         WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
         player.sendTransaction();
 

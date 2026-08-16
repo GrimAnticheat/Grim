@@ -27,11 +27,10 @@ public class BadPacketsO extends Check implements PacketReceiveListener, PacketS
 
     @Override
     public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.KEEP_ALIVE);
+        registry.registerHandler(this::onKeepAlive, PacketType.Play.Server.KEEP_ALIVE);
     }
 
-    @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onKeepAlive(PacketSendEvent event) {
         keepalives.add(new WrapperPlayServerKeepAlive(event).getId());
     }
 
