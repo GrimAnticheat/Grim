@@ -1,6 +1,6 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-public class AttackCooldownHandler extends Check implements PacketReceiveListener {
+public class AttackCooldownHandler extends GrimProcessor implements PacketReceiveListener {
     private int ticksSinceLastSwing;
     private ItemStack stack = ItemStack.EMPTY;
     // Since we don't know when the client ticks, we call updateHeldItem() when the held item changes,

@@ -1,6 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -32,7 +32,7 @@ import java.util.List;
  * <p>
  * So, this is a value patch like 0.03 because it can be "close enough" that it's better just to not skip ticks
  **/
-public class SneakingEstimator extends Check implements PostPredictionListener {
+public class SneakingEstimator extends GrimProcessor implements PostPredictionListener {
     @Getter
     private SimpleCollisionBox sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
     private List<VectorData> possible = new ArrayList<>();
