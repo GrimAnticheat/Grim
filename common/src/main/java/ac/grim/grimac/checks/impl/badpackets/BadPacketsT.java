@@ -6,7 +6,6 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.velocity.VectorPrecisionConverter;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -16,7 +15,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.MathUtil;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target entity's hitbox")
