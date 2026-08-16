@@ -34,6 +34,11 @@ public class BadPacketsT extends Check implements PacketReceiveListener {
     }
 
     @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8);
+    }
+
+    @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
             final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
