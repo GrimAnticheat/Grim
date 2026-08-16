@@ -420,7 +420,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (data.allowRotation(location.getYaw(), location.getPitch())) {
                         player.packetStateData.lastPacketWasTeleport = true;
                     } else {
-                        player.checkManager.getCheck(BadPacketsB.class).flag();
+                        player.checkManager.get(BadPacketsB.class).flag();
                     }
                 }
             }

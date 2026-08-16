@@ -326,7 +326,7 @@ public class CheckManager implements BasicReloadable {
         }
     }
 
-    public <T extends AbstractCheck> T getCheck(Class<T> check) {
+    public <T extends AbstractProcessor> T get(@NotNull Class<T> check) {
         return processors.getInstance(check);
     }
 
@@ -409,31 +409,31 @@ public class CheckManager implements BasicReloadable {
     }
 
     public ExplosionHandler getExplosionHandler() {
-        return getCheck(ExplosionHandler.class);
+        return get(ExplosionHandler.class);
     }
 
     public NoFall getNoFall() {
-        return getCheck(NoFall.class);
+        return get(NoFall.class);
     }
 
     public KnockbackHandler getKnockbackHandler() {
-        return getCheck(KnockbackHandler.class);
+        return get(KnockbackHandler.class);
     }
 
     public CompensatedCooldown getCompensatedCooldown() {
-        return getCheck(CompensatedCooldown.class);
+        return get(CompensatedCooldown.class);
     }
 
     public NoSlow getNoSlow() {
-        return getCheck(NoSlow.class);
+        return get(NoSlow.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {
-        return getCheck(SetbackTeleportUtil.class);
+        return get(SetbackTeleportUtil.class);
     }
 
     public DebugHandler getDebugHandler() {
-        return getCheck(DebugHandler.class);
+        return get(DebugHandler.class);
     }
 
     private void init() {

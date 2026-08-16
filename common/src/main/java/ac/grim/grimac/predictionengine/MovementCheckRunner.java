@@ -136,7 +136,7 @@ public class MovementCheckRunner extends Check {
         // Manually call prediction complete to handle teleport
         PredictionComplete predictionComplete = new PredictionComplete(0, update, true);
         player.getSetbackTeleportUtil().onPredictionComplete(predictionComplete);
-        player.checkManager.getCheck(Phase.class).onPredictionComplete(predictionComplete);
+        player.checkManager.get(Phase.class).onPredictionComplete(predictionComplete);
 
         player.uncertaintyHandler.lastHorizontalOffset = 0;
         player.uncertaintyHandler.lastVerticalOffset = 0;
@@ -296,7 +296,7 @@ public class MovementCheckRunner extends Check {
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             if (riding instanceof PacketEntityRideable) {
-                VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
+                VehicleC vehicleC = player.checkManager.get(VehicleC.class);
 
                 ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.inventory.getHeldItem();

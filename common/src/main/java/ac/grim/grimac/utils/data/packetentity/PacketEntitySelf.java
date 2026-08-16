@@ -151,7 +151,7 @@ public class PacketEntitySelf extends PacketEntity {
     @Override
     public void addPotionEffect(PotionType effect, int amplifier) {
         if (effect == PotionTypes.BLINDNESS && !hasPotionEffect(PotionTypes.BLINDNESS)) {
-            player.checkManager.getCheck(SprintD.class).startedSprintingBeforeBlind = player.isSprinting;
+            player.checkManager.get(SprintD.class).startedSprintingBeforeBlind = player.isSprinting;
         }
 
         player.pointThreeEstimator.updatePlayerPotions(effect, amplifier);

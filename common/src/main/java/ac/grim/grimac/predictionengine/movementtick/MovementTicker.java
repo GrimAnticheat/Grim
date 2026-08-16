@@ -62,7 +62,7 @@ public class MovementTicker {
             playerBox.encompass(GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f).expand(player.getMovementThreshold()));
             playerBox.expand(0.2);
 
-            final TeamHandler teamHandler = player.checkManager.getCheck(TeamHandler.class);
+            final TeamHandler teamHandler = player.checkManager.get(TeamHandler.class);
             final EntityTeam playerTeam = teamHandler != null ? teamHandler.getPlayerTeam() : null;
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 // TODO actually handle entity collisions instead of this awfulness
