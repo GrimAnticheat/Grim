@@ -2,6 +2,7 @@ package ac.grim.grimac.checks;
 
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class PacketHandlerRegistry<T extends ProtocolPacketEvent> {
+public class PacketHandlerRegistry<T extends @NotNull ProtocolPacketEvent> {
     private final Map<PacketTypeCommon, List<Consumer<T>>> handlers = new IdentityHashMap<>();
     private final List<Consumer<T>> catchAll = new ArrayList<>();
 
