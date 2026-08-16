@@ -27,7 +27,7 @@ public class BadPacketsT extends Check implements PacketReceiveListener {
         // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
         // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
         // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
-        double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1 : 0;
+        double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0;
         maxHorizontalDisplacement = 0.3001 + expansion;
         minVerticalDisplacement = -0.0001 - expansion;
         maxVerticalDisplacement = 1.8001 + expansion;
