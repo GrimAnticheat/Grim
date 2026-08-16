@@ -2,12 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
@@ -18,13 +18,12 @@ public class PacketChangeGameState extends Check implements PacketSendListener {
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.CHANGE_GAME_STATE};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.CHANGE_GAME_STATE);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.CHANGE_GAME_STATE) return;
         WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 
         switch (packet.getReason()) {

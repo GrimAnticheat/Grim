@@ -23,7 +23,6 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -586,32 +585,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        ConnectionState state = event.getConnectionState();
-        if (state != ConnectionState.PLAY && state != ConnectionState.CONFIGURATION) {
-            return;
-        }
+        if (event.getConnectionState() != ConnectionState.PLAY) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
-
-        if (player.isNativeProtocol()) {
-            player.stripPreViaEncoder();
-            if (state == ConnectionState.PLAY) {
-                PacketTypeCommon packetType = event.getPacketType();
-                if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-                    player.sendTransaction();
-                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
-                }
-                if (packetType == PacketType.Play.Server.BUNDLE) {
-                    player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
-                }
-            }
-            if (player.shouldRunSendChecks()) {
-                player.checkManager.onPreViaPacketSend(event);
-            }
-        }
-
-        if (state != ConnectionState.PLAY) return;
-        if (!player.shouldRunSendChecks()) return;
         player.checkManager.onPacketSend(event);
     }
 

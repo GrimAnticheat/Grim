@@ -96,7 +96,6 @@ public class PlayerDataManager {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
-            player.refreshNativeProtocol();
             Channels.JOIN.fire(player);
         }
     }

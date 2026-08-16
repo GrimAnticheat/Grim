@@ -3,6 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -69,9 +70,9 @@ public class CheckManager {
     public final ClassToInstanceMap<AbstractCheck> checks;
 
     private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
-    private final PacketSendIndex<PreViaPacketSendListener> preViaPacketSendIndex;
+    private final PacketHandlerRegistry<PacketSendEvent> preViaPacketSendRegistry;
     private final PacketReceiveListener[] packetReceiveListeners;
-    private final PacketSendIndex<PacketSendListener> packetSendIndex;
+    private final PacketHandlerRegistry<PacketSendEvent> packetSendRegistry;
     private final PositionListener[] positionListeners;
     private final RotationListener[] rotationListeners;
     private final VehicleListener[] vehicleListeners;
@@ -279,9 +280,15 @@ public class CheckManager {
         }
 
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
-        this.preViaPacketSendIndex = new PacketSendIndex<>(preViaPacketSendListeners, PreViaPacketSendListener::sendTypes, PreViaPacketSendListener[]::new);
+        this.preViaPacketSendRegistry = new PacketHandlerRegistry<>();
+        for (PreViaPacketSendListener listener : preViaPacketSendListeners) {
+            listener.registerPreViaSend(preViaPacketSendRegistry);
+        }
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.packetSendIndex = new PacketSendIndex<>(packetSendListeners, PacketSendListener::sendTypes, PacketSendListener[]::new);
+        this.packetSendRegistry = new PacketHandlerRegistry<>();
+        for (PacketSendListener listener : packetSendListeners) {
+            listener.registerSend(packetSendRegistry);
+        }
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
@@ -330,11 +337,11 @@ public class CheckManager {
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        packetSendIndex.dispatch(packet, check -> check.onPacketSend(packet));
+        packetSendRegistry.handle(packet);
     }
 
     public void onPreViaPacketSend(final PacketSendEvent packet) {
-        preViaPacketSendIndex.dispatch(packet, check -> check.onPreViaPacketSend(packet));
+        preViaPacketSendRegistry.handle(packet);
     }
 
     public void onPositionUpdate(final PositionUpdate position) {

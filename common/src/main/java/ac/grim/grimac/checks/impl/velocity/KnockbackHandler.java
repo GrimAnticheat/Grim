@@ -4,6 +4,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,7 +15,6 @@ import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import lombok.Getter;
@@ -45,43 +45,41 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.ENTITY_VELOCITY};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.ENTITY_VELOCITY);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
-            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
-            int entityId = velocity.getEntityId();
+        WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
+        int entityId = velocity.getEntityId();
 
-            // Detect whether this knockback packet affects the player or if it is useless
-            // Mojang sends extra useless knockback packets for no apparent reason
-            if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
-                return;
-            }
-            if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
-                return;
-            }
-
-            // If the player isn't in a vehicle and the ID is for the player, the player will take kb
-            // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
-            Vector3d playerVelocity = velocity.getVelocity();
-
-            // Blacklist problemated vector until mojang fixes a client-sided bug
-            if (playerVelocity.getY() == -0.04) {
-                velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
-                playerVelocity = velocity.getVelocity();
-                event.markForReEncode(true);
-            }
-
-            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
-
-            // Wrap velocity between two transactions
-            player.sendTransaction();
-            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.getTasksAfterSend().add(player::sendTransaction);
+        // Detect whether this knockback packet affects the player or if it is useless
+        // Mojang sends extra useless knockback packets for no apparent reason
+        if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
+            return;
         }
+        if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
+            return;
+        }
+
+        // If the player isn't in a vehicle and the ID is for the player, the player will take kb
+        // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
+        Vector3d playerVelocity = velocity.getVelocity();
+
+        // Blacklist problemated vector until mojang fixes a client-sided bug
+        if (playerVelocity.getY() == -0.04) {
+            velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
+            playerVelocity = velocity.getVelocity();
+            event.markForReEncode(true);
+        }
+
+        playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
+
+        // Wrap velocity between two transactions
+        player.sendTransaction();
+        addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+        event.getTasksAfterSend().add(player::sendTransaction);
     }
 
     @NotNull

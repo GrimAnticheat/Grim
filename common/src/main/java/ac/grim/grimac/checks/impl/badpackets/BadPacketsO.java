@@ -3,13 +3,13 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
 
@@ -26,15 +26,13 @@ public class BadPacketsO extends Check implements PacketReceiveListener, PacketS
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.KEEP_ALIVE};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.KEEP_ALIVE);
     }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.KEEP_ALIVE) {
-            keepalives.add(new WrapperPlayServerKeepAlive(event).getId());
-        }
+        keepalives.add(new WrapperPlayServerKeepAlive(event).getId());
     }
 
     @Override

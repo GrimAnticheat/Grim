@@ -2,13 +2,13 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerAbilities;
 import org.jetbrains.annotations.NotNull;
@@ -34,35 +34,32 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.PLAYER_ABILITIES};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.PLAYER_ABILITIES);
     }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ABILITIES) {
-            WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
-            player.sendTransaction();
+        WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
+        player.sendTransaction();
 
-            if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
-                int noFlying = player.lastTransactionSent.get();
-                if (maxFlyingPing != -1) {
-                    player.runNettyTaskInMs(() -> {
-                        if (player.lastTransactionReceived.get() < noFlying) {
-                            player.getSetbackTeleportUtil().executeViolationSetback();
-                        }
-                    }, maxFlyingPing);
-                }
+        if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
+            int noFlying = player.lastTransactionSent.get();
+            if (maxFlyingPing != -1) {
+                player.runNettyTaskInMs(() -> {
+                    if (player.lastTransactionReceived.get() < noFlying) {
+                        player.getSetbackTeleportUtil().executeViolationSetback();
+                    }
+                }, maxFlyingPing);
             }
-
-            lastSentPlayerCanFly = abilities.isFlightAllowed();
-
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                player.canFly = abilities.isFlightAllowed();
-                player.isFlying = abilities.isFlying();
-            });
-
         }
+
+        lastSentPlayerCanFly = abilities.isFlightAllowed();
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            player.canFly = abilities.isFlightAllowed();
+            player.isFlying = abilities.isFlying();
+        });
     }
 
     @Override

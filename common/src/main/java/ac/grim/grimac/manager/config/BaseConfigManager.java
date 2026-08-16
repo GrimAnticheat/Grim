@@ -5,9 +5,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -46,10 +44,6 @@ public class BaseConfigManager {
     private boolean disablePongCancelling;
     @Getter
     private int updatePermissionTicks = -1;
-    @Getter
-    private boolean sendChecksEnabled = true;
-    @Getter
-    private Set<String> sendDisabledWorlds = Set.of();
 
     // initialize the config
     public void load(ConfigManager config) {
@@ -88,20 +82,6 @@ public class BaseConfigManager {
         disablePongCancelling = config.getBooleanElse("disable-pong-cancelling", false);
         int configuredUpdatePermissionTicks = config.getIntElse("update-permission-ticks", -1);
         updatePermissionTicks = configuredUpdatePermissionTicks <= 0 ? -1 : configuredUpdatePermissionTicks;
-
-        sendChecksEnabled = config.getBooleanElse("packet-listeners.send-checks", true);
-        Set<String> disabledWorlds = new HashSet<>();
-        List<String> configuredDisabledWorlds = config.getStringListElse("packet-listeners.send-disabled-worlds", List.of());
-        if (configuredDisabledWorlds != null) {
-            for (String world : configuredDisabledWorlds) {
-                if (world == null) continue;
-                String trimmed = world.trim();
-                if (!trimmed.isEmpty()) {
-                    disabledWorlds.add(trimmed);
-                }
-            }
-        }
-        sendDisabledWorlds = Set.copyOf(disabledWorlds);
     }
 
     // ran on start, can be used to handle things that can't be done while loading

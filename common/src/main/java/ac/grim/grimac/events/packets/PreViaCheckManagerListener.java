@@ -40,23 +40,16 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(final @NotNull PacketSendEvent event) {
-        final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-        if (player == null) return;
-
-        // Same-version clients don't have a Via translation path. The encoder is
-        // removed and CheckManagerListener runs this work on the remaining pass.
-        if (player.isNativeProtocol()) {
-            return;
-        }
-
+        // Allow checks to listen to configuration packets
         if (event.getConnectionState() == ConnectionState.CONFIGURATION) {
-            if (player.shouldRunSendChecks()) {
-                player.checkManager.onPreViaPacketSend(event);
-            }
-            return;
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+            player.checkManager.onPreViaPacketSend(event);
         }
 
         if (event.getConnectionState() != ConnectionState.PLAY) return;
+        final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        if (player == null) return;
 
         final PacketTypeCommon packetType = event.getPacketType();
         if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
@@ -68,8 +61,6 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.sendingBundlePacket = !player.packetStateData.sendingBundlePacket;
         }
 
-        if (player.shouldRunSendChecks()) {
-            player.checkManager.onPreViaPacketSend(event);
-        }
+        player.checkManager.onPreViaPacketSend(event);
     }
 }

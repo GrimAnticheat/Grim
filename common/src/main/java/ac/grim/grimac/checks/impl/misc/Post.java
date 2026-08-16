@@ -3,9 +3,9 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
-import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -60,19 +60,17 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.ENTITY_ANIMATION};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.ENTITY_ANIMATION);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
-            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
-            if (animation.getEntityId() == player.entityID) {
-                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
-                        animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
-                    isExemptFromSwingingCheck = player.lastTransactionSent.get();
-                }
+        WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
+        if (animation.getEntityId() == player.entityID) {
+            if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
+                    animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
+                isExemptFromSwingingCheck = player.lastTransactionSent.get();
             }
         }
     }

@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
 
 import java.util.ArrayDeque;
@@ -22,13 +22,12 @@ public class CompensatedCameraEntity extends Check implements PreViaPacketSendLi
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.CAMERA};
+    public void registerPreViaSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPreViaPacketSend, PacketType.Play.Server.CAMERA);
     }
 
     @Override
     public void onPreViaPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.CAMERA) return;
         int camera = new WrapperPlayServerCamera(event).getCameraId();
         player.sendTransaction();
 

@@ -4,6 +4,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -15,7 +16,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
@@ -50,28 +50,26 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public PacketTypeCommon[] sendTypes() {
-        return new PacketTypeCommon[]{PacketType.Play.Server.EXPLOSION};
+    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onPacketSend, PacketType.Play.Server.EXPLOSION);
     }
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
-            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
+        WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
-            // Since 1.21.2, the server will instead send these changes via block change packets
-            final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
-            if (hasBlocks) {
-                this.handleBlockExplosions(explosion);
-            }
+        // Since 1.21.2, the server will instead send these changes via block change packets
+        final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
+        if (hasBlocks) {
+            this.handleBlockExplosions(explosion);
+        }
 
-            Vector3d velocity = explosion.getKnockback();
-            if (velocity != null && (velocity.x != 0 || velocity.y != 0 || velocity.z != 0)) {
-                // No need to spam transactions
-                if (!hasBlocks || explosion.getRecords().isEmpty()) player.sendTransaction();
-                addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.getTasksAfterSend().add(player::sendTransaction);
-            }
+        Vector3d velocity = explosion.getKnockback();
+        if (velocity != null && (velocity.x != 0 || velocity.y != 0 || velocity.z != 0)) {
+            // No need to spam transactions
+            if (!hasBlocks || explosion.getRecords().isEmpty()) player.sendTransaction();
+            addPlayerExplosion(player.lastTransactionSent.get(), velocity);
+            event.getTasksAfterSend().add(player::sendTransaction);
         }
     }
 
