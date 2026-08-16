@@ -958,7 +958,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
-        return checkManager.checks.values();
+        return checkManager.checks;
     }
 
     public void runNettyTaskInMs(@NotNull Runnable runnable, int ms) {
@@ -1004,7 +1004,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
-        for (AbstractCheck value : getChecks()) value.reload();
+        checkManager.reload(config);
         // reload punishment manager
         punishmentManager.reload(config);
         this.movementCheckRunner.reload(config);
