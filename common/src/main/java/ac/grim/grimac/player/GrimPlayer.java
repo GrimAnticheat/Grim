@@ -1004,7 +1004,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
-        checkManager.reload(config);
+        checkManager.reload();
         // reload punishment manager
         punishmentManager.reload(config);
         this.movementCheckRunner.reload(config);
