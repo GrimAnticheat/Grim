@@ -49,16 +49,14 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
 
     @Override
     public void registerPreViaSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onChangeGameState, PacketType.Play.Server.CHANGE_GAME_STATE);
-        registry.registerHandler(this::onDeathCombatEventPacket, PacketType.Play.Server.DEATH_COMBAT_EVENT);
-        registry.registerHandler(this::onCombatEvent, PacketType.Play.Server.COMBAT_EVENT);
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+            registry.registerHandler(this::onChangeGameState, PacketType.Play.Server.CHANGE_GAME_STATE);
+            registry.registerHandler(this::onDeathCombatEventPacket, PacketType.Play.Server.DEATH_COMBAT_EVENT);
+            registry.registerHandler(this::onCombatEvent, PacketType.Play.Server.COMBAT_EVENT);
+        }
     }
 
     private void onChangeGameState(PacketSendEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
-
         WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
         if (packet.getReason() != WrapperPlayServerChangeGameState.Reason.WIN_GAME) return;
 
@@ -76,10 +74,6 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     }
 
     private void onDeathCombatEventPacket(PacketSendEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
-
         if (new WrapperPlayServerDeathCombatEvent(event).getPlayerId() == player.entityID) {
             player.sendTransaction();
             player.addRealTimeTaskNow(this::onDeathCombatEvent);
@@ -87,10 +81,6 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     }
 
     private void onCombatEvent(PacketSendEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
-            return;
-        }
-
         WrapperPlayServerCombatEvent packet = new WrapperPlayServerCombatEvent(event);
         if (packet.getCombat() == Combat.ENTITY_DEAD && packet.getPlayerId() == player.entityID) {
             player.sendTransaction();
