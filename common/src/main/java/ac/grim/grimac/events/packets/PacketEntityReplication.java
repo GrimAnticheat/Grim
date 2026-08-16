@@ -25,6 +25,7 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
@@ -113,6 +114,37 @@ public class PacketEntityReplication extends Check implements PacketReceiveListe
         } else if (player.vehicleData.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
             player.vehicleData.camelSprintingState = SprintingState.STARTED;
         }
+    }
+
+    @Override
+    public PacketTypeCommon[] sendTypes() {
+        return new PacketTypeCommon[]{PacketType.Play.Server.PING,
+                PacketType.Play.Server.WINDOW_CONFIRMATION,
+                PacketType.Play.Server.SPAWN_LIVING_ENTITY,
+                PacketType.Play.Server.SPAWN_ENTITY,
+                PacketType.Play.Server.SPAWN_PLAYER,
+                PacketType.Play.Server.SPAWN_PAINTING,
+                PacketType.Play.Server.ENTITY_RELATIVE_MOVE,
+                PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION,
+                PacketType.Play.Server.ENTITY_TELEPORT,
+                PacketType.Play.Server.ENTITY_POSITION_SYNC,
+                PacketType.Play.Server.ENTITY_ROTATION,
+                PacketType.Play.Server.ENTITY_METADATA,
+                PacketType.Play.Server.ENTITY_EQUIPMENT,
+                PacketType.Play.Server.PLAYER_INFO_UPDATE,
+                PacketType.Play.Server.PLAYER_INFO_REMOVE,
+                PacketType.Play.Server.PLAYER_INFO,
+                PacketType.Play.Server.ENTITY_EFFECT,
+                PacketType.Play.Server.REMOVE_ENTITY_EFFECT,
+                PacketType.Play.Server.UPDATE_ATTRIBUTES,
+                PacketType.Play.Server.ENTITY_STATUS,
+                PacketType.Play.Server.SET_SLOT,
+                PacketType.Play.Server.WINDOW_ITEMS,
+                PacketType.Play.Server.OPEN_WINDOW,
+                PacketType.Play.Server.OPEN_HORSE_WINDOW,
+                PacketType.Play.Server.SET_PASSENGERS,
+                PacketType.Play.Server.ATTACH_ENTITY,
+                PacketType.Play.Server.DESTROY_ENTITIES};
     }
 
     @Override

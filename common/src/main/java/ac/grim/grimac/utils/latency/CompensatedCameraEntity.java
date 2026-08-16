@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
 
 import java.util.ArrayDeque;
@@ -18,6 +19,11 @@ public class CompensatedCameraEntity extends Check implements PreViaPacketSendLi
     public CompensatedCameraEntity(GrimPlayer player) {
         super(player);
         reset();
+    }
+
+    @Override
+    public PacketTypeCommon[] sendTypes() {
+        return new PacketTypeCommon[]{PacketType.Play.Server.CAMERA};
     }
 
     @Override

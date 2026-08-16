@@ -282,6 +282,9 @@ public class GrimPlayer implements GrimUser {
     public final @NotNull List<@NotNull Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final @NotNull LongSet visitedBlocks = new LongOpenHashSet();
     private @MonotonicNonNull UserConnection viaUserConnection;
+    private boolean nativeProtocol;
+    private boolean sendChecksEnabled = true;
+    private Set<String> sendDisabledWorlds = Set.of();
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
@@ -581,6 +584,9 @@ public class GrimPlayer implements GrimUser {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
             viaPacketTracker = connection != null ? connection.getPacketTracker() : null;
             this.viaUserConnection = connection;
+            if (connection != null) {
+                refreshNativeProtocol();
+            }
         }
 
         if (this.platformPlayer == null) {
@@ -931,6 +937,77 @@ public class GrimPlayer implements GrimUser {
         return platformPlayer != null ? platformPlayer.getWorld().getName() : null;
     }
 
+    public boolean isNativeProtocol() {
+        return nativeProtocol;
+    }
+
+    public boolean shouldRunSendChecks() {
+        return sendChecksEnabled && !isSendDisabledWorld(worldName);
+    }
+
+    private boolean isSendDisabledWorld(@Nullable String name) {
+        if (name == null || name.isEmpty() || sendDisabledWorlds.isEmpty()) {
+            return false;
+        }
+        if (sendDisabledWorlds.contains(name)) {
+            return true;
+        }
+        int colon = name.indexOf(':');
+        return colon >= 0 && sendDisabledWorlds.contains(name.substring(colon + 1));
+    }
+
+    public void refreshNativeProtocol() {
+        nativeProtocol = !needsViaTranslation();
+        if (nativeProtocol) {
+            stripPreViaEncoder();
+        }
+    }
+
+    private boolean needsViaTranslation() {
+        if (!ViaVersionUtil.isAvailable) {
+            return clientProtocolDiffersFromServer();
+        }
+        if (viaUserConnection != null) {
+            ProtocolVersion client = viaUserConnection.getProtocolInfo().protocolVersion();
+            ProtocolVersion server = viaUserConnection.getProtocolInfo().serverProtocolVersion();
+            if (client == null || server == null) {
+                return clientProtocolDiffersFromServer();
+            }
+            if (client.equals(server)) {
+                return false;
+            }
+            return Via.getManager().getProtocolManager().getProtocolPath(client, server) != null;
+        }
+        return clientProtocolDiffersFromServer();
+    }
+
+    private boolean clientProtocolDiffersFromServer() {
+        ClientVersion client = getClientVersion();
+        if (client == null) return false;
+        ServerVersion server = PacketEvents.getAPI().getServerManager().getVersion();
+        return client.getProtocolVersion() != server.getProtocolVersion();
+    }
+
+    // PacketEvents installs a pre-Via encoder even when Via has nothing to do.
+    // Native clients can drop it; CheckManagerListener covers the send work once.
+    public void stripPreViaEncoder() {
+        Object raw = user.getChannel();
+        if (!(raw instanceof Channel channel) || !channel.isOpen()) {
+            return;
+        }
+        Runnable remove = () -> {
+            String name = "pre-" + PacketEvents.ENCODER_NAME;
+            if (channel.pipeline().get(name) != null) {
+                channel.pipeline().remove(name);
+            }
+        };
+        if (channel.eventLoop().inEventLoop()) {
+            remove.run();
+        } else {
+            channel.eventLoop().execute(remove);
+        }
+    }
+
     @Override
     public @Nullable UUID getWorldUID() {
         return platformPlayer != null ? platformPlayer.getWorld().getUID() : null;
@@ -1003,6 +1080,9 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnItemUpdate = config.getBooleanElse("reset-item-usage-on-item-update", true);
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
+        sendChecksEnabled = GrimAPI.INSTANCE.getConfigManager().isSendChecksEnabled();
+        sendDisabledWorlds = GrimAPI.INSTANCE.getConfigManager().getSendDisabledWorlds();
+        refreshNativeProtocol();
         // reload all checks
         for (AbstractCheck value : getChecks()) value.reload();
         // reload punishment manager

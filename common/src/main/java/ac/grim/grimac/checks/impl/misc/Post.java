@@ -60,6 +60,11 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
+    public PacketTypeCommon[] sendTypes() {
+        return new PacketTypeCommon[]{PacketType.Play.Server.ENTITY_ANIMATION};
+    }
+
+    @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);

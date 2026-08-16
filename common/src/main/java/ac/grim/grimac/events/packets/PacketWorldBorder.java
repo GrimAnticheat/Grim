@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerInitializeWorldBorder;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWorldBorder;
@@ -60,6 +61,15 @@ public class PacketWorldBorder extends Check implements PacketSendListener {
 
     public void tickBorder() {
         extent = extent.tick();
+    }
+
+    @Override
+    public PacketTypeCommon[] sendTypes() {
+        return new PacketTypeCommon[]{PacketType.Play.Server.WORLD_BORDER,
+                PacketType.Play.Server.INITIALIZE_WORLD_BORDER,
+                PacketType.Play.Server.WORLD_BORDER_CENTER,
+                PacketType.Play.Server.WORLD_BORDER_SIZE,
+                PacketType.Play.Server.WORLD_BORDER_LERP_SIZE};
     }
 
     @Override

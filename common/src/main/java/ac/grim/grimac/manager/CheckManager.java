@@ -69,9 +69,9 @@ public class CheckManager {
     public final ClassToInstanceMap<AbstractCheck> checks;
 
     private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
-    private final PreViaPacketSendListener[] preViaPacketSendListeners;
+    private final PacketSendIndex<PreViaPacketSendListener> preViaPacketSendIndex;
     private final PacketReceiveListener[] packetReceiveListeners;
-    private final PacketSendListener[] packetSendListeners;
+    private final PacketSendIndex<PacketSendListener> packetSendIndex;
     private final PositionListener[] positionListeners;
     private final RotationListener[] rotationListeners;
     private final VehicleListener[] vehicleListeners;
@@ -279,9 +279,9 @@ public class CheckManager {
         }
 
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
-        this.preViaPacketSendListeners = preViaPacketSendListeners.toArray(new PreViaPacketSendListener[preViaPacketSendListeners.size()]);
+        this.preViaPacketSendIndex = new PacketSendIndex<>(preViaPacketSendListeners, PreViaPacketSendListener::sendTypes, PreViaPacketSendListener[]::new);
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.packetSendListeners = packetSendListeners.toArray(new PacketSendListener[packetSendListeners.size()]);
+        this.packetSendIndex = new PacketSendIndex<>(packetSendListeners, PacketSendListener::sendTypes, PacketSendListener[]::new);
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
@@ -330,15 +330,11 @@ public class CheckManager {
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        for (PacketSendListener check : packetSendListeners) {
-            check.onPacketSend(packet);
-        }
+        packetSendIndex.dispatch(packet, check -> check.onPacketSend(packet));
     }
 
     public void onPreViaPacketSend(final PacketSendEvent packet) {
-        for (PreViaPacketSendListener check : preViaPacketSendListeners) {
-            check.onPreViaPacketSend(packet);
-        }
+        preViaPacketSendIndex.dispatch(packet, check -> check.onPreViaPacketSend(packet));
     }
 
     public void onPositionUpdate(final PositionUpdate position) {

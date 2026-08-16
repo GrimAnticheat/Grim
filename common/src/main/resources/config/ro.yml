@@ -238,5 +238,10 @@ max-ping-firework-boost: 1000
 # Setează -1 pentru a dezactiva interogarea periodică. Setează o valoare pozitivă pentru a reîmprospăta la fiecare X tick-uri.
 update-permission-ticks: -1
 
+
+packet-listeners:
+    send-checks: true
+    send-disabled-worlds: []
+
 config-flavor: V2
-config-version: 11
+config-version: 12

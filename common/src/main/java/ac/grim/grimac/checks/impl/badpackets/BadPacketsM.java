@@ -8,6 +8,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.Combat;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
@@ -44,6 +45,13 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
 
         // the client closes the menu and reopens it if dead
         menu = player.compensatedEntities.self.isDead && player.packetStateData.showsDeathScreen;
+    }
+
+    @Override
+    public PacketTypeCommon[] sendTypes() {
+        return new PacketTypeCommon[]{PacketType.Play.Server.CHANGE_GAME_STATE,
+                PacketType.Play.Server.DEATH_COMBAT_EVENT,
+                PacketType.Play.Server.COMBAT_EVENT};
     }
 
     @Override
