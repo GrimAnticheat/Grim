@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.VehicleCheck;
+import ac.grim.grimac.checks.type.VehicleListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 
-public class VehiclePredictionRunner extends Check implements VehicleCheck {
+public class VehiclePredictionRunner extends Check implements VehicleListener {
     public VehiclePredictionRunner(GrimPlayer playerData) {
         super(playerData);
     }
