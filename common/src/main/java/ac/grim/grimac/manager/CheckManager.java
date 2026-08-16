@@ -66,7 +66,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CheckManager {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
     private static boolean inited;
-    public final ClassToInstanceMap<AbstractCheck> allChecks;
+    public final ClassToInstanceMap<AbstractCheck> checks;
 
     private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
     private final PreViaPacketSendListener[] preViaPacketSendListeners;
@@ -83,7 +83,7 @@ public class CheckManager {
     private final PostPredictionListener[] postPredictionListeners;
 
     public CheckManager(GrimPlayer player) {
-        allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
+        checks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
                 .put(ChatA.class, new ChatA(player))
                 .put(ChatB.class, new ChatB(player))
@@ -260,7 +260,7 @@ public class CheckManager {
         ArrayList<BlockBreakListener> blockBreakListeners = new ArrayList<>();
         ArrayList<PostFlyingBlockBreakListener> postFlyingBlockBreakListeners = new ArrayList<>();
 
-        for (AbstractCheck check : allChecks.values()) {
+        for (AbstractCheck check : checks.values()) {
             if (check instanceof Check grimCheck && !grimCheck.isApplicable()) continue;
 
             if (check instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
@@ -299,7 +299,7 @@ public class CheckManager {
         VerboseRegistry registry = GrimAPI.INSTANCE.getDataStoreLifecycle().verboseRegistry();
         if (registry == null) return;
         registry.registerTemplates(() -> {
-            for (AbstractCheck check : allChecks.values()) {
+            for (AbstractCheck check : checks.values()) {
                 if (check instanceof Check grimCheck) {
                     grimCheck.registerVerboseTemplates(registry);
                 }
@@ -308,7 +308,7 @@ public class CheckManager {
     }
 
     public <T extends AbstractCheck> T getCheck(Class<T> check) {
-        return allChecks.getInstance(check);
+        return checks.getInstance(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
@@ -429,7 +429,7 @@ public class CheckManager {
                 "grim.nomodifypacket.",
         };
 
-        for (final AbstractCheck check : allChecks.values()) {
+        for (final AbstractCheck check : checks.values()) {
             if (check.getConfigName() == null) continue;
             final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
