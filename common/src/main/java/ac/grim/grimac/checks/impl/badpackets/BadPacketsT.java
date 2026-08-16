@@ -42,6 +42,7 @@ public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
             if (wrapper.getAction() != WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT) return;
             Vector3d target = wrapper.getLocation();
             if (target == null) return; // shouldn't ever happen, but whatever
+
             if (!Double.isFinite(target.x) || !Double.isFinite(target.y) || !Double.isFinite(target.z)) {
                 flag(V.write(verbose()).f64(target.x).f64(target.y).f64(target.z));
                 return;
@@ -58,7 +59,11 @@ public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
             double maxVertical = height + expansion;
             double maxHorizontal = width / 2f + expansion;
 
+            // in 26.1, Mojang started using LpVectors for the target location...
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) {
+                // calculate the maximum value they could've sent for each axis,
+                // given the precision at the point where they clicked
+                // put at the edge of the hitbox on that axis
                 maxHorizontal = withPrecision(maxHorizontal, target);
                 maxVertical = withPrecision(maxVertical, target);
 
@@ -81,6 +86,7 @@ public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
     }
 
     public static double withPrecision(double value, @NotNull Vector3d lp) {
+        // precision is determined by the value in the vector furthest from zero
         double max = MathUtil.absMax(lp.x, MathUtil.absMax(lp.y, lp.z));
         return VectorPrecisionConverter.legacyToLp(new Vector3d(value, max, 0)).x;
     }
