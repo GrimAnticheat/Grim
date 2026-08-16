@@ -32,6 +32,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -58,6 +59,13 @@ public class PacketEntity extends TypedPacketEntity {
     public boolean hasGravity = true;
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
+    /**
+     * Rotation the current interpolation is heading towards, mirroring vanilla
+     * {@code InterpolationHandler}'s target yRot/xRot. Only used to decide whether an
+     * incoming packet restates the running interpolation; the hitbox itself is
+     * position-only. Grim convention: xRot is yaw, yRot is pitch.
+     */
+    private float interpolationTargetXRot, interpolationTargetYRot;
     private Object2IntMap<PotionType> potionsMap = null;
     public boolean trackEntityEquipment = false;
     private EnumMap<EquipmentSlot, ItemStack> equipment = null;
@@ -147,7 +155,8 @@ public class PacketEntity extends TypedPacketEntity {
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
-    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ, GrimPlayer player) {
+    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ,
+                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player) {
         if (hasPos) {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
@@ -169,6 +178,43 @@ public class PacketEntity extends TypedPacketEntity {
                 }
             }
         }
+
+        // Vanilla's InterpolationHandler (1.21.5+) in 1.21.9+ only restarts the lerp when the
+        // incoming target differs from the one it is already heading towards, so a
+        // packet that merely restates the current target is a no-op client side.
+        // Restarting it here instead leaves our interpolation permanently trailing
+        // the client whenever a server re-sends the same position, which reads as
+        // the entity hitbox sitting slightly off and false flags Hitboxes/Reach.
+        //
+        // Strictly 1.21.9+. InterpolationHandler exists from 1.21.5 but without this
+        // equality guard, so 1.21.5 -> 1.21.8 really does restart on every packet
+        // (the same absence that reintroduced MC-255263 for those builds), as does
+        // the pre-1.21.5 Entity#lerpTo path. Restarting unconditionally is correct
+        // there, which is why the freeze modelling below stays untouched: its
+        // version range ends at 1.21.9, exactly where this begins.
+        //
+        // This covers rotation-only packets too. Vanilla routes them through
+        // Entity#moveOrInterpolateTo(yRot, xRot), whose absent position defaults to
+        // InterpolationHandler#position() - the current interpolation target while
+        // steps > 0 - so the position term compares equal and an unchanged rotation
+        // makes the whole packet a no-op.
+        //
+        // Skipping is safe for transaction splitting. We leave oldPacketLocation
+        // untouched, so an in-flight uncertainty window from an earlier packet is
+        // preserved rather than collapsed, and the redundant packet's own
+        // onSecondTransaction only clears a window that its transaction already
+        // proves the client has passed.
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_9)
+                && newPacketLocation.restatesTarget(trackedServerPosition.getPos(),
+                        packetXRot, packetYRot, interpolationTargetXRot, interpolationTargetYRot)) {
+            return;
+        }
+
+        if (packetXRot != null && packetYRot != null) {
+            this.interpolationTargetXRot = packetXRot;
+            this.interpolationTargetYRot = packetYRot;
+        }
+
         this.oldPacketLocation = newPacketLocation;
         // BUG FIX LOGIC for https://bugs.mojang.com/browse/MC-255263
         // 1. We MUST check !hasPos. If hasPos is true, we must let standard interpolation (4-arg) run.

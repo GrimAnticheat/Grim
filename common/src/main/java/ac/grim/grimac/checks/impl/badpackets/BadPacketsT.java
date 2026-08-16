@@ -21,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
 public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of("{f64:%.5f}/{f64:%.5f}/{f64:%.5f}");
 
-    // pre-1.9 expands hit boxes by 0.1 on all sides; this is not lenience, it is vanilla.
+    // pre-1.9 expands hitboxes by 0.1 on all sides; this is not lenience, it is vanilla.
     // TODO: do we even need an epsilon?
-    private final double expansion = (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0.0);
+    private final double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0.0;
 
     public BadPacketsT(final GrimPlayer player) {
         super(player);
