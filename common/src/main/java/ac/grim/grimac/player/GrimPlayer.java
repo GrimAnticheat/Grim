@@ -43,6 +43,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -710,6 +711,33 @@ public class GrimPlayer implements GrimUser {
                 default -> this.possibleEyeHeights[0]; // [standing height, sneaking height, swimming/gliding/riptide height]
             };
         }
+    }
+
+    // 1.8-1.10.2 specific mouse delay fix (MC-67665)
+    // https://bugs.mojang.com/browse/MC-67665
+    // 1.9-1.21.1 specific desync due to skipped ticks
+    // Players can be a tick behind on both pitch and yaw together
+    // 1.21.2+ added end tick input packet, fixing skipped tick issues
+    public Vector3dm[] getPossibleLookVectors(boolean isPrediction) {
+        // https://bugs.mojang.com/browse/MC-67665
+        List<Vector3dm> possibleLookDirs = new ArrayList<>(Collections.singletonList(ReachUtils.getLook(this, this.yaw, this.pitch)));
+
+        // If we are a tick behind, we don't know their next look so don't bother doing this
+        if (!isPrediction) {
+            possibleLookDirs.add(ReachUtils.getLook(this, this.lastYaw, this.pitch));
+
+            // 1.9+ players could be a tick behind because we don't get skipped ticks
+            if (this.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                possibleLookDirs.add(ReachUtils.getLook(this, this.lastYaw, this.lastPitch));
+            }
+
+            // 1.7 players do not have any of these issues! They are always on the latest look vector
+            if (this.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(this, this.yaw, this.pitch));
+            }
+        }
+
+        return possibleLookDirs.toArray(new Vector3dm[0]);
     }
 
     @Override

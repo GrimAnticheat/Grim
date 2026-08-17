@@ -233,4 +233,8 @@ public class GrimMath {
     public static double square(double num) {
         return num * num;
     }
+
+    public static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {
+        return GrimMath.square(x1 - x2) + GrimMath.square(y1 - y2) + GrimMath.square(z1 - z2);
+    }
 }

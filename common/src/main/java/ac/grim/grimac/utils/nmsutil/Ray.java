@@ -2,12 +2,17 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 // Copied directly from Hawk
 public record Ray(@NotNull Vector3d origin, @NotNull Vector3d direction) implements Cloneable {
+    public Ray(@NotNull Vector3dm origin, @NotNull Vector3dm direction) {
+        this(new Vector3d(origin.getX(), origin.getY(), origin.getZ()), new Vector3d(direction.getX(), direction.getY(), direction.getZ()));
+    }
+
     public Ray(@NotNull GrimPlayer player, double x, double y, double z, float xRot, float yRot) {
         this(new Vector3d(x, y, z), calculateDirection(player, xRot, yRot));
     }
