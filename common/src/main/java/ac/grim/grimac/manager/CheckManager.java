@@ -280,7 +280,9 @@ public class CheckManager {
         }
 
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
+        this.preViaPacketSendRegistry.trimToSize();
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
+        this.packetSendRegistry.trimToSize();
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);

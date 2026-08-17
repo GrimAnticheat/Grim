@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistry<T extends @NotNull ProtocolPacketEvent> {
-    private final Map<PacketTypeCommon, List<Consumer<T>>> handlers = new IdentityHashMap<>();
-    private final List<Consumer<T>> catchAll = new ArrayList<>();
+    private final Map<PacketTypeCommon, ArrayList<Consumer<T>>> handlers = new IdentityHashMap<>();
+    private final ArrayList<Consumer<T>> catchAll = new ArrayList<>();
 
     public void registerHandler(Consumer<T> consumer, PacketTypeCommon... types) {
         if (types.length == 0) {
@@ -23,6 +23,13 @@ public class PacketHandlerRegistry<T extends @NotNull ProtocolPacketEvent> {
         for (PacketTypeCommon type : types) {
             handlers.computeIfAbsent(type, ignored -> new ArrayList<>()).add(consumer);
         }
+    }
+
+    public void trimToSize() {
+        for (ArrayList<Consumer<T>> handlers : handlers.values()) {
+            handlers.trimToSize();
+        }
+        catchAll.trimToSize();
     }
 
     public void handle(T event) {
