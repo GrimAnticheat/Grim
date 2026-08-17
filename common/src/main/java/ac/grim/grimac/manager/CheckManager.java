@@ -248,9 +248,9 @@ public class CheckManager {
                 .build();
 
         ArrayList<PreViaPacketReceiveListener> preViaPacketReceiveListeners = new ArrayList<>();
-        ArrayList<PreViaPacketSendListener> preViaPacketSendListeners = new ArrayList<>();
+        this.preViaPacketSendRegistry = new PacketHandlerRegistry<>();
         ArrayList<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
-        ArrayList<PacketSendListener> packetSendListeners = new ArrayList<>();
+        this.packetSendRegistry = new PacketHandlerRegistry<>();
         ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
         ArrayList<PositionListener> positionListeners = new ArrayList<>();
         ArrayList<RotationListener> rotationListeners = new ArrayList<>();
@@ -267,8 +267,8 @@ public class CheckManager {
             if (check instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
             if (check instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
             if (check instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
-            if (check instanceof PacketSendListener packetSendListener) packetSendListeners.add(packetSendListener);
-            if (check instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListeners.add(preViaPacketSendListener);
+            if (check instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistry);;
+            if (check instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListener.registerPreViaSend(preViaPacketSendRegistry);
             if (check instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (check instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
             if (check instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
@@ -280,15 +280,7 @@ public class CheckManager {
         }
 
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
-        this.preViaPacketSendRegistry = new PacketHandlerRegistry<>();
-        for (PreViaPacketSendListener listener : preViaPacketSendListeners) {
-            listener.registerPreViaSend(preViaPacketSendRegistry);
-        }
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.packetSendRegistry = new PacketHandlerRegistry<>();
-        for (PacketSendListener listener : packetSendListeners) {
-            listener.registerSend(packetSendRegistry);
-        }
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
