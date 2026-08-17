@@ -15,8 +15,8 @@ public class NoSwingBreak extends Check implements BlockBreakListener, PreViaPac
     private boolean sentAnimation;
     private boolean sentBreak;
 
-    public NoSwingBreak(GrimPlayer playerData) {
-        super(playerData);
+    public NoSwingBreak(GrimPlayer player) {
+        super(player);
     }
 
     @Override

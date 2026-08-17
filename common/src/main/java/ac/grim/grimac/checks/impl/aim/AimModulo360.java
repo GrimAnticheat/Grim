@@ -14,8 +14,8 @@ public class AimModulo360 extends Check implements RotationListener {
 
     private float lastDeltaYaw;
 
-    public AimModulo360(GrimPlayer playerData) {
-        super(playerData);
+    public AimModulo360(GrimPlayer player) {
+        super(player);
     }
 
     @Override

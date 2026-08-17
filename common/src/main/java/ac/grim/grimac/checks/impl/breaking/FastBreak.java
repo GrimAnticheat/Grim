@@ -37,8 +37,8 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
     private static final Set<StateType> EXEMPT_STATES = Set.of();
     private final boolean clientOlderThanServer = PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion() > player.getClientVersion().getProtocolVersion();
 
-    public FastBreak(GrimPlayer playerData) {
-        super(playerData);
+    public FastBreak(GrimPlayer player) {
+        super(player);
     }
 
     // The block the player is currently breaking

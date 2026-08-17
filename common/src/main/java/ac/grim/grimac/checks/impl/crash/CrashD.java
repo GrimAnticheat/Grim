@@ -23,8 +23,8 @@ public class CrashD extends Check implements PacketReceiveListener, PacketSendLi
     private MenuType type = MenuType.UNKNOWN;
     private int lecternId = -1;
 
-    public CrashD(GrimPlayer playerData) {
-        super(playerData);
+    public CrashD(GrimPlayer player) {
+        super(player);
     }
 
     @Override

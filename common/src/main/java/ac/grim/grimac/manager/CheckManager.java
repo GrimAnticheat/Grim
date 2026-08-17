@@ -66,7 +66,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CheckManager {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
     private static boolean inited;
-    public final ClassToInstanceMap<AbstractCheck> allChecks;
+    public final ClassToInstanceMap<AbstractCheck> checks;
 
     private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
     private final PreViaPacketSendListener[] preViaPacketSendListeners;
@@ -74,7 +74,7 @@ public class CheckManager {
     private final PacketSendListener[] packetSendListeners;
     private final PositionListener[] positionListeners;
     private final RotationListener[] rotationListeners;
-    private final VehicleCheck[] vehicleChecks;
+    private final VehicleListener[] vehicleListeners;
     private final PrePredictionPacketReceiveListener[] prePredictionPacketReceiveListeners;
     private final BlockBreakListener[] blockBreakListeners;
     private final BlockPlaceListener[] blockPlaceListeners;
@@ -83,7 +83,7 @@ public class CheckManager {
     private final PostPredictionListener[] postPredictionListeners;
 
     public CheckManager(GrimPlayer player) {
-        allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
+        checks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
                 .put(ChatA.class, new ChatA(player))
                 .put(ChatB.class, new ChatB(player))
@@ -255,14 +255,14 @@ public class CheckManager {
         ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
         ArrayList<PositionListener> positionListeners = new ArrayList<>();
         ArrayList<RotationListener> rotationListeners = new ArrayList<>();
-        ArrayList<VehicleCheck> vehicleCheckListeners = new ArrayList<>();
+        ArrayList<VehicleListener> vehicleListeners = new ArrayList<>();
         ArrayList<PostPredictionListener> postPredictionListeners = new ArrayList<>();
         ArrayList<BlockPlaceListener> blockPlaceListeners = new ArrayList<>();
         ArrayList<PostFlyingBlockPlaceListener> postFlyingBlockPlaceListeners = new ArrayList<>();
         ArrayList<BlockBreakListener> blockBreakListeners = new ArrayList<>();
         ArrayList<PostFlyingBlockBreakListener> postFlyingBlockBreakListeners = new ArrayList<>();
 
-        for (AbstractCheck check : allChecks.values()) {
+        for (AbstractCheck check : checks.values()) {
             if (check instanceof Check grimCheck && !grimCheck.isApplicable()) continue;
 
             if (check instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
@@ -272,7 +272,7 @@ public class CheckManager {
             if (check instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListeners.add(preViaPacketSendListener);
             if (check instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (check instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
-            if (check instanceof VehicleCheck vehicleCheck) vehicleCheckListeners.add(vehicleCheck);
+            if (check instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
             if (check instanceof PostPredictionListener postPredictionListener) postPredictionListeners.add(postPredictionListener);
             if (check instanceof BlockPlaceListener blockPlaceListener) blockPlaceListeners.add(blockPlaceListener);
             if (check instanceof PostFlyingBlockPlaceListener postFlyingBlockPlaceListener) postFlyingBlockPlaceListeners.add(postFlyingBlockPlaceListener);
@@ -287,7 +287,7 @@ public class CheckManager {
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
-        this.vehicleChecks = vehicleCheckListeners.toArray(new VehicleCheck[vehicleCheckListeners.size()]);
+        this.vehicleListeners = vehicleListeners.toArray(new VehicleListener[vehicleListeners.size()]);
         this.postPredictionListeners = postPredictionListeners.toArray(new PostPredictionListener[postPredictionListeners.size()]);
         this.blockPlaceListeners = blockPlaceListeners.toArray(new BlockPlaceListener[blockPlaceListeners.size()]);
         this.postFlyingBlockPlaceListeners = postFlyingBlockPlaceListeners.toArray(new PostFlyingBlockPlaceListener[postFlyingBlockPlaceListeners.size()]);
@@ -301,7 +301,7 @@ public class CheckManager {
         VerboseRegistry registry = GrimAPI.INSTANCE.getDataStoreLifecycle().verboseRegistry();
         if (registry == null) return;
         registry.registerTemplates(() -> {
-            for (AbstractCheck check : allChecks.values()) {
+            for (AbstractCheck check : checks.values()) {
                 if (check instanceof Check grimCheck) {
                     grimCheck.registerVerboseTemplates(registry);
                 }
@@ -310,7 +310,7 @@ public class CheckManager {
     }
 
     public <T extends AbstractCheck> T getCheck(Class<T> check) {
-        return allChecks.getInstance(check);
+        return checks.getInstance(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
@@ -356,7 +356,7 @@ public class CheckManager {
     }
 
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {
-        for (VehicleCheck check : vehicleChecks) {
+        for (VehicleListener check : vehicleListeners) {
             check.process(update);
         }
     }
@@ -431,7 +431,7 @@ public class CheckManager {
                 "grim.nomodifypacket.",
         };
 
-        for (final AbstractCheck check : allChecks.values()) {
+        for (final AbstractCheck check : checks.values()) {
             if (check.getConfigName() == null) continue;
             final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
