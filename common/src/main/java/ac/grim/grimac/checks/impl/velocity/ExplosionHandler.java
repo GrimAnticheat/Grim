@@ -50,26 +50,24 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onExplosion, PacketType.Play.Server.EXPLOSION);
-    }
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
-    private void onExplosion(final PacketSendEvent event) {
-        WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
+            // Since 1.21.2, the server will instead send these changes via block change packets
+            final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
+            if (hasBlocks) {
+                this.handleBlockExplosions(explosion);
+            }
 
-        // Since 1.21.2, the server will instead send these changes via block change packets
-        final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
-        if (hasBlocks) {
-            this.handleBlockExplosions(explosion);
-        }
-
-        Vector3d velocity = explosion.getKnockback();
-        if (velocity != null && (velocity.x != 0 || velocity.y != 0 || velocity.z != 0)) {
-            // No need to spam transactions
-            if (!hasBlocks || explosion.getRecords().isEmpty()) player.sendTransaction();
-            addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-            event.getTasksAfterSend().add(player::sendTransaction);
-        }
+            Vector3d velocity = explosion.getKnockback();
+            if (velocity != null && (velocity.x != 0 || velocity.y != 0 || velocity.z != 0)) {
+                // No need to spam transactions
+                if (!hasBlocks || explosion.getRecords().isEmpty()) player.sendTransaction();
+                addPlayerExplosion(player.lastTransactionSent.get(), velocity);
+                event.getTasksAfterSend().add(player::sendTransaction);
+            }
+        }, PacketType.Play.Server.EXPLOSION);
     }
 
     private void handleBlockExplosions(WrapperPlayServerExplosion explosion) {

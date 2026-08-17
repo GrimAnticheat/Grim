@@ -64,7 +64,7 @@ public class PacketWorldBorder extends Check implements PacketSendListener {
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
         registry.registerHandler(this::onLegacyWorldBorder, PacketType.Play.Server.WORLD_BORDER);
         registry.registerHandler(this::onInitializeWorldBorder, PacketType.Play.Server.INITIALIZE_WORLD_BORDER);
         registry.registerHandler(this::onWorldBorderCenter, PacketType.Play.Server.WORLD_BORDER_CENTER);

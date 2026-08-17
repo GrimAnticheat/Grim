@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBundle;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_response_order", description = "Responded to chunk batch packets in an invalid transaction order", experimental = true)
 public class PacketOrderP extends Check implements PacketReceiveListener, PacketSendListener {
@@ -40,26 +41,24 @@ public class PacketOrderP extends Check implements PacketReceiveListener, Packet
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onChunkBatchEnd, PacketType.Play.Server.CHUNK_BATCH_END);
-    }
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            boolean sendingBundlePacket = player.packetStateData.sendingBundlePacket;
+            if (!sendingBundlePacket) player.user.sendPacket(new WrapperPlayServerBundle());
 
-    private void onChunkBatchEnd(PacketSendEvent event) {
-        boolean sendingBundlePacket = player.packetStateData.sendingBundlePacket;
-        if (!sendingBundlePacket) player.user.sendPacket(new WrapperPlayServerBundle());
+            player.sendTransaction();
+            int transaction = player.getLastTransactionSent();
+            transactions.add(transaction);
+            if (++trimTimer == 0) transactions.trim();
+            player.addRealTimeTaskNext(() -> {
+                if (transactions.rem(transaction)) {
+                    flag(V.write(verbose()).bool(false).sint(VerboseCodecs.PACKET_TRANSACTION));
+                }
+            });
 
-        player.sendTransaction();
-        int transaction = player.getLastTransactionSent();
-        transactions.add(transaction);
-        if (++trimTimer == 0) transactions.trim();
-        player.addRealTimeTaskNext(() -> {
-            if (transactions.rem(transaction)) {
-                flag(V.write(verbose()).bool(false).sint(VerboseCodecs.PACKET_TRANSACTION));
+            if (!sendingBundlePacket) {
+                event.getTasksAfterSend().add(() -> player.user.sendPacket(new WrapperPlayServerBundle()));
             }
-        });
-
-        if (!sendingBundlePacket) {
-            event.getTasksAfterSend().add(() -> player.user.sendPacket(new WrapperPlayServerBundle()));
-        }
+        }, PacketType.Play.Server.CHUNK_BATCH_END);
     }
 }

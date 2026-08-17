@@ -45,40 +45,38 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onEntityVelocity, PacketType.Play.Server.ENTITY_VELOCITY);
-    }
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
+            int entityId = velocity.getEntityId();
 
-    private void onEntityVelocity(final PacketSendEvent event) {
-        WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
-        int entityId = velocity.getEntityId();
+            // Detect whether this knockback packet affects the player or if it is useless
+            // Mojang sends extra useless knockback packets for no apparent reason
+            if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
+                return;
+            }
+            if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
+                return;
+            }
 
-        // Detect whether this knockback packet affects the player or if it is useless
-        // Mojang sends extra useless knockback packets for no apparent reason
-        if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
-            return;
-        }
-        if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
-            return;
-        }
+            // If the player isn't in a vehicle and the ID is for the player, the player will take kb
+            // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
+            Vector3d playerVelocity = velocity.getVelocity();
 
-        // If the player isn't in a vehicle and the ID is for the player, the player will take kb
-        // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
-        Vector3d playerVelocity = velocity.getVelocity();
+            // Blacklist problemated vector until mojang fixes a client-sided bug
+            if (playerVelocity.getY() == -0.04) {
+                velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
+                playerVelocity = velocity.getVelocity();
+                event.markForReEncode(true);
+            }
 
-        // Blacklist problemated vector until mojang fixes a client-sided bug
-        if (playerVelocity.getY() == -0.04) {
-            velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
-            playerVelocity = velocity.getVelocity();
-            event.markForReEncode(true);
-        }
+            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
 
-        playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
-
-        // Wrap velocity between two transactions
-        player.sendTransaction();
-        addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-        event.getTasksAfterSend().add(player::sendTransaction);
+            // Wrap velocity between two transactions
+            player.sendTransaction();
+            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+            event.getTasksAfterSend().add(player::sendTransaction);
+        }, PacketType.Play.Server.ENTITY_VELOCITY);
     }
 
     @NotNull

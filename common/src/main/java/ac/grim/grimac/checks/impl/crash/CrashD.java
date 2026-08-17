@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "CrashD", stableKey = "grim.crash.lectern", description = "Clicking slots in lectern window")
 public class CrashD extends Check implements PacketReceiveListener, PacketSendListener {
@@ -34,14 +35,12 @@ public class CrashD extends Check implements PacketReceiveListener, PacketSendLi
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
-    }
-
-    private void onOpenWindow(final PacketSendEvent event) {
-        WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
-        this.type = MenuType.getMenuType(window.getType());
-        if (type == MenuType.LECTERN) lecternId = window.getContainerId();
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.type = MenuType.getMenuType(window.getType());
+            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
+        }, PacketType.Play.Server.OPEN_WINDOW);
     }
 
     @Override

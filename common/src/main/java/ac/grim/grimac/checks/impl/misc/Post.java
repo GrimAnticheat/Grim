@@ -19,6 +19,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -60,18 +61,16 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onEntityAnimation, PacketType.Play.Server.ENTITY_ANIMATION);
-    }
-
-    private void onEntityAnimation(final PacketSendEvent event) {
-        WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
-        if (animation.getEntityId() == player.entityID) {
-            if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
-                    animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
-                isExemptFromSwingingCheck = player.lastTransactionSent.get();
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
+            if (animation.getEntityId() == player.entityID) {
+                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
+                        animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
+                    isExemptFromSwingingCheck = player.lastTransactionSent.get();
+                }
             }
-        }
+        }, PacketType.Play.Server.ENTITY_ANIMATION);
     }
 
     @Override

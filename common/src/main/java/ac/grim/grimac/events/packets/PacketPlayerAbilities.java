@@ -34,31 +34,29 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onPlayerAbilities, PacketType.Play.Server.PLAYER_ABILITIES);
-    }
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
+            player.sendTransaction();
 
-    private void onPlayerAbilities(PacketSendEvent event) {
-        WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
-        player.sendTransaction();
-
-        if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
-            int noFlying = player.lastTransactionSent.get();
-            if (maxFlyingPing != -1) {
-                player.runNettyTaskInMs(() -> {
-                    if (player.lastTransactionReceived.get() < noFlying) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
-                }, maxFlyingPing);
+            if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
+                int noFlying = player.lastTransactionSent.get();
+                if (maxFlyingPing != -1) {
+                    player.runNettyTaskInMs(() -> {
+                        if (player.lastTransactionReceived.get() < noFlying) {
+                            player.getSetbackTeleportUtil().executeViolationSetback();
+                        }
+                    }, maxFlyingPing);
+                }
             }
-        }
 
-        lastSentPlayerCanFly = abilities.isFlightAllowed();
+            lastSentPlayerCanFly = abilities.isFlightAllowed();
 
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.canFly = abilities.isFlightAllowed();
-            player.isFlying = abilities.isFlying();
-        });
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                player.canFly = abilities.isFlightAllowed();
+                player.isFlying = abilities.isFlying();
+            });
+        }, PacketType.Play.Server.PLAYER_ABILITIES);
     }
 
     @Override

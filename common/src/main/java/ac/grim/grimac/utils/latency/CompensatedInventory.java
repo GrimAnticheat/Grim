@@ -35,6 +35,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -312,7 +313,7 @@ public class CompensatedInventory extends Check implements PacketReceiveListener
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
         registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
         registry.registerHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
         registry.registerHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);

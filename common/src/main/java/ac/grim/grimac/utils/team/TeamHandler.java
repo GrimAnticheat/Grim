@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTe
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -43,27 +44,25 @@ public class TeamHandler extends Check implements PacketSendListener {
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onTeams, PacketType.Play.Server.TEAMS);
-    }
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
+            final String teamName = teams.getTeamName();
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                EntityTeam entityTeam = switch (teams.getTeamMode()) {
+                    case CREATE -> {
+                        var newTeam = new EntityTeam(player, teamName);
+                        entityTeams.put(teamName, newTeam);
+                        yield newTeam;
+                    }
+                    case REMOVE -> entityTeams.remove(teamName);
+                    default -> entityTeams.get(teamName);
+                };
 
-    private void onTeams(PacketSendEvent event) {
-        WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
-        final String teamName = teams.getTeamName();
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            EntityTeam entityTeam = switch (teams.getTeamMode()) {
-                case CREATE -> {
-                    var newTeam = new EntityTeam(player, teamName);
-                    entityTeams.put(teamName, newTeam);
-                    yield newTeam;
+                if (entityTeam != null) {
+                    entityTeam.update(teams);
                 }
-                case REMOVE -> entityTeams.remove(teamName);
-                default -> entityTeams.get(teamName);
-            };
-
-            if (entityTeam != null) {
-                entityTeam.update(teams);
-            }
-        });
+            });
+        }, PacketType.Play.Server.TEAMS);
     }
 }

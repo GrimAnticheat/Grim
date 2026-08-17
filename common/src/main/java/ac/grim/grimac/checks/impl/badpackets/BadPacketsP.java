@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", description = "Invalid window click packet", experimental = true)
 public class BadPacketsP extends Check implements PacketReceiveListener, PacketSendListener {
@@ -28,14 +29,12 @@ public class BadPacketsP extends Check implements PacketReceiveListener, PacketS
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
-    }
-
-    private void onOpenWindow(final PacketSendEvent event) {
-        WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
-        this.containerType = window.getType();
-        this.containerId = window.getContainerId();
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.containerType = window.getType();
+            this.containerId = window.getContainerId();
+        }, PacketType.Play.Server.OPEN_WINDOW);
     }
 
     @Override

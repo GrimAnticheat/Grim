@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -22,30 +23,28 @@ public class CompensatedCameraEntity extends Check implements PreViaPacketSendLi
     }
 
     @Override
-    public void registerPreViaSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onCamera, PacketType.Play.Server.CAMERA);
-    }
+    public void registerPreViaSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
+            int camera = new WrapperPlayServerCamera(event).getCameraId();
+            player.sendTransaction();
 
-    private void onCamera(PacketSendEvent event) {
-        int camera = new WrapperPlayServerCamera(event).getCameraId();
-        player.sendTransaction();
+            player.addRealTimeTaskNow(() -> {
+                PacketEntity entity = player.compensatedEntities.getEntity(camera);
+                if (entity != null) {
+                    entities.add(entity);
+                }
+            });
 
-        player.addRealTimeTaskNow(() -> {
-            PacketEntity entity = player.compensatedEntities.getEntity(camera);
-            if (entity != null) {
-                entities.add(entity);
-            }
-        });
+            player.addRealTimeTaskNext(() -> {
+                while (entities.size() > 1) {
+                    entities.poll();
+                }
 
-        player.addRealTimeTaskNext(() -> {
-            while (entities.size() > 1) {
-                entities.poll();
-            }
-
-            if (entities.isEmpty()) {
-                entities.add(player.compensatedEntities.self);
-            }
-        });
+                if (entities.isEmpty()) {
+                    entities.add(player.compensatedEntities.self);
+                }
+            });
+        }, PacketType.Play.Server.CAMERA);
     }
 
     public boolean isSelf() {

@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 
@@ -26,12 +27,8 @@ public class BadPacketsO extends Check implements PacketReceiveListener, PacketS
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
-        registry.registerHandler(this::onKeepAlive, PacketType.Play.Server.KEEP_ALIVE);
-    }
-
-    public void onKeepAlive(PacketSendEvent event) {
-        keepalives.add(new WrapperPlayServerKeepAlive(event).getId());
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> keepalives.add(new WrapperPlayServerKeepAlive(event).getId()), PacketType.Play.Server.KEEP_ALIVE);
     }
 
     @Override

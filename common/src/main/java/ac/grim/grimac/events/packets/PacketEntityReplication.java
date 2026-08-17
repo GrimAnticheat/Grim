@@ -117,7 +117,7 @@ public class PacketEntityReplication extends Check implements PacketReceiveListe
     }
 
     @Override
-    public void registerSend(PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
         registry.registerHandler(this::onTransaction, PacketType.Play.Server.PING, PacketType.Play.Server.WINDOW_CONFIRMATION);
         registry.registerHandler(this::onSpawnLivingEntity, PacketType.Play.Server.SPAWN_LIVING_ENTITY);
         registry.registerHandler(this::onSpawnEntity, PacketType.Play.Server.SPAWN_ENTITY);

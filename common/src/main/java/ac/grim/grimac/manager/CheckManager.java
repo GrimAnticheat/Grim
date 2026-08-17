@@ -267,7 +267,7 @@ public class CheckManager {
             if (check instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
             if (check instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
             if (check instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
-            if (check instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistry);;
+            if (check instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistry);
             if (check instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListener.registerPreViaSend(preViaPacketSendRegistry);
             if (check instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (check instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
