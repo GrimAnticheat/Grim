@@ -5,6 +5,10 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
+import ac.grim.grimac.checks.impl.aim.AimStaticX;
+import ac.grim.grimac.checks.impl.aim.AimStaticY;
+import ac.grim.grimac.checks.impl.aim.heuristics.AimAcceleration;
+import ac.grim.grimac.checks.impl.aim.heuristics.AimSnap;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
@@ -155,6 +159,10 @@ public class CheckManager {
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
+                .put(AimAcceleration.class, new AimAcceleration(player))
+                .put(AimSnap.class, new AimSnap(player))
+                .put(AimStaticX.class, new AimStaticX(player))
+                .put(AimStaticY.class, new AimStaticY(player))
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
 
                 .put(NegativeTimer.class, new NegativeTimer(player))

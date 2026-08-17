@@ -134,7 +134,6 @@ Knockback:
     # Это сделано для того, чтобы игрок не собирал слишком много нарушений и никогда не смог очистить их все.
     max-ceiling: 4
 
-
 Explosion:
     threshold: 0.001
     setbackvl: 3
@@ -164,6 +163,32 @@ VehicleTimer:
 PacketOrderI:
     # Включить, если игроки помечаются из-за использования модов анимации 1.7
     exempt-placing-while-digging: false
+
+AimStaticX:
+    # Violations of the set buffer before flagging
+    buffer: 7
+    decay: 1
+    # Minimum Y rotation delta while X rotation is basically static
+    minDeltaY: 1.0
+    # Maximum X rotation delta
+    maxDeltaX: 0.0001
+
+AimStaticY:
+    # Violations of the set buffer before flagging
+    buffer: 7
+    decay: 1
+    # Minimum X rotation delta while Y rotation is basically static
+    minDeltaX: 1.0
+    # Maximum Y rotation delta
+    maxDeltaY: 0.0001
+
+AimAcceleration:
+    # Violations of the set buffer before flagging
+    buffer: 4
+
+AimSnap:
+    # Violations of the set buffer before flagging
+    buffer: 3
 
 Reach:
     # На сколько мы должны расширить хитбоксы? 0.0005 должно определять 3.0005+ дополнительное достижение

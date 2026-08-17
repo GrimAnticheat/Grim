@@ -167,6 +167,32 @@ PacketOrderI:
     # Aktivieren, wenn Spieler markiert werden, weil sie 1.7-Animationsmods verwenden
     exempt-placing-while-digging: false
 
+AimStaticX:
+    # Violations of the set buffer before flagging
+    buffer: 7
+    decay: 1
+    # Minimum Y rotation delta while X rotation is basically static
+    minDeltaY: 1.0
+    # Maximum X rotation delta
+    maxDeltaX: 0.0001
+
+AimStaticY:
+    # Violations of the set buffer before flagging
+    buffer: 7
+    decay: 1
+    # Minimum X rotation delta while Y rotation is basically static
+    minDeltaX: 1.0
+    # Maximum Y rotation delta
+    maxDeltaY: 0.0001
+
+AimAcceleration:
+    # Violations of the set buffer before flagging
+    buffer: 4
+
+AimSnap:
+    # Violations of the set buffer before flagging
+    buffer: 3
+
 Reach:
     # Um wie viel sollen wir die Hitboxen erweitern? 0,0005 sollte 3,0005+ Reichweite erkennen
     #
