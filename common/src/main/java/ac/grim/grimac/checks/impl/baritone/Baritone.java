@@ -17,8 +17,8 @@ public class Baritone extends Check implements RotationListener {
 
     private int verbose;
 
-    public Baritone(GrimPlayer playerData) {
-        super(playerData);
+    public Baritone(GrimPlayer player) {
+        super(player);
     }
 
     @Override

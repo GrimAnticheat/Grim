@@ -22,8 +22,8 @@ public class BadPacketsP extends Check implements PacketReceiveListener, PacketS
     private int containerType = -1;
     private int containerId = -1;
 
-    public BadPacketsP(GrimPlayer playerData) {
-        super(playerData);
+    public BadPacketsP(GrimPlayer player) {
+        super(player);
     }
 
     @Override

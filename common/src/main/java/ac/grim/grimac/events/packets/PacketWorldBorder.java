@@ -33,8 +33,8 @@ public class PacketWorldBorder extends Check implements PacketSendListener {
     @Getter
     private BorderExtent extent;
 
-    public PacketWorldBorder(GrimPlayer playerData) {
-        super(playerData);
+    public PacketWorldBorder(GrimPlayer player) {
+        super(player);
         this.extent = new StaticBorderExtent(5.999997E7);
     }
 

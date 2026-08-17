@@ -14,8 +14,8 @@ public class CrashC extends Check implements PrePredictionPacketReceiveListener 
     private static final Verbose V =
             Verbose.of("xyzYP={f64}, {f64}, {f64}, {f32}, {f32}");
 
-    public CrashC(GrimPlayer playerData) {
-        super(playerData);
+    public CrashC(GrimPlayer player) {
+        super(player);
     }
 
     @Override

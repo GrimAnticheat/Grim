@@ -7,8 +7,8 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 
 public class VehiclePredictionRunner extends Check implements VehicleListener {
-    public VehiclePredictionRunner(GrimPlayer playerData) {
-        super(playerData);
+    public VehiclePredictionRunner(GrimPlayer player) {
+        super(player);
     }
 
     @Override
