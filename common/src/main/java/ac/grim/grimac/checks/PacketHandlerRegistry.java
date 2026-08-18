@@ -17,11 +17,15 @@ public class PacketHandlerRegistry<T extends @NotNull ProtocolPacketEvent> {
     public void registerHandler(Consumer<T> consumer, PacketTypeCommon... types) {
         if (types.length == 0) {
             catchAll.add(consumer);
+            // A catchAll registered before a typed handler has to run before it.
+            for (ArrayList<Consumer<T>> typed : handlers.values()) {
+                typed.add(consumer);
+            }
             return;
         }
 
         for (PacketTypeCommon type : types) {
-            handlers.computeIfAbsent(type, ignored -> new ArrayList<>()).add(consumer);
+            handlers.computeIfAbsent(type, ignored -> new ArrayList<>(catchAll)).add(consumer);
         }
     }
 
@@ -38,6 +42,7 @@ public class PacketHandlerRegistry<T extends @NotNull ProtocolPacketEvent> {
             for (Consumer<T> handler : typed) {
                 handler.accept(event);
             }
+            return;
         }
 
         for (Consumer<T> handler : catchAll) {
