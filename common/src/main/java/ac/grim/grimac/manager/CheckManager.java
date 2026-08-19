@@ -50,10 +50,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.utils.anticheat.update.*;
-import ac.grim.grimac.utils.latency.CompensatedCameraEntity;
-import ac.grim.grimac.utils.latency.CompensatedCooldown;
-import ac.grim.grimac.utils.latency.CompensatedFireworks;
-import ac.grim.grimac.utils.latency.CompensatedInventory;
+import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -147,6 +144,7 @@ public class CheckManager {
                 .put(CrashH.class, new CrashH(player))
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
+                .put(CompensatedOpenWindow.class, player.openWindow)
 
                 .put(PredictionRunner.class, new PredictionRunner(player))
                 .put(CompensatedCooldown.class, new CompensatedCooldown(player))

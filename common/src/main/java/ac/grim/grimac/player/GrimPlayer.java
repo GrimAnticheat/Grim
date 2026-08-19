@@ -253,6 +253,7 @@ public class GrimPlayer implements GrimUser {
     public final @NotNull PlayerBlockHistory blockHistory = new PlayerBlockHistory();
     public final @NotNull ArrayDeque<@NotNull RotationData> pendingRotations = new ArrayDeque<>();
     public final @NotNull CompensatedCameraEntity cameraEntity;
+    public final @NotNull CompensatedOpenWindow openWindow;
     @Getter @Setter private ResyncHandler resyncHandler = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("disable-default-resync-handler", false) ? NoOpResyncHandler.INSTANCE : new DefaultResyncHandler(this);
     @Getter private final @NotNull FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
     public boolean serverOpenedInventoryThisTick;
@@ -299,6 +300,7 @@ public class GrimPlayer implements GrimUser {
         this.compensatedEntities = new CompensatedEntities(this);
         this.dashableEntities = new CompensatedDashableEntities();
         this.cameraEntity = new CompensatedCameraEntity(this);
+        this.openWindow = new CompensatedOpenWindow(this);
 
         this.lastInstanceManager = new LastInstanceManager(this);
         this.attackCooldown = new AttackCooldownHandler(this);

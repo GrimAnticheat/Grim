@@ -296,6 +296,11 @@ public class PointThreeEstimator {
                 isNearVerticalFlowingLiquid = true;
             }
 
+            if (stateType == StateTypes.NETHER_PORTAL && player.getClientVersion().isOlderThan(ClientVersion.V_1_12_2)
+                    && !player.inVehicle()) {
+                player.openWindow.maybeClose();
+            }
+
             return false;
         });
     }
