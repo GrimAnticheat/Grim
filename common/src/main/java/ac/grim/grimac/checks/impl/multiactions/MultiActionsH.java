@@ -81,11 +81,6 @@ public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiv
 
         if (!sprinting && !sneaking && !moving && !jumping) return;
 
-        if (moving) {
-            player.sendMessage("inventory type: " + player.openWindow.getPossibilities().stream().map(CompensatedOpenWindow.Window::type).toList());
-            player.sendMessage("predicted input: " + MessageUtil.toUnlabledString(inputVec.toVector3d()));
-        }
-
         flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(moving).bool(jumping));
     }
 }
