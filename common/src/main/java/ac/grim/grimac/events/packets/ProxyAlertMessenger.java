@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -59,11 +60,17 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
     }
 
     public static boolean canSendAlerts() {
-        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.send", false) && !GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers().isEmpty();
+        if (!usingProxy) return false;
+
+        ConfigManager config = GrimAPI.INSTANCE.getConfigManager().getConfig();
+        return config != null && config.getBooleanElse("alerts.proxy.send", false) && !GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers().isEmpty();
     }
 
     public static boolean canReceiveAlerts() {
-        return usingProxy && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false) && GrimAPI.INSTANCE.getAlertManager().hasAlertListeners();
+        if (!usingProxy) return false;
+
+        ConfigManager config = GrimAPI.INSTANCE.getConfigManager().getConfig();
+        return config != null && config.getBooleanElse("alerts.proxy.receive", false) && GrimAPI.INSTANCE.getAlertManager().hasAlertListeners();
     }
 
     // TODO (Cross-Platform) check if new getBooleanFromFile impl is correct
