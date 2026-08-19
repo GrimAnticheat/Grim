@@ -17,7 +17,6 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: test vehicles
 // This can false in 1.8 due to the twitch button. I don't care; nobody uses it.
 // Separate from MultiActionsC because that cancels the clicks, this can't.
 @CheckData(name = "MultiActionsH", stableKey = "grim.multiactions.inventory_move", description = "Moving while in an inventory", experimental = true)
