@@ -430,6 +430,7 @@ public class PredictionEngine {
         int aScore = 0;
         int bScore = 0;
 
+        // Prefers lower scores.
         // Order priority (to avoid false positives and false flagging future predictions):
         // Knockback and explosions
         // 0.03 ticks
@@ -479,6 +480,13 @@ public class PredictionEngine {
 
         if ((player.inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
             bScore += 2;
+
+        // prefer no input where possible (avoid falsing MultiActionsH)
+        if (a.input != null && !a.input.isZero() || a.isJump())
+            aScore += 1;
+
+        if (b.input != null && !b.input.isZero() || b.isJump())
+            bScore += 1;
 
         if (aScore != bScore)
             return Integer.compare(aScore, bScore);

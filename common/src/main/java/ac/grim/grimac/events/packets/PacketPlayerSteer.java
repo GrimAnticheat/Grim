@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.multiactions.MultiActionsH;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.input.InputTransformer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -37,11 +38,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             WrapperPlayClientSteerVehicle steer = new WrapperPlayClientSteerVehicle(event);
 
-            float forwards = steer.getForward();
-            float sideways = steer.getSideways();
-
-            player.vehicleData.nextVehicleForward = forwards;
-            player.vehicleData.nextVehicleHorizontal = sideways;
+            player.checkManager.getCheck(MultiActionsH.class).vehicleJumping = steer.isJump();
+            player.vehicleData.nextVehicleForward = steer.getForward();
+            player.vehicleData.nextVehicleHorizontal = steer.getSideways();
 
             this.tickPlayerWorld(player);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
