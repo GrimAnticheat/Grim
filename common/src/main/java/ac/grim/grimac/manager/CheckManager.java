@@ -145,6 +145,10 @@ public class CheckManager {
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .put(MultiActionsH.class, new MultiActionsH(player))
+                .put(MultiActionsI.class, new MultiActionsI(player))
+                .put(MultiActionsJ.class, new MultiActionsJ(player))
+                .put(MultiActionsK.class, new MultiActionsK(player))
+                .put(MultiActionsL.class, new MultiActionsL(player))
                 .put(CompensatedOpenWindow.class, player.openWindow)
 
                 .put(PredictionRunner.class, new PredictionRunner(player))

@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -16,6 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 // TODO: books, signs, etc
-public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener {
+public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener, PacketReceiveListener {
 
     private static final Window PLAYER_INVENTORY = new Window(0, Long.MIN_VALUE, null);
 
@@ -32,6 +34,8 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
     private final boolean clientSendsOpenInventoryPacket = player.getClientVersion().isOlderThan(ClientVersion.V_1_12);
     private long openPlayerInventoryTransaction = Long.MIN_VALUE;
     private long closeTransaction = Long.MIN_VALUE;
+    @Getter
+    private int ticksOpen;
 
     public CompensatedOpenWindow(@NotNull GrimPlayer player) {
         super(player);
@@ -83,6 +87,17 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
         }
     }
 
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (isTickPacket(event.getPacketType())) {
+            if (mustBeOpen()) {
+                ticksOpen++;
+            } else {
+                ticksOpen = 0;
+            }
+        }
+    }
+
     private void openHorseWindow(@NotNull PacketSendEvent event, int windowId, int entityId) {
         TrackerData entity = player.compensatedEntities.serverPositionsMap.get(entityId);
         if (entity == null || !entity.getEntityType().isInstanceOf(EntityTypes.ABSTRACT_HORSE))
@@ -108,12 +123,16 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
         if (open) {
             openPlayerInventoryTransaction = transaction;
         } else {
+            ticksOpen = 0;
             closeTransaction = transaction;
         }
     }
 
     private void closeBefore(int transaction, boolean closeEmpty) {
-        if (!closeEmpty) closeTransaction = player.getLastTransactionReceived();
+        if (!closeEmpty) {
+            closeTransaction = player.getLastTransactionReceived();
+            ticksOpen = 0;
+        }
         boolean shouldCloseEmpty = closeEmpty && closeTransaction <= transaction;
         boolean shouldClosePlayer = openPlayerInventoryTransaction <= transaction;
         possibleOpenWindows.removeIf(it -> it == PLAYER_INVENTORY ? shouldClosePlayer
@@ -123,6 +142,7 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
     public void maybeClose() {
         possibleOpenWindows.add(null);
         closeTransaction = player.getLastTransactionReceived();
+        ticksOpen = 0;
     }
 
     public void closeFromRespawn() {
@@ -133,6 +153,7 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
                 // not equals because they might not have gotten it yet!
                 || it.transaction < transaction);
         possibleOpenWindows.add(null);
+        ticksOpen = 0;
     }
 
     public boolean mustBeOpen() {
