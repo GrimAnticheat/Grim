@@ -54,7 +54,7 @@ public class PunishmentManager implements ConfigReloadable {
             groups.clear();
 
             // To support reloading
-            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+            for (AbstractCheck check : player.getChecks()) {
                 check.setEnabled(false);
             }
 
@@ -75,7 +75,7 @@ public class PunishmentManager implements ConfigReloadable {
                         exclude = true;
                         command = command.substring(1);
                     }
-                    for (AbstractCheck check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
+                    for (AbstractCheck check : player.getChecks()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
                                         || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
@@ -209,7 +209,7 @@ public class PunishmentManager implements ConfigReloadable {
         try {
             String value = supplier.get();
             return value == null ? "" : value;
-        } catch (Throwable ignored) {
+        } catch (RuntimeException ignored) {
             return "";
         }
     }

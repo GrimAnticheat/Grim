@@ -173,12 +173,12 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             this.loaded = buildAndStart(dataFolder);
         } catch (FatalStorageStartupException e) {
             logger.log(Level.SEVERE, "[grim-datastore] fatal storage startup failure - shutting down server", e);
-            try { close(); } catch (Exception ignore) {}
+            try { close(); } catch (Exception closeEx) { logger.log(Level.FINE, "[grim-datastore] close during shutdown failed", closeEx); }
             this.enabled = false;
             shutdownServerAfterFatalStorageStartup();
         } catch (Exception | LinkageError e) {
             logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage - falling back to disabled", e);
-            try { close(); } catch (Exception ignore) {}
+            try { close(); } catch (Exception closeEx) { logger.log(Level.FINE, "[grim-datastore] close during fallback failed", closeEx); }
             this.enabled = false;
             installLocalVerboseRegistry();
         }

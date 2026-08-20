@@ -520,7 +520,7 @@ public class PacketEntityReplication extends Check implements PacketReceiveListe
                 xRotEntity.steps = entity.isBoat ? 10 : 3;
             }
 
-            entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
+            entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, yaw, pitch, player);
         });
 
         player.latencyUtils.addRealTimeTask(lastTrans + 1, () -> {

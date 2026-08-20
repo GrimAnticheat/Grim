@@ -10,8 +10,8 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 public class AimDuplicateLook extends Check implements RotationListener {
     private boolean exempt;
 
-    public AimDuplicateLook(GrimPlayer playerData) {
-        super(playerData);
+    public AimDuplicateLook(GrimPlayer player) {
+        super(player);
     }
 
     @Override

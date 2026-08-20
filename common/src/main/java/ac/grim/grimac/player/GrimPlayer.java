@@ -57,6 +57,7 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEquippable;
+import com.github.retrooper.packetevents.protocol.entity.EntityPositionData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -630,7 +631,7 @@ public class GrimPlayer implements GrimUser {
                 boolean noSetbackPermission = hasPermission("grim.nosetback");
                 boolean disabledPermission = hasPermission("grim.disabled");
                 boolean exemptPermission = hasPermission("grim.exempt");
-                for (AbstractCheck check : checkManager.allChecks.values()) {
+                for (AbstractCheck check : getChecks()) {
                     if (check instanceof Check c) {
                         c.updatePermissions();
                     }
@@ -797,7 +798,16 @@ public class GrimPlayer implements GrimUser {
                 int ridingId = getRidingVehicleId();
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
-                    user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    final Vector3d pos = new Vector3d(data.getX(), data.getY(), data.getZ());
+                    // Resync the position of the entity
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
+                        // Yes, this is the new "entity teleport" on 1.21.2+!
+                        // WrapperPlayServerEntityTeleport on 1.21.2+ still exists but has a different purpose!
+                        // Using WrapperPlayServerEntityTeleport is wrong and will lead to weird behaviour!
+                        user.writePacket(new WrapperPlayServerEntityPositionSync(ridingId, new EntityPositionData(pos, new Vector3d(), data.getXRot(), data.getYRot()), false));
+                    } else {
+                        user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, pos, data.getXRot(), data.getYRot(), false));
+                    }
                 }
             }
         });
@@ -948,7 +958,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
-        return checkManager.allChecks.values();
+        return checkManager.checks.values();
     }
 
     public void runNettyTaskInMs(@NotNull Runnable runnable, int ms) {
@@ -994,7 +1004,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
-        for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
+        for (AbstractCheck value : getChecks()) value.reload();
         // reload punishment manager
         punishmentManager.reload(config);
         this.movementCheckRunner.reload(config);

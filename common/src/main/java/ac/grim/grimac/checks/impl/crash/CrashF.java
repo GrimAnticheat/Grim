@@ -16,8 +16,8 @@ public class CrashF extends Check implements PacketReceiveListener {
     private static final Verbose V =
             Verbose.of("clickType={clicktype}, button={sint}[, slot={sint}]");
 
-    public CrashF(GrimPlayer playerData) {
-        super(playerData);
+    public CrashF(GrimPlayer player) {
+        super(player);
     }
 
     @Override

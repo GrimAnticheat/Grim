@@ -12,8 +12,8 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 
 public class PacketChangeGameState extends Check implements PacketSendListener {
-    public PacketChangeGameState(GrimPlayer playerData) {
-        super(playerData);
+    public PacketChangeGameState(GrimPlayer player) {
+        super(player);
     }
 
     @Override
