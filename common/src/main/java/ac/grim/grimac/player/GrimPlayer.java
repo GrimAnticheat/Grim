@@ -858,6 +858,12 @@ public class GrimPlayer implements GrimUser {
         }
     }
 
+    public void closeInventory() {
+        if (platformPlayer != null) {
+            platformPlayer.closeInventory();
+        }
+    }
+
     public boolean canPlaceGameMasterBlocks() {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2

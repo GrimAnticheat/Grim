@@ -24,6 +24,7 @@ public class MultiActionsL extends Check implements BlockBreakListener {
 
         if (flag() && shouldModifyPackets()) {
             blockBreak.cancel();
+            player.closeInventory();
         }
     }
 }

@@ -26,6 +26,7 @@ public class MultiActionsI extends Check implements PreViaPacketReceiveListener 
             if (player.openWindow.mustBeOpen() && flag() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
+                player.closeInventory();
             }
         }
     }

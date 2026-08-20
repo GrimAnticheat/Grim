@@ -96,6 +96,11 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     }
 
     @Override
+    public void closeInventory() {
+        handle().closeContainer();
+    }
+
+    @Override
     public Vector3d getPosition() {
         FabricServerPlayerHandle handle = handle();
         return new Vector3d(handle.posX(), handle.posY(), handle.posZ());

@@ -111,6 +111,11 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
+    public void closeInventory() {
+        bukkitPlayer.closeInventory();
+    }
+
+    @Override
     public Vector3d getPosition() {
         if (CAN_USE_DIRECT_GETTERS) {
             return new Vector3d(this.bukkitPlayer.getX(), this.bukkitPlayer.getY(), this.bukkitPlayer.getZ());

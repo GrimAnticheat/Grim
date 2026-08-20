@@ -37,7 +37,9 @@ public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiv
 
             if (!sprinting && !moving && !jumping) return;
 
-            flag(V.write(verbose()).bool(sprinting).bool(false).bool(moving).bool(jumping));
+            if (flag(V.write(verbose()).bool(sprinting).bool(false).bool(moving).bool(jumping)) && shouldModifyPackets()) {
+                player.closeInventory();
+            }
         }
     }
 
@@ -58,7 +60,9 @@ public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiv
 
             if (!sprinting && !sneaking) return;
 
-            flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(false).bool(false));
+            if (flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(false).bool(false)) && shouldModifyPackets()) {
+                player.closeInventory();
+            }
         }
     }
 
@@ -79,6 +83,8 @@ public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiv
 
         if (!sprinting && !sneaking && !moving && !jumping) return;
 
-        flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(moving).bool(jumping));
+        if (flag(V.write(verbose()).bool(sprinting).bool(sneaking).bool(moving).bool(jumping)) && shouldModifyPackets()) {
+            player.closeInventory();
+        }
     }
 }

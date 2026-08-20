@@ -17,6 +17,7 @@ public class MultiActionsK extends BlockPlaceCheck implements BlockPlaceListener
     public void onBlockPlace(BlockPlace place) {
         if (player.openWindow.mustBeOpen() && flag() && shouldModifyPackets() && shouldCancel()) {
             place.resync();
+            player.closeInventory();
         }
     }
 }
