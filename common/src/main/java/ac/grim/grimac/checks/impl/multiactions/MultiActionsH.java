@@ -45,13 +45,7 @@ public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiv
 
     @Override
     public void onPacketReceive(@NotNull PacketReceiveEvent event) {
-        if (player.supportsEndTickPreVia()) return;
-
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            vehicleJumping = false;
-        }
-
-        if (!player.openWindow.mustBeOpen()) return;
+        if (player.supportsEndTickPreVia() || !player.openWindow.mustBeOpen()) return;
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport
                 || event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
