@@ -1,44 +1,52 @@
 package ac.grim.grimac.manager;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 
 /**
- * Stores violations in monotonic timestamp order for constant-time expiry and maintains
- * identity-based counts for constant-time per-check lookups.
+ * Stores every violation in monotonic timestamp order for constant-time expiry and
+ * maintains identity-based counts for constant-time per-check lookups.
  */
 final class ViolationHistory<T> {
-    private final Long2ObjectLinkedOpenHashMap<T> entries = new Long2ObjectLinkedOpenHashMap<>();
-    private final Reference2IntOpenHashMap<T> counts = new Reference2IntOpenHashMap<>();
+    private static final int INITIAL_CAPACITY = 4;
+
+    private LongArrayFIFOQueue timestamps;
+    private ObjectArrayFIFOQueue<T> values;
+    private Reference2IntOpenHashMap<T> counts;
 
     void record(long timestamp, T value, long maxAge) {
-        // Keeps counts consistent when an entry with the same timestamp is replaced.
-        T previous = entries.put(timestamp, value);
-        if (previous != value) {
-            if (previous != null) {
-                decrement(previous);
-            }
-            counts.addTo(value, 1);
+        if (timestamps == null) {
+            timestamps = new LongArrayFIFOQueue(INITIAL_CAPACITY);
+            values = new ObjectArrayFIFOQueue<>(INITIAL_CAPACITY);
+            counts = new Reference2IntOpenHashMap<>(INITIAL_CAPACITY);
         }
 
+        timestamps.enqueue(timestamp);
+        values.enqueue(value);
+        counts.addTo(value, 1);
+
         int expired = 0;
-        while (!entries.isEmpty() && timestamp - entries.firstLongKey() > maxAge) {
-            decrement(entries.removeFirst());
+        while (!timestamps.isEmpty() && timestamp - timestamps.firstLong() > maxAge) {
+            timestamps.dequeueLong();
+            decrement(values.dequeue());
             expired++;
         }
 
         // Release oversized backing arrays after most of the history expires.
-        if (expired > entries.size()) {
-            entries.trim();
+        if (expired > timestamps.size()) {
+            timestamps.trim();
+            values.trim();
+            counts.trim();
         }
     }
 
     int size() {
-        return entries.size();
+        return timestamps == null ? 0 : timestamps.size();
     }
 
     int count(T value) {
-        return counts.getInt(value);
+        return counts == null ? 0 : counts.getInt(value);
     }
 
     private void decrement(T value) {
