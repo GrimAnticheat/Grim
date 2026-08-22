@@ -8,10 +8,7 @@ import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
-import ac.grim.grimac.checks.impl.chat.ChatA;
-import ac.grim.grimac.checks.impl.chat.ChatB;
-import ac.grim.grimac.checks.impl.chat.ChatC;
-import ac.grim.grimac.checks.impl.chat.ChatD;
+import ac.grim.grimac.checks.impl.chat.*;
 import ac.grim.grimac.checks.impl.combat.*;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.elytra.*;
@@ -86,6 +83,7 @@ public class CheckManager {
                 .put(ChatB.class, new ChatB(player))
                 .put(ChatC.class, new ChatC(player))
                 .put(ChatD.class, new ChatD(player))
+                .put(ChatE.class, new ChatE(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
