@@ -9,6 +9,7 @@ import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
 @CheckData(name = "SprintH", stableKey = "grim.sprint.inventory", description = "Sprinting while in an inventory", experimental = true)
 public class SprintH extends Check implements PreViaPacketReceiveListener, PacketReceiveListener {
     private static final int TICK = 0;
-    private static final int ACTION = 1;
-    private static final Verbose V = Verbose.of("tick").or("action");
+    private static final int START = 1;
+    private static final Verbose V = Verbose.of("tick").or("start");
 
     public SprintH(@NotNull GrimPlayer player) {
         super(player);
@@ -28,7 +29,7 @@ public class SprintH extends Check implements PreViaPacketReceiveListener, Packe
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
             if (packet.getAction() != WrapperPlayClientEntityAction.Action.START_SPRINTING) return;
-            if (player.openWindow.mustBeOpen() && flag(V.write(verbose(), ACTION)) && shouldModifyPackets()) {
+            if (player.openWindow.mustBeOpen() && flag(V.write(verbose(), START)) && shouldModifyPackets()) {
                 player.closeInventory();
             }
             return;
@@ -37,7 +38,9 @@ public class SprintH extends Check implements PreViaPacketReceiveListener, Packe
         if (!player.supportsEndTickPreVia() || event.getPacketType() != PacketType.Play.Client.CLIENT_TICK_END
                 || !player.openWindow.mustBeOpen()) return;
 
-        boolean sprinting = player.packetStateData.knownInput.sprint() || MultiActionsC.isVerboseSprinting(player);
+        boolean sprinting = player.packetStateData.knownInput.sprint()
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_9)
+                || MultiActionsC.isVerboseSprinting(player);
         if (sprinting && flag(V.write(verbose(), TICK)) && shouldModifyPackets()) {
             player.closeInventory();
         }
