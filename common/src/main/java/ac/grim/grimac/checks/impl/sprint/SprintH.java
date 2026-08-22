@@ -37,7 +37,8 @@ public class SprintH extends Check implements PreViaPacketReceiveListener, Packe
         if (!player.supportsEndTickPreVia() || event.getPacketType() != PacketType.Play.Client.CLIENT_TICK_END
                 || !player.openWindow.mustBeOpen()) return;
 
-        if (player.packetStateData.knownInput.sprint() && flag(V.write(verbose(), TICK)) && shouldModifyPackets()) {
+        boolean sprinting = player.packetStateData.knownInput.sprint() || MultiActionsC.isVerboseSprinting(player);
+        if (sprinting && flag(V.write(verbose(), TICK)) && shouldModifyPackets()) {
             player.closeInventory();
         }
     }
