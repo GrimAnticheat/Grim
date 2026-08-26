@@ -7,6 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import org.jetbrains.annotations.NotNull;
 
+// cinematic camera doesn't apply in inventories.
 @CheckData(name = "MultiActionsO", stableKey = "grim.multiactions.inventory_rotation", description = "Rotating while in an inventory", experimental = true)
 public class MultiActionsO extends Check implements RotationListener {
 
