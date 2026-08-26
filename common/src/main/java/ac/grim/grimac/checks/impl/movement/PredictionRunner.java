@@ -6,8 +6,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 
 public class PredictionRunner extends Check implements PositionListener {
-    public PredictionRunner(GrimPlayer playerData) {
-        super(playerData);
+    public PredictionRunner(GrimPlayer player) {
+        super(player);
     }
 
     @Override

@@ -133,7 +133,6 @@ public class GrimPlayer implements GrimUser {
     private long transactionPing;
     public long lastTransSent;
     public long lastTransReceived;
-    @Getter
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing;
     public boolean canSwimHop;
@@ -631,7 +630,7 @@ public class GrimPlayer implements GrimUser {
                 boolean noSetbackPermission = hasPermission("grim.nosetback");
                 boolean disabledPermission = hasPermission("grim.disabled");
                 boolean exemptPermission = hasPermission("grim.exempt");
-                for (AbstractCheck check : checkManager.allChecks.values()) {
+                for (AbstractCheck check : getChecks()) {
                     if (check instanceof Check c) {
                         c.updatePermissions();
                     }
@@ -726,6 +725,13 @@ public class GrimPlayer implements GrimUser {
     public int getKeepAlivePing() {
         if (platformPlayer == null) return -1;
         return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
+    }
+
+    public long getPlayerClockAtLeast() {
+        if (lastTransactionSent.get() == 0) {
+            playerClockAtLeast = System.nanoTime();
+        }
+        return playerClockAtLeast;
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
@@ -958,7 +964,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
-        return checkManager.allChecks.values();
+        return checkManager.checks.values();
     }
 
     public void runNettyTaskInMs(@NotNull Runnable runnable, int ms) {
@@ -1004,7 +1010,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
-        for (AbstractCheck value : checkManager.allChecks.values()) value.reload();
+        for (AbstractCheck value : getChecks()) value.reload();
         // reload punishment manager
         punishmentManager.reload(config);
         this.movementCheckRunner.reload(config);

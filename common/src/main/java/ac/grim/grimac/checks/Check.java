@@ -335,7 +335,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
                     try {
                         value = supplier.get();
                         if (value == null) value = "";
-                    } catch (Throwable ignored) {
+                    } catch (RuntimeException ignored) {
                         value = "";
                     }
                     computed = true;

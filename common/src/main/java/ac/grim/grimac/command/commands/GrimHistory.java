@@ -558,7 +558,7 @@ public class GrimHistory implements BuildableCommand {
         List<CheckDefinition> definitions = new ArrayList<>();
         Set<String> seenStableKeys = new HashSet<>();
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+            for (AbstractCheck check : player.getChecks()) {
                 String stableKey = check.getStableKey();
                 if (stableKey == null || stableKey.isBlank()) continue;
                 if (!seenStableKeys.add(stableKey)) continue;

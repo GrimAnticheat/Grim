@@ -37,8 +37,8 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
 
-    public Post(GrimPlayer playerData) {
-        super(playerData);
+    public Post(GrimPlayer player) {
+        super(player);
     }
 
     @Override

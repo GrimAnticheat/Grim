@@ -13,8 +13,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSe
 public class CrashE extends Check implements PacketReceiveListener {
     private static final Verbose V = Verbose.of("distance={sint}");
 
-    public CrashE(GrimPlayer playerData) {
-        super(playerData);
+    public CrashE(GrimPlayer player) {
+        super(player);
     }
 
     @Override
