@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,6 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCombatEvent;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDeathCombatEvent;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
 public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener {
@@ -47,12 +49,12 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     }
 
     @Override
-    public void onPreViaPacketSend(PacketSendEvent event) {
+    public void registerPreViaSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {
+        registry.registerHandler(event -> {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
             if (packet.getReason() != WrapperPlayServerChangeGameState.Reason.WIN_GAME) return;
 
@@ -67,21 +69,22 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
                 exempt++;
                 menu = false;
             });
-        }
+        }, PacketType.Play.Server.CHANGE_GAME_STATE);
 
-        if (event.getPacketType() == PacketType.Play.Server.DEATH_COMBAT_EVENT
-                && new WrapperPlayServerDeathCombatEvent(event).getPlayerId() == player.entityID) {
-            player.sendTransaction();
-            player.addRealTimeTaskNow(this::onDeathCombatEvent);
-        }
+        registry.registerHandler(event -> {
+            if (new WrapperPlayServerDeathCombatEvent(event).getPlayerId() == player.entityID) {
+                player.sendTransaction();
+                player.addRealTimeTaskNow(this::onDeathCombatEvent);
+            }
+        }, PacketType.Play.Server.DEATH_COMBAT_EVENT);
 
-        if (event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT) {
+        registry.registerHandler(event -> {
             WrapperPlayServerCombatEvent packet = new WrapperPlayServerCombatEvent(event);
             if (packet.getCombat() == Combat.ENTITY_DEAD && packet.getPlayerId() == player.entityID) {
                 player.sendTransaction();
                 player.addRealTimeTaskNow(this::onDeathCombatEvent);
             }
-        }
+        }, PacketType.Play.Server.COMBAT_EVENT);
     }
 
     private void onDeathCombatEvent() {

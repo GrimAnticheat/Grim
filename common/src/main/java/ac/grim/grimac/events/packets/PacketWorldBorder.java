@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.worldborder.BorderExtent;
@@ -63,46 +64,36 @@ public class PacketWorldBorder extends Check implements PacketSendListener {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER) {
-            WrapperPlayServerWorldBorder packet = new WrapperPlayServerWorldBorder(event);
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onLegacyWorldBorder, PacketType.Play.Server.WORLD_BORDER);
+        registry.registerHandler(this::onInitializeWorldBorder, PacketType.Play.Server.INITIALIZE_WORLD_BORDER);
+        registry.registerHandler(this::onWorldBorderCenter, PacketType.Play.Server.WORLD_BORDER_CENTER);
+        registry.registerHandler(this::onWorldBorderSize, PacketType.Play.Server.WORLD_BORDER_SIZE);
+        registry.registerHandler(this::onWorldBorderLerpSize, PacketType.Play.Server.WORLD_BORDER_LERP_SIZE);
+    }
 
-            player.sendTransaction();
-            // Names are misleading, it's diameter not radius.
-            if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.SET_SIZE) {
-                double size = packet.getRadius();
-                player.addRealTimeTaskNow(() -> setSize(size));
-            } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.LERP_SIZE) {
-                double oldDiameter = packet.getOldRadius();
-                double newDiameter = packet.getNewRadius();
-                long speed = packet.getSpeed();
-                player.addRealTimeTaskNow(() -> setLerp(oldDiameter, newDiameter, speed));
-            } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.SET_CENTER) {
-                double centerX = packet.getCenterX();
-                double centerZ = packet.getCenterZ();
-                player.addRealTimeTaskNow(() -> setCenter(centerX, centerZ));
-            } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.INITIALIZE) {
-                double centerX = packet.getCenterX();
-                double centerZ = packet.getCenterZ();
-                double oldDiameter = packet.getOldRadius();
-                double newDiameter = packet.getNewRadius();
-                long speed = packet.getSpeed();
-                int portalTeleportBoundary = packet.getPortalTeleportBoundary();
-                player.addRealTimeTaskNow(() -> {
-                    setCenter(centerX, centerZ);
-                    setLerp(oldDiameter, newDiameter, speed);
-                    absoluteMaxSize = portalTeleportBoundary;
-                });
-            }
-        }
+    private void onLegacyWorldBorder(PacketSendEvent event) {
+        WrapperPlayServerWorldBorder packet = new WrapperPlayServerWorldBorder(event);
 
-        if (event.getPacketType() == PacketType.Play.Server.INITIALIZE_WORLD_BORDER) {
-            player.sendTransaction();
-            WrapperPlayServerInitializeWorldBorder packet = new WrapperPlayServerInitializeWorldBorder(event);
-            double centerX = packet.getX();
-            double centerZ = packet.getZ();
-            double oldDiameter = packet.getOldDiameter();
-            double newDiameter = packet.getNewDiameter();
+        player.sendTransaction();
+        // Names are misleading, it's diameter not radius.
+        if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.SET_SIZE) {
+            double size = packet.getRadius();
+            player.addRealTimeTaskNow(() -> setSize(size));
+        } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.LERP_SIZE) {
+            double oldDiameter = packet.getOldRadius();
+            double newDiameter = packet.getNewRadius();
+            long speed = packet.getSpeed();
+            player.addRealTimeTaskNow(() -> setLerp(oldDiameter, newDiameter, speed));
+        } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.SET_CENTER) {
+            double centerX = packet.getCenterX();
+            double centerZ = packet.getCenterZ();
+            player.addRealTimeTaskNow(() -> setCenter(centerX, centerZ));
+        } else if (packet.getAction() == WrapperPlayServerWorldBorder.WorldBorderAction.INITIALIZE) {
+            double centerX = packet.getCenterX();
+            double centerZ = packet.getCenterZ();
+            double oldDiameter = packet.getOldRadius();
+            double newDiameter = packet.getNewRadius();
             long speed = packet.getSpeed();
             int portalTeleportBoundary = packet.getPortalTeleportBoundary();
             player.addRealTimeTaskNow(() -> {
@@ -111,29 +102,45 @@ public class PacketWorldBorder extends Check implements PacketSendListener {
                 absoluteMaxSize = portalTeleportBoundary;
             });
         }
+    }
 
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_CENTER) {
-            player.sendTransaction();
-            WrapperPlayServerWorldBorderCenter packet = new WrapperPlayServerWorldBorderCenter(event);
-            double centerX = packet.getX();
-            double centerZ = packet.getZ();
-            player.addRealTimeTaskNow(() -> setCenter(centerX, centerZ));
-        }
+    private void onInitializeWorldBorder(PacketSendEvent event) {
+        player.sendTransaction();
+        WrapperPlayServerInitializeWorldBorder packet = new WrapperPlayServerInitializeWorldBorder(event);
+        double centerX = packet.getX();
+        double centerZ = packet.getZ();
+        double oldDiameter = packet.getOldDiameter();
+        double newDiameter = packet.getNewDiameter();
+        long speed = packet.getSpeed();
+        int portalTeleportBoundary = packet.getPortalTeleportBoundary();
+        player.addRealTimeTaskNow(() -> {
+            setCenter(centerX, centerZ);
+            setLerp(oldDiameter, newDiameter, speed);
+            absoluteMaxSize = portalTeleportBoundary;
+        });
+    }
 
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_SIZE) {
-            player.sendTransaction();
-            double size = new WrapperPlayServerWorldBorderSize(event).getDiameter();
-            player.addRealTimeTaskNow(() -> setSize(size));
-        }
+    private void onWorldBorderCenter(PacketSendEvent event) {
+        player.sendTransaction();
+        WrapperPlayServerWorldBorderCenter packet = new WrapperPlayServerWorldBorderCenter(event);
+        double centerX = packet.getX();
+        double centerZ = packet.getZ();
+        player.addRealTimeTaskNow(() -> setCenter(centerX, centerZ));
+    }
 
-        if (event.getPacketType() == PacketType.Play.Server.WORLD_BORDER_LERP_SIZE) {
-            player.sendTransaction();
-            WrapperPlayWorldBorderLerpSize packet = new WrapperPlayWorldBorderLerpSize(event);
-            double oldDiameter = packet.getOldDiameter();
-            double newDiameter = packet.getNewDiameter();
-            long speed = packet.getSpeed();
-            player.addRealTimeTaskNow(() -> setLerp(oldDiameter, newDiameter, speed));
-        }
+    private void onWorldBorderSize(PacketSendEvent event) {
+        player.sendTransaction();
+        double size = new WrapperPlayServerWorldBorderSize(event).getDiameter();
+        player.addRealTimeTaskNow(() -> setSize(size));
+    }
+
+    private void onWorldBorderLerpSize(PacketSendEvent event) {
+        player.sendTransaction();
+        WrapperPlayWorldBorderLerpSize packet = new WrapperPlayWorldBorderLerpSize(event);
+        double oldDiameter = packet.getOldDiameter();
+        double newDiameter = packet.getNewDiameter();
+        long speed = packet.getSpeed();
+        player.addRealTimeTaskNow(() -> setLerp(oldDiameter, newDiameter, speed));
     }
 
     @Contract(mutates = "this")

@@ -4,6 +4,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -49,8 +50,8 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
             // Since 1.21.2, the server will instead send these changes via block change packets
@@ -66,7 +67,7 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
                 event.getTasksAfterSend().add(player::sendTransaction);
             }
-        }
+        }, PacketType.Play.Server.EXPLOSION);
     }
 
     private void handleBlockExplosions(WrapperPlayServerExplosion explosion) {

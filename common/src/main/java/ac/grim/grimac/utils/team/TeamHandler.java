@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.team;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -10,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTe
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -42,8 +44,8 @@ public class TeamHandler extends Check implements PacketSendListener {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.TEAMS) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
             final String teamName = teams.getTeamName();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -61,6 +63,6 @@ public class TeamHandler extends Check implements PacketSendListener {
                     entityTeam.update(teams);
                 }
             });
-        }
+        }, PacketType.Play.Server.TEAMS);
     }
 }

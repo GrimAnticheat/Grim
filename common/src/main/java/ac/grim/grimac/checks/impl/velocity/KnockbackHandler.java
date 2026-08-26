@@ -4,6 +4,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -44,8 +45,8 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 
@@ -75,7 +76,7 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
             player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
             event.getTasksAfterSend().add(player::sendTransaction);
-        }
+        }, PacketType.Play.Server.ENTITY_VELOCITY);
     }
 
     @NotNull

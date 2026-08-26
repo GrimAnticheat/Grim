@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -34,6 +35,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -311,166 +313,173 @@ public class CompensatedInventory extends Check implements PacketReceiveListener
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
-        // For example, we don't need permanent storage, only storing data until the client closes the window
-        // We also don't need a lot of server-sided only logic
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
-            WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
+        registry.registerHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
+        registry.registerHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);
+        registry.registerHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
+        registry.registerHandler(this::onSetPlayerInventory, PacketType.Play.Server.SET_PLAYER_INVENTORY);
+        registry.registerHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
+    }
 
-            MenuType menuType = MenuType.getMenuType(open.getType());
+    // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
+    // For example, we don't need permanent storage, only storing data until the client closes the window
+    // We also don't need a lot of server-sided only logic
+    private void onOpenWindow(final PacketSendEvent event) {
+        WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
-            AbstractContainerMenu newMenu;
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
-                newMenu = MenuType.getMenuFromID(player, inventory, menuType);
-            } else {
-                newMenu = MenuType.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
+        MenuType menuType = MenuType.getMenuType(open.getType());
+
+        AbstractContainerMenu newMenu;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+            newMenu = MenuType.getMenuFromID(player, inventory, menuType);
+        } else {
+            newMenu = MenuType.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
+        }
+
+        packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? UNSUPPORTED_INVENTORY_CASE : newMenu.getSlots().size();
+
+        // There doesn't seem to be a check against using 0 as the window ID - let's consider that an invalid packet
+        // It will probably mess up a TON of logic both client and server sided, so don't do that!
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            openWindowID = open.getContainerId();
+            menu = newMenu;
+            isPacketInventoryActive = !(newMenu instanceof NotImplementedMenu);
+            needResend = newMenu instanceof NotImplementedMenu;
+        });
+    }
+
+    // I'm not implementing this lol
+    private void onOpenHorseWindow(final PacketSendEvent event) {
+        WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
+
+        packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            isPacketInventoryActive = false;
+            needResend = true;
+            openWindowID = open.getWindowId();
+        });
+    }
+
+    // 1:1 MCP
+    private void onCloseWindow(final PacketSendEvent event) {
+        packetSendingInventorySize = PLAYER_INVENTORY_CASE;
+
+        // Disregard provided window ID, client doesn't care...
+        // We need to do this because the client doesn't send a packet when closing the window
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), this::closeActiveInventory);
+    }
+
+    // Should be 1:1 MCP
+    private void onWindowItems(final PacketSendEvent event) {
+        WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
+        stateID = items.getStateId();
+
+        List<ItemStack> slots = items.getItems();
+        for (int i = 0; i < slots.size(); i++) {
+            markServerForChangingSlot(i, items.getWindowId());
+        }
+
+        final int cachedPacketInvSize = packetSendingInventorySize;
+        final AtomicBoolean updatedValue = new AtomicBoolean();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            // Never true when the inventory is unsupported.
+            // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
+            // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
+            // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
+            // Regardless, the client does accept this packet and updates its inventory, so we must do the same.
+            boolean forceUpdate = slots.size() == cachedPacketInvSize || items.getWindowId() == 0;
+            if (!isPacketInventoryActive && forceUpdate) {
+                isPacketInventoryActive = true;
+                updatedValue.set(true);
             }
+        });
 
-            packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? UNSUPPORTED_INVENTORY_CASE : newMenu.getSlots().size();
-
-            // There doesn't seem to be a check against using 0 as the window ID - let's consider that an invalid packet
-            // It will probably mess up a TON of logic both client and server sided, so don't do that!
+        if (items.getWindowId() == 0) { // Player inventory
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                openWindowID = open.getContainerId();
-                menu = newMenu;
-                isPacketInventoryActive = !(newMenu instanceof NotImplementedMenu);
-                needResend = newMenu instanceof NotImplementedMenu;
-            });
-        }
-
-        // I'm not implementing this lol
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-            WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
-
-            packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                isPacketInventoryActive = false;
-                needResend = true;
-                openWindowID = open.getWindowId();
-            });
-        }
-
-        // 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
-            packetSendingInventorySize = PLAYER_INVENTORY_CASE;
-
-            // Disregard provided window ID, client doesn't care...
-            // We need to do this because the client doesn't send a packet when closing the window
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), this::closeActiveInventory);
-        }
-
-        // Should be 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
-            WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
-            stateID = items.getStateId();
-
-            List<ItemStack> slots = items.getItems();
-            for (int i = 0; i < slots.size(); i++) {
-                markServerForChangingSlot(i, items.getWindowId());
-            }
-
-            final int cachedPacketInvSize = packetSendingInventorySize;
-            final AtomicBoolean updatedValue = new AtomicBoolean();
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                // Never true when the inventory is unsupported.
-                // Vanilla ALWAYS sends the entire inventory to resync, this is a valid thing to check
-                // 01/07/2025: Somehow, the server sends a window id 0 update when the player is not in their inventory?
-                // I guess just revert isPacketInventoryActive if the player has a NotImplementedMenu open?
-                // Regardless, the client does accept this packet and updates its inventory, so we must do the same.
-                boolean forceUpdate = slots.size() == cachedPacketInvSize || items.getWindowId() == 0;
-                if (!isPacketInventoryActive && forceUpdate) {
-                    isPacketInventoryActive = true;
-                    updatedValue.set(true);
+                if (!isPacketInventoryActive) return;
+                for (int i = 0; i < slots.size(); i++) {
+                    inventory.getSlot(i).set(slots.get(i));
+                }
+                if (items.getCarriedItem().isPresent()) {
+                    inventory.setCarried(items.getCarriedItem().get());
                 }
             });
-
-            if (items.getWindowId() == 0) { // Player inventory
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (!isPacketInventoryActive) return;
+        } else {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                if (!isPacketInventoryActive) return;
+                if (items.getWindowId() == openWindowID) {
                     for (int i = 0; i < slots.size(); i++) {
-                        inventory.getSlot(i).set(slots.get(i));
+                        menu.getSlot(i).set(slots.get(i));
                     }
-                    if (items.getCarriedItem().isPresent()) {
-                        inventory.setCarried(items.getCarriedItem().get());
-                    }
-                });
-            } else {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (!isPacketInventoryActive) return;
-                    if (items.getWindowId() == openWindowID) {
-                        for (int i = 0; i < slots.size(); i++) {
-                            menu.getSlot(i).set(slots.get(i));
-                        }
-                    }
-                    if (items.getCarriedItem().isPresent()) {
-                        inventory.setCarried(items.getCarriedItem().get());
-                    }
-                });
-            }
-
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                // The server sent a packet for the player's inventory when they had another inventory open - revert.
-                if (updatedValue.get() && !menu.equals(inventory)) {
-                    isPacketInventoryActive = false;
+                }
+                if (items.getCarriedItem().isPresent()) {
+                    inventory.setCarried(items.getCarriedItem().get());
                 }
             });
         }
 
-        // This packet replaces SET_SLOT for player inventory for 1.21.2+
-        if (event.getPacketType() == PacketType.Play.Server.SET_PLAYER_INVENTORY) {
-            WrapperPlayServerSetPlayerInventory slot = new WrapperPlayServerSetPlayerInventory(event);
-            final int slotID = slot.getSlot();
-            final ItemStack item = slot.getStack();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            // The server sent a packet for the player's inventory when they had another inventory open - revert.
+            if (updatedValue.get() && !menu.equals(inventory)) {
+                isPacketInventoryActive = false;
+            }
+        });
+    }
 
+    // This packet replaces SET_SLOT for player inventory for 1.21.2+
+    private void onSetPlayerInventory(final PacketSendEvent event) {
+        WrapperPlayServerSetPlayerInventory slot = new WrapperPlayServerSetPlayerInventory(event);
+        final int slotID = slot.getSlot();
+        final ItemStack item = slot.getStack();
+
+        inventory.getInventoryStorage().handleServerCorrectSlot(slotID);
+
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            if (!isPacketInventoryActive) return;
+            inventory.getSlot(slotID).set(item);
+        });
+    }
+
+    // Also 1:1 MCP
+    private void onSetSlot(final PacketSendEvent event) {
+        // Only edit hotbar (36 to 44) if window ID is 0
+        // Set cursor by putting -1 as window ID and as slot
+        // Window ID -2 means any slot can be used
+        WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
+        final int slotID = slot.getSlot();
+        final int inventoryID = slot.getWindowId();
+        final ItemStack item = slot.getItem();
+
+        if (inventoryID == -2) { // Direct inventory change
             inventory.getInventoryStorage().handleServerCorrectSlot(slotID);
-
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                if (!isPacketInventoryActive) return;
-                inventory.getSlot(slotID).set(item);
-            });
+        } else if (inventoryID == 0) { // Inventory change through window ID, no crafting result
+            inventory.getInventoryStorage().handleServerCorrectSlot(slotID);
+        } else {
+            markServerForChangingSlot(slotID, inventoryID);
         }
 
-        // Also 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
-            // Only edit hotbar (36 to 44) if window ID is 0
-            // Set cursor by putting -1 as window ID and as slot
-            // Window ID -2 means any slot can be used
-            WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
-            final int slotID = slot.getSlot();
-            final int inventoryID = slot.getWindowId();
-            final ItemStack item = slot.getItem();
+        stateID = slot.getStateId();
 
-            if (inventoryID == -2) { // Direct inventory change
-                inventory.getInventoryStorage().handleServerCorrectSlot(slotID);
-            } else if (inventoryID == 0) { // Inventory change through window ID, no crafting result
-                inventory.getInventoryStorage().handleServerCorrectSlot(slotID);
-            } else {
-                markServerForChangingSlot(slotID, inventoryID);
-            }
-
-            stateID = slot.getStateId();
-
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                if (!isPacketInventoryActive) return;
-                if (inventoryID == -1) { // Carried item
-                    inventory.setCarried(item);
-                } else if (inventoryID == -2) { // Direct inventory change (only applied if valid slot)
-                    if (inventory.getInventoryStorage().getSize() > slotID && slotID >= 0) {
-                        inventory.getInventoryStorage().setItem(slotID, item);
-                    }
-                } else if (inventoryID == 0) { // Player inventory
-                    // This packet can only be used to edit the hotbar and offhand of the player's inventory if
-                    // window ID is set to 0 (slots 36 through 45) if the player is in creative, with their inventory open,
-                    // and not in their survival inventory tab. Otherwise, when window ID is 0, it can edit any slot in the player's inventory.
-                    if (slotID >= 0 && slotID <= 45) {
-                        inventory.getSlot(slotID).set(item);
-                    }
-                } else if (inventoryID == openWindowID) { // Opened inventory (if not valid, client crashes)
-                    menu.getSlot(slotID).set(item);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            if (!isPacketInventoryActive) return;
+            if (inventoryID == -1) { // Carried item
+                inventory.setCarried(item);
+            } else if (inventoryID == -2) { // Direct inventory change (only applied if valid slot)
+                if (inventory.getInventoryStorage().getSize() > slotID && slotID >= 0) {
+                    inventory.getInventoryStorage().setItem(slotID, item);
                 }
-            });
-        }
+            } else if (inventoryID == 0) { // Player inventory
+                // This packet can only be used to edit the hotbar and offhand of the player's inventory if
+                // window ID is set to 0 (slots 36 through 45) if the player is in creative, with their inventory open,
+                // and not in their survival inventory tab. Otherwise, when window ID is 0, it can edit any slot in the player's inventory.
+                if (slotID >= 0 && slotID <= 45) {
+                    inventory.getSlot(slotID).set(item);
+                }
+            } else if (inventoryID == openWindowID) { // Opened inventory (if not valid, client crashes)
+                menu.getSlot(slotID).set(item);
+            }
+        });
     }
 
     /**

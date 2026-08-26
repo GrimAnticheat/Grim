@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -33,8 +34,8 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ABILITIES) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
             player.sendTransaction();
 
@@ -55,8 +56,7 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
                 player.canFly = abilities.isFlightAllowed();
                 player.isFlying = abilities.isFlying();
             });
-
-        }
+        }, PacketType.Play.Server.PLAYER_ABILITIES);
     }
 
     @Override

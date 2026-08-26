@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
@@ -12,6 +13,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBundle;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_response_order", description = "Responded to chunk batch packets in an invalid transaction order", experimental = true)
 public class PacketOrderP extends Check implements PacketReceiveListener, PacketSendListener {
@@ -38,8 +40,9 @@ public class PacketOrderP extends Check implements PacketReceiveListener, Packet
         }
     }
 
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.CHUNK_BATCH_END) {
+    @Override
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             boolean sendingBundlePacket = player.packetStateData.sendingBundlePacket;
             if (!sendingBundlePacket) player.user.sendPacket(new WrapperPlayServerBundle());
 
@@ -56,6 +59,6 @@ public class PacketOrderP extends Check implements PacketReceiveListener, Packet
             if (!sendingBundlePacket) {
                 event.getTasksAfterSend().add(() -> player.user.sendPacket(new WrapperPlayServerBundle()));
             }
-        }
+        }, PacketType.Play.Server.CHUNK_BATCH_END);
     }
 }

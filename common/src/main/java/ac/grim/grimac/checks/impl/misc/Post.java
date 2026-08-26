@@ -3,9 +3,9 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
-import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -19,6 +19,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -60,8 +61,8 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
+    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+        registry.registerHandler(event -> {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
             if (animation.getEntityId() == player.entityID) {
                 if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
@@ -69,7 +70,7 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
                     isExemptFromSwingingCheck = player.lastTransactionSent.get();
                 }
             }
-        }
+        }, PacketType.Play.Server.ENTITY_ANIMATION);
     }
 
     @Override
