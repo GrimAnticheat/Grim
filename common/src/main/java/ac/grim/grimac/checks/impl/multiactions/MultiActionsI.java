@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "MultiActionsI", stableKey = "grim.multiactions.inventory_attack", description = "Interacted with an entity while in an inventory", experimental = true)
 public class MultiActionsI extends Check implements PreViaPacketReceiveListener {
@@ -17,7 +18,7 @@ public class MultiActionsI extends Check implements PreViaPacketReceiveListener 
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(@NotNull PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
                 || event.getPacketType() == PacketType.Play.Client.ATTACK
                 || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY

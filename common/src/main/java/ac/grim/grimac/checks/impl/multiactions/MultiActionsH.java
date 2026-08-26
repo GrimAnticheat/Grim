@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
-import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 // This can false in 1.8 due to the twitch button. I don't care; nobody uses it.
 // Separate from MultiActionsC because that cancels the clicks, this can't.
 @CheckData(name = "MultiActionsH", stableKey = "grim.multiactions.inventory_move", description = "Moving while in an inventory", experimental = true)
-public class MultiActionsH extends BlockPlaceCheck implements PreViaPacketReceiveListener, PostPredictionListener {
+public class MultiActionsH extends Check implements PreViaPacketReceiveListener, PostPredictionListener {
 
     public boolean vehicleJumping;
 
