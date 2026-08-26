@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import lombok.Getter;
@@ -56,6 +57,10 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
             }
         } else if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             onClientOpenOrCloseWindow(false);
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            if (player.pointThreeEstimator.isNearPortal && player.getClientVersion().isOlderThan(ClientVersion.V_1_12_2) && !player.inVehicle()) {
+                maybeClose();
+            }
         }
     }
 
