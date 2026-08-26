@@ -316,7 +316,11 @@ public class Check extends GrimProcessor implements AbstractCheck {
     public boolean canCancel(DiggingAction action) {
         return action != DiggingAction.RELEASE_USE_ITEM
                 // we check client version here because 1.8- doesn't predict dropping items, so we can cancel them. (see CompensatedInventory)
-                && (action != DiggingAction.DROP_ITEM && action != DiggingAction.DROP_ITEM_STACK || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8));
+                && (!isDrop(action) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8));
+    }
+
+    public static boolean isDrop(DiggingAction action) {
+        return action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK;
     }
 
     private static @NotNull Supplier<String> constant(String verbose) {
