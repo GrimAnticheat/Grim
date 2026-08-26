@@ -133,7 +133,6 @@ public class GrimPlayer implements GrimUser {
     private long transactionPing;
     public long lastTransSent;
     public long lastTransReceived;
-    @Getter
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing;
     public boolean canSwimHop;
@@ -726,6 +725,13 @@ public class GrimPlayer implements GrimUser {
     public int getKeepAlivePing() {
         if (platformPlayer == null) return -1;
         return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
+    }
+
+    public long getPlayerClockAtLeast() {
+        if (lastTransactionSent.get() == 0) {
+            playerClockAtLeast = System.nanoTime();
+        }
+        return playerClockAtLeast;
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
