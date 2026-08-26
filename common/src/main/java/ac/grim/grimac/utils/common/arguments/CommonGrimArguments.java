@@ -37,4 +37,14 @@ public class CommonGrimArguments {
      */
     public final static SystemArgument<Boolean> KICK_ON_VIA_PROXY = FACTORY.create(string("KickOnViaProxy", true));
 
+    /**
+     * If true, a warning is logged whenever a player connects through a proxy running ViaVersion.
+     * <p>
+     * The warning repeats for every player who joins, so a server that has read it and decided to
+     * keep ViaVersion on its proxy has nothing further to learn from it.
+     * <p>
+     * This setting is opt-out (default: true) and requires a server restart to change.
+     */
+    public final static SystemArgument<Boolean> WARN_ON_VIA_PROXY = FACTORY.create(string("WarnOnViaProxy", true));
+
 }

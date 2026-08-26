@@ -26,7 +26,7 @@ public class MultiActionsC extends Check implements PacketReceiveListener {
 
     @Contract(pure = true)
     public static boolean isVerboseSneaking(@NotNull GrimPlayer player) {
-        return player.isSneaking && player.getClientVersion().isOlderThan(ClientVersion.V_1_15);
+        return player.isSneaking && (player.getClientVersion().isOlderThan(ClientVersion.V_1_15) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_9));
     }
 
     @Contract(pure = true)

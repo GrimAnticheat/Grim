@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "BadPacketsZ", stableKey = "grim.badpackets.duplicate_player_input", description = "Sent duplicate player input packets in the same client tick", experimental = true)
 public class BadPacketsZ extends Check implements PreViaPacketReceiveListener {
@@ -13,6 +14,11 @@ public class BadPacketsZ extends Check implements PreViaPacketReceiveListener {
 
     public BadPacketsZ(GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2);
     }
 
     @Override
