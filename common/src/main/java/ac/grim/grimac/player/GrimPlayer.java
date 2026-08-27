@@ -856,10 +856,8 @@ public class GrimPlayer implements GrimUser {
         return equippable.isPresent() && equippable.get().getSlot() == slot;
     }
 
-    public void resyncPose() {
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && platformPlayer != null) {
-            platformPlayer.setSneaking(!platformPlayer.isSneaking());
-        }
+    public void resyncGlidingState() {
+        if (platformPlayer != null) platformPlayer.resyncSharedFlags();
     }
 
     public boolean canPlaceGameMasterBlocks() {
