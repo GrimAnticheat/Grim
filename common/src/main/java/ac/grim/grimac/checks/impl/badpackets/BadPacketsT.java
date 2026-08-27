@@ -51,6 +51,9 @@ public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
             final PacketEntity entity = player.compensatedEntities.getEntity(wrapper.getEntityId());
             if (entity == null) return;
 
+            // the entity doesn't exist on the player's client version
+            if (entity.getType().getId(player.getClientVersion()) == -1) return;
+
             final float scale = (float) entity.getAttributeValue(Attributes.SCALE);
             final float height = BoundingBoxSize.getHeight(player, entity) * scale;
             final float width = BoundingBoxSize.getWidth(player, entity) * scale;
