@@ -64,11 +64,11 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     @Getter
     private ItemStack startOfTickStack = ItemStack.EMPTY;
 
-    public CompensatedInventory(GrimPlayer playerData) {
-        super(playerData);
+    public CompensatedInventory(GrimPlayer player) {
+        super(player);
 
         CorrectingPlayerInventoryStorage storage = new CorrectingPlayerInventoryStorage(player, 46);
-        inventory = new Inventory(playerData, storage);
+        inventory = new Inventory(player, storage);
 
         menu = inventory;
     }

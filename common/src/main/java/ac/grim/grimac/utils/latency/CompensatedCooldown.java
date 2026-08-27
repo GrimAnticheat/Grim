@@ -26,8 +26,8 @@ public class CompensatedCooldown extends GrimProcessor implements PositionListen
 
     private final ConcurrentHashMap<ResourceLocation, CooldownData> itemCooldownMap = new ConcurrentHashMap<>();
 
-    public CompensatedCooldown(GrimPlayer playerData) {
-        super(playerData);
+    public CompensatedCooldown(GrimPlayer player) {
+        super(player);
     }
 
     @Override

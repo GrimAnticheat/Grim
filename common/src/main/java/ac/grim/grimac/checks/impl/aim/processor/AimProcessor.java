@@ -23,8 +23,8 @@ public class AimProcessor extends GrimProcessor implements RotationListener {
     private float lastXRot;
     private float lastYRot;
 
-    public AimProcessor(GrimPlayer playerData) {
-        super(playerData);
+    public AimProcessor(GrimPlayer player) {
+        super(player);
     }
 
     public static double convertToSensitivity(double var13) {

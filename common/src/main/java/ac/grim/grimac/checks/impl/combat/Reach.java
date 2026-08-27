@@ -234,7 +234,7 @@ public class Reach extends Check implements PacketReceiveListener {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> flag(
-                        V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
+                        V.write(verbose()).f64(result.minDistance()).uint(Math.max(0, reachEntity.getType().getId(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()))),
                         () -> {
                             String added = ", type=" + reachEntity.getType().getName().getKey();
                             if (reachEntity instanceof PacketEntitySizeable sizeable) {

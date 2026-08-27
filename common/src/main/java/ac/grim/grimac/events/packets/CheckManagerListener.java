@@ -43,12 +43,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAc
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Predicate;
-
 public class CheckManagerListener extends PacketListenerAbstract {
-
-    // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
-    private static final Predicate<StateType> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -761,6 +756,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.packetStateData.horseInteractCausedForcedRotation = false;
     }
 
+    // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
+    private static boolean isBreakable(@NotNull StateType type) {
+        return !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
+    }
+
     private static void handleDigging(GrimPlayer player, PacketReceiveEvent event) {
         player.lastBlockBreak = System.currentTimeMillis();
 
@@ -786,7 +786,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.queuedBreaks.add(blockBreak);
 
-        if (action == DiggingAction.FINISHED_DIGGING && BREAKABLE.test(blockBreak.block.getType())) {
+        if (action == DiggingAction.FINISHED_DIGGING && isBreakable(blockBreak.block.getType())) {
             player.compensatedWorld.startPredicting();
             player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
             player.compensatedWorld.stopPredicting(packet);

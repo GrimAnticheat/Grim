@@ -170,7 +170,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
         int range = 16;
 
-        final var blocks = multiBlockChange.getBlocks();
+        final WrapperPlayServerMultiBlockChange.EncodedBlock[] blocks = multiBlockChange.getBlocks();
         for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : blocks) {
             // Don't send a transaction unless it's within 16 blocks of the player
             if (Math.abs(blockChange.getX() - player.x) < range && Math.abs(blockChange.getY() - player.y) < range && Math.abs(blockChange.getZ() - player.z) < range && player.lastTransSent + 2 < System.currentTimeMillis()) {

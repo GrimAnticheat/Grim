@@ -69,6 +69,7 @@ dependencies {
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
     api(libs.hikaricp)
+    runtimeOnly(libs.slf4j.jdk14)
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
