@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PacketEntityReplication extends Check implements PacketReceiveListener, PacketSendListener {
+public class PacketEntityReplication extends GrimProcessor implements PacketReceiveListener, PacketSendListener {
 
     private final AtomicBoolean hasSentPreWavePacket = new AtomicBoolean(true);
 

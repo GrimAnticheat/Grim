@@ -66,7 +66,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         break;
                     }
 
-                    player.checkManager.getCheck(ElytraA.class).onStartGliding(event);
+                    player.checkManager.get(ElytraA.class).onStartGliding(event);
 
                     // Starting fall flying is server sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
