@@ -949,12 +949,12 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public double getHorizontalSensitivity() {
-        return checkManager.get(AimProcessor.class).sensitivityX;
+        return checkManager.get(AimProcessor.class).sensitivityYaw;
     }
 
     @Override
     public double getVerticalSensitivity() {
-        return checkManager.get(AimProcessor.class).sensitivityY;
+        return checkManager.get(AimProcessor.class).sensitivityPitch;
     }
 
     @Override
