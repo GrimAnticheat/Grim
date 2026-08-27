@@ -130,7 +130,7 @@ public class CheckManager {
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))
                 .put(BadPacketsS.class, new BadPacketsS(player))
-                .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(InvalidInteractCursor.class, new InvalidInteractCursor(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
@@ -200,8 +200,8 @@ public class CheckManager {
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
                 .put(LastInstanceManager.class, player.lastInstanceManager)
 
-                .put(InvalidPlaceA.class, new InvalidPlaceA(player))
-                .put(InvalidPlaceB.class, new InvalidPlaceB(player))
+                .put(InvalidPlaceCursor.class, new InvalidPlaceCursor(player))
+                .put(InvalidPlaceFace.class, new InvalidPlaceFace(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(MultiPlace.class, new MultiPlace(player))
                 .put(MultiActionsF.class, new MultiActionsF(player))
@@ -240,7 +240,7 @@ public class CheckManager {
                 // BadPacketsB/N/W, VehicleC, and TransactionOrder are packet checks with no listener
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
-                .put(BadPacketsW.class, new BadPacketsW(player))
+                .put(InvalidInteractTarget.class, new InvalidInteractTarget(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(VehicleC.class, new VehicleC(player))
                 .put(Hitboxes.class, new Hitboxes(player)) // Hitboxes is invoked by Reach
