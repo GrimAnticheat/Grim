@@ -22,12 +22,13 @@ import java.util.function.Supplier;
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
     private static final FlagEvent.Channel FLAG_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(FlagEvent.class);
+    private static final ThreadLocal<VerboseBuf> VERBOSE = ThreadLocal.withInitial(VerboseBuf::new);
 
     // violations
     public double violations;
     private long lastViolationTime;
     private boolean lastFlagStoredBinaryVerbose;
-    private final VerboseBuf verbose = new VerboseBuf();
+    private final VerboseBuf verbose = VERBOSE.get();
 
     // check data
     private final @Nullable String checkName;
