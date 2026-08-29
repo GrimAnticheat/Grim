@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.worldborder.BorderExtent;
@@ -21,7 +21,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class PacketWorldBorder extends Check implements PacketSendListener {
+public class PacketWorldBorder extends GrimProcessor implements PacketSendListener {
     private static final boolean SERVER_TICK_BASED = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
 
     @Getter
