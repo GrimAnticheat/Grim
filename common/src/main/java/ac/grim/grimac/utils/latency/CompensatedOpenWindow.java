@@ -31,8 +31,8 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
 
     private static final Window PLAYER_INVENTORY = new Window(0, Long.MIN_VALUE, null);
 
-    private final HashSet<Window> possibleOpenWindows = new HashSet<>(2);
-    private final boolean clientSendsOpenInventoryPacket = player.getClientVersion().isOlderThan(ClientVersion.V_1_12);
+    private final HashSet<@Nullable Window> possibleOpenWindows = new HashSet<>(2);
+    public final boolean clientSendsOpenInventoryPacket = player.getClientVersion().isOlderThan(ClientVersion.V_1_12);
     private long openPlayerInventoryTransaction = Long.MIN_VALUE;
     private long closeTransaction = Long.MIN_VALUE;
     @Getter
@@ -169,7 +169,7 @@ public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveL
         return true;
     }
 
-    public Set<Window> getPossibilities() {
+    public Set<@Nullable Window> getPossibilities() {
         return new HashSet<>(possibleOpenWindows);
     }
 

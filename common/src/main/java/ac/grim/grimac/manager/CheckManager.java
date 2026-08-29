@@ -134,6 +134,7 @@ public class CheckManager implements BasicReloadable {
                 .put(InvalidInteractCursor.class, new InvalidInteractCursor(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
+                .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
