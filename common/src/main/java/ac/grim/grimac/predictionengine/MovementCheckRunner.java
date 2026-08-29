@@ -1,7 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.impl.vehicle.VehicleC;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
@@ -52,7 +52,7 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.jetbrains.annotations.NotNull;
 
-public class MovementCheckRunner extends Check {
+public class MovementCheckRunner extends GrimProcessor {
     // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
     public static double predictionNanos = 0.3 * 1e6;
     // Averaged over 20000 predictions
@@ -136,7 +136,7 @@ public class MovementCheckRunner extends Check {
         // Manually call prediction complete to handle teleport
         PredictionComplete predictionComplete = new PredictionComplete(0, update, true);
         player.getSetbackTeleportUtil().onPredictionComplete(predictionComplete);
-        player.checkManager.getCheck(Phase.class).onPredictionComplete(predictionComplete);
+        player.checkManager.get(Phase.class).onPredictionComplete(predictionComplete);
 
         player.uncertaintyHandler.lastHorizontalOffset = 0;
         player.uncertaintyHandler.lastVerticalOffset = 0;
@@ -296,7 +296,7 @@ public class MovementCheckRunner extends Check {
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             if (riding instanceof PacketEntityRideable) {
-                VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
+                VehicleC vehicleC = player.checkManager.get(VehicleC.class);
 
                 ItemType requiredItem = riding.getType() == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.inventory.getHeldItem();

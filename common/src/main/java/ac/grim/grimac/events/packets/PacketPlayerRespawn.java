@@ -101,7 +101,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (health.getHealth() <= 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     player.compensatedEntities.self.isDead = true;
-                    player.checkManager.getCheck(BadPacketsM.class).onDeath();
+                    player.checkManager.get(BadPacketsM.class).onDeath();
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.self.isDead = false);
@@ -170,7 +170,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity.zero();
 
-                player.checkManager.getCheck(BadPacketsM.class).onRespawn();
+                player.checkManager.get(BadPacketsM.class).onRespawn();
 
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 
@@ -180,7 +180,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedEntities.self.hasGravity = true;
                     player.playerEntityHasGravity = true;
                     player.packetStateData.knownInput = KnownInput.DEFAULT;
-                    player.checkManager.getCheck(ElytraC.class).exempt = true;
+                    player.checkManager.get(ElytraC.class).exempt = true;
 
                     // 1.19.4 uses current sprinting, older versions use last sprinting
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
@@ -191,12 +191,12 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     }
                 }
 
-                player.checkManager.getCheck(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
-                player.checkManager.getCheck(BadPacketsG.class).handleRespawn();
+                player.checkManager.get(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
+                player.checkManager.get(BadPacketsG.class).handleRespawn();
 
                 // compensate for immediate respawn gamerule
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-                    player.checkManager.getCheck(BadPacketsF.class).exemptNext = true;
+                    player.checkManager.get(BadPacketsF.class).exemptNext = true;
                 }
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
@@ -208,7 +208,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.clearPredictions();
                     player.compensatedGeysers.clear();
                     player.compensatedWorld.isRaining = false;
-                    player.checkManager.getCheck(BadPacketsH.class).onWorldChange();
+                    player.checkManager.get(BadPacketsH.class).onWorldChange();
                 }
                 player.dimensionType = respawn.getDimensionType();
                 player.worldName = respawn.getWorldName().orElse(null);
@@ -223,7 +223,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
                     player.vehicleData.camelSprintingState = SprintingState.STOPPED;
-                    player.checkManager.getCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
+                    player.checkManager.get(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
                     // The server doesn't even use it... what do we do?
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;

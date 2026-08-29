@@ -1,31 +1,25 @@
 package ac.grim.grimac.utils.anticheat.update;
 
-import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
-import ac.grim.grimac.utils.data.HeadRotation;
-import lombok.Getter;
-import lombok.Setter;
+import org.jetbrains.annotations.Contract;
 
-@Getter
-@Setter
-public final class RotationUpdate {
-    private HeadRotation from, to;
-    private AimProcessor processor;
-    private float deltaYRot, deltaXRot;
-    private boolean isCinematic;
-    private double sensitivityX, sensitivityY;
-
-    public RotationUpdate(HeadRotation from, HeadRotation to, float deltaXRot, float deltaYRot) {
-        this.from = from;
-        this.to = to;
-        this.deltaXRot = deltaXRot;
-        this.deltaYRot = deltaYRot;
+public record RotationUpdate(float oldYaw, float oldPitch, float newYaw, float newPitch) {
+    @Contract(pure = true)
+    public float deltaYaw() {
+        return newYaw() - oldYaw();
     }
 
-    public float getDeltaXRotABS() {
-        return Math.abs(deltaXRot);
+    @Contract(pure = true)
+    public float deltaPitch() {
+        return newPitch() - oldPitch();
     }
 
-    public float getDeltaYRotABS() {
-        return Math.abs(deltaYRot);
+    @Contract(pure = true)
+    public float deltaYawABS() {
+        return Math.abs(deltaYaw());
+    }
+
+    @Contract(pure = true)
+    public float deltaPitchABS() {
+        return Math.abs(deltaPitch());
     }
 }

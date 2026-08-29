@@ -87,6 +87,9 @@ public class PacketPingListener extends PacketListenerAbstract {
 
         player.packetStateData.lastServerTransWasValid = true;
         player.transactionsSent.add(new ShortToLongPair(shortId, System.nanoTime()));
+        if (player.getLastTransactionSent() == 0) {
+            player.getPlayerClockAtLeast(); // update clock
+        }
         player.lastTransactionSent.getAndIncrement();
         SEND_CHANNEL.fire(player, shortId, event.getTimestamp());
     }

@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -12,7 +12,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompensatedCameraEntity extends Check implements PreViaPacketSendListener {
+public class CompensatedCameraEntity extends GrimProcessor implements PreViaPacketSendListener {
     private final ArrayDeque<PacketEntity> entities = new ArrayDeque<>(1);
 
     public CompensatedCameraEntity(GrimPlayer player) {

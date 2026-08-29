@@ -12,7 +12,9 @@ import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -20,6 +22,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -27,12 +30,17 @@ import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPlayer {
 
     private static final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
+    private static final Consumer<@NotNull Player> resyncSharedFlags;
 
     @Getter
     private final Player bukkitPlayer;
@@ -68,13 +76,8 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public boolean isSneaking() {
-        return bukkitPlayer.isSneaking();
-    }
-
-    @Override
-    public void setSneaking(boolean isSneaking) {
-        bukkitPlayer.setSneaking(isSneaking);
+    public void resyncSharedFlags() {
+        resyncSharedFlags.accept(bukkitPlayer);
     }
 
     @Override
@@ -184,5 +187,86 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @NotNull
     public Player getNative() {
         return this.bukkitPlayer;
+    }
+
+    static {
+        final ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
+
+        try {
+            final String nmsPackage;
+
+            Class<?> CraftEntity = ReflectionUtils.getClass("org.bukkit.craftbukkit.entity.CraftEntity");
+            if (CraftEntity != null) {
+                nmsPackage = null;
+            } else {
+                nmsPackage = Bukkit.getServer().getClass().getPackageName().split("\\.")[3];
+                CraftEntity = Class.forName("org.bukkit.craftbukkit." + nmsPackage + ".entity.CraftEntity");
+            }
+
+            final Method getHandle = CraftEntity.getMethod("getHandle");
+            final Class<?> Entity = getHandle.getReturnType();
+
+            final Method getDataWatcher = Entity.getMethod(nmsPackage != null ? switch (nmsPackage) {
+                case "v1_8_R3", "v1_9_R1", "v1_9_R2", "v1_10_R1",
+                     "v1_11_R1", "v1_12_R1", "v1_13_R1", "v1_13_R2",
+                     "v1_14_R1", "v1_15_R1", "v1_16_R1", "v1_16_R2",
+                     "v1_16_R3", "v1_17_R1" -> "getDataWatcher";
+                case "v1_18_R1", "v1_18_R2", "v1_19_R1" -> "ai";
+                case "v1_19_R2", "v1_20_R2" -> "al";
+                case "v1_19_R3", "v1_20_R1" -> "aj";
+                case "v1_20_R3" -> "an";
+                case "v1_20_R4" -> "ap";
+                case "v1_21_R1", "v1_21_R4" -> "ar";
+                case "v1_21_R2", "v1_21_R3", "v1_21_R5" -> "au";
+                case "v1_21_R6" -> "aC";
+                case "v1_21_R7" -> "aD";
+                default -> throw new IllegalStateException("You are using an unsupported server version: " + nmsPackage + "/" + version.getReleaseName());
+            } : "getEntityData");
+
+            final Class<?> DataWatcher = getDataWatcher.getReturnType();
+
+            final Method markDirty;
+            final Object sharedFlagsId;
+
+            if (version.isOlderThan(ServerVersion.V_1_9)) {
+                markDirty = DataWatcher.getMethod("update", int.class);
+                sharedFlagsId = 0;
+            } else {
+                Field field = Entity.getDeclaredField(nmsPackage != null ? switch (nmsPackage) {
+                    case "v1_9_R1" -> "ax";
+                    case "v1_9_R2" -> "ay";
+                    case "v1_10_R1", "v1_18_R1" -> "aa";
+                    case "v1_11_R1", "v1_12_R1", "v1_17_R1",
+                         "v1_18_R2", "v1_19_R1", "v1_19_R2" -> "Z";
+                    case "v1_13_R1", "v1_13_R2" -> "ac";
+                    case "v1_14_R1" -> "W";
+                    case "v1_15_R1", "v1_16_R1" -> "T";
+                    case "v1_16_R2", "v1_16_R3" -> "S";
+                    case "v1_19_R3", "v1_20_R1" -> "an";
+                    case "v1_20_R2", "v1_20_R3" -> "ao";
+                    case "v1_20_R4", "v1_21_R1" -> "ap";
+                    case "v1_21_R2", "v1_21_R3", "v1_21_R4" -> "am";
+                    case "v1_21_R5" -> "az";
+                    case "v1_21_R6", "v1_21_R7" -> "aA";
+                    default -> throw new IllegalStateException("You are using an unsupported server version: " + nmsPackage + "/" + version.getReleaseName());
+                } : "DATA_SHARED_FLAGS_ID");
+                field.setAccessible(true);
+
+                markDirty = DataWatcher.getMethod("markDirty", field.getType());
+                sharedFlagsId = field.get(null);
+            }
+
+            resyncSharedFlags = player -> {
+                try {
+                    Object handle = getHandle.invoke(player);
+                    Object dataWatcher = getDataWatcher.invoke(handle);
+                    markDirty.invoke(dataWatcher, sharedFlagsId);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        } catch (Throwable t) {
+            throw t instanceof RuntimeException e ? e : new RuntimeException(t);
+        }
     }
 }

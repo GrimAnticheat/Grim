@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -15,7 +15,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-public final class PacketOrderProcessor extends Check implements PacketReceiveListener {
+public final class PacketOrderProcessor extends GrimProcessor implements PacketReceiveListener {
+
     public PacketOrderProcessor(final GrimPlayer player) {
         super(player);
     }
