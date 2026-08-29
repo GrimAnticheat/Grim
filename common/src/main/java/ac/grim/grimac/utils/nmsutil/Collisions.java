@@ -213,7 +213,7 @@ public final class Collisions {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-            PacketWorldBorder border = player.checkManager.getCheck(PacketWorldBorder.class);
+            PacketWorldBorder border = player.checkManager.get(PacketWorldBorder.class);
 
             double minX = Math.floor(border.getMinX());
             double minZ = Math.floor(border.getMinZ());

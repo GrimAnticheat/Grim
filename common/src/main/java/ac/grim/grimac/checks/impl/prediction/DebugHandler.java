@@ -103,7 +103,7 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
         }
 
         for (GrimPlayer listener : listeners) {
-            Component listenerPrefix = listener == getPlayer() ? Component.empty() : prefixComponent;
+            Component listenerPrefix = listener == player ? Component.empty() : prefixComponent;
             listener.sendMessage(listenerPrefix.append(p));
             listener.sendMessage(listenerPrefix.append(a));
             listener.sendMessage(listenerPrefix.append(o));

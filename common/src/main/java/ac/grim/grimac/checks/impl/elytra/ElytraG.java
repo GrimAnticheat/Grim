@@ -35,7 +35,7 @@ public class ElytraG extends Check implements PacketReceiveListener, PostPredict
             if (shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
-                player.resyncPose();
+                player.resyncGlidingState();
             }
         }
     }

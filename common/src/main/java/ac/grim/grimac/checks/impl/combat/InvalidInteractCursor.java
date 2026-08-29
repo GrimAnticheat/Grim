@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.badpackets;
+package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
@@ -17,15 +17,15 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target entity's hitbox")
-public class BadPacketsT extends Check implements PreViaPacketReceiveListener {
+@CheckData(name = "InvalidInteractCursor", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target entity's hitbox")
+public class InvalidInteractCursor extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of("{f64:%.5f}/{f64:%.5f}/{f64:%.5f}");
 
     // pre-1.9 expands hitboxes by 0.1 on all sides; this is not lenience, it is vanilla.
     // TODO: do we even need an epsilon?
     private final double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0.0;
 
-    public BadPacketsT(final GrimPlayer player) {
+    public InvalidInteractCursor(final GrimPlayer player) {
         super(player);
     }
 
