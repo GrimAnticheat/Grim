@@ -39,7 +39,7 @@ public class MultiActionsH extends Check implements PreViaPacketReceiveListener,
             return;
         }
 
-        boolean goodPrediction = !player.checkManager.getCheck(OffsetHandler.class).doesOffsetFlag(predictionComplete.getOffset())
+        boolean goodPrediction = !player.checkManager.get(OffsetHandler.class).doesOffsetFlag(predictionComplete.getOffset())
                 && predictionComplete.isChecked() || player.inVehicle();
 
         Vector3dm inputVec = player.predictedVelocity.input;

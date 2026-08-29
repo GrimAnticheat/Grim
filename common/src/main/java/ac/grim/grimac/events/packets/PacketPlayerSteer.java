@@ -38,7 +38,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             WrapperPlayClientSteerVehicle steer = new WrapperPlayClientSteerVehicle(event);
 
-            player.checkManager.getCheck(MultiActionsH.class).vehicleJumping = steer.isJump();
+            player.checkManager.get(MultiActionsH.class).vehicleJumping = steer.isJump();
             player.vehicleData.nextVehicleForward = steer.getForward();
             player.vehicleData.nextVehicleHorizontal = steer.getSideways();
 
