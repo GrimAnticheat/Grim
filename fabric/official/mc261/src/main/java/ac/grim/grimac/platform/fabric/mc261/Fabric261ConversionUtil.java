@@ -4,16 +4,18 @@ import ac.grim.grimac.platform.fabric.GrimACFabricOfficialLoaderPlugin;
 import ac.grim.grimac.platform.fabric.utils.convert.FabricOfficialConversionUtil;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -45,9 +47,10 @@ public class Fabric261ConversionUtil implements IFabricConversionUtil {
 
     @Override
     public Object toNativeText(Component component) {
+        JsonElement json = JsonParser.parseString(GsonComponentSerializer.gson().serialize(component));
         return ComponentSerialization.CODEC.decode(
                 RegistryAccess.EMPTY.createSerializationContext(JsonOps.INSTANCE),
-                GsonComponentSerializer.gson().serializeToTree(component)
+                json
         ).getOrThrow(IllegalArgumentException::new).getFirst();
     }
 
